@@ -42,9 +42,11 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     {
         "minimal_size"                        : 0.01,
         "maximal_size"                        : 1.0,
-        "divergencefree_strategy_parameters":
+        "refinement_strategy"                 : "maximum_strategy",
+        "maximum_strategy":
         {
             "target_divergencefree"               : 0.01,
+            "refinement_coefficient"              : 0.01,
             "reference_variable_name"             : "DIVERGENCE",
             "set_target_number_of_elements"       : false,
             "target_number_of_elements"           : 1000,
@@ -58,12 +60,16 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
+    mRefinementStrategy = ThisParameters["refinement_strategy"].GetString();
 
-    mReferenceVariable = ThisParameters["divergencefree_strategy_parameters"]["reference_variable_name"].GetString();
-    mSetElementNumber = ThisParameters["divergencefree_strategy_parameters"]["set_target_number_of_elements"].GetBool();
-    mElementNumber = ThisParameters["divergencefree_strategy_parameters"]["target_number_of_elements"].GetInt();
-    mTargetDivergenceFree = ThisParameters["divergencefree_strategy_parameters"]["target_divergencefree"].GetDouble();
-    mAverageNodalH = ThisParameters["divergencefree_strategy_parameters"]["perform_nodal_h_averaging"].GetBool();
+    // maximum_strategy
+    mReferenceVariable = ThisParameters["maximum_strategy"]["reference_variable_name"].GetString();
+    mSetElementNumber = ThisParameters["maximum_strategy"]["set_target_number_of_elements"].GetBool();
+    mRefinementCoefficient = ThisParameters["maximum_strategy"]["refinement_coefficient"].GetDouble();
+    mElementNumber = ThisParameters["maximum_strategy"]["target_number_of_elements"].GetInt();
+    mTargetDivergenceFree = ThisParameters["maximum_strategy"]["target_divergencefree"].GetDouble();
+    mAverageNodalH = ThisParameters["maximum_strategy"]["perform_nodal_h_averaging"].GetBool();
+    mDivergenceFreeMaxValue = -1;
 
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
@@ -83,31 +89,32 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
-    // // Ratio reference variable
-    // KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mReferenceVariable)) << "Variable " << mReferenceVariable << " is not a double variable" << std::endl;
-    // const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
-
     if (nodes_array.begin()->Has(tensor_variable) == false) {
         const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
 
-        // We iterate over the nodes
+        // Iteration over the nodes
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
             (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
     }
 
-    // Iteration over all nodes to find maximum value of divergence
-    const int num_nodes = static_cast<int>(nodes_array.size());
-    double divergencefree_max_value = -1;
-    const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = nodes_array.begin() + i_node;
-        const double divergencefree_node_value = abs(it_node->GetValue(r_reference_var));
-        if (divergencefree_node_value > divergencefree_max_value) {
-            divergencefree_max_value = divergencefree_node_value;
-        KRATOS_WATCH(divergencefree_max_value);
+    // Selection refinement strategy
+    if (mRefinementStrategy == "maximum_strategy") {
+        // Iteration over all nodes to find maximum value of divergence
+        const int num_nodes = static_cast<int>(nodes_array.size());
+        mDivergenceFreeMaxValue = -1;
+        const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
+        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto it_node = nodes_array.begin() + i_node;
+            const double divergencefree_node_value = abs(it_node->GetValue(r_reference_var));
+            if (divergencefree_node_value > mDivergenceFreeMaxValue) {
+                mDivergenceFreeMaxValue = divergencefree_node_value;
+            KRATOS_WATCH(mDivergenceFreeMaxValue);
+            }
         }
+
     }
+
 
 
 
@@ -115,7 +122,7 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
     // /******************************************************************************
     // --2-- Calculate metric (for each node) --2--
     // ******************************************************************************/
-    // CalculateMetric();
+    CalculateMetric();
 }
 
 /***********************************************************************************/
@@ -127,13 +134,6 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
     // Array of nodes
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
-    // We do a find of neighbours
-    {
-        FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
-        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-        find_neighbours.Execute();
-    }
-
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
@@ -141,43 +141,99 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
     const int num_nodes = static_cast<int>(nodes_array.size());
     KRATOS_DEBUG_ERROR_IF(num_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = nodes_array.begin() + i_node;
-        /**************************************************************************
-        ** Determine nodal element size h:
-        ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
-        ** if mAverageNodalH == false: the nodal element size is the minimum element size from neighboring elements
-        */
-        double h_min = 0.0;
-        auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-        for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
-            const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
-            if(mAverageNodalH == false) {
-                if(h_min == 0.0 || h_min > element_h)
-                    h_min = element_h;
-            } else {
-                h_min += element_h;
+    // Selection refinement strategy
+    if (mRefinementStrategy == "maximum_strategy") {
+
+        // Reference variable
+        const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
+
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto it_node = nodes_array.begin() + i_node;
+
+            // MinSize by default
+            double element_size = mMinSize;
+
+            // Estimate element size
+            const double nodal_h = it_node->GetValue(NODAL_H);
+
+            // Get divergence value on the node and set consequently the element size
+            const double divergencefree_node_value = abs(it_node->GetValue(r_reference_var));
+            if (divergencefree_node_value >= mRefinementCoefficient*mDivergenceFreeMaxValue) {
+                element_size = nodal_h/2;
             }
+            else {
+                element_size = nodal_h;
+            }
+
+            // Set metric
+            BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
+            for(IndexType i = 0;i < TDim; ++i)
+                metric_matrix(i,i) = 1.0/std::pow(element_size, 2);
+
+            // Transform metric matrix to a vector
+            const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+
+            // Setting value
+            it_node->SetValue(tensor_variable, metric);
+
+            KRATOS_INFO_IF("MetricDivergenceFreeProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
+
         }
-
-        // Average Nodal H
-        if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
-
-        // Set metric
-        BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
-        for(IndexType i = 0;i < TDim; ++i)
-            metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
-
-        // Transform metric matrix to a vector
-        const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
-
-        // Setting value
-        it_node->SetValue(tensor_variable, metric);
-
-        KRATOS_INFO_IF("MetricDivergenceFreeProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // #pragma omp parallel for
+    // for(int i_node = 0; i_node < num_nodes; ++i_node) {
+    //     auto it_node = nodes_array.begin() + i_node;
+    //     /**************************************************************************
+    //     ** Determine nodal element size h:
+    //     ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
+    //     ** if mAverageNodalH == false: the nodal element size is the minimum element size from neighboring elements
+    //     */
+    //     double h_min = 0.0;
+    //     auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+    //     for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
+    //         const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
+    //         if(mAverageNodalH == false) {
+    //             if(h_min == 0.0 || h_min > element_h)
+    //                 h_min = element_h;
+    //         } else {
+    //             h_min += element_h;
+    //         }
+    //     }
+
+    //     // Average Nodal H
+    //     if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
+
+    //     // Set metric
+    //     BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
+    //     for(IndexType i = 0;i < TDim; ++i)
+    //         metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
+
+    //     // Transform metric matrix to a vector
+    //     const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+
+    //     // Setting value
+    //     it_node->SetValue(tensor_variable, metric);
+
+    //     KRATOS_INFO_IF("MetricDivergenceFreeProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
+    // }
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/

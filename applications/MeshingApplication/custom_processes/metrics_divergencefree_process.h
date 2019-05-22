@@ -199,16 +199,19 @@ private:
 
     double mMinSize;           /// The minimal size of the elements
     double mMaxSize;           /// The maximal size of the elements
+    std::string mRefinementStrategy; /// Refinement strategy
 
     bool mSetElementNumber;    /// Determines if a target number of elements for the new mesh is set
-    std::string mReferenceVariable = "DISTANCE";    /// Variable used to compute the metric
+    std::string mReferenceVariable = "DIVERGENCE";    /// Variable used to compute the metric
     SizeType mElementNumber;   /// The target number of elements for the new mesh
     double mTargetDivergenceFree;       /// The overall target divergencefree for the new mesh
     bool mAverageNodalH;       /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
 
     SizeType mEchoLevel;       /// The echo level
 
-    double mDivergenceFreeMaxValue;
+    // Maximum refinement strategy
+    double mRefinementCoefficient; /// Refinement coefficient of maximum strategy
+    double mDivergenceFreeMaxValue; /// Maximum value of the divergence
 
     ///@}
     ///@name Private Operators
