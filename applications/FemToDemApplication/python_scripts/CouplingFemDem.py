@@ -127,31 +127,8 @@ class FEMDEM_Solution:
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
         self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 
-        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
-            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-            neighbour_elemental_finder.Execute()
-            # We reset the flag
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
-
-        if self.DoRemeshing:
-            is_remeshing = self.CheckIfHasRemeshed()
-
-            if is_remeshing:
-                # Extrapolate the free energy as a remeshing criterion
-                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
-
-                # we eliminate the nodal DEM forces
-                self.RemoveDummyNodalForces()
-
-            # Perform remeshing
-            self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
-
-            if is_remeshing:
-                self.InitializeSolutionAfterRemeshing()
-                neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-                neighbour_elemental_finder.ClearNeighbours()
-                neighbour_elemental_finder.Execute()
-
+        self.ComputeNeighboursIfNecessary()
+        self.PerformRemeshingIfNecessary()
         self.FEM_Solution.InitializeSolutionStep()
 
         # Create initial skin of DEM's
@@ -1064,7 +1041,6 @@ class FEMDEM_Solution:
 #============================================================================================================================
 
     def ComputeDeltaTime(self):
-
         if self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step"):
             return self.FEM_Solution.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
@@ -1091,3 +1067,34 @@ class FEMDEM_Solution:
             displ_old = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
             displ_increment = displ - displ_old
             node.SetSolutionStepValue(KratosFemDem.DISPLACEMENT_INCREMENT, displ_increment)
+
+#============================================================================================================================
+
+    def ComputeNeighboursIfNecessary(self):
+        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
+            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+            neighbour_elemental_finder.Execute()
+            # We reset the flag
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
+
+#============================================================================================================================
+
+    def PerformRemeshingIfNecessary(self):
+        if self.DoRemeshing:
+            is_remeshing = self.CheckIfHasRemeshed()
+
+            if is_remeshing:
+                # Extrapolate the free energy as a remeshing criterion
+                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+
+                # we eliminate the nodal DEM forces
+                self.RemoveDummyNodalForces()
+
+            # Perform remeshing
+            self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
+
+            if is_remeshing:
+                self.InitializeSolutionAfterRemeshing()
+                neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+                neighbour_elemental_finder.ClearNeighbours()
+                neighbour_elemental_finder.Execute()
