@@ -166,17 +166,17 @@ namespace Kratos
 
           void Generate3DMesh();
 
-		  void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
+          void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
 
-          void CalculateRayDistances();
+          void CalculateRayDistances(ModelPart& TheSubModelPart, int TheColor);
 
-		  void GenerateTriangularElements();
+          void GenerateTriangularElements();
 
-		  void GenerateTetrahedraElements();
+          void GenerateTetrahedraElements();
 
-		  void CreateCellTetrahedra(std::size_t I, std::size_t J, std::size_t K, Properties::Pointer pProperties);
+          void CreateCellTetrahedra(std::size_t I, std::size_t J, std::size_t K, Properties::Pointer pProperties);
 
-		  std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
+          std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
 
           double DistancePositionInSpace(const Node<3> &rNode);
 	
@@ -196,18 +196,18 @@ namespace Kratos
                 const double* pRayPoint2,
                 double* pIntersectionPoint);
 
-	      void ComputeExtraRayColors(
-                const double Epsilon,
-                const double RayPerturbation,
-                const array_1d<double,3> &rCoords,
-                array_1d<double,3> &rDistances);
+          void ComputeExtraRayColors(
+                  const double Epsilon,
+                  const double RayPerturbation,
+                  const array_1d<double,3> &rCoords,
+                  array_1d<double,3> &rDistances);
 
-	      void GetExtraRayOrigins(
-                const double RayEpsilon,
-                const array_1d<double,3> &rCoords,
-                std::vector<array_1d<double,3>> &rExtraRayOrigs);
+          void GetExtraRayOrigins(
+                  const double RayEpsilon,
+                  const array_1d<double,3> &rCoords,
+                  std::vector<array_1d<double,3>> &rExtraRayOrigs);
 
-	      void CorrectExtraRayOrigin(double* ExtraRayCoords);
+          void CorrectExtraRayOrigin(double* ExtraRayCoords);
 
           void MarkIntersectedCells(Element::GeometryType&);
 

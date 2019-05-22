@@ -119,7 +119,12 @@ namespace Kratos
 
         this->Initialize();
 
-        this->CalculateRayDistances();
+		this->CalculateRayDistances(mrSkinPart, -1);
+		// int color = -1;
+		// for(auto& sub_model_part : mrSkinPart.SubModelParts()){
+	
+	    //     this->CalculateRayDistances(sub_model_part, color--);
+		// }
 	}
 
 	std::string VoxelMeshGeneratorProcess::Info() const {
@@ -205,10 +210,10 @@ namespace Kratos
     }
 
 
-	void VoxelMeshGeneratorProcess::CalculateRayDistances()
+	void VoxelMeshGeneratorProcess::CalculateRayDistances(ModelPart& TheSubModelPart, int TheColor)
 	{
         const auto nodes_begin = mrVolumePart.NodesBegin();
-		ApplyRayCastingProcess<3> ray_casting_process(mrVolumePart, mrSkinPart);
+		ApplyRayCastingProcess<3> ray_casting_process(mrVolumePart, TheSubModelPart);
 		ray_casting_process.Initialize();
 
         #pragma omp parallel for
@@ -227,9 +232,13 @@ namespace Kratos
                     else{
                         const double ray_distance = ray_casting_process.DistancePositionInSpace(r_node);
                         if (ray_distance < 0.0) {
-                            node_distance = mInsideColor;
-							previous_cell_color = mInsideColor;
+                            node_distance = TheColor;
+							previous_cell_color = TheColor;
                         }
+						else{
+							previous_cell_color = mOutsideColor;
+
+						}
                        if(mCellIsEmpty[index]){
                             previous_cell_was_empty = true;
                         }
