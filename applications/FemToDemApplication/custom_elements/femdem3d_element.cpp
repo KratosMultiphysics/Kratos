@@ -97,7 +97,9 @@ FemDem3DElement::~FemDem3DElement()
 
 void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+	if (rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS]) 
+		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+		rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] = false;
 	this->InitializeInternalVariablesAfterMapping();
 }
 
@@ -236,6 +238,7 @@ void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 		// We set a flag to generate the DEM 
 		rCurrentProcessInfo[GENERATE_DEM] = true;
+		rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] = true;
 	}
 }
 
