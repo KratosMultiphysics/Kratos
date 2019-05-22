@@ -1,4 +1,5 @@
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
+from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
@@ -24,8 +25,11 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][0]))
         self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][1]))
 
+        self.master_solver_interface = self.settings["master_solver_interface"].GetInt()
+        self._interface = self._solver_interfaces[self.master_solver_interface].GetInterface()
+
         self._components = {self._predictor, self._convergence_accelerator, self._convergence_criterion,
-                            self._solver_interfaces[0], self._solver_interfaces[1]}
+                            self._solver_interfaces[0], self._solver_interfaces[1], self._interface}
 
     def Initialize(self):
         super().Initialize()

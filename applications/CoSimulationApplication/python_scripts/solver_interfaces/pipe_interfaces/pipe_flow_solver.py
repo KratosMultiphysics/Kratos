@@ -3,6 +3,7 @@ import math as m
 from scipy.linalg import solve_banded
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
+from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
@@ -63,6 +64,9 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         for i in range(len(self.z)):
             self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
 
+        # Interface
+        self.interface = CoSimulationInterface([self.model_part])
+
     def Initialize(self):
         super().Initialize()
 
@@ -110,6 +114,12 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
 
     def Finalize(self):
         super().Finalize()
+
+    def GetInterface(self):
+        return self.interface
+
+    def SetInterface(self):
+        Exception("This solver interface provides no mapping.")
 
     def GetBoundary(self):
         if self.utype == 1:

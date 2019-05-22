@@ -12,7 +12,8 @@
         "settings" :
         {
             "echo_level" : 1,
-		    "num_coupling_iterations" : 20
+            "num_coupling_iterations" : 20,
+            "master_solver_interface" : 0
         },
         "predictor" :
         {
