@@ -130,9 +130,9 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
             // The associated node to this skin face is excluded
             const int excluded_local_id_node = i;
 
-            const IndexType id_1 = (excluded_local_id_node == 0) ? 1 : (excluded_local_id_node == 1) ? 2 : (excluded_local_id_node == 2) ? 3 : 0;
-            const IndexType id_2 = (excluded_local_id_node == 0) ? 2 : (excluded_local_id_node == 1) ? 3 : (excluded_local_id_node == 2) ? 0 : 1;
-            const IndexType id_3 = (excluded_local_id_node == 0) ? 3 : (excluded_local_id_node == 1) ? 0 : (excluded_local_id_node == 2) ? 1 : 2;
+            const IndexType id_1 = (excluded_local_id_node == 0) ? 3 : (excluded_local_id_node == 1) ? 0 : (excluded_local_id_node == 2) ? 3 : 0;
+            const IndexType id_2 = (excluded_local_id_node == 0) ? 2 : (excluded_local_id_node == 1) ? 2 : (excluded_local_id_node == 2) ? 1 : 1;
+            const IndexType id_3 = (excluded_local_id_node == 0) ? 1 : (excluded_local_id_node == 1) ? 3 : (excluded_local_id_node == 2) ? 0 : 2;
             this->CreatePressureLoads(id_1, id_2, id_3, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
         }
     }
@@ -154,9 +154,9 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     auto& r_geom = (*itElem)->GetGeometry();
 
     const IndexType id_1 = (NonWetLocalIdNode == 0) ? 0 : (NonWetLocalIdNode == 1) ? 1 : (NonWetLocalIdNode == 2) ? 2 : 3;
-    const IndexType id_2 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 2 : (NonWetLocalIdNode == 2) ? 3 : 0;
-    const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 3 : (NonWetLocalIdNode == 2) ? 0 : 1;
-    const IndexType id_4 = (NonWetLocalIdNode == 0) ? 3 : (NonWetLocalIdNode == 1) ? 0 : (NonWetLocalIdNode == 2) ? 1 : 2;
+    const IndexType id_2 = (NonWetLocalIdNode == 0) ? 3 : (NonWetLocalIdNode == 1) ? 0 : (NonWetLocalIdNode == 2) ? 3 : 0;
+    const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 2 : (NonWetLocalIdNode == 2) ? 1 : 1;
+    const IndexType id_4 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 3 : (NonWetLocalIdNode == 2) ? 0 : 2;
 
     // We only create pressure loads when the surface is skin
     auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
@@ -321,7 +321,6 @@ void ExtendPressureConditionProcess<TDim>::Execute()
         this->RemovePreviousLineLoads();
         this->ResetFlagOnElements();
     }
-
     // Generate the new ones
     this->CreateNewConditions();
 }
