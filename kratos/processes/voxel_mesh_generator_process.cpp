@@ -119,12 +119,11 @@ namespace Kratos
 
         this->Initialize();
 
-		this->CalculateRayDistances(mrSkinPart, -1);
-		// int color = -1;
-		// for(auto& sub_model_part : mrSkinPart.SubModelParts()){
+		int color = -1;
+		for(auto& sub_model_part : mrSkinPart.SubModelParts()){
 	
-	    //     this->CalculateRayDistances(sub_model_part, color--);
-		// }
+	        this->CalculateRayDistances(sub_model_part, color--);
+		}
 	}
 
 	std::string VoxelMeshGeneratorProcess::Info() const {
@@ -226,7 +225,8 @@ namespace Kratos
                     auto& r_node = *(nodes_begin + GetNodeId(i,j,k) -1);
                     double &node_distance = r_node.GetSolutionStepValue(DISTANCE);
                     if(mCellIsEmpty[index] & previous_cell_was_empty){
-                        node_distance = previous_cell_color;
+						if(previous_cell_color != mOutsideColor)
+                        	node_distance = previous_cell_color;
                         previous_cell_was_empty = true;
                     }
                     else{
