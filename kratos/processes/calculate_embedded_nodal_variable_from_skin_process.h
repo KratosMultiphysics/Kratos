@@ -291,8 +291,8 @@ public:
         // Check that there is at least one element and node in the model
         int n_loc_mesh_nodes = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfNodes();
         int n_loc_mesh_elements = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfElements();
-        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();

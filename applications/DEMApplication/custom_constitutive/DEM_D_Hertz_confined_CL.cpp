@@ -5,8 +5,6 @@
 
 namespace Kratos {
 
-    //void DEM_D_Hertz_confined::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Hertz_confined::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Hertz_confined(*this));
         return p_clone;
