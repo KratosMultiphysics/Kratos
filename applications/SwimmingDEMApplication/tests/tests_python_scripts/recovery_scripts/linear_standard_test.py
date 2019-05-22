@@ -19,6 +19,7 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
                                      GetVariable('VELOCITY_DIVERGENCE'),
                                      GetVariable('VORTICITY_ERROR'),
                                      GetVariable('SCALAR_GRADIENT'),
+                                     GetVariable('SCALAR_GRADIENT_ERROR'),
                                      GetVariable('SCALAR_LAPLACIAN'),
                                      GetVariable('SCALAR_LAPLACIAN_ERROR'),
                                      GetVariable('VECTOR_GRADIENT'),

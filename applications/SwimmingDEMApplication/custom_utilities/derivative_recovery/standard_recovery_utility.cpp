@@ -56,6 +56,17 @@ void StandardRecoveryUtility::Initialize()
 
 }
 
+
+void StandardRecoveryUtility::InitializeRecovery()
+{
+
+}
+
+void StandardRecoveryUtility::FinalizeRecovery()
+{
+
+}
+
 void StandardRecoveryUtility::AddPartialTimeDerivative(const DoubleVarType& rScalarVariable, const DoubleVarType& rTimeDerivativeVariable)
 {
     this->AddScalarPartialTimeDerivative<DoubleVarType>(rScalarVariable, rTimeDerivativeVariable);
@@ -443,8 +454,8 @@ void StandardRecoveryUtility::CalculateScalarMaterialDerivative(const TScalarVar
 template<class TScalarVariable>
 void StandardRecoveryUtility::CalculateScalarLaplacian(const TScalarVariable& rScalarVariable, const DoubleVarType& rLaplacianVariable)
 {
-    //this->CalculateGradient(rScalarVariable, SCALAR_GRADIENT);
-    //this->CalculateDivergence(SCALAR_GRADIENT, rLaplacianVariable);
+    this->CalculateGradient(rScalarVariable, SCALAR_GRADIENT_ERROR);
+    this->CalculateDivergence(SCALAR_GRADIENT_ERROR, rLaplacianVariable);
 }
 
 
