@@ -57,7 +57,6 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     );
 
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    KRATOS_WATCH(ThisParameters);
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
     mRefinementStrategy = ThisParameters["refinement_strategy"].GetString();
