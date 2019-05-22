@@ -33,13 +33,7 @@ class PythonSolver(object):
 
         # TODO remove the check once the derived solvers implement this
         if hasattr(self, '_validate_settings_in_baseclass'):
-            default_settings = self.GetDefaultSettings()
-
-            default_settings.RecursivelyAddMissingParameters(self.settings)
-            for parameter_to_revert in self.ListOfParametersNotRecursivelyValidated():
-                default_settings.RemoveValue(parameter_to_revert)
-                default_settings.AddValue(parameter_to_revert,self.settings[parameter_to_revert])
-            self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+            self.ValidateSettings()
         else:
             from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
             IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
@@ -54,11 +48,11 @@ class PythonSolver(object):
             "echo_level" : 0
         }""")
 
-    @classmethod
-    def ListOfParametersNotRecursivelyValidated(cls):
-        """This function skips the
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
         """
-        return []
+        default_settings = self.GetDefaultSettings()
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart

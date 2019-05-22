@@ -42,6 +42,11 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
 
         KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+
     def AddVariables(self):
 
         super(ContactExplicitMechanicalSolver, self).AddVariables()

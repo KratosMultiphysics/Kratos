@@ -55,6 +55,11 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
         KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+
     def AddVariables(self):
 
         super(ContactStaticMechanicalSolver, self).AddVariables()
