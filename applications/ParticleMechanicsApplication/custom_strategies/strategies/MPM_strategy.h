@@ -635,6 +635,7 @@ public:
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
+                        const bool is_penalty_condition = i->GetValue(MPC_IS_PENALTY);
 
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
@@ -819,7 +820,8 @@ public:
 
                         // Evaluation of geometric length/area
                         const double area = rGeom.Area();
-                        mpc_area = area / (rGeom.size() + integration_point_per_conditions);
+                        mpc_area = area / (1 + integration_point_per_conditions);
+                        const double mpc_nodal_area = mpc_area / rGeom.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -836,19 +838,38 @@ public:
 
                         // If dirichlet boundary
                         if (!is_neumann_condition){
-                            if (TDim==2){
+                            if (!is_penalty_condition){
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticleLagrangeDirichletCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticleLagrangeDirichletCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticleLagrangeDirichletCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticleLagrangeDirichletCondition3D8N";
+                                }
+
+                            }
+                            else{
+                                if (TDim==2){
                                 if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
                                     condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
                                 else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
                                     condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                                }
                             }
-                            else if (TDim==3){
-                                if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
-                                else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
-                            }
+
                         }
+
 
                         // Get new condition
                         const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
@@ -895,6 +916,7 @@ public:
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+
                         }
 
                         last_condition_id += integration_point_per_conditions;
@@ -923,7 +945,7 @@ public:
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
                             p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_area);
+                            p_condition->SetValue(MPC_AREA, mpc_nodal_area);
                             p_condition->SetValue(MPC_NORMAL, mpc_normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
