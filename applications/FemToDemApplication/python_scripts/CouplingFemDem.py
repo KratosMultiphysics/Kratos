@@ -173,7 +173,8 @@ class FEMDEM_Solution:
             extend_wet_nodes_process.Execute()
 
         # we create the new DEM of this time step
-        self.GenerateDEM()
+        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+            self.GenerateDEM()
 
         if self.PressureLoad:
             # we reconstruct the pressure load if necessary
@@ -183,7 +184,8 @@ class FEMDEM_Solution:
                     KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
 
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
-        self.CheckForPossibleIndentations()
+        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+            self.CheckForPossibleIndentations()
 
         # We update coordinates, displ and velocities of the DEM according to FEM
         self.UpdateDEMVariables()
@@ -274,22 +276,22 @@ class FEMDEM_Solution:
         # Loop Over Elements to find the INACTIVE ones and generate the DEM only once
         for Element in FEM_elements:
             is_active     = True
-            DEM_Generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
+            dem_generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
 
             if Element.IsDefined(KratosMultiphysics.ACTIVE):
                 is_active = Element.Is(KratosMultiphysics.ACTIVE)
 
-                NumberOfDEM = 0         # Number of nodes with DEM Associated
+                number_of_dem = 0         # Number of nodes with DEM Associated
                 for node in range(0, self.number_of_nodes_element): # Loop over nodes of the FE
                     Node = Element.GetNodes()[node]
                     if Node.GetValue(KratosFemDem.IS_DEM) == True:
-                        NumberOfDEM += 1
+                        number_of_dem += 1
 
-                if is_active == False and DEM_Generated == False: # Let's generate the remaining DEM of this FE
+                if is_active == False and dem_generated == False: # Let's generate the remaining DEM of this FE
                     # print("elemento borrado: ", Element.Id)
 
                     # --------------------- 1ST SCENARIO -----------------------------
-                    if NumberOfDEM == 0: # we must create 3 DEM
+                    if number_of_dem == 0: # we must create 3 DEM
 
                         dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
                         dist02  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[2])
@@ -328,7 +330,7 @@ class FEMDEM_Solution:
                         Element.Set(KratosMultiphysics.TO_ERASE, True)
 
                     # --------------------- 2ND SCENARIO -----------------------------
-                    elif NumberOfDEM == 2: # we must create 1 DEM
+                    elif number_of_dem == 2: # we must create 1 DEM
 
                         dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
                         dist02  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[2])
@@ -372,7 +374,7 @@ class FEMDEM_Solution:
                         Element.Set(KratosMultiphysics.TO_ERASE, True)
 
                     # --------------------- 3RD SCENARIO -----------------------------
-                    elif NumberOfDEM == 1: # we must create 2 DEM
+                    elif number_of_dem == 1: # we must create 2 DEM
 
                         dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
                         dist02  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[2])
@@ -451,7 +453,7 @@ class FEMDEM_Solution:
                         Element.Set(KratosMultiphysics.TO_ERASE, True)
 
                     # --------------------- 4TH SCENARIO -----------------------------
-                    elif NumberOfDEM == 3: # We must avoid possible indentations
+                    elif number_of_dem == 3: # We must avoid possible indentations
 
                         dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
                         dist02  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[2])
@@ -502,7 +504,7 @@ class FEMDEM_Solution:
                     else:
                         raise Exception("Not possible")
 
-                elif is_active == False and DEM_Generated == True:
+                elif is_active == False and dem_generated == True:
                     Element.Set(KratosMultiphysics.TO_ERASE, True)
 
                 # Remove the isolated Elements
@@ -518,20 +520,23 @@ class FEMDEM_Solution:
 
         FEM_elements = self.FEM_Solution.main_model_part.Elements
 
+        # We reset the flag
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
+
         for Element in FEM_elements:
             is_active     = True
-            DEM_Generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
+            dem_generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
             if Element.IsDefined(KratosMultiphysics.ACTIVE):
                 is_active = Element.Is(KratosMultiphysics.ACTIVE)
 
-            NumberOfDEM = 0         # Number of nodes with DEM Associated
+            number_of_dem = 0         # Number of nodes with DEM Associated
             for node in range(0, 3): # Loop over nodes of the FE
                 Node = Element.GetNodes()[node]
 
                 if Node.GetValue(KratosFemDem.IS_DEM) == True:
-                    NumberOfDEM += 1
+                    number_of_dem += 1
 
-            if NumberOfDEM == 3 and is_active == True and DEM_Generated == False:  # Case in which the DEM have been generated by its neighbours
+            if number_of_dem == 3 and is_active == True and dem_generated == False:  # Case in which the DEM have been generated by its neighbours
                 # Just avoid the initial indentations
                 dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
                 dist02  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[2])
