@@ -92,14 +92,7 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
             // NOTE: Normal is positive outwards
             // NOTE: The flowstream is opposite to the topography gradient
             // An inwards flow will produce a positive sign: a SOLID boundary
-            if (sign < 0.0)
-            {
-                it_node->Set(SolidBoundaryFlag, false);
-            }
-            else
-            {
-                it_node->Set(SolidBoundaryFlag, true);
-            }
+            it_node->Set(SolidBoundaryFlag, (sign >= 0.0));
         }
     }
 
