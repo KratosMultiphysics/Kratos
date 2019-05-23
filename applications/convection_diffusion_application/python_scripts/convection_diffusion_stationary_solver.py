@@ -24,7 +24,6 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
     def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
         self.stationary_settings = KratosMultiphysics.Parameters(r"""{}""")
-        self.validate_and_transfer_matching_settings(custom_settings, self.stationary_settings)
 
         # Construct the base solver and validate the remaining settings in the base class
         super(ConvectionDiffusionStationarySolver, self).__init__(main_model_part, custom_settings)

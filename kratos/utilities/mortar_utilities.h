@@ -20,7 +20,6 @@
 // External includes
 
 // Project includes
-#include "includes/enums.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 
@@ -44,6 +43,16 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @brief This struct is used in order to identify when using the historical and non historical variables
+ */
+struct MortarUtilitiesSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
 
 /**
  * @namespace MortarUtilities
@@ -161,8 +170,12 @@ namespace MortarUtilities
     /**
      * @brief It computes the mean of the r_normal in the condition in all the nodes
      * @param rModelPart The model part to compute
+     * @param ComputeConditions If computed over conditions or elements
      */
-    void KRATOS_API(KRATOS_CORE) ComputeNodesMeanNormalModelPart(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) ComputeNodesMeanNormalModelPart(
+        ModelPart& rModelPart,
+        const bool ComputeConditions = true
+        );
 
     /**
      * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the r_normal
@@ -418,7 +431,7 @@ namespace MortarUtilities
      * @param rThisModelPart The model part to update
      * @param rThisVariable The variable to set
      */
-    template< class TVarType, HistoricalValues THist>
+    template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) ResetValue(
         ModelPart& rThisModelPart,
         TVarType& rThisVariable
@@ -456,7 +469,7 @@ namespace MortarUtilities
      * @param rThisVariable The variable to set
      * @param rThisValue The matrix to be updated
      */
-    template< class TVarType, HistoricalValues THist>
+    template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) MatrixValue(
         const GeometryType& rThisGeometry,
         TVarType& rThisVariable,
@@ -470,7 +483,7 @@ namespace MortarUtilities
      * @param rThisVariable The variable to set
      * @param rThisValue The matrix to be updated
      */
-    template< class TVarType, HistoricalValues THist>
+    template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) AddValue(
         GeometryType& rThisGeometry,
         TVarType& rThisVariable,
@@ -482,7 +495,7 @@ namespace MortarUtilities
      * @param pThisNode The node to update
      * @param rThisVariable The variable to set
      */
-    template< class TVarType, HistoricalValues THist>
+    template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) AddAreaWeightedNodalValue(
         NodeType::Pointer pThisNode,
         TVarType& rThisVariable,
@@ -498,7 +511,7 @@ namespace MortarUtilities
      * @param Index The index used in the  case of a vector variable
      * @param ConectivityDatabase The database that will be used to assemble the system
      */
-    template< class TVarType, HistoricalValues THist>
+    template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) UpdateDatabase(
         ModelPart& rThisModelPart,
         TVarType& rThisVariable,

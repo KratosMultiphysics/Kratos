@@ -126,7 +126,10 @@ array_1d<double,3> GaussPointUnitNormal(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart)
+void ComputeNodesMeanNormalModelPart(
+    ModelPart& rModelPart,
+    const bool ComputeConditions
+    )
 {
     // Check NORMAL is available
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(NORMAL)) << "NORMAL is not available on the solution step data variable database" << std::endl;
@@ -142,31 +145,57 @@ void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart)
     // Reset NORMAL
     VariableUtils().SetVectorVar(NORMAL, zero_array, r_nodes_array);
 
-    // Sum all the nodes normals
-    auto& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-
     // Declare auxiliar coordinates
     CoordinatesArrayType aux_coords;
 
-    #pragma omp parallel for firstprivate(aux_coords)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        const GeometryType& r_geometry = it_cond->GetGeometry();
+    if (ComputeConditions) {
+        // Sum all the nodes normals
+        auto& r_conditions_array = rModelPart.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
 
-        // Set condition normal
-        r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
-        it_cond->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
-    }
+        #pragma omp parallel for firstprivate(aux_coords)
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            const GeometryType& r_geometry = it_cond->GetGeometry();
 
-    // Adding the normal contribution of each node
-    for(Condition& r_cond : r_conditions_array) {
-        GeometryType& r_geometry = r_cond.GetGeometry();
+            // Set condition normal
+            r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
+            it_cond->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
+        }
 
-        // Iterate over nodes
-        for (NodeType& r_node : r_geometry) {
-            r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
-            noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+        // Adding the normal contribution of each node
+        for(Condition& r_cond : r_conditions_array) {
+            GeometryType& r_geometry = r_cond.GetGeometry();
+
+            // Iterate over nodes
+            for (NodeType& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+            }
+        }
+    } else {
+        auto& r_elements_array = rModelPart.Elements();
+        const auto it_elem_begin = r_elements_array.begin();
+
+        #pragma omp parallel for firstprivate(aux_coords)
+        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = it_elem_begin + i;
+            const GeometryType& r_geometry = it_elem->GetGeometry();
+
+            // Set elemition normal
+            r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
+            it_elem->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
+        }
+
+        // Adding the normal contribution of each node
+        for(Element& r_elem : r_elements_array) {
+            GeometryType& r_geometry = r_elem.GetGeometry();
+
+            // Iterate over nodes
+            for (NodeType& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+            }
         }
     }
 
@@ -186,7 +215,7 @@ void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<double>, Historical>(
+void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<double>& rThisVariable
     )
@@ -199,7 +228,7 @@ void ResetValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<array_1d<double, 3>>, Historical>(
+void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<array_1d<double, 3>>& rThisVariable
     )
@@ -212,7 +241,7 @@ void ResetValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<double>, NonHistorical>(
+void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<double>& rThisVariable
     )
@@ -225,7 +254,7 @@ void ResetValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<array_1d<double, 3>>, NonHistorical>(
+void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<array_1d<double, 3>>& rThisVariable
     )
@@ -313,7 +342,7 @@ double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<double>, Historical>(
+void MatrixValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     const GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     Matrix& rThisValue
@@ -330,7 +359,7 @@ void MatrixValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
+void MatrixValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     const GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     Matrix& rThisValue
@@ -352,7 +381,7 @@ void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<double>, NonHistorical>(
+void MatrixValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     const GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     Matrix& rThisValue
@@ -369,7 +398,7 @@ void MatrixValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
+void MatrixValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     const GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     Matrix& rThisValue
@@ -391,7 +420,7 @@ void MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<double>, Historical>(
+void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     const Matrix& rThisValue
@@ -408,7 +437,7 @@ void AddValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<array_1d<double, 3>>, Historical>(
+void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     const Matrix& rThisValue
@@ -428,7 +457,7 @@ void AddValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<double>, NonHistorical>(
+void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     const Matrix& rThisValue
@@ -445,7 +474,7 @@ void AddValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<array_1d<double, 3>>, NonHistorical>(
+void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     const Matrix& rThisValue
@@ -465,7 +494,7 @@ void AddValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<double>, Historical>(
+void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     NodeType::Pointer pThisNode,
     Variable<double>& rThisVariable,
     const double RefArea,
@@ -484,7 +513,7 @@ void AddAreaWeightedNodalValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
+void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     NodeType::Pointer pThisNode,
     Variable<array_1d<double, 3>>& rThisVariable,
     const double RefArea,
@@ -507,7 +536,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<double>, NonHistorical>(
+void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     NodeType::Pointer pThisNode,
     Variable<double>& rThisVariable,
     const double RefArea,
@@ -526,7 +555,7 @@ void AddAreaWeightedNodalValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, NonHistorical>(
+void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     NodeType::Pointer pThisNode,
     Variable<array_1d<double, 3>>& rThisVariable,
     const double RefArea,
@@ -549,7 +578,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<double>, Historical>(
+void UpdateDatabase<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<double>& rThisVariable,
     Vector& Dx,
@@ -568,7 +597,7 @@ void UpdateDatabase<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<array_1d<double, 3>>, Historical>(
+void UpdateDatabase<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<array_1d<double, 3>>& rThisVariable,
     Vector& Dx,
@@ -588,7 +617,7 @@ void UpdateDatabase<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<double>, NonHistorical>(
+void UpdateDatabase<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<double>& rThisVariable,
     Vector& Dx,
@@ -607,7 +636,7 @@ void UpdateDatabase<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<array_1d<double, 3>>, NonHistorical>(
+void UpdateDatabase<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
     ModelPart& rThisModelPart,
     Variable<array_1d<double, 3>>& rThisVariable,
     Vector& Dx,
