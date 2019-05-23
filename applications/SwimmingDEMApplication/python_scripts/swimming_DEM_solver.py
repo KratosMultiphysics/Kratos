@@ -133,7 +133,7 @@ class SwimmingDEMSolver(PythonSolver):
                 "variables_for_recovery" : {
                     "gradient" : {
                         "PRESSURE" : "PRESSURE_GRADIENT",
-                        "VELOCITY" : "VECTOR_GRADIENT"
+                        "VELOCITY" : "VELOCITY_GRADIENT"
                     },
                     "divergence" : {
                         "VELOCITY" : "VELOCITY_DIVERGENCE"

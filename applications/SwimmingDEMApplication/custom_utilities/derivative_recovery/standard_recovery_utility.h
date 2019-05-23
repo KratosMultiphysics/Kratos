@@ -156,6 +156,8 @@ void CalculateLaplacian(const DoubleVarType& rVariable, const DoubleVarType& rLa
 
 void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable) override;
 
+void CalculateLaplacian(const ComponentVarType& rScalarComponent, const ComponentVarType& rLaplacianVariable) override;
+
 void CalculateLaplacian(const ArrayVarType& rVectorComponent, const ArrayVarType& rLaplacianVariable) override;
 
 void CheckDefaultsAndSettings(Parameters rParameters) override;
@@ -191,8 +193,8 @@ private:
     template<class TScalarVariable>
     void CalculateScalarMaterialDerivative(const TScalarVariable& rScalarVariable, const DoubleVarType& rMaterialDerivativeVariable);
 
-    template<class TScalarVariable>
-    void CalculateScalarLaplacian(const TScalarVariable& rScalarVariable, const DoubleVarType& rLaplacianVariable);
+    template<class TScalarVariable, class TLaplacianVariable>
+    void CalculateScalarLaplacian(const TScalarVariable& rScalarVariable, const TLaplacianVariable& rLaplacianVariable);
 
     ///@}
     ///@name Private  Access

@@ -194,7 +194,7 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
                         node.SetSolutionStepValue(GetVariable('PRESSURE_GRADIENT_ERROR'), error)
                     else:
                         self.flow_field.CalculateGradient(self.time, coor, operator.local_exact_value, 0)
-                        operator.SetLocalMatrixValue(node.GetSolutionStepValue(GetVariable('VECTOR_GRADIENT')))
+                        operator.SetLocalMatrixValue(node.GetSolutionStepValue(GetVariable('VELOCITY_GRADIENT')))
                         error = operator.GetError()
                         for index_pair, component_key in GetMatrixIndicesAndKeys():
                             node.SetSolutionStepValue(GetVariable('VECTOR_GRADIENT_ERROR' + component_key), error[index_pair])

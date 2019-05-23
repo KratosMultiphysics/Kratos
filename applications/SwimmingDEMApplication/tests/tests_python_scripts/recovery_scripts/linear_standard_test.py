@@ -23,6 +23,7 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
                                      GetVariable('SCALAR_LAPLACIAN'),
                                      GetVariable('SCALAR_LAPLACIAN_ERROR'),
                                      GetVariable('VECTOR_GRADIENT'),
+                                     GetVariable('VELOCITY_GRADIENT'),
                                      GetVariable('VECTOR_GRADIENT_ERROR'),
                                      GetVariable('VELOCITY_LAPLACIAN'),
                                      GetVariable('VELOCITY_LAPLACIAN_ERROR')]

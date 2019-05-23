@@ -253,118 +253,30 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rV
 
 void StandardRecoveryUtility::CalculateLaplacian(const DoubleVarType& rVariable, const DoubleVarType& rLaplacianVariable)
 {
-    this->CalculateScalarLaplacian<DoubleVarType>(rVariable, rLaplacianVariable);
+    this->CalculateScalarLaplacian<DoubleVarType, DoubleVarType>(rVariable, rLaplacianVariable);
 }
 
 void StandardRecoveryUtility::CalculateLaplacian(const ComponentVarType& rVariable, const DoubleVarType& rLaplacianVariable)
 {
-    this->CalculateScalarLaplacian<ComponentVarType>(rVariable, rLaplacianVariable);
+    this->CalculateScalarLaplacian<ComponentVarType, DoubleVarType>(rVariable, rLaplacianVariable);
 }
 
-void StandardRecoveryUtility::CalculateLaplacian(const ArrayVarType& rVectorComponent, const ArrayVarType& rLaplacianVariable)
+void StandardRecoveryUtility::CalculateLaplacian(const ComponentVarType& rVariable, const ComponentVarType& rLaplacianVariable)
 {
-    KRATOS_INFO("SwimmingDEM") << "Constructing the Laplacian by derivating nodal averages..." << std::endl;
-    std::map <std::size_t, unsigned int> id_to_position;
-    unsigned int entry = 0;
+    this->CalculateScalarLaplacian<ComponentVarType, ComponentVarType>(rVariable, rLaplacianVariable);
+}
 
-    for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        noalias(inode->FastGetSolutionStepValue(rLaplacianVariable)) = ZeroVector(3);
-        id_to_position[inode->Id()] = entry;
-        ++entry;
+void StandardRecoveryUtility::CalculateLaplacian(const ArrayVarType& rVectorVariable, const ArrayVarType& rLaplacianVariable)
+{
+    KRATOS_INFO("SwimmingDEM") << "Constructing the vector Laplacian by derivating nodal averages..." << std::endl;
+
+    for (auto comp_i : {"X", "Y", "Z"}){
+        const auto& variable_j = dynamic_cast<ComponentVarType&>(KratosComponents<VariableData>::Get(rVectorVariable.Name() + "_" + comp_i));
+        const auto& laplacian_variable_j = dynamic_cast<ComponentVarType&>(KratosComponents<VariableData>::Get(rLaplacianVariable.Name() + "_" + comp_i));
+        this->CalculateScalarLaplacian<ComponentVarType, ComponentVarType>(variable_j, laplacian_variable_j);
     }
 
-    std::vector<array_1d <double, 3> > laplacians;
-    laplacians.resize(entry);
-    std::fill(laplacians.begin(), laplacians.end(), ZeroVector(3));
-
-    const int TDim = 3;
-    array_1d <double, 3> grad = ZeroVector(3);
-    array_1d <double, TDim + 1 > elemental_values;
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
-    BoundedMatrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
-    const double nodal_area_share = 1.0 / static_cast<double>(TDim + 1);
-
-    for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
-
-        // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in rLaplacianVariable
-
-        for (auto ielem = mrModelPart.ElementsBegin(); ielem != mrModelPart.ElementsEnd(); ++ielem){
-
-            // computing the shape function derivatives
-
-            Geometry<Node<3> >& geom = ielem->GetGeometry();
-            double Volume;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                elemental_values[i] = geom[i].FastGetSolutionStepValue(rVectorComponent)[j];
-            }
-
-            array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
-
-            for (unsigned int i = 0; i < TDim; ++i){
-                grad[i] = grad_aux[i];
-            }
-
-            double nodal_area = Volume * nodal_area_share;
-            grad *= nodal_area;
-
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                geom[i].FastGetSolutionStepValue(rLaplacianVariable) += grad; // we use rLaplacianVariable to store the gradient of one component at a time
-            }
-        }
-
-        // normalizing the contributions to the gradient
-
-        for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-            inode->FastGetSolutionStepValue(rLaplacianVariable) /= inode->FastGetSolutionStepValue(NODAL_AREA);
-        }
-
-        // for each element, constructing the divergence contribution (to its nodes) of the gradient of component v_j
-
-        for (auto ielem = mrModelPart.ElementsBegin(); ielem != mrModelPart.ElementsEnd(); ++ielem){
-            Geometry<Node<3> >& geom = ielem->GetGeometry();
-            double Volume;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                for (unsigned int k = 0; k < TDim; ++k){
-                    elemental_vectors(i, k) = geom[i].FastGetSolutionStepValue(rLaplacianVariable)[k]; // it is actually the gradient of component v_j
-                }
-            }
-
-            BoundedMatrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
-            double divergence_of_vi = 0.0;
-
-            for (unsigned int k = 0; k < TDim; ++k){ // the divergence is the trace of the gradient
-                divergence_of_vi += grad_aux(k, k);
-            }
-
-            double nodal_area = Volume / static_cast<double>(TDim + 1);
-            divergence_of_vi *= nodal_area;
-
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                laplacians[id_to_position[geom[i].Id()]][j] += divergence_of_vi; // adding the contribution of the elemental divergence to each of its nodes
-            }
-        }
-
-        // clearing the values stored in rLaplacianVariable for the next component
-
-        for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-            array_1d <double, 3>& current_gradient_of_vi = inode->FastGetSolutionStepValue(rLaplacianVariable);
-            noalias(current_gradient_of_vi) = ZeroVector(3);
-        }
-
-    } // for each component of the vector value
-
-    for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        array_1d <double, 3>& stored_laplacian = laplacians[id_to_position[inode->Id()]];
-        array_1d <double, 3>& laplacian = inode->FastGetSolutionStepValue(rLaplacianVariable);
-        noalias(laplacian) = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
-    }
-
-    KRATOS_INFO("SwimmingDEM") << "Finished constructing the Laplacian by derivating nodal averages..." << std::endl;
+    KRATOS_INFO("SwimmingDEM") << "Finished constructing the vector Laplacian by derivating nodal averages..." << std::endl;
 }
 
 /* Private functions ****************************************************/
@@ -476,8 +388,8 @@ void StandardRecoveryUtility::CalculateScalarMaterialDerivative(const TScalarVar
 
 }
 
-template<class TScalarVariable>
-void StandardRecoveryUtility::CalculateScalarLaplacian(const TScalarVariable& rScalarVariable, const DoubleVarType& rLaplacianVariable)
+template<class TScalarVariable, class TLaplacianVariable>
+void StandardRecoveryUtility::CalculateScalarLaplacian(const TScalarVariable& rScalarVariable, const TLaplacianVariable& rLaplacianVariable)
 {
     this->CalculateGradient(rScalarVariable, SCALAR_GRADIENT_ERROR);
     this->CalculateDivergence(SCALAR_GRADIENT_ERROR, rLaplacianVariable);
@@ -496,7 +408,8 @@ template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::Calc
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarMaterialDerivative<DoubleVarType>(const DoubleVarType&, const DoubleVarType&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarMaterialDerivative<ComponentVarType>(const ComponentVarType&, const DoubleVarType&);
 
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<DoubleVarType>(const DoubleVarType&, const DoubleVarType&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<ComponentVarType>(const ComponentVarType&, const DoubleVarType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<DoubleVarType, DoubleVarType>(const DoubleVarType&, const DoubleVarType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<ComponentVarType, DoubleVarType>(const ComponentVarType&, const DoubleVarType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<ComponentVarType, ComponentVarType>(const ComponentVarType&, const ComponentVarType&);
 
 }  // namespace Kratos.

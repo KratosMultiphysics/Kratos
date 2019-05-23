@@ -227,6 +227,8 @@ protected:
 
     virtual void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable){}
 
+    virtual void CalculateLaplacian(const ComponentVarType& rScalarComponent, const ComponentVarType& rLaplacianVariable){}
+
     virtual void CalculateLaplacian(const ArrayVarType& rVectorVariable, const ArrayVarType& rLaplacianVariable){}
 
     virtual void CheckDefaultsAndSettings(Parameters rParameters){};
