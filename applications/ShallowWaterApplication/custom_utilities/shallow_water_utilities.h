@@ -102,7 +102,7 @@ public:
         }
     }
 
-    void ComputeVisualizationWaterDepth(ModelPart& rModelPart, Flags WetFlag);
+    void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
 
     ///@}
     ///@name Access

@@ -139,17 +139,22 @@ void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFl
     }
 }
 
-void ShallowWaterUtilities::ComputeVisualizationWaterDepth(ModelPart& rModelPart, Flags WetFlag)
+void ShallowWaterUtilities::ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel)
 {
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
         if (it_node->Is(WetFlag)) {
-            it_node->SetValue(WATER_DEPTH, it_node->FastGetSolutionStepValue(HEIGHT));
+            if (it_node->FastGetSolutionStepValue(TOPOGRAPHY) > SeaWaterLevel) {
+                it_node->SetValue(WATER_HEIGHT, it_node->FastGetSolutionStepValue(HEIGHT));
+            }
+            else {
+                it_node->SetValue(WATER_HEIGHT, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - SeaWaterLevel);
+            }
         }
         else {
-            it_node->SetValue(WATER_DEPTH, 0.0);
+            it_node->SetValue(WATER_HEIGHT, GID_NO_RESULT_DOUBLE);
         }
     }
 }
