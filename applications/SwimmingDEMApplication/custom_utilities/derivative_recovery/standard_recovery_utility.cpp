@@ -432,11 +432,36 @@ void StandardRecoveryUtility::CalculateScalarGradient(const TScalarVariable& rSc
 template<class TScalarVariable> //TODO: generalize for any element
 void StandardRecoveryUtility::CalculateDivergenceAsScalar(const ArrayVarType& rVectorVariable, const TScalarVariable& rDivergenceVariable)
 {
-    this->CalculateGradient(rVectorVariable, VECTOR_GRADIENT);
+    std::string deriv_var_name;
+    bool must_calculate_gradient = true;
+    if (this->MustRecover("gradient") && this->MustRecover("divergence"))
+    {
+        // you are calculating the divergence of the same variable of which you just calculated the gradient
+        if (rDivergenceVariable.Name() == GetDerivativeVariableName("divergence")){
+            deriv_var_name = GetDerivativeVariableName("gradient");
+            must_calculate_gradient = false;
+        }
+        // you are not calculating the divergence of the current variable, which is not the one stored in mCurrentVariable
+        else {
+            deriv_var_name = "VECTOR_GRADIENT";
+        }
+    }
+    // you have not already calculated the gradient
+    else {
+        deriv_var_name = "VECTOR_GRADIENT";
+    }
+
+    const TensorVarType& gradient_variable = KratosComponents<TensorVarType>::Get(deriv_var_name);
+
+    // the gradient has not been calculated yet
+    if (must_calculate_gradient){
+        this->CalculateGradient(rVectorVariable, gradient_variable);
+    }
+
     constexpr auto &GetIndex = StandardRecoveryUtility::GetVectorizedMatrixIndex;
 
     for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        const auto& vector_gradient = inode->FastGetSolutionStepValue(VECTOR_GRADIENT);
+        const auto& vector_gradient = inode->FastGetSolutionStepValue(gradient_variable);
         auto& divergence = inode->FastGetSolutionStepValue(rDivergenceVariable);
         divergence = 0.0;
         for (int i = 0; i < 3; ++i){

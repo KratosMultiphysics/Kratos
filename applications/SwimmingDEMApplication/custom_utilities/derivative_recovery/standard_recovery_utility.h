@@ -87,6 +87,10 @@ public:
 
     void Initialize() override;
 
+    void InitializeRecovery() override;
+
+    void FinalizeRecovery() override;
+
     ///@}
     ///@name Operations
     ///@{

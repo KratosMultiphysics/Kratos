@@ -58,11 +58,16 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     ///@{
 
     public:
+
     typedef array_1d<double, 3> Vector3;
     typedef Variable<Matrix> MatrixVarType;
     typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVarType;
-    typedef std::tuple<std::string, std::string, std::string> VariablesOperatorTupleType;
-    typedef std::vector<VariablesOperatorTupleType> VariableTuplesVectorType;
+
+    typedef std::map<std::string, std::string> OperatorsToDerivativeVariablesMapType;
+    typedef std::map<std::string, OperatorsToDerivativeVariablesMapType> VariablesToRecoveriesMapType;
+    typedef std::map<std::string, bool> RecoveriesStatusMapType;
+    typedef std::map<std::string, RecoveriesStatusMapType> VariableRecoveriesStatusMapType;
+    static const std::set<std::string> smOperators;
 
     KRATOS_CLASS_POINTER_DEFINITION(RecoveryVariablesContainer);
     ///@}
@@ -72,25 +77,39 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     /// Constructor with Kratos parameters.
     RecoveryVariablesContainer()
     {
-
     }
 
     void AddRecoveryPair(const std::string OperatorName,
                          const std::string VariableName,
                          const std::string DerivativeVariableName)
     {
-        const auto new_tuple = std::make_tuple(VariableName, DerivativeVariableName, OperatorName);
-        mVariables.push_back(new_tuple);
+        mVariables[VariableName][OperatorName] = DerivativeVariableName;
+        for (const auto& op : smOperators){
+            mRecoveredStatus[VariableName][op] = false;
+        }
     }
 
-    const VariableTuplesVectorType& GetVariables()
+    const VariablesToRecoveriesMapType& GetVariables() const
     {
         return mVariables;
     }
 
+    bool CheckIfRecovered(const std::string& variable_name, const std::string& operator_name)
+    {
+        return mRecoveredStatus[variable_name][operator_name];
+    }
+
+    void SetRecoveredStatus(const std::string& variable_name,
+                            const std::string& operator_name,
+                            const bool status)
+    {
+        mRecoveredStatus[variable_name][operator_name] = status;
+    }
+
     private:
 
-    VariableTuplesVectorType mVariables;
+    VariablesToRecoveriesMapType mVariables;
+    VariableRecoveriesStatusMapType mRecoveredStatus;
 };
 
 class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecoveryUtility
@@ -105,6 +124,7 @@ public:
     typedef VariableComponent<VectorComponentAdaptor<Tensor3> > TensorComponentVarType;
     typedef Variable<Vector3> ArrayVarType;
     typedef Variable<Tensor3> TensorVarType;
+    using OperatorsToDerivativeVariablesMapType = RecoveryVariablesContainer::OperatorsToDerivativeVariablesMapType;
 
 
     /// Pointer definition of DerivativeRecoveryUtility
@@ -132,6 +152,8 @@ public:
     ///@{
 
     virtual void Initialize(){};
+    virtual void InitializeRecovery(){};
+    virtual void FinalizeRecovery(){};
     virtual void Recover();
 
     ///@}
@@ -209,6 +231,34 @@ protected:
 
     virtual void CheckDefaultsAndSettings(Parameters rParameters){};
 
+    void SetCurrentVariableRecovery(const std::string& variable_name)
+    {
+        mCurrentVariable = variable_name;
+    }
+
+    const std::string GetCurrentVariableName() const
+    {
+        return mCurrentVariable;
+    }
+
+    const std::string GetDerivativeVariableName(std::string operator_name) const
+    {
+        const auto& var_name = this->GetCurrentRecovery().at(operator_name);
+        return var_name;
+    }
+
+    const OperatorsToDerivativeVariablesMapType& GetCurrentRecovery() const
+    {
+        const auto& recovery = mVariablesContainer.GetVariables().at(mCurrentVariable);
+        return recovery;
+    }
+
+    bool MustRecover(std::string operator_name)
+    {
+         auto recovery = this->GetCurrentRecovery();
+         return recovery.find(operator_name) != recovery.end();
+    }
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -216,9 +266,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    std::string mCurrentVariable;
 
-
-    ///@}
+    ///@}p
     ///@name Protected Operators
     ///@{
 
@@ -231,15 +281,15 @@ private:
 
     void ReadVariablePairs(std::string OperatorName, Parameters rVariablesForRecovery);
 
-    void CalculateGradient(const std::string VariableName, const std::string DerivativeVariableName);
+    void CalculateGradient();
 
-    void CalculateDivergence(const std::string VariableName, const std::string DerivativeVariableName);
+    void CalculateDivergence();
 
-    void CalculateRotational(const std::string VariableName, const std::string DerivativeVariableName);
+    void CalculateRotational();
 
-    void CalculateMaterialDerivative(const std::string VariableName, const std::string DerivativeVariableName);
+    void CalculateMaterialDerivative();
 
-    void CalculateLaplacian(const std::string VariableName, const std::string DerivativeVariableName);
+    void CalculateLaplacian();
 
 
     ///@}
@@ -250,7 +300,6 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
