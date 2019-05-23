@@ -176,8 +176,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, Radius1)
 
 						# Look to the Node 2 ---------------------------------------------
-						#Radius2 = self.GetMinimumValue3(dist01-Radius1, dist12*0.5, dist13*0.5)
-						Radius2 = dist01-Radius1
+						Radius2 = self.GetMinimumValue3(dist01-Radius1, dist12*0.5, dist13*0.5)
+						# Radius2 = dist01-Radius1
 						Coordinates2 = self.GetNodeCoordinates(Element.GetNodes()[1])
 						Id2 = Element.GetNodes()[1].Id
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates2, Radius2, Id2)
@@ -185,7 +185,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[1].SetValue(KratosMultiphysics.RADIUS, Radius2)
 
 						# look to the node 3 ---------------------------------------------
-						Radius3 = self.GetMinimumValue3(dist02-Radius1, dist12-Radius2, 100000000)
+						Radius3 = self.GetMinimumValue3(dist02-Radius1, dist12-Radius2, 0.5*dist23)
 						Coordinates3 = self.GetNodeCoordinates(Element.GetNodes()[2])
 						Id3 = Element.GetNodes()[2].Id
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates3, Radius3, Id3)
@@ -608,8 +608,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.RemoveAloneDEMElements()
 			element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 			element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
-			# self.FEM_Solution.main_model_part.GetRootModelPart().RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
-
 
 #============================================================================================================================
 	def CalculateDistanceBetweenNodes(self, Node1, Node2):
@@ -687,7 +685,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 						Distance = Distances[LocalId1][LocalId2]
 
-						if R1 + R2 > Distance:
+						if math.fabs(R1) + math.fabs(R2) > Distance:
 
 							R1 = self.GetMinimumValue3(R1, 0.5*Distance, 1000000)
 							R2 = Distance - R1
@@ -710,7 +708,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 							Distance = Distances[LocalId1][LocalId2]
 
-							if R1 + R2 > Distance:
+							if math.fabs(R1) + math.fabs(R2) > Distance:
 
 								R1 = self.GetMinimumValue3(R1, 0.5*Distance, 1000000)
 								R2 = Distance - R1
@@ -732,7 +730,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 							Distance = Distances[LocalId1][LocalId2]
 
-							if R1 + R2 > Distance:
+							if math.fabs(R1) + math.fabs(R2) > Distance:
 
 								R1 = self.GetMinimumValue3(R1, 0.5*Distance, 1000000)
 								R2 = Distance - R1
