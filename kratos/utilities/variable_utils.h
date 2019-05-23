@@ -934,10 +934,20 @@ public:
     void UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
 
     /**
-     * @brief This method updates the initial nodal coordinates to the current coordinates
      * @param rNodes the nodes to be updated
+     * @brief This method updates the initial nodal coordinates to the current coordinates
      */
     void UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+    /**
+     * @brief This method updates the current coordinates
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * @param rNodes
+     */
+    void UpdateCurrentPosition(
+        const ModelPart::NodesContainerType &rNodes,
+        const ArrayVarType &rUpdateVariable = DISPLACEMENT);
 
     ///@}
     ///@name Acces

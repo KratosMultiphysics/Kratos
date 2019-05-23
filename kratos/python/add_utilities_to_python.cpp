@@ -192,6 +192,20 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
 }
 
+void VariableUtilsUpdateCurrentPositionNoVariable(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes)
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariable(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable)
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
 
 void AddUtilitiesToPython(pybind11::module& m)
 {
@@ -424,6 +438,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("CheckDofs", &VariableUtils::CheckDofs)
         .def("UpdateCurrentToInitialConfiguration", &VariableUtils::UpdateCurrentToInitialConfiguration)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionNoVariable)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
