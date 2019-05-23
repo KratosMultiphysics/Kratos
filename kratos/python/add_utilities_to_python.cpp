@@ -192,7 +192,7 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
 }
 
-void VariableUtilsUpdateCurrentPositionNoVariable(
+void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes)
 {
@@ -438,7 +438,7 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("CheckDofs", &VariableUtils::CheckDofs)
         .def("UpdateCurrentToInitialConfiguration", &VariableUtils::UpdateCurrentToInitialConfiguration)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
-        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionNoVariable)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         ;
 
