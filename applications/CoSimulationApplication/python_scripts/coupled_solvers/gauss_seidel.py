@@ -16,6 +16,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.settings = parameters["settings"]
 
         self.echo_level = self.settings["echo_level"].GetInt()
+        self.master_solver_interface = self.settings["master_solver_interface"].GetInt()
 
         self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
@@ -23,18 +24,18 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self._solver_interfaces = []
         self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][0]))
         self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][1]))
-
         self._components = [self._predictor, self._convergence_accelerator, self._convergence_criterion,
                             self._solver_interfaces[0], self._solver_interfaces[1]]
 
-        self.master_solver_interface = self.settings["master_solver_interface"].GetInt()
-        self.x = self._solver_interfaces[self.master_solver_interface].GetInterfaceIn()
+        self.x = []
 
     def Initialize(self):
         super().Initialize()
 
         for component in self._components[2:-1]:
             component.Initialize()
+
+        self.x = self._solver_interfaces[self.master_solver_interface].GetInterfaceIn()
         self._predictor.Initialize(self.x)
 
     def Finalize(self):
@@ -61,7 +62,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             xt = self._solver_interfaces[1].Calculate(y)
             r = xt - self.x
             self._convergence_accelerator.Update(self.x, xt)
-
             self._convergence_criterion.Update(r)
 
     def FinalizeSolutionStep(self):

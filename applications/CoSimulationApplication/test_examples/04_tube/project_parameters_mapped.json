@@ -1,0 +1,104 @@
+{
+    "settings" :
+    {
+        "echo_level" : 1,
+        "start_step" : 1,
+        "stop_step" : 11,
+        "data_structure" : "pyKratos"
+    },
+    "coupled_solver" :
+    {
+        "type" : "coupled_solvers.gauss_seidel",
+        "settings" :
+        {
+            "echo_level" : 1,
+            "master_solver_interface" : 0
+        },
+        "predictor" :
+        {
+            "type" : "predictors.linear"
+        },
+        "convergence_accelerator" :
+        {
+            "type" : "convergence_accelerators.iqni",
+            "settings" :
+            {
+                "min_significant" : 1e-10,
+                "model" : "ls"
+            }
+        },
+        "convergence_criterion" :
+        {
+            "type" : "convergence_criteria.or",
+            "settings" :
+            {
+                "convergence_criterion0" :
+                {
+                    "type" : "convergence_criteria.relative_norm",
+                    "settings" :
+                    {
+                        "tolerance" : 1e-6,
+                        "order" : 2
+                    }
+                },
+                "convergence_criterion1" : {
+                    "type": "convergence_criteria.iteration_limit",
+                    "settings":
+                    {
+                        "maximum": 10
+                    }
+                }
+            }
+        },
+        "solver_interfaces" :
+        [
+            {
+                "type" : "solver_interfaces.pipe_interfaces.pipe_flow_solver",
+                "settings" :
+                {
+                    "echo_level" : 1,
+                    "l" : 0.05,
+                    "d" : 0.005,
+                    "rhof" : 1000.0,
+                    "ureference" : 1.0,
+                    "uamplitude" : 0.1,
+                    "uperiod" : 1.0,
+                    "utype" : 1,
+                    "e" : 300000.0,
+                    "h" : 0.001,
+                    "m" : 100,
+                    "newtonmax" : 10,
+                    "newtontol" : 1e-12,
+                    "dt" : 0.01
+                }
+            },
+            {
+                "type": "solver_interfaces.mapped_interface",
+                "settings": {
+                    "solver" :
+                    {
+                        "type" : "solver_interfaces.pipe_interfaces.pipe_structure_solver",
+                        "settings" :
+                        {
+                            "echo_level" : 1,
+                            "l" : 0.05,
+                            "d" : 0.005,
+                            "rhof" : 1000.0,
+                            "e" : 300000.0,
+                            "h" : 0.001,
+                            "m" : 100
+                        }
+                    },
+                    "mapper_in":
+                    {
+                        "type" : "mappers.linear"
+                    },
+                    "mapper_out":
+                    {
+                        "type" : "mappers.linear"
+                    }
+                }
+            }
+        ]
+    }
+}
