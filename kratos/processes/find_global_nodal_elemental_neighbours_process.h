@@ -34,6 +34,7 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "includes/mpi_serializer.h"
+#include "utilities/compute_neighbour_list_functor.h"
 #include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
@@ -128,16 +129,6 @@ public:
                 node.GetValue(NEIGHBOUR_ELEMENTS).push_back( gpelem );
             }
         }
-KRATOS_WATCH(__LINE__)
-
-for(auto& node : mr_model_part.Nodes())
-{
-    std::cout << node.Id() << " - ";
-    for(auto& gp : node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer())
-        std::cout << gp->Id() << " ";
-    std::cout << std::endl;
-}
-
 
         if(mrComm.IsDistributed())
         {
@@ -210,18 +201,14 @@ for(auto& node : mr_model_part.Nodes())
                     }
                 }
             }
-            KRATOS_WATCH(__LINE__)
-
         }
-KRATOS_WATCH(__LINE__)
 
-        //reorder by Id
-        GlobalPointersVector< Element > gp_list;
-        for(auto& node : mr_model_part.Nodes())
-            for(auto& gp : (node.GetValue(NEIGHBOUR_ELEMENTS)).GetContainer())
-                gp_list.push_back(gp);
+        auto constructor_functor =  Kratos::ComputeNeighbourListFunctor<
+                            ModelPart::NodesContainerType, 
+                            Variable< GlobalPointersVector< Element > >
+                            > (rNodes, NEIGHBOUR_ELEMENTS);
 
-        GlobalPointerCommunicator<Element> pointer_comm(mrComm, gp_list);
+        GlobalPointerCommunicator<Element> pointer_comm(mrComm, constructor_functor );
         auto id_proxy = pointer_comm.Apply(
                 [](GlobalPointer<Element>& gp){return gp->Id();}
         );
@@ -267,13 +254,13 @@ KRATOS_WATCH(__LINE__)
     {
         std::unordered_map<int, std::vector<int> > output;
 
-        GlobalPointersVector< Element > gp_list;
-        for(auto& node : rNodes)
-            for(auto& gp : node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer())
-                gp_list.push_back(gp);
-        gp_list.Unique();
+        auto constructor_functor =  Kratos::ComputeNeighbourListFunctor<
+                            ModelPart::NodesContainerType, 
+                            Variable< GlobalPointersVector< Element > >
+                            > (rNodes, NEIGHBOUR_ELEMENTS);
 
-        GlobalPointerCommunicator<Element> pointer_comm(mrComm, gp_list);
+        GlobalPointerCommunicator<Element> pointer_comm(mrComm, constructor_functor );
+
         auto result_proxy = pointer_comm.Apply(
                 [](GlobalPointer<Element>& gp){return gp->Id();}
         );
