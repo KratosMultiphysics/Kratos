@@ -47,6 +47,7 @@ void GenerateDemProcess<2>::Execute()
 
         if (!is_active && !dem_generated) {
             // std::cout << "Elemento eliminado -- >" << it_elem->Id() << std::endl;
+            auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 			auto& node0 = r_geom[0];
 			auto& node1 = r_geom[1];
 			auto& node2 = r_geom[2];
@@ -58,6 +59,7 @@ void GenerateDemProcess<2>::Execute()
                 const double r1 = this->GetMinimumValue2(dist01, dist02)*0.5;
                 const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node0);
                 const int id1 = node0.Id();
+                this->CreateDEMParticle(id1, coordinates1, p_DEM_properties, r1, node0);
 
             }
 
@@ -91,12 +93,12 @@ void GenerateDemProcess<TDim>::CreateDEMParticle(
     const array_1d<double, 3> Coordinates,
     const Properties::Pointer pProperties,
     const double Radius,
-    ModelPart::ElementsContainerType::iterator ItElem,
     NodeType& rNode
 )
 {
     mParticleCreator.CreateSphericParticle(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
-
+    rNode.SetValue(IS_DEM, true);
+    rNode.SetValue(RADIUS, Radius);
 }
 
 /***********************************************************************************/

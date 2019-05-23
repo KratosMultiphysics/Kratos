@@ -52,7 +52,7 @@ class GenerateDemProcess : public Process
   double GetMinimumValue2(const double a, const double b);
   int GetNumberOfDemOnElement(ModelPart::ElementsContainerType::iterator ItElem);
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
-      const Properties::Pointer pProperties, const double Radius, ModelPart::ElementsContainerType::iterator ItElem, NodeType& rNode); 
+      const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
 
 protected:
 
