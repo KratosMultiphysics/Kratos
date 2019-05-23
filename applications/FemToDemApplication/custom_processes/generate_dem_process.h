@@ -5,8 +5,8 @@
 //                   Multi-Physics FemDem Application
 //
 //  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//	Kratos default license:
+//  kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -18,6 +18,8 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
+#include "custom_utilities/create_and_destroy.h"
+#include "utilities/brute_force_point_locator.h"
 
 namespace Kratos {
 
@@ -51,4 +53,4 @@ protected:
 };  // Class
 
 }  // namespace Kratos
-#endif /* KRATOS_EXTEND_PRESSURE_PROCESS defined */
+#endif /* KRATOS_GENERATE_DEM_PROCESS defined */

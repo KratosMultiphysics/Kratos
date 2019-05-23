@@ -31,6 +31,7 @@ GenerateDemProcess::GenerateDemProcess(
 
 void GenerateDemProcess::Execute() 
 {
+    ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
 
 }
 
