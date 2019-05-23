@@ -227,14 +227,6 @@ public:
             );
         }
     
-    for(auto& node : mr_model_part.Nodes())
-{
-    std::cout << node.Id() << " - ";
-    for(auto& gp : node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer())
-        std::cout << id_proxy.Get(gp) << " ";
-    std::cout << std::endl;
-}
-
     }
 
     void ClearNeighbours()
@@ -274,8 +266,6 @@ public:
                 tmp[i] = result_proxy.Get(neighbours(i));
             }
             output[node.Id()] = tmp;  
-            KRATOS_WATCH(node.Id()) 
-            KRATOS_WATCH(output[node.Id()])
         }
 
 
