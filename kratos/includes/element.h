@@ -272,16 +272,6 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  const ProcessInfo& rCurrentProcessInfo) const
-    {
-        const_cast<Element*>(this)->EquationIdVector(rResult, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rResult.size() != 0) {
-            rResult.resize(0);
-        }
-    }
-
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
@@ -293,6 +283,15 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
+    virtual void GetDofList(DofsVectorType& rElementalDofList,
+                            const ProcessInfo& rCurrentProcessInfo) const
+    {
+        const_cast<Element*>(this)->GetDofList(rElementalDofList, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
+        if (rElementalDofList.size() != 0) {
+            rElementalDofList.resize(0);
+        }
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo)
     {
