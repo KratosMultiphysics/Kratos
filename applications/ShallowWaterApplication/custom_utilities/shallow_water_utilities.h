@@ -91,7 +91,16 @@ public:
 
     void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
 
-    void DeactivateDryElements(ModelPart& rModelPart, Flags WetFlag);
+    template<class TContainerType>
+    void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
+        {
+            auto it = rContainer.begin() + i;
+            it->Set(ACTIVE, it->Is(WetFlag));
+        }
+    }
 
     void ComputeVisualizationWaterDepth(ModelPart& rModelPart, Flags WetFlag);
 

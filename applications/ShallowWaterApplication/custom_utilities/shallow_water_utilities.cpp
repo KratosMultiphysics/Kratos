@@ -139,16 +139,6 @@ void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFl
     }
 }
 
-void ShallowWaterUtilities::DeactivateDryElements(ModelPart& rModelPart, Flags WetFlag)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfElements()); ++i)
-    {
-        auto it_elem = rModelPart.ElementsBegin() + i;
-        it_elem->Set(ACTIVE, it_elem->Is(WetFlag));
-    }
-}
-
 void ShallowWaterUtilities::ComputeVisualizationWaterDepth(ModelPart& rModelPart, Flags WetFlag)
 {
     #pragma omp parallel for
