@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "includes/key_hash.h"
 #include "includes/linear_solver_factory.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "processes/process.h"
@@ -168,25 +169,7 @@ public:
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
-    struct Hash
-    {
-        std::size_t operator()(const std::pair<unsigned int,bool>& k) const
-        {
-            std::size_t h1 = std::hash<unsigned int>()(std::get<0>(k));
-            std::size_t h2 = std::hash<bool>()(std::get<1>(k));
-            return h1 ^ (h2 << 1);
-        }
-    };
-
-    struct KeyEqual
-    {
-        bool operator()(const std::pair<std::size_t, std::size_t>& lhs, const std::pair<std::size_t, std::size_t>& rhs) const
-        {
-            return ((std::get<0>(lhs) == std::get<0>(rhs)) && (std::get<1>(lhs) == std::get<1>(rhs)));
-        }
-    };
-
-    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, Hash, KeyEqual> EdgesMapType;
+    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, IndexPairHasher, IndexPairComparor> EdgesMapType;
 
     ///@}
     ///@name Pointer Definitions
