@@ -28,17 +28,18 @@ class MeshControllerWithSolver(MeshController) :
         {
             "apply_mesh_solver" : true,
             "solver_settings" : {
-                "solver_type" : "structural_similarity",
-                "model_part_name"       : "",
+                "domain_size"     : 3,
+                "echo_level"      : 0,
+                "solver_type"     : "structural_similarity",
+                "model_part_name" : "NONE",
                 "model_import_settings"              : {
                     "input_type"     : "use_input_model_part"
                 },
                 "time_stepping" : {
                     "time_step"       : 1.0
                 },
-                "domain_size"     : 3,
                 "mesh_motion_linear_solver_settings" : {
-                    "solver_type" : "AMGCL",
+                    "solver_type" : "amgcl",
                     "smoother_type":"ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation",
@@ -49,10 +50,14 @@ class MeshControllerWithSolver(MeshController) :
                 "compute_reactions"         : false,
                 "calculate_mesh_velocities" : false
             },
-            "boundary_conditions_process_list" : []
+            "processes" : {
+                "boundary_conditions_process_list" : []
+            }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
+        self.MeshSolverSettings["solver_settings"].ValidateAndAssignDefaults(default_settings["solver_settings"])
+        self.MeshSolverSettings["processes"].ValidateAndAssignDefaults(default_settings["processes"])
 
         if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
             MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
@@ -65,7 +70,7 @@ class MeshControllerWithSolver(MeshController) :
 
         self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
-        if self.MeshSolverSettings["boundary_conditions_process_list"].size() == 0:
+        if self.MeshSolverSettings["processes"]["boundary_conditions_process_list"].size() == 0:
             self.__FixWholeSurface(self.OptimizationModelPart, self.MeshSolverSettings)
             self.has_automatic_boundary_process = True
         else:
@@ -116,9 +121,9 @@ class MeshControllerWithSolver(MeshController) :
     @staticmethod
     def __AddDefaultProblemData(mesh_solver_settings):
         problem_data = Parameters("""{
-            "echo_level" : 0,
-            "start_time" : 0.0,
-            "end_time" : 1.0,
+            "echo_level"    : 0,
+            "start_time"    : 0.0,
+            "end_time"      : 1.0,
             "parallel_type" : "OpenMP"
         }""")
 
@@ -145,6 +150,6 @@ class MeshControllerWithSolver(MeshController) :
             """)
 
         print("> Add automatic process to fix the whole surface to mesh motion solver:")
-        mesh_solver_settings["boundary_conditions_process_list"].Append(auto_process_settings)
+        mesh_solver_settings["processes"]["boundary_conditions_process_list"].Append(auto_process_settings)
 
 # ==============================================================================

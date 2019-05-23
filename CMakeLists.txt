@@ -4,8 +4,9 @@ cmake_minimum_required (VERSION 2.8.6)
 
 
 # Setting some policies
+# No recursive dereferencing 
 if(POLICY CMP0054)
-  cmake_policy(SET CMP0054 OLD)
+  cmake_policy(SET CMP0054 NEW)
 endif(POLICY CMP0054)
 
 # Uses INTERFACE_LINK_LIBRARIES instead of LINK_INTERFACE_LIBRARIES
@@ -78,11 +79,6 @@ if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
 endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
-  "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
-)
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})

@@ -8,10 +8,10 @@ import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import convergence_accelerator_factory
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 # Importing the base class
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return ConjugateHeatTransferSolver(main_model_part, custom_settings)
@@ -115,11 +115,11 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.domain_size = self.settings["domain_size"].GetInt()
 
         ## Set the fluid dynamics solver
-        import python_solvers_wrapper_fluid
+        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["fluid_solver_settings"], "OpenMP")
 
         # Set the fluid and solid heat solvers
-        import python_solvers_wrapper_convection_diffusion
+        from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
         self.fluid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
         self.solid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["solid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
 
@@ -195,7 +195,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
                 warning_msg += " - Fluid solver buffer size: " + str(fluid_solver_buffer) + "\n"
                 warning_msg += " - Fluid thermal solver buffer size: " + str(fluid_thermal_solver_buffer) + "\n"
                 warning_msg += "Setting buffer size equal to " + str(max_buffer_size) + " in both solvers."
-                self.print_warning_on_rank_zero("::[ConjugateHeatTransferSolver]::", warning_msg)
+                KratosMultiphysics.Logger.PrintWarning("::[ConjugateHeatTransferSolver]::", warning_msg)
 
         # Import the solid domain
         self.solid_thermal_solver.ImportModelPart()
@@ -303,7 +303,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
             # Couple the solid and fluid thermal problems
             iteration = 0
-            self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Starting non-linear temperature coupling")
+            KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Starting non-linear temperature coupling")
             while iteration < max_iteration:
                 # Initialize non-linear iteration
                 iteration += 1
@@ -345,7 +345,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
                 # Residual computation
                 rel_res_norm = self._get_dirichlet_coupling_interface().ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM] / len(self._get_dirichlet_coupling_interface().Nodes)
-                self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Iteration: " + str(iteration) + " Relative residual: " + str(rel_res_norm))
+                KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Iteration: " + str(iteration) + " Relative residual: " + str(rel_res_norm))
 
                 # Perform the convergence accelerator solution update
                 self._get_convergence_accelerator().UpdateSolution(temp_residual, self.iteration_value)
@@ -361,10 +361,10 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
                 # Check convergence
                 if rel_res_norm <= temp_rel_tol:
-                    self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Converged in " + str(iteration) + " iterations.")
+                    KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Converged in " + str(iteration) + " iterations.")
                     break
                 elif iteration == max_iteration:
-                    self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Did not converge in " + str(iteration) + " iterations.")
+                    KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Did not converge in " + str(iteration) + " iterations.")
 
     def FinalizeSolutionStep(self):
         if self._time_buffer_is_initialized():
@@ -474,7 +474,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
     def _create_convergence_accelerator(self):
         conv_acc_parameters = self.settings["coupling_settings"]["convergence_accelerator_settings"]
         convergence_accelerator = convergence_accelerator_factory.CreateConvergenceAccelerator(conv_acc_parameters)
-        self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Convergence accelerator construction finished.")
+        KratosMultiphysics.Logger.PrintInfo("::[ConjugateHeatTransferSolver]::", "Convergence accelerator construction finished.")
         return convergence_accelerator
 
     # This method returns the partitioned FSI utilities class

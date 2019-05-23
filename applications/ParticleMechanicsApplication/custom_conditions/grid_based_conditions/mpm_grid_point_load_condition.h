@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Counted pointer of MPMGridPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMGridPointLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridPointLoadCondition );
 
     ///@}
     ///@name Life Cycle

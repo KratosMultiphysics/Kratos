@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -21,10 +21,10 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "containers/flags.h"
 #include "includes/constitutive_law.h"
-#include "containers/weak_pointer_vector.h"
 #include "includes/kratos_parameters.h"
+#include "containers/global_pointers_vector.h"
+
 
 namespace Kratos
 {
@@ -57,13 +57,13 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Element : public GeometricalObject, public Flags
+class Element : public GeometricalObject
 {
 public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of Element
-    KRATOS_CLASS_POINTER_DEFINITION(Element);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Element);
 
     ///definition of element type
     typedef Element ElementType;
@@ -119,7 +119,6 @@ public:
      */
     explicit Element(IndexType NewId = 0)
         : BaseType(NewId)
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -129,7 +128,6 @@ public:
      */
     Element(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -139,7 +137,6 @@ public:
      */
     Element(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId,pGeometry)
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -149,7 +146,6 @@ public:
      */
     Element(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId,pGeometry)
-        , Flags()
         , mpProperties(pProperties)
     {
     }
@@ -158,7 +154,6 @@ public:
 
     Element(Element const& rOther)
         : BaseType(rOther)
-        , Flags(rOther)
         , mData(rOther.mData)
         , mpProperties(rOther.mpProperties)
     {
@@ -170,6 +165,10 @@ public:
     {
     }
 
+    Element::Pointer shared_from_this()
+    {
+        return std::static_pointer_cast<Element>(GeometricalObject::shared_from_this());
+    }
     ///@}
     ///@name Operators
     ///@{
@@ -184,7 +183,6 @@ public:
     Element & operator=(Element const& rOther)
     {
         BaseType::operator=(rOther);
-        Flags::operator =(rOther);
         mpProperties = rOther.mpProperties;
         return *this;
     }
@@ -194,7 +192,7 @@ public:
     ///@{
 
     /** Dimensional space of the element geometry
-	@return SizeType, working space dimension of this geometry.
+    @return SizeType, working space dimension of this geometry.
     */
 
     KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
@@ -223,7 +221,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
-        return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -240,7 +238,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
-        return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -301,7 +299,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
-        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;
@@ -362,6 +360,9 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -369,6 +370,9 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -376,6 +380,9 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -473,9 +480,9 @@ public:
                                       ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -493,6 +500,12 @@ public:
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
                                       ProcessInfo& rCurrentProcessInfo)
     {
+        if (rLeftHandSideMatrices.size() != 0) {
+	        rLeftHandSideMatrices.resize(0);
+        }
+        if (rRightHandSideVectors.size() != 0) {
+	        rRightHandSideVectors.resize(0);
+        }
     }
 
     /**
@@ -505,7 +518,7 @@ public:
                                        ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
     /**
@@ -516,9 +529,12 @@ public:
      * @param rLHSVariables parameter describing the expected LHSs
      */
     virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+                    const std::vector< Variable< MatrixType > >& rLHSVariables,
+                    ProcessInfo& rCurrentProcessInfo)
     {
+        if (rLeftHandSideMatrices.size() != 0) {
+	        rLeftHandSideMatrices.resize(0);
+        }
     }
 
     /**
@@ -531,7 +547,7 @@ public:
                                         ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -542,9 +558,12 @@ public:
      * @param rRHSVariables parameter describing the expected RHSs
      */
     virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+                    const std::vector< Variable< VectorType > >& rRHSVariables,
+                    ProcessInfo& rCurrentProcessInfo)
     {
+        if (rRightHandSideVectors.size() != 0) {
+	        rRightHandSideVectors.resize(0);
+        }
     }
 
 
@@ -566,13 +585,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo)
+                            VectorType& rRightHandSideVector,
+                            ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -582,10 +601,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					      ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
 
@@ -596,10 +615,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -622,13 +641,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo)
+                             VectorType& rRightHandSideVector,
+                             ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -639,10 +658,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       ProcessInfo& rCurrentProcessInfo)
+                           ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
 
@@ -653,10 +672,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo)
+                           ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -676,7 +695,7 @@ public:
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-	  rMassMatrix.resize(0, 0, false);
+      rMassMatrix.resize(0, 0, false);
     }
 
 
@@ -689,7 +708,7 @@ public:
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-	  rDampingMatrix.resize(0, 0, false);
+      rDampingMatrix.resize(0, 0, false);
     }
 
 
@@ -809,44 +828,44 @@ public:
      */
 
     virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-					      std::vector<bool>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector<bool>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-					      std::vector<int>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector<int>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					      std::vector< array_1d<double, 3 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< array_1d<double, 3 > >& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					      std::vector< array_1d<double, 6 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< array_1d<double, 6 > >& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-					      std::vector< Vector >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< Vector >& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-					      std::vector< Matrix >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< Matrix >& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -863,99 +882,99 @@ public:
 
     //SET ON INTEGRATION POINTS - METHODS
     virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
-					     std::vector<bool>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
     virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 3 > > rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 6 > > rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Vector>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-					     std::vector<ConstitutiveLaw::Pointer>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<ConstitutiveLaw::Pointer>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     //GET ON INTEGRATION POINTS METHODS
 
     virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
-					     std::vector<bool>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 3 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 6 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Vector>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-					     std::vector<ConstitutiveLaw::Pointer>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<ConstitutiveLaw::Pointer>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -992,7 +1011,7 @@ public:
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-	  rMassMatrix.resize(0, 0, false);
+      rMassMatrix.resize(0, 0, false);
     }
 
     /**
@@ -1015,7 +1034,7 @@ public:
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
-	  rDampMatrix.resize(0, 0, false);
+      rDampMatrix.resize(0, 0, false);
     }
 
     /**
@@ -1037,7 +1056,7 @@ public:
             VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-	  rDampingMatrix.resize(0, 0, false);
+      rDampingMatrix.resize(0, 0, false);
 
     }
 
@@ -1169,25 +1188,6 @@ public:
     }
 
     ///@}
-    ///@name Flags
-    ///@{
-
-    Flags& GetFlags()
-      {
-	return *this;
-      }
-
-    Flags const& GetFlags() const
-    {
-      return *this;
-    }
-
-    void SetFlags(Flags const& rThisFlags)
-    {
-      Flags::operator=(rThisFlags);
-    }
-
-    ///@}
     ///@name Inquiry
     ///@{
 
@@ -1284,7 +1284,6 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
         rSerializer.save("Properties", mpProperties);
     }
@@ -1292,7 +1291,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
         rSerializer.load("Properties", mpProperties);
     }
@@ -1344,7 +1342,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Element >, NEIGHBOUR_ELEMENTS)
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT

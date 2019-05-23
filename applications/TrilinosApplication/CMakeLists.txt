@@ -36,7 +36,8 @@ endif(TRILINOS_USE_AMGCL MATCHES ON)
 
 # Generate variables with the sources
 set( KRATOS_TRILINOS_APPLICATION_SOURCES
- 	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/amgcl_mpi_solver_impl.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_convergence_criterias_to_python.cpp
@@ -49,7 +50,6 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
     ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY NOT BE HERE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/amgcl_mpi_solver_impl.cpp;
 )
 
 ## Kratos tests sources. Enabled by default

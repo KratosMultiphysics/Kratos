@@ -50,13 +50,13 @@ namespace Kratos {
     /// Geometric definitions
     typedef Point PointType;
     typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryNodeType;
+    typedef Geometry<NodeType> GeometryType;
     typedef Geometry<PointType> GeometryPointType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     typedef IntegrationPoint<2> IntegrationPointType;
-    typedef GeometryNodeType::IntegrationPointsArrayType IntegrationPointsType;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
 
     /// The definition of the size type
     typedef std::size_t SizeType;
@@ -183,9 +183,9 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     bool GetExactIntegration(
-        GeometryNodeType& rOriginalSlaveGeometry,
+        const GeometryType& rOriginalSlaveGeometry,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometryNodeType& rOriginalMasterGeometry,
+        const GeometryType& rOriginalMasterGeometry,
         const array_1d<double, 3>& rMasterNormal,
         ConditionArrayListType& rConditionsPointsSlave
         );
@@ -200,9 +200,9 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     bool GetExactIntegration(
-        GeometryNodeType& rOriginalSlaveGeometry,
+        const GeometryType& rOriginalSlaveGeometry,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometryNodeType& rOriginalMasterGeometry,
+        const GeometryType& rOriginalMasterGeometry,
         const array_1d<double, 3>& rMasterNormal,
         IntegrationPointsType& rIntegrationPointsSlave
         );
@@ -217,9 +217,9 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     bool GetExactAreaIntegration(
-        GeometryNodeType& rOriginalSlaveGeometry,
+        const GeometryType& rOriginalSlaveGeometry,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometryNodeType& rOriginalMasterGeometry,
+        const GeometryType& rOriginalMasterGeometry,
         const array_1d<double, 3>& rMasterNormal,
         double& rArea
         );
@@ -231,7 +231,7 @@ public:
      * @param rArea The total area integrated
      */
     void GetTotalArea(
-        GeometryNodeType& rOriginalSlaveGeometry,
+        const GeometryType& rOriginalSlaveGeometry,
         ConditionArrayListType& rConditionsPointsSlave,
         double& rArea
         );
@@ -276,9 +276,9 @@ public:
     */
     static inline void MathematicaDebug(
         const IndexType IndexSlave,
-        GeometryType& rSlaveGeometry,
+        const GeometryType& rSlaveGeometry,
         const IndexType IndexMaster,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rMasterGeometry,
         ConditionArrayListType& rConditionsPointSlave
         )
     {
@@ -358,7 +358,7 @@ protected:
     /**
      * @brief Get the integration method to consider
      */
-    GeometryNodeType::IntegrationPointsArrayType GetIntegrationTriangle();
+    GeometryType::IntegrationPointsArrayType GetIntegrationTriangle();
 
     /**
      * @brief This method checks if the whole array is true
@@ -585,7 +585,7 @@ protected:
         )
     {
         for (IndexType i_node = 0; i_node < TSizeCheck; ++i_node) {
-            GeometryNodeType::CoordinatesArrayType projected_gp_local;
+            GeometryType::CoordinatesArrayType projected_gp_local;
             rAllInside[i_node] = rGeometry1.IsInside( rGeometry2[i_node].Coordinates( ), projected_gp_local, Tolerance) ;
         }
     }
@@ -609,8 +609,8 @@ protected:
      */
     inline void ComputeClippingIntersections(
         PointListType& rPointList,
-        GeometryPointType& rSlaveGeometry,
-        GeometryPointType& rMasterGeometry,
+        const GeometryPointType& rSlaveGeometry,
+        const GeometryPointType& rMasterGeometry,
         const PointType& rRefCenter
         );
 
@@ -626,13 +626,13 @@ protected:
      * @param IsAllInside To simplify and consider the point_list directly
      * @return If there is intersection or not (true/false)
      */
-    template <class TGeometryType = GeometryNodeType>
+    template <class TGeometryType = GeometryType>
     inline bool TriangleIntersections(
         ConditionArrayListType& rConditionsPointsSlave,
         PointListType& rPointList,
-        TGeometryType& rrOriginalSlaveGeometry,
-        GeometryPointType& rSlaveGeometry,
-        GeometryPointType& rMasterGeometry,
+        const TGeometryType& rOriginalSlaveGeometry,
+        const GeometryPointType& rSlaveGeometry,
+        const GeometryPointType& rMasterGeometry,
         const array_1d<double, 3>& rSlaveTangentXi,
         const array_1d<double, 3>& rSlaveTangentEta,
         const PointType& rRefCenter,

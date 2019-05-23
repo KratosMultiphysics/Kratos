@@ -183,11 +183,11 @@ public:
 
             if (n_int==1.0)
             {
-		WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
                 int n_neighbor_nodes=neighb_nodes.size();
 		int n_fixed=0;
 		array_1d<double,3> av_vel=ZeroVector(3);
-		for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+		for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     n_fixed+=	i->IsFixed(AUX_VEL_X);
 		    av_vel+=i->FastGetSolutionStepValue(AUX_VEL);

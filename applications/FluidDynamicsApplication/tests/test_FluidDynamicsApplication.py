@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
 from darcy_channel_test import DarcyChannelTest
+from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
 from embedded_couette_test import EmbeddedCouetteTest
@@ -53,6 +54,7 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
+    smallSuite.addTest(EmbeddedPistonTest('testEmbeddedPiston2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))
@@ -120,16 +122,16 @@ if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-    try:
-        import KratosMultiphysics.mpi as KratosMPI
-        import KratosMultiphysics.MetisApplication as MetisApplication
-        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"], stdout=subprocess.PIPE)
+    import os.path
+    import kratos_utilities
+    if kratos_utilities.IsMPIAvailable():
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+        p = subprocess.Popen(
+            ["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"],
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(__file__))
         p.wait()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    except ImportError:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

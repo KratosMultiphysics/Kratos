@@ -112,10 +112,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         # Solve the mesh problem (or moves the interface nodes)
         if self.solve_mesh_at_each_iteration:
-            self.mesh_solver.InitializeSolutionStep()
-            self.mesh_solver.Predict()
             self.mesh_solver.SolveSolutionStep()
-            self.mesh_solver.FinalizeSolutionStep()
         else:
             self.mesh_solver.MoveMesh()
 

@@ -44,15 +44,15 @@ namespace Kratos {
                                     const ProcessInfo& r_current_process_info){return mLastVirtualMassAddedMass;}
 
         double ComputeParticleAccelerationNumber(const double particle_radius,
-                                                 const array_1d<double, 3>& slip_velocity,
-                                                 const array_1d<double, 3>& slip_acceleration);
+                                                 const array_1d<double, 3>& minus_slip_velocity,
+                                                 const array_1d<double, 3>& minus_slip_acceleration);
 
     protected:
 
         double mLastVirtualMassAddedMass;
 
         virtual double GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
-                                                 const array_1d<double, 3>& slip_acc){return 0.0;}
+                                                 const array_1d<double, 3>& minus_slip_acc){return 0.0;}
 
     private:
 

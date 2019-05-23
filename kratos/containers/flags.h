@@ -186,19 +186,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(Flags ThisFlag)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= ThisFlag.mFlags;
-    }
+    void Set(Flags ThisFlag);
 
-    void Set(Flags ThisFlag, bool Value)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= (ThisFlag.mFlags * BlockType(Value)) | ((ThisFlag.mIsDefined ^ ThisFlag.mFlags) * BlockType(!Value));
-    }
+    void Set(Flags ThisFlag, bool Value);
 
     void Reset(Flags ThisFlag)
     {
@@ -253,6 +243,15 @@ public:
     ///@name Access
     ///@{
 
+    static const Flags AllDefined()
+    {
+        return Flags(~0,0);
+    }
+
+    static const Flags AllTrue()
+    {
+        return Flags(~0,~0);
+    }
 
     ///@}
     ///@name Inquiry
@@ -327,43 +326,17 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags == Right.mFlags);
-    }
+    friend bool operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags != Right.mFlags);
-    }
+    friend bool operator!=(const Flags& Left, const Flags& Right );
 
-    friend Flags operator|(const Flags& Left, const Flags& Right )
-    {
-        Flags results(Left);
-        results |= Right;
-        return results;
-    }
+    friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
-    friend Flags operator&(const Flags& Left, const Flags& Right )
-    {
-        Flags results(Left);
-        results &= Right;
-        return results;
-    }
+    friend Flags KRATOS_API(KRATOS_CORE) operator&(const Flags& Left, const Flags& Right );
 
-    const Flags& operator|=(const Flags& Other )
-    {
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator|=(const Flags& Other );
 
-    const Flags& operator&=(const Flags& Other )
-    {
-        mIsDefined &= Other.mIsDefined;
-        mFlags &= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator&=(const Flags& Other );
 
     ///@}
 
@@ -426,6 +399,16 @@ private:
     ///@name Private Operations
     ///@{
 
+    friend class MPIDataCommunicator;
+
+    BlockType GetDefined() const;
+
+    void SetDefined(const BlockType& rDefined);
+
+    BlockType GetFlags() const;
+
+    void SetFlags(const BlockType& rValues);
+
     ///@}
     ///@name Serialization
     ///@{
@@ -434,7 +417,7 @@ private:
     virtual void save(Serializer& rSerializer) const;
 
     virtual void load(Serializer& rSerializer);
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -444,6 +427,13 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    Flags(BlockType DefinedFlags, BlockType SetFlags):
+        mIsDefined(DefinedFlags), mFlags(SetFlags)
+    {}
 
     ///@}
     ///@name Un accessible methods

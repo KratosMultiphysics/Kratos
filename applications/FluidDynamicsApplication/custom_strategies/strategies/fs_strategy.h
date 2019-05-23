@@ -635,8 +635,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormV);
-
+        NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
         NormV = sqrt(NormV);
 
         if (NormV == 0.0) NormV = 1.00;
@@ -673,8 +672,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormP);
-
+        NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
         NormP = sqrt(NormP);
 
         if (NormP == 0.0) NormP = 1.00;
@@ -869,10 +867,11 @@ protected:
      */
      void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
      {
-         if (mrPeriodicIdVar.Key() != 0)
+         Communicator& r_comm = rModelPart.GetCommunicator();
+         if (mrPeriodicIdVar.Key() != Kratos::Variable<int>::StaticObject().Key())
          {
-             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
+             int GlobalNodesNum = r_comm.LocalMesh().Nodes().size();
+             GlobalNodesNum = r_comm.GetDataCommunicator().SumAll(GlobalNodesNum);
 
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
@@ -954,10 +953,11 @@ protected:
 
      void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
      {
-         if (mrPeriodicIdVar.Key() != 0)
+         Communicator& r_comm = rModelPart.GetCommunicator();
+         if (mrPeriodicIdVar.Key() != Kratos::Variable<int>::StaticObject().Key())
          {
-             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
+             int GlobalNodesNum = r_comm.LocalMesh().Nodes().size();
+             GlobalNodesNum = r_comm.GetDataCommunicator().SumAll(GlobalNodesNum);
 
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {

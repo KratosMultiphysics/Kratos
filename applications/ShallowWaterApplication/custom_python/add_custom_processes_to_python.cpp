@@ -17,11 +17,14 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/elemental_refining_criteria_process.h"
+#include "custom_processes/initial_perturbation_process.h"
+#include "custom_processes/apply_sinusoidal_function_process.h"
+#include "custom_processes/rough_porous_layer_wetting_model.h"
+#include "custom_processes/id_renumbering_process.h"
 
 
 namespace Kratos
@@ -34,12 +37,47 @@ namespace Python
     {
         namespace py = pybind11;
 
-        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>(m, "ElementalRefiningCriteriaProcess")
+        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>
+        (m, "ElementalRefiningCriteriaProcess")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<ModelPart&, Variable<double>, double, bool>())
-        .def("Execute",&ElementalRefiningCriteriaProcess::Execute)
         ;
+
+        py::class_<InitialPerturbationProcess, InitialPerturbationProcess::Pointer, Process>
+        (m, "InitialPerturbationProcess")
+        .def(py::init<ModelPart&, Node<3>::Pointer, Parameters&>())
+        .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Parameters&>())
+        ;
+
+        py::class_<ApplySinusoidalFunctionProcess<Variable<double>>, ApplySinusoidalFunctionProcess<Variable<double>>::Pointer, Process>
+        (m, "ApplySinusoidalFunctionToScalar")
+        .def(py::init<ModelPart&, Variable<double>&, Parameters&>())
+        ;
+
+        py::class_<ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>>, ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>>::Pointer, Process>
+        (m, "ApplySinusoidalFunctionToVector")
+        .def(py::init<ModelPart&, Variable<array_1d<double,3>>&, Parameters&>())
+        ;
+
+        py::class_<RoughPorousLayerWettingModel, RoughPorousLayerWettingModel::Pointer, Process>
+        (m, "RoughPorousLayerWettingModel")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&, double, double>())
+        ;
+
+        py::class_<IdRenumberingProcess, IdRenumberingProcess::Pointer, Process>
+        (m, "IdRenumberingProcess")
+        .def(py::init<Model&>())
+        .def(py::init<Model&, StringVectorType&>())
+        .def("RenumberNodes", &IdRenumberingProcess::RenumberNodes)
+        .def("RenumberElements", &IdRenumberingProcess::RenumberElements)
+        .def("RenumberConditions", &IdRenumberingProcess::RenumberConditions)
+        .def("RestoreNodes", &IdRenumberingProcess::RestoreNodes)
+        .def("RestoreElements", &IdRenumberingProcess::RestoreElements)
+        .def("RestoreConditions", &IdRenumberingProcess::RestoreConditions)
+        ;
+
     }
 
 }  // namespace Python.
