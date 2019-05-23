@@ -47,7 +47,7 @@ class AssignPressureIdProcess : public Process
 protected:
 
   // Member Variables
-  ModelPart &mrModelPart;
+  ModelPart& mrModelPart;
   std::string mPressureName;
 
 };  // Class
