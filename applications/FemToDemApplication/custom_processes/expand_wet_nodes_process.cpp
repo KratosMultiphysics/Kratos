@@ -33,9 +33,10 @@ void ExpandWetNodesProcess::Execute()
     while (extrapolated_elements > 0) {
         extrapolated_elements = 0;
 
+        auto it_elem_begin = mrModelPart.ElementsBegin();
         //#pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-            auto it_elem = mrModelPart.ElementsBegin() + i;
+            auto it_elem = it_elem_begin + i;
             
             bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
             bool condition_is_active = true;
@@ -130,9 +131,10 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
 
+    auto it_node_begin = r_sub_model_part.NodesBegin();
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_sub_model_part.Nodes().size()); i++) {
-        auto it_node = r_sub_model_part.NodesBegin() + i;
+        auto it_node = it_node_begin + i;
         it_node->SetValue(IS_SKIN, true);
     }
 

@@ -19,8 +19,8 @@ namespace Kratos {
 
 
 AssignPressureIdProcess::AssignPressureIdProcess(
-    ModelPart& r_model_part)
-    : mrModelPart(r_model_part) 
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart) 
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
     const std::size_t dimension = r_process_info[DOMAIN_SIZE];
@@ -56,10 +56,12 @@ void AssignPressureIdProcess::AssignPressureIdToNodes(
     const int PressureId
     )
 {
+    auto& r_submodel = mrModelPart.GetSubModelPart(rSubModelPartName);
+    const auto it_node_begin = r_submodel.NodesBegin();
     // Loop over nodes of that submodel to assign prressure id
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.GetSubModelPart(rSubModelPartName).Nodes().size()); i++) {
-        auto it_node = mrModelPart.GetSubModelPart(rSubModelPartName).NodesBegin() + i;
+    for (int i = 0; i < static_cast<int>(r_submodel.Nodes().size()); i++) {
+        auto it_node = it_node_begin + i;
         it_node->SetValue(PRESSURE_ID, PressureId);
     }
 }

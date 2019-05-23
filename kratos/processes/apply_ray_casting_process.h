@@ -59,10 +59,10 @@ public:
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
-     * Constructor without user defined extra rays epsilon, used to 
+     * Constructor without user defined extra rays epsilon, used to
      * generate the extra rays when voting is required for coloring
      * @param rVolumePart model part containing the volume elements
-     * @param rSkinPart model part containing the skin to compute 
+     * @param rSkinPart model part containing the skin to compute
      * the distance to as conditions
      */
     ApplyRayCastingProcess(
@@ -71,25 +71,26 @@ public:
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
-     * Constructor with user defined extra rays epsilon, used to 
-     * generate the extra rays when voting is required for coloring
+     *
      * @param rVolumePart model part containing the volume elements
-     * @param rSkinPart model part containing the skin to compute 
+     * @param rSkinPart model part containing the skin to compute
      * the distance to as conditions
-     * @param ExtraRaysEpsilon user-defined extra rays epsilon
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
      */
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const double ExtraRaysEpsilon);
+        const double RelativeTolerance);
 
     /**
-     * @brief Construct a new ApplyRayCastingProcess object using an already created search structure
-     * This constructor is used by 
+     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     *
+     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
      */
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        const double ExtraRaysEpsilon);
+        const double RelativeTolerance);
 
     /// Destructor.
     ~ApplyRayCastingProcess() override;
@@ -114,7 +115,7 @@ public:
     /**
      * @brief Computes the raycasting distance for a node
      * This method computes the raycasting distance for a given node. It casts a ray
-     * in the x and y (as well as z in 3D) directions and computes the distance from 
+     * in the x and y (as well as z in 3D) directions and computes the distance from
      * the ray origin point (the node of interest) to each one of the intersecting objects.
      * @param rNode reference to the node of interest
      * @return double raycasting distance value computed
@@ -123,38 +124,38 @@ public:
 
     /**
      * @brief Get the ray intersecting objects and its distance
-     * For a given ray and direction, this method search for all the intersecting entities 
-     * to this ray. This operation is performed using the binary octree in the discontinuous 
+     * For a given ray and direction, this method search for all the intersecting entities
+     * to this ray. This operation is performed using the binary octree in the discontinuous
      * distance base class to check each one of the cells crossed by the ray.
      * @param ray casted ray coordinates
      * @param direction direction of the casted ray (0 for x, 1 for y and 2 for z)
-     * @param rIntersections array containing a pair for each intersection found. The 
+     * @param rIntersections array containing a pair for each intersection found. The
      * first value of the pair contains the ray distance to the intersection entity
      * while the second one contains a pointer to the intersection entity geometry
      */
     virtual void GetRayIntersections(
         const double* ray,
         const unsigned int direction,
-        std::vector<std::pair<double,Element::GeometryType*> > &rIntersections); 
+        std::vector<std::pair<double,Element::GeometryType*> > &rIntersections);
 
     /**
      * @brief Get the intersecting objects contained in the current cell
-     * 
+     *
      * @param cell current cell
      * @param ray casted ray coordinates
      * @param ray_key binary octree ray key
      * @param direction direction of the casted ray (0 for x, 1 for y and 2 for z)
-     * @param rIntersections array containing a pair for each intersection found. The 
+     * @param rIntersections array containing a pair for each intersection found. The
      * first value of the pair contains the ray distance to the intersection entity
      * while the second one contains a pointer to the intersection entity geometry
      * @return int 0 if the cell intersection search has succeeded
      */
     virtual int GetCellIntersections(
-        OctreeType::cell_type* cell, 
+        OctreeType::cell_type* cell,
         const double* ray,
-        OctreeType::key_type* ray_key, 
+        OctreeType::key_type* ray_key,
         const unsigned int direction,
-        std::vector<std::pair<double, Element::GeometryType*> > &rIntersections); 
+        std::vector<std::pair<double, Element::GeometryType*> > &rIntersections);
 
     /**
      * @brief Executes the ApplyRayCastingProcess
@@ -185,10 +186,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    const double mExtraRaysEpsilon = 1.0e-8;
+    double mEpsilon = 1.0e-12;
+    double mExtraRayOffset = 1.0e-8;
+    double mRelativeTolerance = 1.0e-12;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
-    double mCharacteristicLength;
+    double mCharacteristicLength = 1.0;
 
     ///@}
     ///@name Private Operators
@@ -216,14 +219,13 @@ private:
 
     /**
      * @brief Creates the start point in space for new extra rays around current ray
-     * This method is used to create extra rays when the original one hits border of 
+     * This method is used to create extra rays when the original one hits border of
      * a goemetry
      * @param RayEpsilon Distance between this original ray and extra one around it
      * @param rCoords coordinate of the original ray
      * @param rExtraRayOrigs obtained extra rays
      */
     void GetExtraRayOrigins(
-        const double RayEpsilon,
         const array_1d<double,3> &rCoords,
         array_1d<array_1d<double,3>, (TDim == 3) ? 9 : 5> &rExtraRayOrigs);
 
@@ -235,27 +237,29 @@ private:
 
     /**
      * @brief Creates extra rays around the current one and determine the color by voting
-     * When a ray hits border of a geometry this method is called to determine if  
-     * the ray is penetrating the object or not. The idea is to lunch several rays 
+     * When a ray hits border of a geometry this method is called to determine if
+     * the ray is penetrating the object or not. The idea is to lunch several rays
      * around the original one and check the pentration by voting between them.
-     * @param Epsilon To be used for intersection detection
-     * @param RayPerturbation Distance between this original ray and extra one around it
      * @param rCoords coordinate of the original ray
      * @param rDistances obtain distances in different directions using extra rays
      */
     void ComputeExtraRayColors(
-        const double Epsilon,
-        const double RayPerturbation,
         const array_1d<double,3> &rCoords,
         array_1d<double,TDim> &rDistances);
 
 
     /**
      * @brief Calculate the mCharacterisiticLength variable using bounding box of the domain to be used in scaling the epsilons
-     * The actual version calcuates the bonding box and takes the distance between max and min 
+     * The actual version calcuates the bonding box and takes the distance between max and min
      * points as characteristic length.
      */
     void CalculateCharacteristicLength();
+
+    /**
+     * @brief Set the Ray Casting Tolerances values
+     * This method sets the ray casting tolerances values according to the domain bounding box size
+     */
+    void SetRayCastingTolerances();
 
     ///@}
     ///@name Private  Access
