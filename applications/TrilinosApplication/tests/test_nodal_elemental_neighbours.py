@@ -17,7 +17,6 @@ class TestNodalElementalNeighbours(KratosUnittest.TestCase):
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
-        kratos_comm.Barrier()
 
     def _ReadSerialModelPart(self,model_part, mdpa_file_name):
         import_flags = KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.SKIP_TIMER
