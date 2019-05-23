@@ -124,7 +124,7 @@ void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	if (mDamage >= 0.98) {
 		this->Set(ACTIVE, false);
 
-		// We set a flag to generate the DEM 
+		// We set a "flag" to generate the DEM 
 		rCurrentProcessInfo[GENERATE_DEM] = true;
 	}
 }
