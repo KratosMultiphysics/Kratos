@@ -93,6 +93,52 @@ LineLoadCondition2D::~LineLoadCondition2D()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LineLoadCondition2D::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LineLoadCondition2D::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    const auto& r_geometry = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+
+    if ( rOutput.size() != r_integration_points.size() )
+        rOutput.resize( r_integration_points.size() );
+
+    if (rVariable == NORMAL) {
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            rOutput[point_number] = r_geometry.UnitNormal(r_integration_points[point_number].Coordinates());
+        }
+    } else {
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            rOutput[point_number] = ZeroVector(3);
+        }
+    }
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LineLoadCondition2D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,

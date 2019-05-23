@@ -26,7 +26,7 @@ namespace Kratos
 namespace Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -85,7 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
 
 };
 
-KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     Model current_model;
@@ -113,9 +113,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     //************************** VERSION WITH MINIMAL BOILERPLATE ***********************************
     //define the pointer communicator - note that a functor is employed here, so to avoid boilerplate
     GlobalPointerCommunicator< Node<3>> pointer_comm(
-                                            r_default_comm, 
+                                            r_default_comm,
                                             RetrieveGlobalPointersByIndex<ModelPart::NodesContainerType>(mp.Nodes(), indices)  //if we eventually evolve to c++17 the type will be deduced
-                                        ); 
+                                        );
 
     auto temperature_proxy = pointer_comm.Apply( GetValueFunctor<Variable<double>>(TEMPERATURE) ); //if we eventually evolve to c++17 the template parameter in the functor will be deduced
 

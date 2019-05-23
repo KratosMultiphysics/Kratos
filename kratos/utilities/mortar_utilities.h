@@ -170,8 +170,12 @@ namespace MortarUtilities
     /**
      * @brief It computes the mean of the r_normal in the condition in all the nodes
      * @param rModelPart The model part to compute
+     * @param ComputeConditions If computed over conditions or elements
      */
-    void KRATOS_API(KRATOS_CORE) ComputeNodesMeanNormalModelPart(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) ComputeNodesMeanNormalModelPart(
+        ModelPart& rModelPart,
+        const bool ComputeConditions = true
+        );
 
     /**
      * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the r_normal

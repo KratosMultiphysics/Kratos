@@ -443,7 +443,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         for condition in self.structure_solver.main_model_part.Conditions:
             max_cond_id = max(max_cond_id, condition.Id)
 
-        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().MaxAll(max_cond_id)
+        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_cond_id)
 
         # Set up the point load condition in the structure interface
         structure_interfaces_list = self.settings["coupling_settings"]["structure_interfaces_list"]
