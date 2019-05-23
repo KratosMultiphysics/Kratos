@@ -720,7 +720,7 @@ private:
                 ComputeResidualMatrix(residual_matrix, r_slave_geometry, r_master_geometry, rThisMortarOperators);
 
                 if (!TImplicit) {
-                    MortarUtilities::AddValue<TVarType, NonHistorical>(r_slave_geometry, aux_variable, residual_matrix);
+                    MortarUtilities::AddValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(r_slave_geometry, aux_variable, residual_matrix);
                 }
 
                 // We check if DOperator is diagonal
@@ -800,7 +800,7 @@ private:
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_cond = r_root_model_part.pGetElement(id);
+                    auto p_cond = r_root_model_part.pGetCondition(id);
                     p_cond->Set(TO_ERASE, true);
                 }
             } else {

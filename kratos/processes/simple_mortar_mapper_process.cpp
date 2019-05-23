@@ -683,15 +683,15 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Comp
     const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
     Matrix var_origin_matrix(TNumNodesMaster, size_to_compute);
     if (mOptions.Is(ORIGIN_IS_HISTORICAL)) {
-        MortarUtilities::MatrixValue<TVarType, Historical>(rMasterGeometry, mOriginVariable, var_origin_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rMasterGeometry, mOriginVariable, var_origin_matrix);
     } else {
-        MortarUtilities::MatrixValue<TVarType, NonHistorical>(rMasterGeometry, mOriginVariable, var_origin_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(rMasterGeometry, mOriginVariable, var_origin_matrix);
     }
     Matrix var_destination_matrix(TNumNodes, size_to_compute);
     if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-        MortarUtilities::MatrixValue<TVarType, Historical>(rSlaveGeometry, mDestinationVariable, var_destination_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rSlaveGeometry, mDestinationVariable, var_destination_matrix);
     } else {
-        MortarUtilities::MatrixValue<TVarType, NonHistorical>(rSlaveGeometry, mDestinationVariable, var_destination_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(rSlaveGeometry, mDestinationVariable, var_destination_matrix);
     }
 
     const SizeType size_1 = var_destination_matrix.size1();
@@ -787,9 +787,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // We set to zero the variables
     if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-        MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart, mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(mDestinationModelPart, mDestinationVariable);
     } else {
-        MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, mDestinationVariable);
     }
 
     // Declaring auxiliar values
@@ -901,9 +901,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             auto it_node = it_node_begin + i;
             NodeType::Pointer pnode = *(it_node.base());
             if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, Historical>(pnode, mDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(pnode, mDestinationVariable, ref_area);
             } else {
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, NonHistorical>(pnode, mDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(pnode, mDestinationVariable, ref_area);
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
                 const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
@@ -954,9 +954,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // We set to zero the variables
     if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-        MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart,  mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(mDestinationModelPart,  mDestinationVariable);
     } else {
-        MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, mDestinationVariable);
     }
 
     // Creating the assemble database
@@ -1054,9 +1054,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
             if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-                MortarUtilities::UpdateDatabase<TVarType, Historical>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+                MortarUtilities::UpdateDatabase<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
             } else {
-                MortarUtilities::UpdateDatabase<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+                MortarUtilities::UpdateDatabase<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
             }
             const double residual_norm = norm_2(b[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm;
