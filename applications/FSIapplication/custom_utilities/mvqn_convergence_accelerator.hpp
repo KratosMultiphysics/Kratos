@@ -13,15 +13,16 @@
 #if !defined(KRATOS_MVQN_CONVERGENCE_ACCELERATOR)
 #define  KRATOS_MVQN_CONVERGENCE_ACCELERATOR
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/ublas_interface.h"
 #include "utilities/svd_utils.h"
 #include "utilities/math_utils.h"
-#include "utilities/qr_utility.h"
+
+// Application includes
 #include "convergence_accelerator.hpp"
 
 namespace Kratos
@@ -168,8 +169,8 @@ public:
                 // Initialize the Jacobian approximation matrix as minus the diagonal matrix
                 // Note that this is exclusively done in the very fist iteration
                 MatrixPointerType p_new_jac_n = Kratos::make_shared<MatrixType>(mProblemSize,mProblemSize);
+                (*p_new_jac_n) = -1.0 * IdentityMatrix(mProblemSize,mProblemSize);
                 std::swap(p_new_jac_n,mpJac_n);
-                (*mpJac_n) = -1.0 * IdentityMatrix(mProblemSize,mProblemSize);
 
                 mConvergenceAcceleratorFirstCorrectionPerformed = true;
             } else {
@@ -300,7 +301,12 @@ public:
         KRATOS_TRY;
 
         // Update previous time step Jacobian as the last iteration Jacobian.
-        mpJac_n = mpJac_k1;
+        // Note that it is required to check if the last iteration Jacobian exists. It exist a corner case (if the
+        // very fist time step only requires the preliminary fixed point relaxation iteration to converge the
+        // previous iteration Jacobian is not needed) that might set a nullptr as previous step Jacobian.
+        if (mpJac_k1) {
+            mpJac_n = mpJac_k1;
+        }
 
         KRATOS_CATCH( "" );
     }
