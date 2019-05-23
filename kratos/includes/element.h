@@ -272,6 +272,16 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  const ProcessInfo& rCurrentProcessInfo) const
+    {
+        const_cast<Element*>(this)->EquationIdVector(rResult, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
+        if (rResult.size() != 0) {
+            rResult.resize(0);
+        }
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)

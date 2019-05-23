@@ -641,10 +641,19 @@ public:
      * @param rMassMatrix the condition mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateMassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
+        if (rMassMatrix.size1() != 0) {
+            rMassMatrix.resize(0, 0, false);
+        }
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-      rMassMatrix.resize(0, 0, false);
+            rMassMatrix.resize(0, 0, false);
     }
 
 
