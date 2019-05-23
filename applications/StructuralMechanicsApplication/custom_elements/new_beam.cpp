@@ -99,6 +99,24 @@ void NewBeamElement3D2N::Initialize()
     KRATOS_CATCH("")
 }
 
+
+void NewBeamElement3D2N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    GetValuesVector(mDeformationCurrent, 0);
+    GetValuesVector(mDeformationPrevious, 0);
+    KRATOS_CATCH("")
+}
+
+
+void NewBeamElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    mDeformationPrevious = mDeformationCurrent;
+    GetValuesVector(mDeformationCurrent, 0);
+    KRATOS_CATCH("")
+}
+
 void NewBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
 
@@ -205,6 +223,8 @@ void NewBeamElement3D2N::CalculateLeftHandSide(
     rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
     // creating LHS
     noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
+    //noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Geometry();
+
 
     Vector vector_difference = ZeroVector(msDimension);
     Vector bisectrix = ZeroVector(msDimension);
@@ -258,6 +278,7 @@ NewBeamElement3D2N::CalculateDeformationStiffness() const
     Kd(3, 3) = E * A / L;
     Kd(4, 4) = 3.0 * E * Iy * Psi_y / L;
     Kd(5, 5) = 3.0 * E * Iz * Psi_z / L;
+
 
 
     return Kd;
@@ -560,16 +581,10 @@ NewBeamElement3D2N::CalculateTransformationS() const
     KRATOS_CATCH("")
 }
 
-Vector NewBeamElement3D2N::UpdateIncrementDeformation()
+Vector NewBeamElement3D2N::GetIncrementDeformation() const
 {
     KRATOS_TRY
-    Vector actual_deformation = ZeroVector(msElementSize);
-    GetValuesVector(actual_deformation, 0);
-    Vector increment_deformation =
-        actual_deformation - mTotalNodalDeformation;
-
-    //mTotalNodalDeformation = actual_deformation;
-    return increment_deformation;
+    return mDeformationCurrent - mDeformationPrevious;
     KRATOS_CATCH("")
 }
 
@@ -604,7 +619,7 @@ NewBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     BoundedVector<double, msDimension> d_phi_a = ZeroVector(msDimension);
     BoundedVector<double, msDimension> d_phi_b = ZeroVector(msDimension);
-    Vector increment_deformation = UpdateIncrementDeformation();
+    Vector increment_deformation = GetIncrementDeformation();
 
     for (unsigned int i = 0; i < msDimension; ++i) {
         d_phi_a[i] = increment_deformation[i + 3];
@@ -873,7 +888,6 @@ Vector NewBeamElement3D2N::CalculateGlobalNodalForces()
 
 void NewBeamElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    GetValuesVector(mTotalNodalDeformation,1);
     Vector vector_difference = ZeroVector(msDimension);
     Vector bisectrix = ZeroVector(msDimension);
     UpdateRotationMatrixLocal(bisectrix,vector_difference,true);
@@ -1001,10 +1015,138 @@ int NewBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
+
+BoundedMatrix<double, NewBeamElement3D2N::msElementSize,
+NewBeamElement3D2N::msElementSize>
+NewBeamElement3D2N::CreateElementStiffnessMatrix_Geometry()
+{
+
+    KRATOS_TRY;
+
+    Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+
+    const double N = nodal_forces_local_qe[6];
+    const double Mt = nodal_forces_local_qe[9];
+    const double my_A = nodal_forces_local_qe[4];
+    const double mz_A = nodal_forces_local_qe[5];
+    const double my_B = nodal_forces_local_qe[10];
+    const double mz_B = nodal_forces_local_qe[11];
+
+    const double L = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double Qy = -1.00 * (mz_A + mz_B) / L;
+    const double Qz = (my_A + my_B) / L;
+
+    BoundedMatrix<double, msElementSize, msElementSize> local_stiffness_matrix =
+        ZeroMatrix(msElementSize, msElementSize);
+
+    local_stiffness_matrix(0, 1) = -Qy / L;
+    local_stiffness_matrix(0, 2) = -Qz / L;
+    local_stiffness_matrix(0, 7) = -1.0 * local_stiffness_matrix(0, 1);
+    local_stiffness_matrix(0, 8) = -1.0 * local_stiffness_matrix(0, 2);
+
+    local_stiffness_matrix(1, 0) = local_stiffness_matrix(0, 1);
+
+    local_stiffness_matrix(1, 1) = 1.2 * N / L;
+
+    local_stiffness_matrix(1, 3) = my_A / L;
+    local_stiffness_matrix(1, 4) = Mt / L;
+
+    local_stiffness_matrix(1, 5) = N / 10.0;
+
+    local_stiffness_matrix(1, 6) = local_stiffness_matrix(0, 7);
+    local_stiffness_matrix(1, 7) = -1.00 * local_stiffness_matrix(1, 1);
+    local_stiffness_matrix(1, 9) = my_B / L;
+    local_stiffness_matrix(1, 10) = -1.00 * local_stiffness_matrix(1, 4);
+    local_stiffness_matrix(1, 11) = local_stiffness_matrix(1, 5);
+
+    local_stiffness_matrix(2, 0) = local_stiffness_matrix(0, 2);
+    local_stiffness_matrix(2, 2) = local_stiffness_matrix(1, 1);
+    local_stiffness_matrix(2, 3) = mz_A / L;
+    local_stiffness_matrix(2, 4) = -1.00 * local_stiffness_matrix(1, 5);
+    local_stiffness_matrix(2, 5) = local_stiffness_matrix(1, 4);
+    local_stiffness_matrix(2, 6) = local_stiffness_matrix(0, 8);
+    local_stiffness_matrix(2, 8) = local_stiffness_matrix(1, 7);
+    local_stiffness_matrix(2, 9) = mz_B / L;
+    local_stiffness_matrix(2, 10) = local_stiffness_matrix(2, 4);
+    local_stiffness_matrix(2, 11) = local_stiffness_matrix(1, 10);
+
+    for (int i = 0; i < 3; ++i) {
+        local_stiffness_matrix(3, i) = local_stiffness_matrix(i, 3);
+    }
+    local_stiffness_matrix(3, 4) = (-mz_A / 3.00) + (mz_B / 6.00);
+    local_stiffness_matrix(3, 5) = (my_A / 3.00) - (my_B / 6.00);
+    local_stiffness_matrix(3, 7) = -my_A / L;
+    local_stiffness_matrix(3, 8) = -mz_A / L;
+    local_stiffness_matrix(3, 10) = L * Qy / 6.00;
+    local_stiffness_matrix(3, 11) = L * Qz / 6.00;
+
+    for (int i = 0; i < 4; ++i) {
+        local_stiffness_matrix(4, i) = local_stiffness_matrix(i, 4);
+    }
+    local_stiffness_matrix(4, 4) = 2.00 * L * N / 15.00;
+    local_stiffness_matrix(4, 7) = -Mt / L;
+    local_stiffness_matrix(4, 8) = N / 10.00;
+    local_stiffness_matrix(4, 9) = local_stiffness_matrix(3, 10);
+    local_stiffness_matrix(4, 10) = -L * N / 30.00;
+    local_stiffness_matrix(4, 11) = Mt / 2.00;
+
+    for (int i = 0; i < 5; ++i) {
+        local_stiffness_matrix(5, i) = local_stiffness_matrix(i, 5);
+    }
+    local_stiffness_matrix(5, 5) = local_stiffness_matrix(4, 4);
+    local_stiffness_matrix(5, 7) = -N / 10.0;
+    local_stiffness_matrix(5, 8) = -Mt / L;
+    local_stiffness_matrix(5, 9) = local_stiffness_matrix(3, 11);
+    local_stiffness_matrix(5, 10) = -1.00 * local_stiffness_matrix(4, 11);
+    local_stiffness_matrix(5, 11) = local_stiffness_matrix(4, 10);
+
+    for (int i = 0; i < 6; ++i) {
+        local_stiffness_matrix(6, i) = local_stiffness_matrix(i, 6);
+    }
+    local_stiffness_matrix(6, 7) = local_stiffness_matrix(0, 1);
+    local_stiffness_matrix(6, 8) = local_stiffness_matrix(0, 2);
+
+    for (int i = 0; i < 7; ++i) {
+        local_stiffness_matrix(7, i) = local_stiffness_matrix(i, 7);
+    }
+    local_stiffness_matrix(7, 7) = local_stiffness_matrix(1, 1);
+    local_stiffness_matrix(7, 9) = -1.00 * local_stiffness_matrix(1, 9);
+    local_stiffness_matrix(7, 10) = local_stiffness_matrix(4, 1);
+    local_stiffness_matrix(7, 11) = local_stiffness_matrix(2, 4);
+
+    for (int i = 0; i < 8; ++i) {
+        local_stiffness_matrix(8, i) = local_stiffness_matrix(i, 8);
+    }
+    local_stiffness_matrix(8, 8) = local_stiffness_matrix(1, 1);
+    local_stiffness_matrix(8, 9) = -1.00 * local_stiffness_matrix(2, 9);
+    local_stiffness_matrix(8, 10) = local_stiffness_matrix(1, 5);
+    local_stiffness_matrix(8, 11) = local_stiffness_matrix(1, 4);
+
+    for (int i = 0; i < 9; ++i) {
+        local_stiffness_matrix(9, i) = local_stiffness_matrix(i, 9);
+    }
+    local_stiffness_matrix(9, 10) = (mz_A / 6.00) - (mz_B / 3.00);
+    local_stiffness_matrix(9, 11) = (-my_A / 6.00) + (my_B / 3.00);
+
+    for (int i = 0; i < 10; ++i) {
+        local_stiffness_matrix(10, i) = local_stiffness_matrix(i, 10);
+    }
+    local_stiffness_matrix(10, 10) = local_stiffness_matrix(4, 4);
+
+    for (int i = 0; i < 11; ++i) {
+        local_stiffness_matrix(11, i) = local_stiffness_matrix(i, 11);
+    }
+    local_stiffness_matrix(11, 11) = local_stiffness_matrix(4, 4);
+
+    return local_stiffness_matrix;
+    KRATOS_CATCH("")
+}
+
 void NewBeamElement3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    rSerializer.save("NodalDeformation", mTotalNodalDeformation);
+    rSerializer.save("NodalDeformationCurrent", mDeformationCurrent);
+    rSerializer.save("NodalDeformationPrevious", mDeformationPrevious);
     rSerializer.save("QuaternionVecA", mQuaternionVEC_A);
     rSerializer.save("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.save("QuaternionScaA", mQuaternionSCA_A);
@@ -1014,7 +1156,8 @@ void NewBeamElement3D2N::save(Serializer& rSerializer) const
 void NewBeamElement3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    rSerializer.load("NodalDeformation", mTotalNodalDeformation);
+    rSerializer.load("NodalDeformationCurrent", mDeformationCurrent);
+    rSerializer.load("NodalDeformationPrevious", mDeformationPrevious);
     rSerializer.load("QuaternionVecA", mQuaternionVEC_A);
     rSerializer.load("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.load("QuaternionScaA", mQuaternionSCA_A);
