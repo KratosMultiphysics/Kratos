@@ -176,15 +176,17 @@ namespace Kratos
                 [](GlobalPointer<Element>& gp){return gp->Id();}
         );
 
-        for(auto& node : rNodes)
+        #pragma omp parallel for
+        for(int k=0; k<static_cast<int>(rNodes.size()); ++k)
         {
-            auto& neighbours = node.GetValue(NEIGHBOUR_ELEMENTS);
+            auto in = rNodes.begin() + k;
+            auto& neighbours = in->GetValue(NEIGHBOUR_ELEMENTS);
             std::vector<int> tmp(neighbours.size());
             for(unsigned int i=0; i<neighbours.size(); ++i)
             {
                 tmp[i] = result_proxy.Get(neighbours(i));
             }
-            output[node.Id()] = tmp;  
+            output[in->Id()] = tmp;  
         }
 
 
