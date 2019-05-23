@@ -49,20 +49,16 @@ namespace Kratos
 
         if(mrComm.IsDistributed())
         {
-            int current_rank = mrComm.Rank();
-
             typedef std::unordered_map<int, GlobalPointersVector<Element>> neighbours_map_type; //contains id vs vector_of_neighbours 
             typedef std::unordered_map< int, neighbours_map_type > non_local_map_type;
 
             //construct the list of nodes that need to be sent
             non_local_map_type non_local_map;
-            for(const auto& node : mr_model_part.Nodes())
+
+            for(const auto& node : mr_model_part.GetCommunicator().InterfaceMesh().Nodes())
             {
                 int owner_rank = node.FastGetSolutionStepValue(PARTITION_INDEX);
-                if(owner_rank != current_rank) //not owned node!
-                {
-                    non_local_map[owner_rank][node.Id()] = node.GetValue(NEIGHBOUR_ELEMENTS);
-                }
+                non_local_map[owner_rank][node.Id()] = node.GetValue(NEIGHBOUR_ELEMENTS);
             }
 
             //here communicate non local data
