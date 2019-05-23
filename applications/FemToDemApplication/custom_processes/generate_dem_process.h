@@ -46,16 +46,20 @@ class GenerateDemProcess : public Process
 
   void Execute() override;
 
-  double CalculateDistanceBetweenNodes(const NodeType Node1, const NodeType Node2);
-  array_1d<double,3> GetNodeCoordinates(const NodeType Node);
+  double CalculateDistanceBetweenNodes(const NodeType& Node1, const NodeType& Node2);
+  array_1d<double,3> GetNodeCoordinates(const NodeType& rNode);
   double GetMinimumValue3(const double a, const double b, const double c);
   double GetMinimumValue2(const double a, const double b);
+  int GetNumberOfDemOnElement(ModelPart::ElementsContainerType::iterator ItElem);
+  void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
+      const Properties::Pointer pProperties, const double Radius, ModelPart::ElementsContainerType::iterator ItElem, NodeType& rNode); 
 
 protected:
 
   // Member Variables
   ModelPart& mrModelPart;
   ModelPart& mrDEMModelPart;
+  ParticleCreatorDestructor mParticleCreator = ParticleCreatorDestructor();
 
 };  // Class
 

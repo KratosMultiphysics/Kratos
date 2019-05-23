@@ -32,10 +32,45 @@ GenerateDemProcess<TDim>::GenerateDemProcess(
 template <>
 void GenerateDemProcess<2>::Execute() 
 {
-    ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
+    const auto it_element_begin = mrModelPart.ElementsBegin();
+    //#pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        auto it_elem = it_element_begin + i;
+        auto& r_geom = it_elem->GetGeometry();
+
+        bool is_active = true;
+        if (it_elem->IsDefined(ACTIVE))
+            is_active = it_elem->Is(ACTIVE);
+
+        bool dem_generated = it_elem->GetValue(DEM_GENERATED);
+        const int number_of_dem = this->GetNumberOfDemOnElement(it_elem);
+
+        if (!is_active && !dem_generated) {
+            // std::cout << "Elemento eliminado -- >" << it_elem->Id() << std::endl;
+			auto& node0 = r_geom[0];
+			auto& node1 = r_geom[1];
+			auto& node2 = r_geom[2];
+            const double dist01 = this->CalculateDistanceBetweenNodes(node0, node1);
+            const double dist02 = this->CalculateDistanceBetweenNodes(node0, node2);
+            const double dist12 = this->CalculateDistanceBetweenNodes(node1, node2);
+
+            if (number_of_dem == 0) {
+                const double r1 = this->GetMinimumValue2(dist01, dist02)*0.5;
+                const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node0);
+                const int id1 = node0.Id();
+
+            }
 
 
 
+
+
+
+
+
+
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -44,9 +79,6 @@ void GenerateDemProcess<2>::Execute()
 template <>
 void GenerateDemProcess<3>::Execute() 
 {
-    ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
-
-
 
 }
 
@@ -54,17 +86,52 @@ void GenerateDemProcess<3>::Execute()
 /***********************************************************************************/
 
 template <SizeType TDim>
-double GenerateDemProcess<TDim>::CalculateDistanceBetweenNodes(
-    const NodeType Node1, 
-    const NodeType Node2
+void GenerateDemProcess<TDim>::CreateDEMParticle(
+    const int Id,
+    const array_1d<double, 3> Coordinates,
+    const Properties::Pointer pProperties,
+    const double Radius,
+    ModelPart::ElementsContainerType::iterator ItElem,
+    NodeType& rNode
+)
+{
+    mParticleCreator.CreateSphericParticle(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+int GenerateDemProcess<TDim>::GetNumberOfDemOnElement(
+    ModelPart::ElementsContainerType::iterator ItElem
     )
 {
-    const double X1 = Node1.X();
-    const double X2 = Node2.X();
-    const double Y1 = Node1.Y();
-    const double Y2 = Node2.Y();
-    const double Z1 = Node1.Z();
-    const double Z2 = Node2.Z();
+    int number_dem = 0;
+    auto& r_geom = ItElem->GetGeometry();
+    for (int i = 0; i < r_geom.size(); i++) {
+        auto& r_node = r_geom[i];
+        if (r_node.GetValue(IS_DEM)) 
+            number_dem++;
+    }
+    return number_dem;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+double GenerateDemProcess<TDim>::CalculateDistanceBetweenNodes(
+    const NodeType& rNode1, 
+    const NodeType& rNode2
+    )
+{
+    const double X1 = rNode1.X();
+    const double X2 = rNode2.X();
+    const double Y1 = rNode1.Y();
+    const double Y2 = rNode2.Y();
+    const double Z1 = rNode1.Z();
+    const double Z2 = rNode2.Z();
     return std::sqrt(std::pow(X1-X2, 2.0) + std::pow(Y1-Y2, 2.0) + std::pow(Z1-Z2, 2.0));
 }
 
@@ -73,13 +140,13 @@ double GenerateDemProcess<TDim>::CalculateDistanceBetweenNodes(
 
 template <SizeType TDim>
 array_1d<double,3> GenerateDemProcess<TDim>::GetNodeCoordinates(
-    const NodeType Node
+    const NodeType& rNode
     )
 {
     array_1d<double,3> coordinates;
-    coordinates[0] = Node.X();
-    coordinates[1] = Node.Y();
-    coordinates[2] = Node.Z();
+    coordinates[0] = rNode.X();
+    coordinates[1] = rNode.Y();
+    coordinates[2] = rNode.Z();
     return coordinates;
 }
 
