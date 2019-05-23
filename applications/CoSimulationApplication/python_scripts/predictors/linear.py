@@ -11,6 +11,7 @@ def Create(parameters):
 class PredictorLinear(CoSimulationComponent):
     def __init__(self, _unused):
         super().__init__()
+
         self.data_prev = []
         self.data_last = []
 

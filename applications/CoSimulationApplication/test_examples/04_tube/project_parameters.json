@@ -21,11 +21,6 @@
         "convergence_accelerator" :
         {
             "type" : "convergence_accelerators.iqni",
-            "data" :
-            {
-                "solver" : "pipe_flow",
-                "data_name" : "DISPLACEMENT"
-            },
             "settings" :
             {
                 "min_significant" : 1e-10,
