@@ -31,9 +31,59 @@ GenerateDemProcess::GenerateDemProcess(
 
 void GenerateDemProcess::Execute() 
 {
-    ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
+    //ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
 
 }
 
+
+
+
+
+
+double GenerateDemProcess::CalculateDistanceBetweenNodes(
+    const NodeType Node1, 
+    const NodeType Node2
+    )
+{
+    const double X1 = Node1.X();
+    const double X2 = Node2.X();
+    const double Y1 = Node1.Y();
+    const double Y2 = Node2.Y();
+    const double Z1 = Node1.Z();
+    const double Z2 = Node2.Z();
+    return std::sqrt(std::pow(X1-X2, 2.0) + std::pow(Y1-Y2, 2.0) + std::pow(Z1-Z2, 2.0));
+}
+
+array_1d<double,3> GenerateDemProcess::GetNodeCoordinates(
+    const NodeType Node
+    )
+{
+    array_1d<double,3> coordinates;
+    coordinates[0] = Node.X();
+    coordinates[1] = Node.Y();
+    coordinates[2] = Node.Z();
+    return coordinates;
+}
+
+double GenerateDemProcess::GetMinimumValue2(
+    const double a, 
+    const double b
+    )
+{
+    if (a < b) return a;
+    else return b;
+}
+
+double GenerateDemProcess::GetMinimumValue3(
+    const double a, 
+    const double b,
+    const double c
+    )
+{
+    double aux = a;
+    if (aux > b) aux = b;
+    if (aux > c) aux = c;
+    return aux;
+}
 
 }  // namespace Kratos

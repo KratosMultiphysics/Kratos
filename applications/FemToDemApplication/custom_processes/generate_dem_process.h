@@ -24,6 +24,7 @@
 namespace Kratos {
 
 typedef std::size_t SizeType;
+typedef Node<3> NodeType;
 
 class GenerateDemProcess : public Process 
 {
@@ -43,6 +44,11 @@ class GenerateDemProcess : public Process
   void operator()() { Execute(); }
 
   void Execute() override;
+
+  double CalculateDistanceBetweenNodes(const NodeType Node1, const NodeType Node2);
+  array_1d<double,3> GetNodeCoordinates(const NodeType Node);
+  double GetMinimumValue3(const double a, const double b, const double c);
+  double GetMinimumValue2(const double a, const double b);
 
 protected:
 
