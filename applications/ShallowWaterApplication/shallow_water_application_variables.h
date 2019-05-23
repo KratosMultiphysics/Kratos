@@ -25,9 +25,6 @@
 
 namespace Kratos
 {
-    // Definition of the no result value for GiD output process
-    #define GID_NO_RESULT_DOUBLE -3.40282346638528860e+38
-
     enum Framework {EULERIAN_FRAMEWORK = 0, PFEM2_FRAMEWORK = 1};
     enum Formulation {REDUCED_VARIABLES = 0, CONSERVED_VARIABLES = 1};
     enum Variables {FREE_SURFACE_VARIABLE = 0, VELOCITY_VARIABLE = 1, FREE_SURFACE_AND_VELOCITY = 2};

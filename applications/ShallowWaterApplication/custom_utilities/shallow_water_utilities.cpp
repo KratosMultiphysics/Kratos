@@ -154,7 +154,8 @@ void ShallowWaterUtilities::ComputeVisualizationWaterHeight(ModelPart& rModelPar
             }
         }
         else {
-            it_node->SetValue(WATER_HEIGHT, GID_NO_RESULT_DOUBLE);
+            // This is the undefined value for GiD
+            it_node->SetValue(WATER_HEIGHT, std::numeric_limits<float>::lowest());
         }
     }
 }
