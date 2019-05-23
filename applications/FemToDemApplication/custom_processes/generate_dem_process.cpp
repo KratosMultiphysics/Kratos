@@ -56,11 +56,18 @@ void GenerateDemProcess<2>::Execute()
             const double dist12 = this->CalculateDistanceBetweenNodes(node1, node2);
 
             if (number_of_dem == 0) {
-                const double r1 = this->GetMinimumValue2(dist01, dist02)*0.5;
-                const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node0);
-                const int id1 = node0.Id();
-                this->CreateDEMParticle(id1, coordinates1, p_DEM_properties, r1, node0);
-
+                // Node 0
+                const double r0 = this->GetMinimumValue2(dist01, dist02)*0.5;
+                const array_1d<double, 3> coordinates0 = this->GetNodeCoordinates(node0);
+                this->CreateDEMParticle(node0.Id(), coordinates0, p_DEM_properties, r0, node0);
+                // Node 1
+                const double r1 = dist01 - r0;
+                const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node1);
+                this->CreateDEMParticle(node1.Id(), coordinates1, p_DEM_properties, r1, node1);
+                // Node 2
+                const double r2 = this->GetMinimumValue2(dist02 - r0, dist12 - r1);
+                const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
+                this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
             }
 
 
