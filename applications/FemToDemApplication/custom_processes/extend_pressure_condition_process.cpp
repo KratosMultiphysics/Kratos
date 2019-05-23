@@ -352,9 +352,10 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
 template <SizeType TDim>
 void ExtendPressureConditionProcess<TDim>::ResetFlagOnElements()
 {
+    auto it_elem_begin = mrModelPart.ElementsBegin();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        auto it_elem = mrModelPart.ElementsBegin() + i;
+        auto it_elem = it_elem_begin + i;
         it_elem->SetValue(SMOOTHING, false);
     }
 }
