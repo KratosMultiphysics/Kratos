@@ -85,7 +85,6 @@ class VisualizationMeshProcess(KM.Process):
                 self.topography_utility.SetOriginMeshZCoordinate(self.free_surface_variable)
 
     def ExecuteAfterOutputStep(self):
-        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.computing_model_part.Elements)
         self.properties_utility.RestoreDryWetProperties()
         if self.use_topographic_model_part and self.update_free_surface:
             self.topography_utility.SetOriginMeshZCoordinate()
