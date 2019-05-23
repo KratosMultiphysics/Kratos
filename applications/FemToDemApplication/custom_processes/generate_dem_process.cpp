@@ -29,8 +29,8 @@ GenerateDemProcess<TDim>::GenerateDemProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <SizeType TDim>
-void GenerateDemProcess<TDim>::Execute() 
+template <>
+void GenerateDemProcess<2>::Execute() 
 {
     ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
 
@@ -38,9 +38,17 @@ void GenerateDemProcess<TDim>::Execute()
 
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void GenerateDemProcess<3>::Execute() 
+{
+    ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
 
 
 
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
