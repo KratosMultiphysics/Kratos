@@ -212,13 +212,9 @@ public:
 
     typedef typename PointsArrayType::iterator iterator;
     typedef typename PointsArrayType::const_iterator const_iterator;
-    typedef typename PointsArrayType::reverse_iterator reverse_iterator;
-    typedef typename PointsArrayType::const_reverse_iterator const_reverse_iterator;
 
     typedef typename PointsArrayType::iterator ptr_iterator;
     typedef typename PointsArrayType::const_iterator ptr_const_iterator;
-    typedef typename PointsArrayType::reverse_iterator ptr_reverse_iterator;
-    typedef typename PointsArrayType::const_reverse_iterator ptr_const_reverse_iterator;
     typedef typename PointsArrayType::difference_type difference_type;
 
     ///@}
@@ -290,9 +286,9 @@ public:
     */
     Geometry(const PointsArrayType &ThisPoints,
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        : mpGeometryData(pThisGeometryData)
+        : mPoints(ThisPoints),
+          mpGeometryData(pThisGeometryData)
     {
-        mpPointVector = new PointsArrayType(ThisPoints);
     }
 
     /** Copy constructor.
@@ -304,8 +300,8 @@ public:
     source geometry's points too.
     */
     Geometry( const Geometry& rOther )
-        : mpGeometryData( rOther.mpGeometryData ),
-        mpPointVector(rOther.mpPointVector)
+        : mPoints( rOther.ThisPoints ),
+          mpGeometryData( rOther.mpGeometryData )
     {
     }
 
@@ -324,13 +320,12 @@ public:
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
         : mpGeometryData(rOther.mpGeometryData)
     {
-        mpPointVector = new PointsArrayType(rOther.begin(), rOther.end());
+        mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
 
     /// Destructor. Do nothing!!!
     virtual ~Geometry()
     {
-        delete mpPointVector;
     };
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
@@ -360,7 +355,7 @@ public:
     Geometry& operator=( const Geometry& rOther )
     {
         mpGeometryData = rOther.mpGeometryData;
-        mpPointVector = rOther.mpPointVector;
+        mPoints = rOther.mPoints;
 
         return *this;
     }
@@ -390,189 +385,149 @@ public:
 
      operator PointsArrayType&()
     {
-        return *mpPointVector;
+        return mPoints;
     }
 
     ///@}
     ///@name PointerVector Operators
     ///@{
 
-    TPointType& operator[](const SizeType& i)
+     virtual TPointType& operator[](const SizeType& i)
     {
-        return (*mpPointVector)[i];
+        return mPoints[i];
     }
 
-    TPointType const& operator[](const SizeType& i) const
+    virtual TPointType const& operator[](const SizeType& i) const
     {
-        return (*mpPointVector)[i];
+        return mPoints[i];
     }
 
-    PointPointerType& operator()(const SizeType& i)
+    virtual PointPointerType& operator()(const SizeType& i)
     {
-        return (*mpPointVector)(i);
+        return mPoints(i);
     }
 
-    ConstPointPointerType& operator()(const SizeType& i) const
+    virtual ConstPointPointerType& operator()(const SizeType& i) const
     {
-        return (*mpPointVector)(i);
+        return mPoints(i);
     }
 
-    //bool operator==(const Geometry& r) const // nothrow
-    //{
-    //    if (size() != r.size())
-    //        return false;
-    //    else
-    //        return std::equal(
-    //            (*mpPointVector).begin(),
-    //            (*mpPointVector).end(),
-    //            (*r.mpPointVector).begin(),
-    //            this->EqualKeyTo());
-    //}
+    virtual bool operator==(const Geometry& r) const // nothrow
+    {
+        if (size() != r.size())
+            return false;
+        else
+            return std::equal(
+                mPoints.begin(),
+                mPoints.end(),
+                r.mPoints.begin(),
+                this->EqualKeyTo());
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
-    iterator                   begin()
+    virtual iterator                   begin()
     {
-        return iterator(mpPointVector->begin());
+        return iterator(mPoints.begin());
     }
-    const_iterator             begin() const
+    virtual const_iterator             begin() const
     {
-        return const_iterator(mpPointVector->begin());
+        return const_iterator(mPoints.begin());
     }
-    iterator                   end()
+    virtual iterator                   end()
     {
-        return iterator(mpPointVector->end());
+        return iterator(mPoints.end());
     }
-    const_iterator             end() const
+    virtual const_iterator             end() const
     {
-        return const_iterator(mpPointVector->end());
+        return const_iterator(mPoints.end());
     }
-    reverse_iterator           rbegin()
+    virtual ptr_iterator               ptr_begin()
     {
-        return reverse_iterator(mpPointVector->rbegin());
+        return mPoints.begin();
     }
-    const_reverse_iterator     rbegin() const
+    virtual ptr_const_iterator         ptr_begin() const
     {
-        return const_reverse_iterator(mpPointVector->rbegin());
+        return mPoints.begin();
     }
-    reverse_iterator           rend()
+    virtual ptr_iterator               ptr_end()
     {
-        return reverse_iterator(mpPointVector->rend());
+        return mPoints.end();
     }
-    const_reverse_iterator     rend() const
+    virtual ptr_const_iterator         ptr_end() const
     {
-        return const_reverse_iterator(mpPointVector->rend());
+        return mPoints.end();
     }
-    ptr_iterator               ptr_begin()
-    {
-        return mpPointVector->begin();
-    }
-    ptr_const_iterator         ptr_begin() const
-    {
-        return mpPointVector->begin();
-    }
-    ptr_iterator               ptr_end()
-    {
-        return mpPointVector->end();
-    }
-    ptr_const_iterator         ptr_end() const
-    {
-        return mpPointVector->end();
-    }
-    ptr_reverse_iterator       ptr_rbegin()
-    {
-        return mpPointVector->rbegin();
-    }
-    ptr_const_reverse_iterator ptr_rbegin() const
-    {
-        return mpPointVector->rbegin();
-    }
-    ptr_reverse_iterator       ptr_rend()
-    {
-        return mpPointVector->rend();
-    }
-    ptr_const_reverse_iterator ptr_rend() const
-    {
-        return mpPointVector->rend();
-    }
-    PointReferenceType        front()       /* nothrow */
+    virtual PointReferenceType        front()       /* nothrow */
     {
         assert(!empty());
-        return *(mpPointVector->front());
+        return *(mPoints.front());
     }
-    ConstPointReferenceType  front() const /* nothrow */
+    virtual ConstPointReferenceType  front() const /* nothrow */
     {
         assert(!empty());
-        return *(mpPointVector->front());
+        return *(mPoints.front());
     }
-    PointReferenceType        back()        /* nothrow */
+    virtual PointReferenceType        back()        /* nothrow */
     {
         assert(!empty());
-        return *(mpPointVector->back());
+        return *(mPoints.back());
     }
-    ConstPointReferenceType  back() const  /* nothrow */
+    virtual ConstPointReferenceType  back() const  /* nothrow */
     {
         assert(!empty());
-        return *(mpPointVector->back());
+        return *(mPoints.back());
     }
 
-    SizeType size() const
+    virtual SizeType size() const
     {
-        return mpPointVector->size();
+        return mPoints.size();
     }
-    SizeType max_size() const
+    virtual SizeType max_size() const
     {
-        return mpPointVector->max_size();
-    }
-
-    void swap(GeometryType& rOther)
-    {
-        mpPointVector->swap(rOther.mpPointVector);
+        return mPoints.max_size();
     }
 
-    void push_back(TPointType x)
+    virtual void swap(GeometryType& rOther)
     {
-        mpPointVector->push_back(x);
+        mPoints.swap(rOther.mPoints);
     }
 
-    iterator insert(iterator Position, const TPointType pData)
+    virtual void push_back(TPointType x)
     {
-        return iterator(mpPointVector->insert(Position, pData));
+        mPoints.push_back(x);
     }
 
-    //template <class InputIterator>
-    //void insert(InputIterator First, InputIterator Last)
-    //{
-    //    for (; First != Last; ++First)
-    //        insert(*First);
-    //}
-
-
-    iterator erase(iterator pos)
+    virtual iterator insert(iterator Position, const TPointType pData)
     {
-        return iterator(mpPointVector->erase(pos.base()));
+        return mPoints.insert(Position, pData);
     }
 
-    iterator erase(iterator first, iterator last)
+    virtual iterator erase(iterator pos)
     {
-        return iterator(mpPointVector->erase(first.base(), last.base()));
+        return mPoints.erase(pos.base());
     }
 
-    void clear()
+    virtual iterator erase(iterator first, iterator last)
     {
-        mpPointVector->clear();
+        return mPoints.erase(first.base(), last.base());
     }
 
-    void reserve(int dim)
+    virtual void clear()
     {
-        mpPointVector->reserve(dim);
+        mPoints.clear();
     }
 
-    int capacity()
+    virtual void reserve(int dim)
     {
-        return mpPointVector->capacity();
+        mPoints.reserve(dim);
+    }
+
+    virtual int capacity()
+    {
+        return mPoints.capacity();
     }
 
     /////@}
@@ -580,24 +535,24 @@ public:
     /////@{
 
     ///** Gives a reference to underly normal container. */
-    PointPointerContainerType& GetContainer()
+    virtual PointPointerContainerType& GetContainer()
     {
-        return mpPointVector->GetContainer();
+        return mPoints.GetContainer();
     }
 
     /** Gives a constant reference to underly normal container. */
-    const PointPointerContainerType& GetContainer() const
+    virtual const PointPointerContainerType& GetContainer() const
     {
-        return mpPointVector->GetContainer();
+        return mPoints.GetContainer();
     }
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    bool empty() const
+    virtual bool empty() const
     {
-        return mpPointVector->empty();
+        return mPoints.empty();
     }
 
     ///@}
@@ -1141,7 +1096,7 @@ public:
     */
     const PointsArrayType& Points() const
     {
-        return *mpPointVector;
+        return mPoints;
     }
 
     /** An access method to the Vector of the points stored in
@@ -1152,7 +1107,7 @@ public:
     */
     PointsArrayType& Points()
     {
-        return *mpPointVector;
+        return mPoints;
     }
 
     /** A constant access method to the i'th points stored in
@@ -1164,8 +1119,8 @@ public:
     const typename TPointType::Pointer pGetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return ( *mpPointVector)( Index );
-        KRATOS_CATCH( *mpPointVector)
+        return mPoints( Index );
+        KRATOS_CATCH(mPoints)
     }
 
     /** An access method to the i'th points stored in
@@ -1177,8 +1132,8 @@ public:
     typename TPointType::Pointer pGetPoint( const int Index )
     {
         KRATOS_TRY
-        return ( *mpPointVector )( Index );
-        KRATOS_CATCH( *mpPointVector);
+        return mPoints( Index );
+        KRATOS_CATCH(mPoints);
     }
 
     /** A constant access method to the i'th points stored in
@@ -1190,8 +1145,8 @@ public:
     TPointType const& GetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return ( *mpPointVector)[Index];
-        KRATOS_CATCH( *mpPointVector);
+        return mPoints[Index];
+        KRATOS_CATCH( mPoints);
     }
 
 
@@ -1204,8 +1159,8 @@ public:
     TPointType& GetPoint( const int Index )
     {
         KRATOS_TRY
-        return ( *mpPointVector)[Index];
-        KRATOS_CATCH( *mpPointVector);
+        return mPoints[Index];
+        KRATOS_CATCH(mPoints);
     }
 
     /**
@@ -2601,7 +2556,7 @@ public:
 
       for (unsigned int i = 0; i < this->size(); ++i) {
         rOStream << "\tPoint " << i + 1 << "\t : ";
-        (*mpPointVector)[i].PrintData(rOStream);
+        mPoints[i].PrintData(rOStream);
         rOStream << std::endl;
       }
 
@@ -2890,7 +2845,7 @@ private:
 
     GeometryData const* mpGeometryData;
 
-    PointsArrayType* mpPointVector;
+    PointsArrayType mPoints;
 
     ///@}
     ///@name Serialization
@@ -2900,12 +2855,12 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Points", mpPointVector );
+        rSerializer.save( "Points", mPoints);
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        rSerializer.load( "Points", mpPointVector );
+        rSerializer.load( "Points", mPoints );
     }
 
 
