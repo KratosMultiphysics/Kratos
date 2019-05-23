@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 /**
- * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ * @brief This struct is used in order to identify when using the historical and non historical variables
  */
 struct MortarUtilitiesSettings
 {
