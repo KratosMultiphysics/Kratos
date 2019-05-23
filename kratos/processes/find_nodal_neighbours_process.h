@@ -27,11 +27,9 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/global_pointer_variables.h"
-
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -42,9 +40,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType NodesContainerType;
-typedef  ModelPart::ElementsContainerType ElementsContainerType;
-
 
 ///@}
 ///@name  Enum's
@@ -79,11 +74,20 @@ public:
     /// avg_elems ------ expected number of neighbour elements per node.,
     /// avg_nodes ------ expected number of neighbour Nodes
     /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    FindNodalNeighboursProcess(ModelPart& model_part, unsigned int avg_elems = 10, unsigned int avg_nodes = 10)
-        : mr_model_part(model_part)
+    FindNodalNeighboursProcess(ModelPart& model_part,
+        const DataCommunicator& rComm = ParallelEnvironment::GetDefaultDataCommunicator(),
+        bool compute_neighbour_nodes = true,
+        bool compute_neighbour_elements = true
+    )
+        :   mr_model_part(model_part),
+            mcompute_neighbour_nodes(compute_neighbour_nodes),
+            mcompute_neighbour_elements(compute_neighbour_nodes)
     {
-        mavg_elems = avg_elems;
-        mavg_nodes = avg_nodes;
+        if( mcompute_neighbour_nodes )
+            mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(rComm, model_part);
+
+        if( mcompute_neighbour_elements )
+            mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(rComm, model_part);
     }
 
     /// Destructor.
@@ -108,65 +112,20 @@ public:
 
     void Execute() override
     {
-        NodesContainerType& rNodes = mr_model_part.Nodes();
-        ElementsContainerType& rElems = mr_model_part.Elements();
+        if( mcompute_neighbour_nodes )
+            mpNodeNeighboursCalculator->Execute();
 
-        //first of all the neighbour nodes and elements array are initialized to the guessed size
-        //and empties the old entries
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            (in->GetValue(NEIGHBOUR_NODES)).reserve(mavg_nodes);
-            auto& rN = in->GetValue(NEIGHBOUR_NODES);
-            rN.erase(rN.begin(),rN.end() );
-
-            (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mavg_elems);
-            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-            rE.erase(rE.begin(),rE.end() );
-        }
-
-        //add the neighbour elements to all the nodes in the mesh
-        for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
-        {
-            Element::GeometryType& pGeom = ie->GetGeometry();
-            for(unsigned int i = 0; i < pGeom.size(); i++)
-            {
-                //KRATOS_WATCH( pGeom[i] );
-                (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
-                //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).size() );
-            }
-        }
-
-        //adding the neighbouring nodes
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-
-            for(unsigned int ie = 0; ie < rE.size(); ie++)
-            {
-                Element::GeometryType& pGeom = rE[ie].GetGeometry();
-                for(unsigned int i = 0; i < pGeom.size(); i++)
-                {
-                    if(pGeom[i].Id() != in->Id() )
-                    {
-                        GlobalPointer<Node<3>> temp(pGeom(i));
-                        AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
-                    }
-                }
-            }
-        }
+        if( mcompute_neighbour_elements )
+            mpElemNeighboursCalculator->Execute();
     }
 
     void ClearNeighbours()
     {
-        NodesContainerType& rNodes = mr_model_part.Nodes();
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-            rE.erase(rE.begin(),rE.end());
+        if( mcompute_neighbour_nodes )
+            mpNodeNeighboursCalculator->ClearNeighbours();
 
-            auto& rN = in->GetValue(NEIGHBOUR_NODES);
-            rN.erase(rN.begin(),rN.end() );
-        }
+        if( mcompute_neighbour_elements )
+            mpElemNeighboursCalculator->ClearNeighbours();
     }
 
     ///@}
@@ -254,10 +213,11 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
-    unsigned int mavg_elems;
-    unsigned int mavg_nodes;
+    bool mcompute_neighbour_nodes = true;
+    bool mcompute_neighbour_elements = true;
 
-
+    std::unique_ptr<FindGlobalNodalElementalNeighboursProcess> mpElemNeighboursCalculator = nullptr;
+    std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;
     ///@}
     ///@name Private Operators
     ///@{
