@@ -25,6 +25,7 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 typedef Node<3> NodeType;
+typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
 
 template <SizeType TDim>
 class GenerateDemProcess : public Process 
@@ -50,9 +51,10 @@ class GenerateDemProcess : public Process
   array_1d<double,3> GetNodeCoordinates(const NodeType& rNode);
   double GetMinimumValue3(const double a, const double b, const double c);
   double GetMinimumValue2(const double a, const double b);
-  int GetNumberOfDemOnElement(ModelPart::ElementsContainerType::iterator ItElem);
+  int GetNumberOfDemOnElement(ElementIteratorType ItElem);
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
       const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
+  int GetLocalIdWithoutDEM(ElementIteratorType ItElem);
 
 protected:
 

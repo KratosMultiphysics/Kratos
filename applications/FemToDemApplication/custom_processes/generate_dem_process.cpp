@@ -55,7 +55,7 @@ void GenerateDemProcess<2>::Execute()
             const double dist02 = this->CalculateDistanceBetweenNodes(node0, node2);
             const double dist12 = this->CalculateDistanceBetweenNodes(node1, node2);
 
-            if (number_of_dem == 0) {
+            if (number_of_dem == 0) { // We must create 3 DEM
                 // Node 0
                 const double r0 = this->GetMinimumValue2(dist01, dist02)*0.5;
                 const array_1d<double, 3> coordinates0 = this->GetNodeCoordinates(node0);
@@ -68,6 +68,8 @@ void GenerateDemProcess<2>::Execute()
                 const double r2 = this->GetMinimumValue2(dist02 - r0, dist12 - r1);
                 const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
                 this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
+            } else if (number_of_dem == 2) { // We must create 1 DEM
+                int local_id_no_DEM = this->GetLocalIdWithoutDEM(it_elem);
             }
 
 
@@ -95,6 +97,24 @@ void GenerateDemProcess<3>::Execute()
 /***********************************************************************************/
 
 template <SizeType TDim>
+int GenerateDemProcess<TDim>::GetLocalIdWithoutDEM(
+    ElementIteratorType ItElem
+    )
+{
+    // We use this method when 1 DEM is missing
+    auto& r_geom = ItElem->GetGeometry();
+    for (int i = 0; i < r_geom.size(); i++) {
+        if (!r_geom[i].GetValue(IS_DEM)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
 void GenerateDemProcess<TDim>::CreateDEMParticle(
     const int Id,
     const array_1d<double, 3> Coordinates,
@@ -113,7 +133,7 @@ void GenerateDemProcess<TDim>::CreateDEMParticle(
 
 template <SizeType TDim>
 int GenerateDemProcess<TDim>::GetNumberOfDemOnElement(
-    ModelPart::ElementsContainerType::iterator ItElem
+    ElementIteratorType ItElem
     )
 {
     int number_dem = 0;
