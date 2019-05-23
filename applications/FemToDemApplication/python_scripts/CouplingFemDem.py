@@ -511,7 +511,7 @@ class FEMDEM_Solution:
                     Id2 = Element.GetNodes()[2].Id
 
                     # Check the 3 edges of the element
-                    if R0 + R1 > dist01:
+                    if math.fabs(R0) + math.fabs(R1) > dist01:
                         R0 = self.GetMinimumValue(R0, dist01*0.5)
                         R1 = dist01 - R0
                         # assign the new radius to the DEM nodes
@@ -520,7 +520,7 @@ class FEMDEM_Solution:
                         Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, R0)
                         Element.GetNodes()[1].SetValue(KratosMultiphysics.RADIUS, R1)
 
-                    if R0 + R2 > dist02:
+                    if math.fabs(R0) + math.fabs(R2) > dist02:
                         R0 = self.GetMinimumValue(R0, 0.5*dist02)
                         R2 = dist02 - R0
                         # assign the new radius to the DEM nodes
@@ -529,7 +529,7 @@ class FEMDEM_Solution:
                         Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, R0)
                         Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, R2)
 
-                    if R1 + R2 > dist12:
+                    if math.fabs(R1) + math.fabs(R2) > dist12:
                         R1 = self.GetMinimumValue(R1, 0.5*dist12)
                         R2 = dist12 - R1
                         # assign the new radius to the DEM nodes
