@@ -68,7 +68,7 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
 
@@ -99,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(p_created_communicator->TotalProcesses(), r_world.Size());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -210,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFas
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -313,7 +313,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, Krat
     KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(2,0), 1.0*expected_int);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -393,7 +393,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, K
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -491,7 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMPICoreFastSui
     KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(2,0), 1.0*expected_int);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -566,7 +566,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFast
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -602,7 +602,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, Kra
     KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -638,7 +638,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, KratosMPICor
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -702,7 +702,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");

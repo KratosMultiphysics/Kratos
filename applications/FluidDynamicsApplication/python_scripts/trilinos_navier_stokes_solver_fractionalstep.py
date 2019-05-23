@@ -100,7 +100,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.PATCH_INDEX)
-        KratosMPI.mpi.world.barrier()
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","variables for the trilinos fractional step solver added correctly")
 
@@ -123,7 +122,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
     def AddDofs(self):
         ## Base class DOFs addition
         super(TrilinosNavierStokesSolverFractionalStep, self).AddDofs()
-        KratosMPI.mpi.world.barrier()
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
