@@ -5,18 +5,18 @@ from .Variables import *
 
 class ModelPart:
     def __init__(self, name="default", buffer_size=1):
-        self.NodesMap = {}  # empty dictionary
-        self.Properties = {}  # empty dictionary
-        self.ElementsMap = {}  # empty dictionary
+        self.NodesMap = {}
+        self.Properties = {}
+        self.ElementsMap = {}
         self.buffer_size = buffer_size
         self.solution_step_variables = []
         if "." in name:
-            RuntimeError("Name of the modelpart cannot contain a . (dot) Please rename ! ")
+            RuntimeError("Name of the ModelPart cannot contain a . (dot).")
         if name == "":
-            RuntimeError("No empty names for modelpart are allowed. Please rename ! ")
+            RuntimeError("Name of ModelPart cannot be empty.")
 
         self.Name = name
-        self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
+        self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}
 
         self.Nodes = list(self.NodesMap.values())
 
@@ -27,43 +27,20 @@ class ModelPart:
             self.solution_step_variables.append(variable[3])
         else:
             self.solution_step_variables.append(variable)
+        # To do: add variables to existing Nodes
 
-    def CloneTimeStep(self, time):
-        for node in self.NodeIterators():
-            node.AdvanceInTime()
-        old_time = self.ProcessInfo[TIME]
-        self.ProcessInfo[TIME] = time
-        self.ProcessInfo[DELTA_TIME] = time-old_time
-
-    # Function to create a list of nodes and give it to the model part
+    # Function to create a list of nodes based on a dictionary and give it to the model part
     def AddNodes(self, dict_of_nodes):
-        for node_id, coords in list(dict_of_nodes.items()):
+        for node_id, node_coords in list(dict_of_nodes.items()):
             if node_id in list(self.NodesMap.keys()):
-                error_string = "trying to add a node already existing with id =" + \
-                    str(node_id)
+                error_string = "Node with ID = " + str(node_id) + " already exists."
                 raise Exception(error_string)
             else:
-                node = Node(node_id, coords)
+                node = Node(node_id, node_coords)
                 node.SetBufferSize(self.buffer_size)
                 for var in self.solution_step_variables:
                     node.AddVariable(var)
-
                 self.NodesMap.update({node_id: node})
-        self.Nodes = list(self.NodesMap.values())
-
-    def CreateNewNode(self, node_id, x, y, z):
-        if node_id in list(self.NodesMap.keys()):
-            error_string = "trying to add a node already existing with id =" + \
-                str(node_id)
-            raise Exception(error_string)
-        else:
-            node = Node(node_id, [x,y,z])
-            node.SetBufferSize(self.buffer_size)
-            for var in self.solution_step_variables:
-                node.AddVariable(var)
-
-            self.NodesMap.update({node_id: node})
-
         self.Nodes = list(self.NodesMap.values())
 
     def AddNode(self, node):
@@ -71,16 +48,25 @@ class ModelPart:
             self.NodesMap[node.Id] = node
             self.Nodes = list(self.NodesMap.values())
         else:
-            RuntimeError("Adding a non Node type object as a Node ! ")
+            RuntimeError("Adding a non-Node type object as a Node.")
+
+    def CreateNewNode(self, node_id, x, y, z):
+        if node_id in list(self.NodesMap.keys()):
+            error_string = "Node with ID = " + str(node_id) + " already exists."
+            raise Exception(error_string)
+        else:
+            node = Node(node_id, [x, y, z])
+            node.SetBufferSize(self.buffer_size)
+            for var in self.solution_step_variables:
+                node.AddVariable(var)
+            self.NodesMap.update({node_id: node})
+        self.Nodes = list(self.NodesMap.values())
 
     def NumberOfNodes(self):
         return len(self.NodesMap)
 
     def NumberOfElements(self):
         return len(self.ElementsMap)
-
-    def GetNode(self, id):
-        RuntimeError("Check if the node returned here is by reference !")
 
     def AddProperties(self, dict_of_properties):
         self.Properties.update(dict_of_properties)
@@ -91,6 +77,9 @@ class ModelPart:
     def GetElement(self):
         pass
 
+    def GetNode(self, id):
+        pass
+
     def RemoveElement(self):
         pass
 
@@ -98,6 +87,9 @@ class ModelPart:
         pass
 
     def HasNodalSolutionStepVariable(self):
+        pass
+
+    def CloneTimeStep(self, time):
         pass
 
     def WriteMesh(self):

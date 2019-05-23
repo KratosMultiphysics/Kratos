@@ -34,3 +34,6 @@ class CoSimulationInterface(object):
                 updated_value.append(update[index])
                 index = index + 1
             node.SetSolutionStepValue(data_variable, 0, updated_value)
+
+    def __add__(self, other):
+        pass

@@ -25,7 +25,7 @@ class Node:
         self.var_is_fixed[variable] = False
 
     def AdvanceInTime(self):
-        for i in range(len(self.variables)-1,0,-1):
+        for i in range(len(self.variables)-1, 0, -1):
             for key in list(self.variables[i].keys()):
                 self.variables[i][key] = self.variables[i - 1][key]
 
