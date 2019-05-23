@@ -85,9 +85,13 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process> (m, "ApplyDoubleTableProcess")
 		.def(init< ModelPart&, Parameters>());
 
-	class_<GenerateDemProcess, GenerateDemProcess::Pointer, Process>(m, "GenerateDemProcess")
+	class_<GenerateDemProcess<2>, GenerateDemProcess<2>::Pointer, Process>(m, "GenerateDemProcess2D")
 		.def(init<ModelPart &, ModelPart &>())
-		.def("Execute", &GenerateDemProcess::Execute);
+		.def("Execute", &GenerateDemProcess<2>::Execute);
+
+	class_<GenerateDemProcess<3>, GenerateDemProcess<3>::Pointer, Process>(m, "GenerateDemProcess3D")
+		.def(init<ModelPart &, ModelPart &>())
+		.def("Execute", &GenerateDemProcess<3>::Execute);
 
 }
 } // namespace Python.

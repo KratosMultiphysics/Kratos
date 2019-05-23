@@ -26,6 +26,7 @@ namespace Kratos {
 typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 
+template <SizeType TDim>
 class GenerateDemProcess : public Process 
 {
  public:

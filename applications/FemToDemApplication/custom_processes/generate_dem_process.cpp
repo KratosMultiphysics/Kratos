@@ -17,8 +17,8 @@
 
 namespace Kratos {
 
-
-GenerateDemProcess::GenerateDemProcess(
+template <SizeType TDim>
+GenerateDemProcess<TDim>::GenerateDemProcess(
     ModelPart& rModelPart,
     ModelPart& rDemModelPart)
     : mrModelPart(rModelPart),
@@ -29,9 +29,12 @@ GenerateDemProcess::GenerateDemProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenerateDemProcess::Execute() 
+template <SizeType TDim>
+void GenerateDemProcess<TDim>::Execute() 
 {
-    //ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
+    ParticleCreatorDestructor particle_creator = ParticleCreatorDestructor();
+
+
 
 }
 
@@ -39,8 +42,11 @@ void GenerateDemProcess::Execute()
 
 
 
+/***********************************************************************************/
+/***********************************************************************************/
 
-double GenerateDemProcess::CalculateDistanceBetweenNodes(
+template <SizeType TDim>
+double GenerateDemProcess<TDim>::CalculateDistanceBetweenNodes(
     const NodeType Node1, 
     const NodeType Node2
     )
@@ -54,7 +60,11 @@ double GenerateDemProcess::CalculateDistanceBetweenNodes(
     return std::sqrt(std::pow(X1-X2, 2.0) + std::pow(Y1-Y2, 2.0) + std::pow(Z1-Z2, 2.0));
 }
 
-array_1d<double,3> GenerateDemProcess::GetNodeCoordinates(
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+array_1d<double,3> GenerateDemProcess<TDim>::GetNodeCoordinates(
     const NodeType Node
     )
 {
@@ -65,7 +75,11 @@ array_1d<double,3> GenerateDemProcess::GetNodeCoordinates(
     return coordinates;
 }
 
-double GenerateDemProcess::GetMinimumValue2(
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+double GenerateDemProcess<TDim>::GetMinimumValue2(
     const double a, 
     const double b
     )
@@ -74,7 +88,11 @@ double GenerateDemProcess::GetMinimumValue2(
     else return b;
 }
 
-double GenerateDemProcess::GetMinimumValue3(
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+double GenerateDemProcess<TDim>::GetMinimumValue3(
     const double a, 
     const double b,
     const double c
@@ -85,5 +103,11 @@ double GenerateDemProcess::GetMinimumValue3(
     if (aux > c) aux = c;
     return aux;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class GenerateDemProcess<2>;
+template class GenerateDemProcess<3>;
 
 }  // namespace Kratos
