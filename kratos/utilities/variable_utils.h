@@ -944,6 +944,7 @@ public:
      * For each node, this method takes the value of the provided variable and updates the
      * current position as the initial position (X0, Y0, Z0) plus such variable value
      * @param rNodes
+     * @param rUpdateVariable variable to retrieve the updating values from
      */
     void UpdateCurrentPosition(
         const ModelPart::NodesContainerType &rNodes,

@@ -479,8 +479,8 @@ void VariableUtils::UpdateCurrentPosition(
     #pragma omp parallel for firstprivate(nodes_begin)
     for (int i_node = 0; i_node < num_nodes; ++i_node) {
         const auto it_node  = nodes_begin + i_node;
-        const auto update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable);
-        noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + update_coords;
+        const auto &r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable);
+        noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + r_update_coords;
     }
 
     KRATOS_CATCH("");
