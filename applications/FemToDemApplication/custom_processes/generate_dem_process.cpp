@@ -19,10 +19,10 @@ namespace Kratos {
 
 
 GenerateDemProcess::GenerateDemProcess(
-    ModelPart& r_model_part,
-    ModelPart& r_dem_model_part)
-    : mrModelPart(r_model_part),
-      mrDEMModelPart(r_dem_model_part)
+    ModelPart& rModelPart,
+    ModelPart& rDemModelPart)
+    : mrModelPart(rModelPart),
+      mrDEMModelPart(rDemModelPart)
 {
 }
 

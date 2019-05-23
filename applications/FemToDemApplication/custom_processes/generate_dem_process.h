@@ -33,7 +33,7 @@ class GenerateDemProcess : public Process
   typedef std::size_t IndexType;
 
   // Constructor
-  GenerateDemProcess(ModelPart& rModelPart);
+  GenerateDemProcess(ModelPart& rModelPart, ModelPart& rDemModelPart);
 
   // Destructor
   ~GenerateDemProcess() override = default;
