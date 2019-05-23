@@ -316,10 +316,10 @@ namespace IgaIntegrationUtilities
 
         auto projection_1 = ANurbs::PointOnCurveProjection<Kratos::array_1d<double, 3>>(
             curve_on_surface_3d_1,
-            0.1);
+            0.00001);
         auto projection_2 = ANurbs::PointOnCurveProjection<Kratos::array_1d<double, 3>>(
             curve_on_surface_3d_2,
-            0.1);
+            0.00001);
 
         auto curve_knot_intersections_2 = curve_on_surface_3d_2->Spans();
 
@@ -346,10 +346,15 @@ namespace IgaIntegrationUtilities
                 {
                     //MASTER
 
-                    auto point_3d = curve_on_surface_3d_1->PointAt(integration_points[ip].t);
-                    auto derivatives_1 = pTrimmingCurve1->DerivativesAt(integration_points[ip].t, 1);
+                    //KRATOS_WATCH(integration_points[ip].t)
 
-                    //std::cout << "integration_points[ip].t: " << integration_points[ip].t << std::endl;
+                    auto point_3d = curve_on_surface_3d_2->PointAt(integration_points[ip].t);
+                    projection_1.Compute(point_3d);
+                    auto derivatives_1 = pTrimmingCurve1->DerivativesAt(projection_1.Parameter(), 1);
+
+                    //std::cout << "point_3d: " << point_3d[0] << ", " << point_3d[1] << ", " << point_3d[2] << std::endl;
+
+                    ////std::cout << "integration_points[ip].t: " << integration_points[ip].t << std::endl;
                     //std::cout << "derivatives_1[0][0]: " << derivatives_1[0][0] << std::endl;
                     //std::cout << "derivatives_1[0][1]: " << derivatives_1[0][1] << std::endl;
 
@@ -464,6 +469,9 @@ namespace IgaIntegrationUtilities
                     {
                         element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
                     }
+
+                    //KRATOS_WATCH(shape_function)
+                    //KRATOS_WATCH(shape_function_slave)
 
                     if (ShapeFunctionDerivativesOrder > -1)
                     {

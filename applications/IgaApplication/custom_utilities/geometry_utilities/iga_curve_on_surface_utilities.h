@@ -47,6 +47,29 @@ namespace Kratos
             rTangentVector = g1 * rTangents[0] + g2 * rTangents[1];
         }
 
+        static void CalculateNormal(
+            const Element::GeometryType& rGeometry,
+            const Matrix& rDN_De,
+            const array_1d<double, 2>& rTangents,
+            array_1d<double, 3>& rNormalVector)
+        {
+            Matrix jacobian = ZeroMatrix(3, 2);
+            IgaGeometryUtilities::CalculateJacobian(rGeometry, rDN_De, 3, 2, jacobian);
+
+            //basis vectors g1 and g2
+            array_1d<double, 3> g1;
+            array_1d<double, 3> g2;
+
+            g1[0] = jacobian(0, 0);
+            g2[0] = jacobian(0, 1);
+            g1[1] = jacobian(1, 0);
+            g2[1] = jacobian(1, 1);
+            g1[2] = jacobian(2, 0);
+            g2[2] = jacobian(2, 1);
+
+            rNormalVector = g2 * rTangents[0] + g1 * rTangents[1];
+        }
+
         static void CalculateVariationRotation(
             const Element::GeometryType& rGeometry,
             const Matrix& rDN_De,
