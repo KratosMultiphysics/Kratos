@@ -649,7 +649,7 @@ public:
         }
     }
 
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
