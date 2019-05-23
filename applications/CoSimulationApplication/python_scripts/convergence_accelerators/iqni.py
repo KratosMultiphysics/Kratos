@@ -17,3 +17,6 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
 
     def Update(self, x, xt):
         pass
+
+    def IsReady(self):
+        return False

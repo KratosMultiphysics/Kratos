@@ -16,7 +16,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.settings = parameters["settings"]
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
         self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
@@ -52,11 +51,11 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
 
     def SolveSolutionStep(self):
         # Coupling iteration loop
-        for k in range(0, self.num_coupling_iterations):
-            if k == 0:
+        while not self._convergence_criterion.IsSatisfied():
+            if not self._convergence_accelerator.IsReady():
                 self.x = self._predictor.Predict()
             else:
-                dx = self._convergence_accelerator.Predict(self.r)
+                dx = self._convergence_accelerator.Predict(r)
                 self.x += dx
             y = self._solver_interfaces[0].Calculate(self.x)
             xt = self._solver_interfaces[1].Calculate(y)
@@ -64,8 +63,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             self._convergence_accelerator.Update(self.x, xt)
 
             self._convergence_criterion.Update(r)
-            if self._convergence_criterion.IsSatisfied():
-                break
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

@@ -31,7 +31,6 @@ class SolverInterfacePipeStructure(CoSimulationComponent):
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
         self.n = 0  # Time step
-        self.dt = 0  # Time step size
 
         # Initialization
         self.p = np.ones(self.m) * 2.0 * self.cmk2  # Pressure

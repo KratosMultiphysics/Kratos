@@ -12,7 +12,6 @@
         "settings" :
         {
             "echo_level" : 1,
-            "num_coupling_iterations" : 20,
             "master_solver_interface" : 0
         },
         "predictor" :
@@ -35,84 +34,60 @@
         },
         "convergence_criterion" :
         {
-            "type" : "convergence_criteria.relative",
-            "data" :
-            {
-                "solver": "pipe_flow",
-                "data_name": "DISPLACEMENT"
-            },
+            "type" : "convergence_criteria.or",
             "settings" :
             {
-                "tolerance": 1e-6
+                "convergence_criterion0" :
+                {
+                    "type" : "convergence_criteria.relative_norm",
+                    "settings" :
+                    {
+                        "tolerance" : 1e-6,
+                        "order" : 2
+                    }
+                },
+                "convergence_criterion1" : {
+                    "type": "convergence_criteria.iteration_limit",
+                    "settings":
+                    {
+                        "maximum": 10
+                    }
+                }
             }
         },
         "solver_interfaces" :
         [
             {
-                "name" : "pipe_flow",
                 "type" : "solver_interfaces.pipe_interfaces.pipe_flow_solver",
-                "data_input" :
-                [
-                    {
-                        "name" : "DISPLACEMENT_Y",
-                        "geometry_name" : "wall",
-                        "dimension" : 1
-                    }
-                ],
-                "data_output" :
-                [
-                    {
-                        "name" : "PRESSURE",
-                        "geometry_name" : "wall",
-                        "dimension" : 1
-                    }
-                ],
                 "settings" :
                 {
-                    "echo_level": 1,
-                    "l": 0.05,
-                    "d": 0.005,
-                    "rhof": 1000.0,
-                    "ureference": 1.0,
-                    "uamplitude": 0.1,
-                    "uperiod": 1.0,
-                    "utype": 1,
-                    "e": 300000.0,
-                    "h": 0.001,
-                    "m": 100,
-                    "newtonmax": 10,
-                    "newtontol": 1e-12,
-                    "dt": 0.01
+                    "echo_level" : 1,
+                    "l" : 0.05,
+                    "d" : 0.005,
+                    "rhof" : 1000.0,
+                    "ureference" : 1.0,
+                    "uamplitude" : 0.1,
+                    "uperiod" : 1.0,
+                    "utype" : 1,
+                    "e" : 300000.0,
+                    "h" : 0.001,
+                    "m" : 100,
+                    "newtonmax" : 10,
+                    "newtontol" : 1e-12,
+                    "dt" : 0.01
                 }
             },
             {
-                "name": "pipe_structure",
-                "type": "solver_interfaces.pipe_interfaces.pipe_structure_solver",
-                "data_input":
-                [
-                    {
-                        "name": "PRESSURE",
-                        "geometry_name": "wall",
-                        "dimension": 1
-                    }
-                ],
-                "data_output" :
-                [
-                    {
-                        "name": "DISPLACEMENT_Y",
-                        "geometry_name": "wall",
-                        "dimension": 1
-                    }
-                ],
-                "settings":
+                "type" : "solver_interfaces.pipe_interfaces.pipe_structure_solver",
+                "settings" :
                 {
-                    "echo_level": 1,
-                    "l": 0.05,
-                    "d": 0.005,
-                    "rhof": 1000.0,
-                    "e": 300000.0,
-                    "h": 0.001,
-                    "m": 100
+                    "echo_level" : 1,
+                    "l" : 0.05,
+                    "d" : 0.005,
+                    "rhof" : 1000.0,
+                    "e" : 300000.0,
+                    "h" : 0.001,
+                    "m" : 100
                 }
             }
         ]
