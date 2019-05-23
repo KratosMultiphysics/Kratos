@@ -300,7 +300,7 @@ public:
     source geometry's points too.
     */
     Geometry( const Geometry& rOther )
-        : mPoints( rOther.ThisPoints ),
+        : mPoints( rOther.mPoints),
           mpGeometryData( rOther.mpGeometryData )
     {
     }
@@ -412,17 +412,17 @@ public:
         return mPoints(i);
     }
 
-    virtual bool operator==(const Geometry& r) const // nothrow
-    {
-        if (size() != r.size())
-            return false;
-        else
-            return std::equal(
-                mPoints.begin(),
-                mPoints.end(),
-                r.mPoints.begin(),
-                this->EqualKeyTo());
-    }
+    //virtual bool operator==(const Geometry& r) const // nothrow
+    //{
+    //    if (size() != r.size())
+    //        return false;
+    //    else
+    //        return std::equal(
+    //            mPoints.begin(),
+    //            mPoints.end(),
+    //            r.mPoints.begin(),
+    //            this->EqualKeyTo());
+    //}
 
     ///@}
     ///@name Operations
@@ -463,22 +463,22 @@ public:
     virtual PointReferenceType        front()       /* nothrow */
     {
         assert(!empty());
-        return *(mPoints.front());
+        return mPoints.front();
     }
     virtual ConstPointReferenceType  front() const /* nothrow */
     {
         assert(!empty());
-        return *(mPoints.front());
+        return mPoints.front();
     }
     virtual PointReferenceType        back()        /* nothrow */
     {
         assert(!empty());
-        return *(mPoints.back());
+        return mPoints.back();
     }
     virtual ConstPointReferenceType  back() const  /* nothrow */
     {
         assert(!empty());
-        return *(mPoints.back());
+        return mPoints.back();
     }
 
     virtual SizeType size() const
@@ -495,12 +495,12 @@ public:
         mPoints.swap(rOther.mPoints);
     }
 
-    virtual void push_back(TPointType x)
+    virtual void push_back(PointPointerType x)
     {
         mPoints.push_back(x);
     }
 
-    virtual iterator insert(iterator Position, const TPointType pData)
+    virtual iterator insert(iterator Position, const ConstPointPointerType pData)
     {
         return mPoints.insert(Position, pData);
     }
