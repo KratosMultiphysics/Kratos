@@ -24,6 +24,7 @@
 #include "custom_processes/initial_perturbation_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/rough_porous_layer_wetting_model.h"
+#include "custom_processes/negative_height_wetting_model.h"
 #include "custom_processes/id_renumbering_process.h"
 
 
@@ -64,6 +65,12 @@ namespace Python
         (m, "RoughPorousLayerWettingModel")
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<ModelPart&, double, double>())
+        ;
+
+        py::class_<NegativeHeightWettingModel, NegativeHeightWettingModel::Pointer, Process>
+        (m, "NegativeHeightWettingModel")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&, double>())
         ;
 
         py::class_<IdRenumberingProcess, IdRenumberingProcess::Pointer, Process>

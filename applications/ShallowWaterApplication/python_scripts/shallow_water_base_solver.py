@@ -304,11 +304,14 @@ class ShallowWaterBaseSolver(PythonSolver):
     def _CreateWettingModel(self):
         if self.settings["wetting_drying_model"].Has("model_name"):
             if self.settings["wetting_drying_model"]["model_name"].GetString() == "rough_porous_layer":
-                wet_dry_module = SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
-                return wet_dry_module
+                return SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
+            if self.settings["wetting_drying_model"]["model_name"].GetString() == "negative_height":
+                return SW.NegativeHeightWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
             else:
                 msg = "Requested wetting drying model: " + self.settings["wetting_drying_model"]["model_name"].GetString() +"\n"
-                msg += "Available options are: \"rough_porous_layer\""
+                msg += "Available options are:\n"
+                msg += "\t\"rough_porous_layer\"\n"
+                msg += "\t\"negative_height\"\n"
                 raise Exception(msg)
         else:
             return None
