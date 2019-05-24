@@ -130,7 +130,7 @@ void DerivativeRecoveryUtility::Recover()
 
 void DerivativeRecoveryUtility::CalculateGradient()
 {
-    if (this->MustRecover("gradient")){
+    if (this->IsAddedForRecovery("gradient")){
         const auto& var_name = this->GetCurrentVariableName();
         const auto& deriv_var_name = this->GetDerivativeVariableName("gradient");
         bool was_able_to_recover = this->CalculateGradientIfPossible<DoubleVarType, ArrayVarType>(var_name, deriv_var_name);
@@ -148,7 +148,7 @@ void DerivativeRecoveryUtility::CalculateGradient()
 
 void DerivativeRecoveryUtility::CalculateDivergence()
 {
-    if (this->MustRecover("divergence")){
+    if (this->IsAddedForRecovery("divergence")){
         const auto& var_name = this->GetCurrentVariableName();
         const auto& deriv_var_name = this->GetDerivativeVariableName("divergence");
         bool was_able_to_recover = this->CalculateDivergenceIfPossible<ArrayVarType, DoubleVarType>(var_name, deriv_var_name);
@@ -161,7 +161,7 @@ void DerivativeRecoveryUtility::CalculateDivergence()
 
 void DerivativeRecoveryUtility::CalculateRotational()
 {
-    if (this->MustRecover("rotational")){
+    if (this->IsAddedForRecovery("rotational")){
         const auto& var_name = this->GetCurrentVariableName();
         const auto& deriv_var_name = this->GetDerivativeVariableName("rotational");
         bool was_able_to_recover = this->CalculateRotationalIfPossible<ArrayVarType, ArrayVarType>(var_name, deriv_var_name);
@@ -174,7 +174,7 @@ void DerivativeRecoveryUtility::CalculateRotational()
 
 void DerivativeRecoveryUtility::CalculateMaterialDerivative()
 {
-    if (this->MustRecover("material_derivative")){
+    if (this->IsAddedForRecovery("material_derivative")){
         const auto& var_name = this->GetCurrentVariableName();
         const auto& deriv_var_name = this->GetDerivativeVariableName("material_derivative");
         bool was_able_to_recover = this->CalculateMaterialDerivativeIfPossible<DoubleVarType, DoubleVarType>(var_name, deriv_var_name);
@@ -192,7 +192,7 @@ void DerivativeRecoveryUtility::CalculateMaterialDerivative()
 
 void DerivativeRecoveryUtility::CalculateLaplacian()
 {
-    if (this->MustRecover("laplacian")){
+    if (this->IsAddedForRecovery("laplacian")){
         const auto& var_name = this->GetCurrentVariableName();
         const auto& deriv_var_name = this->GetDerivativeVariableName("laplacian");
         bool was_able_to_recover = this->CalculateLaplacianIfPossible<DoubleVarType, DoubleVarType>(var_name, deriv_var_name);

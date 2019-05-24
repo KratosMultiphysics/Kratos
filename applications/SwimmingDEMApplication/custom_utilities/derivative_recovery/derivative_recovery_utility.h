@@ -255,7 +255,7 @@ protected:
         return recovery;
     }
 
-    bool MustRecover(std::string operator_name)
+    bool IsAddedForRecovery(std::string operator_name)
     {
          auto recovery = this->GetCurrentRecovery();
          return recovery.find(operator_name) != recovery.end();

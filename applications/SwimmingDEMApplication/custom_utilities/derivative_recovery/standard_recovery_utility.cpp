@@ -132,11 +132,27 @@ void StandardRecoveryUtility::CalculateDivergence(const ArrayVarType& rVectorVar
 
 void StandardRecoveryUtility::CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable)
 {
-    this->CalculateGradient(rVectorVariable, VECTOR_GRADIENT);
+    std::string gradient_var_name;
+    bool gradient_already_calculated = this->IsAddedForRecovery("gradient");
+
+    if (gradient_already_calculated){ // it only needs to be read
+        gradient_var_name = GetDerivativeVariableName("gradient");
+    }
+    else {
+        gradient_var_name = "VECTOR_GRADIENT";
+    }
+
+    const TensorVarType& gradient_variable = KratosComponents<TensorVarType>::Get(gradient_var_name);
+
+    if (!gradient_already_calculated){
+        gradient_var_name = GetDerivativeVariableName("gradient");
+    }
+
+    this->CalculateGradient(rVectorVariable, gradient_variable);
     constexpr auto &GetIndex = StandardRecoveryUtility::GetVectorizedMatrixIndex;
 
     for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        const auto& vector_gradient = inode->FastGetSolutionStepValue(VECTOR_GRADIENT);
+        const auto& vector_gradient = inode->FastGetSolutionStepValue(gradient_variable);
         auto& rotational = inode->FastGetSolutionStepValue(rRotationalVariable);
         rotational[0] = vector_gradient[GetIndex(1, 2)] - vector_gradient[GetIndex(2, 1)];
         rotational[1] = vector_gradient[GetIndex(2, 0)] - vector_gradient[GetIndex(0, 2)];
@@ -344,29 +360,29 @@ void StandardRecoveryUtility::CalculateScalarGradient(const TScalarVariable& rSc
 template<class TScalarVariable> //TODO: generalize for any element
 void StandardRecoveryUtility::CalculateDivergenceAsScalar(const ArrayVarType& rVectorVariable, const TScalarVariable& rDivergenceVariable)
 {
-    std::string deriv_var_name;
-    bool must_calculate_gradient = true;
-    if (this->MustRecover("gradient") && this->MustRecover("divergence"))
+    std::string gradient_var_name;
+    bool gradient_already_calculated = false;
+    if (this->IsAddedForRecovery("gradient") && this->IsAddedForRecovery("divergence"))
     {
         // you are calculating the divergence of the same variable of which you just calculated the gradient
         if (rDivergenceVariable.Name() == GetDerivativeVariableName("divergence")){
-            deriv_var_name = GetDerivativeVariableName("gradient");
-            must_calculate_gradient = false;
+            gradient_var_name = GetDerivativeVariableName("gradient");
+            gradient_already_calculated = true;
         }
         // you are not calculating the divergence of the current variable, which is not the one stored in mCurrentVariable
         else {
-            deriv_var_name = "VECTOR_GRADIENT";
+            gradient_var_name = "VECTOR_GRADIENT";
         }
     }
     // you have not already calculated the gradient
     else {
-        deriv_var_name = "VECTOR_GRADIENT";
+        gradient_var_name = "VECTOR_GRADIENT";
     }
 
-    const TensorVarType& gradient_variable = KratosComponents<TensorVarType>::Get(deriv_var_name);
+    const TensorVarType& gradient_variable = KratosComponents<TensorVarType>::Get(gradient_var_name);
 
     // the gradient has not been calculated yet
-    if (must_calculate_gradient){
+    if (!gradient_already_calculated){
         this->CalculateGradient(rVectorVariable, gradient_variable);
     }
 
