@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-import KratosMultiphysics
 import co_simulation_ios.co_simulation_io_factory as io_factory
 
 def CreateSolver(cosim_solver_settings, level):

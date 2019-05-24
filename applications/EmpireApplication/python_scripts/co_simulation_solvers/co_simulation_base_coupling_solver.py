@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division
 
 # Importing the base class
 from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
-import KratosMultiphysics
 # Other imports
 from co_simulation_predictors.co_simulation_predictor_factory import CreatePredictor
 import co_simulation_tools as cosim_tools
@@ -11,7 +10,6 @@ from co_simulation_tools import couplingsolverprint, bold
 class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
     def __init__(self, cosim_solver_settings, level):
         super(CoSimulationBaseCouplingSolver, self).__init__(cosim_solver_settings, level)
-        KratosMultiphysics.Logger.PrintInfo("INIT from the co_simulation_base_coupling_solver is used here")
         self.solver_names = []
         self.solvers = {}
 
@@ -25,7 +23,6 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
             self.cosim_solver_settings["solvers"][solver_name]["name"] = solver_name # adding the name such that the solver can identify itself
             self.solvers[solver_name] = solvers_wrapper.CreateSolver(
                 self.cosim_solver_settings["solvers"][solver_name], self.lvl-1) # -1 to have solver prints on same lvl
-            KratosMultiphysics.Logger.PrintInfo("Just Finished in creating the Solver:::",solver_settings)
 
         self.cosim_solver_details = cosim_tools.GetSolverCoSimulationDetails(
             self.cosim_solver_settings["coupling_loop"])
@@ -44,7 +41,7 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
             self.coupling_started = False
         else:
             self.coupling_started = True
-        KratosMultiphysics.Logger.PrintInfo("FINISHED WITH __INIT__ CoSimulationBaseCouplingSolver")
+
     def Initialize(self):
         for solver_name in self.solver_names:
             self.solvers[solver_name].Initialize()

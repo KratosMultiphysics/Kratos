@@ -16,7 +16,6 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
         super(SimpleSteadyCouplingSolver, self).__init__(cosim_solver_settings, level)
-        self.time = self.cosim_solver_settings["start_coupling_time"]
 
         self.convergence_accelerator = CreateConvergenceAccelerator(
             self.cosim_solver_settings["convergence_accelerator_settings"],

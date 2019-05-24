@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import co_simulation_tools as cs_tools
 from co_simulation_tools import csprint, bold, CheckCoSimulationSettingsAndAssignDefaults
-import KratosMultiphysics
 import sys
 
 class CoSimulationAnalysis(object):

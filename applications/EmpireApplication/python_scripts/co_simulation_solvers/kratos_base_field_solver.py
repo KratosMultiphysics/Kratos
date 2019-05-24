@@ -49,7 +49,6 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         self._GetAnalysisStage().OutputSolutionStep()
 
     def SolveSolutionStep(self):
-        print("SOOOLVER --------------", self._GetAnalysisStage()._GetSolver())
         self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
     def GetBufferSize(self):

@@ -69,15 +69,11 @@ class PotentialFlowSolver(FluidSolver):
 
         # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
-
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("PotentialFlowSolver", "Fluid solver DOFs added correctly.")
 
@@ -103,12 +99,10 @@ class PotentialFlowSolver(FluidSolver):
         (self.solver).FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
-        print("AAAAAAAAAAAAAAAAAAA")
         is_converged = self.solver.SolveSolutionStep()
-        print("BBBBBBBBBBBBBBBBB")
         if not is_converged:
             msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-            KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
+            KratosMultiphysics.Logger.PrintWarning("PotentialFlowSolver",msg)
             return is_converged
 

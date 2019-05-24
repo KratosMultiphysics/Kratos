@@ -52,8 +52,6 @@ class CoSimulationConvergenceCriteria(object):
             solver = self.solvers[data_entry["solver"]]
             data_name = data_entry["data_name"]
             cs_tools.ImportArrayFromSolver(solver, data_name, self.new_data)
-            print("NEW data : ", self.new_data)
-            print("OLD data : ", self.old_data)
             residual = self.new_data - self.old_data[i]
             res_norm = la.norm(residual)
             norm_new_data = la.norm(self.new_data)

@@ -108,8 +108,8 @@ class SDoFSolver(CoSimulationBaseSolver):
     def OutputSolutionStep(self):
         with open(self.output_file_name, "a") as results_sdof:
             #outputs displacements
-            # results_sdof.write(str(self.time) + "\t" + str(self.dx[0]) + "\n")
-            return
+            results_sdof.write(str(self.time) + "\t" + str(self.dx[0]) + "\n")
+
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function
         # advances values along the buffer axis (so rolling columns) using numpy's roll

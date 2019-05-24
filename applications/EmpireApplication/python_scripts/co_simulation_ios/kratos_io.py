@@ -82,6 +82,7 @@ class KratosIO(CoSimulationBaseIO):
             if type(kratos_var) == KratosMultiphysics.DoubleVariable or type(kratos_var) == KratosMultiphysics.Array1DComponentVariable:
                 for node in Nodes(model_part):
                     node.SetSolutionStepValue(kratos_var, value)
+                #   KratosMultiphysics.VariableUtils().SetScalarVar(kratos_var, value, Nodes(model_part))
             else:
                 err_msg  = 'Type of variable "' + kratos_var.Name() + '" is not valid\n'
                 err_msg += 'It can only be double, component!'

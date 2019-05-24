@@ -79,7 +79,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def __ComputeLiftFromJumpCondition(self):
         # Find the Trailing Edge node
         for node in self.body_model_part.Nodes:
-            if node.Has(CPFApp.TRAILING_EDGE):
+            if node.GetValue(CPFApp.TRAILING_EDGE):
                 te = node
                 break
 

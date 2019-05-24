@@ -22,7 +22,6 @@ class MeshSolverStructuralSimilarity(MeshSolverBase):
     def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
-        print("PRINT REFORM DOFS EACH STEP         ", reform_dofs_each_step)
         compute_reactions = self.settings["compute_reactions"].GetBool()
         solving_strategy = KratosMeshMoving.StructuralMeshMovingStrategy(self.mesh_model_part,
                                                              linear_solver,

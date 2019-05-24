@@ -16,11 +16,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         # Check default settings
-        default_settings_wake = KratosMultiphysics.Parameters(r'''{
+        default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "epsilon": 1e-9
         }''')
-        settings.ValidateAndAssignDefaults(default_settings_wake)
+        settings.ValidateAndAssignDefaults(default_settings)
 
         body_model_part_name = settings["model_part_name"].GetString()
         if body_model_part_name == "":
@@ -67,7 +67,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
 
     def ExecuteInitialize(self):
-        print("9999999999999999999999999999999999")
         self.__SetWakeDirectionAndNormal()
         self.__SaveTrailingEdgeNode()
         self.__MarkWakeElements()
@@ -75,7 +74,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.__MarkWakeTEElement()
 
     def SolveSolutionStep(self):
-        print("55555555555555555")
         self.FindWakeElements()
 
     def FindWakeElements(self):
