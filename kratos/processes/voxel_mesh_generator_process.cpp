@@ -100,6 +100,11 @@ namespace Kratos
 				ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
 				itNode->GetSolutionStepValue(DISTANCE) = mOutsideColor;
 			}
+						#pragma omp parallel for
+			for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k) {
+				auto i_element = mrVolumePart.ElementsBegin() + k;
+				i_element->GetValue(DISTANCE) = mOutsideColor;
+			}
 		}
 
 	}
@@ -122,7 +127,7 @@ namespace Kratos
 		int color = -1;
 		for(auto& sub_model_part : mrSkinPart.SubModelParts()){
 	
-	        this->CalculateRayDistances(sub_model_part, color--);
+	        this->CalculateVoxelsColor(sub_model_part, color--);
 		}
 	}
 
@@ -151,7 +156,7 @@ namespace Kratos
 		for (std::size_t K = 0; K < mNumberOfDivisions[2]; K++) {
 			for (std::size_t J = 0; J < mNumberOfDivisions[1]; J++) {
 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-                    if(!mCellIsEmpty[cell_index++]){
+                    // if(!mCellIsEmpty[cell_index]){
                         std::vector<ModelPart::IndexType> element_connectivity(8);
                         element_connectivity[0] = GetNodeId(i, J, K);
                         element_connectivity[1] = GetNodeId(i, J+1, K);
@@ -161,8 +166,9 @@ namespace Kratos
                         element_connectivity[5] = GetNodeId(i, J+1, K+1);
                         element_connectivity[6] = GetNodeId(i+1, J+1, K+1);
                         element_connectivity[7] = GetNodeId(i+1, J, K+1);
-                        mrVolumePart.CreateNewElement("Element3D8N", mStartElementId++, element_connectivity, p_properties);
-                    }
+                        mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, element_connectivity, p_properties);
+						cell_index++;
+                    // }
 				}
 			}
 		}
@@ -208,6 +214,52 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+
+	void VoxelMeshGeneratorProcess::CalculateVoxelsColor(ModelPart& TheSubModelPart, int TheColor)
+	{
+        const auto elements_begin = mrVolumePart.ElementsBegin();
+		ApplyRayCastingProcess<3> ray_casting_process(mrVolumePart, TheSubModelPart);
+		ray_casting_process.Initialize();
+
+        #pragma omp parallel for
+		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+                bool previous_cell_was_empty = true;
+                int previous_cell_color = 1;
+ 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+                    std::size_t index = i + j * mNumberOfDivisions[0] + k * mNumberOfDivisions[1] * mNumberOfDivisions[0];
+                    auto& r_element = *(elements_begin + index);
+                    double &element_distance = r_element.GetValue(DISTANCE);
+                    if(mCellIsEmpty[index] & previous_cell_was_empty){
+						if(previous_cell_color != mOutsideColor)
+                        	element_distance = previous_cell_color;
+                        previous_cell_was_empty = true;
+                    }
+                    else{
+                        const double ray_distance = ray_casting_process.DistancePositionInSpace(r_element.GetGeometry().Center());
+                        if (ray_distance < 0.0) {
+                            element_distance = TheColor;
+							previous_cell_color = TheColor;
+							KRATOS_WATCH(r_element.GetValue(DISTANCE));
+							std::vector<double> results;
+							r_element.GetValueOnIntegrationPoints(DISTANCE, results, ProcessInfo());
+							KRATOS_WATCH(results);
+                        }
+						else{
+							previous_cell_color = mOutsideColor;
+
+						}
+                       if(mCellIsEmpty[index]){
+                            previous_cell_was_empty = true;
+                        }
+                        else {
+                            previous_cell_was_empty = false;
+                        }               
+                    }
+				}
+			}
+		}
+	}
 
 	void VoxelMeshGeneratorProcess::CalculateRayDistances(ModelPart& TheSubModelPart, int TheColor)
 	{

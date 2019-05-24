@@ -168,6 +168,8 @@ namespace Kratos
 
           void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
 
+          void CalculateVoxelsColor(ModelPart& TheSubModelPart, int TheColor);
+
           void CalculateRayDistances(ModelPart& TheSubModelPart, int TheColor);
 
           void GenerateTriangularElements();
