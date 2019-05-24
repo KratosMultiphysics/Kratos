@@ -418,13 +418,6 @@ class FEMDEM_Solution:
 #============================================================================================================================
 
     def TransferNodalForcesToFEM(self):
-
-        # for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
-        #     id_node = condition.GetNodes()[0].Id
-
-        #     if self.FEM_Solution.main_model_part.GetNode(id_node).GetValue(KratosFemDem.IS_DEM):
-        #         dem_forces = self.SpheresModelPart.GetNode(id_node).GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES)
-        #         condition.SetValue(Solid.FORCE_LOAD, dem_forces)
         tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part, self.SpheresModelPart)
         tranfer_nodal_forces_process.Execute()
 
