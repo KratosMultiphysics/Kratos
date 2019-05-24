@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
@@ -38,14 +39,17 @@ class CoSimulationInterface(object):
         self.SetPythonList(data.tolist())
 
     def __add__(self, other):
-        # To do: use zip for looping over ModelParts of two interfaces simultaneously.
-        print(type(self), type(other))
-        return other
+        result = copy.copy(self)
+        result.SetNumpyArray(self.GetNumpyArray() - other.GetNumpyArray())
+        return result
 
     def __sub__(self, other):
-        print(type(self), type(other))
-        return other
+        result = copy.copy(self)
+        result.SetNumpyArray(self.GetNumpyArray() - other.GetNumpyArray())
+        return result
 
     def __mul__(self, other):
-        print(type(self), type(other))
-        return self
+        if type(other) == float:
+            result = copy.copy(self)
+            result.SetNumpyArray(self.GetNumpyArray() * other)
+            return result

@@ -31,8 +31,8 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
     def Update(self, r):
         if self.first_iteration:
             self.initial_norm = np.linalg.norm(r, self.order)
-        else:
-            self.last_norm = np.linalg.norm(r, self.order)
+        self.last_norm = np.linalg.norm(r, self.order)
+        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
 
     def IsSatisfied(self):
         if self.first_iteration or self.initial_norm < np.finfo(type(self.initial_norm)).eps:

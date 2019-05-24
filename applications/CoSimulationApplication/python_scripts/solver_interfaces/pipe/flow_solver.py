@@ -159,19 +159,18 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
                                  * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0
                                  - self.alpha * (self.p[2:self.m + 2] - 2.0 * self.p[1:self.m + 1] + self.p[0:self.m]))
         f[3:2 * self.m + 3:2] = (self.dz / self.dt * (self.u[1:self.m + 1] * self.a[1:self.m + 1]
-                                                      - self.un[1:self.m + 1] * self.an[1:self.m + 1])
+                                 - self.un[1:self.m + 1] * self.an[1:self.m + 1])
                                  + ur * (self.u[1:self.m + 1] + self.u[2:self.m + 2])
                                  * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
                                  - ul * (self.u[1:self.m + 1] + self.u[0:self.m])
                                  * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0
                                  + ((self.p[2:self.m + 2] - self.p[1:self.m + 1])
-                                    * (self.a[1:self.m + 1] + self.a[2:self.m + 2])
-                                    + (self.p[1:self.m + 1] - self.p[0:self.m])
-                                    * (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0)
+                                 * (self.a[1:self.m + 1] + self.a[2:self.m + 2])
+                                 + (self.p[1:self.m + 1] - self.p[0:self.m])
+                                 * (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0)
         f[2 * self.m + 2] = self.u[self.m + 1] - (2.0 * self.u[self.m] - self.u[self.m - 1])
         f[2 * self.m + 3] = self.p[self.m + 1] - (2.0 * (self.cmk2 - (m.sqrt(self.cmk2 - self.pn[self.m + 1] / 2.0)
-                                                                      - (self.u[self.m + 1] - self.un[self.m + 1])
-                                                                      / 4.0) ** 2))
+                             - (self.u[self.m + 1] - self.un[self.m + 1])/ 4.0) ** 2))
         return f
 
     def GetJacobian(self):
@@ -184,13 +183,13 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
 
         j[self.Au + 2, 0:2 * self.m + 0:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i, 2*(i-1)]
         j[self.Au + 3, 0:2 * self.m + 0:2] = (-((self.u[1:self.m + 1] + 2.0 * self.u[0:self.m]) * usign
-                                                    + self.u[1:self.m + 1] * (1.0 - usign))
-                                                  * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*(i-1)]
+                                                + self.u[1:self.m + 1] * (1.0 - usign))
+                                                * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*(i-1)]
         j[self.Au + 1, 1:2 * self.m + 1:2] = -self.alpha  # [2*i, 2*(i-1)+1]
         j[self.Au + 2, 1:2 * self.m + 1:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i+1, 2*(i-1)+1]
 
         j[self.Au + 0, 2:2 * self.m + 2:2] = ((self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
-                                                  - (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i, 2*i]
+                                                - (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i, 2*i]
         j[self.Au + 1, 2:2 * self.m + 2:2] = (self.dz / self.dt * self.a[1:self.m + 1]
                                                   + ((2.0 * self.u[1:self.m + 1] + self.u[2:self.m + 2]) * usign
                                                      + self.u[2:self.m + 2] * (1.0 - usign))

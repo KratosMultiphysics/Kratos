@@ -32,3 +32,9 @@ class ConvergenceCriterionAnd(CoSimulationComponent):
             is_satisfied = is_satisfied and convergence_criterion.IsSatisfied()
 
         return is_satisfied
+
+    def PrintInfo(self):
+        super().PrintInfo()
+
+        for convergence_criterion in self._convergence_criteria:
+            convergence_criterion.PrintInfo()

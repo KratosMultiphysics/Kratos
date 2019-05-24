@@ -32,7 +32,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
     def Initialize(self):
         super().Initialize()
 
-        for component in self._components[2:-1]:
+        for component in self._components[1:-1]:
             component.Initialize()
 
         self.x = self._solver_interfaces[self.master_solver_interface].GetInterfaceIn()
