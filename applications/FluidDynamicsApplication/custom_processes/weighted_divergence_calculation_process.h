@@ -163,7 +163,7 @@ public:
             // KRATOS_WATCH(rDN_DeContainer);
 
             // Loop over integration points
-            double divergence_current;
+            double divergence_current = 0;
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ){
                 // Getting the shape functions
                 noalias(N) = row(rNcontainer, point_number); // [3](0.333333,0.333333,0.333333)
@@ -185,7 +185,7 @@ public:
                 // KRATOS_WATCH(grad_z);
                 const double aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
                 const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
-                divergence_current += aux_current_divergence*aux_current_divergence * gauss_point_volume;
+                divergence_current += aux_current_divergence * gauss_point_volume;
                 // KRATOS_WATCH(divergence_current);
             }
 
@@ -193,7 +193,7 @@ public:
             auto divergence_old_avg = it_elem->GetValue(DIVERGENCE);
 
             // Compute weighetd in time divergence average
-            auto divergence_current_avg = (time_step_previous * divergence_old_avg + (time_step_current - time_step_previous) * divergence_current) /  (time_step_current);
+            auto divergence_current_avg = std::sqrt((time_step_previous * std::pow(divergence_old_avg,2) + (time_step_current - time_step_previous) * std::pow(divergence_current,2)) /  (time_step_current));
             it_elem->SetValue(DIVERGENCE,divergence_current_avg);
             // if (i_elem == 3) {
             //     KRATOS_WATCH(it_elem->GetValue(DIVERGENCE));
