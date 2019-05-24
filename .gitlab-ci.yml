@@ -9,9 +9,19 @@ build linux_master:
     only: 
         refs:
             - master
-            - merge_requests
     script:
         - cp scripts/build/gitlab/build_and_test_master.sh build.sh
+        - bash build.sh
+
+build linux_branch:
+    stage: build
+    tags:
+        - linux
+    except: 
+        refs:
+            - master
+    script:
+        - cp scripts/build/gitlab/build_and_test_branch.sh build.sh
         - bash build.sh
 
 # build windows:
