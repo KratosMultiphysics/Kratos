@@ -180,7 +180,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
 
             // Set element size
             if (divergencefree_elem_value >= mTargetRefinementCoefficient*mDivergenceFreeMaxValue) {
-                element_size = nodal_h/2;
+                element_size = nodal_h/mRefinementCoefficient;
             }
             else {
                 element_size = nodal_h;
