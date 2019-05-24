@@ -45,8 +45,8 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
         "refinement_strategy"                 : "maximum_strategy",
         "maximum_strategy":
         {
-            "target_divergencefree"               : 0.01,
-            "refinement_coefficient"              : 0.01,
+            "target_refinement_coefficient"       : 0.01,
+            "refinement_coefficient"              : 2,
             "reference_variable_name"             : "DIVERGENCE",
             "set_target_number_of_elements"       : false,
             "target_number_of_elements"           : 1000,
@@ -64,9 +64,9 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     // maximum_strategy
     mReferenceVariable = ThisParameters["maximum_strategy"]["reference_variable_name"].GetString();
     mSetElementNumber = ThisParameters["maximum_strategy"]["set_target_number_of_elements"].GetBool();
+    mTargetRefinementCoefficient = ThisParameters["maximum_strategy"]["target_refinement_coefficient"].GetDouble();
     mRefinementCoefficient = ThisParameters["maximum_strategy"]["refinement_coefficient"].GetDouble();
     mElementNumber = ThisParameters["maximum_strategy"]["target_number_of_elements"].GetInt();
-    mTargetDivergenceFree = ThisParameters["maximum_strategy"]["target_divergencefree"].GetDouble();
     mAverageNodalH = ThisParameters["maximum_strategy"]["perform_nodal_h_averaging"].GetBool();
     mDivergenceFreeMaxValue = -1;
 
@@ -87,6 +87,8 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
 
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
+    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    KRATOS_DEBUG_ERROR_IF(elements_array.size() == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
     if (nodes_array.begin()->Has(tensor_variable) == false) {
         const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
@@ -103,15 +105,15 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
 
     // Selection refinement strategy
     if (mRefinementStrategy == "maximum_strategy") {
-        // Iteration over all nodes to find maximum value of divergence
-        const int num_nodes = static_cast<int>(nodes_array.size());
+        // Iteration over all elements to find maximum value of divergence
+        const int number_elements = static_cast<int>(elements_array.size());
         mDivergenceFreeMaxValue = -1;
         const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
-        for(int i_node = 0; i_node < num_nodes; ++i_node) {
-            auto it_node = nodes_array.begin() + i_node;
-            const double divergencefree_node_value = abs(it_node->GetValue(r_reference_var));
-            if (divergencefree_node_value > mDivergenceFreeMaxValue) {
-                mDivergenceFreeMaxValue = divergencefree_node_value;
+        for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
+            auto it_elem = elements_array.begin() + i_elem;
+            const double divergencefree_elem_value = abs(it_elem->GetValue(r_reference_var));
+            if (divergencefree_elem_value > mDivergenceFreeMaxValue) {
+                mDivergenceFreeMaxValue = divergencefree_elem_value;
             KRATOS_WATCH(mDivergenceFreeMaxValue);
             }
         }
@@ -132,8 +134,18 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
     // Array of nodes
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
+    // Array of elements
+    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+
+    // We do a find of neighbours
+    {
+        FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
+        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+        find_neighbours.Execute();
+    }
 
     // Iteration over all nodes
     const int num_nodes = static_cast<int>(nodes_array.size());
@@ -152,12 +164,22 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             // MinSize by default
             double element_size = mMinSize;
 
+            // Initialize Divergence
+            double divergencefree_elem_value = 0;
+
             // Estimate element size
             const double nodal_h = it_node->GetValue(NODAL_H);
 
-            // Get divergence value on the node and set consequently the element size
-            const double divergencefree_node_value = abs(it_node->GetValue(r_reference_var));
-            if (divergencefree_node_value >= mRefinementCoefficient*mDivergenceFreeMaxValue) {
+            // Get divergence value on the node: cycle the neigh elements and take maximum DIVERGENCE value
+            auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
+                if (i_neighbour_elements->GetValue(r_reference_var) > divergencefree_elem_value) {
+                    divergencefree_elem_value = i_neighbour_elements->GetValue(r_reference_var);
+                }
+            }
+
+            // Set element size
+            if (divergencefree_elem_value >= mTargetRefinementCoefficient*mDivergenceFreeMaxValue) {
                 element_size = nodal_h/2;
             }
             else {

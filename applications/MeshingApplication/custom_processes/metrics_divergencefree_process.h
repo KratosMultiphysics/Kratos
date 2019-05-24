@@ -204,7 +204,7 @@ private:
     bool mSetElementNumber;    /// Determines if a target number of elements for the new mesh is set
     std::string mReferenceVariable = "DIVERGENCE";    /// Variable used to compute the metric
     SizeType mElementNumber;   /// The target number of elements for the new mesh
-    double mTargetDivergenceFree;       /// The overall target divergencefree for the new mesh
+    double mTargetRefinementCoefficient;       /// The overall target divergencefree for the new mesh
     bool mAverageNodalH;       /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
 
     SizeType mEchoLevel;       /// The echo level
