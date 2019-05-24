@@ -71,7 +71,7 @@ void GenerateDemProcess::Execute()
                         if (r_neighbour.GetValue(IS_DEM)) {
                             has_dem_neigh = true;
                             potential_radii(neigh) = dist_between_nodes - r_neighbour.GetValue(RADIUS);
-                            if (potential_radii(neigh) < 0.0) { // Houston-> We have a problem
+                            if (potential_radii(neigh) < 0.0 || potential_radii(neigh) / dist_between_nodes < 0.2) { // Houston-> We have a problem
                                 const double new_radius = dist_between_nodes*0.5;
                                 auto& r_radius_neigh_old = mrDEMModelPart.GetNode(r_neighbour.Id()).GetSolutionStepValue(RADIUS);
                                 r_radius_neigh_old = new_radius;
