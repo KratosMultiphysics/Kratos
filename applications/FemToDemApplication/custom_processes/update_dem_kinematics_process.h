@@ -23,7 +23,7 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 typedef Node<3> NodeType;
-typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
+typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
 
 class UpdateDemKinematicsProcess : public Process 
 {
@@ -43,7 +43,7 @@ class UpdateDemKinematicsProcess : public Process
   void operator()() { Execute(); }
 
   void Execute() override;
-  array_1d<double,3> GetNodeCoordinates(const NodeType& rNode);
+  array_1d<double,3> GetNodeCoordinates(const NodeIteratorType& rNode);
 
 protected:
 

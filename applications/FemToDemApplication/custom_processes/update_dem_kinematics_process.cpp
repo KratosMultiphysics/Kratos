@@ -11,7 +11,7 @@
 //  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#include "custom_processes/update_dem_kinematics.h"
+#include "custom_processes/update_dem_kinematics_process.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 
@@ -38,7 +38,8 @@ void UpdateDemKinematicsProcess::Execute()
             const int node_id = it_node->Id();
             auto& associated_dem = mrDEMModelPart.GetNode(node_id);
             const array_1d<double,3> coordinates = this->GetNodeCoordinates(it_node);
-            const array_1d<double,3> displacement = it_node->GetSolutionStepValue(DISPLACEMENT)
+			const array_1d<double, 3> displacement = it_node->GetSolutionStepValue(DISPLACEMENT);
+			const array_1d<double, 3> velocity = it_node->GetSolutionStepValue(VELOCITY);
         }
     }
 }
@@ -47,13 +48,13 @@ void UpdateDemKinematicsProcess::Execute()
 /***********************************************************************************/
 
 array_1d<double,3> UpdateDemKinematicsProcess::GetNodeCoordinates(
-    const NodeType& rNode
+    const NodeIteratorType& rNode
     )
 {
     array_1d<double,3> coordinates;
-    coordinates[0] = rNode.X();
-    coordinates[1] = rNode.Y();
-    coordinates[2] = rNode.Z();
+    coordinates[0] = rNode->X();
+    coordinates[1] = rNode->Y();
+    coordinates[2] = rNode->Z();
     return coordinates;
 }
 
