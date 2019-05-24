@@ -68,7 +68,7 @@ public:
     typedef BeamElement::ElementDataType                ElementDataType;
 
     /// Counted pointer of LargeDisplacementBeamElement
-    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementBeamElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LargeDisplacementBeamElement );
 
     ///@}
     ///@name Life Cycle

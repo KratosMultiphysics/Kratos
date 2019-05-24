@@ -22,7 +22,7 @@
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
 #include "includes/constitutive_law.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 
 namespace Kratos
@@ -62,7 +62,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of Element
-    KRATOS_CLASS_POINTER_DEFINITION(Element);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Element);
 
     ///definition of element type
     typedef Element ElementType;
@@ -164,6 +164,10 @@ public:
     {
     }
 
+    Element::Pointer shared_from_this()
+    {
+        return std::static_pointer_cast<Element>(GeometricalObject::shared_from_this());
+    }
     ///@}
     ///@name Operators
     ///@{
@@ -216,7 +220,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
-        return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -233,7 +237,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
-        return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -248,7 +252,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
-        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;
@@ -309,6 +313,9 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -316,6 +323,9 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -323,6 +333,9 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -440,6 +453,12 @@ public:
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
                                       ProcessInfo& rCurrentProcessInfo)
     {
+        if (rLeftHandSideMatrices.size() != 0) {
+	        rLeftHandSideMatrices.resize(0);
+        }
+        if (rRightHandSideVectors.size() != 0) {
+	        rRightHandSideVectors.resize(0);
+        }
     }
 
     /**
@@ -466,6 +485,9 @@ public:
                     const std::vector< Variable< MatrixType > >& rLHSVariables,
                     ProcessInfo& rCurrentProcessInfo)
     {
+        if (rLeftHandSideMatrices.size() != 0) {
+	        rLeftHandSideMatrices.resize(0);
+        }
     }
 
     /**
@@ -492,6 +514,9 @@ public:
                     const std::vector< Variable< VectorType > >& rRHSVariables,
                     ProcessInfo& rCurrentProcessInfo)
     {
+        if (rRightHandSideVectors.size() != 0) {
+	        rRightHandSideVectors.resize(0);
+        }
     }
 
 
@@ -1270,7 +1295,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Element >, NEIGHBOUR_ELEMENTS)
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT

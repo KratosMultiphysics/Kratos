@@ -17,8 +17,9 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/properties.h"
 #include "containers/model.h"
+#include "includes/properties.h"
+#include "includes/cfd_variables.h"
 #include "custom_elements/shallow_element.h"
 #include "shallow_water_application_variables.h"
 
@@ -44,6 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowElement2D3N, ShallowWaterApplicationFastSuite)
     model_part.AddNodalSolutionStepVariable(PROJECTED_VECTOR1);
     model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
     model_part.AddNodalSolutionStepVariable(RAIN);
+    model_part.AddNodalSolutionStepVariable(EQUIVALENT_MANNING);
 
     // Process info creation
     const double delta_time = 0.1;
@@ -55,7 +57,8 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowElement2D3N, ShallowWaterApplicationFastSuite)
 
     // Set the element properties
     Properties::Pointer property = model_part.CreateNewProperties(0);
-    property->SetValue(MANNING, 0.004);
+    double manning = 0.004;
+    property->SetValue(MANNING, manning);
 
     // Geometry creation
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -71,9 +74,9 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowElement2D3N, ShallowWaterApplicationFastSuite)
     height(0) = 7.0;
     height(1) = 9.0;
     height(2) = 6.0;
-    bathymetry(0) = -7.0;
-    bathymetry(1) = -8.0;
-    bathymetry(2) = -6.0;
+    bathymetry(0) = 7.0;
+    bathymetry(1) = 8.0;
+    bathymetry(2) = 6.0;
     // Set the nodal values
     for (IndexType i = 0; i < 3; i++)
     {
@@ -82,6 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowElement2D3N, ShallowWaterApplicationFastSuite)
         element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR1   ) = height(i) + 1;
         element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR1, 1) = 0.0;
         element->GetGeometry()[i].FastGetSolutionStepValue(BATHYMETRY) = bathymetry(i);
+        element->GetGeometry()[i].FastGetSolutionStepValue(EQUIVALENT_MANNING) = manning;
         for (IndexType k = 0; k < 2; k++)
         {
             element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY   )[k] = 0.0;

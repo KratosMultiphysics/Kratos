@@ -155,7 +155,7 @@ inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::A
 }
 
 template <class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class KRATOS_API(KRATOS_CORE) CalculateEmbeddedNodalVariableFromSkinProcess : public Process
+class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
 
@@ -296,8 +296,8 @@ public:
         // Check that there is at least one element and node in the model
         int n_loc_mesh_nodes = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfNodes();
         int n_loc_mesh_elements = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfElements();
-        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
@@ -577,7 +577,7 @@ protected:
                                 this->AddEdgeNodes(r_i_edge_geom, rModelPart);
 
                                 // Create a new element with the intersected edge geometry and fake properties
-                                auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
+                                Element::Pointer p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                     new_elem_id,
                                     this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
                                     rModelPart.pGetProperties(0));

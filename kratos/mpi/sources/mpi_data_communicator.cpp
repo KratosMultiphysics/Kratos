@@ -811,9 +811,17 @@ void MPIDataCommunicator::AllGather(
 
 // Access
 
-MPI_Comm MPIDataCommunicator::GetMPICommunicator() const
+MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCommunicator)
 {
-    return mComm;
+    if (rDataCommunicator.IsDistributed())
+    {
+        const MPIDataCommunicator& r_mpi_data_comm = static_cast<const MPIDataCommunicator&>(rDataCommunicator);
+        return r_mpi_data_comm.mComm;
+    }
+    else
+    {
+        return MPI_COMM_SELF;
+    }
 }
 
 // Inquiry
