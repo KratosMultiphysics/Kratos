@@ -10,21 +10,19 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_APPLY_SINUSOIDAL_FUNCTION_PROCESS_H_INCLUDED
-#define KRATOS_APPLY_SINUSOIDAL_FUNCTION_PROCESS_H_INCLUDED
+#ifndef KRATOS_APPLY_PERTURBATION_FUNCTION_PROCESS_H_INCLUDED
+#define KRATOS_APPLY_PERTURBATION_FUNCTION_PROCESS_H_INCLUDED
 
 
 // System includes
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "includes/model_part.h"
+#include "processes/process.h"
 #include "includes/kratos_parameters.h"
 
 
@@ -54,11 +52,11 @@ namespace Kratos
 
 /** 
  * @ingroup ShallowWaterApplication
- * @class ApplySinusoidalFunctionProcess
- * @brief The aim of this process is to generate sinusoidal waves
+ * @class ApplyPerturbationFunctionProcess
+ * @brief This process assigns a default value or a perturbation if the node is close to an influence area
  */
-template< class TVarType >
-class KRATOS_API(SHALLOW_WATER_APPLICATION) ApplySinusoidalFunctionProcess : public Process
+template<class TVarType>
+class KRATOS_API(SHALLOW_WATER_APPLICATION) ApplyPerturbationFunctionProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -66,27 +64,45 @@ public:
 
     typedef std::size_t                     IndexType;
     typedef Node<3>                         NodeType;
+    typedef Node<3>::Pointer                NodePointerType;
+    typedef ModelPart::NodesContainerType   NodesArrayType;
+    typedef NodesArrayType::iterator        NodeIteratorType;
 
-    /// Pointer definition of ApplySinusoidalFunctionProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ApplySinusoidalFunctionProcess);
+    /// Pointer definition of ApplyPerturbationFunctionProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyPerturbationFunctionProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ApplySinusoidalFunctionProcess(
+    /// Constructor with a node
+    ApplyPerturbationFunctionProcess(
         ModelPart& rThisModelPart,
+        NodePointerType pNode,
         TVarType& rThisVariable,
-        Parameters& rThisParameters
-    );
+        Parameters& rThisParameters);
+
+    /// Constructor with an array of nodes
+    ApplyPerturbationFunctionProcess(
+        ModelPart& rThisModelPart,
+        NodesArrayType& rSourcePoints,
+        TVarType& rThisVariable,
+        Parameters& rThisParameters);
 
     /// Destructor.
-    ~ApplySinusoidalFunctionProcess() override {};
+    ~ApplyPerturbationFunctionProcess() override {}
 
     ///@}
     ///@name Operators
     ///@{
+
+    /*
+     * @brief This operator is provided to call the process as a function and simply calls the Execute method.
+     */
+    void operator()()
+    {
+        Execute();
+    }
 
     ///@}
     ///@name Operations
@@ -95,12 +111,18 @@ public:
     /**
      * @brief Execute method is used to execute the Process algorithms.
      */
-    void ExecuteInitializeSolutionStep() override;
+    void Execute() override;
 
     /**
      * @brief Perform a check with the parameters.
      */
     int Check() override;
+
+    /**
+     * @brief this function is designed for being execute once before the solution loop but
+     * after all of the solvers where built
+     */
+    void ExecuteBeforeSolutionLoop() override;
 
     ///@}
     ///@name Access
@@ -120,12 +142,12 @@ public:
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ApplySinusoidalFunctionProcess" ;
+        buffer << "ApplyPerturbationFunctionProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ApplySinusoidalFunctionProcess";}
+    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ApplyPerturbationFunctionProcess";}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override {}
@@ -185,12 +207,12 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    NodesArrayType mSourcePoints;
     TVarType& mrVariable;
-    double mAmplitude;
-    double mPeriod;
-    double mAngularFrequency;
-    double mPhase;
-    double mVerticalShift;
+    double mDefaultValue;
+    double mInfluenceDistance;
+    double mPerturbation;
+    double mHalfWaveNumber;
 
     ///@}
     ///@name Private Operators
@@ -203,7 +225,11 @@ private:
 
     void ValidateParameters(Parameters& rParameters);
 
-    double Function(double& rTime);
+    double ComputeDistance(NodePointerType pNode);
+
+    double PointPointSquareDistance(array_1d<double, 3>& rCoordA, array_1d<double, 3>& rCoordB);
+
+    double ComputeInitialValue(double& rDistance);
 
     ///@}
     ///@name Private  Access
@@ -220,15 +246,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ApplySinusoidalFunctionProcess& operator=(ApplySinusoidalFunctionProcess const& rOther);
+    // ApplyPerturbationFunctionProcess& operator=(ApplyPerturbationFunctionProcess const& rOther);
 
     /// Copy constructor.
-    ApplySinusoidalFunctionProcess(ApplySinusoidalFunctionProcess const& rOther);
+    // ApplyPerturbationFunctionProcess(ApplyPerturbationFunctionProcess const& rOther);
 
 
     ///@}
 
-}; // Class ApplySinusoidalFunctionProcess
+}; // Class ApplyPerturbationFunctionProcess
 
 ///@}
 
@@ -242,11 +268,11 @@ private:
 
 // /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                 ApplySinusoidalFunctionProcess& rThis);
+//                 ApplyPerturbationFunctionProcess& rThis);
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                 const ApplySinusoidalFunctionProcess& rThis)
+//                 const ApplyPerturbationFunctionProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -261,4 +287,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_APPLY_SINUSOIDAL_FUNCTION_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_APPLY_PERTURBATION_FUNCTION_PROCESS_H_INCLUDED  defined
