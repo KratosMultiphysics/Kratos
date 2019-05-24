@@ -78,13 +78,29 @@ void GenerateDemProcess<2>::Execute()
                 this->Get2LocalIdFrom1(local_id_no_DEM, local_id_dem_1, local_id_dem_2);
                 const double r1 = r_geom[local_id_dem_1].GetValue(RADIUS);
                 const double r2 = r_geom[local_id_dem_2].GetValue(RADIUS);
-                const double radius = this->GetMinimumValue2(distances(local_id_dem_1, local_id_no_DEM)-r1, distances(local_id_dem_2, local_id_no_DEM)-r2);
+                const double radius = this->GetMinimumValue2(distances(local_id_dem_1, local_id_no_DEM)-r1, 
+                                                             distances(local_id_dem_2, local_id_no_DEM)-r2);
                 const array_1d<double, 3> coordinates = this->GetNodeCoordinates(node);
                 this->CreateDEMParticle(node.Id(), coordinates, p_DEM_properties, radius, node);
 
             } else if (number_of_dem == 1) { // We must create 2 DEM
-                const int local_id_DEM = this->GetLocalIdWithDEM(it_elem);
-
+                const int local_id_existing_DEM = this->GetLocalIdWithDEM(it_elem);
+                int local_id_dem_1, local_id_dem_2;
+                this->Get2LocalIdFrom1(local_id_existing_DEM, local_id_dem_1, local_id_dem_2);
+                auto& node1 = r_geom[local_id_dem_1];
+                auto& node2 = r_geom[local_id_dem_2];
+                const double radius_dem = r_geom[local_id_existing_DEM].GetValue(RADIUS);
+                Matrix distances(3,3);
+                this->CreateDistancesMatrix(distances, dist01, dist02, dist12);
+                // Node 1
+                const double r1 = distances(local_id_dem_1, local_id_existing_DEM) - radius_dem;
+                const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node1);
+                this->CreateDEMParticle(node1.Id(), coordinates1, p_DEM_properties, r1, node1);
+                // Node 2
+                const double r2 = this->GetMinimumValue2(distances(local_id_existing_DEM, local_id_dem_2) - radius_dem, 
+                                                         distances(local_id_dem_1, local_id_dem_2) - r1);
+                const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
+                this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
             }
 
 
