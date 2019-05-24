@@ -298,7 +298,7 @@ void PotentialWallCondition<TDim, TNumNodes>::FindParentElement(
         if (std::includes(ElementNodeIds.begin(), ElementNodeIds.end(),
                           NodeIds.begin(), NodeIds.end()))
         {
-            mpElement = &*ElementCandidates(i);
+            mpElement = ElementCandidates(i).get();
             return;
         }
     }
