@@ -332,27 +332,9 @@ class FEMDEM_Solution:
 #============================================================================================================================
     def UpdateDEMVariables(self):
 
-        FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
-        for fem_node in FEM_Nodes:
-            if fem_node.GetValue(KratosFemDem.IS_DEM):
-                id_node = fem_node.Id
-                associated_dem = self.SpheresModelPart.GetNode(id_node)
-
-                Coordinates    = self.GetNodeCoordinates(fem_node)
-                velocity = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                displacement = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-
-                # Update Coordinates
-                associated_dem.X = Coordinates[0]
-                associated_dem.Y = Coordinates[1]
-
-                # Update Displacements
-                associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, displacement[0])
-                associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, displacement[1])
-
-                # Update Velocities
-                associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, velocity[0])
-                associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, velocity[1])
+        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part, 
+                                                                               self.SpheresModelPart)
+        update_de_kinematics_process.Execute()
 
 #============================================================================================================================
     def CheckInactiveNodes(self):
