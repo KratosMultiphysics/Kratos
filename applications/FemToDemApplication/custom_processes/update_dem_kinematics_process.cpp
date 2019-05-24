@@ -64,22 +64,22 @@ void UpdateDemKinematicsProcess::UpdateKinematics(
     NodeType& rDEMNode
     )
 {
-    const array_1d<double,3>& r_coordinates = this->GetNodeCoordinates(rNode);
-    const array_1d<double,3>& r_displacement = rNode->GetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3>& r_velocity = rNode->GetSolutionStepValue(VELOCITY);
+    const array_1d<double,3> coordinates = this->GetNodeCoordinates(rNode);
+    const array_1d<double,3> displacement = rNode->GetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3> velocity = rNode->GetSolutionStepValue(VELOCITY);
 
     auto& displ_dem = rDEMNode.GetSolutionStepValue(DISPLACEMENT);
-    displ_dem = r_displacement;
+    displ_dem = displacement;
     auto& vel_dem = rDEMNode.GetSolutionStepValue(VELOCITY);
-    vel_dem = r_velocity;
+    vel_dem = velocity;
 
     double& r_x_dem =  rDEMNode.X();
     double& r_y_dem =  rDEMNode.Y();
     double& r_z_dem =  rDEMNode.Z();
 
-    r_x_dem = r_coordinates[0];
-    r_y_dem = r_coordinates[1];
-    r_z_dem = r_coordinates[2];
+    r_x_dem = coordinates[0];
+    r_y_dem = coordinates[1];
+    r_z_dem = coordinates[2];
 }
 
 /***********************************************************************************/
