@@ -37,9 +37,7 @@ void UpdateDemKinematicsProcess::Execute()
         if (it_node->GetValue(IS_DEM)) {
             const int node_id = it_node->Id();
             auto& associated_dem = mrDEMModelPart.GetNode(node_id);
-            const array_1d<double,3> coordinates = this->GetNodeCoordinates(it_node);
-			const array_1d<double, 3> displacement = it_node->GetSolutionStepValue(DISPLACEMENT);
-			const array_1d<double, 3> velocity = it_node->GetSolutionStepValue(VELOCITY);
+            this->UpdateKinematics(it_node, associated_dem);
         }
     }
 }
@@ -56,6 +54,32 @@ array_1d<double,3> UpdateDemKinematicsProcess::GetNodeCoordinates(
     coordinates[1] = rNode->Y();
     coordinates[2] = rNode->Z();
     return coordinates;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UpdateDemKinematicsProcess::UpdateKinematics(
+    const NodeIteratorType& rNode,
+    NodeType& rDEMNode
+    )
+{
+    const array_1d<double,3> coordinates = this->GetNodeCoordinates(rNode);
+    const array_1d<double,3> displacement = rNode->GetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3> velocity = rNode->GetSolutionStepValue(VELOCITY);
+
+    auto& displ_dem = rDEMNode.GetSolutionStepValue(DISPLACEMENT);
+    displ_dem = displacement;
+    auto& vel_dem = rDEMNode.GetSolutionStepValue(VELOCITY);
+    vel_dem = velocity;
+
+    double& r_x_dem =  rDEMNode.X();
+    double& r_y_dem =  rDEMNode.Y();
+    double& r_z_dem =  rDEMNode.Z();
+
+    r_x_dem = coordinates[0];
+    r_y_dem = coordinates[1];
+    r_z_dem = coordinates[2];
 }
 
 /***********************************************************************************/
