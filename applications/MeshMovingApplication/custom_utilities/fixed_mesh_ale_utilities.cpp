@@ -133,7 +133,7 @@ namespace Kratos
     {
         auto virt_nodes_begin = mrVirtualModelPart.NodesBegin();
         auto orig_nodes_begin = mpOriginModelPart->NodesBegin();
-        const int buffer_size = mpOriginModelPart->GetBufferSize();
+        const unsigned int buffer_size = mpOriginModelPart->GetBufferSize();
 
         #pragma omp parallel for firstprivate(virt_nodes_begin, orig_nodes_begin, buffer_size)
         for (int i_node = 0; i_node < static_cast<int>(mpOriginModelPart->NumberOfNodes()); ++i_node) {
