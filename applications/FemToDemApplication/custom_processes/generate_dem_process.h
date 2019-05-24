@@ -58,6 +58,7 @@ class GenerateDemProcess : public Process
   int GetLocalIdWithDEM(ElementIteratorType ItElem);
   void CreateDistancesMatrix(Matrix& rDistancesMatrix, const double d01, const double d02, const double d12);
   void Get2LocalIdFrom1(const int LocalIdWithoutDEM,int& LocalIDWithDEM1,int& LocalIDWithDEM2);
+  void ModifyRadiusToNodes(NodeType& rNode1, NodeType& rNode2, const double NewR1, const double NewR2);
 
 protected:
 

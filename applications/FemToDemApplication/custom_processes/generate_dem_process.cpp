@@ -101,14 +101,23 @@ void GenerateDemProcess<2>::Execute()
                                                          distances(local_id_dem_1, local_id_dem_2) - r1);
                 const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
                 this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
+
+            } else if (number_of_dem == 3) { // We must avoid possible indentations
+                auto& r_node0 = r_geom[0];
+                auto& r_node1 = r_geom[1];
+                auto& r_node2 = r_geom[2];
+                const double r0 = r_node0.GetValue(RADIUS);
+                const double r1 = r_node1.GetValue(RADIUS);
+                const double r2 = r_node2.GetValue(RADIUS);
+                const int id_0 = r_node0.Id();
+                const int id_1 = r_node1.Id();
+                const int id_2 = r_node2.Id();
+
+                if (std::abs(r0) + std::abs(r1) > dist01) {
+                    const double new_r0 = dist01*0.5;
+                    this->ModifyRadiusToNodes(r_node0, r_node1, new_r0, new_r0);
+                }
             }
-
-
-
-
-
-
-
 
 
         }
@@ -148,6 +157,24 @@ void GenerateDemProcess<2>::CreateDistancesMatrix(
     rDistancesMatrix(2,1) = rDistancesMatrix(1,2);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+void GenerateDemProcess<TDim>::ModifyRadiusToNodes(
+    NodeType& rNode1,
+    NodeType& rNode2,
+    const double NewR1,
+    const double NewR2
+    )
+{
+    auto& r_radius_1_old = mrDEMModelPart.GetNode(rNode1.Id()).GetSolutionStepValue(RADIUS);
+    r_radius_1_old = NewR1;
+    auto& r_radius_2_old = mrDEMModelPart.GetNode(rNode2.Id()).GetSolutionStepValue(RADIUS);
+    r_radius_2_old = NewR2;
+    rNode1.SetValue(RADIUS, NewR1);
+    rNode2.SetValue(RADIUS, NewR2);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
