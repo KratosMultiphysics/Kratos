@@ -64,6 +64,7 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
 
     def SolveSolutionStep(self):
+        self.wake_process.CleanMarking()
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
         self.wake_process.SolveSolutionStep()
         # for elem in self.wake_process.wake_elements_sub_modelpart.Elements:
@@ -74,7 +75,6 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
 
-        self.wake_process.CleanMarking()
         print("SOLVING NOW")
     def FinalizeSolutionStep(self):
         super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
