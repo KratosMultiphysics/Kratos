@@ -228,8 +228,9 @@ void BuildNodally(
           }
  	        double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*secondLame/3.0;
 
-				  if(itNode->Is(FLUID) && volumetricCoeff>0)
+				  if(itNode->IsNot(SOLID) && volumetricCoeff>0)
 					{
+            volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
             double bulkReduction=density*nodalVolume/(timeInterval*volumetricCoeff);
             volumetricCoeff*=bulkReduction;
 				  }
@@ -237,12 +238,6 @@ void BuildNodally(
           firstRow=0;
           firstCol=0;
 
-          if(itNode->Is(FREE_SURFACE) || itNode->Is(RIGID)){
-            itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)=1;
-          }else{
-            itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)=0;
-          }
-           /* const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X); */
           if(dimension==2)
           {
             //////////////////////////// LHS TERMS //////////////////////////////
@@ -262,6 +257,31 @@ void BuildNodally(
              //-------- EXTERNAL FORCES TERM -------//
 
             array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+														
+						// double posX= itNode->X();
+
+						// double posY= itNode->Y();
+
+						// double coeffX =(12.0-24.0*posY)*pow(posX,4);
+
+						// coeffX += (-24.0+48.0*posY)*pow(posX,3);
+
+						// coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
+
+						// coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
+
+						// coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
+
+						// double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
+
+  					// coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
+
+						// coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
+
+						// coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
+
+            // RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0]*coeffX;
+            // RHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1]*coeffY;
 
             RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];
             RHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1];
@@ -312,9 +332,6 @@ void BuildNodally(
               {
                 EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
                 EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
-                if((neighb_nodes[i].Is(FREE_SURFACE) || neighb_nodes[i].Is(RIGID)) && (itNode->Is(FREE_SURFACE)|| itNode->Is(RIGID))){
-                  itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)+=1;
-                }
               }
 
             }
@@ -344,7 +361,7 @@ void BuildNodally(
             //-------- EXTERNAL FORCES TERM -------//
 
             array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
-
+            												
             RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];
             RHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1];
             RHS_Contribution[2]+=nodalVolume*density*VolumeAcceleration[2];
@@ -412,9 +429,6 @@ void BuildNodally(
                   EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
                   EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
                   EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xDofPos+2).EquationId();
-                  if((neighb_nodes[i].Is(FREE_SURFACE) || neighb_nodes[i].Is(RIGID)) && (itNode->Is(FREE_SURFACE)|| itNode->Is(RIGID))){
-                    itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)+=1;
-                  }
                 }
 
               }

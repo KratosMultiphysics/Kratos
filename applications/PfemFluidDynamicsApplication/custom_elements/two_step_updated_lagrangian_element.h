@@ -788,7 +788,7 @@ namespace Kratos
 	double deltaY= rGeom[idB].Y()-rGeom[idA].Y(); 
 	double deltaZ= rGeom[idB].Z()-rGeom[idA].Z(); 
 	double elementSize=sqrt(deltaX*deltaX+deltaY*deltaY+deltaZ*deltaZ); // this is just to have an idea of the size of the element 
-	const array_1d<double, 3> MeanPoint=(rGeom[idC].Coordinates()+rGeom[idB].Coordinates()+rGeom[idA].Coordinates())*0.3333333333; 
+	const array_1d<double, 3> MeanPoint=(rGeom[idC].Coordinates()+rGeom[idB].Coordinates()+rGeom[idA].Coordinates())/3.0; 
 	const array_1d<double, 3> DistanceA=rGeom[otherId].Coordinates() - (MeanPoint + NormalVector*elementSize); 
 	const array_1d<double, 3> DistanceB=rGeom[otherId].Coordinates() - (MeanPoint - NormalVector*elementSize); 
 	const double normA=DistanceA[0]*DistanceA[0] + DistanceA[1]*DistanceA[1] + DistanceA[2]*DistanceA[2]; 

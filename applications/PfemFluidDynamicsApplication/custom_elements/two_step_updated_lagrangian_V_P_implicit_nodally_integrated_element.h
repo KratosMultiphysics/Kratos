@@ -264,6 +264,10 @@ namespace Kratos
 						 VectorType& rRightHandSideVector,
 						 ProcessInfo& rCurrentProcessInfo);
 
+      void CalculateVolumetricStabilizedTerms(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+
       void CalculateElementalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 						 VectorType& rRightHandSideVector,
 						 ProcessInfo& rCurrentProcessInfo);

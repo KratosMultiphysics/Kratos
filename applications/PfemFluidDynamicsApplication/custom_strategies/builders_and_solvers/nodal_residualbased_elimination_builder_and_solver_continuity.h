@@ -189,10 +189,7 @@ void BuildNodally(
 
 						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 						const unsigned int neighSize = neighb_nodes.size() +1 ;
-						unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
-						bool dangerousNode=false;
-						if(neighSize ==freesurfaceNeighbours)
-							dangerousNode=true;
+
 						if(neighSize>1)
 						{
 
@@ -225,6 +222,10 @@ void BuildNodally(
 							}
 
 							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
+							if(itNode->IsNot(SOLID))
+				     	{
+            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+						  }
 
               deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -237,7 +238,7 @@ void BuildNodally(
 							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
               stabilizationNeeded=false;
-							if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
+							if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
 								stabilizationNeeded=true;
 							}else{
 
@@ -277,26 +278,9 @@ void BuildNodally(
 									// // double nodalFreesurfaceArea=itNode->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA);
 									// /* LHS_Contribution(0,0) += + 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize; */
 									// /* RHS_Contribution[0]   += - 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize * itNode->FastGetSolutionStepValue(PRESSURE,0); */
+									LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
+									RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
 
-									if(itNode->IsNot(RIGID)){
-										if(dangerousNode==true){
-											LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-										  RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-										}else{
-											LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);	
-											RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-										}
-
-									}
-									else{
-										if(dangerousNode==true){
-											LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-										  RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-										}else{
-											LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-											RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-									}
-									}
 									const array_1d<double, 3> &Normal    = itNode->FastGetSolutionStepValue(NORMAL);
 									Vector& SpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
 									array_1d<double, 3> nodalAcceleration=  0.5*(itNode->FastGetSolutionStepValue(VELOCITY,0)-itNode->FastGetSolutionStepValue(VELOCITY,1))/timeInterval - itNode->FastGetSolutionStepValue(ACCELERATION,1);
@@ -320,11 +304,7 @@ void BuildNodally(
 									// RHS_Contribution[0]  += tauStab * (density*nodalNormalAcceleration - 4.0*deviatoricCoeff*nodalNormalProjDefRate/meanMeshSize) * nodalFreesurfaceArea;
 									double accelerationContribution=2.0*density*nodalNormalAcceleration/meanMeshSize;
 									double deviatoricContribution=8.0*deviatoricCoeff*nodalNormalProjDefRate/(meanMeshSize*meanMeshSize);
-										// if(dangerousNode==true){
-										// 	deviatoricContribution=0;
-										// }
-									// accelerationContribution=0;
-									// deviatoricContribution=0;
+
 									if(itNode->IsNot(RIGID)){
 										RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
 									}else{
@@ -333,6 +313,28 @@ void BuildNodally(
 								}
 
 								array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+
+								// double posX= itNode->X();
+
+								// double posY= itNode->Y();
+
+								// double coeffX =(12.0-24.0*posY)*pow(posX,4);
+
+								// coeffX += (-24.0+48.0*posY)*pow(posX,3);
+
+								// coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
+
+								// coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
+
+								// coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
+
+								// double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
+
+								// coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
+
+								// coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
+
+								// coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
 
 
 								for (unsigned int i = 0; i< neighSize; i++)
@@ -346,10 +348,34 @@ void BuildNodally(
 											EquationId[i]=neighb_nodes[i-1].GetDof(PRESSURE,xDofPos).EquationId();
 								    	// at i==0 density and volume acceleration are taken from the master node
 											density= neighb_nodes[i-1].FastGetSolutionStepValue(DENSITY);
-											VolumeAcceleration = neighb_nodes[i-1].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+											// VolumeAcceleration = neighb_nodes[i-1].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+														
+											// // posX= neighb_nodes[i-1].X();
+
+											// // posY= neighb_nodes[i-1].Y();
+
+											// // coeffX =(12.0-24.0*posY)*pow(posX,4);
+
+											// // coeffX += (-24.0+48.0*posY)*pow(posX,3);
+
+											// // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
+
+											// // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
+
+											// // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
+
+											// // coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
+
+											// // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
+
+											// // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
+
+											// // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
+
 										}
 
 										if(dimension==2){
+											// RHS_Contribution[i]  += - tauStab * density * (dNdXi* VolumeAcceleration[0]*coeffX + dNdYi* VolumeAcceleration[1]*coeffY) * nodalVolume;
 											RHS_Contribution[i]  += - tauStab * density * (dNdXi* VolumeAcceleration[0] + dNdYi* VolumeAcceleration[1]) * nodalVolume;
 										}
 										else if(dimension==3){
@@ -448,119 +474,6 @@ void BuildNodally(
 
 	  }
 
-
-void BuildNodallyNotStabilized(
-	typename TSchemeType::Pointer pScheme,
-	ModelPart& rModelPart,
-	TSystemMatrixType& A,
-	TSystemVectorType& b)
-  {
-			KRATOS_TRY
-
-			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-			//contributions to the continuity equation system
-			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-			Element::EquationIdVectorType EquationId;
-			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-			const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
-			double deltaPressure=0;
-			double meanMeshSize=0;
-			double characteristicLength=0;
-			double density=0;
-			double nodalVelocityNorm=0;
-			double tauStab=0;
-			double dNdXi=0;
-			double dNdYi=0;
-			double dNdZi=0;
-			bool stabilizationNeeded=false;
-			unsigned int firstCol=0;
-
-			/* #pragma omp parallel */
-			{
-				ModelPart::NodeIterator NodesBegin;
-				ModelPart::NodeIterator NodesEnd;
-				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-				for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-					{
-
-						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-						const unsigned int neighSize = neighb_nodes.size() +1 ;
-						unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
-						bool dangerousNode=false;
-						if(neighSize ==freesurfaceNeighbours)
-							dangerousNode=true;
-						if(neighSize>1)
-						{
-
-							const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
-
-							LHS_Contribution= ZeroMatrix(neighSize,neighSize);
-							RHS_Contribution= ZeroVector(neighSize);
-
-							if (EquationId.size() != neighSize)
-								EquationId.resize(neighSize, false);
-
-							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
-
-							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-              if(yieldShear>0){
-								double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-								double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-								double exponent=-adaptiveExponent*equivalentStrainRate;
-								if(equivalentStrainRate!=0){
-									deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
-								}
-								if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
-									// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-									deviatoricCoeff=adaptiveExponent*yieldShear;
-								}
-         		 	}
-							
-							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
-								deviatoricCoeff=0.1;
-							}
-
-							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-
-              deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
-
-							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
-							RHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff; 
-
-              RHS_Contribution[0]  += itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
-
-							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
-							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
-
-							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
-							{
-								EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
-							}
-
-					#ifdef _OPENMP
-							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-					#else
-							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-					#endif
-
-						}
-
-					}
-
-			}
-
-
-			KRATOS_CATCH("")
-
-	  }
-
-
 		
 void BuildNodallyUnlessLaplacian(
 	typename TSchemeType::Pointer pScheme,
@@ -604,10 +517,7 @@ void BuildNodallyUnlessLaplacian(
 
 						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 						const unsigned int neighSize = neighb_nodes.size() +1 ;
-						unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
-						bool dangerousNode=false;
-						if(neighSize ==freesurfaceNeighbours)
-							dangerousNode=true;
+
 						if(neighSize>1)
 						{
 
@@ -642,9 +552,10 @@ void BuildNodallyUnlessLaplacian(
 
 							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
 
-							// if(dangerousNode==true){
-							// 	volumetricCoeff*=0.001;
-							// }
+							if(itNode->IsNot(SOLID))
+				     	{
+            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+						  }
 
               deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -659,7 +570,7 @@ void BuildNodallyUnlessLaplacian(
 							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
               stabilizationNeeded=false;
-							if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
+							if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
 								stabilizationNeeded=true;
 							}else{
 
@@ -679,23 +590,6 @@ void BuildNodallyUnlessLaplacian(
 								/* double tauStab=1.0/(8.0*deviatoricCoeff/(meanMeshSize*meanMeshSize)+2.0*density/timeInterval); */
 
 								if(dimension==2){
-									//  if(itNode->Is(RIGID)){
-									// 	for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-									// 		{
-									// 			if((nn)->IsNot(RIGID)){
-								 	// 									nodalVelocityNorm = 0.5*sqrt((nn)->FastGetSolutionStepValue(VELOCITY_X)*(nn)->FastGetSolutionStepValue(VELOCITY_X) +
-									//          			                                 (nn)->FastGetSolutionStepValue(VELOCITY_Y)*(nn)->FastGetSolutionStepValue(VELOCITY_Y));
-									// 									// if(dangerousNode==true){
-									// 			            //   RHS_Contribution[0]  += (-0.5*itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)+0.5*(nn)->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE))*nodalVolume;
-									// 									// }
-									// 				break;
-									// 			}
-									// 		}
-									// }
-									// else{
-								 	// 			nodalVelocityNorm = sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
-									//          						      	   itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y));
-									// }
 										nodalVelocityNorm = sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
 									         						      	   itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y));
 								}
@@ -717,26 +611,8 @@ void BuildNodallyUnlessLaplacian(
 									// // double nodalFreesurfaceArea=itNode->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA);
 									// /* LHS_Contribution(0,0) += + 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize; */
 									// /* RHS_Contribution[0]   += - 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize * itNode->FastGetSolutionStepValue(PRESSURE,0); */
-
-									if(itNode->IsNot(RIGID)){
-										if(dangerousNode==true){
-											LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-										  RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-										}else{
-											LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);	
-											RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-										}
-
-									}
-										else{
-											if(dangerousNode==true){
-												LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-												RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-											}else{
-												LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-												RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
-										}
-									}
+									LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
+									RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
 
 									array_1d<double, 3> &Normal    = itNode->FastGetSolutionStepValue(NORMAL);
 									Vector& SpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
@@ -776,11 +652,7 @@ void BuildNodallyUnlessLaplacian(
 									// RHS_Contribution[0]  += tauStab * (density*nodalNormalAcceleration - 4.0*deviatoricCoeff*nodalNormalProjDefRate/meanMeshSize) * nodalFreesurfaceArea;
 									double accelerationContribution=2.0*density*nodalNormalAcceleration/meanMeshSize;
 									double deviatoricContribution=8.0*deviatoricCoeff*nodalNormalProjDefRate/(meanMeshSize*meanMeshSize);
-										// if(dangerousNode==true){
-										// 	deviatoricContribution=0;
-										// }
-									// accelerationContribution=0;
-									// deviatoricContribution=0;
+
 									if(itNode->IsNot(RIGID)){
 										RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
 									}
@@ -790,8 +662,30 @@ void BuildNodallyUnlessLaplacian(
 								}
 
 								array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+														
+								// double posX= itNode->X();
 
+								// double posY= itNode->Y();
 
+								// double coeffX =(12.0-24.0*posY)*pow(posX,4);
+
+								// coeffX += (-24.0+48.0*posY)*pow(posX,3);
+
+								// coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
+
+								// coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
+
+								// coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
+
+								// double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
+
+								// coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
+
+								// coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
+
+								// coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
+
+				
 								for (unsigned int i = 0; i< neighSize; i++)
 									{
 
@@ -803,10 +697,35 @@ void BuildNodallyUnlessLaplacian(
 											EquationId[i]=neighb_nodes[i-1].GetDof(PRESSURE,xDofPos).EquationId();
 								    	// at i==0 density and volume acceleration are taken from the master node
 											density= neighb_nodes[i-1].FastGetSolutionStepValue(DENSITY);
-											VolumeAcceleration = neighb_nodes[i-1].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+
+											// // VolumeAcceleration = neighb_nodes[i-1].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+																									
+											// // posX= neighb_nodes[i-1].X();
+
+											// // posY= neighb_nodes[i-1].Y();
+
+											// // coeffX =(12.0-24.0*posY)*pow(posX,4);
+
+											// // coeffX += (-24.0+48.0*posY)*pow(posX,3);
+
+											// // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
+
+											// // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
+
+											// // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
+
+										  // // coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
+
+											// // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
+
+											// // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
+
+											// // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
+
 										}
 
 										if(dimension==2){
+											// RHS_Contribution[i]  += - tauStab * density * (dNdXi* VolumeAcceleration[0]*coeffX + dNdYi* VolumeAcceleration[1]*coeffY) * nodalVolume;
 											RHS_Contribution[i]  += - tauStab * density * (dNdXi* VolumeAcceleration[0] + dNdYi* VolumeAcceleration[1]) * nodalVolume;
 										}
 										else if(dimension==3){
@@ -839,6 +758,571 @@ void BuildNodallyUnlessLaplacian(
 
 	  }
 
+				
+void BuildNodallyNoVolumetricStabilizedTerms(
+	typename TSchemeType::Pointer pScheme,
+	ModelPart& rModelPart,
+	TSystemMatrixType& A,
+	TSystemVectorType& b)
+  {
+			KRATOS_TRY
+
+			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+			//contributions to the continuity equation system
+			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+			Element::EquationIdVectorType EquationId;
+			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+			const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			double deltaPressure=0;
+			double meanMeshSize=0;
+			double characteristicLength=0;
+			double density=0;
+			double nodalVelocityNorm=0;
+			double tauStab=0;
+			bool stabilizationNeeded=false;
+
+			/* #pragma omp parallel */
+			{
+				ModelPart::NodeIterator NodesBegin;
+				ModelPart::NodeIterator NodesEnd;
+				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+				for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+					{
+
+						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+						const unsigned int neighSize = neighb_nodes.size() +1 ;
+
+						if(neighSize>1)
+						{
+
+							const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+
+							LHS_Contribution= ZeroMatrix(neighSize,neighSize);
+							RHS_Contribution= ZeroVector(neighSize);
+
+							if (EquationId.size() != neighSize)
+								EquationId.resize(neighSize, false);
+
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+
+							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+              if(yieldShear>0){
+								double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+								double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+								double exponent=-adaptiveExponent*equivalentStrainRate;
+								if(equivalentStrainRate!=0){
+									deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+								}
+								if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+									// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+									deviatoricCoeff=adaptiveExponent*yieldShear;
+								}
+         		 	}
+							
+							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+								deviatoricCoeff=0.1;
+							}
+
+
+							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
+
+							if(itNode->IsNot(SOLID))
+				     	{
+            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+						  }
+
+              deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
+
+							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
+
+							RHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff; 
+
+              RHS_Contribution[0]  += itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
+
+							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
+
+							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
+
+              stabilizationNeeded=false;
+							if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
+								stabilizationNeeded=true;
+							}else{
+
+								for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+									{
+										EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
+									}
+
+							}
+							if(stabilizationNeeded==true){
+
+								meanMeshSize=itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+								characteristicLength=1.0*meanMeshSize;
+								density=itNode->FastGetSolutionStepValue(DENSITY);
+
+								/* double tauStab=1.0/(8.0*deviatoricCoeff/(meanMeshSize*meanMeshSize)+2.0*density/timeInterval); */
+
+								if(dimension==2){
+										nodalVelocityNorm = sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
+									         						      	   itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y));
+								}
+								else if(dimension==3){
+									nodalVelocityNorm = sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
+												   							   itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y) +
+											  							     itNode->FastGetSolutionStepValue(VELOCITY_Z)*itNode->FastGetSolutionStepValue(VELOCITY_Z));
+								}
+
+								tauStab= 1.0 * (characteristicLength * characteristicLength * timeInterval) / 
+															 ( density * nodalVelocityNorm * timeInterval * characteristicLength + density * characteristicLength * characteristicLength +  8.0 * deviatoricCoeff * timeInterval );
+                
+								itNode->FastGetSolutionStepValue(NODAL_TAU)=tauStab;
+
+								LHS_Contribution(0,0)+= +nodalVolume*tauStab*density/(volumetricCoeff*timeInterval);
+								RHS_Contribution[0]  += -nodalVolume*tauStab*density/(volumetricCoeff*timeInterval)*(deltaPressure-itNode->FastGetSolutionStepValue(PRESSURE_VELOCITY,0)*timeInterval);
+
+								if(itNode->Is(FREE_SURFACE)){
+									// // double nodalFreesurfaceArea=itNode->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA);
+									// /* LHS_Contribution(0,0) += + 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize; */
+									// /* RHS_Contribution[0]   += - 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize * itNode->FastGetSolutionStepValue(PRESSURE,0); */
+
+									LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);	
+									RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
+									
+
+									array_1d<double, 3> &Normal    = itNode->FastGetSolutionStepValue(NORMAL);
+									Vector& SpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+									array_1d<double, 3> nodalAcceleration=  0.5*(itNode->FastGetSolutionStepValue(VELOCITY,0)-itNode->FastGetSolutionStepValue(VELOCITY,1))/timeInterval - itNode->FastGetSolutionStepValue(ACCELERATION,1);
+									/* nodalAcceleration=  (itNode->FastGetSolutionStepValue(VELOCITY,0)-itNode->FastGetSolutionStepValue(VELOCITY,1))/timeInterval; */
+
+									// if(itNode->Is(RIGID)){
+									// 	SpatialDefRate    *= 0.5;
+									// 	Normal            *= 0.5;
+									// 	nodalAcceleration *= 0.5;
+									// 	for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
+									// 		{
+									// 			if((nn)->Is(FREE_SURFACE) && (nn)->IsNot(RIGID)){
+									// 				SpatialDefRate    += 0.5*(nn)->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+									// 				Normal            += 0.5*(nn)->FastGetSolutionStepValue(NORMAL);
+									// 				nodalAcceleration += 0.5*(0.5*((nn)->FastGetSolutionStepValue(VELOCITY,0)-(nn)->FastGetSolutionStepValue(VELOCITY,1))/timeInterval - (nn)->FastGetSolutionStepValue(ACCELERATION,1));
+									// 				break;
+									// 			}
+									// 		}
+									// }
+
+									double nodalNormalAcceleration=0;
+									double nodalNormalProjDefRate=0;
+									if(dimension==2){
+										nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + 2*Normal[0]*SpatialDefRate[2]*Normal[1];
+										/* nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X,1) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y,1); */
+										// nodalNormalAcceleration=(0.5*(itNode->FastGetSolutionStepValue(VELOCITY_X,0)-itNode->FastGetSolutionStepValue(VELOCITY_X,1))/timeInterval+0.5*itNode->FastGetSolutionStepValue(ACCELERATION_X,1))*Normal[0] +
+										// 	(0.5*(itNode->FastGetSolutionStepValue(VELOCITY_Y,0)-itNode->FastGetSolutionStepValue(VELOCITY_Y,1))/timeInterval+0.5*itNode->FastGetSolutionStepValue(ACCELERATION_Y,1))*Normal[1];
+										nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1];
+									}else if(dimension==3){
+										nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + Normal[2]*SpatialDefRate[2]*Normal[2] +
+									2*Normal[0]*SpatialDefRate[3]*Normal[1] + 2*Normal[0]*SpatialDefRate[4]*Normal[2] + 2*Normal[1]*SpatialDefRate[5]*Normal[2];
+
+										/* nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y) + Normal[2]*itNode->FastGetSolutionStepValue(ACCELERATION_Z); */
+										/* nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1] + Normal[2]*nodalAcceleration[2]; */
+									}
+									// RHS_Contribution[0]  += tauStab * (density*nodalNormalAcceleration - 4.0*deviatoricCoeff*nodalNormalProjDefRate/meanMeshSize) * nodalFreesurfaceArea;
+									double accelerationContribution=2.0*density*nodalNormalAcceleration/meanMeshSize;
+									double deviatoricContribution=8.0*deviatoricCoeff*nodalNormalProjDefRate/(meanMeshSize*meanMeshSize);
+
+									if(itNode->IsNot(RIGID)){
+										RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
+									}
+									else{
+										RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
+									}
+								}
+
+							}
+
+					#ifdef _OPENMP
+							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+					#else
+							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+					#endif
+
+						}
+
+					}
+
+			}
+
+
+			KRATOS_CATCH("")
+
+	  }
+
+
+
+void BuildNodallyNotStabilized(
+	typename TSchemeType::Pointer pScheme,
+	ModelPart& rModelPart,
+	TSystemMatrixType& A,
+	TSystemVectorType& b)
+  {
+			KRATOS_TRY
+
+			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+			//contributions to the continuity equation system
+			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+			Element::EquationIdVectorType EquationId;
+			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+			const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			double deltaPressure=0;
+			double meanMeshSize=0;
+			double characteristicLength=0;
+			double density=0;
+			double nodalVelocityNorm=0;
+			double tauStab=0;
+			bool stabilizationNeeded=false;
+
+			/* #pragma omp parallel */
+			{
+				ModelPart::NodeIterator NodesBegin;
+				ModelPart::NodeIterator NodesEnd;
+				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+				for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+					{
+
+						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+						const unsigned int neighSize = neighb_nodes.size() +1 ;
+
+						if(neighSize>1)
+						{
+
+							const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+
+							LHS_Contribution= ZeroMatrix(neighSize,neighSize);
+							RHS_Contribution= ZeroVector(neighSize);
+
+							if (EquationId.size() != neighSize)
+								EquationId.resize(neighSize, false);
+
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+
+							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+              if(yieldShear>0){
+								double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+								double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+								double exponent=-adaptiveExponent*equivalentStrainRate;
+								if(equivalentStrainRate!=0){
+									deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+								}
+								if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+									// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+									deviatoricCoeff=adaptiveExponent*yieldShear;
+								}
+         		 	}
+							
+							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+								deviatoricCoeff=0.1;
+							}
+
+							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
+							if(itNode->IsNot(SOLID))
+				     	{
+            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+						  }
+
+              deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
+
+							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
+
+							RHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff; 
+
+              RHS_Contribution[0]  += itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
+
+							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
+
+							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
+
+							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+								{
+									EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
+								}
+
+              // stabilizationNeeded=false;
+							// if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
+							// 	stabilizationNeeded=true;
+							// }else{
+
+							// 	for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+							// 		{
+							// 			EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
+							// 		}
+
+							// }
+							// stabilizationNeeded=false;
+							// if(stabilizationNeeded==true){
+
+							// 	meanMeshSize=itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+							// 	characteristicLength=1.0*meanMeshSize;
+							// 	density=itNode->FastGetSolutionStepValue(DENSITY);
+
+							// 	if(dimension==2){
+
+							// 			nodalVelocityNorm = sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
+							// 		         						      	   itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y));
+							// 	}
+							// 	else if(dimension==3){
+							// 		nodalVelocityNorm = sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
+							// 					   							   itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y) +
+							// 				  							     itNode->FastGetSolutionStepValue(VELOCITY_Z)*itNode->FastGetSolutionStepValue(VELOCITY_Z));
+							// 	}
+
+							// 	tauStab= 1.0 * (characteristicLength * characteristicLength * timeInterval) / 
+							// 								 ( density * nodalVelocityNorm * timeInterval * characteristicLength + density * characteristicLength * characteristicLength +  8.0 * deviatoricCoeff * timeInterval );
+                
+							// 	itNode->FastGetSolutionStepValue(NODAL_TAU)=tauStab;
+
+							// 	LHS_Contribution(0,0)+= +nodalVolume*tauStab*density/(volumetricCoeff*timeInterval);
+							// 	RHS_Contribution[0]  += -nodalVolume*tauStab*density/(volumetricCoeff*timeInterval)*(deltaPressure-itNode->FastGetSolutionStepValue(PRESSURE_VELOCITY,0)*timeInterval);
+
+							// 	// if(itNode->Is(FREE_SURFACE)){
+							// 	// 			LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);	
+							// 	// 			RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
+
+
+							// 	// 	array_1d<double, 3> &Normal    = itNode->FastGetSolutionStepValue(NORMAL);
+							// 	// 	Vector& SpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+							// 	// 	array_1d<double, 3> nodalAcceleration=  0.5*(itNode->FastGetSolutionStepValue(VELOCITY,0)-itNode->FastGetSolutionStepValue(VELOCITY,1))/timeInterval - itNode->FastGetSolutionStepValue(ACCELERATION,1);
+
+							// 	// 	double nodalNormalAcceleration=0;
+							// 	// 	double nodalNormalProjDefRate=0;
+							// 	// 	if(dimension==2){
+							// 	// 		nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + 2*Normal[0]*SpatialDefRate[2]*Normal[1];
+		
+							// 	// 			nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1];
+							// 	// 	}else if(dimension==3){
+							// 	// 		nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + Normal[2]*SpatialDefRate[2]*Normal[2] +
+							// 	// 	2*Normal[0]*SpatialDefRate[3]*Normal[1] + 2*Normal[0]*SpatialDefRate[4]*Normal[2] + 2*Normal[1]*SpatialDefRate[5]*Normal[2];
+							// 	// }
+
+							// 	// 	double accelerationContribution=2.0*density*nodalNormalAcceleration/meanMeshSize;
+							// 	// 	double deviatoricContribution=8.0*deviatoricCoeff*nodalNormalProjDefRate/(meanMeshSize*meanMeshSize);
+
+							// 	// 	if(itNode->IsNot(RIGID)){
+							// 	// 		RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
+							// 	// 	}
+							// 	// 	else{
+							// 	// 		RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
+							// 	// 	}
+							// 	// }
+
+							// }
+
+					#ifdef _OPENMP
+							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+					#else
+							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+					#endif
+
+						}
+
+					}
+
+			}
+
+
+			KRATOS_CATCH("")
+
+	  }
+
+
+
+void BuildAll(
+	typename TSchemeType::Pointer pScheme,
+	ModelPart& rModelPart,
+	TSystemMatrixType& A,
+	TSystemVectorType& b)
+  {
+			KRATOS_TRY
+
+			KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+			//contributions to the continuity equation system
+			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+			Element::EquationIdVectorType EquationId;
+			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+			const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			double deltaPressure=0;
+			double meanMeshSize=0;
+			double characteristicLength=0;
+			double density=0;
+			double nodalVelocityNorm=0;
+			double tauStab=0;
+			bool stabilizationNeeded=false;
+
+
+			/* #pragma omp parallel */
+	//		{
+				ModelPart::NodeIterator NodesBegin;
+				ModelPart::NodeIterator NodesEnd;
+				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+				for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+					{
+
+						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+						const unsigned int neighSize = neighb_nodes.size() +1 ;
+
+						if(neighSize>1)
+						{
+
+							const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+
+							LHS_Contribution= ZeroMatrix(neighSize,neighSize);
+							RHS_Contribution= ZeroVector(neighSize);
+
+							if (EquationId.size() != neighSize)
+								EquationId.resize(neighSize, false);
+
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+
+							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+              if(yieldShear>0){
+								double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+								double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+								double exponent=-adaptiveExponent*equivalentStrainRate;
+								if(equivalentStrainRate!=0){
+									deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+								}
+								if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+									// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+									deviatoricCoeff=adaptiveExponent*yieldShear;
+								}
+         		 	}
+							
+							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+								deviatoricCoeff=0.1;
+							}
+
+							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
+							if(itNode->IsNot(SOLID))
+				     	{
+            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+						  }
+
+              deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
+
+							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
+
+							RHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff; 
+
+              RHS_Contribution[0]  += itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
+
+							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
+
+							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
+
+							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+								{
+									EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
+								}
+
+
+					#ifdef _OPENMP
+							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+					#else
+							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+					#endif
+
+						}
+
+					}
+
+		//	}
+
+        ElementsArrayType& pElements = rModelPart.Elements();
+        int number_of_threads = OpenMPUtils::GetNumThreads();
+
+#ifdef _OPENMP
+        int A_size = A.size1();
+
+        //creating an array of lock variables of the size of the system matrix
+        std::vector< omp_lock_t > lock_array(A.size1());
+
+        for(int i = 0; i<A_size; i++)
+            omp_init_lock(&lock_array[i]);
+#endif
+
+        DenseVector<unsigned int> element_partition;
+        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        if (this->GetEchoLevel()>0)
+        {
+            KRATOS_WATCH( number_of_threads );
+            KRATOS_WATCH( element_partition );
+        }
+
+
+        #pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
+        for(int k=0; k<number_of_threads; k++)
+        {
+            //contributions to the system
+            LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+            //vector containing the localization in the system of the different
+            //terms
+            Element::EquationIdVectorType EquationId;
+            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+            typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+            unsigned int pos = (rModelPart.Nodes().begin())->GetDofPosition(PRESSURE);
+
+
+            // assemble all elements
+            for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+            {
+
+                //calculate elemental contribution
+                //(*it)->InitializeNonLinearIteration(CurrentProcessInfo);
+                (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+
+                Geometry< Node<3> >& geom = (*it)->GetGeometry();
+                if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
+
+                for(unsigned int i=0; i<geom.size(); i++)
+                    EquationId[i] = geom[i].GetDof(PRESSURE,pos).EquationId();
+
+                //assemble the elemental contribution
+#ifdef _OPENMP
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+#else
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
+#endif
+            }
+        }
+
+
+#ifdef _OPENMP
+        for(int i = 0; i<A_size; i++)
+            omp_destroy_lock(&lock_array[i]);
+#endif
+
+			KRATOS_CATCH("")
+
+	  }
       /**
        * @brief This is a call to the linear system solver
        * @param A The LHS matrix
@@ -943,7 +1427,7 @@ void BuildNodallyUnlessLaplacian(
 
 
     ///////////////////////////////// ALL NODAL /////////////////////////////////
-	  BuildNodally(pScheme, rModelPart, A, b);
+	  //BuildNodally(pScheme, rModelPart, A, b);
 		///////////////////////////////// ALL NODAL /////////////////////////////////
  
 		// /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
@@ -951,9 +1435,18 @@ void BuildNodallyUnlessLaplacian(
 		//Build(pScheme, rModelPart, A, b);
 		// /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
 
+
+		//////////////// NODAL + ELEMENTAL VOLUMETRIC STABILIZED TERMS////////////////
+		//BuildNodallyNoVolumetricStabilizedTerms(pScheme, rModelPart, A, b);
+		//Build(pScheme, rModelPart, A, b);
+		// /////////////////////// NODAL + ELEMENTAL LAPLACIAN ///////////////////////
+
+
 		/////////////////////// NODAL + ELEMENTAL STABILIZATION //////////////////////
-	  //BuildNodallyNotStabilized(pScheme, rModelPart, A, b);
-    //Build(pScheme, rModelPart, A, b);
+	  // BuildNodallyNotStabilized(pScheme, rModelPart, A, b);
+    // Build(pScheme, rModelPart, A, b);
+
+		BuildAll(pScheme, rModelPart, A, b);
 		/////////////////////// NODAL + ELEMENTAL STABILIZATION //////////////////////
 
     //////////////////////// ALL ELEMENTAL (FOR HYBRID) //////////////////////////

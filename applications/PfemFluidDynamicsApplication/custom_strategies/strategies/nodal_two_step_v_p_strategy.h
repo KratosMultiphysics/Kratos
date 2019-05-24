@@ -253,19 +253,19 @@ double Solve() override
 	unsigned int maxNonLinearIterations=mMaxPressureIter;
 	std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
 
-	// if(timeIntervalChanged==true && currentTime>10*timeInterval ){
-	// 	maxNonLinearIterations*=2;
-	// }
-	// if(currentTime<10*timeInterval){
-	// 	if ( BaseType::GetEchoLevel() > 1)
-	// 	  std::cout << "within the first 10 time steps, I consider the given iteration number x3"<< std::endl;
-	// 	maxNonLinearIterations*=3;
-	// }
-	// if(currentTime<20*timeInterval && currentTime>=10*timeInterval){
-	// 	if ( BaseType::GetEchoLevel() > 1)
-	// 	  std::cout << "within the second 10 time steps, I consider the given iteration number x2"<< std::endl;
-	// 	maxNonLinearIterations*=2;
-	// }
+	if(timeIntervalChanged==true && currentTime>10*timeInterval ){
+		maxNonLinearIterations*=2;
+	}
+	if(currentTime<10*timeInterval){
+		if ( BaseType::GetEchoLevel() > 1)
+		  std::cout << "within the first 10 time steps, I consider the given iteration number x3"<< std::endl;
+		maxNonLinearIterations*=3;
+	}
+	if(currentTime<20*timeInterval && currentTime>=10*timeInterval){
+		if ( BaseType::GetEchoLevel() > 1)
+		  std::cout << "within the second 10 time steps, I consider the given iteration number x2"<< std::endl;
+		maxNonLinearIterations*=2;
+	}
 
 	bool momentumConverged = true;
 	bool continuityConverged = false;
@@ -313,14 +313,16 @@ double Solve() override
 				continuityAlreadyConverged=true;
 			}
 
-	    if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>2)){
+	    if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>1)){
+			  //this->ComputeErrorL2NormCaseImposedG();
+				//this->ComputeErrorL2NormCasePoiseuille();
 	      this->CalculateAccelerations();
 				std::ofstream myfile;
   	    myfile.open ("maxConvergedIteration.txt",std::ios::app);
 				myfile << currentTime << "\t" << it << "\n";
         myfile.close();
 	    }
-	    if ( (continuityConverged && momentumConverged) && it>2)
+	    if ( (continuityConverged && momentumConverged) && it>1)
 	    {
 		    rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
 	     	rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
@@ -523,6 +525,7 @@ void FillNodalSFDVector()
 	      	double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
 		      deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 		      volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
+
 	      }else if(itNode->Is(FLUID))
         {
 	      	deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
@@ -537,15 +540,6 @@ void FillNodalSFDVector()
 	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
 	      Vector& rNodeOrderedNeighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-
-				const unsigned int neighSize = neighb_nodes.size() +1 ;
-				unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
-				if(neighSize ==freesurfaceNeighbours && itNode->Is(FREE_SURFACE) && itNode->IsNot(SOLID) )
-				{
-      	  itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)=currFirstLame*0.00001;
-				}
-
-
 	      
 				if(rNodeOrderedNeighbours.size() != neighbourNodes)
 		       rNodeOrderedNeighbours.resize(neighbourNodes,false);
@@ -559,59 +553,6 @@ void FillNodalSFDVector()
 		         rNodeOrderedNeighbours[k+1]=neighb_nodes[k].Id();
 	      	}
 	      }
-
-	      /* if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS_PRESSURE)){ */
-	      /* 	Vector& rNodeOrderedNeighboursPressure=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE); */
-	      /* 	if(rNodeOrderedNeighboursPressure.size() != neighbourNodes) */
-	      /* 	  rNodeOrderedNeighboursPressure.resize(neighbourNodes,false); */
-	      /* 	noalias(rNodeOrderedNeighboursPressure)=ZeroVector(neighbourNodes); */
-	      /* }else{ */
-	      /* 	std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS_PRESSURE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
-	      /* } */
-
-	      /* if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS_PRESSURE_ID)){ */
-	      /* 	Vector& rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID); */
-	      /* 	if(rNodeOrderedNeighboursPressureId.size() != neighbourNodes) */
-	      /* 	  rNodeOrderedNeighboursPressureId.resize(neighbourNodes,false); */
-	      /* 	noalias(rNodeOrderedNeighboursPressureId)=ZeroVector(neighbourNodes); */
-	      /* 	const unsigned int xpos = itNode->GetDofPosition(PRESSURE); */
-	      /* 	rNodeOrderedNeighboursPressureId[0]=itNode->GetDof(PRESSURE,xpos).EquationId(); */
-	      /* 	if(neighbourNodes>1){ */
-	      /* 	  for(unsigned int k = 0; k< neighbourNodes-1; k++){ */
-	      /* 	    rNodeOrderedNeighboursPressureId[k+1]=neighb_nodes[k]->GetDof(PRESSURE,xpos).EquationId(); */
-	      /* 	  } */
-	      /* 	} */
-	      /* }else{ */
-	      /* 	std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS_PRESSURE_ID... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
-	      /* } */
-
-	      /* 	      if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS_VELOCITY_X_ID)){ */
-	      /* 	Vector& rNodeOrderedNeighboursVelocityXId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_X_ID); */
-	      /* 	Vector& rNodeOrderedNeighboursVelocityYId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_Y_ID); */
-	      /* 	Vector& rNodeOrderedNeighboursVelocityZId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_Z_ID); */
-	      /* 	if(rNodeOrderedNeighboursVelocityXId.size() != neighbourNodes){ */
-	      /* 	  rNodeOrderedNeighboursVelocityXId.resize(neighbourNodes,false); */
-	      /* 	  rNodeOrderedNeighboursVelocityYId.resize(neighbourNodes,false); */
-	      /* 	  rNodeOrderedNeighboursVelocityZId.resize(neighbourNodes,false); */
-	      /* 	} */
-	      /* 	/\* noalias(rNodeOrderedNeighboursVelocityXId)=ZeroVector(neighbourNodes); *\/ */
-	      /* 	const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
-	      /* 	rNodeOrderedNeighboursVelocityXId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId(); */
-	      /* 	rNodeOrderedNeighboursVelocityYId[0]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId(); */
-	      /* 	rNodeOrderedNeighboursVelocityZId[0]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId(); */
-
-	      /* 	if(neighbourNodes>1){ */
-	      /* 	  for(unsigned int k = 0; k< neighbourNodes-1; k++){ */
-	      /* 	    rNodeOrderedNeighboursVelocityXId[k+1]=neighb_nodes[k]->GetDof(VELOCITY_X,xpos).EquationId(); */
-	      /* 	    rNodeOrderedNeighboursVelocityYId[k+1]=neighb_nodes[k]->GetDof(VELOCITY_Y,xpos+1).EquationId(); */
-	      /* 	    rNodeOrderedNeighboursVelocityZId[k+1]=neighb_nodes[k]->GetDof(VELOCITY_Z,xpos+2).EquationId(); */
-	      /* 	  } */
-	      /* 	} */
-	      /* }else{ */
-	      /* 	std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS_VELOCITY_X_ID... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
-	      /* } */
-
-
 	    }
 	}
 
@@ -906,24 +847,6 @@ void CalcNodalStrainsAndStresses()
 
 	      if(dimension==2)
         {
-					NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-					const unsigned int neighSize = neighb_nodes.size() +1 ;
-					unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
-					if(neighSize ==freesurfaceNeighbours  && itNode->Is(FREE_SURFACE) && true==false)
-					{
-            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=0;
-						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=0;
-						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0;
-						itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
-						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=0;
-						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=0;
-						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=0;
-						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=0;
-						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=0;
-						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=0;
-					}
-					else{
-
 	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
 	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
 		      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
@@ -979,7 +902,7 @@ void CalcNodalStrainsAndStresses()
 	      	itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
 		      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
 		      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
-				}
+			
 
 	      }else if (dimension==3)
         {
@@ -1274,25 +1197,6 @@ void CalcNodalStrainsAndStresses()
 
           if(dimension==2){
 
-
-											NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-					const unsigned int neighSize = neighb_nodes.size() +1 ;
-					unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
-					if(neighSize ==freesurfaceNeighbours && itNode->Is(FREE_SURFACE) && true==false)
-					{
-            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=0;
-						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=0;
-						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0;
-						itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
-						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=0;
-						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=0;
-						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=0;
-						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=0;
-						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=0;
-						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=0;
-					}
-					else{
-
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
@@ -1308,7 +1212,6 @@ void CalcNodalStrainsAndStresses()
 
             itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
 
-					}
           }else if (dimension==3){
 
 
@@ -1852,33 +1755,33 @@ protected:
       }else{
       	std::cout<<"iteration("<<it<<")  Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
       }
-				    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-	    double currentTime = rCurrentProcessInfo[TIME];
-      double tolerance=0.0000000001;
-      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
-      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
+			// 	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    // double currentTime = rCurrentProcessInfo[TIME];
+      // double tolerance=0.0000000001;
+      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
@@ -1916,40 +1819,39 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
       	std::cout<<"                             iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
       }
 
-	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-	    double currentTime = rCurrentProcessInfo[TIME];
-      double tolerance=0.0000000001;
-      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
-      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
+	    // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    // double currentTime = rCurrentProcessInfo[TIME];
+      // double tolerance=0.0000000001;
+      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //   myfile.close();
+			// }
+      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //   myfile.close();
+			// }
 
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
       	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
       return ConvergedContinuity;
 }
-
 
     bool CheckVelocityConvergence(const double NormDv, double& errorNormDv)
     {
@@ -1967,12 +1869,12 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
             {
                 const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
 
-		double NormVelNode=0;
+		            double NormVelNode=0;
 
                 for (unsigned int d = 0; d < 3; ++d){
-		  NormVelNode+=Vel[d] * Vel[d];
-		  NormV += Vel[d] * Vel[d];
-		}
+									NormVelNode+=Vel[d] * Vel[d];
+									NormV += Vel[d] * Vel[d];
+								}
 
             }
         }
@@ -2001,6 +1903,192 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
         else{
             return false;
 	}
+    }
+
+    void ComputeErrorL2NormCaseImposedG()
+    {
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+				ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	      const double currentTime = rCurrentProcessInfo[TIME];
+
+        double sumErrorL2Velocity  = 0;
+        double sumErrorL2VelocityX = 0;
+        double sumErrorL2VelocityY = 0;
+        double sumErrorL2Pressure  = 0;
+        double sumErrorL2TauXX     = 0;
+        double sumErrorL2TauYY     = 0;
+        double sumErrorL2TauXY     = 0;
+
+#pragma omp parallel
+					{
+						ModelPart::NodeIterator NodeBegin;
+						ModelPart::NodeIterator NodeEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+            {
+                const double posX      = itNode->X();
+                const double posY      = itNode->Y();
+								const double nodalArea = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+								const double velX      = itNode->FastGetSolutionStepValue(VELOCITY_X);
+								const double velY      = itNode->FastGetSolutionStepValue(VELOCITY_Y);
+								const double pressure  = itNode->FastGetSolutionStepValue(PRESSURE);
+								const double tauXX     = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0];
+								const double tauYY     = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[1];
+								const double tauXY     = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[2];
+
+								double expectedVelocityX =  pow(posX,2) * (1.0-posX)*(1.0-posX) * ( 2.0*posY - 6.0*pow(posY,2) + 4.0*pow(posY,3) );
+								double expectedVelocityY = -pow(posY,2) * (1.0-posY)*(1.0-posY) * ( 2.0*posX - 6.0*pow(posX,2) + 4.0*pow(posX,3) );
+								double expectedPressure  = -posX * (1.0-posX);
+
+								double expectedTauXX = 2.0*(-4.0 * (1-posX) * posX * (-1.0 + 2.0*posX) * posY * (1.0 - 3.0*posY + 2.0*pow(posY,2)));
+								double expectedTauYY = 2.0*(4.0 * posX * (1.0 - 3.0*posX + 2.0*pow(posX,2)) * (1-posY) * posY * (-1.0 + 2.0*posY));
+								double expectedTauXY = (2.0 * (1.0 - 6.0*posY + 6.0*pow(posY,2)) * (1-posX)*(1-posX) * pow(posX,2) - 2.0 * (1.0 - 6.0*posX + 6.0*pow(posX,2)) * (1-posY)*(1-posY) * pow(posY,2));
+
+
+								double nodalErrorVelocityX = velX - expectedVelocityX;
+								double nodalErrorVelocityY = velY - expectedVelocityY;
+								double nodalErrorPressure  = pressure - expectedPressure;
+								double nodalErrorTauXX     = tauXX - expectedTauXX;
+								double nodalErrorTauYY     = tauYY - expectedTauYY;
+								double nodalErrorTauXY     = tauXY - expectedTauXY;
+
+                sumErrorL2Velocity  +=  (pow(nodalErrorVelocityX,2) + pow(nodalErrorVelocityY,2)) * nodalArea;
+								sumErrorL2VelocityX +=   pow(nodalErrorVelocityX,2) * nodalArea;
+								sumErrorL2VelocityY +=   pow(nodalErrorVelocityY,2) * nodalArea;
+								sumErrorL2Pressure  +=   pow(nodalErrorPressure,2)  * nodalArea;
+								sumErrorL2TauXX     +=   pow(nodalErrorTauXX,2)     * nodalArea;
+								sumErrorL2TauYY     +=   pow(nodalErrorTauYY,2)     * nodalArea;
+								sumErrorL2TauXY     +=   pow(nodalErrorTauXY,2)     * nodalArea;
+
+								// itNode->FastGetSolutionStepValue(NODAL_ERROR_XX)=nodalErrorTauXX;
+
+            }
+          }
+
+        double errorL2Velocity  = sqrt(sumErrorL2Velocity);
+        double errorL2VelocityX = sqrt(sumErrorL2VelocityX);
+        double errorL2VelocityY = sqrt(sumErrorL2VelocityY);
+        double errorL2Pressure  = sqrt(sumErrorL2Pressure);
+        double errorL2TauXX     = sqrt(sumErrorL2TauXX);
+        double errorL2TauYY     = sqrt(sumErrorL2TauYY);
+        double errorL2TauXY     = sqrt(sumErrorL2TauXY);
+
+
+				std::ofstream myfileVelocity;
+  	    myfileVelocity.open ("errorL2VelocityFile.txt",std::ios::app);
+				myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
+        myfileVelocity.close();
+
+				std::ofstream myfileVelocityX;
+  	    myfileVelocityX.open ("errorL2VelocityXFile.txt",std::ios::app);
+				myfileVelocityX << currentTime << "\t" << errorL2VelocityX << "\n";
+        myfileVelocityX.close();
+
+				std::ofstream myfileVelocityY;
+  	    myfileVelocityY.open ("errorL2VelocityYFile.txt",std::ios::app);
+				myfileVelocityY << currentTime << "\t" << errorL2VelocityY << "\n";
+        myfileVelocityY.close();
+
+				std::ofstream myfilePressure;
+  	    myfilePressure.open ("errorL2PressureFile.txt",std::ios::app);
+				myfilePressure << currentTime << "\t" << errorL2Pressure << "\n";
+        myfilePressure.close();
+
+				std::ofstream myfileTauXX;
+  	    myfileTauXX.open ("errorL2TauXXFile.txt",std::ios::app);
+				myfileTauXX << currentTime << "\t" << errorL2TauXX << "\n";
+        myfileTauXX.close();
+
+				std::ofstream myfileTauYY;
+  	    myfileTauYY.open ("errorL2TauYYFile.txt",std::ios::app);
+				myfileTauYY << currentTime << "\t" << errorL2TauYY << "\n";
+        myfileTauYY.close();
+
+				std::ofstream myfileTauXY;
+  	    myfileTauXY.open ("errorL2TauXYFile.txt",std::ios::app);
+				myfileTauXY << currentTime << "\t" << errorL2TauXY << "\n";
+        myfileTauXY.close();
+    }
+
+
+
+    void ComputeErrorL2NormCasePoiseuille()
+    {
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+				ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	      const double currentTime = rCurrentProcessInfo[TIME];
+
+        double sumErrorL2VelocityTheta  = 0;
+        double sumErrorL2TauTheta       = 0;
+
+				double r_in=0.2;
+				double R_out=0.5;
+				double kappa=r_in/R_out;
+				double omega=0.5;
+				double viscosity=100.0;
+
+#pragma omp parallel
+					{
+						ModelPart::NodeIterator NodeBegin;
+						ModelPart::NodeIterator NodeEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+            {
+                const double posX      = itNode->X();
+                const double posY      = itNode->Y();
+								const double rPos 		 = sqrt( pow(posX,2) + pow(posY,2) );
+								const double cosalfa   = posX/rPos;
+								const double sinalfa   = posY/rPos;								
+								const double sin2alfa  = 2.0*cosalfa*sinalfa;
+								const double cos2alfa  = 1.0-2.0*pow(sinalfa,2);
+								const double nodalArea = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+								const double velX      = itNode->FastGetSolutionStepValue(VELOCITY_X);
+								const double velY      = itNode->FastGetSolutionStepValue(VELOCITY_Y);
+								const double tauXX     = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0];
+								const double tauYY     = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[1];
+								const double tauXY     = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[2];
+
+								double expectedVelocityTheta   =  pow(kappa,2) * omega * R_out / (1.0 - pow(kappa,2)) * (R_out/rPos - rPos/R_out);
+								double computedVelocityTheta   =  sqrt( pow(velX,2) + pow(velY,2) );
+								double nodalErrorVelocityTheta = computedVelocityTheta - expectedVelocityTheta;
+								
+								double expectedTauTheta   = (2.0 * viscosity * pow(kappa,2) * omega * pow(R_out,2))/(1.0 - pow(kappa,2)) / pow(rPos,2);
+                double computedTauTheta   = +(tauXX-tauYY)*sin2alfa/2.0 - tauXY*cos2alfa;
+								double nodalErrorTauTheta = computedTauTheta - expectedTauTheta;
+								itNode->FastGetSolutionStepValue(NODAL_ERROR_XX)=computedVelocityTheta;
+								// if(posY>-0.01 && posY<0.01){
+								//  std::cout<<"expectedTauTheta "<<expectedTauTheta<<"   computedTauTheta "<<computedTauTheta <<std::endl;
+								//  std::cout<<"tauXX "<<tauXX<<"   tauYY "<<tauYY<<"   tauXY "<<tauXY <<std::endl;
+								//  std::cout<<"posX  "<<posX <<"   posY  "<<posY <<std::endl;
+								//  std::cout<<"\n  ";
+								// }
+
+
+								// if(posX>-0.01 && posX<0.01){
+								//  std::cout<<"expectedTauTheta "<<expectedTauTheta<<"   computedTauTheta "<<computedTauTheta <<std::endl;
+								//  std::cout<<"tauXX "<<tauXX<<"   tauYY "<<tauYY<<"   tauXY "<<tauXY <<std::endl;
+								//  std::cout<<"posX  "<<posX <<"   posY  "<<posY <<std::endl;
+								//  std::cout<<"\n  ";
+								// }
+
+
+                
+								sumErrorL2VelocityTheta  +=  pow(nodalErrorVelocityTheta,2) * nodalArea;
+								sumErrorL2TauTheta       +=  pow(nodalErrorTauTheta,2) * nodalArea;
+
+            }
+          }
+
+        double errorL2VelocityTheta  = sqrt(sumErrorL2VelocityTheta);
+        double errorL2TauTheta       = sqrt(sumErrorL2TauTheta);
+
+				std::ofstream myfileVelocity;
+  	    myfileVelocity.open ("errorL2Poiseuille.txt",std::ios::app);
+				myfileVelocity << currentTime << "\t" << errorL2VelocityTheta << "\t" << errorL2TauTheta << "\n";
+        myfileVelocity.close();
+
     }
 
 
@@ -2057,8 +2145,8 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       double minTolerance=0.005;
       bool fixedTimeStep=false;
-      if(currentTime<10*timeInterval){
-	minTolerance=10;
+      if(currentTime<3*timeInterval){
+	       minTolerance=10;
       }
 
       bool isItNan=false;
@@ -2100,7 +2188,7 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       double minTolerance=0.01;
       bool fixedTimeStep=false;
-      if(currentTime<10*timeInterval){
+      if(currentTime<3*timeInterval){
 	minTolerance=10;
       }
 

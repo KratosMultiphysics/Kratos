@@ -359,6 +359,9 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
     #
     def IsMeshingStep(self):
 
+        #if( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= 0.025):
+            #return False
+            
         if(self.meshing_control_is_time):
             #print( str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])+">"+ str(self.next_meshing) )
             return ( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_meshing )
