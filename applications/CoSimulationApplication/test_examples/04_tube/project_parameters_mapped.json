@@ -24,7 +24,8 @@
             "settings" :
             {
                 "min_significant" : 1e-10,
-                "model" : "ls"
+                "model" : "ls",
+                "omega" : 0.05
             }
         },
         "convergence_criterion" :
