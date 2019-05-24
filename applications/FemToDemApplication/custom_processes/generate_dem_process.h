@@ -55,6 +55,8 @@ class GenerateDemProcess : public Process
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
       const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
   int GetLocalIdWithoutDEM(ElementIteratorType ItElem);
+  void CreateDistancesMatrix(Matrix& rDistancesMatrix, const double d01, const double d02, const double d12);
+  void GetLocalIdWithDEM(const int LocalIdWithoutDEM,int& LocalIDWithDEM1,int& LocalIDWithDEM2);
 
 protected:
 

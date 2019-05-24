@@ -70,6 +70,13 @@ void GenerateDemProcess<2>::Execute()
                 this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
             } else if (number_of_dem == 2) { // We must create 1 DEM
                 int local_id_no_DEM = this->GetLocalIdWithoutDEM(it_elem);
+                Matrix distances(3,3);
+                this->CreateDistancesMatrix(distances, dist01, dist02, dist12);
+                int local_id_dem_1, local_id_dem_2;
+                this->GetLocalIdWithDEM(local_id_no_DEM, local_id_dem_1, local_id_dem_2);
+
+
+
             }
 
 
@@ -91,6 +98,44 @@ template <>
 void GenerateDemProcess<3>::Execute() 
 {
 
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void GenerateDemProcess<2>::CreateDistancesMatrix(
+    Matrix& rDistancesMatrix,
+    const double d01,
+    const double d02,
+    const double d12
+    )
+{
+    rDistancesMatrix(0,0) = 0.0;
+    rDistancesMatrix(1,1) = 0.0;
+    rDistancesMatrix(2,2) = 0.0;
+    rDistancesMatrix(0,1) = d01;
+    rDistancesMatrix(0,2) = d02;
+    rDistancesMatrix(1,2) = d12;
+
+    // Symmetric
+    rDistancesMatrix(1,0) = rDistancesMatrix(0,1);
+    rDistancesMatrix(2,0) = rDistancesMatrix(0,2);
+    rDistancesMatrix(2,1) = rDistancesMatrix(1,2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void GenerateDemProcess<2>::GetLocalIdWithDEM(
+    const int LocalIdWithoutDEM,
+    int& LocalIDWithDEM1,
+    int& LocalIDWithDEM2
+    )
+{
+    LocalIDWithDEM1 = (LocalIdWithoutDEM == 0) ? 1 : (LocalIdWithoutDEM == 1) ? 0 : 1;
+    LocalIDWithDEM2 = (LocalIdWithoutDEM == 0) ? 2 : (LocalIdWithoutDEM == 1) ? 2 : 0;
 }
 
 /***********************************************************************************/
