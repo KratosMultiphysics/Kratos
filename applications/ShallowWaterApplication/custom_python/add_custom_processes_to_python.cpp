@@ -49,14 +49,14 @@ namespace Python
 
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
         py::class_<ApplyPerturbationScalarFunctionProcess, ApplyPerturbationScalarFunctionProcess::Pointer, Process>
-        (m, "ApplyPerturbationFunctionProcess")
+        (m, "ApplyPerturbationFunctionToScalar")
         .def(py::init<ModelPart&, Node<3>::Pointer, Variable<double>&, Parameters&>())
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Variable<double>&, Parameters&>())
         ;
 
         typedef ApplyPerturbationFunctionProcess<VariableComponentType> ApplyPerturbationComponentFunctionProcess;
         py::class_<ApplyPerturbationComponentFunctionProcess, ApplyPerturbationComponentFunctionProcess::Pointer, Process>
-        (m, "ApplyPerturbationFunctionProcess")
+        (m, "ApplyPerturbationFunctionToComponent")
         .def(py::init<ModelPart&, Node<3>::Pointer, VariableComponentType&, Parameters&>())
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, VariableComponentType&, Parameters&>())
         ;
@@ -69,7 +69,7 @@ namespace Python
 
         typedef ApplySinusoidalFunctionProcess<VariableComponentType> ApplySinusoidalComponentFunctionProcess;
         py::class_<ApplySinusoidalComponentFunctionProcess, ApplySinusoidalComponentFunctionProcess::Pointer, Process>
-        (m, "ApplySinusoidalFunctionToScalar")
+        (m, "ApplySinusoidalFunctionToComponent")
         .def(py::init<ModelPart&, VariableComponentType&, Parameters&>())
         ;
 
