@@ -39,17 +39,19 @@ class CoSimulationInterface(object):
         self.SetPythonList(data.tolist())
 
     def __add__(self, other):
-        result = copy.copy(self)
+        result = copy.deepcopy(self)
         result.SetNumpyArray(self.GetNumpyArray() - other.GetNumpyArray())
         return result
 
     def __sub__(self, other):
-        result = copy.copy(self)
+        result = copy.deepcopy(self)
         result.SetNumpyArray(self.GetNumpyArray() - other.GetNumpyArray())
         return result
 
     def __mul__(self, other):
         if type(other) == float:
-            result = copy.copy(self)
+            result = copy.deepcopy(self)
             result.SetNumpyArray(self.GetNumpyArray() * other)
             return result
+        else:
+            Exception("Not implemented.")

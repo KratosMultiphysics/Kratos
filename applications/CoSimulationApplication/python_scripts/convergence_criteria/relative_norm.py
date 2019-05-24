@@ -29,9 +29,9 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
         self.first_iteration = True
 
     def Update(self, r):
+        self.last_norm = np.linalg.norm(r.GetNumpyArray(), self.order)
         if self.first_iteration:
-            self.initial_norm = np.linalg.norm(r, self.order)
-        self.last_norm = np.linalg.norm(r, self.order)
+            self.initial_norm =  self.last_norm
         cs_tools.PrintInfo("Norm: " + str(self.last_norm))
 
     def IsSatisfied(self):

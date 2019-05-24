@@ -26,4 +26,4 @@ class ConvergenceCriterionIterationLimit(CoSimulationComponent):
         cs_tools.PrintInfo("Iteration: " + str(self.iteration))
 
     def IsSatisfied(self):
-        return self.iteration > self.maximum
+        return self.iteration >= self.maximum

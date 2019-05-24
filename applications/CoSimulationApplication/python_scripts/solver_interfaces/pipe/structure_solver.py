@@ -68,16 +68,19 @@ class SolverInterfacePipeStructure(CoSimulationComponent):
 
         self.n += 1
 
-    def Calculate(self, p):
+    def Calculate(self, interface_in):
+        self.interface_in = interface_in
+        self.p = self.interface_in.GetNumpyArray()
+
         # Independent rings model
-        self.p = p
         for i in range(len(self.p)):
             if self.p[i] > 2.0 * self.c02 + self.p0:
                 raise ValueError("Unphysical pressure")
         for i in range(len(self.a)):
             self.a[i] = self.a0 * (2.0 / (2.0 + (self.p0 - self.p[i]) / self.c02)) ** 2
-        # Return copy of output
-        return np.array(self.a)
+
+        self.interface_out.SetNumpyArray(self.a)
+        return self.interface_out
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
