@@ -68,14 +68,22 @@ void GenerateDemProcess<2>::Execute()
                 const double r2 = this->GetMinimumValue2(dist02 - r0, dist12 - r1);
                 const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
                 this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
+
             } else if (number_of_dem == 2) { // We must create 1 DEM
-                int local_id_no_DEM = this->GetLocalIdWithoutDEM(it_elem);
+                const int local_id_no_DEM = this->GetLocalIdWithoutDEM(it_elem);
+                auto& node = r_geom[local_id_no_DEM];
                 Matrix distances(3,3);
                 this->CreateDistancesMatrix(distances, dist01, dist02, dist12);
                 int local_id_dem_1, local_id_dem_2;
-                this->GetLocalIdWithDEM(local_id_no_DEM, local_id_dem_1, local_id_dem_2);
+                this->Get2LocalIdFrom1(local_id_no_DEM, local_id_dem_1, local_id_dem_2);
+                const double r1 = r_geom[local_id_dem_1].GetValue(RADIUS);
+                const double r2 = r_geom[local_id_dem_2].GetValue(RADIUS);
+                const double radius = this->GetMinimumValue2(distances(local_id_dem_1, local_id_no_DEM)-r1, distances(local_id_dem_2, local_id_no_DEM)-r2);
+                const array_1d<double, 3> coordinates = this->GetNodeCoordinates(node);
+                this->CreateDEMParticle(node.Id(), coordinates, p_DEM_properties, radius, node);
 
-
+            } else if (number_of_dem == 1) { // We must create 2 DEM
+                const int local_id_DEM = this->GetLocalIdWithDEM(it_elem);
 
             }
 
@@ -128,14 +136,14 @@ void GenerateDemProcess<2>::CreateDistancesMatrix(
 /***********************************************************************************/
 
 template <>
-void GenerateDemProcess<2>::GetLocalIdWithDEM(
-    const int LocalIdWithoutDEM,
+void GenerateDemProcess<2>::Get2LocalIdFrom1(
+    const int FixedLocalId,
     int& LocalIDWithDEM1,
     int& LocalIDWithDEM2
     )
 {
-    LocalIDWithDEM1 = (LocalIdWithoutDEM == 0) ? 1 : (LocalIdWithoutDEM == 1) ? 0 : 1;
-    LocalIDWithDEM2 = (LocalIdWithoutDEM == 0) ? 2 : (LocalIdWithoutDEM == 1) ? 2 : 0;
+    LocalIDWithDEM1 = (FixedLocalId == 0) ? 1 : (FixedLocalId == 1) ? 0 : 1;
+    LocalIDWithDEM2 = (FixedLocalId == 0) ? 2 : (FixedLocalId == 1) ? 2 : 0;
 }
 
 /***********************************************************************************/
@@ -150,6 +158,24 @@ int GenerateDemProcess<TDim>::GetLocalIdWithoutDEM(
     auto& r_geom = ItElem->GetGeometry();
     for (int i = 0; i < r_geom.size(); i++) {
         if (!r_geom[i].GetValue(IS_DEM)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+int GenerateDemProcess<TDim>::GetLocalIdWithDEM(
+    ElementIteratorType ItElem
+    )
+{
+    // We use this method when there is only 1 DEM
+    auto& r_geom = ItElem->GetGeometry();
+    for (int i = 0; i < r_geom.size(); i++) {
+        if (r_geom[i].GetValue(IS_DEM)) {
             return i;
         }
     }
