@@ -168,7 +168,7 @@ public:
 
         auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginGeometricalObject.use_count() == 0) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginGeometricalObject->use_count() == 0) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
 
         KRATOS_CATCH("");
     }
