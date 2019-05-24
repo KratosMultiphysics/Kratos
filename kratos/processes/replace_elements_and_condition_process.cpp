@@ -26,7 +26,7 @@ template <class TEntity, class TEntityContainer>
 void ReplaceEntities(
     const TEntity& rReferenceEntity,
     TEntityContainer& rEntityContainer,
-    const std::vector<int> rListOfIds)
+    const std::vector<int>& rListOfIds)
 {
     #pragma omp parallel for
     for (int i=0; i<static_cast<int>(rEntityContainer.size()); ++i) {
