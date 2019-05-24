@@ -144,6 +144,10 @@ namespace Kratos
 	}
 
 	void VoxelMeshGeneratorProcess::Generate3DMesh() {
+		if (mCreateSkinSubModelPart)
+			if(!mrVolumePart.HasSubModelPart("Skin"))
+				mrVolumePart.CreateSubModelPart("Skin");
+
 		GenerateNodes3D(mMinPoint, mMaxPoint);
 
         if(!mrVolumePart.HasProperties(mElementPropertiesId))
@@ -156,19 +160,17 @@ namespace Kratos
 		for (std::size_t K = 0; K < mNumberOfDivisions[2]; K++) {
 			for (std::size_t J = 0; J < mNumberOfDivisions[1]; J++) {
 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-                    // if(!mCellIsEmpty[cell_index]){
-                        std::vector<ModelPart::IndexType> element_connectivity(8);
-                        element_connectivity[0] = GetNodeId(i, J, K);
-                        element_connectivity[1] = GetNodeId(i, J+1, K);
-                        element_connectivity[2] = GetNodeId(i+1, J+1, K);
-                        element_connectivity[3] = GetNodeId(i+1, J, K);
-                        element_connectivity[4] = GetNodeId(i, J, K+1);
-                        element_connectivity[5] = GetNodeId(i, J+1, K+1);
-                        element_connectivity[6] = GetNodeId(i+1, J+1, K+1);
-                        element_connectivity[7] = GetNodeId(i+1, J, K+1);
-                        mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, element_connectivity, p_properties);
-						cell_index++;
-                    // }
+					std::vector<ModelPart::IndexType> element_connectivity(8);
+					element_connectivity[0] = GetNodeId(i, J, K);
+					element_connectivity[1] = GetNodeId(i, J+1, K);
+					element_connectivity[2] = GetNodeId(i+1, J+1, K);
+					element_connectivity[3] = GetNodeId(i+1, J, K);
+					element_connectivity[4] = GetNodeId(i, J, K+1);
+					element_connectivity[5] = GetNodeId(i, J+1, K+1);
+					element_connectivity[6] = GetNodeId(i+1, J+1, K+1);
+					element_connectivity[7] = GetNodeId(i+1, J, K+1);
+					mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, element_connectivity, p_properties);
+					cell_index++;
 				}
 			}
 		}
@@ -179,6 +181,7 @@ namespace Kratos
 		Point local_coordinates = rMinPoint;
 		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
+		ModelPart& r_skin_part = mrVolumePart.GetSubModelPart("Skin");
 
 		for (std::size_t k = 0; k <= mNumberOfDivisions[2]; k++) {
 			for (std::size_t j = 0; j <= mNumberOfDivisions[1]; j++) {
@@ -189,7 +192,7 @@ namespace Kratos
 					if (mCreateSkinSubModelPart && (
                         (i == 0) || (i == mNumberOfDivisions[0]) || (j == 0) ||
                         (j == mNumberOfDivisions[1]) || (k == 0) || (k == mNumberOfDivisions[2])))  // Is on skin
-						mrVolumePart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+						r_skin_part.CreateNewNode(node_id++, global_coordinates[0],
                                                                                            global_coordinates[1],
                                                                                            global_coordinates[2]);
 					else
@@ -240,14 +243,9 @@ namespace Kratos
                         if (ray_distance < 0.0) {
                             element_distance = TheColor;
 							previous_cell_color = TheColor;
-							KRATOS_WATCH(r_element.GetValue(DISTANCE));
-							std::vector<double> results;
-							r_element.GetValueOnIntegrationPoints(DISTANCE, results, ProcessInfo());
-							KRATOS_WATCH(results);
-                        }
+						}
 						else{
 							previous_cell_color = mOutsideColor;
-
 						}
                        if(mCellIsEmpty[index]){
                             previous_cell_was_empty = true;
