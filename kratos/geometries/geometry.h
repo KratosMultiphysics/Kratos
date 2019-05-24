@@ -500,10 +500,10 @@ public:
         mPoints.push_back(x);
     }
 
-    virtual iterator insert(iterator Position, const ConstPointPointerType pData)
-    {
-        return mPoints.insert(Position, pData);
-    }
+    //virtual iterator insert(iterator Position, const PointPointerType pData)
+    //{
+    //    return mPoints.insert(Position, pData);
+    //}
 
     virtual iterator erase(iterator pos)
     {
