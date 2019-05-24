@@ -57,14 +57,19 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         # ModelParts
         self.model = cs_data_structure.Model()
         self.model_part_in = self.model.CreateModelPart("pipe_flow_in")
-        self.variable_disp = cs_data_structure.VariableDouble("DISPLACEMENT_Y")
-        self.model_part_in.AddNodalSolutionStepVariable(self.variable_disp)
+        self.variable_area = cs_data_structure.VariableDouble("AREA")
+        self.model_part_in.AddNodalSolutionStepVariable(self.variable_area)
         self.model_part_out = self.model.CreateModelPart("pipe_flow_out")
         self.variable_pres = cs_data_structure.VariableDouble("PRESSURE")
         self.model_part_out.AddNodalSolutionStepVariable(self.variable_pres)
         for i in range(len(self.z)):
             self.model_part_in.CreateNewNode(i, 0.0, 0.0, self.z[i])
             self.model_part_out.CreateNewNode(i, 0.0, 0.0, self.z[i])
+        step = 0
+        for node in self.model_part_in.Nodes:
+            node.SetSolutionStepValue(self.variable_area, step, self.a[0])
+        for node in self.model_part_out.Nodes:
+            node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
 
         # Interfaces
         self.interface_in = CoSimulationInterface([self.model_part_in])
