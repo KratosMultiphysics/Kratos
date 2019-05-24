@@ -138,6 +138,18 @@ def GetDefaultInputParameters():
         "sdem_output_processes" : {},
         "properties": [{}],
 
+        "derivative_recovery" : {
+            "model_part_name" : "FluidModelPart",
+            "settings" : {},
+            "variables_for_recovery" : {
+                "gradient" : {},
+                "divergence" : {},
+                "rotational" : {},
+                "material_derivative" : {},
+                "laplacian" : {}
+            }
+        },
+
         "fluid_parameters" : {},
 
         "custom_fluid" : {

@@ -126,31 +126,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
-        self.recovery_parameters = Parameters(
-            """{
-                "model_part_name" : "FluidModelPart",
-                "settings" : {},
-                "variables_for_recovery" : {
-                    "gradient" : {
-                        "PRESSURE" : "PRESSURE_GRADIENT",
-                        "VELOCITY" : "VELOCITY_GRADIENT"
-                    },
-                    "divergence" : {
-                        "VELOCITY" : "VELOCITY_DIVERGENCE"
-                    },
-                    "material_derivative" : {
-                        "VELOCITY" : "MATERIAL_ACCELERATION"
-                    },
-                    "rotational" : {
-                        "VELOCITY" : "VORTICITY"
-                    },
-                    "laplacian" : {
-                        "VELOCITY" : "VELOCITY_LAPLACIAN",
-                        "PRESSURE" : "SCALAR_LAPLACIAN"
-                    }
-
-                }
-        }""")
+        self.recovery_parameters = self.project_parameters["derivative_recovery"]
 
         self.derivative_recoverer = SDEM.StandardRecoveryUtility(self.fluid_solver.main_model_part, self.recovery_parameters)
 

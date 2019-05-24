@@ -55,7 +55,7 @@ class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
 
 class linear_recovery_test(LinRecTF.TestFactory):
      file_name = "recovery_tests/ethier"
-     file_parameters = "recovery_tests/EthierProjectParamaters.json"
+     file_parameters = "recovery_tests/LinearFieldProjectParamaters.json"
 
 class ethier_recovery_test(EthierRecTF.TestFactory):
      file_name = "recovery_tests/ethier"
