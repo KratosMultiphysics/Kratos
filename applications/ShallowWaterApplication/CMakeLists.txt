@@ -22,6 +22,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/initial_perturbation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rough_porous_layer_wetting_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/negative_height_wetting_model.cpp
 )
 
 ## define python interface sources

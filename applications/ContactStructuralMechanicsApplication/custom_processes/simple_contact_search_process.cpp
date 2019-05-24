@@ -65,6 +65,10 @@ void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode
                 break;
             case BaseType::TypeSolution::FrictionalPenaltyMethod :
                 break;
+            case BaseType::TypeSolution::OtherFrictionless :
+                break;
+            case BaseType::TypeSolution::OtherFrictional :
+                break;
         }
     }
 }

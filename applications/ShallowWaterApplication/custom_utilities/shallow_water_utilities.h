@@ -89,6 +89,21 @@ public:
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
+    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
+
+    template<class TContainerType>
+    void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
+        {
+            auto it = rContainer.begin() + i;
+            it->Set(ACTIVE, it->Is(WetFlag));
+        }
+    }
+
+    void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
+
     ///@}
     ///@name Access
     ///@{
