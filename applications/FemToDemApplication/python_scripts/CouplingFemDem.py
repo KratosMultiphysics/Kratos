@@ -234,7 +234,7 @@ class FEMDEM_Solution:
     def GenerateDEM(self): # This method creates the DEM elements and remove the damaged FEM, Additionally remove the isolated elements
 
         if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
-            dem_generator_process = KratosFemDem.GenerateDemProcess2D(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+            dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
             dem_generator_process.Execute()
 
             # We remove the inactive DEM associated to fem_nodes

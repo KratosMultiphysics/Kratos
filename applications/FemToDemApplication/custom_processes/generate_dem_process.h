@@ -27,7 +27,6 @@ typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
 
-template <SizeType TDim>
 class GenerateDemProcess : public Process 
 {
  public:
@@ -49,16 +48,8 @@ class GenerateDemProcess : public Process
 
   double CalculateDistanceBetweenNodes(const NodeType& Node1, const NodeType& Node2);
   array_1d<double,3> GetNodeCoordinates(const NodeType& rNode);
-  double GetMinimumValue3(const double a, const double b, const double c);
-  double GetMinimumValue2(const double a, const double b);
-  int GetNumberOfDemOnElement(ElementIteratorType ItElem);
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
       const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
-  int GetLocalIdWithoutDEM(ElementIteratorType ItElem);
-  int GetLocalIdWithDEM(ElementIteratorType ItElem);
-  void CreateDistancesMatrix(Matrix& rDistancesMatrix, const double d01, const double d02, const double d12);
-  void Get2LocalIdFrom1(const int LocalIdWithoutDEM,int& LocalIDWithDEM1,int& LocalIDWithDEM2);
-  void ModifyRadiusToNodes(NodeType& rNode1, NodeType& rNode2, const double NewR1, const double NewR2);
   double GetMinimumValue(const Vector& rValues);
 
 protected:
