@@ -190,7 +190,7 @@ public:
                     // KRATOS_WATCH(grad_z);
                     const double aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
                     const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
-                    divergence_current += aux_current_divergence * gauss_point_volume;
+                    divergence_current += std::pow(aux_current_divergence,2) * gauss_point_volume;
                     // KRATOS_WATCH(divergence_current);
                 }
 
@@ -199,7 +199,7 @@ public:
 
                 // Compute weighetd in time divergence average
                 // TODO: coefficient indipendent!
-                auto divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(divergence_old_avg,2) + (time_step_current - time_step_previous) * std::pow(divergence_current,2)) /  (time_step_current-time_coefficient*final_time));
+                auto divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(divergence_old_avg,2) + (time_step_current - time_step_previous) * divergence_current) /  (time_step_current-time_coefficient*final_time));
                 it_elem->SetValue(DIVERGENCE,divergence_current_avg);
                 // if (i_elem == 3) {
                 //     KRATOS_WATCH(it_elem->GetValue(DIVERGENCE));
