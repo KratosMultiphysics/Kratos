@@ -120,11 +120,7 @@ class FSICouplingInterface():
         # return res_norm
 
     def UpdatePosition(self):
-        for node in self.GetInterfaceModelPart().Nodes:
-            aux_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            node.X = node.X0 + aux_disp[0]
-            node.Y = node.Y0 + aux_disp[1]
-            node.Z = node.Z0 + aux_disp[2]
+        KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self.GetInterfaceModelPart().Nodes)
 
     def GetValuesFromFatherModelPart(self, variable):
         buffer_step = 0
