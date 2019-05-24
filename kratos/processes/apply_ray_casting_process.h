@@ -126,7 +126,7 @@ public:
      * @param rNode reference to the node of interest
      * @return double raycasting distance value computed
      */
-    virtual double DistancePositionInSpace(const Node<3> &rNode);
+    virtual double DistancePositionInSpace(const Point &ThePoint);
 
     /**
      * @brief Get the ray intersecting objects and its distance

@@ -95,12 +95,12 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
+	double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Point &ThePoint)
 	{
 		array_1d<double,TDim> distances;
 		unsigned int n_ray_pos(0), n_ray_neg(0);
         IntersectionsContainerType intersections;
-		const auto &r_coords = rNode.Coordinates();
+		const auto &r_coords = ThePoint.Coordinates();
 
 		// Loop the x,y and z (3D) ray directions
         for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
