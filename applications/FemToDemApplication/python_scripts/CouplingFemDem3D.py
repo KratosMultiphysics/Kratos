@@ -100,7 +100,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.ExtrapolatePressure()
 
 		self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
-		self.CheckForPossibleIndentations()
 
 		self.UpdateDEMVariables()     # We update coordinates, displ and velocities of the DEM according to FEM
 

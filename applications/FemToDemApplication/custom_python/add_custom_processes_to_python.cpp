@@ -28,6 +28,7 @@
 #include "custom_processes/apply_component_table_process.hpp"
 #include "custom_processes/apply_double_table_process.hpp"
 #include "custom_processes/generate_dem_process.h"
+#include "custom_processes/update_dem_kinematics_process.h"
 
 
 namespace Kratos
@@ -88,6 +89,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<GenerateDemProcess, GenerateDemProcess::Pointer, Process>(m, "GenerateDemProcess")
 		.def(init<ModelPart &, ModelPart &>())
 		.def("Execute", &GenerateDemProcess::Execute);
+
+	class_<UpdateDemKinematicsProcess, UpdateDemKinematicsProcess::Pointer, Process>(m, "UpdateDemKinematicsProcess")
+		.def(init<ModelPart &, ModelPart &>())
+		.def("Execute", &UpdateDemKinematicsProcess::Execute);
 
 }
 } // namespace Python.
