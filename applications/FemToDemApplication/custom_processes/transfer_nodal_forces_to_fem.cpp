@@ -30,14 +30,18 @@ TransferNodalForcesToFem::TransferNodalForcesToFem(
 
 void TransferNodalForcesToFem::Execute() 
 {
-    const auto it_node_begin = mrModelPart.NodesBegin();
+	auto& sub_model_conditions = mrModelPart.GetSubModelPart("ContactForcesDEMConditions");
+
+    const auto it_cond_begin = sub_model_conditions.ConditionsBegin();
     //#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
-        auto it_node = it_node_begin + i;
-        if (it_node->GetValue(IS_DEM)) {
-            const int node_id = it_node->Id();
-            auto& associated_dem = mrDEMModelPart.GetNode(node_id);
-            this->UpdateKinematics(it_node, associated_dem);
+    for (int i = 0; i < static_cast<int>(sub_model_conditions.Conditions().size()); i++) {
+        auto it_cond = it_cond_begin + i;
+        auto& r_geometry = it_cond->GetGeometry();
+        const int id_node = r_geometry[0].Id();
+
+        if (mrModelPart.GetNode(id_node).GetValue(IS_DEM)) {
+            const array_1d<double,3>& dem_forces = mrDEMModelPart.GetNode(id_node).GetSolutionStepValue(TOTAL_FORCES);
+            it_cond->SetValue(FORCE_LOAD, dem_forces);
         }
     }
 }

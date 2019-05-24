@@ -11,13 +11,16 @@
 //  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_UPDATE_DEM_KINEMATICS_PROCESS)
-#define KRATOS_UPDATE_DEM_KINEMATICS_PROCESS
+#if !defined(KRATOS_TRANSFER_NODAL_FORCES_TO_FEM_PROCESS)
+#define KRATOS_TRANSFER_NODAL_FORCES_TO_FEM_PROCESS
 
 
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
+#include "solid_mechanics_application_variables.h"
+#include "dem_application_variables.h"
+#include "includes/variables.h"
 
 namespace Kratos {
 
@@ -53,4 +56,4 @@ protected:
 };  // Class
 
 }  // namespace Kratos
-#endif /* KRATOS_GENERATE_DEM_PROCESS defined */
+#endif /* KRATOS_TRANSFER_NODAL_FORCES_TO_FEM_PROCESS defined */
