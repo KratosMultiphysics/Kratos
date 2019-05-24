@@ -1,3 +1,5 @@
+import numpy as np
+
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
@@ -11,29 +13,39 @@ class CoSimulationInterface(object):
 
     def GetPythonList(self):
         data = []
-        data_mesh = self.solver.model[self.geometry_name]
-        data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
-        for node in data_mesh.Nodes:
-            data_value = node.GetSolutionStepValue(data_variable, 0)
-            for value in data_value:
-                data.append(value)
+        step = 0
+        for model_part in self.model_parts:
+            for node in model_part.Nodes:
+                for variable in list(node.variables[step].keys()):
+                    value = node.GetSolutionStepValue(variable, step)
+                    data.append(value)
         return data
 
     def GetNumpyArray(self):
-        # To do
-        pass
+        return np.array(self.GetPythonList())
 
-    def ApplyUpdateToData(self, update):
-        data_mesh = self.solver.model[self.geometry_name]
-        data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
+    def SetPythonList(self, data):
         index = 0
-        for node in data_mesh.Nodes:
-            updated_value = []
-            value = node.GetSolutionStepValue(data_variable, 0)
-            for value_i in value:
-                updated_value.append(update[index])
-                index = index + 1
-            node.SetSolutionStepValue(data_variable, 0, updated_value)
+        step = 0
+        for model_part in self.model_parts:
+            for node in model_part.Nodes:
+                for variable in list(node.variables[step].keys()):
+                    value = data[index]
+                    index += 1
+                    node.SetSolutionStepValue(variable, step, value)
+
+    def SetNumpyArray(self, data):
+        self.SetPythonList(data.tolist())
 
     def __add__(self, other):
-        pass
+        # To do: use zip for looping over ModelParts of two interfaces simultaneously.
+        print(type(self), type(other))
+        return other
+
+    def __sub__(self, other):
+        print(type(self), type(other))
+        return other
+
+    def __mul__(self, other):
+        print(type(self), type(other))
+        return self

@@ -81,8 +81,10 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         self.pn = np.array(self.p)
         self.an = np.array(self.a)
 
-    def Calculate(self, a):
+    def Calculate(self, interface_in):
         # Input does not contain boundary conditions
+        self.interface_in = interface_in
+        a = self.interface_in.GetNumpyArray()
         self.a[1:self.m + 1] = a
         self.a[0] = self.a[1]
         self.a[self.m + 1] = self.a[self.m]
@@ -109,8 +111,8 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
 
         # Output does not contain boundary conditions
         p = self.p[1:self.m + 1]
-        # Return copy of output
-        return np.array(p)
+        self.interface_out.SetNumpyArray(p)
+        return self.interface_out
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

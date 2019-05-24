@@ -22,7 +22,7 @@ class PredictorLinear(CoSimulationComponent):
         self.data_prev = x
 
     def Predict(self):
-        return 2.0*self.data_last - self.data_prev
+        return self.data_last*2.0 - self.data_prev
 
     def Update(self, x):
         self.data_prev = self.data_last

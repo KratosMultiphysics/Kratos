@@ -51,9 +51,12 @@ class Node:
         if isinstance(variable, list):
             for i in range(1, len(variable)):
                 if variable[i] in list(self.variables[step].keys()):
-                        self.variables[step][variable[i]] = value[i-1]
+                    self.variables[step][variable[i]] = value[i-1]
                 else:
                     raise Exception("Trying to set an non-existing variable with name ", variable, " on node ", self.Id)
+        else:
+            if variable in list(self.variables[step].keys()):
+                self.variables[step][variable] = value
 
     def __str__(self):
         return "Node #{0} with {1}".format(self.Id, self.variables)
