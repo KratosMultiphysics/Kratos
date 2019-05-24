@@ -68,6 +68,9 @@ void GenerateDemProcess<2>::Execute()
                 const double r2 = this->GetMinimumValue2(dist02 - r0, dist12 - r1);
                 const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
                 this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
+                // Assign "flags" to remove the element
+                it_elem->SetValue(DEM_GENERATED, true);
+                it_elem->Set(TO_ERASE, true);
 
             } else if (number_of_dem == 2) { // We must create 1 DEM
                 const int local_id_no_DEM = this->GetLocalIdWithoutDEM(it_elem);
@@ -82,6 +85,9 @@ void GenerateDemProcess<2>::Execute()
                                                              distances(local_id_dem_2, local_id_no_DEM)-r2);
                 const array_1d<double, 3> coordinates = this->GetNodeCoordinates(node);
                 this->CreateDEMParticle(node.Id(), coordinates, p_DEM_properties, radius, node);
+                // Assign "flags" to remove the element
+                it_elem->SetValue(DEM_GENERATED, true);
+                it_elem->Set(TO_ERASE, true);
 
             } else if (number_of_dem == 1) { // We must create 2 DEM
                 const int local_id_existing_DEM = this->GetLocalIdWithDEM(it_elem);
@@ -101,6 +107,9 @@ void GenerateDemProcess<2>::Execute()
                                                          distances(local_id_dem_1, local_id_dem_2) - r1);
                 const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
                 this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
+                // Assign "flags" to remove the element
+                it_elem->SetValue(DEM_GENERATED, true);
+                it_elem->Set(TO_ERASE, true);
 
             } else if (number_of_dem == 3) { // We must avoid possible indentations
                 auto& r_node0 = r_geom[0];
@@ -117,10 +126,22 @@ void GenerateDemProcess<2>::Execute()
                     const double new_r0 = dist01*0.5;
                     this->ModifyRadiusToNodes(r_node0, r_node1, new_r0, new_r0);
                 }
+                if (std::abs(r0) + std::abs(r2) > dist01) {
+                    const double new_r0 = dist02*0.5;
+                    this->ModifyRadiusToNodes(r_node0, r_node2, new_r0, new_r0);
+                }
+                if (std::abs(r1) + std::abs(r2) > dist01) {
+                    const double new_r1 = dist12*0.5;
+                    this->ModifyRadiusToNodes(r_node1, r_node2, new_r1, new_r1);
+                }
+                // Assign "flags" to remove the element
+                it_elem->SetValue(DEM_GENERATED, true);
+                it_elem->Set(TO_ERASE, true);
+            } else {
+                KRATOS_ERROR << "Something is wrong when  generating the DEM in 2D..." << std::endl;
             }
-
-
-        }
+        } else if (!is_active && dem_generated)
+            it_elem->Set(TO_ERASE, true);
     }
 }
 
