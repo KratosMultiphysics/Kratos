@@ -286,8 +286,8 @@ public:
     */
     Geometry(const PointsArrayType &ThisPoints,
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        : mPoints(ThisPoints),
-          mpGeometryData(pThisGeometryData)
+        :  mpGeometryData(pThisGeometryData),
+           mPoints(ThisPoints)
     {
     }
 
@@ -300,8 +300,8 @@ public:
     source geometry's points too.
     */
     Geometry( const Geometry& rOther )
-        : mPoints( rOther.mPoints),
-          mpGeometryData( rOther.mpGeometryData )
+        : mpGeometryData( rOther.mpGeometryData ),
+          mPoints( rOther.mPoints)
     {
     }
 
@@ -502,7 +502,7 @@ public:
 
     virtual iterator insert(iterator Position, const ConstPointPointerType pData)
     {
-        return mPoints.insert(Position, pData);
+        // return iterator(mPoints.insert(Position, pData));
     }
 
     virtual iterator erase(iterator pos)
