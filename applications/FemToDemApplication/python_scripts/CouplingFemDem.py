@@ -239,8 +239,10 @@ class FEMDEM_Solution:
 
             # We remove the inactive DEM associated to fem_nodes
             self.RemoveAloneDEMElements()
+            self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+            
 
 #============================================================================================================================
     def CheckForPossibleIndentations(self): # Verifies if an element has indentations between its DEM
@@ -331,7 +333,6 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def UpdateDEMVariables(self):
-
         update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part, 
                                                                                self.SpheresModelPart)
         update_de_kinematics_process.Execute()
