@@ -19,7 +19,7 @@
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "custom_utilities/create_and_destroy.h"
-#include "utilities/brute_force_point_locator.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos {
 
@@ -59,6 +59,7 @@ class GenerateDemProcess : public Process
   void CreateDistancesMatrix(Matrix& rDistancesMatrix, const double d01, const double d02, const double d12);
   void Get2LocalIdFrom1(const int LocalIdWithoutDEM,int& LocalIDWithDEM1,int& LocalIDWithDEM2);
   void ModifyRadiusToNodes(NodeType& rNode1, NodeType& rNode2, const double NewR1, const double NewR2);
+  double GetMinimumValue(const Vector& rValues);
 
 protected:
 

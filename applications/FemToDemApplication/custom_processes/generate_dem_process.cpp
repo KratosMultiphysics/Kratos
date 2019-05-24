@@ -32,8 +32,11 @@ GenerateDemProcess<TDim>::GenerateDemProcess(
 template <>
 void GenerateDemProcess<2>::Execute() 
 {
+    auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
+    nodal_neigh_process.Execute();
+
     const auto it_element_begin = mrModelPart.ElementsBegin();
-    //#pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = it_element_begin + i;
         auto& r_geom = it_elem->GetGeometry();
@@ -55,91 +58,48 @@ void GenerateDemProcess<2>::Execute()
             const double dist02 = this->CalculateDistanceBetweenNodes(node0, node2);
             const double dist12 = this->CalculateDistanceBetweenNodes(node1, node2);
 
-            if (number_of_dem == 0) { // We must create 3 DEM
-                // Node 0
-                const double r0 = this->GetMinimumValue2(dist01, dist02)*0.5;
-                const array_1d<double, 3> coordinates0 = this->GetNodeCoordinates(node0);
-                this->CreateDEMParticle(node0.Id(), coordinates0, p_DEM_properties, r0, node0);
-                // Node 1
-                const double r1 = dist01 - r0;
-                const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node1);
-                this->CreateDEMParticle(node1.Id(), coordinates1, p_DEM_properties, r1, node1);
-                // Node 2
-                const double r2 = this->GetMinimumValue2(dist02 - r0, dist12 - r1);
-                const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
-                this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
-                // Assign "flags" to remove the element
-                it_elem->SetValue(DEM_GENERATED, true);
-                it_elem->Set(TO_ERASE, true);
+            // We perform a loop over the nodes to create its DEM
+            for (int i = 0; i < r_geom.size(); i++) {
+                auto& r_node = r_geom[i];
+                if (!r_node.GetValue(IS_DEM)) {
+                    auto& r_neigh_nodes = r_node.GetValue(NEIGHBOUR_NODES);
+                    Vector potential_radii(r_neigh_nodes.size());
+                    Vector distances(r_neigh_nodes.size());
 
-            } else if (number_of_dem == 2) { // We must create 1 DEM
-                const int local_id_no_DEM = this->GetLocalIdWithoutDEM(it_elem);
-                auto& node = r_geom[local_id_no_DEM];
-                Matrix distances(3,3);
-                this->CreateDistancesMatrix(distances, dist01, dist02, dist12);
-                int local_id_dem_1, local_id_dem_2;
-                this->Get2LocalIdFrom1(local_id_no_DEM, local_id_dem_1, local_id_dem_2);
-                const double r1 = r_geom[local_id_dem_1].GetValue(RADIUS);
-                const double r2 = r_geom[local_id_dem_2].GetValue(RADIUS);
-                const double radius = this->GetMinimumValue2(distances(local_id_dem_1, local_id_no_DEM)-r1, 
-                                                             distances(local_id_dem_2, local_id_no_DEM)-r2);
-                const array_1d<double, 3> coordinates = this->GetNodeCoordinates(node);
-                this->CreateDEMParticle(node.Id(), coordinates, p_DEM_properties, radius, node);
-                // Assign "flags" to remove the element
-                it_elem->SetValue(DEM_GENERATED, true);
-                it_elem->Set(TO_ERASE, true);
-
-            } else if (number_of_dem == 1) { // We must create 2 DEM
-                const int local_id_existing_DEM = this->GetLocalIdWithDEM(it_elem);
-                int local_id_dem_1, local_id_dem_2;
-                this->Get2LocalIdFrom1(local_id_existing_DEM, local_id_dem_1, local_id_dem_2);
-                auto& node1 = r_geom[local_id_dem_1];
-                auto& node2 = r_geom[local_id_dem_2];
-                const double radius_dem = r_geom[local_id_existing_DEM].GetValue(RADIUS);
-                Matrix distances(3,3);
-                this->CreateDistancesMatrix(distances, dist01, dist02, dist12);
-                // Node 1
-                const double r1 = distances(local_id_dem_1, local_id_existing_DEM) - radius_dem;
-                const array_1d<double, 3> coordinates1 = this->GetNodeCoordinates(node1);
-                this->CreateDEMParticle(node1.Id(), coordinates1, p_DEM_properties, r1, node1);
-                // Node 2
-                const double r2 = this->GetMinimumValue2(distances(local_id_existing_DEM, local_id_dem_2) - radius_dem, 
-                                                         distances(local_id_dem_1, local_id_dem_2) - r1);
-                const array_1d<double, 3> coordinates2 = this->GetNodeCoordinates(node2);
-                this->CreateDEMParticle(node2.Id(), coordinates2, p_DEM_properties, r2, node2);
-                // Assign "flags" to remove the element
-                it_elem->SetValue(DEM_GENERATED, true);
-                it_elem->Set(TO_ERASE, true);
-
-            } else if (number_of_dem == 3) { // We must avoid possible indentations
-                auto& r_node0 = r_geom[0];
-                auto& r_node1 = r_geom[1];
-                auto& r_node2 = r_geom[2];
-                const double r0 = r_node0.GetValue(RADIUS);
-                const double r1 = r_node1.GetValue(RADIUS);
-                const double r2 = r_node2.GetValue(RADIUS);
-                const int id_0 = r_node0.Id();
-                const int id_1 = r_node1.Id();
-                const int id_2 = r_node2.Id();
-
-                if (std::abs(r0) + std::abs(r1) > dist01) {
-                    const double new_r0 = dist01*0.5;
-                    this->ModifyRadiusToNodes(r_node0, r_node1, new_r0, new_r0);
+                    // Loop over the neighbours of that node
+                    bool has_dem_neigh = false;
+                    for (int neigh = 0; neigh < r_neigh_nodes.size(); neigh++) {
+                        auto& r_neighbour = r_neigh_nodes[neigh];
+                        const double dist_between_nodes = this->CalculateDistanceBetweenNodes(r_node, r_neighbour);
+                        distances(neigh) = dist_between_nodes;
+                        if (r_neighbour.GetValue(IS_DEM)) {
+                            has_dem_neigh = true;
+                            potential_radii(neigh) = dist_between_nodes - r_neighbour.GetValue(RADIUS);
+                            if (potential_radii(neigh) < 0.0) { // Houston-> We have a problem
+                                const double new_radius = dist_between_nodes*0.5;
+                                auto& r_radius_neigh_old = mrDEMModelPart.GetNode(r_neighbour.Id()).GetSolutionStepValue(RADIUS);
+                                r_radius_neigh_old = new_radius;
+                                r_neighbour.SetValue(RADIUS, new_radius);
+                                potential_radii(neigh) = new_radius;
+                            }
+                        } else {
+                            potential_radii(neigh) = 0.0;
+                        }
+                    }
+                    // Let's compute the Radius of the new DEM
+                    double radius;
+                    if (has_dem_neigh) {
+                        radius = this->GetMinimumValue(potential_radii);
+                    } else {
+                        radius = this->GetMinimumValue(distances)*0.5;
+                    }
+                    const array_1d<double,3>& r_coordinates = this->GetNodeCoordinates(r_node);
+                    this->CreateDEMParticle(r_node.Id(), r_coordinates, p_DEM_properties, radius, r_node);
                 }
-                if (std::abs(r0) + std::abs(r2) > dist01) {
-                    const double new_r0 = dist02*0.5;
-                    this->ModifyRadiusToNodes(r_node0, r_node2, new_r0, new_r0);
-                }
-                if (std::abs(r1) + std::abs(r2) > dist01) {
-                    const double new_r1 = dist12*0.5;
-                    this->ModifyRadiusToNodes(r_node1, r_node2, new_r1, new_r1);
-                }
-                // Assign "flags" to remove the element
-                it_elem->SetValue(DEM_GENERATED, true);
-                it_elem->Set(TO_ERASE, true);
-            } else {
-                KRATOS_ERROR << "Something is wrong when  generating the DEM in 2D..." << std::endl;
             }
+
+            it_elem->SetValue(DEM_GENERATED, true);
+            it_elem->Set(TO_ERASE, true);
         } else if (!is_active && dem_generated)
             it_elem->Set(TO_ERASE, true);
     }
@@ -325,6 +285,21 @@ double GenerateDemProcess<TDim>::GetMinimumValue2(
 {
     if (a < b) return a;
     else return b;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+double GenerateDemProcess<TDim>::GetMinimumValue(
+    const Vector& rValues
+    )
+{ // this method assumes that the Vector is NOT full of 0.0's
+    double aux = 1.0e10;
+    for (int i = 0; i < rValues.size(); i++) 
+        if (aux > rValues[i] && rValues[i] != 0.0) 
+            aux = rValues[i];
+	return aux;
 }
 
 /***********************************************************************************/
