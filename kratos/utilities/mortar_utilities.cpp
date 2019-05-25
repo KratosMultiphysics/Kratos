@@ -289,18 +289,18 @@ void ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart
 /***********************************************************************************/
 
 template< >
-const Variable<double>& GetAuxiliarVariable<Variable<double>>()
+const std::string GetAuxiliarVariable<Variable<double>>()
 {
-    return NODAL_MAUX;
+    return "NODAL_MAUX";
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< >
-const Variable<array_1d<double, 3>>& GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
+const std::string GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
 {
-    return NODAL_VAUX;
+    return "NODAL_VAUX";
 }
 
 /***********************************************************************************/

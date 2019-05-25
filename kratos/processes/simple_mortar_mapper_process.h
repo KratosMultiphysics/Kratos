@@ -674,7 +674,7 @@ private:
         ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
 
         // Getting the auxiliar variable
-        const TVarType& r_aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
+        const TVarType& r_aux_variable = KratosComponents<TVarType>::Get(MortarUtilities::GetAuxiliarVariable<TVarType>());
 
         // Indexes of the pair to be removed
         std::vector<IndexType> indexes_to_remove, geometrical_objects_to_erase;

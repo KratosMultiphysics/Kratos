@@ -449,7 +449,7 @@ namespace MortarUtilities
      * @return The auxiliar variable
      */
     template< class TVarType>
-    const TVarType& KRATOS_API(KRATOS_CORE) GetAuxiliarVariable();
+    const std::string KRATOS_API(KRATOS_CORE) GetAuxiliarVariable();
 
     /**
      * @brief This method returns the auxiliar variable
