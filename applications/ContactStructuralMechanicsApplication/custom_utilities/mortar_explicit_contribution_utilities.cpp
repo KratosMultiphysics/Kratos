@@ -325,7 +325,8 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     ProcessInfo& rCurrentProcessInfo,
     MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
-    const bool AxisymmetricCase
+    const bool AxisymmetricCase,
+    const bool ComputeNodalArea
     )
 {
     // We "save" the mortar operator for the next step
@@ -405,6 +406,16 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
                     rPreviousMortarOperators.CalculateMortarOperators(kinematic_variables, integration_weight);
                 }
             }
+        }
+    }
+
+    // Computing contribution of the NODAL_AREA
+    if (ComputeNodalArea) {
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+            #pragma omp atomic
+            r_nodal_area += DOperator(i_node, i_node);
         }
     }
 }
