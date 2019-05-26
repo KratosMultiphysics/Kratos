@@ -286,10 +286,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             }
             noalias(aux_array) = row(D_x1_M_x2, i_node);
 
-            double& r_r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
+            double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
             #pragma omp atomic
-            r_r_weighted_gap += inner_prod(aux_array, - normal);
+            r_weighted_gap += inner_prod(aux_array, - normal);
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
