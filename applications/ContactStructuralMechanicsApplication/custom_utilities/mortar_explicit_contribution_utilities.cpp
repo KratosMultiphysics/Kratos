@@ -43,7 +43,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     MortarConditionMatrices this_mortar_condition_matrices;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -181,7 +181,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     MortarConditionMatrices this_mortar_condition_matrices;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -266,7 +266,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         // Setting the weighted slip
         // The increment of time
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double delta_time = rCurrentProcessInfo.Has(DELTA_TIME) ? rCurrentProcessInfo[DELTA_TIME] : 1.0;
 
         // Delta mortar condition matrices - DOperator and MOperator
         const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
@@ -286,10 +286,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             }
             noalias(aux_array) = row(D_x1_M_x2, i_node);
 
-            double& r_r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
+            double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
             #pragma omp atomic
-            r_r_weighted_gap += inner_prod(aux_array, - normal);
+            r_weighted_gap += inner_prod(aux_array, - normal);
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
@@ -341,7 +341,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     BoundedMatrix<double, TNumNodes, TNumNodes> Ae;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
