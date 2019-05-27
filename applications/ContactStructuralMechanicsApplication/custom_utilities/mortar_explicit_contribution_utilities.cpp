@@ -43,7 +43,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     MortarConditionMatrices this_mortar_condition_matrices;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -84,7 +84,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
-            if (bad_shape == false) {
+            if (!bad_shape) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                 // Integrating the mortar operators
@@ -126,13 +126,13 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2);
 
+        array_1d<double, TDim> aux_normal, aux_array;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& normal = r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
-            array_1d<double, TDim> aux_normal;
+            const array_1d<double, 3>& r_normal = r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
             for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                aux_normal[i_dim] = normal[i_dim];
+                aux_normal[i_dim] = r_normal[i_dim];
             }
-            const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
+            noalias(aux_array) = row(D_x1_M_x2, i_node);
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
@@ -181,7 +181,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     MortarConditionMatrices this_mortar_condition_matrices;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -220,7 +220,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
             if (!bad_shape) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
@@ -266,7 +266,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         // Setting the weighted slip
         // The increment of time
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double delta_time = rCurrentProcessInfo.Has(DELTA_TIME) ? rCurrentProcessInfo[DELTA_TIME] : 1.0;
 
         // Delta mortar condition matrices - DOperator and MOperator
         const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
@@ -278,18 +278,18 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         // The estimation of the slip time derivative
         const BoundedMatrix<double, TNumNodes, TDim> slip_time_derivative = - delta_D_x1_M_x2/delta_time;
 
+        array_1d<double, TDim> normal, aux_array;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& r_normal = r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
-            array_1d<double, TDim> normal;
             for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
                 normal[i_dim] = r_normal[i_dim];
             }
-            const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
+            noalias(aux_array) = row(D_x1_M_x2, i_node);
 
-            double& r_r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
+            double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
             #pragma omp atomic
-            r_r_weighted_gap += inner_prod(aux_array, - normal);
+            r_weighted_gap += inner_prod(aux_array, - normal);
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
@@ -325,7 +325,8 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     ProcessInfo& rCurrentProcessInfo,
     MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
-    const bool AxisymmetricCase
+    const bool AxisymmetricCase,
+    const bool ComputeNodalArea
     )
 {
     // We "save" the mortar operator for the next step
@@ -340,7 +341,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     BoundedMatrix<double, TNumNodes, TNumNodes> Ae;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -381,9 +382,9 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
-            if (bad_shape == false) {
+            if (!bad_shape) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                 // Integrating the mortar operators
@@ -405,6 +406,16 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
                     rPreviousMortarOperators.CalculateMortarOperators(kinematic_variables, integration_weight);
                 }
             }
+        }
+    }
+
+    // Computing contribution of the NODAL_AREA
+    if (ComputeNodalArea) {
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+            #pragma omp atomic
+            r_nodal_area += DOperator(i_node, i_node);
         }
     }
 }
@@ -439,7 +450,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
         DecompositionType decomp_geom( PointerVector<PointType>{points_array} );
 
-        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
         if (!bad_shape) {
             const GeometryType::IntegrationPointsArrayType& r_integration_points_slave = decomp_geom.IntegrationPoints( rIntegrationMethod );
@@ -484,7 +495,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     /* SHAPE FUNCTIONS */
     const auto& r_geometry = pCondition->GetGeometry();
     r_geometry.ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
-    rVariables.PhiLagrangeMultipliers = (DualLM == true) ? prod(rAe, rVariables.NSlave) : rVariables.NSlave;
+    rVariables.PhiLagrangeMultipliers = (DualLM) ? prod(rAe, rVariables.NSlave) : rVariables.NSlave;
 
     /* SHAPE FUNCTION DERIVATIVES */
     r_geometry.ShapeFunctionsLocalGradients( rVariables.DNDeSlave, rLocalPointParent );
@@ -518,7 +529,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     /* SHAPE FUNCTIONS */
     const auto& r_geometry = pCondition->GetGeometry();
     r_geometry.ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
-    rVariables.PhiLagrangeMultipliers = (DualLM == true) ? prod(rDerivativeData.Ae, rVariables.NSlave) : rVariables.NSlave;
+    rVariables.PhiLagrangeMultipliers = (DualLM) ? prod(rDerivativeData.Ae, rVariables.NSlave) : rVariables.NSlave;
 
     /* SHAPE FUNCTION DERIVATIVES */
     r_geometry.ShapeFunctionsLocalGradients( rVariables.DNDeSlave, rLocalPointParent );
