@@ -8,9 +8,9 @@ import math
 import time as timer
 import weakref
 
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Vector, Logger, Parameters
+import KratosMultiphysics.DEMApplication as DEM
 
 from analysis_stage import AnalysisStage
 
@@ -106,7 +106,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # First, read the parameters generated from the interface
         import swimming_dem_default_input_parameters as only_swimming_defaults
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
+
+
         self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults.GetDefaultInputParameters())
+        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(dem_defaults.GetDefaultInputParameters())
 
         # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()
@@ -181,15 +185,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
         if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
-            body_force = [self.project_parameters["GravityX"].GetDouble(),
-                          self.project_parameters["GravityY"].GetDouble(),
-                          self.project_parameters["GravityZ"].GetDouble()]
-            modulus_of_body_force = math.sqrt(sum(b**2 for b in body_force))
+            gravity = self.project_parameters["gravity_parameters"]["direction"].GetVector()
+            gravity *= self.project_parameters["gravity_parameters"]["modulus"].GetDouble()
+            modulus_of_body_force = math.sqrt(sum(b**2 for b in gravity))
 
             gravity_parameters = self.fluid_parameters['processes']['gravity'][0]['Parameters']
             gravity_parameters['modulus'].SetDouble(modulus_of_body_force)
-            for i, b in enumerate(body_force):
-                gravity_parameters['direction'][i].SetDouble(b)
+            gravity_parameters['direction'].SetVector(gravity)
 
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.project_parameters["custom_dem"]["do_solve_dem"].GetBool()
@@ -224,7 +226,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.do_print_results:
             [self.post_path, data_and_results, self.graphs_path, MPI_results] = \
             self.procedures.CreateDirectories(str(self.main_path),
-                                            str(self.project_parameters["problem_name"].GetString()),
+                                            str(self.project_parameters["problem_data"]["problem_name"].GetString()),
                                             self.run_code)
             SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
             self.MPI_results = MPI_results
@@ -247,7 +249,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
             self.swimming_DEM_gid_io = \
             swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-                file_name = self.project_parameters["problem_name"].GetString(),
+                file_name = self.project_parameters["problem_data"]["problem_name"].GetString(),
                 vol_output = result_file_configuration["body_output"].GetBool(),
                 post_mode = old_gid_output_post_options_dict[post_mode_key],
                 multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],
@@ -280,7 +282,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # creating an IOTools object to perform other printing tasks
         self.io_tools = SDP.IOTools(self.project_parameters)
 
-        dem_physics_calculator = SphericElementGlobalPhysicsCalculator(
+        dem_physics_calculator = DEM.SphericElementGlobalPhysicsCalculator(
             self.spheres_model_part)
 
         if self.project_parameters["coupling"]["coupling_level_type"].GetInt():
@@ -289,7 +291,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.spheres_model_part.NumberOfElements(0) > 0)
 
             if default_meso_scale_length_needed:
-                biggest_size = (2 * dem_physics_calculator.CalculateMaxNodalVariable(self.spheres_model_part, RADIUS))
+                biggest_size = (2 * dem_physics_calculator.CalculateMaxNodalVariable(self.spheres_model_part, Kratos.RADIUS))
                 self.project_parameters["coupling"]["backward_coupling"]["meso_scale_length"].SetDouble(20 * biggest_size)
 
             elif self.spheres_model_part.NumberOfElements(0) == 0:
@@ -324,14 +326,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.step = 0
         self.time = self.fluid_parameters["problem_data"]["start_time"].GetDouble()
         self.fluid_time_step = self._GetFluidAnalysis()._GetSolver()._ComputeDeltaTime()
-        self.time_step = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        self.rigid_face_model_part.ProcessInfo[DELTA_TIME] = self.time_step
-        self.cluster_model_part.ProcessInfo[DELTA_TIME] = self.time_step
+        self.time_step = self.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
+        self.rigid_face_model_part.ProcessInfo[Kratos.DELTA_TIME] = self.time_step
+        self.cluster_model_part.ProcessInfo[Kratos.DELTA_TIME] = self.time_step
         self.stationarity = False
 
         # setting up loop counters:
         self.DEM_to_fluid_counter = self.GetBackwardCouplingCounter()
-        self.derivative_recovery_counter = self.GetRecoveryCounter()
         self.stationarity_counter = self.GetStationarityCounter()
         self.print_counter = self.GetPrintCounter()
         self.debug_info_counter = self.GetDebugInfo()
@@ -362,7 +363,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.project_parameters["perform_analytics_option"].GetBool():
             import analytics
-            variables_to_measure = [PRESSURE]
+            variables_to_measure = [Kratos.PRESSURE]
             steps_between_measurements = 100
             gauge = analytics.Gauge(
                 self.fluid_model_part,
@@ -437,7 +438,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     # creating a distance calculation process for the embedded technology
         # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
         if self.project_parameters["custom_fluid"]["embedded_option"].GetBool():
-            self.calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(
+            self.calculate_distance_process = Kratos.CalculateSignedDistanceTo3DSkinProcess(
                 self.rigid_face_model_part,
                 self.fluid_model_part
                 )
@@ -566,7 +567,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
-        self.particle_watcher = AnalyticParticleWatcher()
+        self.particle_watcher = DEM.AnalyticParticleWatcher()
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)

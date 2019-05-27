@@ -223,10 +223,9 @@ public:
 
         const SizeType num_dofs = NumNodes * 6;
 
-        MatrixType P( IdentityMatrix(num_dofs, num_dofs) );
+        MatrixType P(IdentityMatrix(num_dofs, num_dofs));
 
-        for(SizeType i = 0; i < NumNodes; i++)
-        {
+        for (SizeType i = 0; i < NumNodes; i++) {
             const SizeType j = i * 6;
 
             // diagonal block
@@ -235,15 +234,14 @@ public:
             P(j + 2, j + 2) = a;
 
             // out-of-diagonal block
-            for(SizeType k = i + 1; k < NumNodes; k++)
-            {
+            for (SizeType k = i + 1; k < NumNodes; k++) {
                 const SizeType w = k * 6;
 
-                P(j    , w    ) = b;
+                P(j    , w) = b;
                 P(j + 1, w + 1) = b;
                 P(j + 2, w + 2) = b;
 
-                P(w    , j    ) = b;
+                P(w    , j) = b;
                 P(w + 1, j + 1) = b;
                 P(w + 2, j + 2) = b;
             }
@@ -266,11 +264,10 @@ public:
 
         MatrixType S(num_dofs, 3, 0.0);
 
-        for(SizeType i = 0; i < num_nodes; i++)
-        {
+        for (SizeType i = 0; i < num_nodes; i++) {
             SizeType j = i * 6;
 
-            Spin_AtRow( rNodes[i], S, -1.0, 0, j );
+            Spin_AtRow(rNodes[i], S, -1.0, 0, j);
 
             S(j + 3, 0) = 1.0;
             S(j + 4, 1) = 1.0;
@@ -292,42 +289,39 @@ public:
         const SizeType num_dofs = rDisplacements.size();
         const SizeType num_nodes = num_dofs / 6;
 
-        MatrixType H( IdentityMatrix(num_dofs, num_dofs) );
+        MatrixType H(IdentityMatrix(num_dofs, num_dofs));
 
         BoundedMatrixType3x3 omega(3, 3);
         BoundedMatrixType3x3 Hi(3, 3);
 
-        for(SizeType i = 0; i < num_nodes; i++)
-        {
+        for (SizeType i = 0; i < num_nodes; i++) {
             const SizeType index = i * 6;
-            Vector3Type rv = project( rDisplacements, range(index + 3, index + 6) );
+            Vector3Type rv = project(rDisplacements, range(index + 3, index + 6));
 
             double angle = norm_2(rv);
 
-            if(angle >= 2.0 * Globals::Pi)
+            if (angle >= 2.0 * Globals::Pi) {
                 angle = std::fmod(angle, 2.0 * Globals::Pi);
+            }
 
             double eta;
-            if(angle < 0.05)
-            {
+            if (angle < 0.05) {
                 double angle2 = angle * angle;
                 double angle4 = angle2 * angle2;
                 double angle6 = angle4 * angle2;
                 eta = 1.0 / 12.0 + 1.0 / 270.0 * angle2 + 1.0 / 30240.0 * angle4 + 1.0 / 1209600.0 * angle6;
-            }
-            else
-            {
-                eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * Globals::Pi - 0.5 * angle ) ) / (angle * angle);
+            } else {
+                eta = (1.0 - 0.5 * angle * std::tan(0.5 * Globals::Pi - 0.5 * angle)) / (angle * angle);
             }
 
-            Spin( rv, omega );
+            Spin(rv, omega);
 
-            noalias( Hi ) = IdentityMatrix(3, 3);
-            noalias( Hi ) -= 0.5 * omega;
-            noalias( Hi ) += eta * prod( omega, omega );
+            noalias(Hi) = IdentityMatrix(3, 3);
+            noalias(Hi) -= 0.5 * omega;
+            noalias(Hi) += eta * prod(omega, omega);
 
             range i_range(index + 3, index + 6);
-            project( H, i_range, i_range ) = Hi;
+            project(H, i_range, i_range) = Hi;
         }
 
         return H;
@@ -359,17 +353,17 @@ public:
         BoundedMatrixType3x3 LiTemp1(3, 3);
         BoundedMatrixType3x3 LiTemp2(3, 3);
 
-        for(SizeType i = 0; i < num_nodes; i++)
-        {
+        for (SizeType i = 0; i < num_nodes; i++) {
             const SizeType index = i * 6;
             range i_range(index + 3, index + 6);
-            noalias( rotation_vector ) = project( rDisplacements, i_range );
-            noalias( moment_vector ) = project( rForces, i_range );
+            noalias(rotation_vector) = project(rDisplacements, i_range);
+            noalias(moment_vector) = project(rForces, i_range);
 
             double angle = norm_2(rotation_vector);
 
-            if(angle >= 2.0 * Globals::Pi)
+            if (angle >= 2.0 * Globals::Pi) {
                 angle = std::fmod(angle, 2.0 * Globals::Pi);
+            }
 
             const double angle2 = angle * angle;
             const double angle4 = angle2 * angle2;
@@ -377,36 +371,33 @@ public:
 
             double eta;
             double mu;
-            if(angle < 0.05)
-            {
+            if (angle < 0.05) {
                 eta = 1.0 / 12.0 + angle2 / 270.0 + angle4 / 30240.0 + angle6 / 1209600.0;
                 mu  = 1.0 / 360.0 + angle2 / 7560.0 + angle4 / 201600.0 + angle6 / 5987520.0;
-            }
-            else
-            {
-                eta = ( 1.0 - 0.5 * angle * std::tan( 0.5 * Globals::Pi - 0.5 * angle ) ) / (angle * angle);
+            } else {
+                eta = (1.0 - 0.5 * angle * std::tan(0.5 * Globals::Pi - 0.5 * angle)) / (angle * angle);
                 double sin_h_angle = std::sin(0.5 * angle);
-                mu  = ( angle2 + 4.0 * std::cos(angle) + angle * std::sin(angle) - 4.0 ) / ( 4.0 * angle4 * sin_h_angle * sin_h_angle );
+                mu  = (angle2 + 4.0 * std::cos(angle) + angle * std::sin(angle) - 4.0) / (4.0 * angle4 * sin_h_angle * sin_h_angle);
             }
 
-            Spin( rotation_vector, omega );
-            noalias( omega_2 ) = prod( omega, omega );
+            Spin(rotation_vector, omega);
+            noalias(omega_2) = prod(omega, omega);
 
-            noalias( LiTemp2 ) = outer_prod( moment_vector, rotation_vector );
+            noalias(LiTemp2) = outer_prod(moment_vector, rotation_vector);
 
-            noalias( Li ) = inner_prod( rotation_vector, moment_vector ) * IdentityMatrix(3, 3);
-            noalias( Li ) += outer_prod( rotation_vector, moment_vector );
-            noalias( Li ) -= LiTemp2;
+            noalias(Li) = inner_prod(rotation_vector, moment_vector) * IdentityMatrix(3, 3);
+            noalias(Li) += outer_prod(rotation_vector, moment_vector);
+            noalias(Li) -= LiTemp2;
 
-            noalias( LiTemp1 ) = mu * prod( omega_2, LiTemp2 );
-            Spin( moment_vector, LiTemp2, 0.5 );
-            noalias( LiTemp1 ) -= LiTemp2;
+            noalias(LiTemp1) = mu * prod(omega_2, LiTemp2);
+            Spin(moment_vector, LiTemp2, 0.5);
+            noalias(LiTemp1) -= LiTemp2;
 
-            noalias( LiTemp1 ) += eta * Li;
+            noalias(LiTemp1) += eta * Li;
 
-            noalias( Li ) = prod( LiTemp1, project( rH, i_range, i_range ) );
+            noalias(Li) = prod(LiTemp1, project(rH, i_range, i_range));
 
-            project( L, i_range, i_range ) = Li;
+            project(L, i_range, i_range) = Li;
         }
 
         return L;

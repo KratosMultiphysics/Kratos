@@ -33,7 +33,7 @@ def CreateSolver(model, custom_settings):
     custom_settings["solver_settings"].RemoveValue("solver_type")
     custom_settings["solver_settings"].RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
+    module_full = 'KratosMultiphysics.ContactStructuralMechanicsApplication.' + solver_module_name
+    solver = __import__(module_full, fromlist=[solver_module_name]).CreateSolver(model, custom_settings["solver_settings"])
 
     return solver

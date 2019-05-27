@@ -51,6 +51,37 @@ def GetInputParameters():
 
     return parameters
 
+
+def partial_delete_archives():
+    from glob import glob
+
+    files_to_delete_list = glob('*.time')
+    files_to_delete_list.extend(glob('*.gp'))
+    files_to_delete_list.extend(glob('*.txt'))
+    files_to_delete_list.extend(glob('*.lst'))
+    files_to_delete_list.extend(glob('*.info'))
+    files_to_delete_list.extend(glob('*.hdf5'))
+
+    for to_erase_file in files_to_delete_list:
+        try:
+            os.remove(to_erase_file)
+        except OSError:
+            pass
+
+    # folders_to_delete_list      = glob('*Data')
+    # folders_to_delete_list.extend(glob('*ists'))
+    # folders_to_delete_list.extend(glob('*ults'))
+    # folders_to_delete_list.extend(glob('*he__'))
+    # folders_to_delete_list.extend(glob('*aphs'))
+    # folders_to_delete_list.extend(glob('*iles'))
+
+    # for to_erase_folder in folders_to_delete_list:
+    #     try:
+    #         shutil.rmtree(to_erase_folder)
+    #     except OSError:
+    #         pass
+
+
 class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def __init__(self, model, DEM_parameters):
@@ -138,7 +169,6 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         Logger.PrintInfo("DEM","running CleanUpOperations")
         super(DEMBenchamarksAnalysisStage, self).CleanUpOperations()
 
-
 end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
     for iteration in range(1, number_of_points_in_the_graphic + 1):
@@ -157,4 +187,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
-#DBC.delete_archives() #.......Removing some unuseful files
+    partial_delete_archives()
+
+

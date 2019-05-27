@@ -1,5 +1,4 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics import Parameters
 import swimming_DEM_procedures as SDP
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis

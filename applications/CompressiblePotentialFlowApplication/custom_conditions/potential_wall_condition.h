@@ -58,14 +58,14 @@ namespace Kratos
 
 /// Implements a wall condition for the potential flow formulation
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class PotentialWallCondition : public Condition
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) PotentialWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of PotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PotentialWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PotentialWallCondition);
 
     static constexpr int NumNodes = TNumNodes;
     static constexpr int Dim = TDim;
@@ -190,6 +190,9 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                               ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
@@ -269,7 +272,8 @@ private:
     ///@{
 
     bool mInitializeWasPerformed = false;
-    ElementWeakPointerType mpElement;
+
+    GlobalPointer<Element> mpElement;
 
     void CalculateNormal2D(array_1d<double, 3>& An) const;
 
@@ -289,16 +293,16 @@ private:
     ///@name Private Operators
     ///@{
 
-    inline ElementPointerType pGetElement() const;
+    inline GlobalPointer<Element> pGetElement() const;
 
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
+    void GetElementCandidates(GlobalPointersVector<Element>& ElementCandidates,
                               const GeometryType& rGeom) const;
 
     void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;
 
     void FindParentElement(std::vector<IndexType>& NodeIds,
                            std::vector<IndexType>& ElementNodeIds,
-                           WeakPointerVector<Element> ElementCandidates);
+                           GlobalPointersVector<Element> ElementCandidates);
 
     ///@}
     ///@name Private Operations

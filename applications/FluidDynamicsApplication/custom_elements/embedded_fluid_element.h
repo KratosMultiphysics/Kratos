@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Pointer definition of EmbeddedFluidElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedFluidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElement);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

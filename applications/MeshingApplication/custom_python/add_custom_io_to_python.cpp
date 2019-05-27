@@ -23,12 +23,16 @@
 #include "custom_python/add_custom_io_to_python.h"
 #include "includes/datafile_io.h"
 
+#ifdef INCLUDE_MMG
+    #include "custom_io/mmg_io.h"
+#endif
+
 namespace Kratos
 {
 namespace Python
 {
 namespace py = pybind11;
-    
+
 typedef GidIO<PfemGidGaussPointsContainer,PfemGidMeshContainer> GidIOType;
 typedef GidIO<> GidIOBaseType;
 
@@ -71,6 +75,17 @@ void (GidIOType::*pointer_to_array1d_write_nodal_results)(
 
 void  AddCustomIOToPython(pybind11::module& m)
 {
+#ifdef INCLUDE_MMG
+    py::class_<MmgIO, MmgIO::Pointer, IO>(m, "MmgIO")
+    .def(py::init<std::string const&>())
+    .def(py::init<std::string const&, Parameters ThisParameters>())
+    .def(py::init<std::string const&, Parameters ThisParameters, const Flags>())
+    .def(py::init<Kratos::shared_ptr<std::iostream>>())
+    .def(py::init<Kratos::shared_ptr<std::iostream>, Parameters ThisParameters>())
+    .def(py::init<Kratos::shared_ptr<std::iostream>, Parameters ThisParameters, const Flags>())
+    ;
+#endif
+
     py::class_<GidIOType, GidIOType::Pointer,DatafileIO>(m,
         "PFEMGidIO",py::init<std::string const&, GiD_PostMode,
         MultiFileFlag,

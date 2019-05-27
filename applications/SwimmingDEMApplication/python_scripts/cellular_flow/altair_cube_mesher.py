@@ -1,4 +1,3 @@
-from KratosMultiphysics.FluidDynamicsApplication import *
 import cube_mesher
 
 BaseClass = cube_mesher.box_data

@@ -183,7 +183,7 @@ namespace Kratos
     }
 
     // TODO find out what to do with KRATOS_API
-    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
+    template class AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
 
 } // Namespace Kratos
 

@@ -1,8 +1,7 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+from KratosMultiphysics import Model, Parameters, Logger
 import swimming_DEM_procedures as SDP
-import math
+import os
+import sys
 file_path = os.path.abspath(__file__)
 dir_path = os.path.dirname(file_path)
 sys.path.insert(0, dir_path)
@@ -28,7 +27,6 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
 
     def FinalizeSolutionStep(self):
         super(InterpolationTestAnalysis, self).FinalizeSolutionStep()
-        node = [node for node in self.spheres_model_part.Nodes][0]
 
 if __name__ == "__main__":
     # Setting parameters
