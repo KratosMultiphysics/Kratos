@@ -243,11 +243,10 @@ def ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_
 
 class StatisticalVariable(object):
     """The base class for statistical variables"""
-    def __init__(self,number_levels):
+    def __init__(self):
         """constructor of the class
         Keyword arguments:
         self : an instance of a class
-        number_levels : number of levels
         """
 
         # values of the variable, organized per level
@@ -275,7 +274,7 @@ class StatisticalVariable(object):
         # type of variable: scalar or field
         self.type = None
         # number of samples of the variable
-        self.number_samples = [0 for _ in range(number_levels+1)]
+        self.number_samples = None
         self.batches_number_samples = []
         # global power sums
         # S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level
@@ -318,6 +317,7 @@ class StatisticalVariable(object):
             number_levels: number of levels considered
     """
     def InitializeLists(self,number_levels,number_initial_batches):
+        self.number_samples = [0 for _ in range (number_levels)]
         self.values = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.raw_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_1 = [[] for _ in range (number_levels)]

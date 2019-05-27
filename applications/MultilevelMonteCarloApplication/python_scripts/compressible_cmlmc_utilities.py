@@ -287,6 +287,7 @@ class MultilevelMonteCarlo(object):
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # run_multilevel_monte_carlo: flag to run or not the algorithm
         # adaptive_refinement: flag to refine from mesh level 0 each time a different random variable is used
+        # adaptive_number_samples: if False, each level is number_samples_screening and increased multiplying by 2. Add one level per iteration, if possible. If True, automatic computation of number of levels and number of samples per level
         # store_lower_levels_samples: flag to store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
@@ -310,6 +311,7 @@ class MultilevelMonteCarlo(object):
             "run_multilevel_monte_carlo" : "True",
             "adaptive_refinement"        : "True",
             "store_lower_levels_samples" : "False",
+            "adaptive_number_samples"    : "False",
             "k0" : 0.1,
             "k1" : 0.1,
             "r1" : 1.25,
@@ -408,11 +410,11 @@ class MultilevelMonteCarlo(object):
 
         # difference_QoI: Quantity of Interest of the considered problem organized per levels
         #                 difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1
-        self.difference_QoI = StatisticalVariable(self.current_number_levels) # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
+        self.difference_QoI = StatisticalVariable() # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
         self.difference_QoI.InitializeLists(self.settings["maximum_number_levels"].GetInt()+1,self.settings["initial_number_batches"].GetInt())
         self.difference_QoI.type = "scalar"
         # time_ML: time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized per levels
-        self.time_ML = StatisticalVariable(self.current_number_levels) # list containing the time to compute the level=l simulations
+        self.time_ML = StatisticalVariable() # list containing the time to compute the level=l simulations
         self.time_ML.InitializeLists(self.settings["maximum_number_levels"].GetInt()+1,self.settings["initial_number_batches"].GetInt())
 
         ########################################################################
@@ -464,7 +466,7 @@ class MultilevelMonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
-                if self.iteration_counter > 2:
+                if self.iteration_counter > 0:
                     self.convergence = True
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
@@ -484,7 +486,7 @@ class MultilevelMonteCarlo(object):
                     for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
                         batch_results.append(self.ExecuteInstance(level))
-                        self.running_number_samples[level] = self.running_number_samples[level] + 1
+                        self.running_number_samples[level] = self.running_number_samples[level] - 1
                     self.AddResults(batch_results,batch)
                 self.batches_execution_finished[batch] = True
 
@@ -525,8 +527,8 @@ class MultilevelMonteCarlo(object):
         if (self.iteration_counter == 0):
             self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
             self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
-            self.number_samples = [0 for _ in range (self.current_number_levels+1)]
-            self.running_number_samples = [0 for _ in range (self.current_number_levels+1)]
+            self.number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
+            self.running_number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.batches_execution_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.batches_analysis_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
@@ -703,7 +705,6 @@ class MultilevelMonteCarlo(object):
             self.ComputeTolerancei()
             # estimate batches to append and batch size
             self.UpdateBatches()
-            self.batch_size = [7,5] # TODO: remove this line
         for batch in range (len(self.batches_launched)):
             if (self.batches_launched[batch] is False):
                 self.batches_number_samples.append(self.batch_size)
@@ -733,13 +734,24 @@ class MultilevelMonteCarlo(object):
     def UpdateBatches(self):
         # set here number of batches to append
         new_number_batches = 2
-        # compute optimal number of levels
-        self.ComputeLevels()
-        # compute theta splitting parameter according to the current_number_levels and tolerance_i
-        self.ComputeTheta(self.current_number_levels)
-        # compute number of samples according to bayesian_variance and theta_i parameters
-        # TODO: rename UpdateBatchSize this function
-        self.ComputeNumberSamples()
+        print(self.settings["adaptive_number_samples"].GetString())
+        if (self.settings["adaptive_number_samples"].GetString() == "True"):
+            # compute optimal number of levels
+            self.ComputeLevels()
+            # compute theta splitting parameter according to the current_number_levels and tolerance_i
+            self.ComputeTheta(self.current_number_levels)
+            # compute number of samples according to bayesian_variance and theta_i parameters
+            # TODO: rename UpdateBatchSize this function
+            self.ComputeNumberSamples()
+        elif (self.settings["adaptive_number_samples"].GetString() == "False"):
+            #  add one level per time
+            self.current_number_levels = self.current_number_levels+1
+            # compute theta splitting parameter according to the current_number_levels and tolerance_i
+            self.ComputeTheta(self.current_number_levels)
+            # add batch size per level: multiply by 2 current number samples and take the maximum between this integer and default batch size
+            self.batch_size = [max(self.number_samples[level]*2,self.settings["number_samples_screening"].GetInt()) for level in range (self.current_number_levels+1)]
+        else:
+            raise Exception ("Assign True or False to adaptive_number_samples setting.")
         for new_batch in range (new_number_batches):
             self.batches_launched.append(False)
 
@@ -760,6 +772,7 @@ class MultilevelMonteCarlo(object):
                 # update working convergence batch
                 self.current_convergence_batch = batch
                 for level in range (len(self.batches_number_samples[batch])):
+                    print(self.batches_number_samples[batch])
                     # update global power sums from batches power sums
                     self.difference_QoI.UpdateGlobalPowerSums(level,batch)
                     self.time_ML.UpdateGlobalPowerSums(level,batch)

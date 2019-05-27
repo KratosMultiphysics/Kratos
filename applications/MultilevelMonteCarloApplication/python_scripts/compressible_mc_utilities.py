@@ -226,7 +226,7 @@ class MonteCarlo(object):
         #       TErr := \abs(E^MC[QoI] - E[QoI])"""
         self.TErr = None
         # QoI: Quantity of Interest of the considered problem
-        self.QoI = StatisticalVariable(self.current_number_levels)
+        self.QoI = StatisticalVariable()
         # initialize all the variables of the StatisticalVariable class: MC has only one level, i.e. level 0
         self.QoI.InitializeLists(self.current_number_levels+1,self.settings["initial_number_batches"].GetInt())
         # batches_number_samples: total number of samples, organized in level and batches
