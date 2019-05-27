@@ -14,7 +14,7 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_potential_hessian_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_custom_nodal_gradient_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/meshing_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/meshing_application_variables.cpp
 )
 
 ## define compressible potential application test sources

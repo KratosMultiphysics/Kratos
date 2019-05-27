@@ -18,7 +18,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
-#include "../../MeshingApplication/meshing_application.h"
+#include "../../MeshingApplication/meshing_application_variables.h"
 #include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos

@@ -208,27 +208,19 @@ public:
     {
         KRATOS_TRY;
      
-        const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
-
-        KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
-            << "Error on condition -> " << this->Id() << "\n"
-            << "NORMAL must be calculated before using this condition." << std::endl;
-
         if (mInitializeWasPerformed)
             return;
 
         mInitializeWasPerformed = true;
 
         GeometryType &rGeom = this->GetGeometry();
-        WeakPointerVector<Element> ElementCandidates;
+        GlobalPointersVector<Element> ElementCandidates;
         GetElementCandidates(ElementCandidates, rGeom);
 
         std::vector<IndexType> NodeIds, ElementNodeIds;
         GetSortedIds(NodeIds, rGeom);
         FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
 
-        KRATOS_ERROR_IF(!mpElement.lock()) << "error in condition # " << this->Id() << "\n"
-                                           << "Condition cannot find parent element" << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -343,7 +335,7 @@ public:
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
         {
             std::vector<double> rValues;
-            ElementPointerType pElem = pGetElement();
+            GlobalPointer<Element> pElem = pGetElement();
             pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
             this->SetValue(PRESSURE,rValues[0]);
         }
@@ -413,19 +405,19 @@ protected:
         ///@name Protected Operations
         ///@{
 
-        inline ElementPointerType pGetElement()
+        inline GlobalPointer<Element> pGetElement() const
         {
-            KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
+            KRATOS_ERROR_IF(mpElement.get() == nullptr)
                 << "No element found for condition #" << this->Id() << std::endl;
-            return mpElement.lock();
+            return mpElement;
         }
 
-        void GetElementCandidates(WeakPointerVector<Element> &ElementCandidates, GeometryType &rGeom)
+        void GetElementCandidates(GlobalPointersVector<Element> &ElementCandidates, GeometryType &rGeom)
         {
             for (SizeType i = 0; i < TDim; i++)
             {
                 if (rGeom[i].Has(NEIGHBOUR_ELEMENTS)) {
-                    WeakPointerVector<Element> &rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+                    GlobalPointersVector<Element> &rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
                     for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
                         ElementCandidates.push_back(rNodeElementCandidates(j));
                 } else
@@ -444,7 +436,7 @@ protected:
 
         void FindParentElement(std::vector<IndexType> &NodeIds,
                                std::vector<IndexType> &ElementNodeIds,
-                               WeakPointerVector<Element> ElementCandidates)
+                               GlobalPointersVector<Element> ElementCandidates)
         {
             for (SizeType i = 0; i < ElementCandidates.size(); i++)
             {
@@ -489,7 +481,7 @@ private:
 
         bool mInitializeWasPerformed = false;
         double mMinEdgeLength;
-        ElementWeakPointerType mpElement;
+        GlobalPointer<Element> mpElement;
 
         void CalculateNormal2D(array_1d<double, 3> &An)
         {
