@@ -82,6 +82,21 @@ void MPIDataCommunicator::MaxAll(                                               
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(type)                  \
+type MPIDataCommunicator::ScanSum(const type LocalValue) const {                              \
+    return ScanDetail(LocalValue, MPI_SUM);                                                   \
+}                                                                                             \
+std::vector<type> MPIDataCommunicator::ScanSum(const std::vector<type>& rLocalValues) const { \
+    return ScanDetail(rLocalValues, MPI_SUM);                                                 \
+}                                                                                             \
+void MPIDataCommunicator::ScanSum(                                                            \
+    const std::vector<type>& rLocalValues, std::vector<type>& rPartialSums) const {           \
+    ScanDetail(rLocalValues,rPartialSums,MPI_SUM);                                            \
+}                                                                                             \
+
+#endif
+
 namespace Kratos {
 // MPIDataCommunicator implementation
 
@@ -224,45 +239,8 @@ Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const
 
 // Scan operations
 
-int MPIDataCommunicator::ScanSum(const int rLocalValue) const
-{
-    int partial_total;
-    ScanDetail(rLocalValue,partial_total,MPI_SUM);
-    return partial_total;
-}
-
-double MPIDataCommunicator::ScanSum(const double rLocalValue) const
-{
-    double partial_total;
-    ScanDetail(rLocalValue,partial_total,MPI_SUM);
-    return partial_total;
-}
-
-std::vector<int> MPIDataCommunicator::ScanSum(const std::vector<int>& rLocalValues) const
-{
-    std::vector<int> partial_total(rLocalValues.size());
-    ScanDetail(rLocalValues,partial_total,MPI_SUM);
-    return partial_total;
-}
-
-std::vector<double> MPIDataCommunicator::ScanSum(const std::vector<double>& rLocalValues) const
-{
-    std::vector<double> partial_total(rLocalValues.size());
-    ScanDetail(rLocalValues,partial_total,MPI_SUM);
-    return partial_total;
-}
-
-void MPIDataCommunicator::ScanSum(
-    const std::vector<int>& rLocalValues, std::vector<int>& rPartialSums) const
-{
-    ScanDetail(rLocalValues,rPartialSums,MPI_SUM);
-}
-
-void MPIDataCommunicator::ScanSum(
-    const std::vector<double>& rLocalValues, std::vector<double>& rPartialSums) const
-{
-    ScanDetail(rLocalValues,rPartialSums,MPI_SUM);
-}
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(double)
 
 // Sendrecv operations
 
@@ -774,6 +752,22 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
         MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scan");
+}
+
+template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
+    const TDataType LocalValues, MPI_Op Operation) const
+{
+    TDataType global_value;
+    ScanDetail(LocalValues, global_value, MPI_SUM);
+    return global_value;
+}
+
+template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScanDetail(
+    const std::vector<TDataType>& rLocalValues, MPI_Op Operation) const
+{
+    std::vector<TDataType> global_values(rLocalValues.size());
+    ScanDetail(rLocalValues, global_values, MPI_SUM);
+    return global_values;
 }
 
 template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
@@ -1316,3 +1310,4 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE

@@ -52,6 +52,14 @@ void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalVal
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)                         \
+type ScanSum(const type rLocalValue) const override;                                                  \
+std::vector<type> ScanSum(const std::vector<type>& rLocalValues) const override;                      \
+void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -135,17 +143,8 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Scan operations
 
-    int ScanSum(const int rLocalValue) const override;
-
-    double ScanSum(const double rLocalValue) const override;
-
-    std::vector<int> ScanSum(const std::vector<int>& rLocalValues) const override;
-
-    std::vector<double> ScanSum(const std::vector<double>& rLocalValues) const override;
-
-    void ScanSum(const std::vector<int>& rLocalValues, std::vector<int>& rPartialSums) const override;
-
-    void ScanSum(const std::vector<double>& rLocalValues, std::vector<double>& rPartialSums) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(double)
 
     // Sendrecv operations
 
@@ -390,6 +389,14 @@ class MPIDataCommunicator: public DataCommunicator
         TDataType& rReducedValues,
         MPI_Op Operation) const;
 
+    template<class TDataType> TDataType ScanDetail(
+        const TDataType rLocalValues,
+        MPI_Op Operation) const;
+
+    template<class TDataType> std::vector<TDataType> ScanDetail(
+        const std::vector<TDataType>& rLocalValues,
+        MPI_Op Operation) const;
+
     template<class TDataType> void SendRecvDetail(
         const TDataType& rSendMessage, const int SendDestination, const int SendTag,
         TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const;
@@ -504,5 +511,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
