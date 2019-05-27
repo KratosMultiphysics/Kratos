@@ -12,6 +12,21 @@
 
 #include "mpi/includes/mpi_data_communicator.h"
 
+#ifndef KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
+#define KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type)                                        \
+int MPIDataCommunicator::Sum(const type rLocalValue, const int Root) const {                                \
+    return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                        \
+}                                                                                                           \
+std::vector<type> MPIDataCommunicator::Sum(const std::vector<type>& rLocalValues, const int Root) const {   \
+    return ReduceDetail(rLocalValues, MPI_SUM, Root);                                                       \
+}                                                                                                           \
+void MPIDataCommunicator::Sum(                                                                              \
+    const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const {          \
+    ReduceDetail(rLocalValues, rGlobalValues, MPI_SUM, Root);                                               \
+}
+
+#endif
+
 namespace Kratos {
 // MPIDataCommunicator implementation
 
@@ -40,10 +55,7 @@ void MPIDataCommunicator::Barrier() const
 
 // Reduce operations
 
-int MPIDataCommunicator::Sum(const int rLocalValue, const int Root) const
-{
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);
-}
+KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(int)
 
 double MPIDataCommunicator::Sum(const double rLocalValue, const int Root) const
 {
@@ -55,11 +67,6 @@ array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValu
     return ReduceDetail(rLocalValue, MPI_SUM, Root);
 }
 
-std::vector<int> MPIDataCommunicator::Sum(const std::vector<int>& rLocalValues, const int Root) const
-{
-    return ReduceDetail(rLocalValues, MPI_SUM, Root);
-}
-
 std::vector<double> MPIDataCommunicator::Sum(const std::vector<double>& rLocalValues, const int Root) const
 {
     std::vector<double> reduced_values;
@@ -69,14 +76,6 @@ std::vector<double> MPIDataCommunicator::Sum(const std::vector<double>& rLocalVa
     }
     ReduceDetail(rLocalValues, reduced_values, MPI_SUM, Root);
     return reduced_values;
-}
-
-void MPIDataCommunicator::Sum(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const
-{
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_SUM, Root);
 }
 
 void MPIDataCommunicator::Sum(
@@ -1492,3 +1491,5 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 }
 
 }
+
+#undef KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
