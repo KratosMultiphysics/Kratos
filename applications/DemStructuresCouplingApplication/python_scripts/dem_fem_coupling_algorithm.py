@@ -67,14 +67,19 @@ class Algorithm(object):
         self.dem_solution.solver.Initialize()
 
         self.sandwich_simulation = False
+        # Test types (3 different options):
+        # Test number 1: CTW16 specimen
+        # Test number 2: CTW10 specimen
+        # Test number 3: Blind test specimen
+        self.test_number = 1
 
         if not self.sandwich_simulation:
             import control_module_fem_dem_utility
-            self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
+            self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
-        self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
+        self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -214,10 +219,12 @@ class Algorithm(object):
                 axis[1] = 0.0
                 axis[2] = 1.0
 
-                specimen_radius_small = 0.0036195; #95% of the real hole. This is for the CTW16 specimen (smaller inner radius)
-                specimen_radius_large = 0.012065; #95% of the real hole. This is for the CTW10 specimen (larger inner radius)
-                blind_radius = 0.036195; #95% of the real hole
-                radius = specimen_radius_small
+                if self.test_number == 1:
+                    radius = 0.0036195; #95% of the real hole. CTW16 specimen
+                elif test_number == 2:
+                    radius = 0.012065; #95% of the real hole. CTW10 specimen
+                else:
+                    radius = 0.036195; #95% of the real hole. Blind Test
 
                 self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
