@@ -157,6 +157,16 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         // Reference variable
         const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
 
+        // Divergence over full domain
+        double divergencedomain_value = 0;
+
+        const int number_elements = static_cast<int>(elements_array.size());
+        for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
+            auto it_elem = elements_array.begin() + i_elem;
+            divergencedomain_value += pow(it_elem->GetValue(r_reference_var),2);
+        }
+        divergencedomain_value = sqrt(divergencedomain_value);
+
         #pragma omp parallel for
         for(int i_node = 0; i_node < num_nodes; ++i_node) {
             auto it_node = nodes_array.begin() + i_node;
@@ -178,13 +188,17 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
                 }
             }
 
+
+
             // Set element size
-            if (divergencefree_elem_value >= mTargetRefinementCoefficient*mDivergenceFreeMaxValue) {
-                element_size = nodal_h/mRefinementCoefficient;
-            }
-            else {
-                element_size = nodal_h;
-            }
+            // if (divergencefree_elem_value >= mTargetRefinementCoefficient*mDivergenceFreeMaxValue) {
+            //     element_size = nodal_h/mRefinementCoefficient;
+            // }
+            // else {
+            //     element_size = nodal_h;
+            // }
+            element_size = mRefinementCoefficient*nodal_h*(divergencedomain_value/sqrt(number_elements)/divergencefree_elem_value);
+
 
             // Set metric
             BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
