@@ -127,6 +127,10 @@ public:
 
         //UPDATE POSITION AND VELOCITY OF ALL NODES
         for (ModelPart::NodesContainerType::iterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); node_i++) {
+            //Apply fixity:
+            auto pp = node_i->pGetDof(DISPLACEMENT);
+            pp->FixDof();
+
             //Get local coordinates at the beginning (local axes are assumed oriented as global axes at the beginning)
             array_1d<double,3> local_coordinates;
             local_coordinates[0] = node_i->X0() - mCoordinatesOfCenter[0];
