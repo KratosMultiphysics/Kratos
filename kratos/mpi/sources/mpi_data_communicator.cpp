@@ -42,34 +42,22 @@ void MPIDataCommunicator::Barrier() const
 
 int MPIDataCommunicator::Sum(const int rLocalValue, const int Root) const
 {
-    int global_value(rLocalValue);
-    ReduceDetail(rLocalValue, global_value, MPI_SUM, Root);
-    return global_value;
+    return ReduceDetail(rLocalValue, MPI_SUM, Root);
 }
 
 double MPIDataCommunicator::Sum(const double rLocalValue, const int Root) const
 {
-    double global_value(rLocalValue);
-    ReduceDetail(rLocalValue, global_value, MPI_SUM, Root);
-    return global_value;
+    return ReduceDetail(rLocalValue, MPI_SUM, Root);
 }
 
 array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
 {
-    array_1d<double,3> global_value(rLocalValue);
-    ReduceDetail(rLocalValue, global_value, MPI_SUM, Root);
-    return global_value;
+    return ReduceDetail(rLocalValue, MPI_SUM, Root);
 }
 
 std::vector<int> MPIDataCommunicator::Sum(const std::vector<int>& rLocalValues, const int Root) const
 {
-    std::vector<int> reduced_values;
-    if (Rank() == Root)
-    {
-        reduced_values.resize(rLocalValues.size());
-    }
-    ReduceDetail(rLocalValues, reduced_values, MPI_SUM, Root);
-    return reduced_values;
+    return ReduceDetail(rLocalValues, MPI_SUM, Root);
 }
 
 std::vector<double> MPIDataCommunicator::Sum(const std::vector<double>& rLocalValues, const int Root) const
@@ -898,6 +886,30 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
         Operation, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
+
+template<class TDataType> TDataType MPIDataCommunicator::ReduceDetail(
+    const TDataType& rLocalValues, MPI_Op Operation, const int Root) const
+{
+    TDataType global_values(rLocalValues);
+    ReduceDetail(rLocalValues, global_values, Operation, Root);
+    return global_values;
+}
+
+template<class TDataType, class TVectorType>
+TVectorType MPIDataCommunicator::ReduceDetail(
+    const TVectorType& rLocalValues,
+    MPI_Op Operation,
+    const int Root) const
+{
+    TVectorType reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues, reduced_values, MPI_SUM, Root);
+    return reduced_values;
+}
+
 
 template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,

@@ -25,9 +25,10 @@
 #include "includes/data_communicator.h"
 
 #ifndef KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
-#define KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type) \
-type Sum(const type rLocalValue, const int Root) const override;      \
-
+#define KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type)                                           \
+type Sum(const type rLocalValue, const int Root) const override;                                                \
+std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const override;                    \
+void Sum(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
 
 #endif
 
@@ -84,14 +85,7 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    std::vector<int> Sum(const std::vector<int>& rLocalValues, const int Root) const override;
-
     std::vector<double> Sum(const std::vector<double>& rLocalValues, const int Root) const override;
-
-    void Sum(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const override;
 
     void Sum(
         const std::vector<double>& rLocalValues,
@@ -435,6 +429,16 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,
         TDataType& rReducedValues,
+        MPI_Op Operation,
+        const int Root) const;
+
+    template<class TDataType> TDataType ReduceDetail(
+        const TDataType& rLocalValues,
+        MPI_Op Operation,
+        const int Root) const;
+
+    template<class TDataType, class TVectorType = std::vector<TDataType> > TVectorType ReduceDetail(
+        const TVectorType& rLocalValues,
         MPI_Op Operation,
         const int Root) const;
 
