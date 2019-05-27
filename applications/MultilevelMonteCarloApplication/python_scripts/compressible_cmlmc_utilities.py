@@ -927,7 +927,10 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeRatesLS(self):
-        current_number_levels = self.difference_QoI.h_statistics_1.index([])  # index() method finds the given element in a list and returns its position (starts from 1, not from 0)
+        if (self.difference_QoI.h_statistics_1[-1] == []):
+            current_number_levels = self.difference_QoI.h_statistics_1.index([]) # index() method finds the given element in a list and returns its position (starts from 1, not from 0)
+        else:
+            current_number_levels = self.settings["maximum_number_levels"].GetInt()+1
         bias_ratesLS = np.abs(self.difference_QoI.h_statistics_1[:current_number_levels])
         variance_ratesLS = self.difference_QoI.h_statistics_2[:current_number_levels]
         cost_ML_ratesLS = self.time_ML.h_statistics_1[:current_number_levels]
@@ -972,7 +975,10 @@ class MultilevelMonteCarlo(object):
         beta  = self.rates_error["beta"]
         mesh_param = self.mesh_parameters
         # use local variables, in order to not modify the global variables
-        current_number_levels = self.difference_QoI.h_statistics_1.index([])
+        if (self.difference_QoI.h_statistics_1[-1] == []):
+            current_number_levels = self.difference_QoI.h_statistics_1.index([])
+        else:
+            current_number_levels = self.settings["maximum_number_levels"].GetInt()+1
         mean_local = copy.copy(self.difference_QoI.h_statistics_1[:current_number_levels])
         variance_local = copy.copy(self.difference_QoI.h_statistics_2[:current_number_levels])
         nsam_local = copy.copy(self.number_samples)
@@ -1151,7 +1157,11 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeMeanMLMCQoI(self):
-        current_number_levels = self.difference_QoI.h_statistics_1.index([])
+        print(self.difference_QoI.h_statistics_1)
+        if (self.difference_QoI.h_statistics_1[-1] == []):
+            current_number_levels = self.difference_QoI.h_statistics_1.index([]) # index() method finds the given element in a list and returns its position (starts from 1, not from 0)
+        else:
+            current_number_levels = self.settings["maximum_number_levels"].GetInt()+1
         self.mean_mlmc_QoI = np.sum(self.difference_QoI.h_statistics_1[:current_number_levels])
 
     """
