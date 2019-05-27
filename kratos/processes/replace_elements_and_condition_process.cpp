@@ -22,6 +22,11 @@
 namespace Kratos {
 namespace {
 
+/// Replace entities in a given container if the entity id is present in a list of ids.
+    /*  @param rReferenceEntity New type of entity that will replace old one
+     *  @param rEntityContainer Container of elements susceptible to be replaces
+     *  @param rSetOfIds Set of entities ids we want to replace
+     */
 template <class TEntity, class TEntityContainer>
 void ReplaceEntities(
     const TEntity& rReferenceEntity,
@@ -42,6 +47,12 @@ void ReplaceEntities(
     }
 }
 
+/// Replace elements in a given submodelpart using the elements from the root model part
+/// if the element id is present in a given set of ids
+    /*  @param rModelPart Model part whose elements we want to replace
+     *  @param rRootModelPart Root model part with the replaced elements
+     *  @param rSetOfElementsIds Set of elements ids we want to replace
+     */
 void UpdateElementsInSubModelPart(
     ModelPart& rModelPart,
     ModelPart& rRootModelPart,
@@ -60,6 +71,13 @@ void UpdateElementsInSubModelPart(
     }
 }
 
+
+/// Replace conditions in a given submodelpart using the conditions from the root model part
+/// if the condition id is present in a given set of ids
+    /*  @param rModelPart Model part whose conditions we want to replace
+     *  @param rRootModelPart Root model part with the replaced conditions
+     *  @param rSetOfConditions Set of conditions ids we want to replace
+     */
 void UpdateConditionsInSubModelPart(
     ModelPart& rModelPart,
     ModelPart& rRootModelPart,
