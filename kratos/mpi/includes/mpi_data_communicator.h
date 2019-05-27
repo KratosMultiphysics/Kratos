@@ -60,6 +60,19 @@ void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalVa
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)               \
+std::vector<type> SendRecv(const std::vector<type>& rSendValues,                             \
+    const int SendDestination, const int RecvSource) const override;                         \
+std::vector<type> SendRecv(const std::vector<type>& rSendValues,                             \
+    const int SendDestination, const int SendTag,                                            \
+    const int RecvSource, const int RecvTag) const override;                                 \
+void SendRecv(                                                                               \
+    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
+    std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -148,28 +161,13 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Sendrecv operations
 
-    std::vector<int> SendRecv(
-        const std::vector<int>& rSendValues,
-        const int SendDestination,
-        const int RecvSource) const override;
-
-    std::vector<double> SendRecv(
-        const std::vector<double>& rSendValues,
-        const int SendDestination,
-        const int RecvSource) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(double)
 
     std::string SendRecv(
         const std::string& rSendValues,
         const int SendDestination,
         const int RecvSource) const override;
-
-    void SendRecv(
-        const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
-        std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const override;
-
-    void SendRecv(
-        const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
-        std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const override;
 
     void SendRecv(
         const std::string& rSendValues, const int SendDestination, const int SendTag,
@@ -401,6 +399,11 @@ class MPIDataCommunicator: public DataCommunicator
         const TDataType& rSendMessage, const int SendDestination, const int SendTag,
         TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const;
 
+    template<class TDataType> std::vector<TDataType> SendRecvDetail(
+        const std::vector<TDataType>& rSendMessage,
+        const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const;
+
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
 
@@ -512,5 +515,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
