@@ -55,7 +55,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
-                "type_search"                         : "in_radius",
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,
@@ -68,7 +68,14 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
             },
             "advance_explicit_parameters"  : {
                 "manual_max_gap_theshold"  : false,
@@ -178,23 +185,23 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         # We define the condition name to be used
         if self.contact_settings["contact_type"].GetString() == "Frictionless":
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyNVFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyNVFrictionlessMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionlessMortarContact"
-        elif self.is_frictional is True:
+        elif self.is_frictional:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyNVFrictionalAxisymMortarContact"
                 else:
                     condition_name = "PenaltyNVFrictionalMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyFrictionalAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionalMortarContact"

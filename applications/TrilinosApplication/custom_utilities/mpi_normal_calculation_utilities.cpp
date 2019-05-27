@@ -259,7 +259,7 @@ void MPINormalCalculationUtils::IdentifyFaces(ModelPart& rModelPart,
     }
 
     // Get the maximum from all processes
-    rModelPart.GetCommunicator().MaxAll(MaxNeigh);
+    MaxNeigh = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(MaxNeigh);
 }
 
 

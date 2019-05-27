@@ -69,7 +69,7 @@ namespace Kratos
     typedef ConditionType::GeometryType       GeometryType;
 
     typedef ModelPart::ElementsContainerType     ElementsContainerType;
-    typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element>        ElementWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
