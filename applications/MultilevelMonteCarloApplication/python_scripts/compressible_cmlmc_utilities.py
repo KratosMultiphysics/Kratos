@@ -56,7 +56,7 @@ input:  simulation_results: an instance of the multilevel monte carlo result cla
 output: difference_QoI_value:              difference QoIvalue to be added
         simulation_results.time_ML[level]: time value to be added
 """
-@ExaquteTask(returns=2)
+@ExaquteTask(returns=2,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
     aux = simulation_results[0]
     if (level == 0):
@@ -84,7 +84,7 @@ output: auxiliary_MLMC_object.rates_error:       rates error of the MultilevelMo
         auxiliary_MLMC_object.total_error:       total error of the MultilevelMonteCarlo class
         auxiliary_MLMC_object.number_samples:    number of samples of the MultilevelMonteCarlo class
 """
-@ExaquteTask(returns=5)
+@ExaquteTask(returns=5,priority=True)
 def FinalizePhaseAux_Task(ConstructorCallback,aux_settings_serialized,aux_mesh_parameters,\
 aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     # retrieve lists
@@ -145,6 +145,7 @@ output:
         pickled_finer_model:              pickled finer model
         pickled_finer_project_parameters: pickled finer parameters
 """
+@constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=3)
 def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis_stage,mlmc_results):
     time_0 = time.time()
@@ -459,6 +460,7 @@ class MultilevelMonteCarlo(object):
             self.LaunchEpoch()
             self.FinalizeScreeningPhase()
             self.ScreeningInfoScreeningPhase()
+            self.ComputeMeanMLMCQoI()
             # start MLMC phase
             while self.convergence is not True:
                 self.InitializeMLMCPhase()
@@ -466,7 +468,7 @@ class MultilevelMonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
-                if self.iteration_counter > 0:
+                if self.iteration_counter >= 0:
                     self.convergence = True
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
@@ -734,7 +736,6 @@ class MultilevelMonteCarlo(object):
     def UpdateBatches(self):
         # set here number of batches to append
         new_number_batches = 2
-        print(self.settings["adaptive_number_samples"].GetString())
         if (self.settings["adaptive_number_samples"].GetString() == "True"):
             # compute optimal number of levels
             self.ComputeLevels()
@@ -745,7 +746,7 @@ class MultilevelMonteCarlo(object):
             self.ComputeNumberSamples()
         elif (self.settings["adaptive_number_samples"].GetString() == "False"):
             #  add one level per time
-            self.current_number_levels = self.current_number_levels+1
+            self.current_number_levels = min(self.current_number_levels+1,self.settings["maximum_number_levels"].GetInt())
             # compute theta splitting parameter according to the current_number_levels and tolerance_i
             self.ComputeTheta(self.current_number_levels)
             # add batch size per level: multiply by 2 current number samples and take the maximum between this integer and default batch size
@@ -772,7 +773,6 @@ class MultilevelMonteCarlo(object):
                 # update working convergence batch
                 self.current_convergence_batch = batch
                 for level in range (len(self.batches_number_samples[batch])):
-                    print(self.batches_number_samples[batch])
                     # update global power sums from batches power sums
                     self.difference_QoI.UpdateGlobalPowerSums(level,batch)
                     self.time_ML.UpdateGlobalPowerSums(level,batch)

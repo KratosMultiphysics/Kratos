@@ -167,7 +167,7 @@ output: h1_level: first h statistics for defined level
         h3_level: third h statistics for defined level
         h4_level: fourth h statistics for defined level
 """
-@ExaquteTask(returns=4)
+@ExaquteTask(returns=4,priority=True)
 def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
     h1_level = S1_level / number_samples_level
     h2_level = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
@@ -188,7 +188,7 @@ input:  h2_level: second h statistics for defined level
 output: skewness_level: skewness for defined level
         kurtosis_level: kurtosis for defined level
 """
-@ExaquteTask(returns=2)
+@ExaquteTask(returns=2,priority=True)
 def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
     skewness_level = h3_level / (np.sqrt(h2_level**3))
     kurtosis_level = h4_level / (h2_level**2)
