@@ -89,7 +89,7 @@ void GenerateDemProcess::Execute()
                     } else {
                         radius = this->GetMinimumValue(distances)*0.5;
                     }
-                    const array_1d<double,3>& r_coordinates = this->GetNodeCoordinates(r_node);
+                    const array_1d<double,3>& r_coordinates = r_node.Coordinates();
                     this->CreateDEMParticle(r_node.Id(), r_coordinates, p_DEM_properties, radius, r_node);
                 }
             }
@@ -134,21 +134,6 @@ double GenerateDemProcess::CalculateDistanceBetweenNodes(
     const double Z2 = rNode2.Z();
     return std::sqrt(std::pow(X1-X2, 2.0) + std::pow(Y1-Y2, 2.0) + std::pow(Z1-Z2, 2.0));
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-array_1d<double,3> GenerateDemProcess::GetNodeCoordinates(
-    const NodeType& rNode
-    )
-{
-    array_1d<double,3> coordinates;
-    coordinates[0] = rNode.X();
-    coordinates[1] = rNode.Y();
-    coordinates[2] = rNode.Z();
-    return coordinates;
-}
-
 
 /***********************************************************************************/
 /***********************************************************************************/

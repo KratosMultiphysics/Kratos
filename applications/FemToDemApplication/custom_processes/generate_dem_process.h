@@ -47,7 +47,6 @@ class GenerateDemProcess : public Process
   void Execute() override;
 
   double CalculateDistanceBetweenNodes(const NodeType& Node1, const NodeType& Node2);
-  array_1d<double,3> GetNodeCoordinates(const NodeType& rNode);
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
       const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
   double GetMinimumValue(const Vector& rValues);
