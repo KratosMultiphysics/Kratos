@@ -172,6 +172,7 @@ class MPIDataCommunicator: public DataCommunicator
     void Barrier() const override;
 
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(unsigned int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(double)
 
     // Reduce operations
