@@ -199,6 +199,18 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             // }
             element_size = mRefinementCoefficient*nodal_h*(divergencedomain_value/sqrt(number_elements)/divergencefree_elem_value);
 
+            if (element_size < mMinSize) {
+                element_size = mMinSize;
+            }
+            if (element_size > mMaxSize) {
+                element_size = mMaxSize;
+            }
+
+            // KRATOS_WATCH(element_size) << std::endl;
+            if (element_size > 1000) {
+                KRATOS_WARNING("element_size") << element_size << std::endl;
+            }
+
 
             // Set metric
             BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
