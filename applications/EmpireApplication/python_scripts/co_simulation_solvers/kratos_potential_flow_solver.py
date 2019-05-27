@@ -60,20 +60,27 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
         #         self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[i]["Parameters"])
         #     if sub_project_parameters[i]["python_module"].GetString() == "compute_lift_process":
         #         self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
-        self.wake_process.FindWakeElements()
+        # self.wake_process.FindWakeElements()
+        self.counter = 0
 
 
     def SolveSolutionStep(self):
         self.wake_process.CleanMarking()
-        super(KratosPotentialFlowSolver, self).SolveSolutionStep()
         self.wake_process.SolveSolutionStep()
+
+        self.counter +=1
+        print('COUNTERRRRRRRRRRR',self.counter)
+
+        super(KratosPotentialFlowSolver, self).SolveSolutionStep()
         # for elem in self.wake_process.wake_elements_sub_modelpart.Elements:
         #     print("INITIAL", elem.Id)
+
         for elem in self.wake_process.trailing_edge_model_part.Elements:
             print("TRAILING --------------------------------", elem.Id)
         # self.wake_process.FindWakeElements()
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
+        # self.wake_process.CleanMarking()
 
         print("SOLVING NOW")
     def FinalizeSolutionStep(self):

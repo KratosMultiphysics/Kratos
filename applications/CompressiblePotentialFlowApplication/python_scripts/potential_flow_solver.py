@@ -99,6 +99,7 @@ class PotentialFlowSolver(FluidSolver):
         (self.solver).FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
+        self.solver.Clear()
         is_converged = self.solver.SolveSolutionStep()
         if not is_converged:
             msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"

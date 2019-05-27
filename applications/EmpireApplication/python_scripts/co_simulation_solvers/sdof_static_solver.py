@@ -81,7 +81,7 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         self.dx = self.force/self.stiffness
         # self.x = self.b/self.stiffness
 
-        # self.x = self.dx + self.x_old
+        self.x = self.dx + self.x_old
         self.x_old = self.x
         # self.dx = 2
         print('force B = ', self.b)
