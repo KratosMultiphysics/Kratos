@@ -27,9 +27,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
-                "free_stream_velocity": [1.0,0.0,0]
+                "free_stream_velocity": [1.0,0.0,0],
+                "initialize_flow_field": true
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
+
 
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.far_field_model_part.GetRootModelPart()
@@ -40,6 +42,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.free_stream_speed_of_sound = settings["speed_of_sound"].GetDouble()
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
+        self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
 
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
@@ -61,8 +64,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()
         self._AssignFarFieldBoundaryConditions(reference_inlet_node)
 
+        if(self.initialize_flow_field):
+            for node in self.fluid_model_part.Nodes:
+                initial_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
+                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
+                node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
+
     def _FindFarthestUpstreamBoundaryNode(self):
-        # The farthes upstream boundary node is the node with smallest
+        # The farthest upstream boundary node is the node with smallest
         # projection of its position vector onto the free stream velocity.
 
         # Find the farthest upstream boundary node
@@ -109,6 +118,5 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
     def _AssignNeumannFarFieldBoundaryCondition(self, cond):
         cond.SetValue(CPFApp.FREE_STREAM_VELOCITY, self.free_stream_velocity)
-
 
 

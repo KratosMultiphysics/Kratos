@@ -30,12 +30,12 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DEMWall );
 
 
-	typedef WeakPointerVector<Element> ParticleWeakVectorType;
+	typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+	typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+	typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void

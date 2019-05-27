@@ -434,7 +434,7 @@ namespace Kratos
 
     MeshDataTransferUtilities DataTransfer;
     Element*   MasterElement   = &GetValue(MASTER_ELEMENTS).front();
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
     DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
 
     KRATOS_CATCH( "" )

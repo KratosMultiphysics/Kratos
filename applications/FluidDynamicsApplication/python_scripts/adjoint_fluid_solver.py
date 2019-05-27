@@ -159,7 +159,7 @@ class AdjointFluidSolver(PythonSolver):
         else:
             element_num_nodes = 0
 
-        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        element_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(element_num_nodes)
         return element_num_nodes
 
     def _GetConditionNumNodes(self):
@@ -171,7 +171,7 @@ class AdjointFluidSolver(PythonSolver):
         else:
             condition_num_nodes = 0
 
-        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
 
     def _ExecuteCheckAndPrepare(self):
