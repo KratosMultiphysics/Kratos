@@ -29,6 +29,12 @@
 type Sum(const type rLocalValue, const int Root) const override;                                                \
 std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const override;                    \
 void Sum(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
+type Min(const type rLocalValue, const int Root) const override;                                                \
+std::vector<type> Min(const std::vector<type>& rLocalValues, const int Root) const override;                    \
+void Min(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
+type Max(const type rLocalValue, const int Root) const override;                                                \
+std::vector<type> Max(const std::vector<type>& rLocalValues, const int Root) const override;                    \
+void Max(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
 
 #endif
 
@@ -92,40 +98,22 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const override;
 
-    int Min(const int rLocalValue, const int Root) const override;
-
     double Min(const double rLocalValue, const int Root) const override;
 
     array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    std::vector<int> Min(const std::vector<int>& rLocalValues, const int Root) const override;
-
     std::vector<double> Min(const std::vector<double>& rLocalValues, const int Root) const override;
-
-    void Min(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const override;
 
     void Min(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const override;
 
-    int Max(const int rLocalValue, const int Root) const override;
-
     double Max(const double rLocalValue, const int Root) const override;
 
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    std::vector<int> Max(const std::vector<int>& rLocalValues, const int Root) const override;
-
     std::vector<double> Max(const std::vector<double>& rLocalValues, const int Root) const override;
-
-    void Max(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const override;
 
     void Max(
         const std::vector<double>& rLocalValues,
