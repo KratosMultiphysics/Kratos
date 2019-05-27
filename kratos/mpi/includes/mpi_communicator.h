@@ -1326,7 +1326,7 @@ private:
         int mpi_rank = mrDataCommunicator.Rank();
         int mpi_size = mrDataCommunicator.Size();
 
-        MPI_Comm comm = MPIEnvironment::GetMPICommunicator(mrDataCommunicator);
+        MPI_Comm comm = MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator);
 
         int * msgSendSize = new int[mpi_size];
         int * msgRecvSize = new int[mpi_size];
