@@ -18,7 +18,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "containers/model.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "utilities/read_materials_utility.h"
 #include "custom_constitutive/rule_of_mixtures_law.h"
 #include "includes/mat_variables.h"
@@ -30,21 +30,21 @@ namespace Testing
 /// Nodetype definition
 typedef Node<3> NodeType;
 
-void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
-{
-    GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-    const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-    const double label = static_cast<double>(nl_iter);
-
-    gid_io.InitializeMesh(label);
-    gid_io.WriteMesh(ThisModelPart.GetMesh());
-    gid_io.FinalizeMesh();
-    gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-    gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
-    gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
-    gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
-    gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
-}
+// void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
+// {
+//     GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+//     const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//     const double label = static_cast<double>(nl_iter);
+//
+//     gid_io.InitializeMesh(label);
+//     gid_io.WriteMesh(ThisModelPart.GetMesh());
+//     gid_io.FinalizeMesh();
+//     gid_io.InitializeResults(label, ThisModelPart.GetMesh());
+//     gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
+//     gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
+//     gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
+//     gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
+// }
 
 Parameters GetTwoLayersParameters()
 {
@@ -161,9 +161,9 @@ void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::siz
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
-    auto& process_info = rThisModelPart.GetProcessInfo();
-    process_info[STEP] = 1;
-    process_info[NL_ITERATION_NUMBER] = 1;
+    auto& r_process_info = rThisModelPart.GetProcessInfo();
+    r_process_info[STEP] = 1;
+    r_process_info[NL_ITERATION_NUMBER] = 1;
 
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
@@ -175,34 +175,23 @@ void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::siz
     Properties::Pointer p_elem_prop = rThisModelPart.pGetProperties(1);
 
     // First we create the nodes
-    NodeType::Pointer p_node_1 = rThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-    NodeType::Pointer p_node_2 = rThisModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-    NodeType::Pointer p_node_3 = rThisModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-    NodeType::Pointer p_node_4 = rThisModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-    NodeType::Pointer p_node_5 = rThisModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-    NodeType::Pointer p_node_6 = rThisModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-    NodeType::Pointer p_node_7 = rThisModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-    NodeType::Pointer p_node_8 = rThisModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
+    rThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+    rThisModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+    rThisModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+    rThisModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
+    rThisModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+    rThisModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
+    rThisModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
+    rThisModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
 
-    // Now we create the "conditions"
-    std::vector<NodeType::Pointer> element_nodes (8);
-    element_nodes[0] = p_node_5;
-    element_nodes[1] = p_node_8;
-    element_nodes[2] = p_node_6;
-    element_nodes[3] = p_node_2;
-    element_nodes[4] = p_node_3;
-    element_nodes[5] = p_node_7;
-    element_nodes[6] = p_node_4;
-    element_nodes[7] = p_node_1;
-    Hexahedra3D8 <NodeType> hexahedra( PointerVector<NodeType>{element_nodes} );
-
-    Element::Pointer p_elem_0 = rThisModelPart.CreateNewElement(ElementName, 1, hexahedra, p_elem_prop);
+    // Now we create the elements
+    rThisModelPart.CreateNewElement(ElementName, 1, {{5,8,6,2,3,7,4,1}}, p_elem_prop);
 
     // Initialize elements
-    for (auto& elem : rThisModelPart.Elements()) {
-        elem.Initialize();
-        elem.InitializeSolutionStep(process_info);
-        elem.InitializeNonLinearIteration(process_info);
+    for (auto& r_elem : rThisModelPart.Elements()) {
+        r_elem.Initialize();
+        r_elem.InitializeSolutionStep(r_process_info);
+        r_elem.InitializeNonLinearIteration(r_process_info);
     }
 }
 
@@ -210,9 +199,9 @@ void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::si
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
-    auto& process_info = rThisModelPart.GetProcessInfo();
-    process_info[STEP] = 1;
-    process_info[NL_ITERATION_NUMBER] = 1;
+    auto& r_process_info = rThisModelPart.GetProcessInfo();
+    r_process_info[STEP] = 1;
+    r_process_info[NL_ITERATION_NUMBER] = 1;
 
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
@@ -224,123 +213,39 @@ void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::si
     Properties::Pointer p_elem_prop = rThisModelPart.pGetProperties(1);
 
     // First we create the nodes
-    NodeType::Pointer p_node_1 = rThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-    NodeType::Pointer p_node_2 = rThisModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-    NodeType::Pointer p_node_3 = rThisModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-    NodeType::Pointer p_node_4 = rThisModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-    NodeType::Pointer p_node_5 = rThisModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-    NodeType::Pointer p_node_6 = rThisModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
+    rThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+    rThisModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+    rThisModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+    rThisModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
+    rThisModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+    rThisModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
 
-    NodeType::Pointer p_node_7 = rThisModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-    NodeType::Pointer p_node_8 = rThisModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-    NodeType::Pointer p_node_9 = rThisModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-    NodeType::Pointer p_node_10 = rThisModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-    NodeType::Pointer p_node_11 = rThisModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-    NodeType::Pointer p_node_12 = rThisModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
+    rThisModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
+    rThisModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
+    rThisModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
+    rThisModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
+    rThisModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
+    rThisModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
 
-    // Now we create the "conditions"
-    std::vector<NodeType::Pointer> element_nodes_0 (4);
-    element_nodes_0[0] = p_node_12;
-    element_nodes_0[1] = p_node_10;
-    element_nodes_0[2] = p_node_8;
-    element_nodes_0[3] = p_node_9;
-    Tetrahedra3D4 <NodeType> tetrahedra_0( PointerVector<NodeType>{element_nodes_0} );
-
-    std::vector<NodeType::Pointer> element_nodes_1 (4);
-    element_nodes_1[0] = p_node_4;
-    element_nodes_1[1] = p_node_6;
-    element_nodes_1[2] = p_node_9;
-    element_nodes_1[3] = p_node_7;
-    Tetrahedra3D4 <NodeType> tetrahedra_1( PointerVector<NodeType>{element_nodes_1} );
-
-    std::vector<NodeType::Pointer> element_nodes_2 (4);
-    element_nodes_2[0] = p_node_11;
-    element_nodes_2[1] = p_node_7;
-    element_nodes_2[2] = p_node_9;
-    element_nodes_2[3] = p_node_8;
-    Tetrahedra3D4 <NodeType> tetrahedra_2( PointerVector<NodeType>{element_nodes_2} );
-
-    std::vector<NodeType::Pointer> element_nodes_3 (4);
-    element_nodes_3[0] = p_node_5;
-    element_nodes_3[1] = p_node_3;
-    element_nodes_3[2] = p_node_8;
-    element_nodes_3[3] = p_node_6;
-    Tetrahedra3D4 <NodeType> tetrahedra_3( PointerVector<NodeType>{element_nodes_3} );
-
-    std::vector<NodeType::Pointer> element_nodes_4 (4);
-    element_nodes_4[0] = p_node_4;
-    element_nodes_4[1] = p_node_6;
-    element_nodes_4[2] = p_node_7;
-    element_nodes_4[3] = p_node_3;
-    Tetrahedra3D4 <NodeType> tetrahedra_4( PointerVector<NodeType>{element_nodes_4} );
-
-    std::vector<NodeType::Pointer> element_nodes_5 (4);
-    element_nodes_5[0] = p_node_2;
-    element_nodes_5[1] = p_node_3;
-    element_nodes_5[2] = p_node_5;
-    element_nodes_5[3] = p_node_6;
-    Tetrahedra3D4 <NodeType> tetrahedra_5( PointerVector<NodeType>{element_nodes_5} );
-
-    std::vector<NodeType::Pointer> element_nodes_6 (4);
-    element_nodes_6[0] = p_node_10;
-    element_nodes_6[1] = p_node_9;
-    element_nodes_6[2] = p_node_6;
-    element_nodes_6[3] = p_node_8;
-    Tetrahedra3D4 <NodeType> tetrahedra_6( PointerVector<NodeType>{element_nodes_6} );
-
-    std::vector<NodeType::Pointer> element_nodes_7 (4);
-    element_nodes_7[0] = p_node_7;
-    element_nodes_7[1] = p_node_8;
-    element_nodes_7[2] = p_node_3;
-    element_nodes_7[3] = p_node_6;
-    Tetrahedra3D4 <NodeType> tetrahedra_7( PointerVector<NodeType>{element_nodes_7} );
-
-    std::vector<NodeType::Pointer> element_nodes_8 (4);
-    element_nodes_8[0] = p_node_7;
-    element_nodes_8[1] = p_node_8;
-    element_nodes_8[2] = p_node_6;
-    element_nodes_8[3] = p_node_9;
-    Tetrahedra3D4 <NodeType> tetrahedra_8( PointerVector<NodeType>{element_nodes_8} );
-
-    std::vector<NodeType::Pointer> element_nodes_9 (4);
-    element_nodes_9[0] = p_node_4;
-    element_nodes_9[1] = p_node_1;
-    element_nodes_9[2] = p_node_6;
-    element_nodes_9[3] = p_node_3;
-    Tetrahedra3D4 <NodeType> tetrahedra_9( PointerVector<NodeType>{element_nodes_9} );
-
-    std::vector<NodeType::Pointer> element_nodes_10 (4);
-    element_nodes_10[0] = p_node_9;
-    element_nodes_10[1] = p_node_12;
-    element_nodes_10[2] = p_node_11;
-    element_nodes_10[3] = p_node_8;
-    Tetrahedra3D4 <NodeType> tetrahedra_10( PointerVector<NodeType>{element_nodes_10} );
-
-    std::vector<NodeType::Pointer> element_nodes_11 (4);
-    element_nodes_11[0] = p_node_3;
-    element_nodes_11[1] = p_node_2;
-    element_nodes_11[2] = p_node_1;
-    element_nodes_11[3] = p_node_6;
-    Tetrahedra3D4 <NodeType> tetrahedra_11( PointerVector<NodeType>{element_nodes_11} );
-
-    Element::Pointer p_elem_0 = rThisModelPart.CreateNewElement(ElementName, 1, tetrahedra_0, p_elem_prop);
-    Element::Pointer p_elem_1 = rThisModelPart.CreateNewElement(ElementName, 2, tetrahedra_1, p_elem_prop);
-    Element::Pointer p_elem_2 = rThisModelPart.CreateNewElement(ElementName, 3, tetrahedra_2, p_elem_prop);
-    Element::Pointer p_elem_3 = rThisModelPart.CreateNewElement(ElementName, 4, tetrahedra_3, p_elem_prop);
-    Element::Pointer p_elem_4 = rThisModelPart.CreateNewElement(ElementName, 5, tetrahedra_4, p_elem_prop);
-    Element::Pointer p_elem_5 = rThisModelPart.CreateNewElement(ElementName, 6, tetrahedra_5, p_elem_prop);
-    Element::Pointer p_elem_6 = rThisModelPart.CreateNewElement(ElementName, 7, tetrahedra_6, p_elem_prop);
-    Element::Pointer p_elem_7 = rThisModelPart.CreateNewElement(ElementName, 8, tetrahedra_7, p_elem_prop);
-    Element::Pointer p_elem_8 = rThisModelPart.CreateNewElement(ElementName, 9, tetrahedra_8, p_elem_prop);
-    Element::Pointer p_elem_9 = rThisModelPart.CreateNewElement(ElementName, 10, tetrahedra_9, p_elem_prop);
-    Element::Pointer p_elem_10 = rThisModelPart.CreateNewElement(ElementName, 11, tetrahedra_10, p_elem_prop);
-    Element::Pointer p_elem_11 = rThisModelPart.CreateNewElement(ElementName, 12, tetrahedra_11, p_elem_prop);
+    // Now we create the elements
+    rThisModelPart.CreateNewElement(ElementName, 1, {{12,10,8,9}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 2, {{4,6,9,7}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 3, {{11,7,9,8}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 4, {{5,3,8,6}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 5, {{4,6,7,3}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 6, {{2,3,5,6}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 7, {{10,9,6,8}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 8, {{7,8,3,6}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 9, {{7,8,6,9}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 10, {{4,1,6,3}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 11, {{9,12,11,8}}, p_elem_prop);
+    rThisModelPart.CreateNewElement(ElementName, 12, {{3,2,1,6}}, p_elem_prop);
 
     // Initialize elements
-    for (auto& elem : rThisModelPart.Elements()) {
-        elem.Initialize();
-        elem.InitializeSolutionStep(process_info);
-        elem.InitializeNonLinearIteration(process_info);
+    for (auto& r_elem : rThisModelPart.Elements()) {
+        r_elem.Initialize();
+        r_elem.InitializeSolutionStep(r_process_info);
+        r_elem.InitializeNonLinearIteration(r_process_info);
     }
 }
 
@@ -350,13 +255,13 @@ void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::si
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, KratosStructuralMechanicsFastSuite)
 {
     Model this_model;
-    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryHexahedraRuleOfMixtures(model_part);
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+    Create3DGeometryHexahedraRuleOfMixtures(r_model_part);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
     delta[0] = 1.0e-2;
-    for (auto& node : model_part.Nodes()) {
+    for (auto& node : r_model_part.Nodes()) {
         if (node.X() < 1.0e-3) {
             node.Fix(DISPLACEMENT_X);
             node.Fix(DISPLACEMENT_Y);
@@ -374,8 +279,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
     /// Tolerance
     const double tolerance = 1.0e-6;
 
-    ProcessInfo& process_info = model_part.GetProcessInfo();
-    for (auto& elem : model_part.Elements()) {
+    ProcessInfo& process_info = r_model_part.GetProcessInfo();
+    for (auto& elem : r_model_part.Elements()) {
         std::vector<Vector> solution;
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
@@ -391,13 +296,13 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, KratosStructuralMechanicsFastSuite)
 {
     Model this_model;
-    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryHexahedraRuleOfMixtures(model_part, 3);
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+    Create3DGeometryHexahedraRuleOfMixtures(r_model_part, 3);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
     delta[0] = 1.0e-2;
-    for (auto& node : model_part.Nodes()) {
+    for (auto& node : r_model_part.Nodes()) {
         if (node.X() < 1.0e-3) {
             node.Fix(DISPLACEMENT_X);
             node.Fix(DISPLACEMENT_Y);
@@ -415,8 +320,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
     /// Tolerance
     const double tolerance = 1.0e-6;
 
-    ProcessInfo& process_info = model_part.GetProcessInfo();
-    for (auto& elem : model_part.Elements()) {
+    ProcessInfo& process_info = r_model_part.GetProcessInfo();
+    for (auto& elem : r_model_part.Elements()) {
         std::vector<Vector> solution;
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
@@ -432,13 +337,13 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, KratosStructuralMechanicsFastSuite)
 {
     Model this_model;
-    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryTetrahedraRuleOfMixtures(model_part);
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+    Create3DGeometryTetrahedraRuleOfMixtures(r_model_part);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
     delta[0] = 1.0e-2;
-    for (auto& node : model_part.Nodes()) {
+    for (auto& node : r_model_part.Nodes()) {
         if (node.X() < 1.0e-3) {
             node.Fix(DISPLACEMENT_X);
             node.Fix(DISPLACEMENT_Y);
@@ -456,8 +361,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
     /// Tolerance
     const double tolerance = 1.0e-6;
 
-    ProcessInfo& process_info = model_part.GetProcessInfo();
-    for (auto& elem : model_part.Elements()) {
+    ProcessInfo& process_info = r_model_part.GetProcessInfo();
+    for (auto& elem : r_model_part.Elements()) {
         std::vector<Vector> solution;
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
@@ -473,13 +378,13 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, KratosStructuralMechanicsFastSuite)
 {
     Model this_model;
-    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryTetrahedraRuleOfMixtures(model_part, 3);
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+    Create3DGeometryTetrahedraRuleOfMixtures(r_model_part, 3);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
     delta[0] = 1.0e-2;
-    for (auto& node : model_part.Nodes()) {
+    for (auto& node : r_model_part.Nodes()) {
         if (node.X() < 1.0e-3) {
             node.Fix(DISPLACEMENT_X);
             node.Fix(DISPLACEMENT_Y);
@@ -497,8 +402,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
     /// Tolerance
     const double tolerance = 1.0e-6;
 
-    ProcessInfo& process_info = model_part.GetProcessInfo();
-    for (auto& elem : model_part.Elements()) {
+    ProcessInfo& process_info = r_model_part.GetProcessInfo();
+    for (auto& elem : r_model_part.Elements()) {
         std::vector<Vector> solution;
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
