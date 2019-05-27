@@ -26,7 +26,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
@@ -34,7 +34,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
 		const double ExtraRaysEpsilon)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
@@ -94,7 +94,7 @@ namespace Kratos
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i) {
 			Element &r_element = *(r_elements[i]);
-			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i]; 
+			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
 
 			// Check if the element has intersections
 			if (r_element_intersections.empty()) {
