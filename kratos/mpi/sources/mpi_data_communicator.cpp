@@ -118,6 +118,17 @@ void MPIDataCommunicator::SendRecv(                                             
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type)                  \
+void MPIDataCommunicator::Broadcast(type& rBuffer, const int SourceRank) const {                \
+    BroadcastDetail(rBuffer,SourceRank);                                                        \
+}                                                                                               \
+void MPIDataCommunicator::Broadcast(std::vector<type>& rBuffer, const int SourceRank) const {   \
+    BroadcastDetail(rBuffer,SourceRank);                                                        \
+}                                                                                               \
+
+#endif
+
 namespace Kratos {
 // MPIDataCommunicator implementation
 
@@ -292,33 +303,8 @@ void MPIDataCommunicator::SendRecv(
 
 // Broadcast
 
-void MPIDataCommunicator::Broadcast(
-    int& rBuffer,
-    const int SourceRank) const
-{
-    BroadcastDetail(rBuffer,SourceRank);
-}
-
-void MPIDataCommunicator::Broadcast(
-        double& rBuffer,
-        const int SourceRank) const
-{
-    BroadcastDetail(rBuffer,SourceRank);
-}
-
-void MPIDataCommunicator::Broadcast(
-    std::vector<int>& rBuffer,
-    const int SourceRank) const
-{
-    BroadcastDetail(rBuffer,SourceRank);
-}
-
-void MPIDataCommunicator::Broadcast(
-    std::vector<double>& rBuffer,
-    const int SourceRank) const
-{
-    BroadcastDetail(rBuffer,SourceRank);
-}
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(double)
 
 // Scatter operations
 
@@ -1308,3 +1294,4 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE

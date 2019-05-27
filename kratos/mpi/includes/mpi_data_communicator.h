@@ -73,6 +73,13 @@ void SendRecv(                                                                  
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type) \
+void Broadcast(type& rBuffer, const int SourceRank) const override;             \
+void Broadcast(std::vector<type>& rBuffer, const int SourceRank) const override;\
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -175,21 +182,8 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Broadcast
 
-    void Broadcast(
-        int& rBuffer,
-        const int SourceRank) const override;
-
-    void Broadcast(
-        double& rBuffer,
-        const int SourceRank) const override;
-
-    void Broadcast(
-        std::vector<int>& rBuffer,
-        const int SourceRank) const override;
-
-    void Broadcast(
-        std::vector<double>& rBuffer,
-        const int SourceRank) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(double)
 
     // Scatter operations
 
@@ -516,5 +510,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
