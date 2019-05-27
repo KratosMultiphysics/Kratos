@@ -96,6 +96,24 @@ void Scatterv(                                                                  
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)                                \
+std::vector<type> Gather(const std::vector<type>& rSendValues, const int DestinationRank) const override;   \
+void Gather(                                                                                                \
+    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                                   \
+    const int DestinationRank) const override;                                                              \
+std::vector<std::vector<type>> Gatherv(                                                                     \
+    const std::vector<type>& rSendValues, const int DestinationRank) const override;                        \
+void Gatherv(const std::vector<type>& rSendValues,                                                          \
+        std::vector<type>& rRecvValues,                                                                     \
+        const std::vector<int>& rRecvCounts,                                                                \
+        const std::vector<int>& rRecvOffsets,                                                               \
+        const int DestinationRank) const override;                                                          \
+std::vector<type> AllGather(const std::vector<type>& rSendValues) const override;                           \
+void AllGather(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues) const override;        \
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -206,65 +224,10 @@ class MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(double)
 
-    // Gather operations
+    // Gather, Gatherv and AllGather operations
 
-    std::vector<int> Gather(
-        const std::vector<int>& rSendValues,
-        const int DestinationRank) const override;
-
-    std::vector<double> Gather(
-        const std::vector<double>& rSendValues,
-        const int DestinationRank) const override;
-
-    void Gather(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues,
-        const int DestinationRank) const override;
-
-    void Gather(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues,
-        const int DestinationRank) const override;
-
-    // Gatherv operations
-
-    std::vector<std::vector<int>> Gatherv(
-        const std::vector<int>& rSendValues,
-        const int DestinationRank) const override;
-
-    std::vector<std::vector<double>> Gatherv(
-        const std::vector<double>& rSendValues,
-        const int DestinationRank) const override;
-
-    void Gatherv(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues,
-        const std::vector<int>& rRecvCounts,
-        const std::vector<int>& rRecvOffsets,
-        const int DestinationRank) const override;
-
-    void Gatherv(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues,
-        const std::vector<int>& rRecvCounts,
-        const std::vector<int>& rRecvOffsets,
-        const int DestinationRank) const override;
-
-    // Allgather operations
-
-    std::vector<int> AllGather(
-        const std::vector<int>& rSendValues) const override;
-
-    std::vector<double> AllGather(
-        const std::vector<double>& rSendValues) const override;
-
-    void AllGather(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues) const override;
-
-    void AllGather(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(double)
 
     ///@}
     ///@name Access
@@ -395,13 +358,22 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TSendDataType, class TRecvDataType> void GatherDetail(
         const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const;
 
+    template<class TDataType> std::vector<TDataType> GatherDetail(
+        const std::vector<TDataType>& rSendValues, const int DestinationRank) const;
+
     template<class TDataType> void GathervDetail(
         const TDataType& rSendValues, TDataType& rRecvValues,
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
 
+    template<class TDataType> std::vector<std::vector<TDataType>>
+    GathervDetail(const std::vector<TDataType>& rSendValues, const int DestinationRank) const;
+
     template<class TDataType> void AllGatherDetail(
         const TDataType& rSendValues, TDataType& rRecvValues) const;
+
+    template<class TDataType> std::vector<TDataType> AllGatherDetail(
+        const std::vector<TDataType>& rSendValues) const;
 
     bool IsEqualOnAllRanks(const int LocalValue) const;
 
@@ -495,5 +467,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
