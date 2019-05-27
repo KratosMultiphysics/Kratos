@@ -43,7 +43,6 @@ class UpdateDemKinematicsProcess : public Process
   void operator()() { Execute(); }
 
   void Execute() override;
-  array_1d<double,3> GetNodeCoordinates(const NodeIteratorType& rNode);
   void UpdateKinematics(const NodeIteratorType& rNode, NodeType& rDEMNode);
 
 protected:
