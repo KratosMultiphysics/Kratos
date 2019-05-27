@@ -18,7 +18,7 @@ type MPIDataCommunicator::Sum(const type rLocalValue, const int Root) const {   
     return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                        \
 }                                                                                                           \
 std::vector<type> MPIDataCommunicator::Sum(const std::vector<type>& rLocalValues, const int Root) const {   \
-    return ReduceDetail(rLocalValues, MPI_SUM, Root);                                                       \
+    return ReduceDetailVector(rLocalValues, MPI_SUM, Root);                                                 \
 }                                                                                                           \
 void MPIDataCommunicator::Sum(                                                                              \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
@@ -28,7 +28,7 @@ type MPIDataCommunicator::Min(const type rLocalValue, const int Root) const {   
     return ReduceDetail(rLocalValue, MPI_MIN, Root);                                                        \
 }                                                                                                           \
 std::vector<type> MPIDataCommunicator::Min(const std::vector<type>& rLocalValues, const int Root) const {   \
-    return ReduceDetail(rLocalValues, MPI_MIN, Root);                                                       \
+    return ReduceDetailVector(rLocalValues, MPI_MIN, Root);                                                 \
 }                                                                                                           \
 void MPIDataCommunicator::Min(                                                                              \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
@@ -38,12 +38,47 @@ type MPIDataCommunicator::Max(const type rLocalValue, const int Root) const {   
     return ReduceDetail(rLocalValue, MPI_MAX, Root);                                                        \
 }                                                                                                           \
 std::vector<type> MPIDataCommunicator::Max(const std::vector<type>& rLocalValues, const int Root) const {   \
-    return ReduceDetail(rLocalValues, MPI_MAX, Root);                                                       \
+    return ReduceDetailVector(rLocalValues, MPI_MAX, Root);                                                 \
 }                                                                                                           \
 void MPIDataCommunicator::Max(                                                                              \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
     ReduceDetail(rLocalValues, rGlobalValues, MPI_MAX, Root);                                               \
 }                                                                                                           \
+
+#endif
+
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(type)               \
+type MPIDataCommunicator::SumAll(const type rLocalValue) const {                             \
+    return AllReduceDetail(rLocalValue, MPI_SUM);                                            \
+}                                                                                            \
+std::vector<type> MPIDataCommunicator::SumAll(const std::vector<type>& rLocalValues) const { \
+    return AllReduceDetail(rLocalValues, MPI_SUM);                                           \
+}                                                                                            \
+void MPIDataCommunicator::SumAll(                                                            \
+    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
+    AllReduceDetail(rLocalValues, rGlobalValues, MPI_SUM);                                   \
+}                                                                                            \
+type MPIDataCommunicator::MinAll(const type rLocalValue) const {                             \
+    return AllReduceDetail(rLocalValue, MPI_MIN);                                            \
+}                                                                                            \
+std::vector<type> MPIDataCommunicator::MinAll(const std::vector<type>& rLocalValues) const { \
+    return AllReduceDetail(rLocalValues, MPI_MIN);                                           \
+}                                                                                            \
+void MPIDataCommunicator::MinAll(                                                            \
+    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
+    AllReduceDetail(rLocalValues, rGlobalValues, MPI_MIN);                                   \
+}                                                                                            \
+type MPIDataCommunicator::MaxAll(const type rLocalValue) const {                             \
+    return AllReduceDetail(rLocalValue, MPI_MAX);                                            \
+}                                                                                            \
+std::vector<type> MPIDataCommunicator::MaxAll(const std::vector<type>& rLocalValues) const { \
+    return AllReduceDetail(rLocalValues, MPI_MAX);                                           \
+}                                                                                            \
+void MPIDataCommunicator::MaxAll(                                                            \
+    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
+    AllReduceDetail(rLocalValues, rGlobalValues, MPI_MAX);                                   \
+}                                                                                            \
 
 #endif
 
@@ -131,66 +166,13 @@ Kratos::Flags MPIDataCommunicator::OrReduce(const Kratos::Flags Values, const Kr
 
 // Allreduce operations
 
-int MPIDataCommunicator::SumAll(const int rLocalValue) const
-{
-    int global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_SUM);
-    return global_value;
-}
-
-double MPIDataCommunicator::SumAll(const double rLocalValue) const
-{
-    double global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_SUM);
-    return global_value;
-}
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(double)
 
 array_1d<double,3> MPIDataCommunicator::SumAll(const array_1d<double,3>& rLocalValue) const
 {
     array_1d<double,3> global_value(rLocalValue);
     AllReduceDetail(rLocalValue,global_value,MPI_SUM);
-    return global_value;
-}
-
-std::vector<int> MPIDataCommunicator::SumAll(const std::vector<int>& rLocalValues) const
-{
-    std::vector<int> global_values(rLocalValues.size());
-    AllReduceDetail(rLocalValues,global_values,MPI_SUM);
-    return global_values;
-}
-
-std::vector<double> MPIDataCommunicator::SumAll(const std::vector<double>& rLocalValues) const
-{
-    std::vector<double> global_values(rLocalValues.size());
-    AllReduceDetail(rLocalValues,global_values,MPI_SUM);
-    return global_values;
-}
-
-void MPIDataCommunicator::SumAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const
-{
-    AllReduceDetail(rLocalValues,rGlobalValues,MPI_SUM);
-}
-
-void MPIDataCommunicator::SumAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const
-{
-    AllReduceDetail(rLocalValues,rGlobalValues,MPI_SUM);
-}
-
-int MPIDataCommunicator::MinAll(const int rLocalValue) const
-{
-    int global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_MIN);
-    return global_value;
-}
-
-double MPIDataCommunicator::MinAll(const double rLocalValue) const
-{
-    double global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_MIN);
     return global_value;
 }
 
@@ -201,83 +183,12 @@ array_1d<double,3> MPIDataCommunicator::MinAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
-std::vector<int> MPIDataCommunicator::MinAll(const std::vector<int>& rLocalValues) const
-{
-    std::vector<int> global_values(rLocalValues.size());
-    AllReduceDetail(rLocalValues,global_values,MPI_MIN);
-    return global_values;
-}
-
-std::vector<double> MPIDataCommunicator::MinAll(const std::vector<double>& rLocalValues) const
-{
-    std::vector<double> global_values(rLocalValues.size());
-    AllReduceDetail(rLocalValues,global_values,MPI_MIN);
-    return global_values;
-}
-
-void MPIDataCommunicator::MinAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const
-{
-    AllReduceDetail(rLocalValues,rGlobalValues,MPI_MIN);
-}
-
-void MPIDataCommunicator::MinAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const
-{
-    AllReduceDetail(rLocalValues,rGlobalValues,MPI_MIN);
-}
-
-int MPIDataCommunicator::MaxAll(const int rLocalValue) const
-{
-    int global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_MAX);
-    return global_value;
-}
-
-double MPIDataCommunicator::MaxAll(const double rLocalValue) const
-{
-    double global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_MAX);
-    return global_value;
-}
-
 array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalValue) const
 {
     array_1d<double,3> global_value(rLocalValue);
     AllReduceDetail(rLocalValue,global_value,MPI_MAX);
     return global_value;
 }
-
-std::vector<int> MPIDataCommunicator::MaxAll(const std::vector<int>& rLocalValues) const
-{
-    std::vector<int> global_values(rLocalValues);
-    AllReduceDetail(rLocalValues,global_values,MPI_MAX);
-    return global_values;
-}
-
-std::vector<double> MPIDataCommunicator::MaxAll(const std::vector<double>& rLocalValues) const
-{
-    std::vector<double> global_values(rLocalValues);
-    AllReduceDetail(rLocalValues,global_values,MPI_MAX);
-    return global_values;
-}
-
-void MPIDataCommunicator::MaxAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const
-{
-    AllReduceDetail(rLocalValues,rGlobalValues,MPI_MAX);
-}
-
-void MPIDataCommunicator::MaxAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const
-{
-    AllReduceDetail(rLocalValues,rGlobalValues,MPI_MAX);
-}
-
 
 Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
@@ -787,18 +698,18 @@ template<class TDataType> TDataType MPIDataCommunicator::ReduceDetail(
     return global_values;
 }
 
-template<class TDataType, class TVectorType>
-TVectorType MPIDataCommunicator::ReduceDetail(
-    const TVectorType& rLocalValues,
+template<class TDataType>
+std::vector<TDataType> MPIDataCommunicator::ReduceDetailVector(
+    const std::vector<TDataType>& rLocalValues,
     MPI_Op Operation,
     const int Root) const
 {
-    TVectorType reduced_values;
+    std::vector<TDataType> reduced_values;
     if (Rank() == Root)
     {
         reduced_values.resize(rLocalValues.size());
     }
-    ReduceDetail(rLocalValues, reduced_values, MPI_SUM, Root);
+    ReduceDetail(rLocalValues, reduced_values, Operation, Root);
     return reduced_values;
 }
 
@@ -823,6 +734,14 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
         MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
+}
+
+template<class TDataType> TDataType MPIDataCommunicator::AllReduceDetail(
+    const TDataType& rLocalValues, MPI_Op Operation) const
+{
+    TDataType global_values(rLocalValues);
+    AllReduceDetail(rLocalValues, global_values, Operation);
+    return global_values;
 }
 
 template<class TDataType> void MPIDataCommunicator::ScanDetail(
@@ -1386,3 +1305,4 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 }
 
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE

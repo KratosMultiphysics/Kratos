@@ -38,6 +38,20 @@ void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type)                      \
+type SumAll(const type rLocalValue) const override;                                                  \
+std::vector<type> SumAll(const std::vector<type>& rLocalValues) const override;                      \
+void SumAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
+type MinAll(const type rLocalValue) const override;                                                  \
+std::vector<type> MinAll(const std::vector<type>& rLocalValues) const override;                      \
+void MinAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
+type MaxAll(const type rLocalValue) const override;                                                  \
+std::vector<type> MaxAll(const std::vector<type>& rLocalValues) const override;                      \
+void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -106,59 +120,14 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Allreduce operations
 
-    int SumAll(const int rLocalValue) const override;
-
-    double SumAll(const double rLocalValue) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(double)
 
     array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const override;
 
-    std::vector<int> SumAll(const std::vector<int>& rLocalValue) const override;
-
-    std::vector<double> SumAll(const std::vector<double>& rLocalValue) const override;
-
-    void SumAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const override;
-
-    void SumAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const override;
-
-    int MinAll(const int rLocalValue) const override;
-
-    double MinAll(const double rLocalValue) const override;
-
     array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const override;
 
-    std::vector<int> MinAll(const std::vector<int>& rLocalValues) const override;
-
-    std::vector<double> MinAll(const std::vector<double>& rLocalValues) const override;
-
-    void MinAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const override;
-
-    void MinAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const override;
-
-    int MaxAll(const int rLocalValue) const override;
-
-    double MaxAll(const double rLocalValue) const override;
-
     array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
-
-    std::vector<int> MaxAll(const std::vector<int>& rLocalValues) const override;
-
-    std::vector<double> MaxAll(const std::vector<double>& rLocalValues) const override;
-
-    void MaxAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const override;
-
-    void MaxAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const override;
 
     Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
@@ -399,8 +368,8 @@ class MPIDataCommunicator: public DataCommunicator
         MPI_Op Operation,
         const int Root) const;
 
-    template<class TDataType, class TVectorType = std::vector<TDataType> > TVectorType ReduceDetail(
-        const TVectorType& rLocalValues,
+    template<class TDataType> std::vector<TDataType> ReduceDetailVector(
+        const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation,
         const int Root) const;
 
@@ -408,6 +377,9 @@ class MPIDataCommunicator: public DataCommunicator
         const TDataType& rLocalValues,
         TDataType& rReducedValues,
         MPI_Op Operation) const;
+
+    template<class TDataType> TDataType AllReduceDetail(
+        const TDataType& rLocalValues, MPI_Op Operation) const;
 
     template<class TDataType> void ScanDetail(
         const TDataType& rLocalValues,
@@ -527,5 +499,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 } // namespace Kratos.
 
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
