@@ -39,7 +39,9 @@ namespace Kratos {
 		volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 
 		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+        ModelPart &skin_part = skin_model_part.CreateSubModelPart("SkinPart");
+
 		skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
 		skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);
@@ -52,25 +54,17 @@ namespace Kratos {
 		skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
 
 		// Compute distance
-		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_part, mesher_parameters).Execute();
+		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
 
 		Tetrahedra3D4<Node<3>> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
 
-	Point dummy(0.00,0.00,0.00);
-	for(auto& node : volume_part.Nodes()){
-		if(tetrahedra.IsInside(node.Coordinates(),dummy)){
-			KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		}
+        Point dummy(0.00,0.00,0.00);
+        for(auto& element : volume_part.Elements()){
+            if(tetrahedra.IsInside(element.GetGeometry().Center(),dummy)){
+                KRATOS_CHECK_NEAR(element.GetValue(DISTANCE), -1.00, 1e-6);
+            }
 	}
-		// Note that we cannot check the outside because on the interface is not well defined
-		KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-
 
 		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		//gid_io_fluid.InitializeMesh(0.00);
