@@ -104,6 +104,8 @@ public:
 
     void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
 
+    void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
+
     ///@}
     ///@name Access
     ///@{

@@ -160,4 +160,14 @@ void ShallowWaterUtilities::ComputeVisualizationWaterHeight(ModelPart& rModelPar
     }
 }
 
+void ShallowWaterUtilities::ComputeVisualizationWaterSurface(ModelPart& rModelPart)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        it_node->SetValue(WATER_SURFACE_Z, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION));
+    }
+}
+
 }  // namespace Kratos.
