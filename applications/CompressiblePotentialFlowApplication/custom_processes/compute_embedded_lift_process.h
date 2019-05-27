@@ -13,7 +13,6 @@
 #ifndef KRATOS_COMPUTE_EMBEDDED_LIFT_PROCESS_H
 #define KRATOS_COMPUTE_EMBEDDED_LIFT_PROCESS_H
 
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -78,6 +77,10 @@ private:
 
     ModelPart& mrModelPart;
     array_1d<double,3>& mrResultForce;
+
+    template <int NumNodes>
+    ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(Vector& rDistances);
+
 
 }; // Class Process
 } // namespace Kratos

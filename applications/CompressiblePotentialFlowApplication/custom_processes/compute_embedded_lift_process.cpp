@@ -12,15 +12,9 @@
 
 
 #include "compute_embedded_lift_process.h"
-
-#include "includes/kratos_flags.h"
-#include "geometries/geometry.h"
-#include "utilities/geometry_utilities.h"
-#include "utilities/math_utils.h"
-#include "includes/kratos_parameters.h"
-#include "utilities/divide_triangle_2d_3.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -47,7 +41,7 @@ void ComputeEmbeddedLiftProcess::Execute()
             if (it->Is(TO_SPLIT) && it -> Is(ACTIVE)){
                 auto geom = it->GetGeometry();
                 const unsigned int NumNodes=geom.size();
-                array_1d<double,3> elemental_distance;
+                array_1d<double,NumNodes> elemental_distance;
                 Geometry< Node<3> >::Pointer pgeom = it-> pGetGeometry();
 
                 for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
@@ -96,7 +90,7 @@ void ComputeEmbeddedLiftProcess::Execute()
                 Rz += cpressure*cut_unit_normal[0][2];
 
 
-                it->SetValue(PRESSURE,cp[0]);
+                it->SetValue(PRESSURE_COEFFICIENT,cp[0]);
                 it->SetValue(NORMAL,cut_unit_normal[0]);
                 it->SetValue(BODY_FORCE,gp_wall); //provisional name for cp application point
 
@@ -109,4 +103,9 @@ void ComputeEmbeddedLiftProcess::Execute()
 
     KRATOS_CATCH("");
 }
+
+ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess::pGetModifiedShapeFunctions<3>(Vector& rDistances) {
+    return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
+}
+
 }// Namespace Kratos
