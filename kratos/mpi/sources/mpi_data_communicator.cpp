@@ -12,8 +12,8 @@
 
 #include "mpi/includes/mpi_data_communicator.h"
 
-#ifndef KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
-#define KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type)                                        \
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)                                 \
 type MPIDataCommunicator::Sum(const type rLocalValue, const int Root) const {                               \
     return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                        \
 }                                                                                                           \
@@ -75,8 +75,8 @@ void MPIDataCommunicator::Barrier() const
 
 // Reduce operations
 
-KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(int)
-KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(double)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(double)
 
 array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
 {
@@ -1385,4 +1385,4 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 
 }
 
-#undef KRATOS_DEFINE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE

@@ -24,8 +24,8 @@
 #include "includes/define.h"
 #include "includes/data_communicator.h"
 
-#ifndef KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
-#define KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type)                                             \
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)                                      \
 type Sum(const type rLocalValue, const int Root) const override;                                                  \
 std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const override;                      \
 void Sum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
@@ -85,8 +85,8 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Reduce operations
 
-    KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(int)
-    KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(double)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(double)
 
     array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
@@ -526,6 +526,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 } // namespace Kratos.
 
-#undef KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
