@@ -25,16 +25,16 @@
 #include "includes/data_communicator.h"
 
 #ifndef KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
-#define KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type)                                           \
-type Sum(const type rLocalValue, const int Root) const override;                                                \
-std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const override;                    \
-void Sum(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
-type Min(const type rLocalValue, const int Root) const override;                                                \
-std::vector<type> Min(const std::vector<type>& rLocalValues, const int Root) const override;                    \
-void Min(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
-type Max(const type rLocalValue, const int Root) const override;                                                \
-std::vector<type> Max(const std::vector<type>& rLocalValues, const int Root) const override;                    \
-void Max(const std::vector<int>& rLocalValues, std::vector<int>& rGlobalValues, const int Root) const override; \
+#define KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type)                                             \
+type Sum(const type rLocalValue, const int Root) const override;                                                  \
+std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const override;                      \
+void Sum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
+type Min(const type rLocalValue, const int Root) const override;                                                  \
+std::vector<type> Min(const std::vector<type>& rLocalValues, const int Root) const override;                      \
+void Min(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
+type Max(const type rLocalValue, const int Root) const override;                                                  \
+std::vector<type> Max(const std::vector<type>& rLocalValues, const int Root) const override;                      \
+void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
 
 #endif
 
@@ -85,40 +85,14 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Reduce operations
 
-    KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(int);
-
-    double Sum(const double rLocalValue, const int Root) const override;
+    KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(int)
+    KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(double)
 
     array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    std::vector<double> Sum(const std::vector<double>& rLocalValues, const int Root) const override;
-
-    void Sum(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues,
-        const int Root) const override;
-
-    double Min(const double rLocalValue, const int Root) const override;
-
     array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    std::vector<double> Min(const std::vector<double>& rLocalValues, const int Root) const override;
-
-    void Min(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues,
-        const int Root) const override;
-
-    double Max(const double rLocalValue, const int Root) const override;
-
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
-
-    std::vector<double> Max(const std::vector<double>& rLocalValues, const int Root) const override;
-
-    void Max(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues,
-        const int Root) const override;
 
     Kratos::Flags AndReduce(
         const Kratos::Flags Values,
