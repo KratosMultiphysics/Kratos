@@ -52,15 +52,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Properties encapsulates data shared by different Elements or Conditions
 /**
- * Properties encapsulates data shared by different Elements or Conditions. It can store any type of data and provides a variable base access to them.
- *  These are all parameters that can be shared between Element. Usually material parameters are common for a set of element, so this category of data is referred as properties.
+ * @class Properties
+ * @ingroup KratosCore
+ * @brief Properties encapsulates data shared by different Elements or Conditions. It can store any type of data and provides a variable base access to them.
+ * @details These are all parameters that can be shared between Element. Usually material parameters are common for a set of element, so this category of data is referred as properties.
  * But in general it can be any common parameter for a group of Elements. Sharing these data as properties reduces the memory used by the application and also helps updating them if necessary.
  * As mentioned before Properties is a shared data container between Elements or Conditions. In finite element problems there are several parameters which are the same for a set of elements and conditions.
  * Thermal conductivity, elasticity of the material and viscosity of the fluid are examples of these parameters. Properties holds these data and is shared by elements or Conditions. This eliminates memory overhead due to redundant copies of these data for each element and Condition. Properties also can be used to access nodal data if it is necessary.
  * It is important to mention that accessing the nodal data via Properties is not the same as accessing it via Node. When user asks Properties for a variable data in a Node, the process starts with finding the variable in the Properties data container and if it does not exist then get it from Node.
  * This means that the priority of data is with the one stored in Properties and then in Node.
+ * @author Pooyan Dadvand
  */
 class Properties : public IndexedObject
 {
@@ -314,8 +316,14 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer pGetSubProperty(IndexType SubPropertyIndex)
+    Properties::Pointer pGetSubProperty(const IndexType SubPropertyIndex)
     {
+        // Checking if the id is the current properties
+        if (this->Id() == SubPropertyIndex) {
+            return Kratos::make_shared<Properties>(*this);
+        }
+
+        // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
             return mSubPropertiesList(SubPropertyIndex);
         } else {
@@ -330,8 +338,15 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubProperty(IndexType SubPropertyIndex)
+    Properties& GetSubProperty(const IndexType SubPropertyIndex)
     {
+        // Checking if the id is the current properties
+        if (this->Id() == SubPropertyIndex) {
+            KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
+            return *this;
+        }
+
+        // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
             return *(mSubPropertiesList(SubPropertyIndex));
         } else {
@@ -342,12 +357,18 @@ public:
     }
 
     /**
-     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubProperty(IndexType SubPropertyIndex) const
+    Properties& GetSubProperty(const IndexType SubPropertyIndex) const
     {
+        // Checking if the id is the current properties
+        if (this->Id() == SubPropertyIndex) {
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
+        }
+
+        // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
             return *(mSubPropertiesList.find(SubPropertyIndex));
         } else {
@@ -403,7 +424,7 @@ public:
     {
         return mData;
     }
-    
+
     /**
      * @brief This method returns the tables
      * @return The whole lis of tables
@@ -571,7 +592,7 @@ private:
     {
         return mSubPropertiesList;
     }
-    
+
     /**
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
