@@ -15,6 +15,7 @@
 
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -27,6 +28,9 @@ public:
 
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(ComputeEmbeddedLiftProcess);
+
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType>::Pointer GeomPointerType;
 
     // Constructor for ComputeEmbeddedLiftProcess Process
     ComputeEmbeddedLiftProcess(ModelPart& rModelPart, array_1d<double,3>& rResultForce);
@@ -78,8 +82,7 @@ private:
     ModelPart& mrModelPart;
     array_1d<double,3>& mrResultForce;
 
-    template <int NumNodes>
-    ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(Vector& rDistances);
+    ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const;
 
 
 }; // Class Process
