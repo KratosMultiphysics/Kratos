@@ -258,7 +258,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     double RollingResistance = 0.0;
 
-    ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
+    //ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
 
     ComputeBallToRigidFaceContactForce(data_buffer, elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, search_control);
 
@@ -855,6 +855,8 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation);
             }
 
+            CheckBreakageCriterion(LocalContactForce);
+
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
@@ -1044,6 +1046,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
+
+            CheckBreakageCriterion(LocalContactForce);
 
             //WEAR
             if (wall->GetProperties()[COMPUTE_WEAR]) {
@@ -2018,6 +2022,12 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         bond->mLocalContactForce[1] = LocalContactForce[1];
         bond->mLocalContactForce[2] = LocalContactForce[2];
         KRATOS_CATCH("")
+    }
+
+    void SphericParticle::CheckBreakageCriterion(double LocalContactForce[3]) {
+        if ( LocalContactForce[2] > 25.0 ) {
+            this->Set(TO_ERASE, true);
+        }
     }
 
 int    SphericParticle::GetClusterId()                                                    { return mClusterId;      }

@@ -451,8 +451,8 @@ namespace Kratos {
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
-        PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
+        //PerformTimeIntegrationOfMotion();
+        //FinalizeSolutionStep();
 
         return 0.00;
 

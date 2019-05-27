@@ -417,6 +417,8 @@ virtual void ComputeWear(double LocalRelVel[3],
                          double LocalElasticContactForce,
                          DEMWall* cast_neighbour);
 
+virtual void CheckBreakageCriterion(double LocalContactForce[3]);
+
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
 virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticContactForce[3],
