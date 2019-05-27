@@ -80,6 +80,22 @@ void Broadcast(std::vector<type>& rBuffer, const int SourceRank) const override;
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)               \
+std::vector<type> Scatter(                                                                  \
+    const std::vector<type>& rSendValues, const int SourceRank) const override;             \
+void Scatter(                                                                               \
+    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                   \
+    const int SourceRank) const override;                                                   \
+std::vector<type> Scatterv(                                                                 \
+    const std::vector<std::vector<type>>& rSendValues, const int SourceRank) const override;\
+void Scatterv(                                                                              \
+    const std::vector<type>& rSendValues,                                                   \
+    const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,              \
+    std::vector<type>& rRecvValues, const int SourceRank) const override;                   \
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -185,49 +201,10 @@ class MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(double)
 
-    // Scatter operations
+    // Scatter and Scatterv operations
 
-    std::vector<int> Scatter(
-        const std::vector<int>& rSendValues,
-        const int SourceRank) const override;
-
-    std::vector<double> Scatter(
-        const std::vector<double>& rSendValues,
-        const int SourceRank) const override;
-
-    void Scatter(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues,
-        const int SourceRank) const override;
-
-    void Scatter(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues,
-        const int SourceRank) const override;
-
-    // Scatterv operations
-
-    std::vector<int> Scatterv(
-        const std::vector<std::vector<int>>& rSendValues,
-        const int SourceRank) const override;
-
-    std::vector<double> Scatterv(
-        const std::vector<std::vector<double>>& rSendValues,
-        const int SourceRank) const override;
-
-    void Scatterv(
-        const std::vector<int>& rSendValues,
-        const std::vector<int>& rSendCounts,
-        const std::vector<int>& rSendOffsets,
-        std::vector<int>& rRecvValues,
-        const int SourceRank) const override;
-
-    void Scatterv(
-        const std::vector<double>& rSendValues,
-        const std::vector<int>& rSendCounts,
-        const std::vector<int>& rSendOffsets,
-        std::vector<double>& rRecvValues,
-        const int SourceRank) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(double)
 
     // Gather operations
 
@@ -404,10 +381,16 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TSendDataType, class TRecvDataType> void ScatterDetail(
         const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const;
 
+    template<class TDataType> std::vector<TDataType> ScatterDetail(
+        const std::vector<TDataType>& rSendValues, const int SourceRank) const;
+
     template<class TDataType> void ScattervDetail(
         const TDataType& rSendValues,
         const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
         TDataType& rRecvValues, const int SourceRank) const;
+
+    template<class TDataType> std::vector<TDataType> ScattervDetail(
+        const std::vector<std::vector<TDataType>>& rSendValues,const int SourceRank) const;
 
     template<class TSendDataType, class TRecvDataType> void GatherDetail(
         const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const;
@@ -511,5 +494,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined

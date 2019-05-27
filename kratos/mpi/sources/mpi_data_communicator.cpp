@@ -129,6 +129,30 @@ void MPIDataCommunicator::Broadcast(std::vector<type>& rBuffer, const int Source
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(type)            \
+std::vector<type> MPIDataCommunicator::Scatter(                                         \
+    const std::vector<type>& rSendValues, const int SourceRank) const {                 \
+    return ScatterDetail(rSendValues, SourceRank);                                      \
+}                                                                                       \
+void MPIDataCommunicator::Scatter(                                                      \
+    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,               \
+    const int SourceRank) const {                                                       \
+    ScatterDetail(rSendValues,rRecvValues,SourceRank);                                  \
+}                                                                                       \
+std::vector<type> MPIDataCommunicator::Scatterv(                                        \
+    const std::vector<std::vector<type>>& rSendValues, const int SourceRank) const {    \
+    return ScattervDetail(rSendValues, SourceRank);                                     \
+}                                                                                       \
+void MPIDataCommunicator::Scatterv(                                                     \
+    const std::vector<type>& rSendValues, const std::vector<int>& rSendCounts,          \
+    const std::vector<int>& rSendOffsets, std::vector<type>& rRecvValues,               \
+    const int SourceRank) const {                                                       \
+    ScattervDetail(rSendValues,rSendCounts,rSendOffsets,rRecvValues,SourceRank);        \
+}                                                                                       \
+
+#endif
+
 namespace Kratos {
 // MPIDataCommunicator implementation
 
@@ -308,111 +332,8 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(double)
 
 // Scatter operations
 
-std::vector<int> MPIDataCommunicator::Scatter(
-    const std::vector<int>& rSendValues,
-    const int SourceRank) const
-{
-    const int send_size = rSendValues.size();
-    const int world_size = Size();
-    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
-    << "In call to MPI_Scatter: A message of size " << send_size
-    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
-    int message_size = send_size / world_size;
-
-    Broadcast(message_size, SourceRank);
-
-    std::vector<int> message(message_size);
-    ScatterDetail(rSendValues, message, SourceRank);
-    return message;
-
-}
-
-std::vector<double> MPIDataCommunicator::Scatter(
-    const std::vector<double>& rSendValues,
-    const int SourceRank) const
-{
-    const int send_size = rSendValues.size();
-    const int world_size = Size();
-    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
-    << "In call to MPI_Scatter: A message of size " << send_size
-    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
-    int message_size = send_size / world_size;
-
-    Broadcast(message_size, SourceRank);
-
-    std::vector<double> message(message_size);
-    ScatterDetail(rSendValues, message, SourceRank);
-    return message;
-}
-
-void MPIDataCommunicator::Scatter(
-    const std::vector<int>& rSendValues,
-    std::vector<int>& rRecvValues,
-    const int SourceRank) const
-{
-    ScatterDetail(rSendValues,rRecvValues,SourceRank);
-}
-
-void MPIDataCommunicator::Scatter(
-    const std::vector<double>& rSendValues,
-    std::vector<double>& rRecvValues,
-    const int SourceRank) const
-{
-    ScatterDetail(rSendValues,rRecvValues,SourceRank);
-}
-
-
-// Scatterv operations
-
-std::vector<int> MPIDataCommunicator::Scatterv(
-    const std::vector<std::vector<int>>& rSendValues,
-    const int SourceRank) const
-{
-    std::vector<int> message;
-    std::vector<int> message_lengths;
-    std::vector<int> message_offsets;
-    std::vector<int> result;
-    PrepareScattervBuffers(
-        rSendValues, message, message_lengths, message_offsets, result, SourceRank);
-
-    ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
-    return result;
-}
-
-std::vector<double> MPIDataCommunicator::Scatterv(
-    const std::vector<std::vector<double>>& rSendValues,
-    const int SourceRank) const
-{
-    std::vector<double> message;
-    std::vector<int> message_lengths;
-    std::vector<int> message_offsets;
-    std::vector<double> result;
-    PrepareScattervBuffers(
-        rSendValues, message, message_lengths, message_offsets, result, SourceRank);
-
-    ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
-    return result;
-}
-
-void MPIDataCommunicator::Scatterv(
-    const std::vector<int>& rSendValues,
-    const std::vector<int>& rSendCounts,
-    const std::vector<int>& rSendOffsets,
-    std::vector<int>& rRecvValues,
-    const int SourceRank) const
-{
-    ScattervDetail(rSendValues,rSendCounts,rSendOffsets,rRecvValues,SourceRank);
-}
-
-void MPIDataCommunicator::Scatterv(
-    const std::vector<double>& rSendValues,
-    const std::vector<int>& rSendCounts,
-    const std::vector<int>& rSendOffsets,
-    std::vector<double>& rRecvValues,
-    const int SourceRank) const
-{
-    ScattervDetail(rSendValues,rSendCounts,rSendOffsets,rRecvValues,SourceRank);
-}
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(double)
 
 // Gather operations
 
@@ -807,6 +728,23 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     CheckMPIErrorCode(ierr, "MPI_Scatter");
 }
 
+template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDetail(
+        const std::vector<TDataType>& rSendValues, const int SourceRank) const
+{
+    const int send_size = rSendValues.size();
+    const int world_size = Size();
+    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
+    << "In call to MPI_Scatter: A message of size " << send_size
+    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
+    int message_size = send_size / world_size;
+
+    Broadcast(message_size, SourceRank);
+
+    std::vector<TDataType> message(message_size);
+    ScatterDetail(rSendValues, message, SourceRank);
+    return message;
+}
+
 template<class TDataType> void MPIDataCommunicator::ScattervDetail(
         const TDataType& rSendValues, const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
         TDataType& rRecvValues, const int SourceRank) const
@@ -820,6 +758,20 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
         MPIBuffer(rRecvValues), MPIMessageSize(rRecvValues), MPIDatatype(rRecvValues),
         SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatterv");
+}
+
+template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScattervDetail(
+    const std::vector<std::vector<TDataType>>& rSendValues,const int SourceRank) const
+{
+    std::vector<TDataType> message;
+    std::vector<int> message_lengths;
+    std::vector<int> message_offsets;
+    std::vector<TDataType> result;
+    PrepareScattervBuffers(
+        rSendValues, message, message_lengths, message_offsets, result, SourceRank);
+
+    ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
+    return result;
 }
 
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::GatherDetail(
@@ -1295,3 +1247,4 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE
