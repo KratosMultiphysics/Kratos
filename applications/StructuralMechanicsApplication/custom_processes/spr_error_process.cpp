@@ -285,7 +285,7 @@ inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRErrorProcess<2>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRErrorProcess<3>;
+template class SPRErrorProcess<2>;
+template class SPRErrorProcess<3>;
 
 };// namespace Kratos.

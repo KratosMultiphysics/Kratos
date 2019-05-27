@@ -127,6 +127,7 @@ public:
     {
         BaseType::operator=(rOther);
         mData = rOther.mData;
+        mTables = rOther.mTables;
         mSubPropertiesList = rOther.mSubPropertiesList;
         return *this;
     }
