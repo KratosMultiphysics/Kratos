@@ -30,8 +30,8 @@ void AssembleOnDataValueContainer(const Variable<double>& rVariable,
                                   const Vector& rSrc,
                                   DataValueContainer& rDest)
 {
-    KRATOS_ERROR_IF(rSrc.size() != 1 && std::abs(rSrc[0]) > 0.0) << "Variable: " << rVariable.Name()
-                        << ", rSrc.size() = " << rSrc.size() << " but containing a non-zero result." << std::endl;
+    KRATOS_ERROR_IF(rSrc.size() != 1) << "Variable: " << rVariable.Name()
+                                      << ", rSrc.size() = " << rSrc.size() << std::endl;
 
     rDest[rVariable] += rSrc[0];
 }
