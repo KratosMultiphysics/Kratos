@@ -77,7 +77,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityMatrix.size2() == 0)
+        if (rSensitivityMatrix.size1() == 0)
         {
             if (rSensitivityGradient.size() != 0)
                 rSensitivityGradient.resize(0, false);
@@ -127,7 +127,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityMatrix.size2() == 0)
+        if (rSensitivityMatrix.size1() == 0)
         {
             if (rSensitivityGradient.size() != 0)
                 rSensitivityGradient.resize(0, false);

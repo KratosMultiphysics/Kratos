@@ -293,7 +293,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType local_size = number_of_nodes * num_dofs_per_node;
-        rOutput = ZeroMatrix(number_of_nodes, local_size);
+        rOutput = ZeroMatrix(0, local_size);
     }
 
     KRATOS_CATCH("")
@@ -312,6 +312,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType local_size = number_of_nodes * num_dofs_per_node;
+
     if( rDesignVariable == SHAPE_SENSITIVITY )
     {
         const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
@@ -341,9 +342,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
         }
     }
     else
-    {
-        rOutput = ZeroMatrix(dimension * number_of_nodes, local_size);
-    }
+        rOutput = ZeroMatrix(0, local_size);
 
     KRATOS_CATCH("")
 }
@@ -447,10 +446,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     else
         StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
+    const SizeType stress_vector_size = stress_vector_undist.size();
+
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-
-    const SizeType stress_vector_size = stress_vector_undist.size();
 
     if( mpPrimalElement->GetProperties().Has(rDesignVariable) )
     {
@@ -483,8 +482,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     }
     else
     {
-        rOutput.resize(mpPrimalElement->GetGeometry().PointsNumber(), stress_vector_size, false);
-        rOutput.clear();
+        rOutput = ZeroMatrix(0, stress_vector_size);
     }
 
     KRATOS_CATCH("")
@@ -501,6 +499,15 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     Vector stress_vector_undist;
     Vector stress_vector_dist;
 
+    // Compute stress on GP before perturbation
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+    if (rStressVariable == STRESS_ON_GP)
+        StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+    else
+        StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+
+    const SizeType stress_vector_size = stress_vector_undist.size();
+
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
@@ -509,14 +516,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
-        // Compute stress on GP before perturbation
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-        if (rStressVariable == STRESS_ON_GP)
-            StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
-        else
-            StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
-        const SizeType stress_vector_size = stress_vector_undist.size();
         rOutput.resize(dimension * number_of_nodes, stress_vector_size, false);
 
         IndexType index = 0;
@@ -552,7 +552,9 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         }// end loop over element nodes
     }
     else
-        KRATOS_ERROR << "Unsupported design variable!" << std::endl;
+    {
+        rOutput = ZeroMatrix(0, stress_vector_size);
+    }
 
     KRATOS_CATCH("")
 }
