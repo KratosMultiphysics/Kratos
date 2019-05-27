@@ -36,8 +36,8 @@ ApplySinusoidalFunctionProcess<TVarType>::ApplySinusoidalFunctionProcess(
 }
 
 
-template<>
-int ApplySinusoidalFunctionProcess< Variable<double> >::Check()
+template< class TVarType >
+int ApplySinusoidalFunctionProcess<TVarType>::Check()
 {
     if (mrModelPart.Nodes().size() != 0) {
         const auto& r_node = *mrModelPart.NodesBegin();
@@ -61,8 +61,8 @@ int ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >::Check()
 }
 
 
-template<>
-void ApplySinusoidalFunctionProcess<Variable<double>>::ExecuteInitializeSolutionStep()
+template< class TVarType >
+void ApplySinusoidalFunctionProcess<TVarType>::ExecuteInitializeSolutionStep()
 {
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
     double value = Function(time);
@@ -122,6 +122,7 @@ void ApplySinusoidalFunctionProcess<TVarType>::ValidateParameters(Parameters& rP
 
 
 template class ApplySinusoidalFunctionProcess< Variable<double> >;
+template class ApplySinusoidalFunctionProcess< VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > > >;
 template class ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >;
 
 }  // namespace Kratos.

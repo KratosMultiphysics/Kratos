@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_ROUGH_POROUS_LAYER_WETTING_MODEL
-#define KRATOS_ROUGH_POROUS_LAYER_WETTING_MODEL
+#ifndef KRATOS_NEGATIVE_HEIGHT_WETTING_MODEL
+#define KRATOS_NEGATIVE_HEIGHT_WETTING_MODEL
 
 
 // System includes
@@ -53,29 +53,28 @@ namespace Kratos
 /** 
  * @ingroup ShallowWaterApplication
  * @class NegativeHeightWettingModel
- * @brief A simple wetting model. Barros, Rosman, Telles, Azevedo "A simple wetting and drying method for shallow water flow with application in the Vitoria Bay estuary, Brazil"
+ * @brief A simple wetting model. Heniche et al. "A two-dimensional ®nite element drying-wetting shallow water model for rivers and estuaries"
  */
-class KRATOS_API(SHALLOW_WATER_APPLICATION) RoughPorousLayerWettingModel : public Process
+class KRATOS_API(SHALLOW_WATER_APPLICATION) NegativeHeightWettingModel : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RoughPorousLayerWettingModel
-    KRATOS_CLASS_POINTER_DEFINITION(RoughPorousLayerWettingModel);
+    KRATOS_CLASS_POINTER_DEFINITION(NegativeHeightWettingModel);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// @brief Constructor with model and parameters
-    RoughPorousLayerWettingModel(ModelPart& rModelPart, Parameters ThisParameters);
+    NegativeHeightWettingModel(ModelPart& rModelPart, Parameters ThisParameters);
 
     /// @brief Constructor with model and doubles
-    RoughPorousLayerWettingModel(ModelPart& rModelPart, double LayerThickness, double RoughnessFactor);
+    NegativeHeightWettingModel(ModelPart& rModelPart, double Beta);
 
     /// Destructor.
-    virtual ~RoughPorousLayerWettingModel() = default;
+    virtual ~NegativeHeightWettingModel() = default;
 
     ///@}
     ///@name Operators
@@ -109,7 +108,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "RoughPorousLayerWettingModel";
+        return "NegativeHeightWettingModel";
     }
 
     /// Print information about this object.
@@ -134,8 +133,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    double mLayerThickness;
-    double mRoughnessFactor;
+    double mBeta;
 
     ///@}
     ///@name Member Variables
@@ -167,15 +165,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    RoughPorousLayerWettingModel& operator=(RoughPorousLayerWettingModel const& rOther) = delete;
+    NegativeHeightWettingModel& operator=(NegativeHeightWettingModel const& rOther) = delete;
 
     /// Copy constructor.
-    RoughPorousLayerWettingModel(RoughPorousLayerWettingModel const& rOther) = delete;
+    NegativeHeightWettingModel(NegativeHeightWettingModel const& rOther) = delete;
 
 
     ///@}
 
-}; // Class RoughPorousLayerWettingModel
+}; // Class NegativeHeightWettingModel
 
 ///@}
 
@@ -190,11 +188,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                RoughPorousLayerWettingModel& rThis);
+                NegativeHeightWettingModel& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const RoughPorousLayerWettingModel& rThis)
+                const NegativeHeightWettingModel& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -208,4 +206,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ROUGH_POROUS_LAYER_WETTING_MODEL  defined
+#endif // KRATOS_NEGATIVE_HEIGHT_WETTING_MODEL  defined

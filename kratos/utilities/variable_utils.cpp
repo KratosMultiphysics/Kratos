@@ -467,4 +467,23 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
     KRATOS_CATCH("");
 }
 
+void VariableUtils::UpdateCurrentPosition(
+    const ModelPart::NodesContainerType &rNodes,
+    const ArrayVarType &rUpdateVariable)
+{
+    KRATOS_TRY;
+
+    const int num_nodes = rNodes.size();
+    const auto nodes_begin = rNodes.begin();
+
+    #pragma omp parallel for firstprivate(nodes_begin)
+    for (int i_node = 0; i_node < num_nodes; ++i_node) {
+        const auto it_node  = nodes_begin + i_node;
+        const auto &r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable);
+        noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + r_update_coords;
+    }
+
+    KRATOS_CATCH("");
+}
+
 } /* namespace Kratos.*/

@@ -102,13 +102,6 @@ public:
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
 
-    /// Node containers definition
-    typedef ModelPart::NodesContainerType                        NodesArrayType;
-    /// Elements containers definition
-    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-    /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
-
     /// Node definition
     typedef Node <3>                                                   NodeType;
     // Geometry definition
