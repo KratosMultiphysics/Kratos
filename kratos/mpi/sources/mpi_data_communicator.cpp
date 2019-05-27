@@ -53,7 +53,7 @@ type MPIDataCommunicator::SumAll(const type rLocalValue) const {                
     return AllReduceDetail(rLocalValue, MPI_SUM);                                            \
 }                                                                                            \
 std::vector<type> MPIDataCommunicator::SumAll(const std::vector<type>& rLocalValues) const { \
-    return AllReduceDetail(rLocalValues, MPI_SUM);                                           \
+    return AllReduceDetailVector(rLocalValues, MPI_SUM);                                     \
 }                                                                                            \
 void MPIDataCommunicator::SumAll(                                                            \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
@@ -63,7 +63,7 @@ type MPIDataCommunicator::MinAll(const type rLocalValue) const {                
     return AllReduceDetail(rLocalValue, MPI_MIN);                                            \
 }                                                                                            \
 std::vector<type> MPIDataCommunicator::MinAll(const std::vector<type>& rLocalValues) const { \
-    return AllReduceDetail(rLocalValues, MPI_MIN);                                           \
+    return AllReduceDetailVector(rLocalValues, MPI_MIN);                                     \
 }                                                                                            \
 void MPIDataCommunicator::MinAll(                                                            \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
@@ -73,7 +73,7 @@ type MPIDataCommunicator::MaxAll(const type rLocalValue) const {                
     return AllReduceDetail(rLocalValue, MPI_MAX);                                            \
 }                                                                                            \
 std::vector<type> MPIDataCommunicator::MaxAll(const std::vector<type>& rLocalValues) const { \
-    return AllReduceDetail(rLocalValues, MPI_MAX);                                           \
+    return AllReduceDetailVector(rLocalValues, MPI_MAX);                                     \
 }                                                                                            \
 void MPIDataCommunicator::MaxAll(                                                            \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
@@ -742,6 +742,16 @@ template<class TDataType> TDataType MPIDataCommunicator::AllReduceDetail(
     TDataType global_values(rLocalValues);
     AllReduceDetail(rLocalValues, global_values, Operation);
     return global_values;
+}
+
+template<class TDataType>
+std::vector<TDataType> MPIDataCommunicator::AllReduceDetailVector(
+    const std::vector<TDataType>& rLocalValues,
+    MPI_Op Operation) const
+{
+    std::vector<TDataType> reduced_values(rLocalValues.size());
+    AllReduceDetail(rLocalValues, reduced_values, Operation);
+    return reduced_values;
 }
 
 template<class TDataType> void MPIDataCommunicator::ScanDetail(

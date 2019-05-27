@@ -381,6 +381,10 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> TDataType AllReduceDetail(
         const TDataType& rLocalValues, MPI_Op Operation) const;
 
+    template<class TDataType> std::vector<TDataType> AllReduceDetailVector(
+        const std::vector<TDataType>& rLocalValues,
+        MPI_Op Operation) const;
+
     template<class TDataType> void ScanDetail(
         const TDataType& rLocalValues,
         TDataType& rReducedValues,
