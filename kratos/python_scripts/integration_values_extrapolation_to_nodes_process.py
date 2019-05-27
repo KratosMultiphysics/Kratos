@@ -4,15 +4,31 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return IntegrationValuesExtrapolationToNodesProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
+    """This process extrapolates the values from integration points to the mesh nodes
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
     def __init__(self, Model, settings ):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
         KratosMultiphysics.Process.__init__(self)
 
+        # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                       : "This process extrapolates the values from integration points to the mesh nodes",
@@ -38,26 +54,26 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
         extrapolation_parameters.AddValue("extrapolate_non_historical", settings["extrapolate_non_historical"])
         self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.IntegrationValuesExtrapolationToNodesProcess(self.model_part, extrapolation_parameters)
 
-    def ExecuteInitialize(self):
-        pass
-
     def ExecuteBeforeSolutionLoop(self):
+        """ This method is executed before the solution loop
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.integration_values_extrapolation_to_nodes_process.ExecuteBeforeSolutionLoop()
 
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
     def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
 
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
     def ExecuteFinalize(self):
-        self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()
+        """ This method is executed at the end of the simulation
 
-    def Clear(self):
-        pass
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()

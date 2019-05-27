@@ -97,6 +97,8 @@ public:
 
     bool HasAttribute(const std::string& rObjectPath, const std::string& rName) const;
 
+    void DeleteAttribute(const std::string& rObjectPath, const std::string& rName);
+
     std::vector<std::string> GetAttributeNames(const std::string& rObjectPath) const;
 
     void CreateGroup(const std::string& rPath);

@@ -80,7 +80,7 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
 
     /// Counted pointer of LineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition2D );
 
     ///@}
     ///@name Life Cycle
@@ -147,6 +147,30 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes
         ) const override;
+
+    /**
+     * @brief Get on rVariable a array_1d Value
+     * @param rVariable Internal values
+     * @param rCurrentProcessInfo The current process information
+     * @param rOutput The values of interest (array_1d)
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a array_1d Variable
+     * @param rVariable Internal values
+     * @param rCurrentProcessInfo The current process information
+     * @param rOutput The values of interest (array_1d)
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     ///@}
     ///@name Access

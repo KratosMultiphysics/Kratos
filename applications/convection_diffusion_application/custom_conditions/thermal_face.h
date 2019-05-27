@@ -47,7 +47,7 @@ public:
     ///@{
 
     /// Pointer definition of ThermalFace
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalFace);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalFace);
 
     /**
      * @brief Gauss pt. data structure
