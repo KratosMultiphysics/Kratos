@@ -45,7 +45,6 @@ void GenerateDemProcess::Execute()
         bool dem_generated = it_elem->GetValue(DEM_GENERATED);
 
         if (!is_active && !dem_generated) {
-            // std::cout << "Elemento eliminado -- >" << it_elem->Id() << std::endl;
             auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 			auto& r_node0 = r_geom[0];
 			auto& r_node1 = r_geom[1];
