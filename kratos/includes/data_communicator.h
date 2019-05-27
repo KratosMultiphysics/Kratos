@@ -692,6 +692,17 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rSendValues;
     }
 
+    virtual std::vector<int> SendRecv(
+        const std::vector<int>& rSendValues,
+        const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const
+    {
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
+    }
+
     /// Exchange data with other ranks (double version).
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues Values to send to rank SendDestination.
@@ -708,6 +719,17 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int SendDestination,
         const int RecvSource) const
+    {
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
+    }
+
+    virtual std::vector<double> SendRecv(
+        const std::vector<double>& rSendValues,
+        const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const
     {
         KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
