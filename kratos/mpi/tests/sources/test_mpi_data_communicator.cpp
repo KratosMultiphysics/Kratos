@@ -95,6 +95,29 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumInt, KratosMPICoreFa
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    constexpr int root = 0;
+
+    unsigned int local = 1;
+    unsigned int result = mpi_world_communicator.Sum(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(result, (unsigned int)world_size);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Sum(local, world_size),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Sum(local, -1),"is not a valid rank.");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
