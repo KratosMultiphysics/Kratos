@@ -132,7 +132,7 @@ double GenerateDemProcess::CalculateDistanceBetweenNodes(
     const double Y2 = rNode2.Y();
     const double Z1 = rNode1.Z();
     const double Z2 = rNode2.Z();
-    return std::sqrt(std::pow(X1-X2, 2.0) + std::pow(Y1-Y2, 2.0) + std::pow(Z1-Z2, 2.0));
+    return std::sqrt(std::pow(X1-X2, 2) + std::pow(Y1-Y2, 2) + std::pow(Z1-Z2, 2));
 }
 
 /***********************************************************************************/
