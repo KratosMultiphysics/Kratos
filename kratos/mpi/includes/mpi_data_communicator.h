@@ -24,6 +24,13 @@
 #include "includes/define.h"
 #include "includes/data_communicator.h"
 
+#ifndef KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
+#define KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(type) \
+type Sum(const type rLocalValue, const int Root) const override;      \
+
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos MPI Core
@@ -71,7 +78,7 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Reduce operations
 
-    int Sum(const int rLocalValue, const int Root) const override;
+    KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE(int);
 
     double Sum(const double rLocalValue, const int Root) const override;
 
@@ -552,5 +559,7 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 ///@} addtogroup block
 
 } // namespace Kratos.
+
+#undef KRATOS_DECLARE_MPI_DATA_COMMUNICATOR_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
