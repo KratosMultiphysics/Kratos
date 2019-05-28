@@ -450,17 +450,16 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
     }
 
-    virtual void Send(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const
-    {
-        KRATOS_ERROR_IF(Rank() != SendDestination)
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-    }
-
-    virtual void Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const
-    {
-        KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;
-    }
-
+    /// Exchange data with other ranks (generic version).
+    /** This is a wrapper for MPI_Sendrecv that uses serialization to tranfer arbitrary objects.
+     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
+     *  @param[in] rSendValues Objects to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the data will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     *  @param[in] RecvSource Rank the data is expected from.
+     *  @param[in] RecvTag Message tag for received values.
+     *  @return Received data from rank RecvSource.
+     */
     template<class TObject> TObject SerializedSendRecv(
         const TObject& rSendObject,
         const int SendDestination, const int SendTag,
@@ -488,12 +487,39 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         }
     }
 
+    /// Exchange data with other ranks (generic version).
+    /** This is a wrapper for MPI_Sendrecv that uses serialization to tranfer arbitrary objects.
+     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
+     *  @param[in] rSendValues Objects to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the data will be sent to.
+     *  @param[in] RecvSource Rank the data is expected from.
+     *  @return Received data from rank RecvSource.
+     */
     template<class TObject> TObject SerializedSendRecv(
         const TObject& rSendObject, const int SendDestination, const int RecvSource) const
     {
         return SerializedSendRecv(rSendObject, SendDestination, 0, RecvSource, 0);
     }
 
+    /// Send data to other ranks (string version).
+    /** This is a wrapper for MPI_Send.
+     *  @param[in] rSendValues String to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the string will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     */
+    virtual void Send(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const
+    {
+        KRATOS_ERROR_IF(Rank() != SendDestination)
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+    }
+
+    /// Exchange data with other ranks (generic version).
+    /** This is a wrapper for MPI_Send that uses serialization to tranfer arbitrary objects.
+     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
+     *  @param[in] rSendValues Objects to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the data will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     */
     template<class TObject> void SerializedSend(
         const TObject& rSendObject, const int SendDestination, const int SendTag = 0) const
     {
@@ -512,6 +538,24 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         }
     }
 
+    /// Receive data from other ranks (string version).
+    /** This is a wrapper for MPI_Recv.
+     *  @param[out] rRecvValues Received string from rank RecvSource.
+     *  @param[in] RecvSource Rank the string is expected from.
+     *  @param[in] RecvTag Message tag for received values.
+     */
+    virtual void Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const
+    {
+        KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;
+    }
+
+    /// Exchange data with other ranks (generic version).
+    /** This is a wrapper for MPI_Recv that uses serialization to tranfer arbitrary objects.
+     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
+     *  @param[out] rRecvObject Objects to receive from rank RecvSource.
+     *  @param[in] RecvSource Rank the data will be received from.
+     *  @param[in] RecvTag Message tag for received values.
+     */
     template<class TObject> void SerializedRecv(
         TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
     {
