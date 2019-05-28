@@ -1974,7 +1974,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervUnsignedInt, Kr
 
     for (int i = 0; i < recv_size; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], world_rank);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], (unsigned int)world_rank);
     }
 }
 
@@ -2155,7 +2155,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherUnsignedInt, Krat
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    const int world_size = mpi_world_communicator.Size();
+    const unsigned int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
     const int recv_rank = 0;
 
@@ -2172,9 +2172,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherUnsignedInt, Krat
 
     if (world_rank == recv_rank)
     {
-        for (int rank = 0; rank < world_size; rank++)
+        for (unsigned int rank = 0; rank < world_size; rank++)
         {
-            for (int j = 2*rank; j < 2*rank+2; j++)
+            for (unsigned int j = 2*rank; j < 2*rank+2; j++)
             {
                 KRATOS_CHECK_EQUAL(recv_buffer[j], rank);
             }
@@ -2185,8 +2185,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherUnsignedInt, Krat
     std::vector<unsigned int> return_buffer = mpi_world_communicator.Gather(send_buffer, recv_rank);
     if (world_rank == recv_rank)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(2*world_size));
-        for (int rank = 0; rank < world_size; rank++)
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2*world_size);
+        for (unsigned int rank = 0; rank < world_size; rank++)
         {
             for (unsigned int j = 2*rank; j < 2*rank+2; j++)
             {
@@ -2397,9 +2397,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervUnsignedInt, Kra
     const int recv_rank = world_size-1;
 
     auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
-    auto make_message_distance = [](int rank, int padding) {
-        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
-    };
 
     const int send_size = make_message_size(world_rank);
     std::vector<unsigned int> send_buffer(send_size, (unsigned int)world_rank);
@@ -2597,16 +2594,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherUnsignedInt, K
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
+    const unsigned int world_size = mpi_world_communicator.Size();
+    const unsigned int world_rank = mpi_world_communicator.Rank();
 
-    std::vector<unsigned int> send_buffer{(unsigned int)world_rank, (unsigned int)world_rank};
+    std::vector<unsigned int> send_buffer{world_rank, world_rank};
 
     // return buffer version
     std::vector<unsigned int> return_buffer = mpi_world_communicator.AllGather(send_buffer);
 
-    KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(2*world_size));
-    for (int rank = 0; rank < world_size; rank++)
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2*world_size);
+    for (unsigned int rank = 0; rank < world_size; rank++)
     {
         for (unsigned int j = 2*rank; j < 2*rank+2; j++)
         {
