@@ -269,7 +269,8 @@ class Algorithm(object):
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
 
-                    self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
+                    if self.test_number:
+                        self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
 
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
