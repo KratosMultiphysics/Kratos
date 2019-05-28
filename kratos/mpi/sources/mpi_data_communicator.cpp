@@ -115,6 +115,14 @@ void MPIDataCommunicator::SendRecv(                                             
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {    \
     SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag); \
 }                                                                                       \
+void MPIDataCommunicator::Send(const std::vector<type>& rSendValues,                    \
+    const int SendDestination, const int SendTag) const {                               \
+    SendDetail(rSendValues, SendDestination, SendTag);                                  \
+}                                                                                       \
+void MPIDataCommunicator::Recv(std::vector<type>& rRecvValues,                          \
+    const int RecvSource, const int RecvTag) const {                                    \
+    RecvDetail(rRecvValues, RecvSource, RecvTag);                                       \
+}                                                                                       \
 
 #endif
 
@@ -361,6 +369,16 @@ void MPIDataCommunicator::SendRecv(
     SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
+void MPIDataCommunicator::Send(const std::string& rSendValues, const int SendDestination, const int SendTag) const
+{
+    SendDetail(rSendValues, SendDestination, SendTag);
+}
+
+void MPIDataCommunicator::Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag) const
+{
+    RecvDetail(rRecvValues, RecvSource, RecvTag);
+}
+
 // Access
 
 MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCommunicator)
@@ -578,6 +596,31 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     std::vector<TDataType> recv_values(recv_size);
     SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
     return recv_values;
+}
+
+template<class TDataType> void MPIDataCommunicator::SendDetail(
+    const TDataType& rSendValues, const int SendDestination, const int SendTag) const
+{
+    int ierr = MPI_Send(MPIBuffer(rSendValues), MPIMessageSize(rSendValues),
+        MPIDatatype(rSendValues), SendDestination, SendTag, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Send");
+}
+
+template<class TDataType> void MPIDataCommunicator::RecvDetail(
+    TDataType& rRecvValues, const int RecvSource, const int RecvTag) const
+{
+    MPI_Status status;
+    int ierr = MPI_Probe(RecvSource,RecvTag,mComm,&status);
+    CheckMPIErrorCode(ierr, "MPI_Probe");
+
+    int recv_size;
+    ierr = MPI_Get_count(&status, MPIDatatype(rRecvValues), &recv_size);
+
+    if (rRecvValues.size() != (unsigned int)recv_size) rRecvValues.resize(recv_size);
+
+    ierr = MPI_Recv(MPIBuffer(rRecvValues), recv_size, MPIDatatype(rRecvValues),
+        RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
+    CheckMPIErrorCode(ierr, "MPI_Recv");
 }
 
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(

@@ -117,7 +117,7 @@ virtual void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& r
 
 #endif
 
-// Exchange data with other ranks. This is a wrapper for MPI_Sendrecv.
+// Exchange data with other ranks. This is a wrapper for MPI_Sendrecv, MPI_Send and MPI_Recv.
 /* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
  * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
  * communicated. If the dimensions of the receiving buffer are known at the destination rank, the output buffer
@@ -143,6 +143,14 @@ virtual void SendRecv(                                                          
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {                            \
     KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");              \
     rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);                                           \
+}                                                                                                               \
+virtual void Send(                                                                                              \
+    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag = 0) const {             \
+    KRATOS_ERROR_IF(Rank() != SendDestination)                                                                  \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
+}                                                                                                               \
+virtual void Recv(std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {          \
+    KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \
 }                                                                                                               \
 
 #endif
@@ -442,6 +450,17 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
     }
 
+    virtual void Send(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const
+    {
+        KRATOS_ERROR_IF(Rank() != SendDestination)
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+    }
+
+    virtual void Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const
+    {
+        KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;
+    }
+
     template<class TObject> TObject SerializedSendRecv(
         const TObject& rSendObject,
         const int SendDestination, const int SendTag,
@@ -473,6 +492,43 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const TObject& rSendObject, const int SendDestination, const int RecvSource) const
     {
         return SerializedSendRecv(rSendObject, SendDestination, 0, RecvSource, 0);
+    }
+
+    template<class TObject> void SerializedSend(
+        const TObject& rSendObject, const int SendDestination, const int SendTag = 0) const
+    {
+        if (this->IsDistributed())
+        {
+            MpiSerializer send_serializer;
+            send_serializer.save("data", rSendObject);
+            std::string send_message = send_serializer.GetStringRepresentation();
+
+            this->Send(send_message, SendDestination, SendTag);
+        }
+        else
+        {
+            KRATOS_ERROR_IF(Rank() != SendDestination)
+            << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        }
+    }
+
+    template<class TObject> void SerializedRecv(
+        TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
+    {
+        if (this->IsDistributed())
+        {
+            std::string recv_message;
+
+            this->Recv(recv_message, RecvSource, RecvTag);
+
+            MpiSerializer recv_serializer(recv_message);
+            recv_serializer.load("data", rRecvObject);
+        }
+        else
+        {
+            KRATOS_ERROR_IF(Rank() != RecvSource)
+            << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        }
     }
 
     ///@}

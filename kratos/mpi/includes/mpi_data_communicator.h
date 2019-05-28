@@ -70,6 +70,10 @@ std::vector<type> SendRecv(const std::vector<type>& rSendValues,                
 void SendRecv(                                                                               \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
+void Send(const std::vector<type>& rSendValues,                                              \
+    const int SendDestination, const int SendTag = 0) const override;                        \
+void Recv(std::vector<type>& rRecvValues,                                                    \
+    const int RecvSource, const int RecvTag = 0) const override;                             \
 
 #endif
 
@@ -216,6 +220,10 @@ class MPIDataCommunicator: public DataCommunicator
         const std::string& rSendValues, const int SendDestination, const int SendTag,
         std::string& rRecvValues, const int RecvSource, const int RecvTag) const override;
 
+    void Send(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const override;
+
+    void Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -324,6 +332,12 @@ class MPIDataCommunicator: public DataCommunicator
         const std::vector<TDataType>& rSendMessage,
         const int SendDestination, const int SendTag,
         const int RecvSource, const int RecvTag) const;
+
+    template<class TDataType> void SendDetail(
+        const TDataType& rSendValues, const int SendDestination, const int SendTag) const;
+
+    template<class TDataType> void RecvDetail(
+        TDataType& rRecvValues, const int RecvSource, const int RecvTag) const;
 
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
