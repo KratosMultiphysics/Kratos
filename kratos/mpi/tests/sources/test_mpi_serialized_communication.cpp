@@ -33,7 +33,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
     Model model;
-    ModelPart& model_part = model.CreateModelPart("Test");
+    ModelPart& model_part = model.CreateModelPart("Send");
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.CreateNewNode(world_rank, 0.0, 0.0, 0.1*world_rank);
     for (ModelPart::NodeIterator it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
@@ -45,7 +45,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
 
     for (auto& node: recv_node_container)
     {
-        KRATOS_CHECK_EQUAL(node.Id(), recv_rank);
+        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)recv_rank);
         KRATOS_CHECK_EQUAL(node.Z(), 0.1*recv_rank);
         KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*recv_rank);
     }
