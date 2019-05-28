@@ -44,45 +44,16 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
             if sub_project_parameters[i]["python_module"].GetString() == "compute_lift_process":
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
-
-    def InitializeSolutionStep(self):
-        super(KratosPotentialFlowSolver, self).InitializeSolutionStep()
-
-        # sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
-
-        # for i in range(sub_project_parameters.size()):
-        #     if sub_project_parameters[i]["python_module"].GetString() == "define_wake_process_2d":
-        #         self.wake_process = DefineWakeProcess2D(self.model, sub_project_parameters[i]["Parameters"])
-        #         if not hasattr(self, "wake_process"):
-        #             raise Exception("potential flow requires specification of a process for the wake (currently specifically using 'define_wake_process_2d')")
-
-        #     if sub_project_parameters[i]["python_module"].GetString() == "compute_forces_on_nodes_process":
-        #         self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[i]["Parameters"])
-        #     if sub_project_parameters[i]["python_module"].GetString() == "compute_lift_process":
-        #         self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
-        # self.wake_process.FindWakeElements()
-        self.counter = 0
-
-
     def SolveSolutionStep(self):
         self.wake_process.CleanMarking()
         self.wake_process.SolveSolutionStep()
 
-        self.counter +=1
-        print('COUNTERRRRRRRRRRR',self.counter)
-
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
-        # for elem in self.wake_process.wake_elements_sub_modelpart.Elements:
-        #     print("INITIAL", elem.Id)
 
-        for elem in self.wake_process.trailing_edge_model_part.Elements:
-            print("TRAILING --------------------------------", elem.Id)
-        # self.wake_process.FindWakeElements()
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
         # self.wake_process.CleanMarking()
 
-        print("SOLVING NOW")
     def FinalizeSolutionStep(self):
         super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
         # self.wake_process.CleanMarking()
