@@ -149,7 +149,7 @@ namespace Kratos {
 
         // Constructor with name
         KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
-            "Error: Please don't use names containing (\".\") when creating a ModelPart");
+            "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)
