@@ -32,6 +32,10 @@
     << ": The sizes of the local and distributed buffers do not match." << std::endl;
 #endif
 
+// Methods based on MPI_Reduce, supporting sum, max or min operations.
+/* Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
+ * The returned value is only meaningful on the Root rank.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)                                       \
 virtual type Sum(const type rLocalValue, const int Root) const { return rLocalValue; }                              \
@@ -61,6 +65,10 @@ virtual void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlob
 
 #endif
 
+// Methods based on MPI_Allreduce, supporting sum, max or min operations.
+/* Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
+ * The returned value is defined on all ranks.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type)                        \
 virtual type SumAll(const type rLocalValue) const { return rLocalValue; }                               \
@@ -90,6 +98,11 @@ virtual void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rG
 
 #endif
 
+// Compute the partial sum of the given quantity from rank 0 to the current rank (included).
+/* This is a wrapper to MPI_Scan.
+ * Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
+ * The returned value is defined on all ranks.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)                      \
 virtual type ScanSum(const type rLocalValue) const { return rLocalValue; }                          \
@@ -103,6 +116,12 @@ virtual void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& r
 
 #endif
 
+// Exchange data with other ranks. This is a wrapper for MPI_Sendrecv.
+/* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
+ * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
+ * communicated. If the dimensions of the receiving buffer are known at the destination rank, the output buffer
+ * variant should be preferred.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)                                 \
 virtual std::vector<type> SendRecv(                                                                             \
@@ -127,6 +146,11 @@ virtual void SendRecv(                                                          
 
 #endif
 
+// Synchronize a buffer to the value held by the broadcasting rank.
+/* This is a wrapper for MPI_Bcast.
+ *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+ *  @param[in] SourceRank The rank transmitting the value.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type)    \
 virtual void Broadcast(type& rBuffer, const int SourceRank) const {}                \
@@ -134,6 +158,12 @@ virtual void Broadcast(std::vector<type>& rBuffer, const int SourceRank) const {
 
 #endif
 
+/// Wrappers for MPI_Scatter and MPI_Scatterv calls.
+/* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
+ * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
+ * communicated. If the dimensions of the receiving buffers are known at the destination rank, the output buffer
+ * variant should be preferred.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)                                                              \
 virtual std::vector<type> Scatter(const std::vector<type>& rSendValues, const int SourceRank) const {                                       \
@@ -166,6 +196,12 @@ virtual void Scatterv(                                                          
 
 #endif
 
+/// Wrappers for MPI_Gather, MPI_Gatherv and MPI_Allgather calls.
+/* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
+ * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
+ * communicated. If the dimensions of the receiving buffers are known at the destination rank, the output buffer
+ * variant should be preferred.
+ */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)                                       \
 virtual std::vector<type> Gather(const std::vector<type>& rSendValues, const int DestinationRank) const {           \
