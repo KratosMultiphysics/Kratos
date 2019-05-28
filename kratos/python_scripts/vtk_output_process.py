@@ -2,7 +2,7 @@ import KratosMultiphysics
 import os
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return VtkOutputProcess(model, settings["Parameters"])
 
@@ -25,8 +25,11 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
+            "nodal_flags"                        : [],
             "element_data_value_variables"       : [],
+            "element_flags"                      : [],
             "condition_data_value_variables"     : [],
+            "condition_flags"                    : [],
             "gauss_point_variables"              : []
         }""")
 
@@ -44,7 +47,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
                     kratos_utils.DeleteDirectoryIfExisting(folder_name)
                 if not os.path.isdir(folder_name):
                     os.mkdir(folder_name)
-            self.model_part.GetCommunicator().Barrier()
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, self.settings)
 

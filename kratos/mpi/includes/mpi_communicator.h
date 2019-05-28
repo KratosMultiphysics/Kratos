@@ -878,7 +878,6 @@ public:
         return true;
     }
 
-    // This function is for test and will be changed. Pooyan.
     bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable) override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
@@ -892,6 +891,23 @@ public:
 
         // Synchronize result on ghost copies
         TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MinValues> min;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate min on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, min);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
 
         return true;
     }
@@ -1128,6 +1144,17 @@ public:
         return true;
     }
 
+    bool SynchronizeNodalFlags() override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        MPIInternals::NodalFlagsAccess nodal_flags_access(Flags::AllDefined());
+        constexpr Operation<OperationType::Replace> replace;
+
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flags_access, replace);
+        return true;
+    }
+
     bool SynchronizeElementalFlags() override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
@@ -1299,7 +1326,7 @@ private:
         int mpi_rank = mrDataCommunicator.Rank();
         int mpi_size = mrDataCommunicator.Size();
 
-        MPI_Comm comm = MPIEnvironment::GetMPICommunicator(mrDataCommunicator);
+        MPI_Comm comm = MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator);
 
         int * msgSendSize = new int[mpi_size];
         int * msgRecvSize = new int[mpi_size];
@@ -1787,6 +1814,7 @@ private:
         }
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
+        << GetDataCommunicator()
         << "Error in estimating receive buffer size." << std::endl;
     }
 

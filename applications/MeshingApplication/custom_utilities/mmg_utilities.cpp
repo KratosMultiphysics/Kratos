@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 /* The includes related with the MMG library */
@@ -51,7 +52,7 @@ namespace Kratos
 {
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions()
+const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
 {
     return NumberOfLines;
 }
@@ -60,7 +61,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions()
+const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
 {
     return NumberOfTriangles;
 }
@@ -69,7 +70,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions()
+const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
 {
     return NumberOfLines;
 }
@@ -78,7 +79,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions()
+const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() const
 {
     return 0;
 }
@@ -87,7 +88,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions()
+const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() const
 {
     return NumberOfQuadrilaterals;
 }
@@ -96,7 +97,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions()
+const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
 {
     return 0;
 }
@@ -105,7 +106,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements()
+const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
 {
     return NumberOfTriangles;
 }
@@ -114,7 +115,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements()
+const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
 {
     return NumberOfTetrahedra;
 }
@@ -123,7 +124,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements()
+const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 {
     return NumberOfTriangles;
 }
@@ -132,7 +133,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements()
+const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 {
     return 0;
 }
@@ -141,7 +142,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements()
+const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
 {
     return NumberOfPrism;
 }
@@ -150,7 +151,7 @@ SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements()
 /***********************************************************************************/
 
 template<>
-SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements()
+const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements() const
 {
     return 0;
 }
@@ -707,7 +708,7 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
+Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -728,7 +729,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
+Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -749,7 +750,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
+Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -1635,10 +1636,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1655,10 +1656,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1675,10 +1676,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1695,10 +1696,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1715,10 +1716,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1735,10 +1736,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -2375,11 +2376,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricScalar(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMetricVector(
-    const array_1d<double, 2>& Metric,
+    const array_1d<double, 2>& rMetric,
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgSol, Metric[0], Metric[1], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2387,11 +2388,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricVector(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetMetricVector(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 3>& rMetric,
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgSol, Metric[0], Metric[1], Metric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2399,11 +2400,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricVector(
 
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMetricVector(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 3>& rMetric,
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgSol, Metric[0], Metric[1], Metric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2411,12 +2412,12 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricVector(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMetricTensor(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 3>& rMetric,
     const IndexType NodeId
     )
 {
     // The order is XX, XY, YY
-    KRATOS_ERROR_IF( MMG2D_Set_tensorSol(mMmgSol, Metric[0], Metric[2], Metric[1], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_tensorSol(mMmgSol, rMetric[0], rMetric[2], rMetric[1], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2424,12 +2425,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricTensor(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetMetricTensor(
-    const array_1d<double, 6>& Metric,
+    const array_1d<double, 6>& rMetric,
     const IndexType NodeId
     )
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( MMG3D_Set_tensorSol(mMmgSol, Metric[0], Metric[3], Metric[5], Metric[1], Metric[4], Metric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Set_tensorSol(mMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2437,12 +2438,585 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricTensor(
 
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMetricTensor(
-    const array_1d<double, 6>& Metric,
+    const array_1d<double, 6>& rMetric,
     const IndexType NodeId
     )
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( MMGS_Set_tensorSol(mMmgSol, Metric[0], Metric[3], Metric[5], Metric[1], Metric[4], Metric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Set_tensorSol(mMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::GetMetricScalar(double& rMetric)
+{
+    KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::GetMetricScalar(double& rMetric)
+{
+    KRATOS_ERROR_IF( MMG3D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::GetMetricScalar(double& rMetric)
+{
+    KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::GetMetricVector(array_1d<double, 2>& rMetric)
+{
+    KRATOS_ERROR_IF( MMG2D_Get_vectorSol(mMmgSol, &rMetric[0], &rMetric[1]) != 1 ) << "Unable to get vector metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::GetMetricVector(array_1d<double, 3>& rMetric)
+{
+    KRATOS_ERROR_IF( MMG3D_Get_vectorSol(mMmgSol, &rMetric[0], &rMetric[1], &rMetric[2]) != 1 ) << "Unable to get vector metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::GetMetricVector(array_1d<double, 3>& rMetric)
+{
+    KRATOS_ERROR_IF( MMGS_Get_vectorSol(mMmgSol, &rMetric[0], &rMetric[1], &rMetric[2]) != 1 ) << "Unable to get vector metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::GetMetricTensor(array_1d<double, 3>& rMetric)
+{
+    // The order is XX, XY, YY
+    KRATOS_ERROR_IF( MMG2D_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[2], &rMetric[1]) != 1 ) << "Unable to get tensor metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::GetMetricTensor(array_1d<double, 6>& rMetric)
+{
+    // The order is XX, XY, XZ, YY, YZ, ZZ
+    KRATOS_ERROR_IF( MMG3D_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::GetMetricTensor(array_1d<double, 6>& rMetric)
+{
+    // The order is XX, XY, XZ, YY, YZ, ZZ
+    KRATOS_ERROR_IF( MMGS_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
+{
+    // Iterate over nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+        (it_node_begin + i)->SetId(i + 1);
+
+    // Iterate over conditions
+    auto& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
+
+    // Iterate over elements
+    auto& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+        (it_elem_begin + i)->SetId(i + 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
+    ModelPart& rModelPart,
+    std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+    ColorsMapType& rColorMapCondition,
+    ColorsMapType& rColorMapElement,
+    const FrameworkEulerLagrange Framework
+    )
+{
+    // Before computing colors we do some check and throw a warning to get the user informed
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
+
+    for (auto sub_model_part_name : sub_model_part_names) {
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+
+        KRATOS_WARNING_IF("MmgProcess", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
+        "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
+        "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
+    }
+
+    // First we compute the colors
+    rColors.clear();
+    ColorsMapType nodes_colors, cond_colors, elem_colors;
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
+
+    /////////* MESH FILE */////////
+    // Build mesh in MMG5 format //
+
+    // Iterate over components
+    auto& r_nodes_array = rModelPart.Nodes();
+    auto& r_conditions_array = rModelPart.Conditions();
+    auto& r_elements_array = rModelPart.Elements();
+
+    /* Manually set of the mesh */
+    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
+    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
+        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
+    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+        /* Conditions */
+        std::size_t num_tri = 0, num_quad = 0;
+        #pragma omp parallel for reduction(+:num_tri,num_quad)
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = r_conditions_array.begin() + i;
+
+            if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
+                num_tri += 1;
+            } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
+                num_quad += 1;
+            } else
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+        }
+
+        mmg_mesh_info.NumberOfTriangles = num_tri;
+        mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
+
+        KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
+        "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+
+        /* Elements */
+        std::size_t num_tetra = 0, num_prisms = 0;
+        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
+        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = r_elements_array.begin() + i;
+
+            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
+                num_tetra += 1;
+            } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
+                num_prisms += 1;
+            } else
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+        }
+
+        mmg_mesh_info.NumberOfTetrahedra = num_tetra;
+        mmg_mesh_info.NumberOfPrism = num_prisms;
+
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
+    } else { // Surfaces
+        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
+        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
+    }
+
+    mmg_mesh_info.NumberOfNodes = r_nodes_array.size();
+    SetMeshSize(mmg_mesh_info);
+
+    /* Nodes */
+    if (Framework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = r_nodes_array.begin() + i;
+
+            SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
+
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED))
+                blocked = it_node->Is(BLOCKED);
+            if (blocked)
+                BlockNode(i + 1);
+
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
+        }
+    } else {
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = r_nodes_array.begin() + i;
+
+            SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
+
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED))
+                blocked = it_node->Is(BLOCKED);
+            if (blocked)
+                BlockNode(i + 1);
+
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
+        }
+    }
+
+    /* Conditions */
+    #pragma omp parallel for firstprivate(cond_colors)
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+        auto it_cond = r_conditions_array.begin() + i;
+
+        SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
+
+        bool blocked = false;
+        if (it_cond->IsDefined(BLOCKED))
+            blocked = it_cond->Is(BLOCKED);
+        if (blocked)
+            BlockCondition(i + 1);
+
+        // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
+        it_cond->SetId(i + 1);
+    }
+
+    /* Elements */
+    #pragma omp parallel for firstprivate(elem_colors)
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+
+        SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
+
+        bool blocked = false;
+        if (it_elem->IsDefined(BLOCKED))
+            blocked = it_elem->Is(BLOCKED);
+        if (blocked)
+            BlockElement(i + 1);
+
+        // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
+        it_elem->SetId(i + 1);
+    }
+
+    // Create auxiliar colors maps
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+        auto it_cond = r_conditions_array.begin() + i;
+        const IndexType cond_id = it_cond->Id();
+        const IndexType color = cond_colors[cond_id];
+        if (!(rColorMapCondition.find(color) != rColorMapCondition.end()))
+            rColorMapCondition.insert (IndexPairType(color,cond_id));
+    }
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+        const IndexType elem_id = it_elem->Id();
+        const IndexType color = elem_colors[elem_id];
+        if (!(rColorMapElement.find(color) != rColorMapElement.end()))
+            rColorMapElement.insert (IndexPairType(color,elem_id));
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
+{
+    // Iterate in the nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+
+    // Set size of the solution
+    SetSolSizeTensor(r_nodes_array.size());
+
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = r_nodes_array.begin() + i;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+
+        // We get the metric
+        const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+
+        // We set the metric
+        SetMetricTensor(r_metric, i + 1);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
+    ModelPart& rModelPart,
+    const std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+    const NodeType::DofsContainerType& rDofs,
+    const MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
+    std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
+    std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement
+    )
+{
+    // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
+    std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;
+
+    // The tempotal store of
+    ConditionsArrayType created_conditions_vector;
+    ElementsArrayType created_elements_vector;
+
+    // Auxiliar values
+    int ref, is_required;
+
+    /* NODES */ // TODO: ADD OMP
+    for (IndexType i_node = 1; i_node <= rMMGMeshInfo.NumberOfNodes; ++i_node) {
+        NodeType::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
+
+        // Set the DOFs in the nodes
+        for (auto& r_dof : rDofs)
+            p_node->pAddDof(r_dof);
+
+        if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
+    }
+
+    /* CONDITIONS */ // TODO: ADD OMP
+    if (rMapPointersRefCondition.size() > 0) {
+        IndexType cond_id = 1;
+
+        IndexType counter_first_cond = 0;
+        const IndexVectorType first_condition_to_remove = CheckFirstTypeConditions();
+        for (IndexType i_cond = 1; i_cond <= rMMGMeshInfo.NumberFirstTypeConditions(); ++i_cond) {
+            bool skip_creation = false;
+            if (counter_first_cond < first_condition_to_remove.size()) {
+                if (first_condition_to_remove[counter_first_cond] == i_cond) {
+                    skip_creation = true;
+                    counter_first_cond += 1;
+                }
+            }
+
+            Condition::Pointer p_condition = CreateFirstTypeCondition(rModelPart, rMapPointersRefCondition, cond_id, ref, is_required, skip_creation);
+
+            if (p_condition.get() != nullptr) {
+                created_conditions_vector.push_back(p_condition);
+//                 rModelPart.AddCondition(p_condition);
+                if (ref != 0) first_color_cond[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
+                cond_id += 1;
+            }
+        }
+
+        IndexType counter_second_cond = 0;
+        const IndexVectorType second_condition_to_remove = CheckSecondTypeConditions();
+        for (IndexType i_cond = 1; i_cond <= rMMGMeshInfo.NumberSecondTypeConditions(); ++i_cond) {
+            bool skip_creation = false;
+            if (counter_second_cond < second_condition_to_remove.size()) {
+                if (second_condition_to_remove[counter_second_cond] == i_cond) {
+                    skip_creation = true;
+                    counter_second_cond += 1;
+                }
+            }
+            Condition::Pointer p_condition = CreateSecondTypeCondition(rModelPart, rMapPointersRefCondition, cond_id, ref, is_required, skip_creation);
+
+            if (p_condition.get() != nullptr) {
+                created_conditions_vector.push_back(p_condition);
+//                 rModelPart.AddCondition(p_condition);
+                if (ref != 0) second_color_cond[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
+                cond_id += 1;
+            }
+        }
+    }
+
+    /* ELEMENTS */ // TODO: ADD OMP
+    if (rMapPointersRefElement.size() > 0) {
+        IndexType elem_id = 1;
+
+        IndexType counter_first_elem = 0;
+        const IndexVectorType first_elements_to_remove = CheckFirstTypeElements();
+        for (IndexType i_elem = 1; i_elem <= rMMGMeshInfo.NumberFirstTypeElements(); ++i_elem) {
+            bool skip_creation = false;
+            if (counter_first_elem < first_elements_to_remove.size()) {
+                if (first_elements_to_remove[counter_first_elem] == i_elem) {
+                    skip_creation = true;
+                    counter_first_elem += 1;
+                }
+            }
+
+            Element::Pointer p_element = CreateFirstTypeElement(rModelPart, rMapPointersRefElement, elem_id, ref, is_required, skip_creation);
+
+            if (p_element.get() != nullptr) {
+                created_elements_vector.push_back(p_element);
+//                 rModelPart.AddElement(p_element);
+                if (ref != 0) first_color_elem[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
+                elem_id += 1;
+            }
+        }
+
+        IndexType counter_second_elem = 0;
+        const IndexVectorType second_elements_to_remove = CheckSecondTypeElements();
+        for (IndexType i_elem = 1; i_elem <= rMMGMeshInfo.NumberSecondTypeElements(); ++i_elem) {
+            bool skip_creation = false;
+            if (counter_second_elem < second_elements_to_remove.size()) {
+                if (second_elements_to_remove[counter_second_elem] == i_elem) {
+                    skip_creation = true;
+                    counter_second_elem += 1;
+                }
+            }
+
+            Element::Pointer p_element = CreateSecondTypeElement(rModelPart, rMapPointersRefElement, elem_id, ref, is_required,skip_creation);
+
+            if (p_element.get() != nullptr) {
+                created_elements_vector.push_back(p_element);
+//                 rModelPart.AddElement(p_element);
+                if (ref != 0) second_color_elem[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
+                elem_id += 1;
+            }
+        }
+    }
+
+    // Finally we add the conditions and elements to the main model part
+    rModelPart.AddConditions(created_conditions_vector.begin(), created_conditions_vector.end());
+    rModelPart.AddElements(created_elements_vector.begin(), created_elements_vector.end());
+
+    // We add nodes, conditions and elements to the sub model parts
+    for (auto & color_list : rColors) {
+        const IndexType key = color_list.first;
+
+        if (key != 0) {// NOTE: key == 0 is the MainModelPart
+            for (auto sub_model_part_name : color_list.second) {
+                ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+
+                if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
+                if (first_color_cond.find(key) != first_color_cond.end()) r_sub_model_part.AddConditions(first_color_cond[key]);
+                if (second_color_cond.find(key) != second_color_cond.end()) r_sub_model_part.AddConditions(second_color_cond[key]);
+                if (first_color_elem.find(key) != first_color_elem.end()) r_sub_model_part.AddElements(first_color_elem[key]);
+                if (second_color_elem.find(key) != second_color_elem.end()) r_sub_model_part.AddElements(second_color_elem[key]);
+            }
+        }
+    }
+
+    // TODO: Add OMP
+    // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
+
+    for (auto sub_model_part_name : sub_model_part_names) {
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+
+        std::unordered_set<IndexType> node_ids;
+
+        auto& r_sub_conditions_array = r_sub_model_part.Conditions();
+        const SizeType sub_num_conditions = r_sub_conditions_array.end() - r_sub_conditions_array.begin();
+
+        for(IndexType i = 0; i < sub_num_conditions; ++i)  {
+            auto it_cond = r_sub_conditions_array.begin() + i;
+            auto& r_cond_geom = it_cond->GetGeometry();
+
+            for (SizeType i_node = 0; i_node < r_cond_geom.size(); ++i_node)
+                node_ids.insert(r_cond_geom[i_node].Id());
+        }
+
+        auto& r_sub_elements_array = r_sub_model_part.Elements();
+        const SizeType sub_num_elements = r_sub_elements_array.end() - r_sub_elements_array.begin();
+
+        for(IndexType i = 0; i < sub_num_elements; ++i) {
+            auto it_elem = r_sub_elements_array.begin() + i;
+            auto& r_elem_geom = it_elem->GetGeometry();
+
+            for (SizeType i_node = 0; i_node < r_elem_geom.size(); ++i_node)
+                node_ids.insert(r_elem_geom[i_node].Id());
+        }
+
+        IndexVectorType vector_ids;
+        std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
+        r_sub_model_part.AddNodes(vector_ids);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
+{
+    // Iterate in the nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
+
+    // Auxilia metric
+    TensorArrayType metric;
+
+    #pragma omp parallel for firstprivate(metric)
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = r_nodes_array.begin() + i;
+
+        // We get the metric
+        GetMetricTensor(metric);
+
+        it_node->SetValue(r_tensor_variable, metric);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
+{
+    ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+
+    const auto& flags = KratosComponents<Flags>::GetComponents();
+
+    for (auto& flag : flags) {
+        const std::string name_sub_model = "FLAG_"+flag.first;
+        if (name_sub_model.find("NOT") == std::string::npos) { // Avoiding inactive flags
+            r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
+            ModelPart& auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
+            FastTransferBetweenModelPartsProcess transfer_process = FastTransferBetweenModelPartsProcess(auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(flag.second));
+            transfer_process.Execute();
+            // If the number of elements transfered is 0 we remove the model part
+            if (auxiliar_sub_model_part.NumberOfNodes() == 0
+            && auxiliar_sub_model_part.NumberOfElements() == 0
+            && auxiliar_sub_model_part.NumberOfConditions() == 0) {
+                r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
+{
+    const auto& flags = KratosComponents<Flags>::GetComponents();
+
+    ModelPart& auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    for (auto& flag : flags) {
+        const std::string name_sub_model = "FLAG_"+flag.first;
+        if (auxiliar_model_part.HasSubModelPart(name_sub_model)) {
+            ModelPart& auxiliar_sub_model_part = auxiliar_model_part.GetSubModelPart(name_sub_model);
+            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Nodes());
+            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Conditions());
+            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Elements());
+        }
+    }
+
+    rModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 }
 
 /***********************************************************************************/

@@ -218,7 +218,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     // Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
 
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
 
 
     //Get previous mechanics stored in the master node/condition

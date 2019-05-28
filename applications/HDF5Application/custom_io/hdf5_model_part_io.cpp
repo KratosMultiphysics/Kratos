@@ -35,22 +35,19 @@ void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& 
 int GlobalNumberOfNodes(ModelPart const& rModelPart)
 {
     int number_of_nodes = rModelPart.NumberOfNodes();
-    rModelPart.GetCommunicator().SumAll(number_of_nodes);
-    return number_of_nodes;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_nodes);
 }
 
 int GlobalNumberOfElements(ModelPart const& rModelPart)
 {
     int number_of_elems = rModelPart.NumberOfElements();
-    rModelPart.GetCommunicator().SumAll(number_of_elems);
-    return number_of_elems;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_elems);
 }
 
 int GlobalNumberOfConditions(ModelPart const& rModelPart)
 {
     int number_of_conds = rModelPart.NumberOfConditions();
-    rModelPart.GetCommunicator().SumAll(number_of_conds);
-    return number_of_conds;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_conds);
 }
 }
 

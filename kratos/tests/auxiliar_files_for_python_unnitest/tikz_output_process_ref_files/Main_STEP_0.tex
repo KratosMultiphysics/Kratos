@@ -1,0 +1,136 @@
+\documentclass{article}
+\usepackage{tikz,listofitems,readarray,filecontents}
+\usepackage{pdflscape}
+\pagenumbering{gobble}
+\usepackage{xcolor}
+\usetikzlibrary{calc}
+\begin{filecontents*}{nodedata.dat}
+{1}    0    1
+{2}    0    0.5
+{3}    0.5    1
+{4}    0.5    0.5
+{5}    0    0
+{6}    1    1
+{7}    1    0.5
+{8}    0.5    0
+{9}    1    0
+{10}    1.5    1
+{11}    1.5    0.5
+{12}    1.5    0
+{13}    2    1
+{14}    2    0.5
+{15}    2    0
+{16}    1    1
+{17}    1    0.5
+{18}    1    0
+\end{filecontents*}
+\begin{filecontents*}{elementdata.dat}
+{1}    {14}    {11}    {12}    {15}
+{2}    {13}    {10}    {11}    {14}
+{3}    {11}    {17}    {18}    {12}
+{4}    {10}    {16}    {17}    {11}
+{5}    {2}    {4}    {3}    {1}
+{6}    {5}    {8}    {4}    {2}
+{7}    {4}    {7}    {6}    {3}
+{8}    {8}    {9}    {7}    {4}
+\end{filecontents*}
+
+\definecolor{CustomColor}{cmyk}{0.0,1.0,1.0,1.0}
+
+\newcommand\coord[2][]{%
+  \edef\comparenode{#2}%
+  \foreachitem\zzz\in\noddat[]{%
+    \edef\testnode{\noddat[\zzzcnt,1]}%
+    \ifx\testnode\comparenode
+      \xaddtomacro\tmp{(\noddat[\zzzcnt,2]#1,\noddat[\zzzcnt,3]#1)}\fi
+  }%
+}
+
+\makeatletter\let\addtomacro\g@addto@macro\makeatother
+\newcommand\xaddtomacro[2]{%
+  \edef\xtmp{#2}%
+  \expandafter\addtomacro\expandafter#1\expandafter{\xtmp}%
+}
+
+\newcommand\drawmesh[1][{\filldraw[fill=CustomColor,fill opacity=0.1]}]{%
+  \def\tmp{}%
+  \foreachitem\z\in\eledat[]{%
+    \addtomacro\tmp{#1}%
+    \foreachitem\zz\in\eledat[\zcnt]{%
+      \ifnum\zzcnt=1\relax\else
+        \ifnum\zzcnt<\listlen\eledat[\zcnt]\relax
+          \ifnum\zzcnt=2\relax\coord{\zz}\fi
+          \addtomacro\tmp{--}%
+          \coord{\eledat[\zcnt,\the\numexpr\zzcnt+1\relax]}%
+        \else
+          \addtomacro\tmp{--}%
+          \coord{\eledat[\zcnt,2]}%
+        \fi
+      \fi
+    }%
+    \addtomacro\tmp{;}%
+  }%
+  \tmp%
+}
+
+\newcommand\labelnodes[1][\node at]{%
+  \foreachitem\z\in\noddat[]{%
+    #1 (\noddat[\zcnt,2],\noddat[\zcnt,3]){%
+%% ALTERNATIVE 1
+%      \textcolor{red}{$\noddat[\zcnt,1]$}};
+%% ALTERNATIVE 2
+      \fboxsep=0pt\relax
+      \colorbox{white}{\color{red}$\noddat[\zcnt,1]$}};
+%%
+  }%
+}
+
+\newcommand\labelelements[1][\node at]{%
+  \foreachitem\z\in\eledat[]{%
+    \def\tmp{#1 }%
+    \addtomacro\tmp{($}
+    \foreachitem\zz\in\eledat[\zcnt]{%
+      \ifnum\zzcnt=1\relax\else
+        \ifnum\zzcnt=2\relax\else\addtomacro\tmp{ + }\fi%
+        \coord[{/\the\numexpr\listlen\eledat[\zcnt]-1\relax}]{%
+          \eledat[\zcnt,\zzcnt]}%
+      \fi
+    }%
+    \addtomacro\tmp{$)}%
+    \xaddtomacro\tmp{{\noexpand\textcolor{blue!70!green}{$\eledat[\zcnt,1]$}};}%
+   \tmp
+  }%
+}
+
+\newcommand\readmesh[2]{%
+  \ignoreemptyitems%
+  \readarraysepchar{,}%
+  \ifx\relax#1\relax\else\readdef{#1}\nodedata\fi
+  \ifx\relax#2\relax\else\readdef{#2}\elementdata\fi
+  \setsepchar{,/ }%
+  \readlist*\noddat{\nodedata}%
+  \readlist*\eledat{\elementdata}%
+}
+\begin{document}
+%% FILE INPUT
+\readmesh{nodedata.dat}{elementdata.dat}
+\begin{landscape}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.5]
+  \drawmesh
+  \labelnodes
+  \labelelements
+  \draw[thick,->] (0,0) -- (0,1.3);
+  \draw[thick,->] (0,0) -- (2.6,0) node[anchor=north west] {x axis};
+  \draw[thick,->] (0,0) -- (0,1.3) node[anchor=south east] {y axis};
+  \foreach \x in {0,0.5,1.0,1.5,2.0}
+  \draw (\x cm,1pt) -- (\x cm,-1pt) node[anchor=north] {$\x$};
+  \foreach \y in {0,0.25,0.5,0.75,1.0}
+  \draw (1pt,\y cm) -- (-1pt,\y cm) node[anchor=east] {$\y$};
+  \draw[step=0.25cm,gray,very thin] (0.0,0.0) grid (2.6,1.3);
+\end{tikzpicture}
+\end{figure}
+\end{landscape}
+\end{document}

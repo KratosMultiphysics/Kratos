@@ -669,7 +669,7 @@ public:
                 //find to which edge (condition) of the origin mesh this point belongs
                 for(PointIterator i=res.begin(); i!=res.begin() + static_cast<int>(n_points_in_radius) ; i++)
                 {
-                    WeakPointerVector< Condition >& neighb_conds = (*i)->GetValue(NEIGHBOUR_CONDITIONS);
+                    GlobalPointersVector< Condition >& neighb_conds = (*i)->GetValue(NEIGHBOUR_CONDITIONS);
 
                     for (unsigned int ii=0; ii<neighb_conds.size(); ii++)
                     {
@@ -1011,9 +1011,9 @@ public:
             //and also add the fictitious nodes of the interface elements, i.e. the ones that have neighbor nodes, NOT DISABLED
             else
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
                 unsigned int count=0;
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     count+=	i->FastGetSolutionStepValue(DISABLE);
                 }

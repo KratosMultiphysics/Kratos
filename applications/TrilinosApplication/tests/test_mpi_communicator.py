@@ -15,7 +15,7 @@ def GetFilePath(fileName):
 class TestMPICommunicator(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+        self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
 
     def tearDown(self):
         rank = self.communicator.Rank()
@@ -198,7 +198,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         self.world = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
 
-        comm = main_model_part.GetCommunicator()
+        comm = main_model_part.GetCommunicator().GetDataCommunicator()
 
         self.assertEqual(comm.SumAll(1), self.world.Size())
         self.assertEqual(comm.SumAll(2.0), 2.0*self.world.Size())
@@ -211,7 +211,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         main_model_part = current_model.CreateModelPart("MainModelPart")
 
         # this one is not set, so it should be a serial Communicator
-        comm = main_model_part.GetCommunicator()
+        comm = main_model_part.GetCommunicator().GetDataCommunicator()
 
         self.assertEqual(comm.SumAll(1), 1)
         self.assertEqual(comm.SumAll(2.0), 2.0)
