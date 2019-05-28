@@ -95,6 +95,13 @@ class PotentialFlowSolver(FluidSolver):
     def Predict(self):
         self.solver.Predict()
 
+    '''
+    def InitializeSolutionStep(self):
+        self.solver.Clear()
+        print("ooooooooooooooooooooooooooooooooooo")
+        self.solver.InitializeSolutionStep()
+    '''
+
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 

@@ -46,7 +46,9 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
     def SolveSolutionStep(self):
         self.wake_process.CleanMarking()
+
         self.wake_process.SolveSolutionStep()
+        #super(KratosPotentialFlowSolver, self).InitializeSolutionStep()
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
