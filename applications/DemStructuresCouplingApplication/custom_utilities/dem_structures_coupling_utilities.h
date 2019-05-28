@@ -189,7 +189,6 @@ void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelP
         }
     }
 
-    //KRATOS_WATCH(chunks_masses.size())
     const double max_mass_of_a_single_chunck = *std::max_element(chunks_masses.begin(), chunks_masses.end());
     const double current_total_mass_in_grams = max_mass_of_a_single_chunck;
     static const double initial_total_mass_in_grams = current_total_mass_in_grams;
@@ -210,8 +209,9 @@ void DepthFirstSearchVisit(SphericContinuumParticle* p_sphere, double& this_chun
     this_chunk_mass += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
     for (size_t i=0; i<p_sphere->mContinuumInitialNeighborsSize; i++) {
         SphericParticle* p_neighbour_sphere = p_sphere->mNeighbourElements[i];
-        if(p_neighbour_sphere==NULL) continue;
-        if(p_neighbour_sphere->IsNot(VISITED)) {
+        if (p_neighbour_sphere==NULL) continue;
+        if (p_sphere->mIniNeighbourFailureId[i]) continue;
+        if (p_neighbour_sphere->IsNot(VISITED)) {
             SphericContinuumParticle* p_neigh_cont_sphere = dynamic_cast<SphericContinuumParticle*>(p_neighbour_sphere);
             DepthFirstSearchVisit(p_neigh_cont_sphere, this_chunk_mass);
         }
@@ -236,6 +236,7 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
         ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
         Element* raw_p_element = &(*it);
         SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
         const double particle_radius = p_sphere->GetRadius();
         const double particle_density = p_sphere->GetDensity();
         current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;

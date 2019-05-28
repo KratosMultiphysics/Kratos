@@ -206,8 +206,7 @@ public:
 
             // Construct the interface map
             int NumLocalInterfaceDofs = mrInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * n_dim;
-            int NumGlobalInterfaceDofs = NumLocalInterfaceDofs;
-            mrInterfaceModelPart.GetCommunicator().SumAll(NumGlobalInterfaceDofs);
+            int NumGlobalInterfaceDofs = mrInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(NumLocalInterfaceDofs);
             int IndexBase = 0; // 0 for C-style vectors, 1 for Fortran numbering
             Epetra_Map InterfaceMap(NumGlobalInterfaceDofs, NumLocalInterfaceDofs, IndexBase, mrEpetraCommunicator);
 

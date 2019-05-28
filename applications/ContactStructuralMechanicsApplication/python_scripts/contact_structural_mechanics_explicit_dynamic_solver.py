@@ -26,17 +26,10 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-
-        ## Settings string in json format
-        contact_settings = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
-
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.validate_and_transfer_matching_settings(self.settings, contact_settings)
-        self.contact_settings = contact_settings["contact_settings"]
-
         # Construct the base solver.
-        super(ContactExplicitMechanicalSolver, self).__init__(model, self.settings)
+        super(ContactExplicitMechanicalSolver, self).__init__(model, custom_settings)
+
+        self.contact_settings = self.settings["contact_settings"]
 
         # Setting default configurations true by default
         auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
@@ -48,6 +41,11 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         self.echo_level =  self.settings["echo_level"].GetInt()
 
         KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
 
     def AddVariables(self):
 
@@ -98,3 +96,9 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
             return self.delta_time_factor_for_contact * self.delta_time
         else:
             return self.delta_time
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
