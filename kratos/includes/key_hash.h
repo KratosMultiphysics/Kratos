@@ -344,18 +344,21 @@ namespace Kratos
     /**
      * @brief This is a hasher for index pairs
      * @details Used for example for edges map
+     * @see https://stackoverflow.com/questions/20590656/error-for-hash-function-of-pair-of-ints
      */
-    struct IndexPairHasher
+    template<class TType1, class TType2>
+    struct PairHasher
     {
         /**
          * @brief The () operator
-         * @param rIndexPair The index pair to hash
+         * @param rPair The index pair to hash
          */
-        std::size_t operator()(const std::pair<std::size_t, std::size_t>& rIndexPair) const
+        std::size_t operator()(const std::pair<TType1, TType2>& rPair) const
         {
-            std::size_t h1 = std::hash<std::size_t>()(std::get<0>(rIndexPair));
-            std::size_t h2 = std::hash<std::size_t>()(std::get<1>(rIndexPair));
-            return h1 ^ (h2 << 1);
+            uintmax_t hash = std::hash<TType1>{}(rPair.first);
+            hash <<= sizeof(uintmax_t) * 4;
+            hash ^= std::hash<TType2>{}(rPair.second);
+            return std::hash<uintmax_t>{}(hash);
         }
     };
 
@@ -363,16 +366,17 @@ namespace Kratos
      * @brief This is a key comparer between two indexes pairs
      * @details Used for example for the B&S
      */
-    struct IndexPairComparor
+    template<class TType1, class TType2>
+    struct PairComparor
     {
         /**
          * @brief The () operator
          * @param rIndexPair1 The first index pair to hash
          * @param rIndexPair2 The second index pair to hash
          */
-        bool operator()(const std::pair<std::size_t, std::size_t>& rIndexPair1, const std::pair<std::size_t, std::size_t>& rIndexPair2) const
+        bool operator()(const std::pair<TType1, TType2>& rPair1, const std::pair<TType1, TType2>& rPair2) const
         {
-            return ((std::get<0>(rIndexPair1) == std::get<0>(rIndexPair2)) && (std::get<1>(rIndexPair1) == std::get<1>(rIndexPair2)));
+            return ((std::get<0>(rPair1) == std::get<0>(rPair2)) && (std::get<1>(rPair1) == std::get<1>(rPair2)));
         }
     };
 

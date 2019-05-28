@@ -169,7 +169,7 @@ public:
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
-    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, IndexPairHasher, IndexPairComparor> EdgesMapType;
+    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesMapType;
 
     ///@}
     ///@name Pointer Definitions
