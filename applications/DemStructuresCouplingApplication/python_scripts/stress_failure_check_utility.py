@@ -4,6 +4,9 @@ import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 class StressFailureCheckUtility(object):
     def __init__(self, model_part, test_number):
 
+        if not test_number:
+            return
+
         self.model_part = model_part
 
         if test_number == 1: # CTW16

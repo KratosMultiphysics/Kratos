@@ -5,6 +5,9 @@ import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 class ControlModuleFemDemUtility(object):
     def __init__(self, Model, spheres_model_part, test_number):
 
+        if not test_number:
+            return
+
         self.components_utility_list = []
 
         compression_length = 0.00381
