@@ -98,7 +98,7 @@ private:
     const int mCurrentRank;
     GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
     TFunctorType mUserFunctor;
-    GlobalPointerCommunicator<TPointerDataType>* mpPointerComm; 
+    GlobalPointerCommunicator<TPointerDataType>* mpPointerComm;
 
 };
 
@@ -183,14 +183,14 @@ public:
         {
             Update(UserFunctor, non_local_data);
         }
-        
+
         return ResultsProxy<TPointerDataType, TFunctorType>(current_rank,non_local_data,UserFunctor, this );
     }
 
     template< class TFunctorType >
     void Update(
-        TFunctorType& rUserFunctor, 
-        GlobalPointersUnorderedMap< TPointerDataType, typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType >& rNonLocalData) 
+        TFunctorType& rUserFunctor,
+        GlobalPointersUnorderedMap< TPointerDataType, typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType >& rNonLocalData)
     {
         //sendrecv data
         for(auto color : mColors)
@@ -350,17 +350,7 @@ private:
     template< class TDataType>
     TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
     {
-        MpiSerializer send_serializer;
-        send_serializer.save("data",send_buffer);
-        std::string send_string = send_serializer.GetStringRepresentation();
-
-        std::string recv_string = mrDataCommunicator.SendRecv(send_string, send_rank, send_rank);
-
-        MpiSerializer recv_serializer(recv_string);
-
-        TDataType recv_data;
-        recv_serializer.load("data",recv_data);
-        return recv_data;
+        return mrDataCommunicator.SerializedSendRecv(send_buffer, send_rank, send_rank);
     }
 
     //TODO explicitly instantiate this function to SendRecv for basic types
