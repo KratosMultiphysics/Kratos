@@ -87,10 +87,9 @@ public:
     {
         typedef GlobalPointer<typename TContainerType::value_type> GPType;
 
-        std::unordered_map< int, GPType > global_pointers_list, empty_gp_list;
+        std::unordered_map< int, GPType > global_pointers_list;
         const int current_rank = rDataCommunicator.Rank();
         const int world_size = rDataCommunicator.Size();
-        std::vector<int> empty = {-1};
 
         std::vector<int> remote_ids;
         for(const int id : id_list )
@@ -124,11 +123,11 @@ public:
             {
                 if(current_rank == master_rank) //only master executes
                 {
-                    collected_remote_ids[i] = rDataCommunicator.SendRecv(empty,i,i);
+                    rDataCommunicator.Recv(collected_remote_ids[i],i);
                 }
                 else if(current_rank == i) //only processor i executes
                 {
-                    rDataCommunicator.SendRecv(remote_ids,master_rank,master_rank);
+                    rDataCommunicator.Send(remote_ids,master_rank);
                 }
             }
             else //no communication needed
@@ -187,8 +186,8 @@ public:
             {
                 if(current_rank == master_rank)
                 {
-                    //TODO: here we could use separately send and recv
-                    auto recv_gps = rDataCommunicator.SerializedSendRecv(empty_gp_list,i,i);
+                    std::unordered_map< int, GPType > recv_gps;
+                    rDataCommunicator.SerializedRecv(recv_gps, i);
 
                     for(auto& it : recv_gps)
                         all_non_local_gp_map.emplace(it.first, it.second);
@@ -196,7 +195,7 @@ public:
                 else if(current_rank == i)
                 {
                     auto non_local_gp_map = ComputeGpMap(container, all_remote_ids, current_rank);
-                    rDataCommunicator.SerializedSendRecv(non_local_gp_map,master_rank,master_rank);
+                    rDataCommunicator.SerializedSend(non_local_gp_map,master_rank);
                 }
             }
             else
@@ -219,11 +218,12 @@ public:
                     auto gp_list = ExtractById(all_non_local_gp_map,collected_remote_ids[i]);
 
                     //TODO: here we could use separately send and recv
-                    rDataCommunicator.SerializedSendRecv(gp_list,i,i);
+                    rDataCommunicator.SerializedSend(gp_list,i);
                 }
                 else if(current_rank == i) //only processor i executes
                 {
-                    auto gp_list = rDataCommunicator.SerializedSendRecv(empty_gp_list,master_rank, master_rank);
+                    std::unordered_map< int, GPType > gp_list;
+                    rDataCommunicator.SerializedRecv(gp_list, master_rank);
 
                     for(auto& it : gp_list)
                         global_pointers_list.emplace(it.first, it.second);
