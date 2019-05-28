@@ -49,11 +49,17 @@ class VisualizationMeshProcess(KM.Process):
         self.properties_utility = SW.PostProcessUtilities(self.computing_model_part)
         self.properties_utility.DefineAuxiliaryProperties()
 
+        KM.VariableUtils().SetNonHistoricalVariableToZero(SW.WATER_HEIGHT, self.computing_model_part.Nodes)
+        KM.VariableUtils().SetNonHistoricalVariableToZero(SW.WATER_SURFACE, self.computing_model_part.Nodes)
+
     def ExecuteInitialize(self):
         if self.use_topographic_model_part:
             self.topography_utility.Replicate()
 
     def ExecuteBeforeSolutionLoop(self):
+        SW.ShallowWaterUtilities().IdentifyWetDomain(self.computing_model_part, KM.FLUID, 0.0)
+        SW.ShallowWaterUtilities().ComputeVisualizationWaterSurface(self.computing_model_part)
+        SW.ShallowWaterUtilities().ComputeVisualizationWaterHeight(self.computing_model_part, KM.FLUID, 0.0)
         if self.use_topographic_model_part:
             for variable in self.nodal_variables:
                 self.topography_utility.TransferVariable(variable)
@@ -68,6 +74,9 @@ class VisualizationMeshProcess(KM.Process):
     def ExecuteBeforeOutputStep(self):
         # The elements should be active to be included in the GidOutputProcess
         KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.computing_model_part.Elements)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.computing_model_part)
+        SW.ShallowWaterUtilities().ComputeVisualizationWaterSurface(self.computing_model_part)
+        SW.ShallowWaterUtilities().ComputeVisualizationWaterHeight(self.computing_model_part, KM.FLUID, 0.0)
         self.properties_utility.AssignDryWetProperties(KM.FLUID)
 
         if self.use_topographic_model_part:

@@ -376,8 +376,8 @@ public:
         )
     {
         // Reassign the variables
-        mOriginVariable = rOriginVariable;
-        mDestinationVariable = rDestinationVariable;
+        mpOriginVariable = &rOriginVariable;
+        mpDestinationVariable = &rDestinationVariable;
 
         // Execute the process
         Execute();
@@ -458,8 +458,8 @@ private:
 
     ModelPart& mOriginModelPart;                  /// The origin model part to compute
     ModelPart& mDestinationModelPart;             /// The destination model part to compute
-    TVarType mOriginVariable;                     /// The origin variable to map
-    TVarType mDestinationVariable;                /// The destiny variable to map
+    const TVarType* mpOriginVariable;             /// The origin variable to map
+    const TVarType* mpDestinationVariable;        /// The destiny variable to map
 
     double mMappingCoefficient = 1.0;             /// The mapping coefficient
     Flags mOptions;                               /// Local flags
@@ -674,7 +674,7 @@ private:
         ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
 
         // Getting the auxiliar variable
-        TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
+        const TVarType& r_aux_variable = KratosComponents<TVarType>::Get(MortarUtilities::GetAuxiliarVariable<TVarType>());
 
         // Indexes of the pair to be removed
         std::vector<IndexType> indexes_to_remove, geometrical_objects_to_erase;
@@ -720,7 +720,7 @@ private:
                 ComputeResidualMatrix(residual_matrix, r_slave_geometry, r_master_geometry, rThisMortarOperators);
 
                 if (!TImplicit) {
-                    MortarUtilities::AddValue<TVarType, NonHistorical>(r_slave_geometry, aux_variable, residual_matrix);
+                    MortarUtilities::AddValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(r_slave_geometry, r_aux_variable, residual_matrix);
                 }
 
                 // We check if DOperator is diagonal
@@ -750,7 +750,6 @@ private:
                         }
                         // In case of discontinous interface we add contribution to near nodes
                         if (mOptions.Is(DISCONTINOUS_INTERFACE)) {
-
                             const double element_length = r_slave_geometry.Length();
 
                             // Iterating over nodes
