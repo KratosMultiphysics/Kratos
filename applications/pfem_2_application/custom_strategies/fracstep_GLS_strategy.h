@@ -297,7 +297,22 @@ namespace Kratos
 #if defined(QCOMP)
 	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
 #else
-	//this->SolveStep3();
+	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
+	  {
+	    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+	    nodal_mass = 0.0;
+	  }
+
+ 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
+	for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
+	  {
+            (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+	  }
+
+	PredictPressure(1.0);
+
+
 	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
 #endif
         //double p_norm=0.0;
@@ -978,7 +993,7 @@ namespace Kratos
 		double d2uxdx2 = 100.0 * ht * ( d2fx * dfy );
 		double d2uxdy2 = 100.0 * ht * ( fx * d3fy );
 		double d2uydx2 = -100.0 * ht * ( d3fx * fy );
-		double d2uydy2 = -100.0 * ht * ( dfx * d2fy );
+		double d2uydy2 = -100.0 * ht * ( dfx * d2fy ); ///
 
 		double d2uxdxdy = 100.0 * ht * dfx * d2fy;
                 double d2uydxdy = -100.0 * ht * d2fx * dfy;
@@ -1092,6 +1107,99 @@ namespace Kratos
 		}
 	KRATOS_CATCH("")
 	}
+
+	 void PredictPressure( double tstep_fraction)
+    {
+        KRATOS_TRY
+	  
+	  ModelPart& model_part=BaseType::GetModelPart();
+	
+        const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+        ProcessInfo& proc_info = model_part.GetProcessInfo();
+        double dummy;
+	
+        //first initialize the pressure force to the old value
+	
+        //set the pressure to the old value
+        for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
+        {
+	  in->FastGetSolutionStepValue(PRESSUREAUX)= 0.0; //
+	  in->FastGetSolutionStepValue(PRESSURE)=0.0;
+        }
+	
+	double K=0.0;
+	
+        KRATOS_WATCH("Execute of Pressure Calulate Process");
+	//
+	int TDim=2;
+	
+        if (TDim==2)
+	  {
+	    boost::numeric::ublas::bounded_matrix<double,3,2> DN_Dx;
+	    array_1d<double,3> N;
+	    
+	    for(ModelPart::ElementsContainerType::iterator im = model_part.ElementsBegin() ;
+		im != model_part.ElementsEnd() ; ++im)
+	      {
+		//get the geometry
+		Geometry< Node<3> >& geom = im->GetGeometry();
+		
+		//calculate derivatives
+		double Area;
+		GeometryUtils::CalculateGeometryData(geom, DN_Dx, N, Area);
+		K=-0.333333333333333333*(geom[0].FastGetSolutionStepValue(BULK_MODULUS)+geom[1].FastGetSolutionStepValue(BULK_MODULUS)+geom[2].FastGetSolutionStepValue(BULK_MODULUS));
+		
+		//calculate the divergence
+		const array_1d<double,3>& v0 = geom[0].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& v1 = geom[1].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& v2 = geom[2].FastGetSolutionStepValue(VELOCITY);
+		
+		double div_v = DN_Dx(0,0)*v0[0] + DN_Dx(0,1)*v0[1] + DN_Dx(1,0)*v1[0] + DN_Dx(1,1)*v1[1] + DN_Dx(2,0)*v2[0] + DN_Dx(2,1)*v2[1];
+		double dp_el = K * dt *tstep_fraction* div_v * Area;
+		
+		array_1d<double,3> pn = ZeroVector(3); //dimension = number of nodes
+		pn[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1);
+		pn[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1);
+		pn[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1);
+		double diag_term = Area/6.0;
+		double out_term = Area/12.0;
+	      
+		
+		//P = Mconsistent*pold + dp
+		
+		geom[0].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333 + diag_term*pn[0] + out_term*pn[1]  + out_term*pn[2] ;
+		geom[1].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333+ out_term*pn[0] + diag_term*pn[1]  + out_term*pn[2] ;
+		geom[2].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333+ out_term*pn[0] + out_term*pn[1]  + diag_term*pn[2] ; 
+		
+		//KRATOS_WATCH(dp_el);
+	      }
+	  }
+        else
+	  {
+	    KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
+	    
+	  }
+        //divide by nodal area
+    for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
+	  {
+	    //should be nodal_area intead of nodal_mass
+	    const double& ar=in->FastGetSolutionStepValue(NODAL_MASS);
+	    const double density=in->FastGetSolutionStepValue(DENSITY);
+	    double aux= ar;
+	    if(aux<0.000000000001) aux=1.0;
+	    aux /=density;
+	    in->FastGetSolutionStepValue(PRESSUREAUX)/=aux;
+	  }
+
+	for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
+	  {
+	    in->FastGetSolutionStepValue(PRESSUREAUX)=in->FastGetSolutionStepValue(PRESSURE,1);
+	  }
+
+
+        KRATOS_CATCH("")
+	  }
+
       /*@} */
       /**@name Operators
        */
