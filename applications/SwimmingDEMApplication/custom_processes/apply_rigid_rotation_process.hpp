@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-/// Process used to rotate lagrangian model parts using Rodrigues' rotation formula
+/// Process used to rotate eulerian model parts using Rodrigues' rotation formula
 
 class ApplyRigidRotationProcess : public Process
 {
