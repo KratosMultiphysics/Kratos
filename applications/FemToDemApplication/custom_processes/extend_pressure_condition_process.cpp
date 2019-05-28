@@ -41,6 +41,72 @@ void ExtendPressureConditionProcess<TDim>::GetMaximumConditionIdOnSubmodelPart(
 
 /***********************************************************************************/
 /***********************************************************************************/
+template <>
+void ExtendPressureConditionProcess<3>::CreatePressureLoads(
+    const int Id1,
+    const int Id2,
+    const int Id3,
+	ModelPart::ElementsContainerType::ptr_iterator itElem,
+	ModelPart& rSubModelPart,
+    ModelPart::PropertiesType::Pointer pProperties,
+    int& rMaximumConditionId
+    )
+{
+    auto& r_geom = (*itElem)->GetGeometry();
+    std::vector<IndexType> condition_nodes_id(3);
+    condition_nodes_id[0] = r_geom[Id1].Id();
+    condition_nodes_id[1] = r_geom[Id2].Id();
+    condition_nodes_id[2] = r_geom[Id3].Id();
+    rMaximumConditionId++;
+
+    // Adding the nodes to the SubModelPart
+	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
+	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
+	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id3].Id()));
+
+    // We create the Line Load Condition
+    const auto& r_pressure_condition = rSubModelPart.CreateNewCondition(
+                                        "SurfaceLoadCondition3D3N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        pProperties, 0);
+
+    // Adding the conditions to the computing model part
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition); 
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
+void ExtendPressureConditionProcess<2>::CreateLineLoads(
+    const int Id1,
+    const int Id2,
+	ModelPart::ElementsContainerType::ptr_iterator itElem,
+	ModelPart& rSubModelPart,
+    ModelPart::PropertiesType::Pointer pProperties,
+    int& rMaximumConditionId
+    )
+{
+    std::vector<IndexType> condition_nodes_id(2);
+    auto& r_geom = (*itElem)->GetGeometry();
+    condition_nodes_id[0] = r_geom[Id1].Id();
+    condition_nodes_id[1] = r_geom[Id2].Id();
+    rMaximumConditionId++;
+
+    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
+    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
+
+    const auto& r_line_cond = rSubModelPart.CreateNewCondition(
+                                    "LineLoadCondition2D2N",
+                                    rMaximumConditionId,
+                                    condition_nodes_id,
+                                    pProperties, 0);
+
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 template<>
 void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     const int NonWetLocalIdNode,
@@ -165,71 +231,6 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<3>::CreatePressureLoads(
-    const int Id1,
-    const int Id2,
-    const int Id3,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
-	ModelPart& rSubModelPart,
-    ModelPart::PropertiesType::Pointer pProperties,
-    int& rMaximumConditionId
-    )
-{
-    auto& r_geom = (*itElem)->GetGeometry();
-    std::vector<IndexType> condition_nodes_id(3);
-    condition_nodes_id[0] = r_geom[Id1].Id();
-    condition_nodes_id[1] = r_geom[Id2].Id();
-    condition_nodes_id[2] = r_geom[Id3].Id();
-    rMaximumConditionId++;
-
-    // Adding the nodes to the SubModelPart
-	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
-	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
-	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id3].Id()));
-
-    // We create the Line Load Condition
-    const auto& r_pressure_condition = rSubModelPart.CreateNewCondition(
-                                        "SurfaceLoadCondition3D3N",
-                                        rMaximumConditionId,
-                                        condition_nodes_id,
-                                        pProperties, 0);
-
-    // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition); 
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<2>::CreateLineLoads(
-    const int Id1,
-    const int Id2,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
-	ModelPart& rSubModelPart,
-    ModelPart::PropertiesType::Pointer pProperties,
-    int& rMaximumConditionId
-    )
-{
-    std::vector<IndexType> condition_nodes_id(2);
-    auto& r_geom = (*itElem)->GetGeometry();
-    condition_nodes_id[0] = r_geom[Id1].Id();
-    condition_nodes_id[1] = r_geom[Id2].Id();
-    rMaximumConditionId++;
-
-    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
-    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
-
-    const auto& r_line_cond = rSubModelPart.CreateNewCondition(
-                                    "LineLoadCondition2D2N",
-                                    rMaximumConditionId,
-                                    condition_nodes_id,
-                                    pProperties, 0);
-
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
-}
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
