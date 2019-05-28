@@ -41,13 +41,51 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
         it_node->FastGetSolutionStepValue(TEMPERATURE) = 10.0*world_rank;
     }
 
-    auto recv_node_container = r_comm.SerializedSendRecv(model_part.Nodes(), send_rank, recv_rank);
+    auto recv_node_container = r_comm.SerializedSendRecv(model_part.Nodes(), recv_rank, send_rank);
 
     for (auto& node: recv_node_container)
     {
-        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)recv_rank);
-        KRATOS_CHECK_EQUAL(node.Z(), 0.1*recv_rank);
-        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*recv_rank);
+        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)send_rank);
+        KRATOS_CHECK_EQUAL(node.Z(), 0.1*send_rank);
+        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int world_rank = r_comm.Rank();
+    const int world_size = r_comm.Size();
+    const int send_rank = world_size -1;
+    const int recv_rank = 0;
+
+    if (world_rank == send_rank)
+    {
+        Model model;
+        ModelPart& model_part = model.CreateModelPart("Send");
+        model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+        model_part.CreateNewNode(world_rank, 0.0, 0.0, 0.1*world_rank);
+        for (ModelPart::NodeIterator it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+        {
+            it_node->FastGetSolutionStepValue(TEMPERATURE) = 10.0*world_rank;
+        }
+
+        r_comm.SerializedSend(model_part.Nodes(), recv_rank);
+    }
+    if (world_rank == recv_rank)
+    {
+        Model model;
+        ModelPart& model_part = model.CreateModelPart("Recv");
+        model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
+        r_comm.SerializedRecv(model_part.Nodes(), send_rank);
+
+        for (auto& node: model_part.Nodes())
+        {
+            KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)send_rank);
+            KRATOS_CHECK_EQUAL(node.Z(), 0.1*send_rank);
+            KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
+        }
     }
 }
 
