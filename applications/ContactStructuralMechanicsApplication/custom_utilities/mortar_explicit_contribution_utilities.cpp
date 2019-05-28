@@ -320,7 +320,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 /***********************************************************************************/
 
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
-void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
+bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
     PairedCondition* pCondition,
     ProcessInfo& rCurrentProcessInfo,
     MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
@@ -357,6 +357,9 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    // Dual LM
+    bool dual_LM = false;
+
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
@@ -368,7 +371,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         rPreviousMortarOperators.Initialize();
 
         const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
 
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -418,6 +421,8 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
             r_nodal_area += DOperator(i_node, i_node);
         }
     }
+
+    return dual_LM;
 }
 
 /***********************************************************************************/
