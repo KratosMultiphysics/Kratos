@@ -23,6 +23,7 @@
 #include "containers/array_1d.h"
 #include "containers/flags.h"
 #include "includes/define.h"
+#include "includes/mpi_serializer.h"
 
 // Using a macro instead of a function to get the correct line in the error message.
 #ifndef KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK
@@ -439,6 +440,39 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     {
         KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
+
+    template<class TObject> TObject SerializedSendRecv(
+        const TObject& rSendObject,
+        const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const
+    {
+        if (this->IsDistributed())
+        {
+            MpiSerializer send_serializer;
+            send_serializer.save("data", rSendObject);
+            std::string send_message = send_serializer.GetStringRepresentation();
+
+            std::string recv_message = this->SendRecv(send_message, SendDestination, RecvSource);
+
+            MpiSerializer recv_serializer(recv_message);
+            TObject recv_object;
+            recv_serializer.load("data", recv_object);
+            return recv_object;
+        }
+        else
+        {
+            KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+            << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+            return rSendObject;
+        }
+    }
+
+    template<class TObject> TObject SerializedSendRecv(
+        const TObject& rSendObject, const int SendDestination, const int RecvSource) const
+    {
+        return SerializedSendRecv(rSendObject, SendDestination, 0, RecvSource, 0);
     }
 
     ///@}
