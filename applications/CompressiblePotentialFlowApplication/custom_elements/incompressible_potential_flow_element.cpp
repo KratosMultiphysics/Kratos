@@ -106,6 +106,16 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
 
         GetEquationIdVectorWakeElement(rResult);
     }
+    if(rResult[0]==4800)
+    {
+        KRATOS_WATCH(this->Id())
+        KRATOS_WATCH(rResult)
+    }
+    if(this->Id()==9121)
+    {
+        KRATOS_WATCH(this->Id())
+        KRATOS_WATCH(rResult)
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -319,6 +329,29 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
         else
             rResult[NumNodes + i] =
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+    }
+    if(this->Id()==9121)
+    {
+        KRATOS_WATCH(distances)
+        KRATOS_WATCH(GetGeometry())
+        // Negative part - sign is opposite to the previous case
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            if (distances[i] < 0.0)
+            {
+                KRATOS_WATCH(NumNodes + i)
+                KRATOS_WATCH(distances[i])
+                KRATOS_WATCH(rResult[NumNodes + i])
+            }
+            else
+            {
+                KRATOS_WATCH(NumNodes + i)
+                KRATOS_WATCH(distances[i])
+                KRATOS_WATCH(rResult[NumNodes + i])
+
+            }
+        }
+
     }
 }
 
