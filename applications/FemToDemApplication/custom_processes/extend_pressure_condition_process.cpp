@@ -60,19 +60,17 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
     rMaximumConditionId++;
 
     // Adding the nodes to the SubModelPart
-	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
-	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
-	rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id3].Id()));
+	rSubModelPart.AddNodes(condition_nodes_id);
 
     // We create the Line Load Condition
-    const auto& r_pressure_condition = rSubModelPart.CreateNewCondition(
+    const auto p_pressure_condition = rSubModelPart.CreateNewCondition(
                                         "SurfaceLoadCondition3D3N",
                                         rMaximumConditionId,
                                         condition_nodes_id,
                                         pProperties, 0);
 
     // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition); 
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_pressure_condition); 
 }
 
 /***********************************************************************************/
@@ -92,17 +90,15 @@ void ExtendPressureConditionProcess<2>::CreateLineLoads(
     condition_nodes_id[0] = r_geom[Id1].Id();
     condition_nodes_id[1] = r_geom[Id2].Id();
     rMaximumConditionId++;
+    rSubModelPart.AddNodes(condition_nodes_id);
 
-    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
-    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
-
-    const auto& r_line_cond = rSubModelPart.CreateNewCondition(
+    const auto p_line_cond = rSubModelPart.CreateNewCondition(
                                     "LineLoadCondition2D2N",
                                     rMaximumConditionId,
                                     condition_nodes_id,
                                     pProperties, 0);
 
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_line_cond);
 }
 
 /***********************************************************************************/
