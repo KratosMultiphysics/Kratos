@@ -256,9 +256,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         for elem in self.trailing_edge_model_part.Elements:
             print("TARILING EDGE ELEMENTS WHEN CLEANING", elem.Id)
             elem.SetValue(CPFApp.TRAILING_EDGE, False)
-            for mynode in elem.GetNodes():
-                # mynode.SetValue(CPFApp.TRAILING_EDGE, False)
-                mynode.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0.0)
+            elem.SetValue(CPFApp.KUTTA, False)
 
             # elem.Set(KratosMultiphysics.TO_ERASE, True)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
@@ -268,7 +266,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             # print(elem)
             # if (self.__CheckIfElemIsCutByWake(elem)):
             elem.SetValue(CPFApp.WAKE, False)
-            elem.SetValue(CPFApp.KUTTA, False)
             elem.Reset(KratosMultiphysics.STRUCTURE)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
             count += 1
