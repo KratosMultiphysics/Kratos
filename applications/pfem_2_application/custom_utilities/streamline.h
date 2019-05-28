@@ -116,6 +116,7 @@ namespace Kratos
 		iparticle->FastGetSolutionStepValue(DISPLACEMENT,1) = ZeroVector(3);
 		subdivisions=10;
 		const double small_dt = dt / subdivisions;
+	        iparticle->FastGetSolutionStepValue(DISTANCE)=small_dt;
 		//
 		for (int substep = 0; substep < subdivisions; substep++)
 		  {
@@ -138,8 +139,12 @@ namespace Kratos
 			  }
 			
 	
-			noalias(current_position) += small_dt*veulerian + 0.5 * small_dt * small_dt * acc_particle;
- 			//noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
+			//noalias(current_position) += small_dt*veulerian + small_dt * small_dt * acc_particle;
+ 			//ESTABA ESTO   noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
+
+		        noalias(current_position) += small_dt*veulerian + small_dt * iparticle->FastGetSolutionStepValue(DISTANCE) * acc_particle;
+
+
 			pparticle->Set(TO_ERASE, false);
 
 			iparticle->FastGetSolutionStepValue(DISTANCE) += small_dt;
@@ -216,6 +221,7 @@ void MoveMesh_StreamlinesTn(ModelPart& rModelPart, unsigned int substeps)
 		iparticle->FastGetSolutionStepValue(DISPLACEMENT,1) = ZeroVector(3);
 		subdivisions=10;
 		const double small_dt = dt / subdivisions;
+		iparticle->FastGetSolutionStepValue(DISTANCE)=small_dt;
 		//
 		for (int substep = 0; substep < subdivisions; substep++)
 		  {
@@ -237,8 +243,11 @@ void MoveMesh_StreamlinesTn(ModelPart& rModelPart, unsigned int substeps)
 
 			  }
 			
-			noalias(current_position) += small_dt*veulerian + 0.5 * small_dt * small_dt * acc_particle;
+			//noalias(current_position) += small_dt*veulerian + small_dt * small_dt * acc_particle;
 			//noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
+
+		        noalias(current_position) += small_dt*veulerian + small_dt * iparticle->FastGetSolutionStepValue(DISTANCE) * acc_particle;
+
 			pparticle->Set(TO_ERASE, false);
 			iparticle->FastGetSolutionStepValue(DISTANCE) += small_dt;
 		      }

@@ -995,12 +995,12 @@ namespace Kratos
 		//3. viscous term
 		//Fx -= nu * ( d2uxdx2 + d2uxdy2 );
 		//Fy -= nu * ( d2uydx2 + d2uydy2 );
-    /*pavel's implementation
+    /*pavel's implementation*/
 		Fx -= nu * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
 		Fy -= nu * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
-    */
-	        Fx -= nu * ( d2uxdx2 + d2uxdy2);
-		Fy -= nu * ( d2uydy2 + d2uydx2);
+    
+	        //Fx -= nu * ( d2uxdx2 + d2uxdy2);
+		//Fy -= nu * ( d2uydy2 + d2uydx2);
 
 		//4. pressure gradient
 		Fx += dpx;
@@ -1073,12 +1073,12 @@ namespace Kratos
 		//3. viscous term
 		//Fx -= nu * ( d2uxdx2 + d2uxdy2 );
 		//Fy -= nu * ( d2uydx2 + d2uydy2 );
-    /*pavel's implementation
+    /*pavel's implementation*/
 		Fx -= nu * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
 		Fy -= nu * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
-    */
-	        Fx -= nu * ( d2uxdx2 + d2uxdy2);
-		Fy -= nu * ( d2uydy2 + d2uydx2);
+    
+	//        Fx -= nu * ( d2uxdx2 + d2uxdy2);
+	//	Fy -= nu * ( d2uydy2 + d2uydx2);
 
 		//4. pressure gradient
 		Fx += dpx;

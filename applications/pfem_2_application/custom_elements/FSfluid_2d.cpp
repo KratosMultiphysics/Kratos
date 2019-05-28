@@ -100,7 +100,12 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
   array_1d<double, 3 > aux1;
   array_1d<double, 3 > aux2;
   array_1d<double, 6 > temp_vec_np_aux;
-  boost::numeric::ublas::bounded_matrix<double,6,6> aux_matrix;
+  //boost::numeric::ublas::bounded_matrix<double,6,6> aux_matrix; //=ZeroMatrix(6,6);
+
+  Matrix aux_matrix;
+  aux_matrix.resize(6, 6);
+  aux_matrix=ZeroMatrix(6,6);
+
   boost::numeric::ublas::bounded_matrix<double,6,6> msMassFactors;
   boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
   array_1d<double,3> msN; //dimension = number of nodes
@@ -243,9 +248,12 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
 
     //calculating viscous contributions
     ms_temp = prod( ms_constitutive_matrix , msB);
-    noalias(aux_matrix)=prod( trans(msB) , ms_temp);
-    noalias(rLeftHandSideMatrix) = 0.5 * prod( trans(msB) , ms_temp);
+    //noalias(aux_matrix)=prod( trans(msB) , ms_temp);
 
+    CalculateViscousMatrix(aux_matrix, msDN_DX, nu, dt, kk);
+	
+    //noalias(rLeftHandSideMatrix) = 0.5 * prod( trans(msB) , ms_temp);
+    noalias(rLeftHandSideMatrix) = 0.5 * aux_matrix;
     
 
   //KRATOS_WATCH(rLeftHandSideMatrix);	
@@ -1081,48 +1089,48 @@ void FSFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Cur
   
   //double deltat = dt;
   double viscosity=nu;
-  
+  K*=0.0;
   double k=kk;
   
   k=0.0;
-  K(0,0) = 2.0 * pow(DN_DX(0,0), 2) * viscosity + viscosity * pow(DN_DX(0,1), 2)           + (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(0,0);
-  K(0,1) = DN_DX(0,1) * viscosity * DN_DX(0,0)                                    + (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(0,1);
-  K(0,2) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(1,0) + DN_DX(0,1) * viscosity * DN_DX(1,1) + (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(1,0);
-  K(0,3) = DN_DX(0,1) * viscosity * DN_DX(1,0)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(1,1);
-  K(0,4) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(2,0) + DN_DX(0,1) * viscosity * DN_DX(2,1)+ (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(2,0);
-  K(0,5) = DN_DX(0,1) * viscosity * DN_DX(2,0)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(2,1);
-  K(1,0) = DN_DX(0,1) * viscosity * DN_DX(0,0)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(0,0);
-  K(1,1) = 2.0 * viscosity * pow(DN_DX(0,1), 2) + pow(DN_DX(0,0), 2) * viscosity         + (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(0,1);
-  K(1,2) = DN_DX(0,0) * viscosity * DN_DX(1,1)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(1,0);
-  K(1,3) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(1,1) + DN_DX(0,0) * viscosity * DN_DX(1,0) + (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(1,1);
-  K(1,4) = DN_DX(0,0) * viscosity * DN_DX(2,1)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(2,0);
-  K(1,5) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(2,1) + DN_DX(0,0) * viscosity * DN_DX(2,0) + (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(2,1);
-  K(2,0) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(1,0) + DN_DX(0,1) * viscosity * DN_DX(1,1) + (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(0,0);
-  K(2,1) = DN_DX(0,0) * viscosity * DN_DX(1,1)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(0,1);
-  K(2,2) = 2.0 * pow(DN_DX(1,0), 2) * viscosity + viscosity * pow(DN_DX(1,1), 2)           + (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(1,0);
-  K(2,3) = DN_DX(1,1) * viscosity * DN_DX(1,0)                                    + (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(1,1);
-  K(2,4) = 2.0 * DN_DX(1,0) * viscosity * DN_DX(2,0) + DN_DX(1,1) * viscosity * DN_DX(2,1) + (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(2,0);
-  K(2,5) = DN_DX(1,1) * viscosity * DN_DX(2,0)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(2,1);
-  K(3,0) = DN_DX(0,1) * viscosity * DN_DX(1,0)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(0,0);
-  K(3,1) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(1,1) + DN_DX(0,0) * viscosity * DN_DX(1,0) + (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(0,1);
-  K(3,2) = DN_DX(1,1) * viscosity * DN_DX(1,0)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(1,0);
-  K(3,3) = 2.0 * viscosity * pow(DN_DX(1,1), 2) + pow(DN_DX(1,0), 2) * viscosity          + (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(1,1);
-  K(3,4) = DN_DX(1,0) * viscosity * DN_DX(2,1)                                   + (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(2,0);
-  K(3,5) = 2.0 * DN_DX(1,1) * viscosity * DN_DX(2,1) + DN_DX(1,0) * viscosity * DN_DX(2,0) + (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(2,1);
-  K(4,0) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(2,0) + DN_DX(0,1) * viscosity * DN_DX(2,1) + (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(0,0);
-  K(4,1) = DN_DX(0,0) * viscosity * DN_DX(2,1)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(0,1);
-  K(4,2) = 2.0 * DN_DX(1,0) * viscosity * DN_DX(2,0) + DN_DX(1,1) * viscosity * DN_DX(2,1) + (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(1,0);
-  K(4,3) = DN_DX(1,0) * viscosity * DN_DX(2,1)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(1,1);
-  K(4,4) = 2.0 * pow(DN_DX(2,0), 2) * viscosity + viscosity * pow(DN_DX(2,1), 2)           + (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(2,0);
-  K(4,5) = DN_DX(2,1) * viscosity * DN_DX(2,0)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(2,1);
-  K(5,0) = DN_DX(0,1) * viscosity * DN_DX(2,0)                                      + (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(0,0);
-  K(5,1) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(2,1) + DN_DX(0,0) * viscosity * DN_DX(2,0) + (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(0,1);
-  K(5,2) = DN_DX(1,1) * viscosity * DN_DX(2,0)                                    + (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(1,0);
-  K(5,3) = 2.0 * DN_DX(1,1) * viscosity * DN_DX(2,1) + DN_DX(1,0) * viscosity * DN_DX(2,0) + (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(1,1);
-  K(5,4) = DN_DX(2,1) * viscosity * DN_DX(2,0)                                     + (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(2,0);         
-  K(5,5) = 2.0 * viscosity * pow(DN_DX(2,1), 2) + pow(DN_DX(2,0), 2) * viscosity         + (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(2,1);
+  K(0,0) = 2.0 * pow(DN_DX(0,0), 2) * viscosity + viscosity * pow(DN_DX(0,1), 2)           + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(0,0);
+  K(0,1) = DN_DX(0,1) * viscosity * DN_DX(0,0)                                    + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(0,1);
+  K(0,2) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(1,0) + DN_DX(0,1) * viscosity * DN_DX(1,1) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(1,0);
+  K(0,3) = DN_DX(0,1) * viscosity * DN_DX(1,0)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(1,1);
+  K(0,4) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(2,0) + DN_DX(0,1) * viscosity * DN_DX(2,1)+ 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(2,0);
+  K(0,5) = DN_DX(0,1) * viscosity * DN_DX(2,0)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,0) *  DN_DX(2,1);
+  K(1,0) = DN_DX(0,1) * viscosity * DN_DX(0,0)                                      + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(0,0);
+  K(1,1) = 2.0 * viscosity * pow(DN_DX(0,1), 2) + pow(DN_DX(0,0), 2) * viscosity         + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(0,1);
+  K(1,2) = DN_DX(0,0) * viscosity * DN_DX(1,1)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(1,0);
+  K(1,3) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(1,1) + DN_DX(0,0) * viscosity * DN_DX(1,0) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(1,1);
+  K(1,4) = DN_DX(0,0) * viscosity * DN_DX(2,1)                                      +0.0 *  (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(2,0);
+  K(1,5) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(2,1) + DN_DX(0,0) * viscosity * DN_DX(2,0) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(0,1) *  DN_DX(2,1);
+  K(2,0) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(1,0) + DN_DX(0,1) * viscosity * DN_DX(1,1) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(0,0);
+  K(2,1) = DN_DX(0,0) * viscosity * DN_DX(1,1)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(0,1);
+  K(2,2) = 2.0 * pow(DN_DX(1,0), 2) * viscosity + viscosity * pow(DN_DX(1,1), 2)           + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(1,0);
+  K(2,3) = DN_DX(1,1) * viscosity * DN_DX(1,0)                                    + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(1,1);
+  K(2,4) = 2.0 * DN_DX(1,0) * viscosity * DN_DX(2,0) + DN_DX(1,1) * viscosity * DN_DX(2,1) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(2,0);
+  K(2,5) = DN_DX(1,1) * viscosity * DN_DX(2,0)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,0) *  DN_DX(2,1);
+  K(3,0) = DN_DX(0,1) * viscosity * DN_DX(1,0)                                      + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(0,0);
+  K(3,1) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(1,1) + DN_DX(0,0) * viscosity * DN_DX(1,0) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(0,1);
+  K(3,2) = DN_DX(1,1) * viscosity * DN_DX(1,0)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(1,0);
+  K(3,3) = 2.0 * viscosity * pow(DN_DX(1,1), 2) + pow(DN_DX(1,0), 2) * viscosity          + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(1,1);
+  K(3,4) = DN_DX(1,0) * viscosity * DN_DX(2,1)                                   + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(2,0);
+  K(3,5) = 2.0 * DN_DX(1,1) * viscosity * DN_DX(2,1) + DN_DX(1,0) * viscosity * DN_DX(2,0) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(1,1) *  DN_DX(2,1);
+  K(4,0) = 2.0 * DN_DX(0,0) * viscosity * DN_DX(2,0) + DN_DX(0,1) * viscosity * DN_DX(2,1) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(0,0);
+  K(4,1) = DN_DX(0,0) * viscosity * DN_DX(2,1)                                      + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(0,1);
+  K(4,2) = 2.0 * DN_DX(1,0) * viscosity * DN_DX(2,0) + DN_DX(1,1) * viscosity * DN_DX(2,1) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(1,0);
+  K(4,3) = DN_DX(1,0) * viscosity * DN_DX(2,1)                                      + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(1,1);
+  K(4,4) = 2.0 * pow(DN_DX(2,0), 2) * viscosity + viscosity * pow(DN_DX(2,1), 2)           + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(2,0);
+  K(4,5) = DN_DX(2,1) * viscosity * DN_DX(2,0)                                      + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,0) *  DN_DX(2,1);
+  K(5,0) = DN_DX(0,1) * viscosity * DN_DX(2,0)                                      + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(0,0);
+  K(5,1) = 2.0 * DN_DX(0,1) * viscosity * DN_DX(2,1) + DN_DX(0,0) * viscosity * DN_DX(2,0) + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(0,1);
+  K(5,2) = DN_DX(1,1) * viscosity * DN_DX(2,0)                                    + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(1,0);
+  K(5,3) = 2.0 * DN_DX(1,1) * viscosity * DN_DX(2,1) + DN_DX(1,0) * viscosity * DN_DX(2,0) + 0.0 *  (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(1,1);
+  K(5,4) = DN_DX(2,1) * viscosity * DN_DX(2,0)                                     + 0.0 * (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(2,0);         
+  K(5,5) = 2.0 * viscosity * pow(DN_DX(2,1), 2) + pow(DN_DX(2,0), 2) * viscosity         +0.0 *  (k-2.0 / 3.0 * viscosity) * DN_DX(2,1) *  DN_DX(2,1);
   
-  KRATOS_WATCH(K); 	  
+  //KRATOS_WATCH(K); 	  
   //filling the symmetric part
 
   /*for(unsigned int i = 1; i<K.size1(); i++)
