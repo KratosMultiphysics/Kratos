@@ -13,6 +13,7 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -43,7 +44,7 @@ void ReplaceEntities(
             p_new_entity->Set(Flags(*it_entity));
 
             (*it_entity.base()) = p_new_entity;
-        }        
+        }
     }
 }
 
@@ -106,7 +107,7 @@ void ReplaceElementsAndConditionsProcess::Execute()
     const std::string element_name = mSettings["element_name"].GetString();
     const std::string condition_name = mSettings["condition_name"].GetString();
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
-    
+
     if (element_name != "") {
         std::unordered_set<std::size_t> set_element_ids (mrModelPart.NumberOfElements());
         for(auto& ielem : mrModelPart.Elements()) {
@@ -128,7 +129,7 @@ void ReplaceElementsAndConditionsProcess::Execute()
             UpdateConditionsInSubModelPart(r_sub_model_part, root_model_part, set_conditions_ids);
         }
     }
-    
+
 }
 
 }  // namespace Kratos.
