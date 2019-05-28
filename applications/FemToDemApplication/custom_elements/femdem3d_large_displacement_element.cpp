@@ -95,8 +95,6 @@ void FemDem3DLargeDisplacementElement::InitializeNonLinearIteration(ProcessInfo 
 
     // Kinematic variables
     Matrix B, F, DN_DX, InvJ0, J, J0;
-
-    const SizeType mat_size = number_of_nodes * dimension;
     B.resize(strain_size, dimension * number_of_nodes);
 
     Matrix constitutive_matrix = ZeroMatrix(strain_size, strain_size);
