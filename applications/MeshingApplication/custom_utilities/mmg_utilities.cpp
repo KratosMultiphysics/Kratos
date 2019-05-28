@@ -211,7 +211,7 @@ DiscretizationOption MmgUtilities<TMMGLibrary>::GetDiscretization()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const SizeType RemoveRegions)
+void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const bool RemoveRegions)
 {
     mRemoveRegions = RemoveRegions;
 }
@@ -220,7 +220,7 @@ void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const SizeType RemoveRegions)
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-SizeType MmgUtilities<TMMGLibrary>::GetRemoveRegions()
+bool MmgUtilities<TMMGLibrary>::GetRemoveRegions()
 {
     return mRemoveRegions;
 }
