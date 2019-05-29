@@ -143,7 +143,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
             "max_number_of_searchs"            : 1000,
-            "preserve_flags"                   : false,
+            "preserve_flags"                   : true,
             "interpolate_non_historical"       : true,
             "extrapolate_contour_values"       : true,
             "surface_elements"                 : false,
