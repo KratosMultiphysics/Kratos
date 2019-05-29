@@ -554,7 +554,7 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
 {
     array_1d<double, Dim> upper_wake_velocity;
-    ComputeVelocityUpperWakeElement(upper_wake_velocity);
+    upper_wake_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
     const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
 
     array_1d<double, Dim> lower_wake_velocity;
@@ -604,7 +604,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
         velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
     else // Wake element
-        ComputeVelocityUpperWakeElement(velocity);
+        velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
@@ -621,25 +621,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(array_1d
     if (wake == 0)
         velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
     else
-        ComputeVelocityUpperWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    data.potentials = PotentialFlowUtilities::GetPotentialOnUpperWakeElement<Dim,NumNodes>(*this, distances);
-
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
+        velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
 }
 
 template <int Dim, int NumNodes>

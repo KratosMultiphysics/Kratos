@@ -97,6 +97,15 @@ namespace Kratos {
       }
     }
 
+    BoundedVector<double,3> AssignDistances()
+    {
+      BoundedVector<double,3> distances;
+      distances(0) = 1.0;
+      distances(1) = -1.0;
+      distances(2) = -1.0;
+      return distances;
+    }
+
     /** Checks the IncompressiblePotentialFlowElement element.
      * Checks the LHS and RHS computation.
      */
@@ -133,10 +142,7 @@ namespace Kratos {
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
-      BoundedVector<double,3> distances;
-      distances(0) = 1.0;
-      distances(1) = -1.0;
-      distances(2) = -1.0;
+      BoundedVector<double,3> distances = AssignDistances();
 
       pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
@@ -238,10 +244,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      BoundedVector<double,3> distances;
-      distances[0] = -0.5;
-      distances[1] = -0.5;
-      distances[2] = 0.5;
+      BoundedVector<double,3> distances = AssignDistances();
       pElement->SetValue(ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
@@ -294,10 +297,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      BoundedVector<double,3> distances;
-      distances(0) = 1.0;
-      distances(1) = -1.0;
-      distances(2) = -1.0;
+      BoundedVector<double,3> distances = AssignDistances();
 
       AssignPotentialsToWakeElement(pElement, distances);
 
@@ -321,10 +321,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      BoundedVector<double,3> distances;
-      distances(0) = 1.0;
-      distances(1) = -1.0;
-      distances(2) = -1.0;
+      BoundedVector<double,3> distances = AssignDistances();
 
       AssignPotentialsToWakeElement(pElement, distances);
 
@@ -348,10 +345,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      BoundedVector<double,3> distances;
-      distances(0) = 1.0;
-      distances(1) = -1.0;
-      distances(2) = -1.0;
+      BoundedVector<double,3> distances = AssignDistances();
 
       AssignPotentialsToWakeElement(pElement, distances);
 
@@ -377,6 +371,33 @@ namespace Kratos {
       AssignPotentialsToNormalElement(pElement);
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<2,3>(*pElement);
+
+      std::vector<double> reference({1.0, 1.0});
+
+      for (unsigned int i = 0; i < velocity.size(); i++) {
+        KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
+      }
+    }
+
+    // Checks the function ComputeVelocityUpperWakeElement
+    KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityUpperWakeElement, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+      pElement->SetValue(WAKE, true);
+
+      BoundedVector<double,3> distances;
+      distances(0) = 1.0;
+      distances(1) = -1.0;
+      distances(2) = -1.0;
+      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+
+      AssignPotentialsToWakeElement(pElement, distances);
+
+      auto velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<2, 3>(*pElement);
 
       std::vector<double> reference({1.0, 1.0});
 

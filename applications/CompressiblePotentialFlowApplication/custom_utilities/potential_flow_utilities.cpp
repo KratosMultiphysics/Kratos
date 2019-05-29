@@ -15,7 +15,7 @@
 namespace Kratos {
 namespace PotentialFlowUtilities {
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
+BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 {
     const int kutta = rElement.GetValue(KUTTA);
     array_1d<double, NumNodes> potentials;
@@ -61,7 +61,7 @@ BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
 }
 
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
+BoundedVector<double, NumNodes> GetPotentialOnUpperWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances)
 {
     array_1d<double, NumNodes> upper_potentials;
@@ -80,7 +80,7 @@ array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
 }
 
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnLowerWakeElement(
+BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances)
 {
     array_1d<double, NumNodes> lower_potentials;
@@ -111,16 +111,32 @@ array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
     return prod(trans(data.DN_DX), data.potentials);
 }
 
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
+{
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    array_1d<double, NumNodes> distances = rElement.GetValue(ELEMENTAL_DISTANCES);
+
+    data.potentials = GetPotentialOnUpperWakeElement<Dim,NumNodes>(rElement, distances);
+
+    return prod(trans(data.DN_DX), data.potentials);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
-template array_1d<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
+template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
 template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
-template array_1d<double, 3> GetPotentialOnUpperWakeElement<2, 3>(
+template BoundedVector<double, 3> GetPotentialOnUpperWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
-template array_1d<double, 3> GetPotentialOnLowerWakeElement<2, 3>(
+template BoundedVector<double, 3> GetPotentialOnLowerWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
 template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& rElement);
+template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
 } // namespace PotentialFlow
 } // namespace Kratos

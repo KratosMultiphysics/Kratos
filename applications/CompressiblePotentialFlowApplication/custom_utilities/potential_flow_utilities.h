@@ -17,22 +17,25 @@ namespace Kratos
 namespace PotentialFlowUtilities
 {
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
+BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
 
 template <int Dim, int NumNodes>
 BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
+BoundedVector<double, NumNodes> GetPotentialOnUpperWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnLowerWakeElement(
+BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement);
 
 } // namespace PotentialFlow
 } // namespace Kratos
