@@ -43,5 +43,8 @@ array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement);
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
+template <int Dim, int NumNodes>
+double ComputePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
 } // namespace PotentialFlow
 } // namespace Kratos

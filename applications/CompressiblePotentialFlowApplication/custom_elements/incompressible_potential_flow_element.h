@@ -230,8 +230,6 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
-
     ///@}
     ///@name Serialization
     ///@{

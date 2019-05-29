@@ -193,7 +193,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = ComputePressureCoefficient(rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
     }
     else if (rVariable == WAKE)
     {
@@ -607,23 +607,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const
-{
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double vinfinity_norm2 = inner_prod(free_stream_velocity, free_stream_velocity);
-
-    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-
-    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
-               vinfinity_norm2; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));
-    return pressure_coefficient;
 }
 
 // serializer

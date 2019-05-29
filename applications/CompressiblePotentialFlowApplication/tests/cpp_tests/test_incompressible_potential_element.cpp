@@ -34,6 +34,10 @@ namespace Kratos {
       // Set the element properties
       rModelPart.CreateNewProperties(0);
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+      BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+      free_stream_velocity(0) = 10.0;
+
+      rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -445,6 +449,22 @@ namespace Kratos {
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
       }
+    }
+
+    // Checks the function ComputePressureCoefficient
+    KRATOS_TEST_CASE_IN_SUITE(ComputePressureCoefficient, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      AssignPotentialsToNormalElement(pElement);
+
+      double pressure_coefficient = PotentialFlowUtilities::ComputePressureCoefficient<2,3>(*pElement, model_part.GetProcessInfo());
+
+      KRATOS_CHECK_NEAR(pressure_coefficient, 0.98, 1e-7);
     }
 
   } // namespace Testing
