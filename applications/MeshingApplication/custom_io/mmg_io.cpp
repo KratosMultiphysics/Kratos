@@ -19,7 +19,6 @@
 #include "utilities/timer.h"
 #include "custom_io/mmg_io.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
-#include "utilities/compare_elements_and_conditions_utility.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -110,33 +109,8 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
     std::unordered_map<IndexType,Element::Pointer> ref_element;     /// Reference element
 
-    // Getting auxiliar properties
-    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
-
     // Fill the maps
-    /* Elements */
-    std::ifstream elem_infile(mFilename + ".elem.ref.json");
-    KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << mFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream elem_buffer;
-    elem_buffer << elem_infile.rdbuf();
-    Parameters elem_ref_json(elem_buffer.str());
-    for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
-        const std::size_t key = std::stoi(it_param.name());;
-        Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
-        ref_element[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
-    }
-
-    /* Conditions */
-    std::ifstream cond_infile(mFilename + ".cond.ref.json");
-    KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << mFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream cond_buffer;
-    cond_buffer << cond_infile.rdbuf();
-    Parameters cond_ref_json(cond_buffer.str());
-    for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
-        const std::size_t key = std::stoi(it_param.name());;
-        Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        ref_condition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
-    }
+    mMmmgUtilities.WriteReferenceEntitities(rModelPart, mFilename, ref_condition, ref_element);
 
     // Writing the new mesh data on the model part
     NodeType::DofsContainerType empty_dofs;
@@ -171,42 +145,6 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
     mMmmgUtilities.GenerateReferenceMaps(rModelPart, aux_ref_cond, aux_ref_elem, ref_condition, ref_element);
 
-    /* ELEMENTS */
-    std::string element_name;
-    Parameters elem_reference_json;
-    for (auto& r_elem : ref_element) {
-        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_elem.second), element_name);
-        const std::string name = std::to_string(r_elem.first);
-        elem_reference_json.AddEmptyValue(name);
-        elem_reference_json[name].SetString(element_name);
-    }
-
-    const std::string& r_elem_json_text = elem_reference_json.PrettyPrintJsonString();
-
-    std::filebuf elem_buffer;
-    elem_buffer.open(mFilename + ".elem.ref.json",std::ios::out);
-    std::ostream elem_os(&elem_buffer);
-    elem_os << r_elem_json_text;
-    elem_buffer.close();
-
-    /* CONDITIONS */
-    std::string condition_name;
-    Parameters cond_reference_json;
-    for (auto& r_cond : ref_condition) {
-        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_cond.second), condition_name);
-        const std::string name = std::to_string(r_cond.first);
-        cond_reference_json.AddEmptyValue(name);
-        cond_reference_json[name].SetString(condition_name);
-    }
-
-    const std::string& r_cond_json_text = cond_reference_json.PrettyPrintJsonString();
-
-    std::filebuf cond_buffer;
-    cond_buffer.open(mFilename + ".cond.ref.json",std::ios::out);
-    std::ostream cond_os(&cond_buffer);
-    cond_os << r_cond_json_text;
-    cond_buffer.close();
-
     // We initialize the solution data with the given modelpart
     mMmmgUtilities.GenerateSolDataFromModelPart(rModelPart);
 
@@ -218,6 +156,9 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
 
     // Automatically save the solution
     mMmmgUtilities.OutputSol(mFilename);
+
+    // Output the reference files
+    mMmmgUtilities.OutputReferenceEntitities(mFilename, ref_condition, ref_element);
 
     // Writing the colors to a JSON
     AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(mFilename, colors);
