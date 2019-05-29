@@ -24,6 +24,7 @@
 #endif /* MMG_INCLUDES defined */
 
 // Project includes
+#include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -1633,13 +1634,9 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
 {
-    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1653,13 +1650,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
 {
-    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1673,13 +1666,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
 {
-    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1693,13 +1682,9 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
 {
-    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1713,13 +1698,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
 {
-    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1733,13 +1714,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
 {
-    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1747,6 +1724,53 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh,mMmgSol, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
+    const std::string& rOutputName,
+    const std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+    const std::unordered_map<IndexType,Element::Pointer>& rRefElement
+    )
+{
+    /* ELEMENTS */
+    std::string element_name;
+    Parameters elem_reference_json;
+    for (auto& r_elem : rRefElement) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_elem.second), element_name);
+        const std::string name = std::to_string(r_elem.first);
+        elem_reference_json.AddEmptyValue(name);
+        elem_reference_json[name].SetString(element_name);
+    }
+
+    const std::string& r_elem_json_text = elem_reference_json.PrettyPrintJsonString();
+
+    std::filebuf elem_buffer;
+    elem_buffer.open(rOutputName + ".elem.ref.json",std::ios::out);
+    std::ostream elem_os(&elem_buffer);
+    elem_os << r_elem_json_text;
+    elem_buffer.close();
+
+    /* CONDITIONS */
+    std::string condition_name;
+    Parameters cond_reference_json;
+    for (auto& r_cond : rRefCondition) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_cond.second), condition_name);
+        const std::string name = std::to_string(r_cond.first);
+        cond_reference_json.AddEmptyValue(name);
+        cond_reference_json[name].SetString(condition_name);
+    }
+
+    const std::string& r_cond_json_text = cond_reference_json.PrettyPrintJsonString();
+
+    std::filebuf cond_buffer;
+    cond_buffer.open(rOutputName + ".cond.ref.json",std::ios::out);
+    std::ostream cond_os(&cond_buffer);
+    cond_os << r_cond_json_text;
+    cond_buffer.close();
 }
 
 /***********************************************************************************/
@@ -3004,6 +3028,45 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         GetMetricTensor(metric);
 
         it_node->SetValue(r_tensor_variable, metric);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
+    ModelPart& rModelPart,
+    const std::string& rFilename,
+    std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+    std::unordered_map<IndexType,Element::Pointer>& rRefElement
+    )
+{
+    // Getting auxiliar properties
+    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
+
+    /* Elements */
+    std::ifstream elem_infile(rFilename + ".elem.ref.json");
+    KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream elem_buffer;
+    elem_buffer << elem_infile.rdbuf();
+    Parameters elem_ref_json(elem_buffer.str());
+    for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
+        const std::size_t key = std::stoi(it_param.name());;
+        Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
+        rRefElement[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+    }
+
+    /* Conditions */
+    std::ifstream cond_infile(rFilename + ".cond.ref.json");
+    KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream cond_buffer;
+    cond_buffer << cond_infile.rdbuf();
+    Parameters cond_ref_json(cond_buffer.str());
+    for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
+        const std::size_t key = std::stoi(it_param.name());;
+        Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
+        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
     }
 }
 

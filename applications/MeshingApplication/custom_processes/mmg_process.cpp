@@ -513,12 +513,21 @@ void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
+    const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
     // Automatically save the mesh
-    mMmmgUtilities.OutputMesh(mFilename, PostOutput, step);
+    mMmmgUtilities.OutputMesh(file_name);
 
     // Automatically save the solution
-    mMmmgUtilities.OutputSol(mFilename, PostOutput, step);
+    mMmmgUtilities.OutputSol(file_name);
+
+    if (mThisParameters["save_colors_files"].GetBool()) {
+        // Output the reference files
+        mMmmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
+
+        // Writing the colors to a JSON
+        AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name, mColors);
+    }
 }
 
 /***********************************************************************************/
@@ -763,6 +772,7 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
             "gradation_value"                     : 1.3
         },
         "save_external_files"                  : false,
+        "save_colors_files"                    : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
         "interpolate_non_historical"           : true,
