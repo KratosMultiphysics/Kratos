@@ -75,9 +75,9 @@ class RemoveNodesMesherProcess
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> >          NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition>    ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> >          NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element>        ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition>    ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -1343,7 +1343,7 @@ class RemoveNodesMesherProcess
 
 
                 //recover the original position of the node
-                pNode0->GetInitialPosition() = pNode0->Coordinates() - pNode0->FastGetSolutionStepValue(DISPLACEMENT);
+                pNode0->GetInitialPosition() = Point{pNode0->Coordinates() - pNode0->FastGetSolutionStepValue(DISPLACEMENT)};
 
                 //search shared condition of Node0 and Node A
                 if(node_shared_conditions[pNode0->Id()][0]->Id() == pNode0->Id()){

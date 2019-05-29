@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -19,76 +19,93 @@
 
 // Project includes
 #include "input_output/logger_message.h"
-
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
-	std::string LoggerMessage::Info() const
-	{
-		return "LoggerMessage";
-	}
+  LoggerMessage::MessageSource::MessageSource()
+  {
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    mRank = r_comm.Rank();
+  }
 
-	/// Print information about this object.
-	void LoggerMessage::PrintInfo(std::ostream& rOStream) const
-	{
-		rOStream << Info();
-	}
+  std::string LoggerMessage::Info() const
+  {
+    return "LoggerMessage";
+  }
 
-	/// Print object's data.
-	void LoggerMessage::PrintData(std::ostream& rOStream) const
-	{
-		rOStream << mMessage;
-	}
+  /// Print information about this object.
+  void LoggerMessage::PrintInfo(std::ostream& rOStream) const
+  {
+    rOStream << Info();
+  }
 
-	/// char stream function
-	LoggerMessage& LoggerMessage::operator << (const char * rString)
-	{
-		mMessage.append(rString);
+  /// Print object's data.
+  void LoggerMessage::PrintData(std::ostream& rOStream) const
+  {
+    rOStream << mMessage;
+  }
 
-		return *this;
-	}
+  /// char stream function
+  LoggerMessage& LoggerMessage::operator << (const char * rString)
+  {
+    mMessage.append(rString);
 
-	LoggerMessage& LoggerMessage::operator << (std::ostream& (*pf)(std::ostream&))
-	{
-		std::stringstream buffer;
-		pf(buffer);
+    return *this;
+  }
 
-		mMessage.append(buffer.str());
+  LoggerMessage& LoggerMessage::operator << (std::ostream& (*pf)(std::ostream&))
+  {
+    std::stringstream buffer;
+    pf(buffer);
 
-		return *this;
+    mMessage.append(buffer.str());
+
+    return *this;
     }
 
     LoggerMessage& LoggerMessage::operator << (CodeLocation const& TheLocation)
-	{
-		mLocation = TheLocation;
+  {
+    mLocation = TheLocation;
 
-		return *this;
-	}
+    return *this;
+  }
 
-	LoggerMessage& LoggerMessage::operator << (Severity const& TheSeverity)
-	{
-		mSeverity = TheSeverity;
+  LoggerMessage& LoggerMessage::operator << (Severity const& TheSeverity)
+  {
+    mSeverity = TheSeverity;
 
-		return *this;
-	}
+    return *this;
+  }
 
-	LoggerMessage& LoggerMessage::operator << (Category const& TheCategory) {
-		mCategory = TheCategory;
+  LoggerMessage& LoggerMessage::operator << (Category const& TheCategory) {
+    mCategory = TheCategory;
 
-		return *this;
-	}
+    return *this;
+  }
 
+  LoggerMessage& LoggerMessage::operator << (DistributedFilter const& TheFilter) {
+    mDistributedFilter = TheFilter;
 
-	/// output stream function
-	std::ostream& operator << (std::ostream& rOStream,
-		const LoggerMessage& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+    return *this;
+  }
 
-		return rOStream;
-	}
+  LoggerMessage& LoggerMessage::operator << (DataCommunicator const& TheDataCommunicator) {
+    mMessageSource = MessageSource(TheDataCommunicator.Rank());
+
+    return *this;
+  }
+
+  /// output stream function
+  std::ostream& operator << (std::ostream& rOStream,
+    const LoggerMessage& rThis)
+  {
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+  }
 
 
 }  // namespace Kratos.

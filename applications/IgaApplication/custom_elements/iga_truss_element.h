@@ -69,3 +69,5 @@
 //} // namespace Kratos
 //
 //#endif // !defined(KRATOS_IGA_TRUSS_ELEMENT_H_INCLUDED)
+
+// System includes

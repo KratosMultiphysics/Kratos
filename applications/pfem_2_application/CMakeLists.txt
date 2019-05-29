@@ -33,7 +33,7 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosPFEM2Application MODULE THIN_LTO ${KRATOS_QUIET_WATER_APPLICATION_SOURCES})
 #add_library(KratosPFEM2Application SHARED ${KratosPFEM2Application})
-target_link_libraries(KratosPFEM2Application KratosCore )
+target_link_libraries(KratosPFEM2Application PUBLIC KratosCore )
 set_target_properties(KratosPFEM2Application PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)

@@ -429,12 +429,12 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension, Dimension);
+    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension);
 
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;
     double mNonConvThreshold = 0.0;
-    Matrix mNonConvPlasticDeformationGradient = IdentityMatrix(Dimension, Dimension);
+    Matrix mNonConvPlasticDeformationGradient = IdentityMatrix(Dimension);
 
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;

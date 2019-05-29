@@ -6,7 +6,6 @@ import math
 
 
 class TestVectorInterface(KratosUnittest.TestCase):
-    
 
     def test_range(self):
         a = Vector(4)
@@ -146,7 +145,26 @@ class TestVectorInterface(KratosUnittest.TestCase):
         #for it in a:
             #self.assertEqual(it,2.0)
 
+    def test_norm(self):
+        a = Vector(3)
+        a[0] = 1.0
+        a[1] = 2.0
+        a[2] = 3.0
+        self.assertEqual(6.0,a.norm_1())
+        self.assertEqual(math.sqrt(14.0),a.norm_2())
 
+    def test_truediv(self):
+        a = Vector(3)
+        a[0] = 1.0
+        a[1] = 2.0
+        a[2] = 3.0
+        b = a / 3.
+        self.assertEqual(a[0], 1.0)
+        self.assertEqual(a[1], 2.0)
+        self.assertEqual(a[2], 3.0)
+        self.assertAlmostEqual(b[0], 1.0 / 3.0)
+        self.assertAlmostEqual(b[1], 2.0 / 3.0)
+        self.assertAlmostEqual(b[2], 3.0 / 3.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -54,7 +54,7 @@ public:
     ///@{
 
     /// Counted pointer of MPMGridAxisymLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION(MPMGridAxisymLineLoadCondition2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MPMGridAxisymLineLoadCondition2D);
 
     ///@}
     ///@name Life Cycle

@@ -17,7 +17,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/mpm_stress_principal_invariants_utility.h"
 
 namespace Kratos

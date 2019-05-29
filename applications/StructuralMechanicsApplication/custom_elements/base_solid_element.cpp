@@ -257,7 +257,7 @@ Element::Pointer BaseSolidElement::Clone (
 
     KRATOS_WARNING("BaseSolidElement") << " Call BaseSolidElement (base class) Clone " << std::endl;
 
-    BaseSolidElement::Pointer p_new_elem = Kratos::make_shared<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    BaseSolidElement::Pointer p_new_elem = Kratos::make_intrusive<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -1599,7 +1599,7 @@ Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement) 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    DeltaDisplacement.resize(number_of_nodes , dimension);
+    DeltaDisplacement.resize(number_of_nodes , dimension, false);
 
     for ( IndexType i_node = 0; i_node < number_of_nodes; i_node++ ) {
         const array_1d<double, 3 >& current_displacement  = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT);

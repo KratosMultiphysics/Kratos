@@ -30,15 +30,15 @@ class KRATOS_API(DEM_APPLICATION) MAPcond : public Condition
 public:
 
     // Counted pointer of MAPcond
-    KRATOS_CLASS_POINTER_DEFINITION( MAPcond );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MAPcond );
 
 
-	typedef WeakPointerVector<Element> ParticleWeakVectorType;
+	typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+	typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+	typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -60,8 +60,6 @@ public:
 
     virtual void Initialize() override;
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
-    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
-    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
     virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& r_process_info) override;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;

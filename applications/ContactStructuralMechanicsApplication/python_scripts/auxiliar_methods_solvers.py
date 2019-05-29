@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 
@@ -84,12 +83,13 @@ def AuxiliarSetSettings(settings, contact_settings):
     if not settings["reform_dofs_at_each_step"].GetBool():
         print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["block_builder"].GetBool():
-        print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
-        settings["block_builder"].SetBool(True)
 
     return settings
 
+def AuxiliarValidateSettings(solver):
+    default_settings = solver.GetDefaultSettings()
+    default_settings.RecursivelyAddMissingParameters(solver.settings)
+    solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
 def AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":

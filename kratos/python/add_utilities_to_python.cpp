@@ -35,6 +35,7 @@
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/read_materials_utility.h"
+#include "includes/global_pointer_variables.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -175,7 +176,7 @@ void CalculateDistancesDefault2D(ParallelDistanceCalculator<2>& rParallelDistanc
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
 }
-    
+
 void CalculateDistancesFlag2D(ParallelDistanceCalculator<2>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
@@ -185,12 +186,26 @@ void CalculateDistancesDefault3D(ParallelDistanceCalculator<3>& rParallelDistanc
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
 }
-    
+
 void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
 }
 
+void VariableUtilsUpdateCurrentPosition(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes)
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariable(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable)
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
 
 void AddUtilitiesToPython(pybind11::module& m)
 {
@@ -289,6 +304,16 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 9>>)
         .def("SetVariable", &VariableUtils::SetVariableForFlag<Vector>)
         .def("SetVariable", &VariableUtils::SetVariableForFlag<Matrix>)
+        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<double>)
+        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<array_1d<double, 3>>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::MasterSlaveConstraintContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
@@ -356,9 +381,6 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
         .def("CopyComponentVar", &VariableUtils::CopyComponentVar)
         .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
-        .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
-        .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
-//         .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
 //         .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<double> >)
 //         .def("CheckVariableExists", &VariableUtils::CheckVariableExists< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
 //         .def("CheckVariableExists", &VariableUtils::CheckVariableExists< VariableComponent< VectorComponentAdaptor<array_1d<double, 4> > > > )
@@ -416,6 +438,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("CheckDofs", &VariableUtils::CheckDofs)
         .def("UpdateCurrentToInitialConfiguration", &VariableUtils::UpdateCurrentToInitialConfiguration)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -553,14 +577,14 @@ void AddUtilitiesToPython(pybind11::module& m)
     //     .staticmethod("PrintOMPInfo")
         ;
 
-    py::class_< BinBasedFastPointLocator < 2 > >(m,"BinBasedFastPointLocator2D")
+    py::class_< BinBasedFastPointLocator < 2 >, BinBasedFastPointLocator < 2 >::Pointer >(m,"BinBasedFastPointLocator2D")
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
         ;
 
-    py::class_< BinBasedFastPointLocator < 3 > >(m,"BinBasedFastPointLocator3D")
+    py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
         .def(py::init<ModelPart&  >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
@@ -705,20 +729,17 @@ void AddUtilitiesToPython(pybind11::module& m)
     // Sparse matrix multiplication utility
     py::class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
         .def(py::init<>())
-        .def("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
-        .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
-        .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
-        .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
-        .def("TransposeMatrix",&SparseMatrixMultiplicationUtility::TransposeMatrix<CompressedMatrix, CompressedMatrix>)
+        .def_static("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+        .def_static("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+        .def_static("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+        .def_static("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
+        .def_static("TransposeMatrix",&SparseMatrixMultiplicationUtility::TransposeMatrix<CompressedMatrix, CompressedMatrix>)
         ;
 
     // Mortar utilities
-    py::class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
-        .def(py::init<>())
-        .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
-        .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
-        .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
-        ;
+    m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
+    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
@@ -791,29 +812,36 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
         ;
 
+    // TimeDiscretization
     py::class_<TimeDiscretization::BDF1>(m, "BDF1")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF1::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 2> (TimeDiscretization::BDF1::*)(double) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 2> (TimeDiscretization::BDF1::*)(const ProcessInfo&) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
         ;
     py::class_<TimeDiscretization::BDF2>(m, "BDF2")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF2::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 3> (TimeDiscretization::BDF2::*)(double, double) const) &TimeDiscretization::BDF2::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 3> (TimeDiscretization::BDF2::*)(const ProcessInfo&) const) &TimeDiscretization::BDF2::ComputeBDFCoefficients)
         ;
     py::class_<TimeDiscretization::BDF3>(m, "BDF3")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF3::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 4> (TimeDiscretization::BDF3::*)(double) const) &TimeDiscretization::BDF3::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 4> (TimeDiscretization::BDF3::*)(const ProcessInfo&) const) &TimeDiscretization::BDF3::ComputeBDFCoefficients)
         ;
     py::class_<TimeDiscretization::BDF4>(m, "BDF4")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF4::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 5> (TimeDiscretization::BDF4::*)(double) const) &TimeDiscretization::BDF4::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 5> (TimeDiscretization::BDF4::*)(const ProcessInfo&) const) &TimeDiscretization::BDF4::ComputeBDFCoefficients)
         ;
     py::class_<TimeDiscretization::BDF5>(m, "BDF5")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF5::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 6> (TimeDiscretization::BDF5::*)(double) const) &TimeDiscretization::BDF5::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 6> (TimeDiscretization::BDF5::*)(const ProcessInfo&) const) &TimeDiscretization::BDF5::ComputeBDFCoefficients)
         ;
     py::class_<TimeDiscretization::BDF6>(m, "BDF6")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF6::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 7> (TimeDiscretization::BDF6::*)(double) const) &TimeDiscretization::BDF6::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::array<double, 7> (TimeDiscretization::BDF6::*)(const ProcessInfo&) const) &TimeDiscretization::BDF6::ComputeBDFCoefficients)
         ;
 
     py::class_<TimeDiscretization::Newmark>(m, "Newmark")

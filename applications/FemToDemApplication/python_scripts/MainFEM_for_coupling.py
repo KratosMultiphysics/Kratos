@@ -27,6 +27,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS_GRADIENT)
 		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
 		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
+		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
 
 		
 		# Read model_part (note: the buffer_size is set here) (restart is read here)
@@ -80,6 +81,26 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 		self.time	   = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
 		self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
-		self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+		self.delta_time = self.ComputeDeltaTime()
 
 
+#============================================================================================================================
+
+	def ComputeDeltaTime(self):
+
+		if self.ProjectParameters["problem_data"].Has("time_step"):
+			return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+
+		elif self.ProjectParameters["problem_data"].Has("variable_time_steps"):
+
+			current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+			for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+				interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
+				interval = KratosMultiphysics.IntervalUtility(interval_settings)			
+				# Getting the time step of the interval
+				if interval.IsInInterval(current_time):
+					return interval_settings["time_step"].GetDouble()
+				# If we arrive here we raise an error because the intervals are not well defined
+				raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+		else:
+			raise Exception("::[MechanicalSolver]:: Time stepping not defined!")

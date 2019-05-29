@@ -443,7 +443,7 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -813,10 +813,10 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
     const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
     const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
-    array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
     const double & MP_Mass = this->GetValue(MP_MASS);
 
+    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
+    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
@@ -851,10 +851,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
         rGeom[i].UnSetLock();
 
     }
-
-    AUX_MP_Velocity.clear();
-    AUX_MP_Acceleration.clear();
-
 }
 
 ////************************************************************************************
@@ -973,7 +969,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > 1e-16)
+        if (rVariables.N[i] > std::numeric_limits<double>::epsilon())
         {
             const array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
 
@@ -1130,7 +1126,7 @@ void UpdatedLagrangian::CalculateAlmansiStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateAlmansiStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1170,7 +1166,7 @@ void UpdatedLagrangian::CalculateGreenLagrangeStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1465,17 +1461,14 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector rPointLocal = ZeroVector(dimension);
+    array_1d<double,3> rPointLocal = ZeroVector(3);
+    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
     if (dimension == 2)
     {
         rResult.resize(3, false);
-        array_1d<double,3> rPointLocal = ZeroVector(3);
 
-        // 1. Obtain the local coordinate of rPoint
-        rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-        // 2. Get Shape functions: N
+        // Get Shape functions: N
         rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
         rResult[1] = rPointLocal[0] ;
         rResult[2] = rPointLocal[1];
@@ -1483,12 +1476,8 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
     else if (dimension == 3)
     {
         rResult.resize(4, false);
-        array_1d<double,3> rPointLocal = ZeroVector(3);
 
-        // 1. Obtain the local coordinate of rPoint
-        rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-        // 2. Get Shape functions: N
+        // Get Shape functions: N
         rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
         rResult[1] = rPointLocal[0] ;
         rResult[2] = rPointLocal[1];

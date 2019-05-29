@@ -13,7 +13,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -21,9 +21,8 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/point_2d.h"
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -54,7 +53,7 @@ namespace Kratos
     {
         // Calling base class register to register Kratos components
         KratosApplication::Register();
-        
+
         std::cout << " KRATOS      |          |   |                        " << std::endl;
         std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
         std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
@@ -63,10 +62,15 @@ namespace Kratos
 
         // Shallow water variables
         KRATOS_REGISTER_VARIABLE(HEIGHT)                                // Main variable
-        KRATOS_REGISTER_VARIABLE(BATHYMETRY)                            // Geometric definition of the problem
+        KRATOS_REGISTER_VARIABLE(BATHYMETRY)                            // Topographic definition of the marine domain
+        KRATOS_REGISTER_VARIABLE(TOPOGRAPHY)                            // Topographic definition of the domain
         KRATOS_REGISTER_VARIABLE(RAIN)                                  // Source term
         KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)                // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
         KRATOS_REGISTER_VARIABLE(MANNING)                               // Friction coefficient
+        KRATOS_REGISTER_VARIABLE(EQUIVALENT_MANNING)
+        KRATOS_REGISTER_VARIABLE(WATER_HEIGHT)
+        KRATOS_REGISTER_VARIABLE(WATER_SURFACE)
+        KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variableS for PFEM2
         KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
@@ -85,16 +89,16 @@ namespace Kratos
 
         KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
         KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
-        
+
         KRATOS_REGISTER_ELEMENT("ConservedVarElement2D3N", mConservedVarElement2D3N)   // mesh stage element
         KRATOS_REGISTER_ELEMENT("ConservedVarElement2D4N", mConservedVarElement2D4N)   // mesh stage element
-        
+
         KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D3N", mEulerPrimVarElement2D3N)   // eulerian element
         KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D4N", mEulerPrimVarElement2D4N)   // eulerian element
-        
+
         KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D3N", mEulerConsVarElement2D3N)   // eulerian element
         KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D4N", mEulerConsVarElement2D4N)   // eulerian element
-        
+
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }
 

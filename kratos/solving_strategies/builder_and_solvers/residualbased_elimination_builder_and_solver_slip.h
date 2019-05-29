@@ -146,10 +146,11 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name"        : "ResidualBasedEliminationBuilderAndSolverSlip",
             "domain_size" : 3,
-            "variable_x" : "VELOCITY_X",
-            "variable_y" : "VELOCITY_Y",
-            "variable_z" : "VELOCITY_Z"
+            "variable_x"  : "VELOCITY_X",
+            "variable_y"  : "VELOCITY_Y",
+            "variable_z"  : "VELOCITY_Z"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -274,10 +275,10 @@ public:
             Element::EquationIdVectorType EquationId;
             //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-            WeakPointerVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + nodes_partition[k];
-            WeakPointerVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + nodes_partition[k + 1];
+            GlobalPointersVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + nodes_partition[k];
+            GlobalPointersVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + nodes_partition[k + 1];
 
-            for (WeakPointerVector< Node < 3 > >::iterator it = it_begin;
+            for (GlobalPointersVector< Node < 3 > >::iterator it = it_begin;
                     it != it_end; it++)
             {
                 // 				  KRATOS_WATCH(it->GetValue(IS_STRUCTURE));
@@ -386,7 +387,7 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size());
 
-        for (WeakPointerVector< Node < 3 > >::iterator iii = mActiveNodes.begin(); iii != mActiveNodes.end(); iii++)
+        for (GlobalPointersVector< Node < 3 > >::iterator iii = mActiveNodes.begin(); iii != mActiveNodes.end(); iii++)
         {
             BaseType::mDofSet.push_back(iii->pGetDof(mrVar_x).get());
             BaseType::mDofSet.push_back(iii->pGetDof(mrVar_y).get());
@@ -604,10 +605,10 @@ protected:
         #pragma omp parallel for firstprivate(number_of_threads,pos_x,pos_y,pos_z) schedule(static,1)
         for (int k = 0; k < number_of_threads; k++)
         {
-            WeakPointerVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + partition[k];
-            WeakPointerVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + partition[k + 1];
+            GlobalPointersVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + partition[k];
+            GlobalPointersVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + partition[k + 1];
 
-            for (WeakPointerVector< Node < 3 > >::iterator in = it_begin;
+            for (GlobalPointersVector< Node < 3 > >::iterator in = it_begin;
                     in != it_end; in++)
             {
                 Node < 3 > ::DofType& current_dof_x = in->GetDof(mrVar_x, pos_x);
@@ -621,7 +622,7 @@ protected:
                 if (current_dof_x.IsFixed() == false)
                 {
                     std::size_t index_i = (current_dof_x).EquationId();
-                    WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<std::size_t>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size() + 4);
@@ -642,7 +643,7 @@ protected:
 
                     //filling the first neighbours list
 
-                    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin();
+                    for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
@@ -666,7 +667,7 @@ protected:
                 if (current_dof_y.IsFixed() == false)
                 {
                     std::size_t index_i = (current_dof_y).EquationId();
-                    WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<std::size_t>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size() + 4);
@@ -685,7 +686,7 @@ protected:
                         indices.push_back(index_i);
                     }
 
-                    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin();
+                    for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
@@ -713,7 +714,7 @@ protected:
                     if (current_dof_z.IsFixed() == false)
                     {
                         std::size_t index_i = (current_dof_z).EquationId();
-                        WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                        GlobalPointersVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                         std::vector<std::size_t>& indices = index_list[index_i];
                         indices.reserve(neighb_nodes.size() + 4);
@@ -729,7 +730,7 @@ protected:
                         {
                             indices.push_back(index_i);
                         }
-                        for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin();
+                        for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin();
                                 i != neighb_nodes.end(); i++)
                         {
 
@@ -978,7 +979,7 @@ private:
     TVariableType const & mrVar_x;
     TVariableType const & mrVar_y;
     TVariableType const & mrVar_z;
-    WeakPointerVector<Node < 3 > > mActiveNodes;
+    GlobalPointersVector<Node < 3 > > mActiveNodes;
 
     /*@} */
     /**@name Private Operators*/

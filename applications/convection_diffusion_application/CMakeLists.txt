@@ -26,7 +26,7 @@ set( KRATOS_CONVECTION_DIFFUSION_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
-## define fluid dynamics test sources
+## define test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
      file(GLOB_RECURSE KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -75,3 +75,14 @@ install(TARGETS KratosConvectionDiffusionApplication DESTINATION libs )
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ConvectionDiffusionApplication.py" DESTINATION "KratosMultiphysics/ConvectionDiffusionApplication" RENAME "__init__.py")
 
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)

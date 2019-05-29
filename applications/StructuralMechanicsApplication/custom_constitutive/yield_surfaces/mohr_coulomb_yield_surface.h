@@ -166,16 +166,15 @@ public:
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const double young_modulus = r_material_properties[YOUNG_MODULUS];
-        const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-
+        double equivalent_yield;
+        GetInitialUniaxialThreshold(rValues, equivalent_yield);
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+            rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(equivalent_yield, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture Energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
+            rAParameter = -std::pow(equivalent_yield, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
         }
     }
 

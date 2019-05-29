@@ -141,15 +141,6 @@ struct value_type < ::blaze::DynamicVector<V> > {
 };
 
 template < typename V >
-struct rows_impl< ::blaze::CompressedMatrix<V> > {
-    typedef ::blaze::CompressedMatrix<V> matrix;
-
-    static size_t get(const matrix &A) {
-        return A.rows();
-    }
-};
-
-template < typename V >
 struct cols_impl< ::blaze::CompressedMatrix<V> > {
     typedef ::blaze::CompressedMatrix<V> matrix;
 
