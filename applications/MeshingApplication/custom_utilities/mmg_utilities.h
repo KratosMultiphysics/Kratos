@@ -584,6 +584,22 @@ public:
         );
 
     /**
+     * @brief This method generates the maps of reference for conditions and elements
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rColorMapCondition Auxiliar color map for conditions
+     * @param[in] rColorMapElement Auxiliar color map for elements
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void GenerateReferenceMaps(
+        ModelPart& rModelPart,
+        const ColorsMapType& rColorMapCondition,
+        const ColorsMapType& rColorMapElement,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
+        );
+
+    /**
      * @brief This method generates solution (metric) data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
