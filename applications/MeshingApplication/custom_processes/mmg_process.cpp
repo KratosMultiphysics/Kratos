@@ -78,7 +78,7 @@ MmgProcess<TMMGLibrary>::MmgProcess(
 
     if ( mDiscretization == DiscretizationOption::ISOSURFACE ){
         mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_regions"].GetBool();
-    } else{
+    } else {
         mRemoveRegions = false;
     }
 
@@ -114,7 +114,7 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition)" << std::endl;
 
     if( mRemoveRegions ){
-        // the conditions are re-creted in the process
+        // The conditions are re-creted in the process
         mrThisModelPart.Conditions().clear();
         KRATOS_INFO("MmgProcess") << "Conditions were cleared" << std::endl;
     }
@@ -269,34 +269,14 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 
     // Iterate over components
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    auto& r_conditions_array = mrThisModelPart.Conditions();
-    auto& r_elements_array = mrThisModelPart.Elements();
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     mDofs = r_nodes_array.begin()->GetDofs();
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
 
-    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
-    // First we add the main model part
-    if (r_conditions_array.size() > 0) {
-        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
-        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
-    }
-    if (r_elements_array.size() > 0) {
-        mpRefElement[0] = r_elements_array.begin()->Create(0, r_elements_array.begin()->GetGeometry(), r_elements_array.begin()->pGetProperties());
-    }
-
-    // Now we add the reference elements and conditions
-    for (auto& ref_cond : aux_ref_cond) {
-        Condition::Pointer p_cond = mrThisModelPart.pGetCondition(ref_cond.second);
-        mpRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
-    }
-    for (auto& ref_elem : aux_ref_elem) {
-        Element::Pointer p_elem = mrThisModelPart.pGetElement(ref_elem.second);
-        mpRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
-    }
+    // Generate the maps of reference
+    mMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
 }
 
 /***********************************************************************************/
@@ -533,12 +513,21 @@ void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
+    const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
     // Automatically save the mesh
-    mMmmgUtilities.OutputMesh(mFilename, PostOutput, step);
+    mMmmgUtilities.OutputMesh(file_name);
 
     // Automatically save the solution
-    mMmmgUtilities.OutputSol(mFilename, PostOutput, step);
+    mMmmgUtilities.OutputSol(file_name);
+
+    if (mThisParameters["save_colors_files"].GetBool()) {
+        // Output the reference files
+        mMmmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
+
+        // Writing the colors to a JSON
+        AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name, mColors);
+    }
 }
 
 /***********************************************************************************/
@@ -614,8 +603,8 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
 
     // We set the flag
     SizeType counter = 1;
-    for (auto& i_pair : faces_map) {
-        const auto& r_pairs = i_pair.second;
+    for (auto& r_face : faces_map) {
+        const auto& r_pairs = r_face.second;
         for (auto i_id : r_pairs) {
             auto p_cond = mrThisModelPart.pGetCondition(i_id);
             if (p_cond->Is(MARKER) && counter < r_pairs.size()) { // Only remove dummy conditions repeated
@@ -709,19 +698,12 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 {
-    const int initial_num = mrThisModelPart.Nodes().size();
-
     // Iterate over nodes
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
+    const SizeType initial_num = r_nodes_array.size();
 
     // Marking all nodes as "superfluous"
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < static_cast<int>(r_nodes_array.size()); ++i_node ){
-
-        auto it_node = it_node_begin + i_node;
-        it_node->Set(TO_ERASE, true);
-    }
+    VariableUtils().SetFlag(TO_ERASE, true, r_nodes_array);
 
     // Iterate over elements
     const auto& r_elements_array = mrThisModelPart.Elements();
@@ -740,7 +722,7 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     }
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-    const int final_num = mrThisModelPart.Nodes().size();
+    const SizeType final_num = mrThisModelPart.Nodes().size();
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
 }
 
@@ -790,6 +772,7 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
             "gradation_value"                     : 1.3
         },
         "save_external_files"                  : false,
+        "save_colors_files"                    : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
         "interpolate_non_historical"           : true,

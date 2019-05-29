@@ -140,6 +140,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "interpolation"                    : "Linear"
             },
             "save_external_files"              : false,
+            "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
             "max_number_of_searchs"            : 1000,
             "interpolate_non_historical"       : true,
@@ -292,6 +293,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
+        mmg_parameters.AddValue("save_colors_files",self.settings["save_colors_files"])
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
         mmg_parameters.AddValue("interpolate_non_historical",self.settings["interpolate_non_historical"])
