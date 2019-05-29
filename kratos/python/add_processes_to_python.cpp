@@ -58,6 +58,7 @@
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/voxel_mesh_coloring_process.h"
 #include "processes/voxel_mesh_generator_process.h"
 #include "includes/node.h"
 
@@ -576,6 +577,10 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     ;
 
+
+    py::class_<VoxelMeshColoringProcess, VoxelMeshColoringProcess::Pointer, Process>(m,"VoxelMeshColoringProcess")
+            .def(py::init<Point const&, Point const&, ModelPart&, ModelPart&, Parameters&>()) 
+    ;
 
     py::class_<VoxelMeshGeneratorProcess, VoxelMeshGeneratorProcess::Pointer, Process>(m,"VoxelMeshGeneratorProcess")
             .def(py::init<Point const&, Point const&, ModelPart&, ModelPart&, Parameters&>()) 
