@@ -135,7 +135,9 @@ public:
             mNumberOfCycles(rOther.mNumberOfCycles), 
             mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
             mStressVector(rOther.mStressVector), 
-            mHasCountedCycle(rOther.mHasCountedCycle)
+            mHasCountedCycle(rOther.mHasCountedCycle),
+            mMaxDetected(rOther.mMaxDetected),
+            mMinDetected(rOther.mMinDetected)
     {
     }
 
@@ -334,6 +336,15 @@ private:
     void ResetCycleCounter(){mHasCountedCycle = false;}
     void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
     bool GetCycleCounter() {return mHasCountedCycle;}
+
+    bool GetMaxDetected() {return mMaxDetected;}
+    void SetMaxDetected(const bool toMaxDetected){mMaxDetected = toMaxDetected;}
+
+    bool GetMinDetected() {return mMinDetected;}
+    void SetMinDetected(const bool toMinDetected){mMinDetected = toMinDetected;}
+
+    // double GetWohlerStress() {return mWohlerStress;}
+    // void SetWohlerStress(const double toWohleStress) {mWohlerStress = toWohleStress;}
     
     ///@}
     ///@name Member Variables
@@ -348,6 +359,9 @@ private:
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
     bool mHasCountedCycle = false;
+    // double mWohlerStress = 1.0;
+    bool mMaxDetected = false;
+    bool mMinDetected = false;
 
     ///@}
     ///@name Private Operators
@@ -378,6 +392,8 @@ private:
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
         rSerializer.save("HasCountedCycle", mHasCountedCycle);
+        rSerializer.save("MaxDetected", mMaxDetected);
+        rSerializer.save("MinDetected", mMinDetected);
     }
 
     void load(Serializer &rSerializer) override
@@ -393,8 +409,9 @@ private:
         rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.load("StressVector", mStressVector);
         rSerializer.load("HasCountedCycle", mHasCountedCycle);
+        rSerializer.load("MaxDetected", mMaxDetected);
+        rSerializer.load("MinDetected", mMinDetected);
     }
-
     ///@}
 
 }; // Class GenericYieldSurface

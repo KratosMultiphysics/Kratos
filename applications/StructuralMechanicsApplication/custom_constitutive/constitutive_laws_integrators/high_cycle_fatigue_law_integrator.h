@@ -103,33 +103,39 @@ public:
         const double CurrentStress,
         double &rMaximumStress, 
         double &rMinimumStress,  
-        double &rPreviousMaximumStress,
-        double &rPreviousMinimumStress,
         const Vector &rPreviousStresses,
+        bool& rMaxIndicator,
+        bool& rMinIndicator,
         unsigned int& rNumberOfCycles,
-        bool& rCycleCounter
-        )
+        double& rB0,
+        const Properties& rMaterialParameters,
+        double& rFatigueReductionFactor)
     {
         const double stress_1 = rPreviousStresses[1];
         const double stress_2 = rPreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
 
-        if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0 && !rCycleCounter) {
+        if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0) {
             rMaximumStress = stress_1;
-            rPreviousMaximumStress = rMaximumStress;
-            rCycleCounter = true;
-        } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0 && !rCycleCounter) {
+            rMaxIndicator = true;
+        } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0) {
             rMinimumStress = stress_1;
-            rPreviousMinimumStress = rMinimumStress;
-            rCycleCounter = true;
-
+            rMinIndicator = true;
         }
-        
-        if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && !rCycleCounter) {
+
+        if (rMaxIndicator && rMinIndicator) {
             rNumberOfCycles++;
-            rPreviousMaximumStress = 0.0;
-            rPreviousMinimumStress = 0.0;
+            rMaxIndicator = false;
+            rMinIndicator = false;
+            double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(rMaximumStress, rMinimumStress);
+            HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rMaximumStress,
+                                                                                rMinimumStress,
+                                                                                reversion_factor,
+                                                                                rMaterialParameters,
+                                                                                rNumberOfCycles,
+                                                                                rFatigueReductionFactor,
+                                                                                rB0);
         }
     }
 
@@ -182,7 +188,7 @@ public:
                                                 const double MinStress,
                                                 double ReversionFactor,
                                                 const Properties& rMaterialParameters,
-                                                const int NumberOfCycles,
+                                                unsigned int NumberOfCycles,
                                                 double& rFatigueReductionFactor,
                                                 double& rB0
                                                 )
