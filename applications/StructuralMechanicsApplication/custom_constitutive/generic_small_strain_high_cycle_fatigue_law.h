@@ -95,8 +95,6 @@ public:
                                             const double PreviousStress1,
                                             const double MaxStress,
                                             const double MinStress,
-                                            const double PreviousMaxStress,
-                                            const double PreviousMinStress,
                                             const unsigned int NumberOfCycles,
                                             const double FatigueReductionParameter,
                                             const bool HasCountedCycle)
@@ -108,10 +106,8 @@ public:
         mPreviousStresses = PreviousStresses;
         mMaxStress = MaxStress;
         mMinStress = MinStress;
-        mPreviousMinStress = PreviousMinStress;
         mNumberOfCycles = NumberOfCycles;
         mFatigueReductionParameter = FatigueReductionParameter;
-        mHasCountedCycle = HasCountedCycle;
     }
     /**
     * Clone.
@@ -129,13 +125,10 @@ public:
             mFatigueReductionFactor(rOther.mFatigueReductionFactor),
             mPreviousStresses(rOther.mPreviousStresses), 
             mMaxStress(rOther.mMaxStress), 
-            mMinStress(rOther.mMinStress), 
-            mPreviousMaxStress(rOther.mPreviousMaxStress), 
-            mPreviousMinStress(rOther.mPreviousMinStress), 
+            mMinStress(rOther.mMinStress),  
             mNumberOfCycles(rOther.mNumberOfCycles), 
             mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
             mStressVector(rOther.mStressVector), 
-            mHasCountedCycle(rOther.mHasCountedCycle),
             mMaxDetected(rOther.mMaxDetected),
             mMinDetected(rOther.mMinDetected)
     {
@@ -317,12 +310,6 @@ private:
     double GetMinStress() {return mMinStress;}
     void SetMinStress(const double toMinStress) {mMinStress = toMinStress;}
 
-    double GetPreviousMaxStress() {return mPreviousMaxStress;}
-    void SetPreviousMaxStress(const double toPreviousMaxStress) {mPreviousMaxStress = toPreviousMaxStress;}
-
-    double GetPreviousMinStress() {return mPreviousMinStress;}
-    void SetPreviousMinStress(const double toPreviousMinStress) {mPreviousMinStress = toPreviousMinStress;}
-
     unsigned int GetNumberOfCycles() {return mNumberOfCycles;}
     void AddCycle() {mNumberOfCycles++;}
     void SetNumberOfCycles(const unsigned int toCycles) {mNumberOfCycles = toCycles;}
@@ -332,10 +319,6 @@ private:
 
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector toStressVector) {mStressVector = toStressVector;}
-
-    void ResetCycleCounter(){mHasCountedCycle = false;}
-    void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
-    bool GetCycleCounter() {return mHasCountedCycle;}
 
     bool GetMaxDetected() {return mMaxDetected;}
     void SetMaxDetected(const bool toMaxDetected){mMaxDetected = toMaxDetected;}
@@ -353,12 +336,9 @@ private:
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;
-    double mPreviousMaxStress = 0.0;
-    double mPreviousMinStress = 0.0;
     unsigned int mNumberOfCycles = 1;
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
-    bool mHasCountedCycle = false;
     // double mWohlerStress = 1.0;
     bool mMaxDetected = false;
     bool mMinDetected = false;
@@ -386,12 +366,9 @@ private:
         rSerializer.save("PreviousStresses", mPreviousStresses);
         rSerializer.save("MaxStress", mMaxStress);
         rSerializer.save("MinStress", mMinStress);
-        rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
-        rSerializer.save("PreviousMinStress", mPreviousMinStress);
         rSerializer.save("NumberOfCycles", mNumberOfCycles);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
-        rSerializer.save("HasCountedCycle", mHasCountedCycle);
         rSerializer.save("MaxDetected", mMaxDetected);
         rSerializer.save("MinDetected", mMinDetected);
     }
@@ -403,12 +380,9 @@ private:
         rSerializer.load("PreviousStresses", mPreviousStresses);
         rSerializer.load("MaxStress", mMaxStress);
         rSerializer.load("MinStress", mMinStress);
-        rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
-        rSerializer.load("PreviousMinStress", mPreviousMinStress);
         rSerializer.load("NumberOfCycles", mNumberOfCycles);
         rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.load("StressVector", mStressVector);
-        rSerializer.load("HasCountedCycle", mHasCountedCycle);
         rSerializer.load("MaxDetected", mMaxDetected);
         rSerializer.load("MinDetected", mMinDetected);
     }

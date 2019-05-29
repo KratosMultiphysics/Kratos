@@ -214,7 +214,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
     previous_stresses[1] = this->GetValue(UNIAXIAL_STRESS, previous_stresses[1])*sign_factor;
     previous_stresses[0] = r_aux_stresses[1];
     this->SetPreviousStresses(previous_stresses);
-    //this->ResetCycleCounter();
 }
 
 /***********************************************************************************/
