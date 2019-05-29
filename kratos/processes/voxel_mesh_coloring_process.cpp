@@ -122,11 +122,7 @@ namespace Kratos
             MarkIntersectedCells(r_geometry);
         }
 
-		int color = -1;
-		for(auto& sub_model_part : mrSkinPart.SubModelParts()){
-	
-	        this->CalculateVoxelsColor(sub_model_part, color--);
-		}
+	    this->CalculateVoxelsColor(mrSkinPart, mInsideColor);
 	}
 
 	std::string VoxelMeshColoringProcess::Info() const {
