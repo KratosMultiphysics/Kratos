@@ -42,6 +42,25 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
+    const Element& rElement, const array_1d<double, NumNodes>& rDistances)
+{
+    array_1d<double, NumNodes> upper_potentials;
+    upper_potentials = GetPotentialOnUpperWakeElement<Dim, NumNodes>(rElement, rDistances);
+
+    array_1d<double, NumNodes> lower_potentials;
+    lower_potentials = GetPotentialOnLowerWakeElement<Dim, NumNodes>(rElement, rDistances);
+
+    BoundedVector<double, 2 * NumNodes> split_element_values;
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        split_element_values[i] = upper_potentials[i];
+        split_element_values[NumNodes + i] = lower_potentials[i];
+    }
+
+    return split_element_values;
+}
+
+template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances)
 {
@@ -96,6 +115,8 @@ array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 // Template instantiation
 
 template array_1d<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
+template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
+    const Element& rElement, const array_1d<double, 3>& rDistances);
 template array_1d<double, 3> GetPotentialOnUpperWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
 template array_1d<double, 3> GetPotentialOnLowerWakeElement<2, 3>(

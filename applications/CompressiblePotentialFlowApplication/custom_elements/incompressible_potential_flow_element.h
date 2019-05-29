@@ -230,9 +230,6 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnWakeElement(Vector& split_element_values,
-                                   const array_1d<double, NumNodes>& distances) const;
-
     void ComputeVelocity(array_1d<double, Dim>& velocity) const;
 
     void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;

@@ -20,7 +20,8 @@ template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement);
+BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
+    const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
@@ -29,6 +30,9 @@ array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnLowerWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement);
 
 } // namespace PotentialFlow
 } // namespace Kratos

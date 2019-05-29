@@ -430,8 +430,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
 
-    Vector split_element_values(2*NumNodes);
-    GetPotentialOnWakeElement(split_element_values,data.distances);
+    BoundedVector<double, 2*NumNodes> split_element_values;
+    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
@@ -608,23 +608,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
-    Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
-{
-    array_1d<double, NumNodes> upper_potentials;
-    upper_potentials = PotentialFlowUtilities::GetPotentialOnUpperWakeElement<Dim, NumNodes>(*this, distances);
-
-    array_1d<double, NumNodes> lower_potentials;
-    lower_potentials = PotentialFlowUtilities::GetPotentialOnLowerWakeElement<Dim, NumNodes>(*this, distances);
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        split_element_values[i] = upper_potentials[i];
-        split_element_values[NumNodes + i] = lower_potentials[i];
-    }
 }
 
 template <int Dim, int NumNodes>
