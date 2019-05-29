@@ -78,7 +78,7 @@ MmgProcess<TMMGLibrary>::MmgProcess(
 
     if ( mDiscretization == DiscretizationOption::ISOSURFACE ){
         mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_regions"].GetBool();
-    } else{
+    } else {
         mRemoveRegions = false;
     }
 
@@ -114,7 +114,7 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition)" << std::endl;
 
     if( mRemoveRegions ){
-        // the conditions are re-creted in the process
+        // The conditions are re-creted in the process
         mrThisModelPart.Conditions().clear();
         KRATOS_INFO("MmgProcess") << "Conditions were cleared" << std::endl;
     }
@@ -614,8 +614,8 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
 
     // We set the flag
     SizeType counter = 1;
-    for (auto& i_pair : faces_map) {
-        const auto& r_pairs = i_pair.second;
+    for (auto& r_face : faces_map) {
+        const auto& r_pairs = r_face.second;
         for (auto i_id : r_pairs) {
             auto p_cond = mrThisModelPart.pGetCondition(i_id);
             if (p_cond->Is(MARKER) && counter < r_pairs.size()) { // Only remove dummy conditions repeated
@@ -709,19 +709,12 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 {
-    const int initial_num = mrThisModelPart.Nodes().size();
-
     // Iterate over nodes
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
+    const SizeType initial_num = r_nodes_array.size();
 
     // Marking all nodes as "superfluous"
-    #pragma omp parallel for
-    for(int i_node = 0; i_node < static_cast<int>(r_nodes_array.size()); ++i_node ){
-
-        auto it_node = it_node_begin + i_node;
-        it_node->Set(TO_ERASE, true);
-    }
+    VariableUtils().SetFlag(TO_ERASE, true, r_nodes_array);
 
     // Iterate over elements
     const auto& r_elements_array = mrThisModelPart.Elements();
@@ -740,7 +733,7 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     }
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-    const int final_num = mrThisModelPart.Nodes().size();
+    const SizeType final_num = mrThisModelPart.Nodes().size();
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
 }
 

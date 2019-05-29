@@ -2892,11 +2892,11 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     rModelPart.AddElements(created_elements_vector.begin(), created_elements_vector.end());
 
     // We add nodes, conditions and elements to the sub model parts
-    for (auto & color_list : rColors) {
-        const IndexType key = color_list.first;
+    for (auto& r_color_list : rColors) {
+        const IndexType key = r_color_list.first;
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
-            for (auto sub_model_part_name : color_list.second) {
+            for (auto sub_model_part_name : r_color_list.second) {
                 ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
