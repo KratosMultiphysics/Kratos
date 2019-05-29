@@ -320,5 +320,32 @@ namespace Kratos {
       }
     }
 
+    // Checks the function GetPotentialOnLowerWakeElement
+    KRATOS_TEST_CASE_IN_SUITE(GetPotentialOnLowerWakeElement, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+      pElement->SetValue(WAKE, true);
+
+      BoundedVector<double,3> distances;
+      distances(0) = 1.0;
+      distances(1) = -1.0;
+      distances(2) = -1.0;
+
+      AssignPotentialsToWakeElement(pElement, distances);
+
+      array_1d<double, 3> potentials =
+          PotentialFlowUtilities::GetPotentialOnLowerWakeElement<2, 3>(*pElement, distances);
+
+      std::vector<double> reference({6.0, 7.0, 8.0});
+
+      for (unsigned int i = 0; i < potentials.size(); i++) {
+        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+      }
+    }
+
   } // namespace Testing
 }  // namespace Kratos.

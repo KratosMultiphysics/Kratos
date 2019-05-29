@@ -615,27 +615,16 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElemen
     Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
 {
     array_1d<double, NumNodes> upper_potentials;
-    upper_potentials = PotentialFlowUtilities::GetPotentialOnUpperWakeElement<Dim,NumNodes>(*this, distances);
+    upper_potentials = PotentialFlowUtilities::GetPotentialOnUpperWakeElement<Dim, NumNodes>(*this, distances);
 
-    array_1d<double, NumNodes> lower_phis;
-    GetPotentialOnLowerWakeElement(lower_phis, distances);
+    array_1d<double, NumNodes> lower_potentials;
+    lower_potentials = PotentialFlowUtilities::GetPotentialOnLowerWakeElement<Dim, NumNodes>(*this, distances);
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         split_element_values[i] = upper_potentials[i];
-        split_element_values[NumNodes + i] = lower_phis[i];
+        split_element_values[NumNodes + i] = lower_potentials[i];
     }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
-    array_1d<double, NumNodes>& lower_phis, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] < 0)
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
@@ -682,7 +671,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWake
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    GetPotentialOnLowerWakeElement(data.potentials, distances);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnLowerWakeElement<Dim, NumNodes>(*this, distances);
 
     noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }

@@ -233,9 +233,6 @@ private:
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;
 
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
     void ComputeVelocity(array_1d<double, Dim>& velocity) const;
 
     void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
