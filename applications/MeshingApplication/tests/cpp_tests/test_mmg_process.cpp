@@ -90,7 +90,7 @@ namespace Kratos
             }
 
             // Compute remesh
-            Parameters params = Parameters(R"({ "echo_level" : 0 })" );
+            Parameters params = Parameters(R"({ "echo_level" : 0, "preserve_flags" : true })" );
             MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
@@ -172,7 +172,7 @@ namespace Kratos
             }
 
             // Compute remesh
-            Parameters params = Parameters(R"({ "echo_level" : 0 })" );
+            Parameters params = Parameters(R"({ "echo_level" : 0, "preserve_flags" : true })" );
             MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
