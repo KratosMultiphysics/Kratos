@@ -67,9 +67,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
-    // typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
-    typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType > DampedFrequencyResponseAnalysisStrategyType;
-    typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType > UndampedFrequencyResponseAnalysisStrategyType;
+    typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
+    // typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType > DampedFrequencyResponseAnalysisStrategyType;
+    // typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType > UndampedFrequencyResponseAnalysisStrategyType;
     // typedef FrequencyResponseAnalysisStrategy < ComplexSpaceType, ComplexLocalSpaceType, ComplexLinearSolverType > FrequencyResponseAnalysisStrategyType;
     typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
@@ -101,17 +101,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
     
     // this works:
+    py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ComplexLinearSolverPointer, bool >())
+        ;
+
     // py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
     //     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, bool, bool >())
     //     ;
 
-    py::class_< DampedFrequencyResponseAnalysisStrategyType, typename DampedFrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"DampedFrequencyResponseAnalysisStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ComplexLinearSolverType::Pointer, bool >())
-        ;
+    // py::class_< DampedFrequencyResponseAnalysisStrategyType, typename DampedFrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"DampedFrequencyResponseAnalysisStrategy")
+    //     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ComplexLinearSolverType::Pointer, bool >())
+    //     ;
 
-    py::class_< UndampedFrequencyResponseAnalysisStrategyType, typename UndampedFrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"UndampedFrequencyResponseAnalysisStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, bool >())
-        ;
+    // py::class_< UndampedFrequencyResponseAnalysisStrategyType, typename UndampedFrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"UndampedFrequencyResponseAnalysisStrategy")
+    //     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, bool >())
+        // ;
 
     
     // py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"UndampedFrequencyResponseAnalysisStrategy")
