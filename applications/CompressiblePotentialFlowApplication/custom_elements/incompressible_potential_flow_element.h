@@ -23,6 +23,15 @@
 
 namespace Kratos
 {
+template <unsigned int TNumNodes, unsigned int TDim>
+struct ElementalData
+{
+    array_1d<double, TNumNodes> potentials, distances;
+    double vol;
+
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+    array_1d<double, TNumNodes> N;
+};
 ///@name Kratos Classes
 ///@{
 
@@ -30,16 +39,6 @@ template <int Dim, int NumNodes>
 class IncompressiblePotentialFlowElement : public Element
 {
 public:
-    template <unsigned int TNumNodes, unsigned int TDim>
-    struct ElementalData
-    {
-        array_1d<double, TNumNodes> potentials, distances;
-        double vol;
-
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        array_1d<double, TNumNodes> N;
-    };
-
     ///@name Type Definitions
     ///@{
 
@@ -241,8 +240,6 @@ private:
                                         const array_1d<double, NumNodes>& distances) const;
 
     void ComputeVelocity(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity) const;
 
     void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
 

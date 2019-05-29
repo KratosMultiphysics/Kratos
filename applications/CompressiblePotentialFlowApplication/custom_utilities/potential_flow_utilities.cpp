@@ -41,9 +41,23 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
     return potentials;
 }
 
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
+{
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    data.potentials = GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
+
+    return prod(trans(data.DN_DX), data.potentials);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
 template array_1d<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& element);
+template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& element);
 } // namespace PotentialFlow
 } // namespace Kratos

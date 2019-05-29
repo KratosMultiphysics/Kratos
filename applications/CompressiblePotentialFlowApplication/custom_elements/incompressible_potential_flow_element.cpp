@@ -388,7 +388,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
 
@@ -602,7 +602,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        ComputeVelocityNormalElement(velocity);
+        velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
     else // Wake element
         ComputeVelocityUpperWakeElement(velocity);
 
@@ -658,23 +658,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(array_1d
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
+        velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
     else
         ComputeVelocityUpperWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }
 
 template <int Dim, int NumNodes>
