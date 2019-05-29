@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED
-#define KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED
+#ifndef KRATOS_APPLY_PERTURBATION_FUNCTION_PROCESS_H_INCLUDED
+#define KRATOS_APPLY_PERTURBATION_FUNCTION_PROCESS_H_INCLUDED
 
 
 // System includes
@@ -24,12 +24,11 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
-#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup ShallowWaterApplication
 ///@{
 
 ///@name Kratos Globals
@@ -51,10 +50,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-class KRATOS_API(SHALLOW_WATER_APPLICATION) InitialPerturbationProcess : public Process
+/** 
+ * @ingroup ShallowWaterApplication
+ * @class ApplyPerturbationFunctionProcess
+ * @brief This process assigns a default value or a perturbation if the node is close to an influence area
+ */
+template<class TVarType>
+class KRATOS_API(SHALLOW_WATER_APPLICATION) ApplyPerturbationFunctionProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -66,27 +68,29 @@ public:
     typedef ModelPart::NodesContainerType   NodesArrayType;
     typedef NodesArrayType::iterator        NodeIteratorType;
 
-    /// Pointer definition of InitialPerturbationProcess
-    KRATOS_CLASS_POINTER_DEFINITION(InitialPerturbationProcess);
+    /// Pointer definition of ApplyPerturbationFunctionProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyPerturbationFunctionProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with a node
-    InitialPerturbationProcess(
+    ApplyPerturbationFunctionProcess(
         ModelPart& rThisModelPart,
         NodePointerType pNode,
+        TVarType& rThisVariable,
         Parameters& rThisParameters);
 
     /// Constructor with an array of nodes
-    InitialPerturbationProcess(
+    ApplyPerturbationFunctionProcess(
         ModelPart& rThisModelPart,
         NodesArrayType& rSourcePoints,
+        TVarType& rThisVariable,
         Parameters& rThisParameters);
 
     /// Destructor.
-    ~InitialPerturbationProcess() override {}
+    ~ApplyPerturbationFunctionProcess() override {}
 
     ///@}
     ///@name Operators
@@ -138,12 +142,12 @@ public:
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "InitialPerturbationProcess" ;
+        buffer << "ApplyPerturbationFunctionProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "InitialPerturbationProcess";}
+    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ApplyPerturbationFunctionProcess";}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override {}
@@ -204,7 +208,7 @@ private:
 
     ModelPart& mrModelPart;
     NodesArrayType mSourcePoints;
-    Variable<double> mVariable = FREE_SURFACE_ELEVATION;
+    TVarType& mrVariable;
     double mDefaultValue;
     double mInfluenceDistance;
     double mPerturbation;
@@ -242,15 +246,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    // InitialPerturbationProcess& operator=(InitialPerturbationProcess const& rOther);
+    // ApplyPerturbationFunctionProcess& operator=(ApplyPerturbationFunctionProcess const& rOther);
 
     /// Copy constructor.
-    // InitialPerturbationProcess(InitialPerturbationProcess const& rOther);
+    // ApplyPerturbationFunctionProcess(ApplyPerturbationFunctionProcess const& rOther);
 
 
     ///@}
 
-}; // Class InitialPerturbationProcess
+}; // Class ApplyPerturbationFunctionProcess
 
 ///@}
 
@@ -262,25 +266,25 @@ private:
 ///@name Input and output
 ///@{
 
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+//                 ApplyPerturbationFunctionProcess& rThis);
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                InitialPerturbationProcess& rThis);
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                 const ApplyPerturbationFunctionProcess& rThis)
+// {
+//     rThis.PrintInfo(rOStream);
+//     rOStream << std::endl;
+//     rThis.PrintData(rOStream);
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const InitialPerturbationProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+//     return rOStream;
+// }
 
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_APPLY_PERTURBATION_FUNCTION_PROCESS_H_INCLUDED  defined

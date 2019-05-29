@@ -229,7 +229,8 @@ def GetDefaultInputParameters():
             "CONDUCTIVITY" : false,
             "VECTORIAL_ERROR" : false,
             "VECTORIAL_ERROR_1" : false,
-            "VELOCITY_LAPLACIAN_RATE" : false
+            "VELOCITY_LAPLACIAN_RATE" : false,
+            "MESH_VELOCITY" : false
         }
 
         }""")
