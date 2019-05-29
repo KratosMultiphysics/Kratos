@@ -42,6 +42,25 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+array_1d<double, NumNodes> GetPotentialOnUpperWakeElement(
+    const Element& rElement, const array_1d<double, NumNodes>& rDistances)
+{
+    array_1d<double, NumNodes> upper_potentials;
+    const auto r_geometry = rElement.GetGeometry();
+
+    for (unsigned int i = 0; i < NumNodes; i++){
+        if (rDistances[i] > 0){
+            upper_potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+        }
+        else{
+            upper_potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        }
+    }
+
+    return upper_potentials;
+}
+
+template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 {
     ElementalData<NumNodes, Dim> data;
@@ -58,6 +77,8 @@ array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 // Template instantiation
 
 template array_1d<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& element);
+template array_1d<double, 3> GetPotentialOnUpperWakeElement<2, 3>(
+    const Element& rElement, const array_1d<double, 3>& distances);
 template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& element);
 } // namespace PotentialFlow
 } // namespace Kratos

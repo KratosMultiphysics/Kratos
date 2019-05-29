@@ -63,6 +63,29 @@ namespace Kratos {
       rModelPart.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
+    void AssignPotentialsToWakeElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
+    {
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 1.0;
+      potential(1) = 2.0;
+      potential(2) = 3.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        if (rDistances(i) > 0.0)
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        else
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+      }
+      for (unsigned int i = 0; i < 3; i++){
+        if (rDistances(i) < 0.0)
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
+        else
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+      }
+
+    }
+
     /** Checks the IncompressiblePotentialFlowElement element.
      * Checks the LHS and RHS computation.
      */
@@ -106,13 +129,7 @@ namespace Kratos {
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
-      // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
-
-      Vector distances(3);
+      BoundedVector<double,3> distances;
       distances(0) = 1.0;
       distances(1) = -1.0;
       distances(2) = -1.0;
@@ -120,18 +137,7 @@ namespace Kratos {
       pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
-      for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) > 0.0)
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
-        else
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
-      }
-      for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) < 0.0)
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
-        else
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
-      }
+      AssignPotentialsToWakeElement(pElement, distances);
 
       // Compute RHS and LHS
       Vector RHS = ZeroVector(6);
@@ -234,7 +240,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      array_1d<double, 3> distances;
+      BoundedVector<double,3> distances;
       distances[0] = -0.5;
       distances[1] = -0.5;
       distances[2] = 0.5;
@@ -281,6 +287,33 @@ namespace Kratos {
       auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
 
       std::vector<double> reference({0.0, 1.0, 2.0});
+
+      for (unsigned int i = 0; i < potentials.size(); i++) {
+        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+      }
+    }
+
+    // Checks the function GetPotentialOnUpperWakeElement
+    KRATOS_TEST_CASE_IN_SUITE(GetPotentialOnUpperWakeElement, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+      pElement->SetValue(WAKE, true);
+
+      BoundedVector<double,3> distances;
+      distances(0) = 1.0;
+      distances(1) = -1.0;
+      distances(2) = -1.0;
+
+      AssignPotentialsToWakeElement(pElement, distances);
+
+      array_1d<double, 3> potentials =
+          PotentialFlowUtilities::GetPotentialOnUpperWakeElement<2, 3>(*pElement, distances);
+
+      std::vector<double> reference({1.0, 2.0, 3.0});
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
