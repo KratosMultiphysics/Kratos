@@ -2736,6 +2736,43 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
+    ModelPart& rModelPart,
+    const ColorsMapType& rColorMapCondition,
+    const ColorsMapType& rColorMapElement,
+    std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+    std::unordered_map<IndexType,Element::Pointer>& rRefElement
+    )
+{
+    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
+
+    auto& r_conditions_array = rModelPart.Conditions();
+    auto& r_elements_array = rModelPart.Elements();
+
+    if (r_conditions_array.size() > 0) {
+        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
+        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
+    }
+    if (r_elements_array.size() > 0) {
+        rRefElement[0] = r_elements_array.begin()->Create(0, r_elements_array.begin()->GetGeometry(), r_elements_array.begin()->pGetProperties());
+    }
+
+    // Now we add the reference elements and conditions
+    for (auto& ref_cond : rColorMapCondition) {
+        Condition::Pointer p_cond = rModelPart.pGetCondition(ref_cond.second);
+        rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+    }
+    for (auto& ref_elem : rColorMapElement) {
+        Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
+        rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
 {
     // Iterate in the nodes

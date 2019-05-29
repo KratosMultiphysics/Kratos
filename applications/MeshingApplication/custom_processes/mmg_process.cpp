@@ -269,34 +269,14 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 
     // Iterate over components
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    auto& r_conditions_array = mrThisModelPart.Conditions();
-    auto& r_elements_array = mrThisModelPart.Elements();
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     mDofs = r_nodes_array.begin()->GetDofs();
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
 
-    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
-    // First we add the main model part
-    if (r_conditions_array.size() > 0) {
-        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
-        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
-    }
-    if (r_elements_array.size() > 0) {
-        mpRefElement[0] = r_elements_array.begin()->Create(0, r_elements_array.begin()->GetGeometry(), r_elements_array.begin()->pGetProperties());
-    }
-
-    // Now we add the reference elements and conditions
-    for (auto& ref_cond : aux_ref_cond) {
-        Condition::Pointer p_cond = mrThisModelPart.pGetCondition(ref_cond.second);
-        mpRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
-    }
-    for (auto& ref_elem : aux_ref_elem) {
-        Element::Pointer p_elem = mrThisModelPart.pGetElement(ref_elem.second);
-        mpRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
-    }
+    // Generate the maps of reference
+    mMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
 }
 
 /***********************************************************************************/
