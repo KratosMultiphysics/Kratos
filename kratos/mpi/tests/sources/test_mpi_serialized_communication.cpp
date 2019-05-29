@@ -89,6 +89,37 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, 
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int world_rank = r_comm.Rank();
+    const int world_size = r_comm.Size();
+    const int source_rank = world_size -1;
+
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("Broadcast");
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.CreateNewNode(world_rank, 0.0, 0.0, 0.1*world_rank);
+
+    if (world_rank == source_rank)
+    {
+        for (ModelPart::NodeIterator it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+        {
+            it_node->FastGetSolutionStepValue(TEMPERATURE) = 10.0*world_rank;
+        }
+    }
+
+    r_comm.SerializedBroadcast(model_part.Nodes(), source_rank);
+
+    for (auto& node: model_part.Nodes())
+    {
+        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)source_rank);
+        KRATOS_CHECK_EQUAL(node.Z(), 0.1*source_rank);
+        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*source_rank);
+    }
+}
+
+
 }
 
 }
