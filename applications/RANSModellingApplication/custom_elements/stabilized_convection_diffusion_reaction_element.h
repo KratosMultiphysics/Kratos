@@ -22,6 +22,7 @@
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "rans_modelling_application_variables.h"
+#include "utilities/time_discretization.h"
 
 namespace Kratos
 {
@@ -321,7 +322,8 @@ public:
 
         const double delta_time = rCurrentProcessInfo[DELTA_TIME];
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
-        const double bossak_gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+        const double bossak_gamma =
+            TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
 
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
@@ -514,7 +516,8 @@ public:
 
         const double delta_time = rCurrentProcessInfo[DELTA_TIME];
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
-        const double bossak_gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+        const double bossak_gamma =
+            TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
 
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
@@ -589,7 +592,8 @@ public:
 
         const double delta_time = rCurrentProcessInfo[DELTA_TIME];
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
-        const double bossak_gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+        const double bossak_gamma =
+            TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
 
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
@@ -719,7 +723,6 @@ public:
 
         KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
         KRATOS_CHECK_VARIABLE_KEY(BOSSAK_ALPHA);
-        KRATOS_CHECK_VARIABLE_KEY(NEWMARK_GAMMA);
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
 
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
@@ -1014,8 +1017,10 @@ private:
         const double velocity_norm = norm_2(rVelocity);
         element_length = 2.0 * velocity_norm / std::sqrt(inner_prod(velocity, temp));
 
-        const double stab_convection = std::pow(2.0 * norm_2(rVelocity) / element_length, 2);
-        const double stab_diffusion = std::pow(12.0 * effective_kinematic_viscosity / (element_length * element_length), 2);
+        const double stab_convection =
+            std::pow(2.0 * norm_2(rVelocity) / element_length, 2);
+        const double stab_diffusion = std::pow(
+            12.0 * effective_kinematic_viscosity / (element_length * element_length), 2);
         const double stab_dynamics = std::pow((1 - alpha) / (gamma * delta_time), 2);
         const double stab_reaction = std::pow(reaction, 2);
 
