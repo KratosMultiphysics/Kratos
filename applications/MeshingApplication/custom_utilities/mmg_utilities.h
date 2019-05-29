@@ -219,13 +219,13 @@ public:
      * @brief This method sets if the regions must be removed
      * @param[in] RemoveRegions Sets if the regions must be removed
      */
-    void SetRemoveRegions(const SizeType RemoveRegions);
+    void SetRemoveRegions(const bool RemoveRegions);
 
     /**
      * @brief This method gets if the regions must be removed
      * @return mRemoveRegions Gets if the regions must be removed
      */
-    SizeType GetRemoveRegions();
+    bool GetRemoveRegions();
 
     /**
      * @brief It prints info about the current mesh
@@ -695,8 +695,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mEchoLevel = 0; /// The echo level of the utilities
-    bool mRemoveRegions = false; /// Cuttig-out specified regions during surface remeshing
+    SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
+    bool mRemoveRegions = false;                                           /// Cuttig-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
 
     ///@}

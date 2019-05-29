@@ -110,6 +110,9 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
 {
     KRATOS_TRY;
 
+    /* We print one important information message */
+    KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition)" << std::endl;
+
     if( mRemoveRegions ){
         // the conditions are re-creted in the process
         mrThisModelPart.Conditions().clear();
