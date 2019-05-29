@@ -19,6 +19,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "processes/voxel_mesh_generator_process.h"
+#include "processes/voxel_mesh_coloring_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -53,8 +54,10 @@ namespace Kratos {
 		skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
 
-		// Compute distance
+		// Generating the mesh
 		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+		// Compute distance
+		VoxelMeshColoringProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
 
 		Tetrahedra3D4<Node<3>> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
