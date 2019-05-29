@@ -187,9 +187,11 @@ private:
 
     std::map<int, Vector> mConditionsRHS;
     std::map<int,  ModelPart::ConditionsContainerType::iterator> mConditions;
+    std::map<int,  ModelPart::ElementsContainerType::iterator> mElements;
     std::map<int, Vector> mResponseGradient_1;
     std::map<int, Vector> mResponseGradient_0;
     std::map<int, Matrix> mExternalForceDesignVariableDerivative;
+    std::map<int, Matrix> mReactionForceDesignVariableDerivative;
     std::map<int, Matrix> mExternalForceDisplacementDerivative;
 
     ///@}

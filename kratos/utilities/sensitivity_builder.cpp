@@ -134,20 +134,27 @@ struct LocalSensitivityBuilder
             << " incompatible with SensitivityMatrix.size1(): "
             << SensitivityMatrix.size1() << ". Variable: " << rVariable << std::endl;
 
-        noalias(LocalSensitivity) = prod(SensitivityMatrix, AdjointVector) + PartialSensitivity;
 
-        const int first_step = 1;
-        if(rProcessInfo(IS_NONLINEAR) == true && rProcessInfo(STEP) > first_step)
-        {
-            Vector AdjointVector_1;
-            Matrix SensitivityMatrix_1;
-            double ScalingFactor;
-            rElement.GetValuesVector(AdjointVector_1, 1);
-            SensitivityMatrix_1 = rElement.GetValue(ELEMENT_SENSITIVITY_MATRIX);
-            ScalingFactor = rProcessInfo.GetValue(ADJOINT_CORRECTION_FACTOR);
+        ///////////////////////////// Displacement control //////////////////////////////////
+        noalias(LocalSensitivity) = PartialSensitivity;
+        /////////////////////////////////////////////////////////////////////////////////////
 
-            LocalSensitivity -=  ScalingFactor*prod(SensitivityMatrix_1, AdjointVector_1);
-        }
+        ///////////////////////////// Load Control /////////////////////////////////////
+        // noalias(LocalSensitivity) = prod(SensitivityMatrix, AdjointVector) + PartialSensitivity;
+
+        // const int first_step = 1;
+        // if(rProcessInfo(IS_NONLINEAR) == true && rProcessInfo(STEP) > first_step)
+        // {
+        //     Vector AdjointVector_1;
+        //     Matrix SensitivityMatrix_1;
+        //     double ScalingFactor;
+        //     rElement.GetValuesVector(AdjointVector_1, 1);
+        //     SensitivityMatrix_1 = rElement.GetValue(ELEMENT_SENSITIVITY_MATRIX);
+        //     ScalingFactor = rProcessInfo.GetValue(ADJOINT_CORRECTION_FACTOR);
+
+        //     LocalSensitivity -=  ScalingFactor*prod(SensitivityMatrix_1, AdjointVector_1);
+        // }
+       /////////////////////////////////////////////////////////////////////////////////////
         rElement.GetValue(ELEMENT_SENSITIVITY_MATRIX) = SensitivityMatrix;
         return *this;
         KRATOS_CATCH("");

@@ -6,8 +6,8 @@ import structural_response_function_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 
-
-with open("response_function_tests/adjoint_strain_energy_response_parameters_nonlinear_structure.json",'r') as parameter_file:
+with open("response_function_tests/adjoint_strain_energy_response_parameters_truss_nonlinear_load.json",'r') as parameter_file:
+#with open("response_function_tests/adjoint_strain_energy_response_parameters_truss_asymmetric.json",'r') as parameter_file:
     parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 model = KratosMultiphysics.Model()
@@ -18,7 +18,7 @@ model_part_adjoint = response_function.adjoint_model_part
 
 response_function.RunCalculation(calculate_gradient=True)
 
-model_part_name = "rectangular_plate_structure_primal"
+model_part_name = "primal_output_truss"
 serialization_files = "test_restart_file"
 for name in os.listdir():
     if name.find(model_part_name) == 0:

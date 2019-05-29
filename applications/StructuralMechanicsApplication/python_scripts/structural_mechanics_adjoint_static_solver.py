@@ -132,7 +132,16 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
-
+        print("Cross Area sesnsitivity elements 1", self.main_model_part.GetElement(1).GetValue(StructuralMechanicsApplication.CROSS_AREA_SENSITIVITY))
+        print("Cross Area sesnsitivity elements 2", self.main_model_part.GetElement(2).GetValue(StructuralMechanicsApplication.CROSS_AREA_SENSITIVITY))
+        # print("Elastic Modulus sensitivity 1", self.main_model_part.GetElement(1).GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))
+        # print("Elastic Modulus sensitivity  2", self.main_model_part.GetElement(2).GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY))
+        print("Shape sensitivity node 1 X", self.main_model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY_X))
+        print("Shape sensitivity node 1 Y", self.main_model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY_Y))
+        print("Shape sensitivity node 2 X", self.main_model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY_X))
+        print("Shape sensitivity node 2 Y", self.main_model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY_Y))
+        print("Shape sensitivity node 3 X", self.main_model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY_X))
+        print("Shape sensitivity node 3 Y", self.main_model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY_Y))
 
     def SolveSolutionStep(self):
         if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy":
