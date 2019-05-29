@@ -7,13 +7,13 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Bodhinanda Chandra
+//  Main authors:    Veronika Singer
 //
 
 
 // System includes
-#if !defined(KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED )
-#define      KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MPM_PARTICLE_POINT_LOAD_CONDITION_H_INCLUDED )
+#define      KRATOS_MPM_PARTICLE_POINT_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -50,34 +50,34 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MPMGridPointLoadCondition
-    : public MPMGridBaseLoadCondition
+class MPMParticlePointLoadCondition
+    : public MPMParticleBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMGridPointLoadCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridPointLoadCondition );
+    /// Counted pointer of MPMParticlePointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMParticlePointLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MPMGridPointLoadCondition(
+    MPMParticlePointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
-    MPMGridPointLoadCondition(
+    MPMParticlePointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
-    ~MPMGridPointLoadCondition() override;
+    ~MPMParticlePointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -150,7 +150,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
+     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
@@ -169,7 +169,19 @@ protected:
     /**
      * It calcules the integration load for the point load
      */
-    virtual double GetPointLoadIntegrationWeight();
+    double GetPointLoadIntegrationWeight() override;
+
+
+    /**
+     * Called at the end of eahc solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+
+    /**
+     * Calculation of the Nodal Force
+     */
+    Matrix& CalculateNodalForce(Matrix & rNodalForce, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access
@@ -185,7 +197,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    MPMGridPointLoadCondition() {};
+    MPMParticlePointLoadCondition() {};
 
     ///@}
 
@@ -223,16 +235,16 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticlePointLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticlePointLoadCondition );
     }
 
 
-}; // Class MPMGridPointLoadCondition
+}; // Class MPMParticlePointLoadCondition
 
 ///@}
 ///@name Type Definitions
@@ -245,6 +257,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED  defined
-
-
+#endif // KRATOS_MPM_PARTICLE_POINT_LOAD_CONDITION_H_INCLUDED  defined

@@ -7,13 +7,13 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Bodhinanda Chandra
+//  Main authors:    Veronika Singer
 //
 
 
 // System includes
-#if !defined(KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED )
-#define      KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MPM_PARTICLE_BASE_LOAD_CONDITION_H_INCLUDED )
+#define      KRATOS_MPM_PARTICLE_BASE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -50,55 +50,31 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MPMGridPointLoadCondition
-    : public MPMGridBaseLoadCondition
+class MPMParticleBaseLoadCondition
+    : public MPMParticleBaseCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMGridPointLoadCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridPointLoadCondition );
+    /// Counted pointer of MPMParticleBaseLoadCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseLoadCondition );
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+    // Constructor void
+    MPMParticleBaseLoadCondition()
+    {};
 
-    /// Default constructor.
-    MPMGridPointLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        );
+    // Constructor using an array of nodes
+    MPMParticleBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):MPMParticleBaseCondition(NewId,pGeometry)
+    {};
 
-    MPMGridPointLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties
-        );
+    // Constructor using an array of nodes with properties
+    MPMParticleBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):MPMParticleBaseCondition(NewId,pGeometry,pProperties)
+    {};
 
-    /// Destructor.
-    ~MPMGridPointLoadCondition() override;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
-    Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const override;
+    // Destructor
+    ~MPMParticleBaseLoadCondition() override
+    {};
 
     ///@}
     ///@name Access
@@ -150,26 +126,17 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix: The LHS
-     * @param rRightHandSideVector: The RHS
-     * @param rCurrentProcessInfo: The current process info instance
-     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
-     */
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
-        ) override;
 
     /**
      * It calcules the integration load for the point load
      */
     virtual double GetPointLoadIntegrationWeight();
+
+    /**
+     * Calculate Shape Function Values in a given point
+     */
+
+    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
 
     ///@}
     ///@name Protected  Access
@@ -184,10 +151,9 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-    // A protected default constructor necessary for serialization
-    MPMGridPointLoadCondition() {};
-
     ///@}
+
+
 
 private:
     ///@name Static Member Variables
@@ -223,16 +189,16 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
     }
 
 
-}; // Class MPMGridPointLoadCondition
+}; // Class MPMParticleBaseLoadCondition
 
 ///@}
 ///@name Type Definitions
@@ -245,6 +211,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED  defined
-
-
+#endif // KRATOS_MPM_PARTICLE_BASE_LOAD_CONDITION_H_INCLUDED  defined
