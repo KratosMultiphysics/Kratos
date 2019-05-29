@@ -19,6 +19,7 @@
 #include "utilities/timer.h"
 #include "custom_io/mmg_io.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -129,7 +130,6 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
         ref_element[r_color.first] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
     }
 
-
     // Writing the new mesh data on the model part
     NodeType::DofsContainerType empty_dofs;
     mMmmgUtilities.WriteMeshDataToModelPart(rModelPart, colors, empty_dofs, mmg_mesh_info, ref_condition, ref_element);
@@ -157,6 +157,47 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     // We initialize the mesh data with the given modelpart
     std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
     mMmmgUtilities.GenerateMeshDataFromModelPart(rModelPart, colors, aux_ref_cond, aux_ref_elem);
+
+    // Generate the maps of reference
+    std::unordered_map<IndexType,Element::Pointer>   ref_element;   /// Reference element
+    std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
+    mMmmgUtilities.GenerateReferenceMaps(rModelPart, aux_ref_cond, aux_ref_elem, ref_condition, ref_element);
+
+    /* ELEMENTS */
+    std::string element_name;
+    Parameters elem_reference_json;
+    for (auto& r_elem : ref_element) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_elem.second), element_name);
+        const std::string name = std::to_string(r_elem.first);
+        elem_reference_json.AddEmptyValue(name);
+        elem_reference_json[name].SetString(element_name);
+    }
+
+    const std::string& r_elem_json_text = elem_reference_json.PrettyPrintJsonString();
+
+    std::filebuf elem_buffer;
+    elem_buffer.open(mFilename + ".elem.ref.json",std::ios::out);
+    std::ostream elem_os(&elem_buffer);
+    elem_os << r_elem_json_text;
+    elem_buffer.close();
+
+    /* CONDITIONS */
+    std::string condition_name;
+    Parameters cond_reference_json;
+    for (auto& r_cond : ref_condition) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_cond.second), condition_name);
+        const std::string name = std::to_string(r_cond.first);
+        cond_reference_json.AddEmptyValue(name);
+        cond_reference_json[name].SetString(condition_name);
+    }
+
+    const std::string& r_cond_json_text = cond_reference_json.PrettyPrintJsonString();
+
+    std::filebuf cond_buffer;
+    cond_buffer.open(mFilename + ".cond.ref.json",std::ios::out);
+    std::ostream cond_os(&cond_buffer);
+    cond_os << r_cond_json_text;
+    cond_buffer.close();
 
     // We initialize the solution data with the given modelpart
     mMmmgUtilities.GenerateSolDataFromModelPart(rModelPart);
