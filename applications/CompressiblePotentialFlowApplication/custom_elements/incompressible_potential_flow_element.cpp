@@ -558,7 +558,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() con
     const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
 
     array_1d<double, Dim> lower_wake_velocity;
-    ComputeVelocityLowerWakeElement(lower_wake_velocity);
+    lower_wake_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
     const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
     if (std::abs(vupnorm - vlownorm) > 0.1)
@@ -622,23 +622,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(array_1d
         velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
     else
         velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    data.potentials = PotentialFlowUtilities::GetPotentialOnLowerWakeElement<Dim, NumNodes>(*this, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }
 
 template <int Dim, int NumNodes>

@@ -389,10 +389,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      BoundedVector<double,3> distances;
-      distances(0) = 1.0;
-      distances(1) = -1.0;
-      distances(2) = -1.0;
+      BoundedVector<double,3> distances = AssignDistances();
       pElement->SetValue(ELEMENTAL_DISTANCES, distances);
 
       AssignPotentialsToWakeElement(pElement, distances);
@@ -405,6 +402,30 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
       }
     }
+
+    // // Checks the function ComputeVelocityLowerWakeElement
+    // KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityLowerWakeElement, CompressiblePotentialApplicationFastSuite)
+    // {
+    //   Model this_model;
+    //   ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    //   GenerateElement(model_part);
+    //   Element::Pointer pElement = model_part.pGetElement(1);
+    //   pElement->SetValue(WAKE, true);
+
+    //   BoundedVector<double,3> distances = AssignDistances();
+    //   pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+
+    //   AssignPotentialsToWakeElement(pElement, distances);
+
+    //   auto velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<2, 3>(*pElement);
+
+    //   std::vector<double> reference({1.0, 1.0});
+
+    //   for (unsigned int i = 0; i < velocity.size(); i++) {
+    //     KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
+    //   }
+    // }
 
   } // namespace Testing
 }  // namespace Kratos.
