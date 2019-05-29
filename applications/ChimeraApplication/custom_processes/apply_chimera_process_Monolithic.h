@@ -18,6 +18,7 @@
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
+#include "omp.h"
 
 // External includes
 #include "includes/kratos_flags.h"
@@ -39,6 +40,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "elements/distance_calculation_element_simplex.h"
+#include "includes/linear_master_slave_constraint.h"
 
 // Application includes
 #include "chimera_application_variables.h"
@@ -86,6 +88,9 @@ class ApplyChimeraProcessMonolithic : public Process
     typedef std::size_t IndexType;
     typedef Kratos::Variable<double> VariableType;
     typedef std::vector<IndexType> ConstraintIdsVectorType;
+    typedef typename ModelPart::MasterSlaveConstraintType MasterSlaveConstraintType;
+    typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+    typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
 
 
     ///@}
@@ -124,6 +129,7 @@ class ApplyChimeraProcessMonolithic : public Process
         this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
         mNumberOfConstraintsAdded = 0;
+
     }
 
     /// Destructor.
@@ -178,11 +184,7 @@ class ApplyChimeraProcessMonolithic : public Process
             it->SetValue(SPLIT_ELEMENT, false);
         }
 
-        ModelPart::MasterSlaveConstraintContainerType::iterator it = mrMainModelPart.MasterSlaveConstraintsEnd() - 1;
-        int constraintId = (*it).Id();
-
-        for (int i = 1; i <= constraintId; ++i)
-            mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(i);
+        mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
     }
 
     void ExecuteBeforeOutputStep() override
@@ -195,95 +197,6 @@ class ApplyChimeraProcessMonolithic : public Process
 
     void ExecuteFinalize() override
     {
-    }
-
-    void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
-    {
-        //loop over nodes and find the triangle in which it falls, than do interpolation
-        //array_1d<double, TDim + 1> N;
-        Vector N;
-        const int max_results = 10000;
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-        const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-        ConstraintIdsVectorType ConstrainIdsForTheNode;
-        std::size_t counter = 0;
-        std::size_t removed_counter = 0;
-
-        #pragma omp parallel for firstprivate(removed_counter) reduction(+:counter)
-        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
-        {
-            ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i_bn;
-            Node<3>::Pointer p_boundary_node = *(iparticle.base());
-
-            bool NodeCoupled = false;
-            if ((p_boundary_node)->IsDefined(VISITED))
-                NodeCoupled = (p_boundary_node)->Is(VISITED);
-
-            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-            Element::Pointer pElement;
-            bool is_found = false;
-            is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-            if (NodeCoupled && is_found)
-            {
-                ConstrainIdsForTheNode = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
-                for (auto const& constraint_id : ConstrainIdsForTheNode)
-                {
-                    mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
-                    removed_counter++;
-                }
-                p_boundary_node->Set(VISITED, false);
-            }
-
-            // Initialise the boundary nodes dofs to 0 at ever time steps
-            p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-            p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-            if (TDim == 3)
-                p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-            p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-
-            if (is_found == true)
-            {
-                Geometry<Node<3>> &geom = pElement->GetGeometry();
-                for (std::size_t i = 0; i < geom.size(); i++)
-                {
-                    //Interpolation of velocity
-                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
-                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
-
-                    //Define master slave relation for velocity
-                    AddMasterSlaveRelationWithNodesAndVariableComponents(geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
-                    AddMasterSlaveRelationWithNodesAndVariableComponents(geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
-                    if (TDim == 3)
-                    {
-                        //Interpolation of velocity
-                        p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-                        AddMasterSlaveRelationWithNodesAndVariableComponents(geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
-                    }
-
-                    //Interpolation of pressure
-                    p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-                    //Defining master slave relation for pressure
-                    AddMasterSlaveRelationWithNodesAndVariable(geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-                    counter++;
-
-                } // end of loop over host element nodes
-
-                // Setting the buffer 1 same buffer 0
-                p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0);
-                p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0);
-                if (TDim == 3)
-                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0);
-                p_boundary_node->FastGetSolutionStepValue(PRESSURE, 1) = p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0);
-            }
-            p_boundary_node->Set(VISITED, true);
-
-        } // end of loop over boundary nodes
-
-        counter /= TDim + 1;
-        KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter << std::endl;
-        KRATOS_INFO("number of constriants created for this combination") << counter * 9 << std::endl;
-        KRATOS_INFO("number of constraints removed for this combination") << removed_counter << std::endl;
     }
 
     void GetBoundingBox(ModelPart& rModelPart, std::vector<double>& rLowPoint, std::vector<double>& rHighPoint)
@@ -323,6 +236,8 @@ class ApplyChimeraProcessMonolithic : public Process
     bool BoundingBoxTest(ModelPart &A, ModelPart &B) //background A and Patch B
     {
         std::vector<double> min_cornerA(3), max_cornerA(3), min_cornerB(3), max_cornerB(3);
+
+        KRATOS_INFO("Computing bounding boxes for Background and Patch ... ") << std::endl;
 
         GetBoundingBox(A, min_cornerA, max_cornerA);
         GetBoundingBox(B, min_cornerB, max_cornerB);
@@ -449,15 +364,17 @@ class ApplyChimeraProcessMonolithic : public Process
             for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart.ElementsBegin(); it != pHoleModelPart.ElementsEnd(); ++it)
                 it->Set(VISITED, true);
 
-            KRATOS_INFO("Formulate Chimera: Calculated Nodal area and nodal mass") << std::endl;
-
-            IndexType num_constraints_required = (TDim+1) * (pModifiedPatchBoundaryModelPart.Nodes().size() +  pHoleBoundaryModelPart.Nodes().size());
-
-            CreateConstraintIds(num_constraints_required);
+            KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ")<< pModifiedPatchBoundaryModelPart.Nodes().size() << std::endl;
+            KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ")<< pHoleBoundaryModelPart.Nodes().size() << std::endl;
             mNumberOfConstraintsAdded = 0;
-
             ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground);
+            KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
+
+
+            mNumberOfConstraintsAdded = 0;
             ApplyMpcConstraint(pHoleBoundaryModelPart, pBinLocatorForPatch);
+            KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
+
 
             KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
             KRATOS_INFO("Formulate Chimera: Appplied MPCs") << std::endl;
@@ -470,7 +387,7 @@ class ApplyChimeraProcessMonolithic : public Process
         KRATOS_INFO("End of Formulate Chimera") << std::endl;
     }
 
-    void CreateConstraintIds(const IndexType NumberOfConstraintsRequired)
+    void CreateConstraintIds(std::vector<int>& rIdVector, const IndexType NumberOfConstraintsRequired)
     {
         IndexType max_constraint_id = 0;
         // Get current maximum constraint ID
@@ -479,13 +396,12 @@ class ApplyChimeraProcessMonolithic : public Process
             mrMainModelPart.MasterSlaveConstraints().Sort();
             ModelPart::MasterSlaveConstraintContainerType::iterator it = mrMainModelPart.MasterSlaveConstraintsEnd() - 1;
             max_constraint_id = (*it).Id();
+            ++max_constraint_id;
         }
-        else
-            max_constraint_id = 1;
 
         // Now create a vector size NumberOfConstraintsRequired
-        mConstraintsIdVector.resize(NumberOfConstraintsRequired);
-        std::iota (std::begin(mConstraintsIdVector), std::end(mConstraintsIdVector), max_constraint_id+1); // Fill with consecutive integers
+        rIdVector.resize(NumberOfConstraintsRequired*(TDim+1));
+        std::iota (std::begin(rIdVector), std::end(rIdVector), max_constraint_id); // Fill with consecutive integers
     }
 
     void SetOverlapDistance(double distance)
@@ -493,27 +409,166 @@ class ApplyChimeraProcessMonolithic : public Process
         this->m_overlap_distance = distance;
     }
 
-    void AddMasterSlaveRelationWithNodesAndVariableComponents(Node<3> &MasterNode, VariableComponentType &MasterVariable, Node<3> &SlaveNode, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
+    void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
+    {
+        //loop over nodes and find the triangle in which it falls, than do interpolation
+
+        MasterSlaveContainerVectorType master_slave_container_vector;
+        #pragma omp parallel
+        {
+            #pragma omp single
+            {
+                master_slave_container_vector.resize( omp_get_num_threads() );
+                for (auto& container : master_slave_container_vector)
+                    container.reserve(1000);
+            }
+        }
+        std::vector<int> constraints_id_vector;
+
+        int num_constraints_required = (TDim+1) * (rBoundaryModelPart.Nodes().size());
+        CreateConstraintIds(constraints_id_vector, num_constraints_required);
+
+        //array_1d<double, TDim + 1> N;
+        const int max_results = 10000;
+        const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+        std::size_t counter = 0;
+        std::size_t removed_counter = 0;
+        const auto& r_clone_constraint = (LinearMasterSlaveConstraint) KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i_bn;
+            Node<3>::Pointer p_boundary_node = *(iparticle.base());
+
+            mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
+        }
+
+        #pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) firstprivate(removed_counter, r_clone_constraint) reduction(+:counter)
+        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        {
+
+            Vector N;
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+            auto& ms_container = master_slave_container_vector[ omp_get_thread_num() ];
+
+            ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i_bn;
+            Node<3>::Pointer p_boundary_node = *(iparticle.base());
+            ConstraintIdsVectorType ConstrainIdsForTheNode;
+            unsigned int start_constraint_id = i_bn*(TDim+1)*(TDim+1);
+            bool NodeCoupled = false;
+            if ((p_boundary_node)->IsDefined(VISITED))
+                NodeCoupled = (p_boundary_node)->Is(VISITED);
+
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+            Element::Pointer pElement;
+            bool is_found = false;
+            is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+
+            if (NodeCoupled && is_found)
+            {
+                ConstrainIdsForTheNode = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
+                for (auto const& constraint_id : ConstrainIdsForTheNode)
+                {
+                    mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
+                    removed_counter++;
+                }
+                p_boundary_node->Set(VISITED, false);
+            }
+
+            // Initialise the boundary nodes dofs to 0 at ever time steps
+            p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+            p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+            if (TDim == 3)
+                p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+            p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+
+            if (is_found == true)
+            {
+                Geometry<Node<3>> &geom = pElement->GetGeometry();
+                for (std::size_t i = 0; i < geom.size(); i++)
+                {
+
+                    //Interpolation of velocity
+                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
+                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
+                    //Interpolation of pressure
+                    p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
+
+                    //#pragma omp critical
+                    //{
+                        //Define master slave relation for velocity
+                        AddMasterSlaveRelationWithNodesAndVariableComponents(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
+                        AddMasterSlaveRelationWithNodesAndVariableComponents(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
+                        if (TDim == 3)
+                        {
+                            //Interpolation of velocity
+                            p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
+                            AddMasterSlaveRelationWithNodesAndVariableComponents(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
+                        }
+                        //Defining master slave relation for pressure
+                        AddMasterSlaveRelationWithNodesAndVariable(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
+                    //}
+
+                    counter++;
+
+                } // end of loop over host element nodes
+
+                // Setting the buffer 1 same buffer 0
+                p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0);
+                p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0);
+                if (TDim == 3)
+                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0);
+                p_boundary_node->FastGetSolutionStepValue(PRESSURE, 1) = p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0);
+            }
+            p_boundary_node->Set(VISITED, true);
+        } // end of loop over boundary nodes
+
+        for (auto& container : master_slave_container_vector)
+            mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
+
+        counter /= TDim + 1;
+        KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter << std::endl;
+        KRATOS_INFO("number of constraints created for this combination") << counter * 9 << std::endl;
+        KRATOS_INFO("number of constraints removed for this combination") << removed_counter << std::endl;
+    }
+
+
+
+    void AddMasterSlaveRelationWithNodesAndVariableComponents(MasterSlaveConstraintContainerType& rMasterSlaveContainer,
+                                                                const LinearMasterSlaveConstraint& rCloneConstraint,
+                                                                unsigned int ConstraintId,
+                                                                Node<3> &MasterNode,
+                                                                VariableComponentType &MasterVariable,
+                                                                Node<3> &SlaveNode,
+                                                                VariableComponentType &SlaveVariable,
+                                                                const double weight,
+                                                                const double constant = 0.0)
     {
         SlaveNode.Set(SLAVE);
-        #pragma omp critical
-        {
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintsIdVector[mNumberOfConstraintsAdded], MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant);
-            mNodeIdToConstraintIdsMap[SlaveNode.Id()].push_back(mConstraintsIdVector[mNumberOfConstraintsAdded]);
-            ++mNumberOfConstraintsAdded;
-        }
+        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant);
+        p_new_constraint->Set(TO_ERASE);
+        //std::cout<<"size container vector : "<<rMasterSlaveContainer.size()<<" size first container :  "<rMasterSlaveContainer.size()<<std::endl;
+        mNodeIdToConstraintIdsMap[SlaveNode.Id()].push_back(ConstraintId);
+        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(),  p_new_constraint);
+
     }
 
     // Functions with use two variables
-    void AddMasterSlaveRelationWithNodesAndVariable(Node<3> &MasterNode, VariableType &MasterVariable, Node<3> &SlaveNode, VariableType &SlaveVariable, double weight, double constant = 0.0)
+    void AddMasterSlaveRelationWithNodesAndVariable(MasterSlaveConstraintContainerType& rMasterSlaveContainer,
+                                                        const LinearMasterSlaveConstraint& rCloneConstraint,
+                                                        unsigned int ConstraintId,
+                                                        Node<3> &MasterNode,
+                                                        VariableType &MasterVariable,
+                                                        Node<3> &SlaveNode,
+                                                        VariableType &SlaveVariable,
+                                                        const double weight,
+                                                        const double constant = 0.0)
     {
         SlaveNode.Set(SLAVE);
-        #pragma omp critical
-        {
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintsIdVector[mNumberOfConstraintsAdded], MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant);
-            mNodeIdToConstraintIdsMap[SlaveNode.Id()].push_back(mConstraintsIdVector[mNumberOfConstraintsAdded]);
-            ++mNumberOfConstraintsAdded;
-        }
+        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant);
+        p_new_constraint->Set(TO_ERASE);
+        mNodeIdToConstraintIdsMap[SlaveNode.Id()].push_back(ConstraintId);
+        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(),  p_new_constraint);
     }
     /**
 		Activates the constraint set or deactivates
@@ -599,10 +654,8 @@ class ApplyChimeraProcessMonolithic : public Process
     std::string m_patch_inside_boundary_model_part_name;
     std::string m_patch_model_part_name;
 
-    std::vector<int> mConstraintsIdVector;
     IndexType mNumberOfConstraintsAdded;
 
-    ConstraintIdsVectorType VectorOfConstraintIds;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     // epsilon
     //static const double epsilon;
