@@ -408,6 +408,45 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return Values;
     }
 
+    // Broadcast operations
+
+    virtual void Broadcast(std::string& rBuffer, const int SourceRank) const {};
+
+    template<class TObject>
+    void SerializedBroadcast(TObject& rBroadcastObject, const int SourceRank) const
+    {
+        if (this->IsDistributed())
+        {
+            unsigned int message_size;
+            std::string broadcast_message;
+            int rank = this->Rank();
+            if (rank == SourceRank)
+            {
+                MpiSerializer send_serializer;
+                send_serializer.save("data", rBroadcastObject);
+                broadcast_message = send_serializer.GetStringRepresentation();
+
+                message_size = broadcast_message.size();
+
+            }
+
+            this->Broadcast(message_size, SourceRank);
+
+            if (rank != SourceRank)
+            {
+                broadcast_message.resize(message_size);
+            }
+
+            this->Broadcast(broadcast_message, SourceRank);
+
+            if (rank != SourceRank)
+            {
+                MpiSerializer recv_serializer(broadcast_message);
+                recv_serializer.load("data", rBroadcastObject);
+            }
+        }
+    }
+
     // Sendrecv operations
 
     /// Exchange data with other ranks (string version).

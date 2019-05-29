@@ -209,6 +209,10 @@ class MPIDataCommunicator: public DataCommunicator
 
     Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
+    // Broadcast operations
+
+    void Broadcast(std::string& rBroadcastValues, const int SourceRank) const override;
+
     // Sendrecv operations
 
     std::string SendRecv(

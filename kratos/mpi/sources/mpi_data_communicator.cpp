@@ -345,6 +345,13 @@ Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const
     return out;
 }
 
+// Broadcast operations
+
+void MPIDataCommunicator::Broadcast(std::string& rBroadcastValues, const int SourceRank) const
+{
+    BroadcastDetail(rBroadcastValues, SourceRank);
+}
+
 // Sendrecv operations
 
 std::string MPIDataCommunicator::SendRecv(
