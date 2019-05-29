@@ -63,6 +63,18 @@ namespace Kratos {
       rModelPart.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
+    void AssignPotentialsToNormalElement(Element::Pointer pElement)
+    {
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 1.0;
+      potential(1) = 2.0;
+      potential(2) = 3.0;
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+    }
+
     void AssignPotentialsToWakeElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
     {
       // Define the nodal values
@@ -83,7 +95,6 @@ namespace Kratos {
         else
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
       }
-
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -97,14 +108,7 @@ namespace Kratos {
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
-      // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
-
-      for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+      AssignPotentialsToNormalElement(pElement);
 
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
@@ -162,12 +166,7 @@ namespace Kratos {
       GenerateEmbeddedElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
-
-      // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      AssignPotentialsToNormalElement(pElement);
 
       // Define the distance values
       Vector level_set(3);
@@ -176,7 +175,6 @@ namespace Kratos {
       level_set(2) = -1.0;
 
       for (unsigned int i = 0; i < 3; i++){
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
         pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set(i);
       }
 
@@ -275,18 +273,11 @@ namespace Kratos {
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
-      // Define the nodal values
-      Vector potential(3);
-      potential(0) = 0.0;
-      potential(1) = 1.0;
-      potential(2) = 2.0;
-
-      for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+      AssignPotentialsToNormalElement(pElement);
 
       auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
 
-      std::vector<double> reference({0.0, 1.0, 2.0});
+      std::vector<double> reference({1.0, 2.0, 3.0});
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -371,6 +362,26 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+      }
+    }
+
+    // Checks the function ComputeVelocityNormalElement
+    KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityNormalElement, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      AssignPotentialsToNormalElement(pElement);
+
+      auto velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<2,3>(*pElement);
+
+      std::vector<double> reference({1.0, 1.0});
+
+      for (unsigned int i = 0; i < velocity.size(); i++) {
+        KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
       }
     }
 
