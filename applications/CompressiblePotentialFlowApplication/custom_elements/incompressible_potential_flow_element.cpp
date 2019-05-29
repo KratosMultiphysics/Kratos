@@ -233,8 +233,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     if (rVariable == VELOCITY)
     {
         array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocity(vaux);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -611,20 +610,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const IncompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
-    else
-        velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-}
-
-template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
@@ -634,8 +619,7 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoeffic
         << "Error on element -> " << this->Id() << "\n"
         << "vinfinity_norm2 must be larger than zero." << std::endl;
 
-    array_1d<double, Dim> v;
-    ComputeVelocity(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
 
     double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));

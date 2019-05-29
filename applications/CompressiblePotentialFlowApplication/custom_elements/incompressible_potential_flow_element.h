@@ -230,8 +230,6 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void ComputeVelocity(array_1d<double, Dim>& velocity) const;
-
     double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}

@@ -99,6 +99,17 @@ BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
 }
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocity(const Element& rElement)
+{
+    const int wake = rElement.GetValue(WAKE);
+
+    if (wake == 0)
+        return PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(rElement);
+    else
+        return PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+}
+
+template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 {
     ElementalData<NumNodes, Dim> data;
@@ -154,5 +165,6 @@ template BoundedVector<double, 3> GetPotentialOnLowerWakeElement<2, 3>(
 template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
+template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 } // namespace PotentialFlow
 } // namespace Kratos

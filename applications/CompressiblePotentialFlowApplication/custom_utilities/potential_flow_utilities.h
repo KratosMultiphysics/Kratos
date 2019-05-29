@@ -40,5 +40,8 @@ array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement);
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement);
 
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocity(const Element& rElement);
+
 } // namespace PotentialFlow
 } // namespace Kratos
