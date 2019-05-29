@@ -34,7 +34,7 @@
 #include "containers/flags.h"
 
 /* CONDITIONS */
-#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
@@ -43,6 +43,8 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
 
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
@@ -251,6 +253,11 @@ private:
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition2D4N;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition3D4N;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition3D8N;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D3N;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D4N;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D4N;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D8N;
+
 
     // Constitutive laws
     // CL: Linear Elastic laws

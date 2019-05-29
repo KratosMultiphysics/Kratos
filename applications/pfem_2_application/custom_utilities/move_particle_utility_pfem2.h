@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/deprecated_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "containers/array_1d.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
@@ -774,7 +775,7 @@ namespace Kratos
 					{
 							ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-							if(inode->FastGetSolutionStepValue(IS_STRUCTURE)!=0.0)
+							if(inode->Is(SLIP))
 							{
 
 								array_1d<double, 3 >& velocity = inode->FastGetSolutionStepValue(VELOCITY);
@@ -2742,7 +2743,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=neighb_elems(i).lock();
+					pelement = neighb_elems[i].shared_from_this();
 					return true;
 				}
 		}
@@ -2802,7 +2803,7 @@ namespace Kratos
 			bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 			if (is_found_2)
 			{
-				pelement=elements_in_trajectory(i).lock();
+				pelement = elements_in_trajectory[i].shared_from_this();
 				N=aux_N;
 				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
 				return true;
@@ -2841,7 +2842,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=neighb_elems(i).lock();
+					pelement = neighb_elems[i].shared_from_this();
 					if (number_of_elements_in_trajectory<20)
 					{
 						elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
@@ -2920,7 +2921,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=neighb_elems(i).lock();
+					pelement = neighb_elems[i].shared_from_this();
 					return true;
 				}
 		}

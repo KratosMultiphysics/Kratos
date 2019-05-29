@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 
 extern "C"
 {

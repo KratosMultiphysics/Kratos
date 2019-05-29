@@ -6,8 +6,6 @@
 
 namespace Kratos {
 
-    void DEM_D_Stress_Dependent_Cohesive::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Stress_Dependent_Cohesive::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Stress_Dependent_Cohesive(*this));
         return p_clone;

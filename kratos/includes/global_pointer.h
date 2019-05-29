@@ -20,7 +20,7 @@
 #include "includes/key_hash.h"
 namespace Kratos {
 
-    
+
 
 template<class TDataType>
 class GlobalPointer {
@@ -40,7 +40,7 @@ public:
 	*/
 	GlobalPointer() {
     mDataPointer = nullptr;
-    this->mRank = 0;  
+    this->mRank = 0;
   };
 
   /** Constructor by Data
@@ -129,6 +129,10 @@ public:
 	  return mDataPointer;
   }
 
+  TDataType const* get() const {
+	  return mDataPointer;
+  }
+
   /** Pointer Operator
   * Pointer Operator
   */
@@ -178,7 +182,7 @@ public:
     return this->mRank;
   }
 
-  private: 
+  private:
 
   friend class Serializer;
 
@@ -194,9 +198,9 @@ public:
       {
         rSerializer.save("D", mDataPointer);
       }
- 
+
       rSerializer.save("R", mRank);
- 
+
   }
 
   void load(Serializer& rSerializer)
@@ -263,7 +267,7 @@ template< class TDataType >
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const GlobalPointer<TDataType>& rThis)
 {
-    
+
     rOStream << reinterpret_cast<const std::size_t>(&*rThis) << " : " << rThis.GetRank();
 
     return rOStream;

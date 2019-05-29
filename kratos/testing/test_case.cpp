@@ -146,17 +146,17 @@ namespace Kratos
 			mResult.SetOutput(TheResultOutput);
 		}
 
-		bool TestCase::IsEnabled()
+		bool TestCase::IsEnabled() const
 		{
 			return mIsEnabled;
 		}
 
-		bool TestCase::IsDisabled()
+		bool TestCase::IsDisabled() const
 		{
 			return !mIsEnabled;
 		}
 
-		bool TestCase::IsSelected()
+		bool TestCase::IsSelected() const
 		{
 			return mIsSelected;
 		}

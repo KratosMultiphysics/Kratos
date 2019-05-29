@@ -169,51 +169,6 @@ public:
     virtual void CalculateRayDistances();
 
     /**
-     * @brief Computes the raycasting distance for a node
-     * This method computes the raycasting distance for a given node. It casts a ray
-     * in the x and y (as well as z in 3D) directions and computes the distance from 
-     * the ray origin point (the node of interest) to each one of the intersecting objects.
-     * @param rNode reference to the node of interest
-     * @return double raycasting distance value computed
-     */
-    virtual double DistancePositionInSpace(const Node<3> &rNode);
-
-    /**
-     * @brief Get the ray intersecting objects and its distance
-     * For a given ray and direction, this method search for all the intersecting entities 
-     * to this ray. This operation is performed using the binary octree in the discontinuous 
-     * distance base class to check each one of the cells crossed by the ray.
-     * @param ray casted ray coordinates
-     * @param direction direction of the casted ray (0 for x, 1 for y and 2 for z)
-     * @param rIntersections array containing a pair for each intersection found. The 
-     * first value of the pair contains the ray distance to the intersection entity
-     * while the second one contains a pointer to the intersection entity geometry
-     */
-    virtual void GetRayIntersections(
-        const double* ray,
-        const unsigned int direction,
-        std::vector<std::pair<double,Element::GeometryType*> > &rIntersections); 
-
-    /**
-     * @brief Get the intersecting objects contained in the current cell
-     * 
-     * @param cell current cell
-     * @param ray casted ray coordinates
-     * @param ray_key binary octree ray key
-     * @param direction direction of the casted ray (0 for x, 1 for y and 2 for z)
-     * @param rIntersections array containing a pair for each intersection found. The 
-     * first value of the pair contains the ray distance to the intersection entity
-     * while the second one contains a pointer to the intersection entity geometry
-     * @return int 0 if the cell intersection search has succeeded
-     */
-    virtual int GetCellIntersections(
-        OctreeType::cell_type* cell, 
-        const double* ray,
-        OctreeType::key_type* ray_key, 
-        const unsigned int direction,
-        std::vector<std::pair<double, Element::GeometryType*> > &rIntersections); 
-
-    /**
      * @brief Executes the CalculateDistanceToSkinProcess
      * This method automatically does all the calls required to compute the signed distance function.
      */
@@ -263,35 +218,6 @@ private:
     double inline CalculatePointDistance(
         const Element::GeometryType &rIntObjGeom,
         const Point &rDistancePoint);
-
-    /**
-     * @brief Checks if a ray intersects an intersecting geometry candidate
-     * For a given intersecting geometry, it checks if the ray intersects it
-     * @param rGeometry reference to the candidate intersecting object
-     * @param pRayPoint1 ray origin point
-     * @param pRayPoint2 ray end point
-     * @param pIntersectionPoint obtained intersecting point
-     * @return int integer containing the result of the intersection (1 if intersects)
-     */
-    int ComputeRayIntersection(
-        Element::GeometryType& rGeometry,
-        const double* pRayPoint1,
-        const double* pRayPoint2,
-        double* pIntersectionPoint);
-
-    void GetExtraRayOrigins(
-        const double RayEpsilon,
-        const array_1d<double,3> &rCoords,
-        std::vector<array_1d<double,3>> &rExtraRayOrigs);
-
-
-    void CorrectExtraRayOrigin(double* ExtraRayCoords);
-
-    void ComputeExtraRayColors(
-        const double Epsilon,
-        const double RayPerturbation,
-        const array_1d<double,3> &rCoords,
-        array_1d<double,TDim> &rDistances);
 
     ///@}
     ///@name Private  Access

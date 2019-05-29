@@ -710,9 +710,7 @@ public:
             sum_value += it_node->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -758,9 +756,7 @@ public:
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -804,9 +800,7 @@ public:
             sum_value += it_cond->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -850,9 +844,7 @@ public:
             sum_value += it_elem->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -942,10 +934,21 @@ public:
     void UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
 
     /**
-     * @brief This method updates the initial nodal coordinates to the current coordinates
      * @param rNodes the nodes to be updated
+     * @brief This method updates the initial nodal coordinates to the current coordinates
      */
     void UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+    /**
+     * @brief This method updates the current coordinates
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * @param rNodes
+     * @param rUpdateVariable variable to retrieve the updating values from
+     */
+    void UpdateCurrentPosition(
+        const ModelPart::NodesContainerType &rNodes,
+        const ArrayVarType &rUpdateVariable = DISPLACEMENT);
 
     ///@}
     ///@name Acces

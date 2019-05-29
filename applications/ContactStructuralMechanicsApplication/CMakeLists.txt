@@ -19,6 +19,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivatives_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mortar_explicit_contribution_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/active_set_utilities.cpp
 
     ## PROCESSES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/aalm_adapt_penalty_value_process.cpp
@@ -31,6 +32,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_search_wrapper_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/advanced_contact_search_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/simple_contact_search_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.cpp
 
     ## CONDITIONS
     # Mortar condition

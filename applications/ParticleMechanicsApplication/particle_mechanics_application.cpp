@@ -88,7 +88,11 @@ namespace Kratos
         mMPMParticlePenaltyCouplingInterfaceCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMPMParticlePenaltyCouplingInterfaceCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyCouplingInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mMPMParticlePenaltyCouplingInterfaceCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) )
+        mMPMParticlePenaltyCouplingInterfaceCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+        mMPMParticlePointLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+        mMPMParticlePointLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
+        mMPMParticlePointLoadCondition2D4N(0, Condition::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
+        mMPMParticlePointLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(Condition::GeometryType::PointsArrayType(8))))
     {}
 
     void KratosParticleMechanicsApplication::Register()
@@ -130,6 +134,10 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition2D4N", mMPMParticlePenaltyCouplingInterfaceCondition2D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition3D4N", mMPMParticlePenaltyCouplingInterfaceCondition3D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition3D8N", mMPMParticlePenaltyCouplingInterfaceCondition3D8N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D3N", mMPMParticlePointLoadCondition2D3N )
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D4N", mMPMParticlePointLoadCondition3D4N )
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D4N", mMPMParticlePointLoadCondition2D4N )
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D8N", mMPMParticlePointLoadCondition3D8N )
 
         // Registering elements
         KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
