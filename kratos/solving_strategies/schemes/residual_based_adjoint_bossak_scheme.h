@@ -117,6 +117,8 @@ public:
 
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
+        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak;
+
         KRATOS_CATCH("");
     }
 
