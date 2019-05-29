@@ -38,6 +38,7 @@ namespace Kratos
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 
+
         if (Has(TANGENTS))
         {
             array_1d<double, 3> t2 = ZeroVector(3);
@@ -57,6 +58,28 @@ namespace Kratos
                 f_loads[index]     += line_load[0] * integration_weight * N[i];
                 f_loads[index + 1] += line_load[1] * integration_weight * N[i];
                 f_loads[index + 2] += line_load[2] * integration_weight * N[i];
+            }
+        }
+
+        // Pressure loads
+        if (this->Has(PRESSURE))
+        {
+            double pressure = this->GetValue(PRESSURE);
+
+            array_1d<double, 3> t1 = ZeroVector(3);
+            array_1d<double, 2> tangents = GetValue(TANGENTS);
+            IgaCurveOnSurfaceUtilities::CalculateNormal(GetGeometry(), DN_De, tangents, t1);
+
+            t1 = t1 / norm_2(t1);
+
+            KRATOS_WATCH(t1)
+
+            for (int i = 0; i < number_of_control_points; i++)
+            {
+                int index = 3 * i;
+                rRightHandSideVector[index] = -t1[0] * pressure * integration_weight * N[i];
+                rRightHandSideVector[index + 1] = -t1[1] * pressure * integration_weight * N[i];
+                rRightHandSideVector[index + 2] = -t1[2] * pressure * integration_weight * N[i];
             }
         }
 
@@ -98,8 +121,6 @@ namespace Kratos
                 //rRightHandSideVector(n) -= Phi_r(n) * moment[1];
             }
         }
-
-        //KRATOS_WATCH(rRightHandSideVector)
 
         noalias(rRightHandSideVector) += f_loads;
     }

@@ -206,26 +206,26 @@ public:
     typedef GeometryData::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
 
 
-    /**
-    * Derivative type of any order of derivative. Also for shape functions.
-    * The matrix is (derivative direction, corresponding)
-    */
-    typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
+    ///**
+    //* Derivative type of any order of derivative. Also for shape functions.
+    //* The matrix is (derivative direction, corresponding)
+    //*/
+    //typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
 
-    /**
-    * Derivative type of any order of derivative. Also for shape functions.
-    * DenseVector: each respective integration point is accessed.
-    *  Matrix: (derivative direction, corresponding)
-    */
-    typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
+    ///**
+    //* Derivative type of any order of derivative. Also for shape functions.
+    //* DenseVector: each respective integration point is accessed.
+    //*  Matrix: (derivative direction, corresponding)
+    //*/
+    //typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
 
-    /**
-    * Vector of derivatives until any order of derivative, including for shape functions.
-    * In the first DenseVector the order of derivative is adressed.
-    * Within the second DenseVector each respective integration point is accessed.
-    * The matrix is (derivative direction, corresponding)
-    */
-    typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
+    ///**
+    //* Vector of derivatives until any order of derivative, including for shape functions.
+    //* In the first DenseVector the order of derivative is adressed.
+    //* Within the second DenseVector each respective integration point is accessed.
+    //* The matrix is (derivative direction, corresponding)
+    //*/
+    //typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
 
 
 
@@ -945,12 +945,13 @@ public:
         IntegrationMethod ThisMethod) const
     {
         array_1d<double, 3> normal = Normal(rResult, IntegrationPointIndex);
-        const double rResult = norm_2(normal);
+        const double norm_normal = norm_2(normal);
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else
             KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: "
             << norm_normal << std::endl;
-        return rResult;
+        rResult = normal;
+        return normal;
     }
 
     /** This method calculates and returns the tangent vectors
@@ -966,7 +967,7 @@ public:
         KRATOS_ERROR 
             << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. "
             << *this << std::endl;
-        return 0.0;
+        return ZeroMatrix(0, 0);
     }
 
     /** This method calculates and returns the tangent vectors
@@ -1000,7 +1001,7 @@ public:
         IntegrationMethod ThisMethod) const 
     {
         KRATOS_ERROR << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return 0.0;
+        return ZeroMatrix(0,0);
     }
 
     /** Calculates the quality of the geometry according to a given criteria.
@@ -2016,36 +2017,36 @@ public:
     ///@name Shape Function
     ///@{
 
-    const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivatives(
-        IndexType DerivativeOrder) const
-    {
-        return mpGeometryData->ShapeFunctionsDerivativesIntegrationPoints(DerivativeOrder);
-    }
+    //const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder) const
+    //{
+    //    return mpGeometryData->ShapeFunctionsDerivativesIntegrationPoints(DerivativeOrder);
+    //}
 
-    const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(
-        IndexType DerivativeOrder,
-        IndexType IntegrationPointIndex) const
-    {
-        return mpGeometryData->ShapeFunctionsDerivatives(DerivativeOrder, IntegrationPointIndex);
-    }
+    //const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder,
+    //    IndexType IntegrationPointIndex) const
+    //{
+    //    return mpGeometryData->ShapeFunctionsDerivatives(DerivativeOrder, IntegrationPointIndex);
+    //}
 
-    virtual ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
-        IndexType DerivativeOrder,
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates) const
-    {
-        KRATOS_ERROR << "Calling base class ShapeFunctionsDerivative method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
+    //virtual ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
+    //    IndexType DerivativeOrder,
+    //    Vector &rResult,
+    //    const CoordinatesArrayType& rCoordinates) const
+    //{
+    //    KRATOS_ERROR << "Calling base class ShapeFunctionsDerivative method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    //    return rResult;
+    //}
 
-    virtual ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
-        IndexType DerivativeOrder,
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates) const
-    {
-        KRATOS_ERROR << "Calling base class ShapeFunctionsDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
+    //virtual ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder,
+    //    Vector &rResult,
+    //    const CoordinatesArrayType& rCoordinates) const
+    //{
+    //    KRATOS_ERROR << "Calling base class ShapeFunctionsDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    //    return rResult;
+    //}
 
     /** This method gives all shape functions values evaluated in all
     integration points of default integration method. It just
