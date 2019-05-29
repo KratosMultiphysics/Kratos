@@ -654,8 +654,8 @@ public:
 
                         // Get condition variables:
                         // Normal vector
-                        if (i->Has(NORMAL)) MPC_Normal = i->GetValue(NORMAL);
-                        ParticleMechanicsMathUtilities<double>::Normalize(MPC_Normal);
+                        if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
+                        ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
@@ -842,8 +842,6 @@ public:
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
                         // If dirichlet boundary or coupling interface
-                        std::string condition_type_name;
-                        const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
                         if (!is_neumann_condition){
                             if(!is_interface){
                                 if (TDim==2){
@@ -922,7 +920,7 @@ public:
                                 if (is_interface)
                                 {
                                     p_condition->Set(INTERFACE);
-                                    p_condition->SetValue(MPC_CONTACT_FORCE, MPC_Contact_Force);
+                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
                                 }
                             }
 
@@ -976,7 +974,7 @@ public:
                                 if (is_interface)
                                 {
                                     p_condition->Set(INTERFACE);
-                                    p_condition->SetValue(MPC_CONTACT_FORCE, MPC_Contact_Force);
+                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
                                 }
                             }
 
