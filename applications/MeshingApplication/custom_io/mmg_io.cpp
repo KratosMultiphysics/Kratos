@@ -114,20 +114,28 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
 
     // Fill the maps
-    /* Conditions */
-    const std::string condition_type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
-    Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_type_name);
-    ref_condition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
-    for (auto& r_color : colors) {
-        ref_condition[r_color.first] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
+    /* Elements */
+    std::ifstream elem_infile(mFilename + ".elem.ref.json");
+    KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << mFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream elem_buffer;
+    elem_buffer << elem_infile.rdbuf();
+    Parameters elem_ref_json(elem_buffer.str());
+    for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
+        const std::size_t key = std::stoi(it_param.name());;
+        Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
+        ref_element[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
     }
 
-    /* Elements */
-    const std::string element_type_name = (Dimension == 2) ? "Element2D3N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "Element3D4N" : "Element3D3N";
-    Element const& r_clone_element = KratosComponents<Element>::Get(element_type_name);
-    ref_element[0] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
-    for (auto& r_color : colors) {
-        ref_element[r_color.first] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+    /* Conditions */
+    std::ifstream cond_infile(mFilename + ".cond.ref.json");
+    KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << mFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream cond_buffer;
+    cond_buffer << cond_infile.rdbuf();
+    Parameters cond_ref_json(cond_buffer.str());
+    for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
+        const std::size_t key = std::stoi(it_param.name());;
+        Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
+        ref_condition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
     }
 
     // Writing the new mesh data on the model part
