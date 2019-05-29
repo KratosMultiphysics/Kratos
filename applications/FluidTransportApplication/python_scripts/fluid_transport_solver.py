@@ -75,6 +75,7 @@ class FluidTransportSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.PHI_THETA) # Phi variable refering to the n+theta step
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.NODAL_PHI_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.NODAL_ANALYTIC_SOLUTION)
@@ -164,6 +165,10 @@ class FluidTransportSolver(PythonSolver):
 
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
+        # Calculate Nodal Area
+        self.nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size)
+        self.nodal_area_process.Execute()
+        
         # KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
         # Check if everything is assigned correctly
