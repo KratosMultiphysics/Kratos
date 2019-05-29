@@ -960,9 +960,9 @@ protected:
           // sumErrorL2VelocityY +=  eleErrorL2VelocityY * geometry.Area();
           // sumErrorL2Pressure  +=  eleErrorL2Pressure * geometry.Area();
 
-          const long double tauXX     = itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
-					const long double tauYY     = itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
-					const long double tauXY     = itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);
+          const long double tauXX     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
+					const long double tauYY     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
+					const long double tauXY     = 0; 	// itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);				
 
 					long double expectedTauXX = 2.0*(-4.0 * (1.0-bariPosX) * bariPosX * (-1.0 + 2.0*bariPosX) * bariPosY * (1.0 - 3.0*bariPosY + 2.0*pow(bariPosY,2)));
 					long double expectedTauYY = 2.0*(4.0 * bariPosX * (1.0 - 3.0*bariPosX + 2.0*pow(bariPosX,2)) * (1.0-bariPosY) * bariPosY * (-1.0 + 2.0*bariPosY));
@@ -1111,8 +1111,8 @@ protected:
               bariPosY += nodalPosY/3.0;
      	    }
            
-          const long double posX = bariPosX;
-          const long double posY = bariPosY;
+                const long double posX = bariPosX;
+                const long double posY = bariPosY;
           			const double rPos 		 = sqrt( pow(posX,2) + pow(posY,2) );
 								const double cosalfa   = posX/rPos;
 								const double sinalfa   = posY/rPos;								
@@ -1122,11 +1122,10 @@ protected:
                 double expectedVelocityTheta   =  pow(kappa,2) * omega * R_out / (1.0 - pow(kappa,2)) * (R_out/rPos - rPos/R_out);
 								double computedVelocityTheta   =  sqrt( pow(elementalVelocityX,2) + pow(elementalVelocityY,2) );
 								double nodalErrorVelocityTheta = computedVelocityTheta - expectedVelocityTheta;
-								
-
-          const long double tauXX     = itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
-					const long double tauYY     = itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
-					const long double tauXY     = itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);
+                      
+                const long double tauXX     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
+                const long double tauYY     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
+                const long double tauXY     = 0; 	// itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);
 
 								double expectedTauTheta   = (2.0 * viscosity * pow(kappa,2) * omega * pow(R_out,2))/(1.0 - pow(kappa,2)) / pow(rPos,2);
                 double computedTauTheta   = (tauXX-tauYY)*sin2alfa/2.0 - tauXY*cos2alfa;
