@@ -177,6 +177,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEM_KDEM_with_damage, DEM_KDEM_with_damage::Pointer, DEM_KDEM_soft_torque>(m, "DEM_KDEM_with_damage")
+        .def(py::init<>())
+        ;
+
     py::class_<DEM_sintering_continuum, DEM_sintering_continuum::Pointer, DEM_KDEM>(m, "DEM_sintering_continuum")
         .def(py::init<>())
         ;
