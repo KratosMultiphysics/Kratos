@@ -49,7 +49,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         self.__SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
-        self.__SaveTrailingEdgeNode()
+        self._SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake
         self.__MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
@@ -73,7 +73,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.wake_normal[1] = self.wake_direction[0]
         self.wake_normal[2] = 0.0
 
-    def __SaveTrailingEdgeNode(self):
+    def _SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
         max_x_coordinate = -1e30
         for node in self.body_model_part.Nodes:
