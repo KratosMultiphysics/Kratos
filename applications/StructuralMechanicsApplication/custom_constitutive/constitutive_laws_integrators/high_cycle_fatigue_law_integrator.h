@@ -99,20 +99,74 @@ public:
      * @param NumberOfCycles Number of cycles for the applied load.
      * @param CycleCounter Boolean variable used on the update operation for the SetMaxStress.
      */
+    // static void CalculateFatigueParameters(
+    //     const double CurrentStress,
+    //     double& rMaximumStress, 
+    //     double& rMinimumStress,  
+    //     double& rPreviousMaxStress,
+    //     double& rPreviousMinStress,
+    //     const Vector& rPreviousStresses,
+    //     bool& rMaxIndicator,
+    //     bool& rMinIndicator,
+    //     unsigned int& rGlobalNumberOfCycles,
+    //     unsigned int& rLocalNumberOfCycles,
+    //     double& rB0,
+    //     const Properties& rMaterialParameters,
+    //     double& rFatigueReductionFactor)
+    // {
+    //     const double stress_1 = rPreviousStresses[1];
+    //     const double stress_2 = rPreviousStresses[0];
+    //     const double stress_increment_1 = stress_1 - stress_2;
+    //     const double stress_increment_2 = CurrentStress - stress_1;
+
+    //     if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0) {
+    //         rMaximumStress = stress_1;
+    //         rMaxIndicator = true;
+    //     } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0) {
+    //         rMinimumStress = stress_1;
+    //         rMinIndicator = true;
+    //     }
+
+    //     if (rMaxIndicator && rMinIndicator) {
+    //         double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(rPreviousMaxStress, rPreviousMinStress);
+    //         double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(rMaximumStress, rMinimumStress);
+
+    //         if (rGlobalNumberOfCycles > 2 && (std::abs((previous_reversion_factor - reversion_factor) / previous_reversion_factor) > 0.001 || std::abs((rPreviousMaxStress - rMaximumStress) / rPreviousMaxStress) > 0.001)) {
+    //             double square_betaf = std::pow(rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4], 2.0);
+    //             rLocalNumberOfCycles = std::trunc(std::pow(10, std::pow(-(std::log(rFatigueReductionFactor) / rB0), 1.0 / square_betaf))) + 1;
+    //             std::cout << " here \n" ;
+    //         }
+            
+    //         rGlobalNumberOfCycles++;
+    //         KRATOS_WATCH(rLocalNumberOfCycles);
+    //         rLocalNumberOfCycles++;
+    //         rMaxIndicator = false;
+    //         rMinIndicator = false;
+    //         rPreviousMaxStress = rMaximumStress;
+    //         rPreviousMinStress = rMinimumStress;
+    //         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rMaximumStress,
+    //                                                                             reversion_factor,
+    //                                                                             rMaterialParameters,
+    //                                                                             rLocalNumberOfCycles,
+    //                                                                             rFatigueReductionFactor,
+    //                                                                             rB0);
+    //     }
+    // }
+
+    /**
+     * @brief  
+     * @param 
+     */
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
-        double &rMaximumStress, 
-        double &rMinimumStress,  
-        const Vector &rPreviousStresses,
+        double& rMaximumStress, 
+        double& rMinimumStress,  
+        const Vector PreviousStresses,
         bool& rMaxIndicator,
-        bool& rMinIndicator,
-        unsigned int& rNumberOfCycles,
-        double& rB0,
-        const Properties& rMaterialParameters,
-        double& rFatigueReductionFactor)
+        bool& rMinIndicator)
     {
-        const double stress_1 = rPreviousStresses[1];
-        const double stress_2 = rPreviousStresses[0];
+        const double stress_1 = PreviousStresses[1];
+        const double stress_2 = PreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
 
@@ -122,20 +176,6 @@ public:
         } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
-        }
-
-        if (rMaxIndicator && rMinIndicator) {
-            rNumberOfCycles++;
-            rMaxIndicator = false;
-            rMinIndicator = false;
-            double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(rMaximumStress, rMinimumStress);
-            HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rMaximumStress,
-                                                                                rMinimumStress,
-                                                                                reversion_factor,
-                                                                                rMaterialParameters,
-                                                                                rNumberOfCycles,
-                                                                                rFatigueReductionFactor,
-                                                                                rB0);
         }
     }
 
@@ -177,21 +217,17 @@ public:
     /**
      * @brief This method computes the reduction factor used in the high cycle fatigue model 
      * @param MaxStress Signed maximum stress in the current cycle.
-     * @param MinStress Signed minimum stress in the current cycle.
      * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
      * @param MaterialParameters Material properties.
      * @param NumbreOfCycles Number of cycles at the current step.
      * @param FatigueReductionFactor Reduction factor from the previous step to be reevaluated.
      * @param B0 Internal variable of the fatigue model used for the calculation of the FatigueReductionFactor.
      */
-    static void CalculateFatigueReductionFactor(const double MaxStress,
-                                                const double MinStress,
-                                                double ReversionFactor,
-                                                const Properties& rMaterialParameters,
-                                                unsigned int NumberOfCycles,
-                                                double& rFatigueReductionFactor,
-                                                double& rB0
-                                                )
+    static void CalculateFatigueParameterB0AndSth(const double MaxStress,
+                                            double ReversionFactor,
+                                            const Properties& rMaterialParameters,
+                                            double& rB0,
+                                            double& rSth)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
@@ -205,22 +241,40 @@ public:
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
 
-        double Sth, alphat;
+        double alphat;
         if (std::abs(ReversionFactor) < 1.0) {
-            Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
+            rSth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
 			alphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
-            Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
+            rSth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
 			alphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
-        if (MaxStress > yield_stress) {
-            rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
-        } else if (MaxStress > Sth) {
-            const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1.0/BETAF)));
+        if (MaxStress > rSth && MaxStress <= yield_stress) {
+            const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (yield_stress - rSth))/alphat,(1.0/BETAF)));
             rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(N_F)), square_betaf));
-            rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
+        }
+    }
+
+    /**
+     * @brief This method computes the reduction factor used in the high cycle fatigue model 
+     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
+     * @param MaterialParameters Material properties.
+     * @param NumbreOfCycles Number of cycles at the current step.
+     * @param FatigueReductionFactor Reduction factor from the previous step to be reevaluated.
+     * @param B0 Internal variable of the fatigue model used for the calculation of the FatigueReductionFactor.
+     */
+    static void CalculateFatigueReductionFactor(const double SquareBetaF,
+                                                const double MaxStress,
+                                                unsigned int& LocalNumberOfCycles,
+                                                const double B0,
+                                                const double Sth,
+                                                double& rFatigueReductionFactor)
+	{
+        if (MaxStress > Sth) {
+            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), SquareBetaF));
         }
     }
 
