@@ -41,8 +41,8 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
         "refinement_strategy"                 : "maximum_strategy",
         "mean_distribution_strategy":
         {
-            "target_refinement_coefficient"       : 0.01,
-            "refinement_bound"                    : 2,
+            "target_refinement_coefficient"       : 0.9,
+            "refinement_bound"                    : 2.0,
             "reference_variable_name"             : "DIVERGENCE",
             "reference_norm_name"                 : "DIVERGENCE_H1SEMINORM",
             "reference_volume_name"               : "AUX_VOLUME"
@@ -51,7 +51,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
         "maximum_strategy":
         {
             "target_refinement_coefficient"       : 0.1,
-            "refinement_coefficient"              : 2,
+            "refinement_coefficient"              : 2.0,
             "reference_variable_name"             : "DIVERGENCE"
         },
         "echo_level"                          : 0
