@@ -46,12 +46,15 @@ class FEMDEM_Solution:
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
 
+        nodes = self.FEM_Solution.main_model_part.Nodes
         # Initialize the "flag" IS_DEM in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, nodes)
         # Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, nodes)
         # Initialize the "flag" RADIUS in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, 0.0, nodes)
+        # Initialize the "flag" RADIUS in all the nodes
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS, 0.0, nodes)
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -652,6 +655,8 @@ class FEMDEM_Solution:
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
         # Initialize the "flag" RADIUS in all the nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+        # Initialize the "flag" EQUIVALENT_NODAL_STRESS in all the nodes
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS, 0.0, self.FEM_Solution.main_model_part.Nodes)
 
         if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
             self.PressureLoad = False
