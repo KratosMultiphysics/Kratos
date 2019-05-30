@@ -342,9 +342,8 @@ namespace Kratos
     };
 
     /**
-     * @brief This is a hasher for index pairs
-     * @details Used for example for edges map
-     * @see https://stackoverflow.com/questions/20590656/error-for-hash-function-of-pair-of-ints
+     * @brief This is a hasher for pairs
+     * @details Used for example for edges ids
      */
     template<class TType1, class TType2>
     struct PairHasher
@@ -355,10 +354,10 @@ namespace Kratos
          */
         std::size_t operator()(const std::pair<TType1, TType2>& rPair) const
         {
-            uintmax_t hash = std::hash<TType1>{}(rPair.first);
-            hash <<= sizeof(uintmax_t) * 4;
-            hash ^= std::hash<TType2>{}(rPair.second);
-            return std::hash<uintmax_t>{}(hash);
+            std::size_t seed = 0;
+            HashCombine<TType1>(seed, rPair.first);
+            HashCombine<TType2>(seed, rPair.second);
+            return seed;
         }
     };
 
