@@ -25,8 +25,6 @@
 
 namespace Kratos
 {
-/************************************* CONSTRUCTOR *********************************/
-/***********************************************************************************/
 
 ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     : mNumberOfLines(1)
@@ -67,9 +65,6 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(Filename + ".time");
 }
 
-/*************************** CONSTRUCTOR WITH STREAM *******************************/
-/***********************************************************************************/
-
 ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options)
     : mNumberOfLines(1)
     , mOptions(Options)
@@ -83,23 +78,14 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
     mpStream = Stream;
 }
 
-/************************************* DESTRUCTOR **********************************/
-/***********************************************************************************/
-
 ModelPartIO::~ModelPartIO() {
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 bool ModelPartIO::ReadNode(NodeType& rThisNode)
 {
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class." << std::endl;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 bool ModelPartIO::ReadNodes(NodesContainerType& rThisNodes)
 {
@@ -121,9 +107,6 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rThisNodes)
     return true;
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 std::size_t ModelPartIO::ReadNodesNumber()
 {
@@ -147,9 +130,6 @@ std::size_t ModelPartIO::ReadNodesNumber()
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
     (*mpStream) << "Begin Nodes" << std::endl;
@@ -158,16 +138,10 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
     (*mpStream) << "End Nodes" << std::endl << std::endl;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadProperties(Properties& rThisProperties)
 {
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadProperties(PropertiesContainerType& rThisProperties)
 {
@@ -187,9 +161,6 @@ void ModelPartIO::ReadProperties(PropertiesContainerType& rThisProperties)
     }
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties)
 {
@@ -247,16 +218,10 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements)
 {
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements)
 {
@@ -276,9 +241,6 @@ void ModelPartIO::ReadElements(NodesContainerType& rThisNodes, PropertiesContain
     }
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 std::size_t  ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
 {
@@ -301,9 +263,6 @@ std::size_t  ModelPartIO::ReadElementsConnectivities(ConnectivitiesContainerType
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
 {
@@ -350,9 +309,6 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
 {
     KRATOS_TRY
@@ -371,9 +327,6 @@ void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesConta
     }
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
 {
@@ -395,9 +348,6 @@ std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTy
     return number_of_elements;
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions)
 {
@@ -445,9 +395,6 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
@@ -476,21 +423,12 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 //       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 {
     KRATOS_ERROR << "ModelPartIO does not implement this method." << std::endl;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteMesh(MeshType & rThisMesh)
 {
@@ -499,9 +437,6 @@ void ModelPartIO::WriteMesh(MeshType & rThisMesh)
     WriteElements(rThisMesh.Elements());
     WriteConditions(rThisMesh.Conditions());
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
 {
@@ -574,9 +509,6 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 {
     Timer::Start("Writing Output");
@@ -604,10 +536,6 @@ void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 
     Timer::Stop("Writing Output");
 }
-
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnectivities)
 {
@@ -684,9 +612,6 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     return num_nodes;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                         PartitionIndicesType const& NodesPartitions,
                                         PartitionIndicesType const& ElementsPartitions,
@@ -751,9 +676,6 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideInputToPartitions(
     Kratos::shared_ptr<std::iostream> * Streams,
     SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
@@ -815,9 +737,6 @@ void ModelPartIO::DivideInputToPartitions(
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 std::string& ModelPartIO::ReadBlockName(std::string& rBlockName)
 {
     KRATOS_TRY
@@ -829,9 +748,6 @@ std::string& ModelPartIO::ReadBlockName(std::string& rBlockName)
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::SkipBlock(std::string const& BlockName)
 {
@@ -860,9 +776,6 @@ void ModelPartIO::SkipBlock(std::string const& BlockName)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool ModelPartIO::CheckEndBlock(std::string const& BlockName, std::string& rWord)
 {
     if(rWord == "End")
@@ -875,9 +788,6 @@ bool ModelPartIO::CheckEndBlock(std::string const& BlockName, std::string& rWord
     return false;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
 {
     KRATOS_TRY
@@ -886,9 +796,6 @@ void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
 {
@@ -952,8 +859,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
         }
         else if(KratosComponents<Variable<std::string> >::Has(variable_name))
         {
-            std::string value;
-    std::string  temp;
+            std::string value, temp;
 
             ReadWord(value); // reading value
             ExtractValue(value,temp);
@@ -973,9 +879,6 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
 {
     KRATOS_TRY;
@@ -986,9 +889,6 @@ void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_s
 
     KRATOS_CATCH("");
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 template<class TablesContainerType>
 void ModelPartIO::ReadTableBlock(TablesContainerType& rTables)
@@ -1046,9 +946,6 @@ void ModelPartIO::ReadTableBlock(TablesContainerType& rTables)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadTableBlock(ModelPart::TablesContainerType& rTables)
 {
     KRATOS_TRY
@@ -1105,9 +1002,6 @@ void ModelPartIO::ReadTableBlock(ModelPart::TablesContainerType& rTables)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TablesContainerType>
 void ModelPartIO::WriteTableBlock(TablesContainerType& rTables)
 {
@@ -1140,9 +1034,6 @@ void ModelPartIO::WriteTableBlock(TablesContainerType& rTables)
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WriteTableBlock(ModelPart::TablesContainerType& rTables)
 {
     std::string variable1, variable2; // NOTE: NOT POSSIBLE TO KNOW
@@ -1173,9 +1064,6 @@ void ModelPartIO::WriteTableBlock(ModelPart::TablesContainerType& rTables)
         (*mpStream) << "End Table" << std::endl;
     }
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
 {
@@ -1218,9 +1106,6 @@ void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadNodesBlock(ModelPart& rModelPart)
 {
@@ -1339,9 +1224,6 @@ NodeType temp_node;
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 std::size_t ModelPartIO::CountNodesInBlock()
 {
     KRATOS_TRY;
@@ -1384,9 +1266,6 @@ std::size_t ModelPartIO::CountNodesInBlock()
 
     KRATOS_CATCH("");
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
 {
@@ -1493,9 +1372,6 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadElementsBlock(ModelPart& rModelPart)
 {
     KRATOS_TRY
@@ -1557,9 +1433,6 @@ void ModelPartIO::ReadElementsBlock(ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements)
 {
     KRATOS_TRY
@@ -1619,16 +1492,10 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadConditionsBlock(ModelPart& rModelPart)
 {
     ReadConditionsBlock(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
 {
@@ -1686,9 +1553,6 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
 {
@@ -1792,9 +1656,6 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 {
@@ -1943,9 +1804,6 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TObjectsContainerType>
 void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
@@ -1989,9 +1847,6 @@ void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContain
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TVariableType, class TObjectsContainerType>
 void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName){
     const TVariableType variable = KratosComponents<TVariableType>::Get(rVariable->Name());
@@ -2003,9 +1858,6 @@ void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContain
     }
     (*mpStream)<<"End "<<rObjectName<<"alData\n"<<std::endl;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 template<class TVariableType>
 void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
@@ -2043,9 +1895,6 @@ void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVari
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rFlags)
 {
 
@@ -2068,9 +1917,6 @@ void ModelPartIO::ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rF
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 template<class TVariableType>
 void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
@@ -2112,9 +1958,6 @@ void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TV
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TVariableType, class TDataType>
 void ModelPartIO::ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy)
 {
@@ -2153,9 +1996,6 @@ void ModelPartIO::ReadNodalVectorialVariableData(NodesContainerType& rThisNodes,
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
 {
@@ -2210,9 +2050,6 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TVariableType>
 void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable)
 {
@@ -2245,9 +2082,6 @@ void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisEl
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TVariableType, class TDataType>
 void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy)
 {
@@ -2278,9 +2112,6 @@ void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThi
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditions)
 {
@@ -2335,9 +2166,6 @@ void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditi
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TVariableType>
 void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable)
 {
@@ -2370,9 +2198,6 @@ void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rTh
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TVariableType, class TDataType>
 void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable, TDataType Dummy)
 {
@@ -2403,9 +2228,6 @@ void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& 
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 ModelPartIO::SizeType ModelPartIO::ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
 {
@@ -2468,9 +2290,6 @@ ModelPartIO::SizeType ModelPartIO::ReadElementsConnectivitiesBlock(Connectivitie
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPartIO::SizeType ModelPartIO::ReadConditionsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
 {
     KRATOS_TRY
@@ -2532,9 +2351,6 @@ ModelPartIO::SizeType ModelPartIO::ReadConditionsConnectivitiesBlock(Connectivit
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities)
 {
@@ -2603,9 +2419,6 @@ void ModelPartIO::FillNodalConnectivitiesFromElementBlock(ConnectivitiesContaine
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities)
 {
     KRATOS_TRY;
@@ -2673,9 +2486,6 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContai
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
 {
     KRATOS_TRY
@@ -2721,9 +2531,6 @@ void ModelPartIO::ReadCommunicatorDataBlock(Communicator& rThisCommunicator, Nod
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
 {
@@ -2788,9 +2595,6 @@ void ModelPartIO::ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicato
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
 {
@@ -2920,9 +2724,6 @@ void ModelPartIO::ReadMeshBlock(ModelPart& rModelPart)
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadMeshDataBlock(MeshType& rMesh)
 {
     KRATOS_TRY
@@ -3000,9 +2801,6 @@ void ModelPartIO::ReadMeshDataBlock(MeshType& rMesh)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh)
 {
     KRATOS_TRY
@@ -3026,9 +2824,6 @@ void ModelPartIO::ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh)
     rMesh.Nodes().Sort();
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadMeshElementsBlock(ModelPart& rModelPart, MeshType& rMesh)
 {
@@ -3054,9 +2849,6 @@ void ModelPartIO::ReadMeshElementsBlock(ModelPart& rModelPart, MeshType& rMesh)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadMeshConditionsBlock(ModelPart& rModelPart, MeshType& rMesh)
 {
     KRATOS_TRY
@@ -3080,9 +2872,6 @@ void ModelPartIO::ReadMeshConditionsBlock(ModelPart& rModelPart, MeshType& rMesh
     rMesh.Conditions().Sort();
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh)
 {
@@ -3180,9 +2969,6 @@ void ModelPartIO::ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart)
 {
     KRATOS_TRY
@@ -3237,9 +3023,6 @@ void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rP
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteSubModelPartBlock(
     ModelPart& rMainModelPart,
@@ -3311,9 +3094,6 @@ void ModelPartIO::WriteSubModelPartBlock(
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void  ModelPartIO::ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
 {
     KRATOS_TRY
@@ -3334,9 +3114,6 @@ void  ModelPartIO::ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelP
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void  ModelPartIO::ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
 {
     KRATOS_TRY
@@ -3356,9 +3133,6 @@ void  ModelPartIO::ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, Mo
     }
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void  ModelPartIO::ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
 {
@@ -3385,9 +3159,6 @@ void  ModelPartIO::ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPa
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void  ModelPartIO::ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
 {
     KRATOS_TRY
@@ -3410,9 +3181,6 @@ void  ModelPartIO::ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, Mode
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void  ModelPartIO::ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
 {
@@ -3437,9 +3205,6 @@ void  ModelPartIO::ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, Mo
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles)
 {
     KRATOS_TRY
@@ -3454,9 +3219,6 @@ void ModelPartIO::DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::DivideTableBlock(OutputFilesContainerType& OutputFiles)
 {
@@ -3474,9 +3236,6 @@ void ModelPartIO::DivideTableBlock(OutputFilesContainerType& OutputFiles)
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DividePropertiesBlock(OutputFilesContainerType& OutputFiles)
 {
     KRATOS_TRY
@@ -3492,9 +3251,6 @@ void ModelPartIO::DividePropertiesBlock(OutputFilesContainerType& OutputFiles)
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::DivideNodesBlock(OutputFilesContainerType& OutputFiles,
                         PartitionIndicesContainerType const& NodesAllPartitions)
@@ -3552,9 +3308,6 @@ void ModelPartIO::DivideNodesBlock(OutputFilesContainerType& OutputFiles,
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::DivideElementsBlock(OutputFilesContainerType& OutputFiles,
                             PartitionIndicesContainerType const& ElementsAllPartitions)
@@ -3633,9 +3386,6 @@ void ModelPartIO::DivideElementsBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
                             PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
@@ -3712,9 +3462,6 @@ void ModelPartIO::DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                             PartitionIndicesContainerType const& NodesAllPartitions)
 {
@@ -3781,9 +3528,6 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                             PartitionIndicesContainerType const& NodesAllPartitions)
 {
@@ -3835,9 +3579,6 @@ void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                     PartitionIndicesContainerType const& EntitiesPartitions,
@@ -3909,9 +3650,6 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles,
                                 PartitionIndicesContainerType const& ElementsAllPartitions)
 {
@@ -3978,9 +3716,6 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles,
                                 PartitionIndicesContainerType const& EntitiesPartitions,
                                 std::string BlockName)
@@ -4039,9 +3774,6 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFiles,
                                 PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
@@ -4050,11 +3782,9 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
-    std::string word;
+    std::string word, variable_name;
 
     WriteInAllFiles(OutputFiles, "Begin ConditionalData ");
-
-    std::string variable_name;
 
     ReadWord(variable_name);
 
@@ -4110,9 +3840,6 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideMeshBlock(OutputFilesContainerType& OutputFiles,
                                         PartitionIndicesContainerType const& NodesAllPartitions,
                                         PartitionIndicesContainerType const& ElementsAllPartitions,
@@ -4154,9 +3881,6 @@ void ModelPartIO::DivideMeshBlock(OutputFilesContainerType& OutputFiles,
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
     PartitionIndicesContainerType const& NodesAllPartitions,
     PartitionIndicesContainerType const& ElementsAllPartitions,
@@ -4164,7 +3888,7 @@ void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
 {
     KRATOS_TRY
 
-        std::string word;
+    std::string word;
     ReadWord(word);
 
     word += "\n";
@@ -4201,9 +3925,6 @@ void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideMeshDataBlock(OutputFilesContainerType& OutputFiles)
 {
     KRATOS_TRY
@@ -4217,9 +3938,6 @@ void ModelPartIO::DivideMeshDataBlock(OutputFilesContainerType& OutputFiles)
     WriteInAllFiles(OutputFiles, "End MeshData\n");
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::DivideMeshNodesBlock(OutputFilesContainerType& OutputFiles,
                                         PartitionIndicesContainerType const& NodesAllPartitions)
@@ -4270,9 +3988,6 @@ void ModelPartIO::DivideMeshNodesBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideMeshElementsBlock(OutputFilesContainerType& OutputFiles,
                                         PartitionIndicesContainerType const& ElementsAllPartitions)
 {
@@ -4321,9 +4036,6 @@ void ModelPartIO::DivideMeshElementsBlock(OutputFilesContainerType& OutputFiles,
 
     KRATOS_CATCH("")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::DivideMeshConditionsBlock(OutputFilesContainerType& OutputFiles,
                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
@@ -4374,13 +4086,10 @@ void ModelPartIO::DivideMeshConditionsBlock(OutputFilesContainerType& OutputFile
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles)
 {
     KRATOS_TRY
-        std::string block;
+    std::string block;
 
     WriteInAllFiles(OutputFiles, "Begin SubModelPartData");
 
@@ -4391,13 +4100,10 @@ void ModelPartIO::DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFi
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles)
 {
     KRATOS_TRY
-        std::string block;
+    std::string block;
 
     WriteInAllFiles(OutputFiles, "Begin SubModelPartTables");
 
@@ -4408,15 +4114,12 @@ void ModelPartIO::DivideSubModelPartTableBlock(OutputFilesContainerType& OutputF
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
     PartitionIndicesContainerType const& NodesAllPartitions)
 {
     KRATOS_TRY
 
-        std::string word;
+    std::string word;
 
     WriteInAllFiles(OutputFiles, "Begin SubModelPartNodes \n");
 
@@ -4460,15 +4163,12 @@ void ModelPartIO::DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputF
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
     PartitionIndicesContainerType const& ElementsAllPartitions)
 {
     KRATOS_TRY
 
-        std::string word;
+    std::string word;
 
     WriteInAllFiles(OutputFiles, "Begin SubModelPartElements \n");
 
@@ -4512,15 +4212,12 @@ void ModelPartIO::DivideSubModelPartElementsBlock(OutputFilesContainerType& Outp
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
     PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
     KRATOS_TRY
 
-        std::string word;
+    std::string word;
 
     WriteInAllFiles(OutputFiles, "Begin SubModelPartConditions \n");
 
@@ -4564,9 +4261,6 @@ void ModelPartIO::DivideSubModelPartConditionsBlock(OutputFilesContainerType& Ou
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
 {
     WriteInAllFiles(OutputFiles, "Begin NodalData PARTITION_INDEX\n");
@@ -4593,9 +4287,6 @@ void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, P
     WriteInAllFiles(OutputFiles, "End NodalData \n");
 
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                             PartitionIndicesType const& NodesPartitions,
@@ -4724,9 +4415,6 @@ void ModelPartIO::WriteCommunicatorData(OutputFilesContainerType& OutputFiles, S
     WriteInAllFiles(OutputFiles, "End CommunicatorData \n");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WriteCommunicatorLocalNodes(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, PartitionIndicesType const& NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
 {
     WriteInAllFiles(OutputFiles, "    Begin LocalNodes 0\n");
@@ -4741,17 +4429,11 @@ void ModelPartIO::WriteCommunicatorLocalNodes(OutputFilesContainerType& OutputFi
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::WriteInAllFiles(OutputFilesContainerType& OutputFiles, std::string const& ThisWord)
 {
     for(SizeType i = 0 ; i < OutputFiles.size() ; i++)
         *(OutputFiles[i]) << ThisWord;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 template<class TContainerType, class TKeyType>
 typename TContainerType::iterator ModelPartIO::FindKey(TContainerType& ThisContainer , TKeyType ThisKey, std::string ComponentName)
@@ -4767,9 +4449,6 @@ typename TContainerType::iterator ModelPartIO::FindKey(TContainerType& ThisConta
 
     return i_result;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 /**
 * @note Basically it starts to read the character sequence until reaching a
@@ -4807,9 +4486,6 @@ TValueType& ModelPartIO::ReadVectorialValue(TValueType& rValue)
     return rValue;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TValueType>
 TValueType& ModelPartIO::ExtractValue(std::string rWord, TValueType & rValue)
 {
@@ -4826,9 +4502,6 @@ void ModelPartIO::ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue) {
     rValue = KratosComponents<ConstitutiveLaw>::Get(value).Clone();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPartIO& ModelPartIO::ReadWord(std::string& Word)
 {
     Word.clear();
@@ -4842,9 +4515,6 @@ ModelPartIO& ModelPartIO::ReadWord(std::string& Word)
 
     return *this;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& BlockName)
 {
@@ -4907,9 +4577,6 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
     return *this;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 char ModelPartIO::SkipWhiteSpaces()
 {
     char c = GetCharacter();
@@ -4918,16 +4585,10 @@ char ModelPartIO::SkipWhiteSpaces()
     return c;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool ModelPartIO::IsWhiteSpace(char C)
 {
     return ((C == ' ') || (C == '\t') || (C == '\r') || (C == '\n'));
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 char ModelPartIO::GetCharacter() //Getting the next character skipping comments
 {
@@ -4962,9 +4623,6 @@ char ModelPartIO::GetCharacter() //Getting the next character skipping comments
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord)
 {
     bool result = false;
@@ -4981,9 +4639,6 @@ bool ModelPartIO::CheckStatement(std::string const& rStatement, std::string cons
     return result;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::ResetInput()
 {
     mpStream->clear();
@@ -4991,16 +4646,10 @@ void ModelPartIO::ResetInput()
     mNumberOfLines = 1;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
 {
     mpStream.swap(newStream);
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 inline void ModelPartIO::CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions)
 {
@@ -5011,9 +4660,6 @@ inline void ModelPartIO::CreatePartition(unsigned int NumberOfThreads,const int 
     for(unsigned int i = 1; i<NumberOfThreads; i++)
         partitions[i] = partitions[i-1] + partition_size ;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void ModelPartIO::ScanNodeBlock()
 {
@@ -5035,20 +4681,11 @@ void ModelPartIO::ScanNodeBlock()
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 /// Unaccessible assignment operator.
 ModelPartIO& ModelPartIO::operator=(ModelPartIO const& rOther){return *this;}
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 /// Unaccessible copy constructor.
 ModelPartIO::ModelPartIO(ModelPartIO const& rOther){}
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
 {
@@ -5057,9 +4694,6 @@ ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
     return NodeId;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPartIO::SizeType ModelPartIO::ReorderedElementId(ModelPartIO::SizeType ElementId)
 {
     // The ModelPartIO does not reorder the elements
@@ -5067,14 +4701,10 @@ ModelPartIO::SizeType ModelPartIO::ReorderedElementId(ModelPartIO::SizeType Elem
     return ElementId;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPartIO::SizeType ModelPartIO::ReorderedConditionId(ModelPartIO::SizeType ConditionId)
 {
     // The ModelPartIO does not reorder the conditions
     // This method is the one to be overriden by some reordering IO class
     return ConditionId;
 }
-
 }  // namespace Kratos.
