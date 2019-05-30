@@ -158,7 +158,7 @@ public:
     static MortarConditionMatrices AddExplicitContributionOfMortarFrictionalCondition(
         PairedCondition* pCondition,
         ProcessInfo& rCurrentProcessInfo,
-        MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+        const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
         const bool ComputeNodalArea = false
@@ -204,6 +204,26 @@ public:
         const PointType& rLocalPointParent,
         GeometryPointType& rGeometryDecomp,
         const bool DualLM = true
+        );
+
+    /**
+     * @brief This method computes the previous mortar operators
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rPreviousMortarOperators The previous mortar operators
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @return True is dual LM, false otherwise
+     */
+    static bool ComputePreviousMortarOperators(
+        PairedCondition* pCondition,
+        ProcessInfo& rCurrentProcessInfo,
+        MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false,
+        const bool ComputeNodalArea = false
         );
 
     /**

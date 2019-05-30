@@ -374,7 +374,7 @@ class MPIDataCommunicator: public DataCommunicator
     /** @note This method does not exist in the base class
      *  as it would introduce a dependency to MPI in the Kratos core.
      */
-    MPI_Comm GetMPICommunicator() const;
+    static MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
 
     ///@}
     ///@name Inquiry
