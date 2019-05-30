@@ -37,7 +37,7 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
     IndexType NewId,
     GeometryType::Pointer pGeometry
     )
-    : MPMBaseLoadCondition(NewId, pGeometry)
+    : MPMGridBaseLoadCondition(NewId, pGeometry)
 {
 }
 
@@ -49,7 +49,7 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     )
-    : MPMBaseLoadCondition(NewId, pGeometry, pProperties)
+    : MPMGridBaseLoadCondition(NewId, pGeometry, pProperties)
 {
 }
 
