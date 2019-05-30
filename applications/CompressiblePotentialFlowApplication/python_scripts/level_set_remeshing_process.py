@@ -79,7 +79,6 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             self._CalculateDistance()
             self._UpdateParameters()
         self._ModifyFinalDistance()
-        self._ExtendDistance()
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
 
@@ -155,6 +154,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,self.main_model_part.Nodes)
 
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
         metric_process.Execute()
