@@ -20,7 +20,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 
-
+#include "elements/distance_calculation_element_simplex.h"
 /* Processes */
 #include "processes/replace_elements_and_condition_process.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
@@ -384,10 +384,10 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     Triangle2D3 <NodeType>::Pointer p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_3} );
 
     // Elements are created
-    Element::Pointer p_elem_0 = Kratos::make_intrusive<Element>(1, p_triangle_0, p_elem_prop);
-    Element::Pointer p_elem_1 = Kratos::make_intrusive<Element>(2, p_triangle_1, p_elem_prop);
-    Element::Pointer p_elem_2 = Kratos::make_intrusive<Element>(3, p_triangle_2, p_elem_prop);
-    Element::Pointer p_elem_3 = Kratos::make_intrusive<Element>(4, p_triangle_3, p_elem_prop);
+    Element::Pointer p_elem_0 = Kratos::make_intrusive<DistanceCalculationElementSimplex<2>>(1, p_triangle_0, p_elem_prop);
+    Element::Pointer p_elem_1 = Kratos::make_intrusive<DistanceCalculationElementSimplex<2>>(2, p_triangle_1, p_elem_prop);
+    Element::Pointer p_elem_2 = Kratos::make_intrusive<DistanceCalculationElementSimplex<2>>(3, p_triangle_2, p_elem_prop);
+    Element::Pointer p_elem_3 = Kratos::make_intrusive<DistanceCalculationElementSimplex<2>>(4, p_triangle_3, p_elem_prop);
 
     // Element with id 4 is present in this model part and should therefore not be replaced
     parent_model_part.AddElement(p_elem_0);
