@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-
+/// Constructor with  filenames.
 ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     : mNumberOfLines(1)
     , mBaseFilename(Filename)
@@ -65,6 +65,7 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(Filename + ".time");
 }
 
+/// Constructor with stream
 ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options)
     : mNumberOfLines(1)
     , mOptions(Options)
@@ -78,6 +79,7 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
     mpStream = Stream;
 }
 
+/// Destructor.
 ModelPartIO::~ModelPartIO() {
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
 }
