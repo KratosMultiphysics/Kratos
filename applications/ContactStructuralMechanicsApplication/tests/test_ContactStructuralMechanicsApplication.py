@@ -211,7 +211,7 @@ def AssembleTestSuites():
 
     # ALM frictional tests
     #smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))              # FIXME
-    #smallSuite.addTest(TALMNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))    # FIXME
+    smallSuite.addTest(TALMNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
     #smallSuite.addTest(TALMPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))  # FIXME
     #smallSuite.addTest(TALMThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution')) # FIXME
     #smallSuite.addTest(TALMHyperSimplePatchFrictionalSlipTestContact('test_execution'))          # FIXME
