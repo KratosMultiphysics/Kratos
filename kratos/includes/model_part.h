@@ -475,7 +475,7 @@ public:
         return GetMesh(ThisIndex).Nodes();
     }
 
-    NodesContainerType::Pointer pNodes(IndexType ThisIndex = 0)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version") NodesContainerType::Pointer pNodes(IndexType ThisIndex = 0)
     {
         return GetMesh(ThisIndex).pNodes();
     }
