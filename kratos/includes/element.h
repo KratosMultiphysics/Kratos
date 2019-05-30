@@ -286,10 +286,10 @@ public:
     virtual void GetDofList(DofsVectorType& rElementalDofList,
                             const ProcessInfo& rCurrentProcessInfo) const
     {
-        const_cast<Element*>(this)->GetDofList(rElementalDofList, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rElementalDofList.size() != 0) {
-            rElementalDofList.resize(0);
-        }
+        const_cast<Element*>(this)->GetDofList(rElementalDofList, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rElementalDofList.size() != 0) {
+        //     rElementalDofList.resize(0);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetDofList(DofsVectorType& rElementalDofList,
@@ -322,10 +322,10 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Element*>(this)->GetValuesVector(values, Step); // TODO remove this after the transition period
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const_cast<Element*>(this)->GetValuesVector(values, Step); // TODO remove this after the transition period and uncomment the following
+        // if (values.size() != 0) {
+        //     values.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetValuesVector(Vector& values, int Step = 0)
@@ -340,10 +340,10 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Element*>(this)->GetFirstDerivativesVector(values, Step); // TODO remove this after the transition period
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const_cast<Element*>(this)->GetFirstDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
+        // if (values.size() != 0) {
+        //     values.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
@@ -358,10 +358,10 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Element*>(this)->GetSecondDerivativesVector(values, Step); // TODO remove this after the transition period
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const_cast<Element*>(this)->GetSecondDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
+        // if (values.size() != 0) {
+        //     values.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
@@ -491,13 +491,13 @@ public:
                                       VectorType& rRightHandSideVector,
                                       const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rLeftHandSideMatrix.size1() != 0) {
-            rLeftHandSideMatrix.resize(0, 0, false);
-        }
-        if (rRightHandSideVector.size() != 0) {
-            rRightHandSideVector.resize(0, false);
-        }
+        CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rLeftHandSideMatrix.size1() != 0) {
+        //     rLeftHandSideMatrix.resize(0, 0, false);
+        // }
+        // if (rRightHandSideVector.size() != 0) {
+        //     rRightHandSideVector.resize(0, false);
+        // }
     }
 
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
@@ -543,10 +543,10 @@ public:
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateLeftHandSide(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rLeftHandSideMatrix.size1() != 0) {
-            rLeftHandSideMatrix.resize(0, 0, false);
-        }
+        CalculateLeftHandSide(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rLeftHandSideMatrix.size1() != 0) {
+        //     rLeftHandSideMatrix.resize(0, 0, false);
+        // }
     }
 
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
@@ -582,10 +582,10 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateRightHandSide(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rRightHandSideVector.size() != 0) {
-            rRightHandSideVector.resize(0, false);
-        }
+        CalculateRightHandSide(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rRightHandSideVector.size() != 0) {
+        //     rRightHandSideVector.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -633,13 +633,13 @@ public:
                                                         VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateFirstDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rLeftHandSideMatrix.size1() != 0) {
-            rLeftHandSideMatrix.resize(0, 0, false);
-        }
-        if (rRightHandSideVector.size() != 0) {
-            rRightHandSideVector.resize(0, false);
-        }
+        CalculateFirstDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rLeftHandSideMatrix.size1() != 0) {
+        //     rLeftHandSideMatrix.resize(0, 0, false);
+        // }
+        // if (rRightHandSideVector.size() != 0) {
+        //     rRightHandSideVector.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
@@ -661,10 +661,10 @@ public:
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateFirstDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rLeftHandSideMatrix.size1() != 0) {
-            rLeftHandSideMatrix.resize(0, 0, false);
-        }
+        CalculateFirstDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rLeftHandSideMatrix.size1() != 0) {
+        //     rLeftHandSideMatrix.resize(0, 0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
@@ -684,11 +684,12 @@ public:
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
+
         CalculateFirstDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
 
-        if (rRightHandSideVector.size() != 0) {
-            rRightHandSideVector.resize(0, false);
-        }
+        // if (rRightHandSideVector.size() != 0) {
+        //     rRightHandSideVector.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
@@ -721,13 +722,13 @@ public:
                                                          VectorType& rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rLeftHandSideMatrix.size1() != 0) {
-            rLeftHandSideMatrix.resize(0, 0, false);
-        }
-        if (rRightHandSideVector.size() != 0) {
-            rRightHandSideVector.resize(0, false);
-        }
+        CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rLeftHandSideMatrix.size1() != 0) {
+        //     rLeftHandSideMatrix.resize(0, 0, false);
+        // }
+        // if (rRightHandSideVector.size() != 0) {
+        //     rRightHandSideVector.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
@@ -750,10 +751,10 @@ public:
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateSecondDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rLeftHandSideMatrix.size1() != 0) {
-            rLeftHandSideMatrix.resize(0, 0, false);
-        }
+        CalculateSecondDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rLeftHandSideMatrix.size1() != 0) {
+        //     rLeftHandSideMatrix.resize(0, 0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
@@ -773,10 +774,10 @@ public:
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateSecondDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rRightHandSideVector.size() != 0) {
-            rRightHandSideVector.resize(0, false);
-        }
+        CalculateSecondDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rRightHandSideVector.size() != 0) {
+        //     rRightHandSideVector.resize(0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
@@ -802,10 +803,10 @@ public:
      */
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateMassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rMassMatrix.size1() != 0) {
-            rMassMatrix.resize(0, 0, false);
-        }
+        CalculateMassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rMassMatrix.size1() != 0) {
+        //     rMassMatrix.resize(0, 0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -823,10 +824,10 @@ public:
      */
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateDampingMatrix(rDampingMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rDampingMatrix.size1() != 0) {
-            rDampingMatrix.resize(0, 0, false);
-        }
+        CalculateDampingMatrix(rDampingMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rDampingMatrix.size1() != 0) {
+        //     rDampingMatrix.resize(0, 0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -1188,11 +1189,11 @@ public:
      */
     virtual void MassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        MassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
+        MassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
 
-        if (rMassMatrix.size1() != 0) {
-            rMassMatrix.resize(0, 0, false);
-        }
+        // if (rMassMatrix.size1() != 0) {
+        //     rMassMatrix.resize(0, 0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -1226,10 +1227,10 @@ public:
      */
     virtual void DampMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        DampMatrix(rDampMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rDampMatrix.size1() != 0) {
-            rDampMatrix.resize(0, 0, false);
-        }
+        DampMatrix(rDampMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rDampMatrix.size1() != 0) {
+        //     rDampMatrix.resize(0, 0, false);
+        // }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -1262,12 +1263,12 @@ public:
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-        if (rDampingMatrix.size1() != 0) {
-            rDampingMatrix.resize(0, 0, false);
-        }
-
+        CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rDampingMatrix.size1() != 0) {
+        //     rDampingMatrix.resize(0, 0, false);
+        // }
     }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
