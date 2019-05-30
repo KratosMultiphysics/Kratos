@@ -143,50 +143,6 @@ namespace Kratos
                 it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
                 noalias(it_virt_node->FastGetSolutionStepValue(VELOCITY, step)) = it_orig_node->FastGetSolutionStepValue(VELOCITY, step);
             }
-
-            // // Check fixity and set PRESSURE values
-            // if (!it_orig_node->IsFixed(PRESSURE)) {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
-            //     }
-            // } else {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = 0.0;
-            //     }
-            // }
-
-            // // Check fixity and set VELOCITY_X values
-            // if (!it_orig_node->IsFixed(VELOCITY_X)) {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(VELOCITY_X, step) = it_orig_node->FastGetSolutionStepValue(VELOCITY_X, step);
-            //     }
-            // } else {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(VELOCITY_X, step) = 0.0;
-            //     }
-            // }
-
-            // // Check fixity and set VELOCITY_Y values
-            // if (!it_orig_node->IsFixed(VELOCITY_Y)) {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(VELOCITY_Y, step) = it_orig_node->FastGetSolutionStepValue(VELOCITY_Y, step);
-            //     }
-            // } else {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(VELOCITY_Y, step) = 0.0;
-            //     }
-            // }
-
-            // // Check fixity and set VELOCITY_Z values
-            // if (!it_orig_node->IsFixed(VELOCITY_Z)) {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(VELOCITY_Z, step) = it_orig_node->FastGetSolutionStepValue(VELOCITY_Z, step);
-            //     }
-            // } else {
-            //     for (unsigned int step = 0; step < buffer_size; ++step) {
-            //         it_virt_node->FastGetSolutionStepValue(VELOCITY_Z, step) = 0.0;
-            //     }
-            // }
         }
     }
 
@@ -253,27 +209,6 @@ namespace Kratos
                     noalias(it_node->FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
                 }
 
-                // if (!it_node->IsFixed(PRESSURE)) {
-                //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                //         it_node->FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
-                //     }
-                // }
-                // if (!it_node->IsFixed(VELOCITY_X)) {
-                //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                //         it_node->FastGetSolutionStepValue(VELOCITY_X, i_step) = 0.0;
-                //     }
-                // }
-                // if (!it_node->IsFixed(VELOCITY_Y)) {
-                //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                //         it_node->FastGetSolutionStepValue(VELOCITY_Y, i_step) = 0.0;
-                //     }
-                // }
-                // if (!it_node->IsFixed(VELOCITY_Z)) {
-                //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                //         it_node->FastGetSolutionStepValue(VELOCITY_Z, i_step) = 0.0;
-                //     }
-                // }
-
                 // Interpolate the origin model part nodal values
                 const auto &r_geom = p_elem->GetGeometry();
                 for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
@@ -288,35 +223,6 @@ namespace Kratos
                         it_node->FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
                         noalias(it_node->FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
                     }
-
-                    // // If not fixed, project PRESSURE
-                    // if (!it_node->IsFixed(PRESSURE)) {
-                    //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                    //         const double &i_virt_p = r_geom[i_virt_node].FastGetSolutionStepValue(PRESSURE, i_step);
-                    //         it_node->FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
-                    //     }
-                    // }
-                    // // If not fixed, project VELOCITY_X
-                    // if (!it_node->IsFixed(VELOCITY_X)) {
-                    //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                    //         const double &i_virt_v_x = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY_X, i_step);
-                    //         it_node->FastGetSolutionStepValue(VELOCITY_X, i_step) += aux_N(i_virt_node) * i_virt_v_x;
-                    //     }
-                    // }
-                    // // If not fixed, project VELOCITY_Y
-                    // if (!it_node->IsFixed(VELOCITY_Y)) {
-                    //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                    //         const double &i_virt_v_y = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY_Y, i_step);
-                    //         it_node->FastGetSolutionStepValue(VELOCITY_Y, i_step) += aux_N(i_virt_node) * i_virt_v_y;
-                    //     }
-                    // }
-                    // // If not fixed, project VELOCITY_Z
-                    // if (!it_node->IsFixed(VELOCITY_Z)) {
-                    //     for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                    //         const double &i_virt_v_z = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY_Z, i_step);
-                    //         it_node->FastGetSolutionStepValue(VELOCITY_Z, i_step) += aux_N(i_virt_node) * i_virt_v_z;
-                    //     }
-                    // }
                 }
             } else {
                 KRATOS_WARNING("FixedMeshALEUtilities")
