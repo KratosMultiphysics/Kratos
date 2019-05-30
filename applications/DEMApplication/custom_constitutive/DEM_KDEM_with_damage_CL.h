@@ -20,6 +20,8 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
+        void Check(Properties::Pointer pProp) const override;
+
         void Initialize(SphericContinuumParticle* element) override;
 
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],

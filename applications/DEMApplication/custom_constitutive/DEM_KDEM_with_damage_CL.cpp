@@ -22,6 +22,16 @@ namespace Kratos {
         this->Check(pProp);
     }
 
+    void DEM_KDEM_with_damage::Check(Properties::Pointer pProp) const {
+
+        if (!pProp->Has(SHEAR_ENERGY_COEF)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable SHEAR_ENERGY_COEF should be present in the properties when using DEM_KDEM_with_damage. A default value of 0.0 was assigned."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(SHEAR_ENERGY_COEF) = 0.0;
+        }
+    }
+
     void DEM_KDEM_with_damage::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
