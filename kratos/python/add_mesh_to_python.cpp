@@ -142,6 +142,19 @@ void ConditionCalculateLocalSystemStandard( Condition& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
+void ConditionInitialize(Condition& dummy,
+                       const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.Initialize(rCurrentProcessInfo);
+}
+
+void ConditionInitializeOld(Condition& dummy)
+{
+    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
+    ProcessInfo tmp_process_info;
+    dummy.Initialize(tmp_process_info);
+}
+
 
 py::list GetNodesFromCondition( Condition& dummy )
 {
@@ -732,7 +745,8 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 
 
-    .def("Initialize", &Condition::Initialize)
+    .def("Initialize", &ConditionInitialize)
+    .def("Initialize", &ConditionInitializeOld)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
