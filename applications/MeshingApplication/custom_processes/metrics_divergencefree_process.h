@@ -197,20 +197,23 @@ private:
 
     ModelPart& mrThisModelPart; /// The model part to compute
 
-    double mMinSize;           /// The minimal size of the elements
-    double mMaxSize;           /// The maximal size of the elements
+    double mMinSize;                 /// The minimal size of the elements
+    double mMaxSize;                 /// The maximal size of the elements
     std::string mRefinementStrategy; /// Refinement strategy
+    SizeType mEchoLevel;             /// The echo level
 
-    bool mSetElementNumber;    /// Determines if a target number of elements for the new mesh is set
-    std::string mReferenceVariable = "DIVERGENCE";    /// Variable used to compute the metric
-    SizeType mElementNumber;   /// The target number of elements for the new mesh
-    double mTargetRefinementCoefficient;       /// The overall target divergencefree for the new mesh
-    bool mAverageNodalH;       /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
+    // Mean strategy
+    std::string mMeanStrategyReferenceVariable;
+    std::string mMeanStrategyReferenceNorm;
+    std::string mMeanStrategyReferenceVolume;
+    double mMeanStrategyTargetRefinementCoefficient;
+    double mMeanStrategyRefinementBound;
+    double mMeanStrategyDivergenceFreeInterpolationValue;
 
-    SizeType mEchoLevel;       /// The echo level
-
-    // Maximum refinement strategy
-    double mRefinementCoefficient; /// Refinement coefficient of maximum strategy
+    // Maximum strategy
+    std::string mMaxStrategyReferenceVariable;
+    double mMaxStrategyTargetRefinementCoefficient;
+    double mMaxStrategyRefinementCoefficient;
     double mDivergenceFreeMaxValue; /// Maximum value of the divergence
 
     ///@}
@@ -222,9 +225,9 @@ private:
     ///@{
 
     /**
-     * @brief This method estimates the new element size
+     * @brief This method initializes each refinement strategy
      */
-    void CalculateElementSize();
+    void InitializeRefinementStrategy();
 
     /**
      * @brief In this final step the metric is computed
