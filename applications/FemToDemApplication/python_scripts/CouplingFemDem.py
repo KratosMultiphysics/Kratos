@@ -131,20 +131,8 @@ class FEMDEM_Solution:
         self.PerformRemeshingIfNecessary()
         self.FEM_Solution.InitializeSolutionStep()
 
-        print("initalize")
-        if self.FEM_Solution.step >= 10:
-            for cond in self.FEM_Solution.main_model_part.GetSubModelPart("Normal_Load-auto-1").Conditions:
-                print(cond.Id)
-            Wait()
-
 #============================================================================================================================
     def SolveSolutionStep(self): # Function to perform the coupling FEM <-> DEM
-
-        # print("solve")
-        # if self.FEM_Solution.step >= 10:
-        #     for cond in self.FEM_Solution.main_model_part.GetSubModelPart("Normal_Load-auto-1").Conditions:
-        #         print(cond.Id)
-        #     Wait()
 
         self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
 
@@ -624,25 +612,11 @@ class FEMDEM_Solution:
 #============================================================================================================================
     def RemoveDummyNodalForces(self):
 
-        if self.FEM_Solution.step >= 10:
-            print("prssure forces")
-            for cond in self.FEM_Solution.main_model_part.GetSubModelPart("Normal_Load-auto-1").Conditions:
-                print(cond.Id, len(cond.GetNodes()))
-            Wait()
-
         for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
-            # print(len(condition.GetNodes()))
-            if len(condition.GetNodes()) == 1:
-                condition.Set(KratosMultiphysics.TO_ERASE, True)
+            condition.Set(KratosMultiphysics.TO_ERASE, True)
 
         self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
         self.FEM_Solution.main_model_part.RemoveSubModelPart("ContactForcesDEMConditions")
-
-        if self.FEM_Solution.step >= 10:
-            print("despues de --- dummy nodal forces")
-            for cond in self.FEM_Solution.main_model_part.GetSubModelPart("Normal_Load-auto-1").Conditions:
-                print(cond.Id)
-            Wait()
 
 #============================================================================================================================
     def RemoveAloneDEMElements(self):
