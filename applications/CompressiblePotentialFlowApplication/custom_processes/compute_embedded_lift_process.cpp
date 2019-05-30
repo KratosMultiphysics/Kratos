@@ -31,68 +31,58 @@ void ComputeEmbeddedLiftProcess::Execute()
 {
     KRATOS_TRY;
 
-        double Cl=0;
-        double Cd=0;
-        double Rz=0;
+    mrResultForce = ZeroVector(3);
 
-        for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
-        {
-            if (it->Is(TO_SPLIT) && it -> Is(ACTIVE)){
-                auto r_geometry = it->GetGeometry();
-                const std::size_t NumNodes = r_geometry.PointsNumber();
+    #pragma omp parallel for
+    for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
+        auto it=mrModelPart.ElementsBegin()+i;
+        if (it->Is(TO_SPLIT) && it -> Is(ACTIVE)){
+            auto r_geometry = it->GetGeometry();
+            const std::size_t NumNodes = r_geometry.PointsNumber();
 
-                array_1d<double,3> elemental_distances;
-                for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                    elemental_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+            array_1d<double,3> elemental_distances;
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                elemental_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
-                const Vector& r_elemental_distances=elemental_distances;
-                ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
+            const Vector& r_elemental_distances=elemental_distances;
+            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
 
-                Matrix positive_side_interface_sh_func;
-                ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
-                Vector positive_side_interface_weights;
-                pModifiedShFunc -> ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-                    positive_side_interface_sh_func,
-                    positive_side_sh_func_interface_gradients,
-                    positive_side_interface_weights,
-                    GeometryData::GI_GAUSS_1);
+            Matrix positive_side_interface_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
+            Vector positive_side_interface_weights;
+            pModifiedShFunc -> ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+                positive_side_interface_sh_func,
+                positive_side_sh_func_interface_gradients,
+                positive_side_interface_weights,
+                GeometryData::GI_GAUSS_1);
 
 
-                std::vector<Vector> cut_unit_normal;
-                std::vector<Vector> gp_cut;
-                pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_unit_normal,GeometryData::GI_GAUSS_1);
+            std::vector<Vector> cut_unit_normal;
+            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_unit_normal,GeometryData::GI_GAUSS_1);
 
-                const unsigned int n_gauss = positive_side_interface_weights.size();
-
-                array_1d<double,3>  gp_wall = ZeroVector(3);
-                for (unsigned int i_gauss=0;i_gauss<n_gauss;i_gauss++){
-                    for (unsigned int i_node=0;i_node<NumNodes;i_node++){
-                        array_1d<double,3> coord=r_geometry[i_node].Coordinates();
-                        for (unsigned int i_dim=0;i_dim<3;i_dim++){
-                            gp_wall[i_dim] += coord[i_dim]*positive_side_interface_sh_func(i_gauss,i_node);//*positive_side_interface_weights(i_gauss);
-                        }
-                    }
+            //Calculating the coordinates of the wall gauss points
+            array_1d<double,3>  wall_gauss_points = ZeroVector(3);
+            for (unsigned int i_node=0;i_node<NumNodes;i_node++){
+                array_1d<double,3> coord=r_geometry[i_node].Coordinates();
+                for (unsigned int i_dim=0;i_dim<3;i_dim++){
+                    wall_gauss_points[i_dim] += coord[i_dim]*positive_side_interface_sh_func(0,i_node);
                 }
+            }
 
-                std::vector<double> cp;
+            std::vector<double> pressure_coefficient;
+            it->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
 
-                it->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,cp,mrModelPart.GetProcessInfo());
+            //Storing the local cp, normal direction and gauss_points coordinates
+            it->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);
+            it->SetValue(NORMAL,cut_unit_normal[0]);
+            it->SetValue(INTEGRATION_COORDINATES,wall_gauss_points);
 
-                double cpressure=cp[0];
-
-                Cl += cpressure*cut_unit_normal[0][1];
-                Cd += cpressure*cut_unit_normal[0][0];
-                Rz += cpressure*cut_unit_normal[0][2];
-
-
-                it->SetValue(PRESSURE_COEFFICIENT,cp[0]);
-                it->SetValue(NORMAL,cut_unit_normal[0]);
-                it->SetValue(BODY_FORCE,gp_wall); //provisional name for cp application point
+            //Calculating result force as the sum of the pressure contribution of every element
+            for (std::size_t i = 0; i<3;i++){
+                mrResultForce(i) += pressure_coefficient[0]*cut_unit_normal[0][i];
             }
         }
-        mrResultForce[0]=Cd;
-        mrResultForce[1]=Cl;
-        mrResultForce[2]=Rz;
+    }
 
     KRATOS_CATCH("");
 }
