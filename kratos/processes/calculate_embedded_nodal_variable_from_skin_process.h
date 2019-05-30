@@ -285,8 +285,6 @@ public:
         KRATOS_TRY
 
         // Check the process settings
-        // KRATOS_ERROR_IF(mLevelSetType != "continuous" && mLevelSetType != "discontinuous") <<
-        //     "Provided level set type " << mLevelSetType << ". Options are \'continuous\' or \'discontinuous\'." << std::endl;
         KRATOS_ERROR_IF(!(mBufferPosition < rBaseModelPart.GetBufferSize())) <<
             "Asked for buffer position " << mBufferPosition << " buf base model part buffer size is " << rBaseModelPart.GetBufferSize() << std::endl;
         KRATOS_ERROR_IF(!(mBufferPosition < rSkinModelPart.GetBufferSize())) <<

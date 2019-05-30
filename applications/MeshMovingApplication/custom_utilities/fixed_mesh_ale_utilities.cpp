@@ -90,7 +90,6 @@ namespace Kratos
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() == 0) << "Origin model part has no elements.";
 
         // Check that the origin model part has the required variables
-        KRATOS_ERROR_IF(!rOriginModelPart.HasNodalSolutionStepVariable(DISPLACEMENT)) << "Missing required DISPLACEMENT variable in origin model part." << std::endl;
         KRATOS_ERROR_IF(!rOriginModelPart.HasNodalSolutionStepVariable(MESH_VELOCITY)) << "Missing required MESH_VELOCITY variable in origin model part." << std::endl;
         KRATOS_ERROR_IF(!rOriginModelPart.HasNodalSolutionStepVariable(MESH_DISPLACEMENT)) << "Missing required MESH_DISPLACEMENT variable in origin model part." << std::endl;
 
@@ -134,7 +133,7 @@ namespace Kratos
     {
         auto virt_nodes_begin = mrVirtualModelPart.NodesBegin();
         auto orig_nodes_begin = mpOriginModelPart->NodesBegin();
-        const int buffer_size = mpOriginModelPart->GetBufferSize();
+        const unsigned int buffer_size = mpOriginModelPart->GetBufferSize();
 
         #pragma omp parallel for firstprivate(virt_nodes_begin, orig_nodes_begin, buffer_size)
         for (int i_node = 0; i_node < static_cast<int>(mpOriginModelPart->NumberOfNodes()); ++i_node) {
@@ -245,11 +244,10 @@ namespace Kratos
 
             // Check if the node is found
             if (is_found){
-                // Initialize historical data
-                // The current step values are also set as a prediction
+                // Initialize MESH_VELOCITY
                 noalias(it_node->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
 
-                //TODO: REMOVE AFTER DEBUGGING
+                // Initialize historical data
                 for (unsigned int i_step = 1; i_step < BufferSize; ++i_step) {
                     it_node->FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
                     noalias(it_node->FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
@@ -283,7 +281,7 @@ namespace Kratos
                     const auto i_virt_v_mesh = r_geom[i_virt_node].FastGetSolutionStepValue(MESH_VELOCITY);
                     it_node->FastGetSolutionStepValue(MESH_VELOCITY) += aux_N(i_virt_node) * i_virt_v_mesh;
 
-                    //TODO: REMOVE AFTER DEBUGGING
+                    // Project historical data
                     for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                         const auto &i_virt_v = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY, i_step);
                         const double &i_virt_p = r_geom[i_virt_node].FastGetSolutionStepValue(PRESSURE, i_step);

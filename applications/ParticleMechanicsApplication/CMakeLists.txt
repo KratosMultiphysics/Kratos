@@ -63,14 +63,17 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.cpp
 
 	###conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_base_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.cpp
 )
 
 ## generate variables with the testing sources

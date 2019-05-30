@@ -434,7 +434,7 @@ namespace MortarUtilities
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) ResetValue(
         ModelPart& rThisModelPart,
-        TVarType& rThisVariable
+        const TVarType& rThisVariable
         );
 
     /**
@@ -449,7 +449,7 @@ namespace MortarUtilities
      * @return The auxiliar variable
      */
     template< class TVarType>
-    TVarType KRATOS_API(KRATOS_CORE) GetAuxiliarVariable();
+    const std::string KRATOS_API(KRATOS_CORE) GetAuxiliarVariable();
 
     /**
      * @brief This method returns the auxiliar variable
@@ -460,7 +460,7 @@ namespace MortarUtilities
     template< class TVarType>
     double KRATOS_API(KRATOS_CORE) GetAuxiliarValue(
         NodeType::Pointer pThisNode,
-        unsigned int iSize
+        const std::size_t iSize
         );
 
     /**
@@ -472,7 +472,7 @@ namespace MortarUtilities
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) MatrixValue(
         const GeometryType& rThisGeometry,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         Matrix& rThisValue
         );
 
@@ -486,7 +486,7 @@ namespace MortarUtilities
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) AddValue(
         GeometryType& rThisGeometry,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         const Matrix& rThisValue
         );
 
@@ -498,7 +498,7 @@ namespace MortarUtilities
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) AddAreaWeightedNodalValue(
         NodeType::Pointer pThisNode,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         const double RefArea = 1.0,
         const double Tolerance = 1.0e-4
         );
@@ -507,17 +507,17 @@ namespace MortarUtilities
      * @brief This method updates the database in the amster side
      * @param rThisModelPart The model part
      * @param rThisVariable The variable to set
-     * @param Dx The vector with the increment of the value
+     * @param rDx The vector with the increment of the value
      * @param Index The index used in the  case of a vector variable
-     * @param ConectivityDatabase The database that will be used to assemble the system
+     * @param rConectivityDatabase The database that will be used to assemble the system
      */
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) UpdateDatabase(
         ModelPart& rThisModelPart,
-        TVarType& rThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
+        const TVarType& rThisVariable,
+        Vector& rDx,
+        const std::size_t Index,
+        IntMap& rConectivityDatabase
         );
 };// namespace MortarUtilities
 } // namespace Kratos
