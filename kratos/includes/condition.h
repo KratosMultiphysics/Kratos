@@ -359,7 +359,7 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Consition*>(this)->GetSecondDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
+        const_cast<Condition*>(this)->GetSecondDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
         // if (values.size() != 0) {
         //     values.resize(0, false);
         // }
