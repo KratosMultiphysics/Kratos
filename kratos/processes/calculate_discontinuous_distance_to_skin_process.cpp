@@ -385,7 +385,7 @@ namespace Kratos
 	{
 		// Get the background mesh model part
 		const auto &r_model_part = mFindIntersectedObjectsProcess.GetModelPart1();
-		KRATOS_ERROR_IF(r_model_part.NumberOfNodes() != 0)
+		KRATOS_ERROR_IF(r_model_part.NumberOfNodes() == 0)
 			<< "Background mesh model part has no nodes." << std::endl;
 
 		// Compute the domain characteristic length
