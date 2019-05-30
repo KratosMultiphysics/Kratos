@@ -19,7 +19,7 @@ namespace Kratos
 {
 // Constructor for ComputeEmbeddedLiftProcess Process
 ComputeEmbeddedLiftProcess::ComputeEmbeddedLiftProcess(ModelPart& rModelPart,
-                array_1d<double,3>& rResultForce
+                Vector& rResultForce
                 ):
         Process(),
         mrModelPart(rModelPart),
@@ -47,10 +47,7 @@ void ComputeEmbeddedLiftProcess::Execute()
 
                 const Vector& r_elemental_distances=elemental_distances;
                 ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
-                // Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pgeom, r_elemental_distances);
 
-
-                array_1d<double,3>  gp_wall = ZeroVector(3);
                 Matrix positive_side_interface_sh_func;
                 ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
                 Vector positive_side_interface_weights;
@@ -67,9 +64,7 @@ void ComputeEmbeddedLiftProcess::Execute()
 
                 const unsigned int n_gauss = positive_side_interface_weights.size();
 
-                std::vector<double> cp;
-
-
+                array_1d<double,3>  gp_wall = ZeroVector(3);
                 for (unsigned int i_gauss=0;i_gauss<n_gauss;i_gauss++){
                     for (unsigned int i_node=0;i_node<NumNodes;i_node++){
                         array_1d<double,3> coord=r_geometry[i_node].Coordinates();
@@ -78,6 +73,8 @@ void ComputeEmbeddedLiftProcess::Execute()
                         }
                     }
                 }
+
+                std::vector<double> cp;
 
                 it->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,cp,mrModelPart.GetProcessInfo());
 
@@ -91,8 +88,6 @@ void ComputeEmbeddedLiftProcess::Execute()
                 it->SetValue(PRESSURE_COEFFICIENT,cp[0]);
                 it->SetValue(NORMAL,cut_unit_normal[0]);
                 it->SetValue(BODY_FORCE,gp_wall); //provisional name for cp application point
-
-
             }
         }
         mrResultForce[0]=Cd;
@@ -105,7 +100,7 @@ void ComputeEmbeddedLiftProcess::Execute()
 ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
     GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
     switch (geometry_type){
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:    
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
             return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
         default:
                 KRATOS_ERROR << "Only Triangle2D3 geometries are currently implemented. The given geometry was: " << geometry_type;
