@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "hyper_simple_patch_test",
+        "problem_name"    : "no_friction_hyper_simple_patch_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0e-3,
@@ -17,7 +17,7 @@
             "input_filename" : "ALM_frictional_contact_test_2D/hyper_simple_patch_test"
         },
         "material_import_settings" :{
-            "materials_filename": "ALM_frictional_contact_test_2D/hyper_simple_patch_test_materials.json"
+            "materials_filename": "ALM_frictional_contact_test_2D/no_friction_hyper_simple_patch_test_materials.json"
         },
         "contact_settings":
         {
@@ -47,7 +47,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -59,7 +59,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -71,10 +71,10 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "IMPOSE_DISP_Auto1",
+                "model_part_name" : "Structure.IMPOSE_DISP_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
-                "value"           : [4.0e-2,-4.0e-2,0.0]
+                "value"           : [0.0,-4.0e-2,null]
             }
         }
         ],
@@ -82,7 +82,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {
@@ -101,7 +101,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-                "input_file_name"      : "ALM_frictional_contact_test_2D/hyper_simple_patch_test_results.json",
+                "input_file_name"      : "ALM_frictional_contact_test_2D/no_friction_hyper_simple_patch_test_results.json",
                 "model_part_name"      : "Contact_Part",
                 "time_frequency"       : 1.0e-3
             }
@@ -116,7 +116,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "ALM_frictional_contact_test_2D/hyper_simple_patch_test_results.json",
+            "output_file_name"     : "ALM_frictional_contact_test_2D/no_friction_hyper_simple_patch_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0e-3
         }
@@ -132,24 +132,27 @@
                 "model_part_name"        : "Structure.computing_domain",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 1.0,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
-                        "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
-                        "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
-                        "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "result_file_configuration" : {
+                    "gidpost_flags"       : {
+                        "GiDPostMode"           : "GiD_PostBinary",
+                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                        "MultiFileFlag"         : "SingleFile"
                     },
-                    "point_data_configuration"  : []}}}]
+                    "file_label"          : "step",
+                    "output_control_type" : "step",
+                    "output_frequency"    : 1.0,
+                    "body_output"         : true,
+                    "node_output"         : false,
+                    "skin_output"         : false,
+                    "plane_output"        : [],
+                    "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+                    "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
+                    "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
+                    "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                },
+                "point_data_configuration"  : []
+                }
+            }
+        }]
     }
 }
