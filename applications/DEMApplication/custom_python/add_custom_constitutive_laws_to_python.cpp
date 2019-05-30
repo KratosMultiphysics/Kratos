@@ -31,6 +31,7 @@
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_KDEM_soft_torque_CL.h"
 #include "../custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CamClay_CL.h"
