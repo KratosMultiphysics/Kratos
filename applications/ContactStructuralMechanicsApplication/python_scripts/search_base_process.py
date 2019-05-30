@@ -403,7 +403,21 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         key -- The key to identify the current pair
         """
+        # Create main parameters
+        search_parameters = self._create_search_parameters(key)
 
+        # We create the search process
+        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+
+    def _create_search_parameters(self, key = "0"):
+        """ This creates the parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+
+        # Create main parameters
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
         search_parameters.AddValue("simple_search", self.settings["search_parameters"]["simple_search"])
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
@@ -424,8 +438,7 @@ class SearchBaseProcess(KM.Process):
         # Setting additional parameters
         self._set_additional_parameters(search_parameters)
 
-        # We create the search process
-        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+        return search_parameters
 
     def _set_additional_parameters(self, param):
         """ This sets additional parameters for the search

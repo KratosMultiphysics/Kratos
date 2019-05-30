@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_MPM_GRID_BASE_LOAD_CONDITION_3D_H_INCLUDED )
+#define      KRATOS_MPM_GRID_BASE_LOAD_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -45,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class MPMBaseLoadCondition
+class MPMGridBaseLoadCondition
     : public Condition
 {
 public:
@@ -54,27 +54,27 @@ public:
     typedef std::size_t SizeType;
     ///@{
 
-    // Counted pointer of MPMBaseLoadCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMBaseLoadCondition );
+    // Counted pointer of MPMGridBaseLoadCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridBaseLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    MPMBaseLoadCondition()
+    MPMGridBaseLoadCondition()
     {};
 
     // Constructor using an array of nodes
-    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMGridBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMGridBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
-    ~MPMBaseLoadCondition() override
+    ~MPMGridBaseLoadCondition() override
     {};
 
     ///@}
@@ -347,7 +347,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class MPMBaseLoadCondition.
+}; // class MPMGridBaseLoadCondition.
 
 ///@}
 ///@name Type Definitions
@@ -360,4 +360,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_MPM_GRID_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined

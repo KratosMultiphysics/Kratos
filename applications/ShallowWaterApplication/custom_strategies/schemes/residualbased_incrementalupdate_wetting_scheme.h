@@ -120,7 +120,7 @@ public:
         TSystemVectorType& rb
         ) override
     {
-        if (!mpWettingModel) {
+        if (mpWettingModel != nullptr) {
             mpWettingModel->ExecuteInitializeSolutionStep();
         }
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
@@ -141,7 +141,7 @@ public:
         ) override
     {
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        if (!mpWettingModel) {
+        if (mpWettingModel != nullptr) {
             mpWettingModel->ExecuteFinalizeSolutionStep();
         }
     }
