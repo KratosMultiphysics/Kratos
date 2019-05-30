@@ -64,7 +64,7 @@ namespace Kratos
 		double max_x(0.0), max_y(0.0), max_z(0.0);
 		double min_x(0.0), min_y(0.0), min_z(0.0);
 
-		#pragma omp parallel for reduction(max:max_x) reduction(max:max_y) reduction(max:max_z) reduction(min:min_x) reduction(min:min_y) reduction(min:min_z)
+		#pragma omp parallel for reduction(max:max_x, max_y, max_z) reduction(min:min_x, min_y, min_z)
 		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
 			const auto it_node = ModelPart1.NodesBegin() + i_node;
 			max_x = (max_x < (*it_node)[0]) ? (*it_node)[0] : max_x;
