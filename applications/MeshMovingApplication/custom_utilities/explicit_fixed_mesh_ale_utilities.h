@@ -211,10 +211,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateExtraStructureNodes(const GeometryData::IntegrationMethod &rIntegrationMethod = GeometryData::GI_GAUSS_5);
-
-    void RemoveExtraStructureNodes();
-
     /**
     * According to mSearchRadius, performs the bins search of the close structure nodes for each fluid node
     * @return rSearchResults vector containing the the rStructureModelPart nodes inside

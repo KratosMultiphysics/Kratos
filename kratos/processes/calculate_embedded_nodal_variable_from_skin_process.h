@@ -34,8 +34,6 @@
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 
-#include "includes/gid_io.h"
-
 namespace Kratos
 {
 
@@ -355,7 +353,6 @@ public:
         this->SetLinearStrategy();
 
         // Solve the regression problem
-        mpSolvingStrategy->SetEchoLevel(2);
         mpSolvingStrategy->Solve();
 
         // Copy the obtained values from the unknown variable to the user-defined variable
