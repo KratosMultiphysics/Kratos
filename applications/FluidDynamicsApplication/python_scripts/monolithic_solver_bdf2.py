@@ -12,7 +12,6 @@ def AddVariables(model_part):
 # model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
 # model_part.AddNodalSolutionStepVariable(IS_FLUID);
 # model_part.AddNodalSolutionStepVariable(IS_POROUS);
-# model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
 # model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
 # model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
 # model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
