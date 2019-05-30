@@ -23,8 +23,8 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
-#include "includes/kratos_flags.h"
 #include "includes/key_hash.h"
+#include "includes/kratos_flags.h"
 #include "includes/linear_solver_factory.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "processes/process.h"
@@ -169,7 +169,7 @@ public:
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
-    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesMapType;
+    typedef std::unordered_set<std::pair<std::size_t, std::size_t>, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesSetType;
 
     ///@}
     ///@name Pointer Definitions
@@ -492,7 +492,7 @@ protected:
         VariableUtils().SetFlag(INTERFACE, false, mrBaseModelPart.Elements());
 
         // Create element edges map
-        EdgesMapType edges_map;
+        EdgesSetType edges_set;
 
         // Get the base model part intersections
         auto &r_int_obj_vect = mpFindIntersectedGeometricalObjectsProcess->GetIntersections();
@@ -516,7 +516,7 @@ protected:
                     auto &r_i_edge_geom = edges[i_edge];
                     auto i_edge_pair = this->SetEdgePair(r_i_edge_geom);
 
-                    if (edges_map.find(i_edge_pair) == edges_map.end()) {
+                    if (edges_set.find(i_edge_pair) == edges_set.end()) {
                         // Initialize edge values
                         double i_edge_d = 0.0; // Average normalized distance from lower id. node
                         unsigned int n_int_obj = 0; // Number edge of intersecting entities
@@ -572,7 +572,7 @@ protected:
                             new_elem_id++;
 
                             // Add the new edge element to the hash map
-                            edges_map.insert(std::make_pair(i_edge_pair, new_elem_id));
+                            edges_set.insert(i_edge_pair);
 
                             // Add the new edge element to the intersected elements model part
                             rModelPart.Elements().push_back(p_element);
