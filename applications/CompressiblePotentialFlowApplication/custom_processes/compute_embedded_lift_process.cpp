@@ -47,39 +47,20 @@ void ComputeEmbeddedLiftProcess::Execute()
             const Vector& r_elemental_distances=elemental_distances;
             ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
 
-            Matrix positive_side_interface_sh_func;
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
-            Vector positive_side_interface_weights;
-            pModifiedShFunc -> ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-                positive_side_interface_sh_func,
-                positive_side_sh_func_interface_gradients,
-                positive_side_interface_weights,
-                GeometryData::GI_GAUSS_1);
-
-
-            std::vector<Vector> cut_unit_normal;
-            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_unit_normal,GeometryData::GI_GAUSS_1);
-
-            //Calculating the coordinates of the wall gauss points
-            array_1d<double,3>  wall_gauss_points = ZeroVector(3);
-            for (unsigned int i_node=0;i_node<NumNodes;i_node++){
-                array_1d<double,3> coord=r_geometry[i_node].Coordinates();
-                for (unsigned int i_dim=0;i_dim<3;i_dim++){
-                    wall_gauss_points[i_dim] += coord[i_dim]*positive_side_interface_sh_func(0,i_node);
-                }
-            }
+            // Computing Normal
+            std::vector<Vector> cut_normal;
+            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
 
             std::vector<double> pressure_coefficient;
             it->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
 
-            //Storing the local cp, normal direction and gauss_points coordinates
+            //Storing the local cp and cut normal
             it->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);
-            it->SetValue(NORMAL,cut_unit_normal[0]);
-            it->SetValue(INTEGRATION_COORDINATES,wall_gauss_points);
+            it->SetValue(NORMAL,cut_normal[0]);
 
             //Calculating result force as the sum of the pressure contribution of every element
             for (std::size_t i = 0; i<3;i++){
-                mrResultForce(i) += pressure_coefficient[0]*cut_unit_normal[0][i];
+                mrResultForce(i) += pressure_coefficient[0]*cut_normal[0][i];
             }
         }
     }
