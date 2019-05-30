@@ -31,13 +31,13 @@ def GetSympyVersion():
     return sympy.__version__
 
 def DefineMatrix( name, m, n ):
-    #""" This method defines a symbolic matrix
+    """ This method defines a symbolic matrix
 
-    #Keyword arguments:
-    #name -- Name of variables.
-    #m -- Number of rows.
-    #n -- Number of columns.
-    #"""
+    Keyword arguments:
+    name -- Name of variables.
+    m -- Number of rows.
+    n -- Number of columns.
+    """
     if float(GetSympyVersion()) <= 1.2:
         return sympy.Matrix( m,n, lambda i,j: sympy.var(name+'_%d_%d' % (i,j)) )
     else:
