@@ -23,6 +23,9 @@
 #include "includes/kratos_components.h"
 #include "includes/element.h"
 #include "elements/mesh_element.h"
+#include "elements/distance_calculation_element_simplex.h"
+#include "elements/levelset_convection_element_simplex.h"
+#include "elements/mesh_element.h"
 #include "includes/condition.h"
 #include "conditions/mesh_condition.h"
 #include "includes/periodic_condition.h"
@@ -407,6 +410,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
+
+    const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D;
+    const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D;
+
+    const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D;
+    const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
