@@ -122,7 +122,7 @@ public:
 
     enum class CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
 
-    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4};
+    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4, OtherFrictionless = 5, OtherFrictional = 6};
 
     ///@}
     ///@name Life Cycle

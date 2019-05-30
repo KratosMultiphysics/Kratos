@@ -27,7 +27,7 @@ namespace Kratos
 //************************************************************************************
 
 MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
-    : MPMBaseLoadCondition( NewId, pGeometry )
+    : MPMGridBaseLoadCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -36,7 +36,7 @@ MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, Geometr
 //************************************************************************************
 
 MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-    : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
+    : MPMGridBaseLoadCondition( NewId, pGeometry, pProperties )
 {
 }
 

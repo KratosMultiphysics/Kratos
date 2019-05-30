@@ -105,6 +105,52 @@ SurfaceLoadCondition3D::~SurfaceLoadCondition3D()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SurfaceLoadCondition3D::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SurfaceLoadCondition3D::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    const auto& r_geometry = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+
+    if ( rOutput.size() != r_integration_points.size() )
+        rOutput.resize( r_integration_points.size() );
+
+    if (rVariable == NORMAL) {
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            rOutput[point_number] = r_geometry.UnitNormal(r_integration_points[point_number].Coordinates());
+        }
+    } else {
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            rOutput[point_number] = ZeroVector(3);
+        }
+    }
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SurfaceLoadCondition3D::CalculateAndSubKp(
     Matrix& rK,
     const array_1d<double, 3>& rTangentXi,
@@ -255,7 +301,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         tangent_eta[1] = J(1, 1);
         tangent_xi[2]  = J(2, 0);
         tangent_eta[2] = J(2, 1);
-        
+
         array_1d<double, 3 > normal;
         MathUtils<double>::UnitCrossProduct(normal, tangent_eta, tangent_xi);
 
