@@ -480,6 +480,11 @@ public:
         return GetMesh(ThisIndex).pNodes();
     }
 
+    const NodesContainerType::Pointer pNodes(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).pNodes();
+    }
+
     void SetNodes(NodesContainerType::Pointer pOtherNodes, IndexType ThisIndex = 0)
     {
         GetMesh(ThisIndex).SetNodes(pOtherNodes);
