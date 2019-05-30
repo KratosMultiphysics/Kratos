@@ -11,9 +11,8 @@ def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
-    def __init__(self, model, custom_settings):  # Constructor of the class
-        settings = self._ValidateSettings(custom_settings)
-
+    def __init__(self, model, settings):  # Constructor of the class
+        self._validate_settings_in_baseclass = True
         super(ShallowWaterBaseSolver, self).__init__(model, settings)
 
         # There is only a single rank in OpenMP, we always print
@@ -207,8 +206,8 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         return delta_time
 
-    def _ValidateSettings(self, settings):
-        ##settings string in json format
+    @classmethod
+    def GetDefaultSettings(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "shallow_water_base_solver",
@@ -245,9 +244,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "multigrid_settings"       : {}
         }""")
-
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultSettings())
+        return default_settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
@@ -304,11 +302,14 @@ class ShallowWaterBaseSolver(PythonSolver):
     def _CreateWettingModel(self):
         if self.settings["wetting_drying_model"].Has("model_name"):
             if self.settings["wetting_drying_model"]["model_name"].GetString() == "rough_porous_layer":
-                wet_dry_module = SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
-                return wet_dry_module
+                return SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
+            if self.settings["wetting_drying_model"]["model_name"].GetString() == "negative_height":
+                return SW.NegativeHeightWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
             else:
                 msg = "Requested wetting drying model: " + self.settings["wetting_drying_model"]["model_name"].GetString() +"\n"
-                msg += "Available options are: \"rough_porous_layer\""
+                msg += "Available options are:\n"
+                msg += "\t\"rough_porous_layer\"\n"
+                msg += "\t\"negative_height\"\n"
                 raise Exception(msg)
         else:
             return None

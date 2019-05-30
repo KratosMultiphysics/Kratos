@@ -21,7 +21,7 @@
 #include "includes/properties.h"
 #include "includes/kratos_parameters.h"
 #include "shallow_water_application_variables.h"
-#include "custom_processes/initial_perturbation_process.h"
+#include "custom_processes/apply_perturbation_function_process.h"
 
 namespace Kratos {
 
@@ -38,10 +38,7 @@ double periodic_function(double& x)
     return 0.5 * perturbation * (1 + std::cos(half_wave_number * x));
 }
 
-/** 
- * Checks the ShallowWater2D3N element
- */
-KRATOS_TEST_CASE_IN_SUITE(InitialPerturbationProcess, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicationFastSuite)
 {
     Model model;
     ModelPart& model_part = model.CreateModelPart("main", 2);
@@ -50,6 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitialPerturbationProcess, ShallowWaterApplicationFas
     // Variables addition
     model_part.AddNodalSolutionStepVariable(HEIGHT);
     model_part.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
+    model_part.AddNodalSolutionStepVariable(WATER_SURFACE);
     model_part.AddNodalSolutionStepVariable(BATHYMETRY);
 
     // Process info creation
@@ -72,9 +70,13 @@ KRATOS_TEST_CASE_IN_SUITE(InitialPerturbationProcess, ShallowWaterApplicationFas
 
     sub_model_part.AddNodes({5, 10, 11, 12});
 
-    // Creation and execution of the process
+    // Creation and execution of the process for scalar
     Parameters parameters = Parameters(R"({})");
-    InitialPerturbationProcess(model_part, sub_model_part.Nodes(), parameters)();
+    ApplyPerturbationFunctionProcess<Variable<double>>(
+        model_part,
+        sub_model_part.Nodes(),
+        FREE_SURFACE_ELEVATION,
+        parameters)();
 
     double tolerance = 0.01; // The tolerance depends on the nodes positions
     for (auto& node : model_part.Nodes())
@@ -82,6 +84,21 @@ KRATOS_TEST_CASE_IN_SUITE(InitialPerturbationProcess, ShallowWaterApplicationFas
         double x = node.X();
         double exact_value = ((x < 1.0) ? (0.0) : (periodic_function(x)));
         double value = node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+        KRATOS_CHECK_NEAR(value, exact_value, tolerance);
+    }
+
+    // Creation and execution of the process for component
+    ApplyPerturbationFunctionProcess<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>(
+        model_part,
+        sub_model_part.Nodes(),
+        WATER_SURFACE_Z,
+        parameters)();
+
+    for (auto& node : model_part.Nodes())
+    {
+        double x = node.X();
+        double exact_value = ((x < 1.0) ? (0.0) : (periodic_function(x)));
+        double value = node.FastGetSolutionStepValue(WATER_SURFACE_Z);
         KRATOS_CHECK_NEAR(value, exact_value, tolerance);
     }
 }
