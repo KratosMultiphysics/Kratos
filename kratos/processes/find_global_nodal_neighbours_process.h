@@ -64,7 +64,7 @@ typedef  ModelPart::ElementsContainerType ElementsContainerType;
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(KRATOS_CORE) FindGlobalNodalNeighboursProcess
+class FindGlobalNodalNeighboursProcess
     : public Process
 {
 public:
