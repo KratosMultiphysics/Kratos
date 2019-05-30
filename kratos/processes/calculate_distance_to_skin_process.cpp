@@ -60,24 +60,8 @@ namespace Kratos
 		// Get the volume model part from the base discontinuous distance process
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
-		// Compute the domain characteristic length
-		double max_x(0.0), max_y(0.0), max_z(0.0);
-		double min_x(0.0), min_y(0.0), min_z(0.0);
-
-		// #pragma omp parallel for reduction(max:max_x, max_y, max_z) reduction(min:min_x, min_y, min_z) // Activate this once Windows OpenMP standard suppors max and min reductions
-		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
-			const auto it_node = ModelPart1.NodesBegin() + i_node;
-			max_x = (max_x < (*it_node)[0]) ? (*it_node)[0] : max_x;
-			max_y = (max_y < (*it_node)[1]) ? (*it_node)[1] : max_y;
-			max_z = (max_z < (*it_node)[2]) ? (*it_node)[2] : max_z;
-			min_x = (min_x > (*it_node)[0]) ? (*it_node)[0] : min_x;
-			min_y = (min_y > (*it_node)[1]) ? (*it_node)[1] : min_y;
-			min_z = (min_z > (*it_node)[2]) ? (*it_node)[2] : min_z;
-		}
-
-		const double char_length = std::sqrt(std::pow(max_x - min_x, 2) + std::pow(max_z - min_z, 2) + std::pow(max_z - min_z, 2));
-		KRATOS_ERROR_IF(char_length < std::numeric_limits<double>::epsilon())
-			<< "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
+		// Calculate the domain characteristic length
+		const double char_length = this->CalculateCharacteristicLength();
 
 		// Initialize the nodal distance values to a maximum positive value
 		#pragma omp parallel for firstprivate(char_length)
