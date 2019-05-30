@@ -116,12 +116,17 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                     Sth);
                 
                 double square_betaf = std::pow(rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4], 2.0);
-                if (global_number_of_cycles > 2 && (std::abs((previous_reversion_factor - reversion_factor) / previous_reversion_factor) > tolerance || std::abs((previous_max_stress - max_stress) / previous_max_stress) > tolerance)) {
+
+                KRATOS_WATCH(local_number_of_cycles);
+                double reversion_factor_relative_error = std::abs((previous_reversion_factor - reversion_factor) / previous_reversion_factor);
+                double max_stress_relative_error = std::abs((previous_reversion_factor - reversion_factor) / previous_reversion_factor);
+                if (global_number_of_cycles > 2 && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
                     local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / square_betaf))) + 1;
                     std::cout << " here \n" ;
                 }
                 global_number_of_cycles++;
                 KRATOS_WATCH(local_number_of_cycles);
+                KRATOS_WATCH(tolerance);
                 local_number_of_cycles++;
                 max_indicator = false;
                 min_indicator = false;
@@ -260,8 +265,6 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
         GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(rThisVariable);
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         return true;
-    } else if (rThisVariable == NUMBER_OF_CYCLES) {
-        return true;
     } else {
         return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(rThisVariable);
     }
@@ -294,8 +297,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
         GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         mFatigueReductionFactor = rValue;
-    } else if (rThisVariable == NUMBER_OF_CYCLES) {
-        mNumberOfCyclesGlobal = rValue;
     } else {
         return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -328,8 +329,6 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
         GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         rValue = mFatigueReductionFactor;
-    } else if (rThisVariable == NUMBER_OF_CYCLES) {
-        rValue = mNumberOfCyclesGlobal;
     } else {
         return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
     }
