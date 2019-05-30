@@ -436,7 +436,9 @@ void ElementInitialize(Element& dummy,
 
 void ElementInitializeOld(Element& dummy)
 {
-    dummy.Initialize();
+    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
+    ProcessInfo tmp_process_info;
+    dummy.Initialize(tmp_process_info);
 }
 
 template<class TDataType>
