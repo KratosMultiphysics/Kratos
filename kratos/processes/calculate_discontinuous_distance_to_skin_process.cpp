@@ -40,18 +40,9 @@ namespace Kratos
 		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
 
-		// Reset the nodal distance values
-		const double initial_distance = 1.0;
-
-		#pragma omp parallel for
-		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
-			ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
-			itNode->Set(TO_SPLIT, false);
-			itNode->GetSolutionStepValue(DISTANCE) = initial_distance;
-		}
-
 		// Reset the Elemental distance to 1.0 which is the maximum distance in our normalized space.
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
+		const double initial_distance = 1.0;
 		constexpr std::size_t num_nodes = TDim + 1;
 		array_1d<double,num_nodes> ElementalDistances;
 		for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
@@ -197,7 +188,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
-		Element& rElement1, 
+		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
@@ -262,9 +253,9 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgeIntersection(
-		const Element::GeometryType& rIntObjGeometry, 
-		const Element::NodeType& rEdgePoint1, 
-		const Element::NodeType& rEdgePoint2, 
+		const Element::GeometryType& rIntObjGeometry,
+		const Element::NodeType& rEdgePoint1,
+		const Element::NodeType& rEdgePoint2,
 		Point& rIntersectionPoint)
 	{
 		int intersection_flag = 0;
@@ -304,7 +295,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputePlaneApproximation(
-		const Element& rElement1, 
+		const Element& rElement1,
 		const std::vector< array_1d<double,3> >& rPointsCoord,
 		array_1d<double,3>& rPlaneBasePointCoords,
 		array_1d<double,3>& rPlaneNormal)
@@ -375,7 +366,7 @@ namespace Kratos
 	Plane3D CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
-		// Since the Plane3D object only works in 3D, in 2D we set the intersection 
+		// Since the Plane3D object only works in 3D, in 2D we set the intersection
 		// plane by extruding the intersection point 0 in the z-direction.
 		array_1d<double,3> z_coord_pt = rIntPtsVector[0];
 		z_coord_pt[2] = 1.0;
