@@ -21,7 +21,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-
+#include <atomic>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
