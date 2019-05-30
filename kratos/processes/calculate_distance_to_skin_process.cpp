@@ -26,7 +26,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
@@ -34,7 +34,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
 		const double ExtraRaysEpsilon)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
@@ -60,9 +60,30 @@ namespace Kratos
 		// Get the volume model part from the base discontinuous distance process
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
+		// Compute the domain characteristic length
+		double max_x(0.0), max_y(0.0), max_z(0.0);
+		double min_x(0.0), min_y(0.0), min_z(0.0);
+
+		#pragma omp parallel for reduction(max:max_x) reduction(max:max_y) reduction(max:max_z) reduction(min:min_x) reduction(min:min_y) reduction(min:min_z)
+		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
+			const auto it_node = ModelPart1.NodesBegin() + i_node;
+			max_x = (max_x < (*it_node)[0]) ? (*it_node)[0] : max_x;
+			max_y = (max_y < (*it_node)[1]) ? (*it_node)[1] : max_y;
+			max_z = (max_z < (*it_node)[2]) ? (*it_node)[2] : max_z;
+			min_x = (min_x > (*it_node)[0]) ? (*it_node)[0] : min_x;
+			min_y = (min_y > (*it_node)[1]) ? (*it_node)[1] : min_y;
+			min_z = (min_z > (*it_node)[2]) ? (*it_node)[2] : min_z;
+		}
+
+		const double char_length = std::sqrt(std::pow(max_x - min_x, 2) + std::pow(max_z - min_z, 2) + std::pow(max_z - min_z, 2));
+		KRATOS_ERROR_IF(char_length < std::numeric_limits<double>::epsilon())
+			<< "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
+
 		// Initialize the nodal distance values to a maximum positive value
-		for (auto& node : ModelPart1.Nodes()){
-			node.GetSolutionStepValue(DISTANCE) = std::numeric_limits<double>::max();
+		#pragma omp parallel for firstprivate(char_length)
+		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
+			auto it_node = ModelPart1.NodesBegin() + i_node;
+			it_node->GetSolutionStepValue(DISTANCE) = char_length;
 		}
 	}
 
@@ -94,7 +115,7 @@ namespace Kratos
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i) {
 			Element &r_element = *(r_elements[i]);
-			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i]; 
+			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
 
 			// Check if the element has intersections
 			if (r_element_intersections.empty()) {
