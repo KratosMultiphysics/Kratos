@@ -406,6 +406,8 @@ namespace Kratos
 		const double char_length = std::sqrt(std::pow(max_x - min_x, 2) + std::pow(max_z - min_z, 2) + std::pow(max_z - min_z, 2));
 		KRATOS_ERROR_IF(char_length < std::numeric_limits<double>::epsilon())
 			<< "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
+
+		return char_length;
 	}
 
 	template<>
