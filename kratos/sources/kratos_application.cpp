@@ -111,6 +111,10 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mElement3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
       mElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
       mElement3D10N( 0, GeometryType::Pointer(new Tetrahedra3D10<NodeType >(GeometryType::PointsArrayType(10)))),
+      mDistanceCalculationElementSimplex2D( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mDistanceCalculationElementSimplex3D( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mLevelSetConvectionElementSimplex2D( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mLevelSetConvectionElementSimplex3D( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
 
       // Components
       mpVariableData(KratosComponents<VariableData>::pGetComponents()),
@@ -205,6 +209,11 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
+
+    KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex2D", mDistanceCalculationElementSimplex2D)
+    KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D", mDistanceCalculationElementSimplex2D)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D", mLevelSetConvectionElementSimplex2D)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D", mLevelSetConvectionElementSimplex3D)
 
     //Register general geometries:
 
