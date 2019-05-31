@@ -100,7 +100,7 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     /// Pointer definition of EmbeddedAusasNavierStokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedAusasNavierStokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedAusasNavierStokesWallCondition);
 
     struct ConditionDataStruct
     {
@@ -199,7 +199,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared<EmbeddedAusasNavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EmbeddedAusasNavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new EmbeddedAusasNavierStokesWallCondition object.
@@ -209,7 +209,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
     /**
@@ -253,9 +253,9 @@ public:
         if (n_pos != 0 && n_neg != 0){
 
             // Get all the possible element candidates
-            WeakPointerVector<Element> element_candidates;
+            GlobalPointersVector<Element> element_candidates;
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                WeakPointerVector<Element> &r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+                GlobalPointersVector<Element> &r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
                 for (unsigned int j = 0; j < r_node_element_candidates.size(); j++) {
                     element_candidates.push_back(r_node_element_candidates(j));
                 }
@@ -706,7 +706,7 @@ protected:
     ///@{
 
     Element::Pointer pGetElement() {
-		return mpParentElement.lock();
+		return mpParentElement->shared_from_this();
 	}
 
     std::vector<unsigned int > GetParentElementIds() {

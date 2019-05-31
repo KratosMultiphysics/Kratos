@@ -108,7 +108,7 @@ class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase)
         self -- It signifies an instance of a class.
         """
         process_info = self.model_part.ProcessInfo
-        current_time = process_info[KratosMultiphysics.TIME] - process_info[KratosMultiphysics.DELTA_TIME]
+        current_time = process_info[KratosMultiphysics.TIME]
 
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 

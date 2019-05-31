@@ -17,9 +17,6 @@ class AdjointFluidSolver(PythonSolver):
 
         super(AdjointFluidSolver,self).__init__(model, settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = None
@@ -49,8 +46,7 @@ class AdjointFluidSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -65,16 +61,14 @@ class AdjointFluidSolver(PythonSolver):
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
     def ExportModelPart(self):
         ## Model part writing
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model export finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model export finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -100,7 +94,7 @@ class AdjointFluidSolver(PythonSolver):
         self.solver.Predict()
 
     def SolveSolutionStep(self):
-        self.solver.SolveSolutionStep()
+        return self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
@@ -117,10 +111,6 @@ class AdjointFluidSolver(PythonSolver):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     ## FluidSolver specific methods.
-
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
-
     def _ValidateSettings(self, settings):
         raise Exception("Please define the _ValidateSettings() method in your derived solver class to validate the Kratos::Parameters configuration.")
         # Suggested implementation:
@@ -169,7 +159,7 @@ class AdjointFluidSolver(PythonSolver):
         else:
             element_num_nodes = 0
 
-        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        element_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(element_num_nodes)
         return element_num_nodes
 
     def _GetConditionNumNodes(self):
@@ -181,7 +171,7 @@ class AdjointFluidSolver(PythonSolver):
         else:
             condition_num_nodes = 0
 
-        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
 
     def _ExecuteCheckAndPrepare(self):

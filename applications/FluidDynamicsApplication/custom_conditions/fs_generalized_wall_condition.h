@@ -85,8 +85,8 @@ namespace Kratos {
 /**
  The generalized wall model in "T.-H. Shih, L.A. Povinelli, N.-S. Liu, M.G. Potapczuk
  and J.L. Lumley, A generalized wall function, Tech. Report NASA/TM-1999-209398, 1999"
- is used to calculate wall stress. For distributed problems the 
- MetisDivideHeterogeneousInputProcess must be used with SynchronizeConditions = true. 
+ is used to calculate wall stress. For distributed problems the
+ MetisDivideHeterogeneousInputProcess must be used with SynchronizeConditions = true.
  This ensures the condition belongs to the same partition as its parent element.
 
  Interface artificial compressibility (IAC) is used on the fluid-structure interface
@@ -103,7 +103,7 @@ public:
 	///@{
 
 	/// Pointer definition of FSGeneralizedWallCondition
-	KRATOS_CLASS_POINTER_DEFINITION(FSGeneralizedWallCondition);
+	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSGeneralizedWallCondition);
 
 	typedef Node < 3 > NodeType;
 
@@ -219,7 +219,7 @@ public:
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties) const override
 	{
-        return Kratos::make_shared<FSGeneralizedWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<FSGeneralizedWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
 	}
 
 	/// Create a new FSGeneralizedWallCondition object.
@@ -233,7 +233,7 @@ public:
 		GeometryType::Pointer pGeom,
 		PropertiesType::Pointer pProperties) const override
 	{
-		return Kratos::make_shared<FSGeneralizedWallCondition>(NewId, pGeom, pProperties);
+		return Kratos::make_intrusive<FSGeneralizedWallCondition>(NewId, pGeom, pProperties);
     }
 
         /// Find the condition's parent element.
@@ -258,10 +258,10 @@ public:
 		double EdgeLength;
 		array_1d<double,3> Edge;
 		GeometryType& rGeom = this->GetGeometry();
-		WeakPointerVector<Element> ElementCandidates;
+		GlobalPointersVector<Element> ElementCandidates;
 		for (SizeType i = 0; i < TDim; i++)
 		{
-			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+			GlobalPointersVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
 			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
 			{
 				ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -332,7 +332,7 @@ public:
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
 	}
 
-	/// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.
+	/// Calculate wall stress term for all nodes with SLIP set.
 	/**
 	 @param rLeftHandSideMatrix Left-hand side matrix
 	 @param rRightHandSideVector Right-hand side vector
@@ -366,7 +366,7 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			if (this->GetValue(IS_STRUCTURE) != 0.0)
+			if (this->Is(SLIP))
 			  this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
 		}
 		else if (rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
@@ -431,8 +431,6 @@ public:
 			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
 			if(NORMAL.Key() == 0)
 			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
-			if(IS_STRUCTURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
 
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -554,7 +552,7 @@ protected:
 
 	ElementPointerType pGetElement()
 	{
-		return mpElement.lock();
+		return mpElement->shared_from_this();
 	}
 
 	template< class TVariableType >
@@ -857,7 +855,7 @@ protected:
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
 			{
 				const NodeType& rNode = rGeometry[i];
-				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.GetValue(IS_STRUCTURE) != 0.0)
+				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.Is(SLIP))
 				{
 					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
 					tmp = norm_2(WallVel);

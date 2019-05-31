@@ -44,30 +44,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+/**
+ * @class ResidualDisplacementAndOtherDoFCriteria
+ * @ingroup StructuralMechanicsApplication
+ * @brief This is a convergence criteria that employes the residual as criteria, it divides the problem in two dofs, displacement and another one
+ * @details The reactions from the RHS are not computed in the residual. Can be used with for example rotations or pressure
+ * @author Vicente Mataix Ferrandiz
 */
-
 template<class TSparseSpace,
          class TDenseSpace
          >
-class ResidualDisplacementAndOtherDoFCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ResidualDisplacementAndOtherDoFCriteria
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -87,6 +75,8 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    typedef std::size_t IndexType;
+
     typedef std::size_t SizeType;
 
     ///@}
@@ -102,7 +92,7 @@ public:
     ResidualDisplacementAndOtherDoFCriteria(
         TDataType RatioTolerance,
         TDataType AbsoluteTolerance,
-        std::string OtherDoFName = "ROTATION"
+        const std::string OtherDoFName = "ROTATION"
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mOtherDoFName(OtherDoFName),
@@ -141,51 +131,50 @@ public:
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
 
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
     ) override
     {
-        if (TSparseSpace::Size(b) != 0) //if we are solving for something
-        {
-            TDataType RatioDisplacement = 0.0;
-            TDataType RatioOtherDoF     = 0.0;
+        if (TSparseSpace::Size(rb) != 0) { //if we are solving for something
+            TDataType ratio_displacement = 0.0;
+            TDataType ratio_other_dof     = 0.0;
 
-            SizeType DispSize;
-            CalculateResidualNorm(rModelPart, mCurrentResidualDispNorm, mCurrentResidualOtherDoFNorm, DispSize, rDofSet, b);
+            SizeType disp_size;
+            CalculateResidualNorm(rModelPart, mCurrentResidualDispNorm, mCurrentResidualOtherDoFNorm, disp_size, rDofSet, rb);
 
             if (mInitialResidualDispNorm == 0.0) {
-                RatioDisplacement = 0.0;
+                ratio_displacement = 0.0;
             } else {
-                RatioDisplacement = mCurrentResidualDispNorm/mInitialResidualDispNorm;
+                ratio_displacement = mCurrentResidualDispNorm/mInitialResidualDispNorm;
             }
 
             if (mInitialResidualOtherDoFNorm == 0.0) {
-                RatioOtherDoF = 0.0;
+                ratio_other_dof = 0.0;
             } else {
-                RatioOtherDoF = mCurrentResidualOtherDoFNorm/mInitialResidualOtherDoFNorm;
+                ratio_other_dof = mCurrentResidualOtherDoFNorm/mInitialResidualOtherDoFNorm;
             }
 
-            const std::size_t SystemSize = TSparseSpace::Size(b);
-            const TDataType AbsoluteNormDisp     = (mCurrentResidualDispNorm/static_cast<TDataType>(DispSize));
-            const TDataType AbsoluteNormOtherDoF = (mCurrentResidualOtherDoFNorm/static_cast<TDataType>(SystemSize - DispSize));
+            const std::size_t system_size = TSparseSpace::Size(rb);
+            const TDataType absolute_norm_disp      = (mCurrentResidualDispNorm/static_cast<TDataType>(disp_size));
+            const TDataType absolute_norm_other_dof = (mCurrentResidualOtherDoFNorm/static_cast<TDataType>(system_size - disp_size));
 
-            KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "RESIDUAL DISPLACEMENT CRITERION :: Ratio = "<< RatioDisplacement  << ";  Norm = " << AbsoluteNormDisp << std::endl;
-            KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "RESIDUAL " << mOtherDoFName << " CRITERION :: Ratio = "<< RatioOtherDoF  << ";  Norm = " << AbsoluteNormOtherDoF << std::endl;
+            KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "RESIDUAL DISPLACEMENT CRITERION :: Ratio = "<< ratio_displacement  << ";  Norm = " << absolute_norm_disp << std::endl;
+            KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "RESIDUAL " << mOtherDoFName << " CRITERION :: Ratio = "<< ratio_other_dof  << ";  Norm = " << absolute_norm_other_dof << std::endl;
 
-            rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = RatioDisplacement;
-            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNormDisp;
+            rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio_displacement;
+            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm_disp;
 
-            if ((RatioDisplacement <= mRatioTolerance || AbsoluteNormDisp < mAbsoluteTolerance) && (RatioOtherDoF <= mRatioTolerance || AbsoluteNormOtherDoF < mAbsoluteTolerance)) {
+            if ((ratio_displacement <= mRatioTolerance || absolute_norm_disp < mAbsoluteTolerance) && (ratio_other_dof <= mRatioTolerance || absolute_norm_other_dof < mAbsoluteTolerance)) {
                 KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "Convergence is achieved" << std::endl;
                 return true;
             } else {
@@ -256,26 +245,6 @@ public:
 
         SizeType size_residual;
         CalculateResidualNorm(rModelPart, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm, size_residual, rDofSet, rb);
-    }
-
-    /**
-     * This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    ) override
-    {
-
     }
 
     ///@}
@@ -361,7 +330,7 @@ private:
      * @param rResidualSolutionNorm The norm of the residual
      * @param rDofNum The number of DoFs
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param b RHS vector (residual + reactions)
+     * @param rb RHS vector (residual + reactions)
      */
     virtual void CalculateResidualNorm(
         ModelPart& rModelPart,
@@ -369,7 +338,7 @@ private:
         TDataType& rResidualSolutionNormOtherDof,
         SizeType& rDofNumDisp,
         DofsArrayType& rDofSet,
-        const TSystemVectorType& b
+        const TSystemVectorType& rb
         )
     {
         // Initialize
@@ -378,44 +347,42 @@ private:
         SizeType disp_dof_num = 0;
 
         // Auxiliar values
-        TDataType residual_dof_value_disp = 0.0;
-        TDataType residual_dof_value_other_dof = 0.0;
+        TDataType residual_dof_value = 0.0;
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            #pragma omp parallel for firstprivate(residual_dof_value_disp, residual_dof_value_other_dof) reduction(+:residual_solution_norm_disp, residual_solution_norm_other_dof, disp_dof_num)
+            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm_disp, residual_solution_norm_other_dof, disp_dof_num)
             for (int i = 0; i < number_of_dof; i++) {
                 auto it_dof = it_dof_begin + i;
 
                 const IndexType dof_id = it_dof->EquationId();
+                residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
 
                 if (mActiveDofs[dof_id]) {
                     if (it_dof->GetVariable() == DISPLACEMENT_X || it_dof->GetVariable() == DISPLACEMENT_Y || it_dof->GetVariable() == DISPLACEMENT_Z) {
-                        residual_dof_value_disp = TSparseSpace::GetValue(b,dof_id);
-                        residual_solution_norm_disp += std::pow(residual_dof_value_disp, 2);
+                        residual_solution_norm_disp += std::pow(residual_dof_value, 2);
                         disp_dof_num++;
                     } else {
-                        residual_dof_value_other_dof = TSparseSpace::GetValue(b,dof_id);
-                        residual_solution_norm_other_dof += std::pow(residual_dof_value_other_dof, 2);
+                        residual_solution_norm_other_dof += std::pow(residual_dof_value, 2);
                     }
                 }
             }
         } else {
-            #pragma omp parallel for firstprivate(residual_dof_value_disp, residual_dof_value_other_dof) reduction(+:residual_solution_norm_disp, residual_solution_norm_other_dof, disp_dof_num)
+            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm_disp, residual_solution_norm_other_dof, disp_dof_num)
             for (int i = 0; i < number_of_dof; i++) {
                 auto it_dof = it_dof_begin + i;
 
                 if (!it_dof->IsFixed()) {
                     const IndexType dof_id = it_dof->EquationId();
+                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
+
                     if (it_dof->GetVariable() == DISPLACEMENT_X || it_dof->GetVariable() == DISPLACEMENT_Y || it_dof->GetVariable() == DISPLACEMENT_Z) {
-                        residual_dof_value_disp = TSparseSpace::GetValue(b,dof_id);
-                        residual_solution_norm_disp += std::pow(residual_dof_value_disp, 2);
+                        residual_solution_norm_disp += std::pow(residual_dof_value, 2);
                         disp_dof_num++;
                     } else {
-                        residual_dof_value_other_dof = TSparseSpace::GetValue(b,dof_id);
-                        residual_solution_norm_other_dof += std::pow(residual_dof_value_other_dof, 2);
+                        residual_solution_norm_other_dof += std::pow(residual_dof_value, 2);
                     }
                 }
             }
@@ -452,5 +419,5 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined
+#endif // KRATOS_RESIDUAL_DISPLACEMENT_AND_OTHER_DOF_CRITERIA  defined
 

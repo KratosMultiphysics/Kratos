@@ -57,7 +57,7 @@ public:
 
     double ComputeParticleReynoldsNumber(const double particle_radius,
                                          const double fluid_kinematic_viscosity,
-                                         const double modulus_of_slip_velocity);
+                                         const double modulus_of_minus_slip_velocity);
 
     virtual void ComputeBuoyancyForce(Geometry<Node<3> >& r_geometry,
                                       const double fluid_density,
@@ -70,7 +70,7 @@ public:
                                   double particle_radius,
                                   double fluid_density,
                                   double fluid_kinematic_viscosity,
-                                  array_1d<double, 3>& slip_velocity,
+                                  array_1d<double, 3>& minus_slip_velocity,
                                   array_1d<double, 3>& drag_force,
                                   const ProcessInfo& r_current_process_info);
 
@@ -88,7 +88,7 @@ public:
                                      double particle_radius,
                                      double fluid_density,
                                      double fluid_kinematic_viscosity,
-                                     array_1d<double, 3>& slip_velocity,
+                                     array_1d<double, 3>& minus_slip_velocity,
                                      array_1d<double, 3>& drag_force,
                                      const ProcessInfo& r_current_process_info);
 
@@ -99,7 +99,7 @@ public:
                                              double particle_radius,
                                              double fluid_density,
                                              double fluid_kinematic_viscosity,
-                                             array_1d<double, 3>& slip_velocity,
+                                             array_1d<double, 3>& minus_slip_velocity,
                                              array_1d<double, 3>& vorticity_induced_lift,
                                              const ProcessInfo& r_current_process_info);
 
@@ -107,7 +107,7 @@ public:
                                             double particle_radius,
                                             double fluid_density,
                                             double fluid_kinematic_viscosity,
-                                            array_1d<double, 3>& slip_velocity,
+                                            array_1d<double, 3>& minus_slip_velocity,
                                             array_1d<double, 3>& rotation_induced_lift,
                                             const ProcessInfo& r_current_process_info);
 
@@ -115,7 +115,7 @@ public:
                                             double particle_radius,
                                             double fluid_density,
                                             double fluid_kinematic_viscosity,
-                                            array_1d<double, 3>& slip_velocity,
+                                            array_1d<double, 3>& minus_slip_velocity,
                                             array_1d<double, 3>& steady_viscous_torque,
                                             const ProcessInfo& r_current_process_info);
 

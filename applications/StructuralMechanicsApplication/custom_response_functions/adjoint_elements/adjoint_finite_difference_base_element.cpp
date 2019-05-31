@@ -278,7 +278,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     KRATOS_TRY;
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
@@ -286,6 +286,15 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     // Get pseudo-load from utility
     ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
+
+    if (rOutput.size1() == 0 || rOutput.size2() == 0)
+    {
+        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+        const SizeType local_size = number_of_nodes * num_dofs_per_node;
+        rOutput = ZeroMatrix(number_of_nodes, local_size);
+    }
 
     KRATOS_CATCH("")
 }
@@ -296,16 +305,16 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 {
     KRATOS_TRY;
 
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
     ProcessInfo process_info = rCurrentProcessInfo;
 
-    if( rDesignVariable == SHAPE )
+    const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
+    if( rDesignVariable == SHAPE_SENSITIVITY )
     {
-        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-        const SizeType local_size = number_of_nodes * num_dofs_per_node;
-        const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+        const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
         Vector derived_RHS;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
@@ -330,6 +339,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             }
             index++;
         }
+    }
+    else
+    {
+        rOutput = ZeroMatrix(dimension * number_of_nodes, local_size);
     }
 
     KRATOS_CATCH("")
@@ -435,7 +448,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
     const SizeType stress_vector_size = stress_vector_undist.size();
     rOutput.resize(1, stress_vector_size, false);
@@ -485,9 +498,9 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     Vector stress_vector_dist;
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
-    if(rDesignVariable == SHAPE)
+    if(rDesignVariable == SHAPE_SENSITIVITY)
     {
         const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -542,25 +555,31 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 
 // private
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
-    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= this->GetPerturbationSizeModificationFactor(rDesignVariable);
+    }
+
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
-    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= this->GetPerturbationSizeModificationFactor(rDesignVariable);
+    }
+
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable) const
 {
     KRATOS_TRY;
 
@@ -576,14 +595,14 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
 {
     KRATOS_TRY;
 
     // For shape derivatives the size of the element (length, area, ...) is used as default perturbation size modification factor.
     // Later on this value is multiplied with a user defined factor. This product is then used as final perturbation size for computing
     // derivatives with finite differences.
-    if(rDesignVariable == SHAPE)
+    if(rDesignVariable == SHAPE_SENSITIVITY)
     {
         const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
         KRATOS_DEBUG_ERROR_IF(domain_size <= 0.0)
@@ -613,10 +632,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
+template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
+template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
+template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 
 } // namespace Kratos
 

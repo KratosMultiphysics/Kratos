@@ -57,7 +57,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
   ///@{
 
   // Counted pointer of RigidBodyPointLinkSegregatedVCondition
-  KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointLinkSegregatedVCondition );
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidBodyPointLinkSegregatedVCondition );
 
   enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
 

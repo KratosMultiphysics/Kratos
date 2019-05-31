@@ -62,6 +62,10 @@ namespace Kratos {
             return mShapeFunctionsValues;
         }
 
+        double GetDistanceSignedWithNormal() {
+            return mDistanceSignedWithNormal;
+        }
+
 
         /// Turn back information as a string.
         virtual std::string Info() const override {
