@@ -53,7 +53,9 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolation(NodeNormalizedFreeEnergy *pNodeNormalizedFreeEnergyVector)
+void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolation(
+    NodeNormalizedFreeEnergy *pNodeNormalizedFreeEnergyVector
+    )
 {
     Vector gauss_point_stress;
     double gauss_point_damage;
@@ -107,7 +109,8 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
     const Vector& rStressVector, 
     const double Damage, 
     const Properties& rMatProps,
-    Geometry<Node<3>>& rGeometry)
+    Geometry<Node<3>>& rGeometry
+    )
 {
     double normalized_free_energy;
 
@@ -120,10 +123,10 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
         const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
         const double density = rMatProps[DENSITY];
         
-        KRATOS_ERROR_IF(yield_tension < tolerance) << "The yield_tension is null or not assigned" << std::endl;
-        KRATOS_ERROR_IF(yield_compression < tolerance) << "The yield_compression is null or not assigned" << std::endl;
-        KRATOS_ERROR_IF(fracture_energy_tension < tolerance) << "The Fracture Energy is null or not assigned" << std::endl;
-        KRATOS_ERROR_IF(density < tolerance) << "The density is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(yield_tension < tolerance) << "The YIELD_TENSION is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(yield_compression < tolerance) << "The YIELD_COMPRESSION is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(fracture_energy_tension < tolerance) << "The FRACTURE ENERGY is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(density < tolerance) << "The DENSITY is null or not assigned" << std::endl;
 
         double characteristic_length, r;
         if (mDimension == 2) {
@@ -145,7 +148,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry)
+double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2D(
+    const Geometry<Node<3>>& rGeometry
+    )
 {
     Vector node_1_coordinates = rGeometry[0].Coordinates();
     Vector node_2_coordinates = rGeometry[1].Coordinates();
@@ -160,7 +165,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry)
+double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength3D(
+    Geometry<Node<3>>& rGeometry
+    )
 {
     Vector lengths = ZeroVector(6);
     auto r_edges = rGeometry.Edges();
@@ -179,7 +186,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength3
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor2D(const Vector& rStressVector)
+double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor2D(
+    const Vector& rStressVector
+    )
 {
     Vector principal_stress_vector;
     this->CalculatePrincipalStresses2D(rStressVector, principal_stress_vector);
@@ -198,7 +207,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor2D(const V
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor3D(const Vector& rStressVector)
+double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor3D(
+    const Vector& rStressVector
+    )
 {
     Vector principal_stress_vector;
     this->CalculatePrincipalStresses3D(rStressVector, principal_stress_vector);
@@ -217,7 +228,10 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor3D(const V
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses2D(const Vector& rStressVector, Vector& rPrincipalStressVector)
+void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses2D(
+    const Vector& rStressVector, 
+    Vector& rPrincipalStressVector
+    )
 {
     rPrincipalStressVector.resize(2);
     rPrincipalStressVector[0] = 0.5 * (rStressVector[0] + rStressVector[1]) + 
@@ -229,7 +243,10 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses2D(con
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses3D(const Vector& rStressVector, Vector& rPrincipalStressVector)
+void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses3D(
+    const Vector& rStressVector, 
+    Vector& rPrincipalStressVector
+    )
 {
     rPrincipalStressVector.resize(3);
     const double I1 = this->CalculateI1Invariant(rStressVector);
@@ -267,7 +284,9 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses3D(con
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(int& rMaxId)
+void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(
+    int& rMaxId
+    )
 {
     int aux = 0;
     int id;
@@ -283,7 +302,9 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(int& rMaxId)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI1Invariant(const Vector& rStressVector)
+double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI1Invariant(
+    const Vector& rStressVector
+    )
 {
     return rStressVector[0] + rStressVector[1] + rStressVector[2];
 }
@@ -291,7 +312,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI1Invariant(const Vec
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI2Invariant(const Vector& rStressVector)
+double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI2Invariant(
+    const Vector& rStressVector
+    )
 {
     return (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
         -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
@@ -300,7 +323,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI2Invariant(const Vec
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI3Invariant(const Vector& rStressVector)
+double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateI3Invariant(
+    const Vector& rStressVector
+    )
 {
     return (rStressVector[1] * rStressVector[2] - rStressVector[4] * rStressVector[4]) * rStressVector[0] -
         rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
