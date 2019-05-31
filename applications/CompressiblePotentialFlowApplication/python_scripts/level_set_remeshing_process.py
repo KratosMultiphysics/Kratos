@@ -65,8 +65,6 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.distance_modification_parameters = settings["distance_modification_parameters"]
         self.ray_casting_tolerance = settings["ray_casting_tolerance"].GetDouble()
 
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
-
     def ExecuteInitialize(self):
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Executing Initialize Geometry')
         self._InitializeSkinModelPart()
@@ -76,22 +74,15 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         while self.step < self.max_iter and self.do_remeshing:
             self.step += 1
             KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
+            self.PrintOutput('pre_extend'+str(self.step))
             self._ExtendDistance()
             self._RefineMesh()
             self._CalculateDistance()
+            self.PrintOutput('remeshed'+str(self.step))
             self._UpdateParameters()
         self._ModifyFinalDistance()
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
-
-        #############################################################################################
-        #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
-        # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.main_model_part, avg_elem_num, avg_node_num).Execute()
-        ##############################################################################################
 
     def _InitializeSkinModelPart(self):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).
@@ -131,7 +122,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             "coarsening_type":"ruge_stuben",
             "coarse_enough" : 5000,
             "krylov_type": "lgmres",
-            "tolerance": 1e-3,
+            "tolerance": 1e-8,
             "verbosity": 0,
             "scaling": false
         }""")
@@ -161,6 +152,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
 
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
         metric_process.Execute()
+        self.PrintOutput('pre_remesh'+str(self.step))
 
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
@@ -196,3 +188,30 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         '''
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
+
+    def PrintOutput(self,filename):
+        from gid_output_process import GiDOutputProcess
+        gid_output = GiDOutputProcess(self.main_model_part,
+                                    filename,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results" : ["DISTANCE","DISTANCE_GRADIENT"],
+                                                "nodal_nonhistorical_results": ["METRIC_TENSOR_2D"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
