@@ -20,7 +20,7 @@
 #include "geometries/geometry.h"
 #include "geometries/point.h"
 #include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "includes/checks.h"
 
 
@@ -114,20 +114,21 @@ namespace Kratos
         Properties::Pointer p_properties = mrVolumePart.pGetProperties(mElementPropertiesId);
 
         std::size_t cell_index = 0;
+		Geometry<Node<3>>::PointsArrayType points(8);
 
 		for (std::size_t K = 0; K < mNumberOfDivisions[2]; K++) {
 			for (std::size_t J = 0; J < mNumberOfDivisions[1]; J++) {
 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-					std::vector<ModelPart::IndexType> element_connectivity(8);
-					element_connectivity[0] = GetNodeId(i, J, K);
-					element_connectivity[1] = GetNodeId(i, J+1, K);
-					element_connectivity[2] = GetNodeId(i+1, J+1, K);
-					element_connectivity[3] = GetNodeId(i+1, J, K);
-					element_connectivity[4] = GetNodeId(i, J, K+1);
-					element_connectivity[5] = GetNodeId(i, J+1, K+1);
-					element_connectivity[6] = GetNodeId(i+1, J+1, K+1);
-					element_connectivity[7] = GetNodeId(i+1, J, K+1);
-					mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, element_connectivity, p_properties);
+					//Hexahedra3D8<Node<3>> hexahedra(pGetNode(i, J, K), pGetNode(i, J+1, K), pGetNode(i+1, J+1, K), pGetNode(i+1, J, K), pGetNode(i, J, K+1), pGetNode(i, J+1, K+1), pGetNode(i+1, J+1, K+1), pGetNode(i+1, J, K+1));
+					points(0) = pGetNode(i, J, K);
+					points(1) = pGetNode(i, J+1, K);
+					points(2) = pGetNode(i+1, J+1, K);
+					points(3) = pGetNode(i+1, J, K);
+					points(4) = pGetNode(i, J, K+1);
+					points(5) = pGetNode(i, J+1, K+1);
+					points(6) = pGetNode(i+1, J+1, K+1);
+					points(7) = pGetNode(i+1, J, K+1);
+					mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, points, p_properties);
 					cell_index++;
 				}
 			}
@@ -164,8 +165,8 @@ namespace Kratos
 		}
 	}
 
-	std::size_t VoxelMeshGeneratorProcess::GetNodeId(std::size_t I, std::size_t J, std::size_t K) {
-		return mStartNodeId + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I;
+	Node<3>::Pointer VoxelMeshGeneratorProcess::pGetNode(std::size_t I, std::size_t J, std::size_t K) {
+		return *(mrVolumePart.NodesBegin() + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I).base();
 	}
 
     int VoxelMeshGeneratorProcess::Check()

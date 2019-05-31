@@ -162,8 +162,7 @@ namespace Kratos
 
           void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
 
-          std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
-
+          Node<3>::Pointer pGetNode(std::size_t I, std::size_t J, std::size_t K);
             ///@}
       ///@name Private  Access
       ///@{
