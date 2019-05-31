@@ -376,7 +376,7 @@ def Compute_RHS(functional, testfunc, do_simplifications = False):
     for i in range(0,testfunc.shape[0]):
         rhs[i] = sympy.diff(functional[0,0], testfunc[i])
         
-        if(do_simplifications):
+        if do_simplifications:
             rhs[i] = sympy.simplify(rhs[i])
 
     return rhs
@@ -395,7 +395,7 @@ def Compute_LHS(rhs, testfunc, dofs, do_simplifications = False):
         for j in range(0,lhs.shape[1]):
             lhs[i,j] = -sympy.diff(rhs[i,0], dofs[j,0])
             
-            if(do_simplifications):
+            if do_simplifications:
                 lhs[i,j] = sympy.simplify(lhs[i,j])
 
     return lhs
