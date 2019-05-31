@@ -219,13 +219,13 @@ public:
      * @brief This method sets if the regions must be removed
      * @param[in] RemoveRegions Sets if the regions must be removed
      */
-    void SetRemoveRegions(const SizeType RemoveRegions);
+    void SetRemoveRegions(const bool RemoveRegions);
 
     /**
      * @brief This method gets if the regions must be removed
      * @return mRemoveRegions Gets if the regions must be removed
      */
-    SizeType GetRemoveRegions();
+    bool GetRemoveRegions();
 
     /**
      * @brief It prints info about the current mesh
@@ -437,25 +437,25 @@ public:
     /**
      * @brief This sets the output mesh
      * @param[in] rOutputName The output name
-     * @param[in] PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param[in] Step The step to postprocess
      */
-    void OutputMesh(
-        const std::string& rOutputName,
-        const bool PostOutput = false,
-        const int Step = -1
-        );
+    void OutputMesh(const std::string& rOutputName);
 
     /**
      * @brief This sets the output sol
      * @param[in] rOutputName The output name
-     * @param[in] PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param[in] Step The step to postprocess
      */
-    void OutputSol(
+    void OutputSol(const std::string& rOutputName);
+
+    /**
+     * @brief This method generates the maps of reference for conditions and elements from an existing json
+     * @param[in] rOutputName The name of the files
+     * @param[in] rRefCondition The conditions of reference
+     * @param[in] rRefElement The elements of reference
+     */
+    void OutputReferenceEntitities(
         const std::string& rOutputName,
-        const bool PostOutput = false,
-        const int Step = -1
+        const std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        const std::unordered_map<IndexType,Element::Pointer>& rRefElement
         );
 
     /**
@@ -584,6 +584,22 @@ public:
         );
 
     /**
+     * @brief This method generates the maps of reference for conditions and elements
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rColorMapCondition Auxiliar color map for conditions
+     * @param[in] rColorMapElement Auxiliar color map for elements
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void GenerateReferenceMaps(
+        ModelPart& rModelPart,
+        const ColorsMapType& rColorMapCondition,
+        const ColorsMapType& rColorMapElement,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
+        );
+
+    /**
      * @brief This method generates solution (metric) data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
@@ -612,6 +628,20 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     void WriteSolDataToModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method writes the maps of reference for conditions and elements from an existing json
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rFilename The name of the files
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void WriteReferenceEntitities(
+        ModelPart& rModelPart,
+        const std::string& rFilename,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
+        );
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
@@ -695,8 +725,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mEchoLevel = 0; /// The echo level of the utilities
-    bool mRemoveRegions = false; /// Cuttig-out specified regions during surface remeshing
+    SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
+    bool mRemoveRegions = false;                                           /// Cuttig-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
 
     ///@}

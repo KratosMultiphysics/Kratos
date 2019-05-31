@@ -775,7 +775,7 @@ namespace Kratos
 					{
 							ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-							if(inode->FastGetSolutionStepValue(IS_STRUCTURE)!=0.0)
+							if(inode->Is(SLIP))
 							{
 
 								array_1d<double, 3 >& velocity = inode->FastGetSolutionStepValue(VELOCITY);

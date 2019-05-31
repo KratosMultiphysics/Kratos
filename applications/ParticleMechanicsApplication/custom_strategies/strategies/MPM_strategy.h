@@ -393,17 +393,17 @@ public:
     {
         // Initialize zero the variables needed
         array_1d<double,3> xg = ZeroVector(3);
-        array_1d<double,3> MP_Displacement = ZeroVector(3);
-        array_1d<double,3> MP_Velocity = ZeroVector(3);
-        array_1d<double,3> MP_Acceleration = ZeroVector(3);
-        array_1d<double,3> MP_Volume_Acceleration = ZeroVector(3);
+        array_1d<double,3> mp_displacement = ZeroVector(3);
+        array_1d<double,3> mp_velocity = ZeroVector(3);
+        array_1d<double,3> mp_acceleration = ZeroVector(3);
+        array_1d<double,3> mp_volume_acceleration = ZeroVector(3);
 
-        Vector MP_Cauchy_Stress_Vector = ZeroVector(6);
-        Vector MP_Almansi_Strain_Vector = ZeroVector(6);
-        double MP_Pressure = 0.0;
+        Vector mp_cauchy_stress_vector = ZeroVector(6);
+        Vector mp_almansi_strain_vector = ZeroVector(6);
+        double mp_pressure = 0.0;
 
-        double MP_Mass;
-        double MP_Volume;
+        double mp_mass;
+        double mp_volume;
 
         // Determine element index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements();
@@ -518,12 +518,12 @@ public:
                     const double area = rGeom.Area();
                     if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
 						const double thickness = i->GetProperties()[THICKNESS];
-						MP_Mass = area * thickness * density / integration_point_per_elements;
+						mp_mass = area * thickness * density / integration_point_per_elements;
 					}
 					else {
-                        MP_Mass = area * density / integration_point_per_elements;
+                        mp_mass = area * density / integration_point_per_elements;
                     }
-                    MP_Volume = area / integration_point_per_elements;
+                    mp_volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
@@ -550,19 +550,19 @@ public:
                         // Setting particle element's initial condition
                         p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
                         p_element->SetValue(MP_DENSITY, MP_Density);
-                        p_element->SetValue(MP_MASS, MP_Mass);
-                        p_element->SetValue(MP_VOLUME, MP_Volume);
+                        p_element->SetValue(MP_MASS, mp_mass);
+                        p_element->SetValue(MP_VOLUME, mp_volume);
                         p_element->SetValue(MP_COORD, xg);
-                        p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
-                        p_element->SetValue(MP_VELOCITY, MP_Velocity);
-                        p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
-                        p_element->SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
-                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
-                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
+                        p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
+                        p_element->SetValue(MP_VELOCITY, mp_velocity);
+                        p_element->SetValue(MP_ACCELERATION, mp_acceleration);
+                        p_element->SetValue(MP_VOLUME_ACCELERATION, mp_volume_acceleration);
+                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector);
+                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector);
 
                         if(IsMixedFormulation)
                         {
-                            p_element->SetValue(MP_PRESSURE, MP_Pressure);
+                            p_element->SetValue(MP_PRESSURE, mp_pressure);
                         }
 
                         // Add the MP Element to the model part
@@ -584,13 +584,14 @@ public:
     {
         // Initialize zero the variables needed
         array_1d<double,3> mpc_xg = ZeroVector(3);
-        array_1d<double,3> MPC_Normal = ZeroVector(3);
-        array_1d<double,3> MPC_Displacement = ZeroVector(3);
-        array_1d<double,3> MPC_Velocity = ZeroVector(3);
-        array_1d<double,3> MPC_Acceleration = ZeroVector(3);
+        array_1d<double,3> mpc_normal = ZeroVector(3);
+        array_1d<double,3> mpc_displacement = ZeroVector(3);
+        array_1d<double,3> mpc_velocity = ZeroVector(3);
+        array_1d<double,3> mpc_acceleration = ZeroVector(3);
+        array_1d<double, 3 > point_load = ZeroVector(3);
 
-        double MPC_Area = 0.0;
-        double MPC_Penalty_Factor = 0.0;
+        double mpc_area = 0.0;
+        double mpc_penalty_factor = 0.0;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = mr_grid_model_part.NumberOfConditions();
@@ -630,7 +631,7 @@ public:
                             i != submodelpart.ConditionsEnd(); i++)
                     {
                         Properties::Pointer properties = i->pGetProperties();
-                        const int MPC_Condition_Id = i->GetProperties().Id();
+                        const int mpc_condition_id = i->GetProperties().Id();
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
@@ -648,14 +649,19 @@ public:
 
                         // Get condition variables:
                         // Normal vector (normalized)
-                        if (i->Has(NORMAL)) MPC_Normal = i->GetValue(NORMAL);
-                        const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
-                        if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
+                        if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
+                        const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
+                        if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
                         const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                         Matrix shape_functions_values;
+
+                        //Get geometry of the background grid
+                        std::string condition_type_name;
+                        const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
+
                         if (rGeoType == GeometryData::Kratos_Point2D  || rGeoType == GeometryData::Kratos_Point3D)
                         {
                             switch (particles_per_condition)
@@ -673,8 +679,24 @@ public:
                                     break;
                             }
 
-                            if(is_neumann_condition)
-                                KRATOS_ERROR << "Particle point load condition is not yet implemented." << std::endl;
+                            if(is_neumann_condition){
+
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePointLoadCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePointLoadCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePointLoadCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePointLoadCondition3D8N";
+                                }
+
+                                if( i->Has( POINT_LOAD ) )
+                                    point_load = i->GetValue( POINT_LOAD );
+                            }
 
                         }
                         else if (rGeoType == GeometryData::Kratos_Line2D2  || rGeoType == GeometryData::Kratos_Line3D2)
@@ -797,24 +819,22 @@ public:
 
                         // Evaluation of geometric length/area
                         const double area = rGeom.Area();
-                        MPC_Area = area / (rGeom.size() + integration_point_per_conditions);
+                        mpc_area = area / (rGeom.size() + integration_point_per_conditions);
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
-                            MPC_Displacement = i->GetValue(DISPLACEMENT);
+                            mpc_displacement = i->GetValue(DISPLACEMENT);
                         if (i->Has(VELOCITY))
-                            MPC_Velocity = i->GetValue(VELOCITY);
+                            mpc_velocity = i->GetValue(VELOCITY);
                         if (i->Has(ACCELERATION))
-                            MPC_Acceleration = i->GetValue(ACCELERATION);
+                            mpc_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
-                            MPC_Penalty_Factor = i->GetValue(PENALTY_FACTOR);
+                            mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
                         // If dirichlet boundary
-                        std::string condition_type_name;
-                        const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
                         if (!is_neumann_condition){
                             if (TDim==2){
                                 if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
@@ -835,10 +855,10 @@ public:
 
                         // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
-                        for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_conditions; PointNumber++ )
+                        for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
                         {
                             // Create new material point condition
-                            new_condition_id = last_condition_id + PointNumber;
+                            new_condition_id = last_condition_id + point_number;
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
@@ -846,27 +866,32 @@ public:
                             // Loop over the nodes of the grid condition
                             for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
                                 for ( unsigned int j = 0; j < rGeom.size(); j ++){
-                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(point_number, j) * rGeom[j].Coordinates()[dim];
                                 }
                             }
 
                             // Check Normal direction
-                            if (flip_normal_direction) MPC_Normal *= -1.0;
+                            if (flip_normal_direction) mpc_normal *= -1.0;
 
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the second loop below
-                            p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
+                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, MPC_Area);
-                            p_condition->SetValue(MPC_NORMAL, MPC_Normal);
-                            p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
-                            p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
-                            p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
-                            p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
-                            if (is_slip)
-                                p_condition->Set(SLIP);
-                            if (is_contact)
-                                p_condition->Set(CONTACT);
+                            p_condition->SetValue(MPC_AREA, mpc_area);
+                            p_condition->SetValue(MPC_NORMAL, mpc_normal);
+                            p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
+                            p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
+                            p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
+
+                            if (is_neumann_condition)
+                                p_condition->SetValue(POINT_LOAD, point_load);
+                            else{
+                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                if (is_slip)
+                                    p_condition->Set(SLIP);
+                                if (is_contact)
+                                    p_condition->Set(CONTACT);
+                            }
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -878,12 +903,12 @@ public:
                         for ( unsigned int j = 0; j < rGeom.size(); j ++)
                         {
                             // Nodal normal vector is used
-                            if (rGeom[j].Has(NORMAL)) MPC_Normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
-                            const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
-                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
+                            if (rGeom[j].Has(NORMAL)) mpc_normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                            const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
+                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
                             // Check Normal direction
-                            if (flip_normal_direction) MPC_Normal *= -1.0;
+                            if (flip_normal_direction) mpc_normal *= -1.0;
 
                             // Create new material point condition
                             new_condition_id = last_condition_id + j;
@@ -896,18 +921,23 @@ public:
 
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
-                            p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
+                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, MPC_Area);
-                            p_condition->SetValue(MPC_NORMAL, MPC_Normal);
-                            p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
-                            p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
-                            p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
-                            p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
-                            if (is_slip)
-                                p_condition->Set(SLIP);
-                            if (is_contact)
-                                p_condition->Set(CONTACT);
+                            p_condition->SetValue(MPC_AREA, mpc_area);
+                            p_condition->SetValue(MPC_NORMAL, mpc_normal);
+                            p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
+                            p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
+                            p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
+
+                            if (is_neumann_condition)
+                                p_condition->SetValue(POINT_LOAD, point_load);
+                            else{
+                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                if (is_slip)
+                                    p_condition->Set(SLIP);
+                                if (is_contact)
+                                    p_condition->Set(CONTACT);
+                            }
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);

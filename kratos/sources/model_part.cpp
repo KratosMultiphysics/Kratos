@@ -27,50 +27,10 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    mName = "Default";
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
-
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
-
-    mName = NewName;
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel) : ModelPart(NewName, 1, pVariablesList, rOwnerModel) { }
 
 /// Constructor with name and bufferSize
 ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
@@ -85,13 +45,9 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , mSubModelParts()
     , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF(NewName.empty()) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF_NOT(NewName.find(".") == std::string::npos) << "Please don't use names containing (\".\") when creating a ModelPart (used in \"" << NewName << "\")" << std::endl;
 
     mName = NewName;
     MeshType mesh;

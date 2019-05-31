@@ -746,7 +746,7 @@ public:
 
     }
     /**
-     * writes nodal results for variables of type double
+     * writes nodal results for variables of type int
      */
     void WriteNodalResults( Variable<int> const& rVariable,
                             NodesContainerType& rNodes, double SolutionTag,
