@@ -232,7 +232,7 @@ namespace Testing {
 
         // Set the new skin model part
         ModelPart &element_based_skin = model.CreateModelPart("ElementBasedSkin");
-        partitioned_fsi_utilities.CopySkinToElements(main_model_part, element_based_skin);
+        partitioned_fsi_utilities.CreateCouplingElementBasedSkin(main_model_part, element_based_skin);
 
         // Check results
         KRATOS_CHECK_EQUAL(element_based_skin.NumberOfNodes(), 4);
@@ -396,6 +396,65 @@ namespace Testing {
             KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
         }
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DCreateCouplingElementBasedSkin, FSIApplicationFastSuite)
+    {
+        // Set the partitioned FSI utilities
+        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
+
+        // Set the model part containing the origin skin
+        Model model;
+        ModelPart &r_skin_model_part = model.CreateModelPart("OriginModelPart");
+        GenerateTestSkinModelPart(r_skin_model_part);
+
+        // Create the destination submodelpart
+        ModelPart &r_destination_model_part = model.CreateModelPart("DestinationModelPart");
+
+        // Generate the auxiliary element based skin
+        partitioned_fsi_utilities.CreateCouplingElementBasedSkin(
+            r_skin_model_part,
+            r_destination_model_part);
+
+        // Check results
+        KRATOS_CHECK_EQUAL(r_destination_model_part.NumberOfNodes(), 4);
+        KRATOS_CHECK_EQUAL(r_destination_model_part.NumberOfElements(), 3);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DInitializeInterfaceVector, FSIApplicationFastSuite)
+    {
+        // Set the partitioned FSI utilities
+        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
+
+        // Set the model part containing the origin skin
+        Model model;
+        ModelPart &r_skin_model_part = model.CreateModelPart("OriginModelPart");
+        r_skin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        GenerateTestSkinModelPart(r_skin_model_part);
+
+        // Set a fake field to fill the interface vector
+        for (auto &r_node : r_skin_model_part.Nodes()) {
+            auto &r_disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+            r_disp[0] = r_node.Id();
+            r_disp[1] = 2.0 * r_node.Id();
+            r_disp[2] = 3.0 * r_node.Id();
+        }
+
+        // Generate the auxiliary element based skin
+        Vector interface_vector;
+        interface_vector.resize(partitioned_fsi_utilities.GetInterfaceResidualSize(r_skin_model_part), false);
+        partitioned_fsi_utilities.InitializeInterfaceVector(
+            r_skin_model_part,
+            DISPLACEMENT,
+            interface_vector);
+
+        // Check results
+        const double tolerance = 1.0e-8;
+        std::array<double, 8> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
+        for (unsigned int i = 0; i < 8; ++i) {
+            KRATOS_CHECK_NEAR(interface_vector(i), expected_results[i], tolerance);
+        }
+    }
+
 
 } // namespace Testing
 }  // namespace Kratos.

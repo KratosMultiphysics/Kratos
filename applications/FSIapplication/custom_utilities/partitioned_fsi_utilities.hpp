@@ -106,7 +106,7 @@ public:
      * This method creates an element based skin model part by
      * copying the conditions of a given skin model part
      * @param rOriginInterfaceModelPart Origin skin model part to copy the conditions from
-     * @param rDestinationInterfaceModelPart Empty destination submodelpart to create the skin elements
+     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin elements
      */
     void CreateCouplingElementBasedSkin(
         const ModelPart &rOriginInterfaceModelPart,
