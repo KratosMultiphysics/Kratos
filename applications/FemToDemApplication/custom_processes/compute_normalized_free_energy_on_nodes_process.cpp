@@ -19,10 +19,23 @@ namespace Kratos
 /***********************************************************************************/
 
 // Constructor
-ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, int Dimension) : mrModelPart(r_model_part)
+ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesProcess(
+    ModelPart &r_model_part, 
+    int Dimension, 
+    Parameters ThisParameters) : mrModelPart(r_model_part)
 {
     mNNodes = mrModelPart.NumberOfNodes();
     mDimension = Dimension;
+
+    Parameters default_parameters = Parameters(R"(
+    {
+        "normalized_free_energy" : false,
+        "correct_with_displacements" : true
+    })" );
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    mComputeNormalizedFreeEnergy = ThisParameters["normalized_free_energy"].GetBool();
+    mCorrectWithDisplacements = ThisParameters["correct_with_displacements"].GetBool();
 }
 
 /***********************************************************************************/
@@ -76,11 +89,13 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
     for (ModelPart::NodeIterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); ++it_node) {
         int Id = (*it_node).Id();
         const double nodal_free_energy = pNodeNormalizedFreeEnergyVector[Id - 1].NormalizedFreeEnergy;
-
         double& r_norm = it_node->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
-        const double r_displ = norm_2(it_node->GetSolutionStepValue(DISPLACEMENT));
         r_norm = nodal_free_energy;
-        r_norm *= r_displ;
+
+        if (mCorrectWithDisplacements) {
+            const double r_displ = norm_2(it_node->GetSolutionStepValue(DISPLACEMENT));
+            r_norm *= r_displ;
+        }
     }
 }
 
@@ -94,42 +109,35 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
     const Properties& rMatProps,
     Geometry<Node<3>>& rGeometry)
 {
-    const double fracture_energy_tension = rMatProps[FRAC_ENERGY_T];
-    const double yield_tension = rMatProps[YIELD_STRESS_T];
-    const double yield_compression = rMatProps[YIELD_STRESS_C];
-    const double ratio = yield_compression / yield_tension;
-    const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
-    const double density = rMatProps[DENSITY];
     double normalized_free_energy;
 
-    KRATOS_ERROR_IF(yield_tension < tolerance) << "The yield_tension is null or not assigned" << std::endl;
-    KRATOS_ERROR_IF(yield_compression < tolerance) << "The yield_compression is null or not assigned" << std::endl;
-    KRATOS_ERROR_IF(fracture_energy_tension < tolerance) << "The Fracture Energy is null or not assigned" << std::endl;
-    KRATOS_ERROR_IF(density < tolerance) << "The density is null or not assigned" << std::endl;
-
-    if (mDimension == 2) { // 2D version
-        // const double characteristic_length = this->CalculateCharacteristicLength2D(rGeometry);
-        // const double g_t = fracture_energy_tension / characteristic_length;
-        // const double g_c = fracture_energy_compression / characteristic_length;
-        // const double r   = this->ComputeTensionFactor2D(rStressVector);
-        normalized_free_energy = inner_prod(rStrainVector, rStressVector);
-        // normalized_free_energy *= (1.0 - Damage);
-        // normalized_free_energy /= (2.0 * density);
-        // normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
-        return normalized_free_energy;
-    } else if (mDimension == 3) { // 3D version
-        // const double characteristic_length = this->CalculateCharacteristicLength3D(rGeometry);
-        // const double g_t = fracture_energy_tension / characteristic_length;
-        // const double g_c = fracture_energy_compression / characteristic_length;
-        // const double r   = this->ComputeTensionFactor3D(rStressVector);
-        normalized_free_energy = inner_prod(rStrainVector, rStressVector);
-        // normalized_free_energy *= (1.0 - Damage);
-        // normalized_free_energy /= (2.0 * density);
-        // normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
-        return normalized_free_energy;
+    normalized_free_energy = inner_prod(rStrainVector, rStressVector);
+    if (mComputeNormalizedFreeEnergy) {
+        const double fracture_energy_tension = rMatProps[FRAC_ENERGY_T];
+        const double yield_tension = rMatProps[YIELD_STRESS_T];
+        const double yield_compression = rMatProps[YIELD_STRESS_C];
+        const double ratio = yield_compression / yield_tension;
+        const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
+        const double density = rMatProps[DENSITY];
         
-    } else {
-        KRATOS_ERROR << "Dimension is wrong..." << std::endl;
+        KRATOS_ERROR_IF(yield_tension < tolerance) << "The yield_tension is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(yield_compression < tolerance) << "The yield_compression is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(fracture_energy_tension < tolerance) << "The Fracture Energy is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(density < tolerance) << "The density is null or not assigned" << std::endl;
+
+        double characteristic_length, r;
+        if (mDimension == 2) {
+            characteristic_length = this->CalculateCharacteristicLength2D(rGeometry);
+            r = this->ComputeTensionFactor2D(rStressVector);
+        } else {
+            characteristic_length = this->CalculateCharacteristicLength3D(rGeometry);
+            r = this->ComputeTensionFactor3D(rStressVector);
+        }
+        const double g_t = fracture_energy_tension / characteristic_length;
+        const double g_c = fracture_energy_compression / characteristic_length;
+        normalized_free_energy *= (1.0 - Damage);
+        normalized_free_energy /= (2.0 * density);
+        normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
     }
 }
 

@@ -42,7 +42,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     // Constructor
-	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, int Dimension);
+	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, int Dimension, Parameters ThisParameters);
 
     // Destructor
     ~ComputeNormalizedFreeEnergyOnNodesProcess() override = default;
@@ -73,6 +73,8 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     // Member Variables
     ModelPart& mrModelPart;
     unsigned int mNNodes, mDimension;
+    bool mComputeNormalizedFreeEnergy = false;
+    bool mCorrectWithDisplacements = false;
 
 }; // Class ComputeNormalizedFreeEnergyOnNodesProcess
 
