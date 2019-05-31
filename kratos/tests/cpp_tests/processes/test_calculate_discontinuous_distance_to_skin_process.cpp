@@ -364,10 +364,10 @@ namespace Testing {
 
         // Check elemental distance values
         const auto &r_elem_dist = volume_part.ElementsBegin()->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.00028, 1e-5);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.00028, 1e-5);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.00028, 1e-5);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.00028, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.22382, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.22382, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.22382, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.22382, 1e-5);
 
 
     }
