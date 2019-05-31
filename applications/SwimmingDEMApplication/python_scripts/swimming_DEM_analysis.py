@@ -491,8 +491,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def _Print(self):
         os.chdir(self.post_path)
-        import define_output
-        self.drag_list = define_output.DefineDragList()
+        #TODO: review this lines
+        # import define_output
+        # self.drag_list = define_output.DefineDragList()
         self.drag_file_output_list = []
 
         if self.particles_results_counter.Tick():
