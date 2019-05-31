@@ -36,9 +36,9 @@ namespace Kratos
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
 		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
-		const double ExtraRaysEpsilon)
+		const double RayCastingTolerance)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
-		mExtraRaysEpsilon(ExtraRaysEpsilon)
+		mRayCastingTolerance(RayCastingTolerance)
 	{
 	}
 
@@ -194,7 +194,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::CalculateRayDistances()
 	{
-		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mExtraRaysEpsilon);
+		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mRayCastingTolerance);
 		ray_casting_process.Execute();
 	}
 
