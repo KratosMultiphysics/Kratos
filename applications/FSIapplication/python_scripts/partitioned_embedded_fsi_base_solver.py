@@ -5,7 +5,7 @@ from math import sqrt   # Import the square root from python library
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural # Import the structure Python solvers wrapper
 from KratosMultiphysics.MeshMovingApplication import python_solvers_wrapper_mesh_motion         # Import the mesh motion Python solvers wrapper
-from KratosMultiphysics.FSIApplication import fsi_coupling_interface # Import the FSI coupling interface utility
+from KratosMultiphysics.FSIApplication import fsi_coupling_interface                            # Import the FSI coupling interface utility
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory                   # Import the FSI convergence accelerator factory
 
 # Importing the Kratos Library
@@ -335,30 +335,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
-    def _get_variational_distance_process(self):
-        if not hasattr(self, '_variational_distance_process'):
-            self._variational_distance_process = self._create_variational_distance_process()
-        return self._variational_distance_process
-
-    def _create_variational_distance_process(self):
-        # Set the variational distance calculation process
-        # So far, we are using the same linear solver used in the CFD problem resolution
-        maximum_iterations = 2 #TODO: Make this user-definable
-        if self.domain_size == 2:
-            return KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-                self.GetFluidComputingModelPart(),
-                self.fluid_solver.linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        elif self.domain_size == 3:
-            return KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-                self.GetFluidComputingModelPart(),
-                self.fluid_solver.linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
-
     def _get_distance_modification_process(self):
         if not hasattr(self, '_distance_modification_process'):
             self._distance_modification_process = self._create_distance_modification_process()
@@ -402,9 +378,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     def _update_level_set(self):
         # Recompute the distance field with the obtained solution
         self._get_distance_to_skin_process().Execute()
-
-        # Extend the distance field but keeping the zero level set
-        self._get_variational_distance_process().Execute()
 
         # Correct the distance field
         self._get_distance_modification_process().Execute()
