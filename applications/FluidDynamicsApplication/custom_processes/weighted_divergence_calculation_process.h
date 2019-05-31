@@ -7,9 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
-//                   Riccardo Tosi
+//  Main authors:    Riccardo Tosi
 
 #ifndef KRATOS_WEIGHTED_DIVERGENCE_CALCULATION_PROCESS_H
 #define KRATOS_WEIGHTED_DIVERGENCE_CALCULATION_PROCESS_H
@@ -24,7 +22,6 @@
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
-#include "processes/compute_nodal_gradient_process.h"
 #include "utilities/variable_utils.h"
 
 #include <string>
@@ -37,6 +34,37 @@
 
 namespace Kratos
 {
+///@addtogroup FluidDynamicsApplication
+///@{
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// This process computes the element average in time of the divergence and of the seminorm of the velocity field.
+/// We define the seminorm of the velocity field as: \left \| \nabla u_{h} \right \|_{L^2(K)}^2 ,
+/// and the divergence as \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
+/// where u is the velocity field and K an element of the domain \Omega.
+/// The time average does not consider the transient 20% first part of the simulation.
+/// The process requires a model part as input.
+
+/** Detail class definition.
+ */
 
 class WeightedDivergenceCalculationProcess: public Process
 {
@@ -53,16 +81,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor for WeightedDivergenceCalculationProcess Process
-//     WeightedDivergenceCalculationProcess(ModelPart& rModelPart,
-//                      KratosParameters& parameters
-//                     ):
-//         Process(),
-//         mrModelPart(rModelPart),
-//         mrOptions(Flags()),
-//         mrParameters(parameters)
-//     {
-//     }
     /// Constructor for WeightedDivergenceCalculationProcess Process
     WeightedDivergenceCalculationProcess(ModelPart& rModelPart
                     ):
@@ -90,22 +108,14 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * This process computes the element average in time of the divergence and of the seminorm of the divergence of the velocity field.
-     * We define the seminorm of the divergence as: \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
-     * where u is the velocity field and K an element of the domain \Omega.
-     * The time average does not consider the transient first 20% part of the simulation.
-     * The process requires a model part as input.
-     */
-
+    /// Execution of the process
     void Execute() override
     {
         KRATOS_TRY;
 
         // Set time coefficient: computations will be performed ONLY AFTER (time_coefficient * END_TIME)
         const double time_coefficient = 0.2;
-        // Set copute maximums boolean
-        const bool compute_maximums = false;
+
         // Extract time information
         const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
     	const double& time_step_current  = rCurrentProcessInfo[TIME];
@@ -173,7 +183,7 @@ public:
 
                 // Initialize auxiliary local variables
                 double divergence_current = 0;
-                double norm_divergence_current = 0;
+                double velocity_seminorm_current = 0;
 
                 // Loop over integration points
                 for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ){
@@ -193,38 +203,24 @@ public:
                     const Vector grad_y = prod(trans(DN_DX), values_y);
                     const Vector grad_z = prod(trans(DN_DX), values_z);
 
-                    // Compute divergence and
+                    // Compute divergence and velocity seminorm
                     const double aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
-                    const double aux_current_divergence_norm = grad_x[0]*grad_x[0] + grad_x[1]*grad_x[1] + grad_x[2]*grad_x[2] + grad_y[0]*grad_y[0] + grad_y[1]*grad_y[1] + grad_y[2]*grad_y[2] + grad_z[0]*grad_z[0] + grad_z[1]*grad_z[1] + grad_z[2]*grad_z[2];
+                    const double aux_current_velocity_seminorm = grad_x[0]*grad_x[0] + grad_x[1]*grad_x[1] + grad_x[2]*grad_x[2] + grad_y[0]*grad_y[0] + grad_y[1]*grad_y[1] + grad_y[2]*grad_y[2] + grad_z[0]*grad_z[0] + grad_z[1]*grad_z[1] + grad_z[2]*grad_z[2];
                     const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
                     divergence_current += std::pow(aux_current_divergence,2) * gauss_point_volume;
-                    norm_divergence_current += aux_current_divergence_norm * gauss_point_volume;
+                    velocity_seminorm_current += aux_current_velocity_seminorm * gauss_point_volume;
                 }
-
                 // Retrieve divergence from previous time step
                 auto divergence_old = it_elem->GetValue(DIVERGENCE);
-                auto norm_divergence_old = it_elem->GetValue(DIVERGENCE_H1SEMINORM);
-
-                // Save element volume
-                it_elem->SetValue(AUX_VOLUME,it_elem->GetGeometry().Area());
+                auto velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1SEMINORM);
 
                 // Compute divergence weighted time average
                 auto divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(divergence_old,2) + (time_step_current - time_step_previous) * divergence_current) /  (time_step_current-time_coefficient*final_time));
                 it_elem->SetValue(DIVERGENCE,divergence_current_avg);
 
                 // Compute divergence_norm weighted time average
-                auto norm_divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(norm_divergence_old,2) + (time_step_current - time_step_previous) * norm_divergence_current) /  (time_step_current-time_coefficient*final_time));
-                it_elem->SetValue(DIVERGENCE_H1SEMINORM,norm_divergence_current_avg);
-
-                // Compute maximums
-                if (compute_maximums) {
-                    auto divergence_current_max = std::sqrt(divergence_current);
-                    auto norm_divergence_current_max = std::sqrt(norm_divergence_current);
-                    if (divergence_old > divergence_current_max) divergence_current_max = divergence_old;
-                    if (norm_divergence_old > norm_divergence_current_max) norm_divergence_current_max = norm_divergence_old;
-                    it_elem->SetValue(DIVERGENCE,divergence_current_max);
-                    it_elem->SetValue(DIVERGENCE_H1SEMINORM,norm_divergence_current_max);
-                }
+                auto velocity_seminorm_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(velocity_seminorm_old,2) + (time_step_current - time_step_previous) * velocity_seminorm_current) /  (time_step_current-time_coefficient*final_time));
+                it_elem->SetValue(VELOCITY_H1SEMINORM,velocity_seminorm_current_avg);
 
             }
         }
@@ -285,7 +281,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Flags mrOptions;
 
 
     ///@}

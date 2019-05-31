@@ -44,8 +44,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
             "target_refinement_coefficient"       : 0.9,
             "refinement_bound"                    : 2.0,
             "reference_variable_name"             : "DIVERGENCE",
-            "reference_norm_name"                 : "DIVERGENCE_H1SEMINORM",
-            "reference_volume_name"               : "AUX_VOLUME"
+            "reference_norm_name"                 : "VELOCITY_H1SEMINORM"
         },
 
         "maximum_strategy":
@@ -67,7 +66,6 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     // Mean strategy
     mMeanStrategyReferenceVariable = ThisParameters["mean_distribution_strategy"]["reference_variable_name"].GetString();
     mMeanStrategyReferenceNorm = ThisParameters["mean_distribution_strategy"]["reference_norm_name"].GetString();
-    mMeanStrategyReferenceVolume = ThisParameters["mean_distribution_strategy"]["reference_volume_name"].GetString();
     mMeanStrategyTargetRefinementCoefficient = ThisParameters["mean_distribution_strategy"]["target_refinement_coefficient"].GetDouble();
     mMeanStrategyRefinementBound = ThisParameters["mean_distribution_strategy"]["refinement_bound"].GetDouble();
     mMeanStrategyDivergenceFreeInterpolationValue = -1;
@@ -110,22 +108,6 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
     // --2-- Initialize what is needed for each refinement strategy --2--
     // ******************************************************************************/
     InitializeRefinementStrategy();
-
-    // // Selection refinement strategy
-    // if (mRefinementStrategy == "maximum_strategy") {
-    //     // Iteration over all elements to find maximum value of divergence
-    //     const int number_elements = static_cast<int>(elements_array.size());
-    //     mDivergenceFreeMaxValue = -1;
-    //     const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mMaxStrategyReferenceVariable);
-    //     for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
-    //         auto it_elem = elements_array.begin() + i_elem;
-    //         const double divergencefree_elem_value = abs(it_elem->GetValue(r_reference_var));
-    //         if (divergencefree_elem_value > mDivergenceFreeMaxValue) {
-    //             mDivergenceFreeMaxValue = divergencefree_elem_value;
-    //         KRATOS_WATCH(mDivergenceFreeMaxValue);
-    //         }
-    //     }
-    // }
 
     // /******************************************************************************
     // --3-- Calculate metric --3--
@@ -173,7 +155,6 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
 
         mMeanStrategyDivergenceFreeInterpolationValue = -1;
         const auto& r_reference_var  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
-        const auto& r_reference_vol  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVolume);
         for(int i_node = 0; i_node < number_nodes; ++i_node) {
             auto it_node = nodes_array.begin() + i_node;
 
@@ -184,8 +165,8 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
             // Get divergence value on the node: cycle the neigh elements and take sum of DIVERGENCE value
             auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
             for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
-                divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetValue(r_reference_vol);
-                local_volume += i_neighbour_elements->GetValue(r_reference_vol);
+                divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetGeometry().Area();
+                local_volume += i_neighbour_elements->GetGeometry().Area();
             }
             divergencefree_interp_value /= local_volume;
             if (divergencefree_interp_value > mMeanStrategyDivergenceFreeInterpolationValue) {
@@ -279,7 +260,6 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         // Reference variable
         const auto& r_reference_var  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
         const auto& r_reference_norm = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceNorm);
-        const auto& r_reference_vol  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVolume);
 
         // Divergence over full domain
         double divergencedomain_value = 0;
@@ -302,8 +282,8 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             // Get divergence interpolation value on the node
             auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
             for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
-                divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetValue(r_reference_vol);
-                local_volume += i_neighbour_elements->GetValue(r_reference_vol);
+                divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetGeometry().Area();
+                local_volume += i_neighbour_elements->GetGeometry().Area();
             }
             divergencefree_interp_value /= local_volume;
 

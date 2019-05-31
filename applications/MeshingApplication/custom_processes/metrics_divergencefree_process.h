@@ -205,7 +205,6 @@ private:
     // Mean strategy
     std::string mMeanStrategyReferenceVariable;
     std::string mMeanStrategyReferenceNorm;
-    std::string mMeanStrategyReferenceVolume;
     double mMeanStrategyTargetRefinementCoefficient;
     double mMeanStrategyRefinementBound;
     double mMeanStrategyDivergenceFreeInterpolationValue;
