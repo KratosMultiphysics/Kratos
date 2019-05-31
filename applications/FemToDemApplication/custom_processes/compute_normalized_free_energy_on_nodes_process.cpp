@@ -139,6 +139,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
         normalized_free_energy /= (2.0 * density);
         normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
     }
+    return normalized_free_energy;
 }
 
 /***********************************************************************************/
