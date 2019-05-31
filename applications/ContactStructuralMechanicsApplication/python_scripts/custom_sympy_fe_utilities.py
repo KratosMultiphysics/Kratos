@@ -13,17 +13,28 @@ class FSymbol(sympy.Symbol):
         self -- It signifies an instance of a class.
         name -- The name of the variable and function
         """
-        super(FSymbol, self).__init__(name)
+        #super(FSymbol, self).__init__(name)
+        sympy.Symbol.__init__(name)
         self.internal_function = sympy.Function(name)
 
-    def __call__(self, t):
+    def __call__(self, *args):
         """ The call operator of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        t -- The call
+        args -- The call arguments
         """
-        return self.internal_function.__call__(t)
+        return self.internal_function.__call__(args)
+
+    def diff(self, *symbols, **kwargs):
+        """
+        Differentiate f with respect to symbols.
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        args -- The call arguments
+        """
+        return self.internal_function.diff(symbols, kwargs)
 
 def GetSympyVersion():
     """ This method returns the current Sympy version
@@ -41,8 +52,8 @@ def DefineMatrix( name, m, n ):
     if float(GetSympyVersion()) <= 1.2:
         return sympy.Matrix( m,n, lambda i,j: sympy.var(name+'_%d_%d' % (i,j)) )
     else:
-        return sympy.Matrix( m,n, lambda i,j: FSymbol(name+'_%d_%d' % (i,j)))
-    #FSymbol(name)
+        raise Exception("Not implemented yet")
+        #return sympy.Matrix( m,n, lambda i,j: FSymbol(name+'_%d_%d' % (i,j)))
 
 def DefineSymmetricMatrix( name, m, n = -1):
     """ This method defines a symbolic symmetric matrix
