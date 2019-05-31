@@ -138,18 +138,9 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
 
 double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry)
 {
-    Vector node_1_coordinates = ZeroVector(3);
-    Vector node_2_coordinates = ZeroVector(3);
-    Vector node_3_coordinates = ZeroVector(3);
-    node_1_coordinates[0] = rGeometry[0].X0();
-    node_1_coordinates[1] = rGeometry[0].Y0();
-    node_1_coordinates[2] = rGeometry[0].Z0();
-    node_2_coordinates[0] = rGeometry[1].X0();
-    node_2_coordinates[1] = rGeometry[1].Y0();
-    node_2_coordinates[2] = rGeometry[1].Z0();
-    node_3_coordinates[0] = rGeometry[2].X0();
-    node_3_coordinates[1] = rGeometry[2].Y0();
-    node_3_coordinates[2] = rGeometry[2].Z0();
+    Vector node_1_coordinates = rGeometry[0].Coordinates();
+    Vector node_2_coordinates = rGeometry[1].Coordinates();
+    Vector node_3_coordinates = rGeometry[2].Coordinates();
 
     const double length1 = norm_2(node_1_coordinates-node_2_coordinates);
     const double length2 = norm_2(node_2_coordinates-node_3_coordinates);
@@ -267,7 +258,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses3D(con
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(int &rmax_id)
+void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(int& rMaxId)
 {
     int aux = 0;
     int id;
@@ -277,7 +268,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(int &rmax_id
         if (id > aux)
             aux = id;
     }
-    rmax_id = aux;
+    rMaxId = aux;
 }
 
 /***********************************************************************************/
