@@ -63,6 +63,14 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_EmbeddedCircle(self):
+        settings_file_name = "embedded_circle_parameters.json"
+        work_folder = "embedded_test"
+        self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.327805503865, 0.0, 1e-9)
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
