@@ -52,7 +52,15 @@ def DefineVector( name, m, mode = "Symbol"):
     m -- Number of components.
     mode -- The type of variable is defined (function or symbol)
     """
-    return DefineMatrix( name, m, 1, mode)
+    if float(GetSympyVersion()) <= 1.2:
+        return sympy.Matrix( m,1, lambda i,j: sympy.var(name+'_%d' % (i)) )
+    else:
+        if mode == "Symbol":
+            return sympy.Matrix( m,1, lambda i,j: sympy.var(name+'_%d' % (i)) )
+        elif mode == "Function":
+            return sympy.Matrix( m,1, lambda i,j: sympy.symbols(name+'_%d' % (i), cls=sympy.Function))
+        else:
+            raise Exception("Not implemented yet")
 
 def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity = False):
     """ This method defines shape functions and derivatives
