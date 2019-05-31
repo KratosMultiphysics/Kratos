@@ -77,13 +77,13 @@ public:
      * @param rVolumePart model part containing the volume elements
      * @param rSkinPart model part containing the skin to compute
      * the distance to as conditions
-     * @param RayCastingTolerance user-defined tolerance for the
+     * @param RayCastingRelativeTolerance user-defined tolerance for the
      * apply_ray_casting_process
      */
     CalculateDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const double RayCastingTolerance);
+        const double RayCastingRelativeTolerance);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
@@ -198,7 +198,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const double mRayCastingTolerance = 1.0e-8;
+    const double mRayCastingRelativeTolerance = 1.0e-8;
 
     ///@}
     ///@name Private Operators
