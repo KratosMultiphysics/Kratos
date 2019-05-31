@@ -89,7 +89,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
-        ##############################################################################################
+        #############################################################################################
 
     def _InitializeSkinModelPart(self):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).
