@@ -18,7 +18,7 @@
 #include "fem_to_dem_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/stress_to_nodes_process.hpp"
-#include "custom_processes/compute_normalized_free_energy_on_nodes_process.hpp"
+#include "custom_processes/compute_normalized_free_energy_on_nodes_process.h"
 #include "custom_processes/damage_to_nodes_process.hpp"
 #include "custom_processes/dem_after_remesh_identificator_process.hpp"
 #include "custom_processes/initial_dem_skin_process.hpp"
