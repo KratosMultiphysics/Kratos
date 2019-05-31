@@ -14,31 +14,36 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
     def _SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
+        import time
+        ini_time=time.time()
+        self.__FindMaximumInactiveNode()
+        KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Find Max. Inactive Node time: ',time.time()-ini_time)
+        ini_time=time.time()
+        self.__CreateInactiveTrailingEdgeElementBall()
+        KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Creating Inactive Element Ball time: ',time.time()-ini_time)
+
+        self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
+    def __FindMaximumInactiveNode(self):
+        self.boundary_sub_model_part=self.fluid_model_part.CreateSubModelPart("boundary")
         max_x=-1e10
-        print("SAVING TRAILING EDGE NODE")
-        boundary_sub_model_part=self.fluid_model_part.CreateSubModelPart("boundary")
+        boundary_element_id_list=[]
         for element in self.fluid_model_part.Elements:
             if element.Is(KratosMultiphysics.TO_SPLIT):
-                boundary_sub_model_part.Elements.append(element)
+                boundary_element_id_list.append(element.Id)
             if element.IsNot(KratosMultiphysics.ACTIVE):
                 for node in element.GetNodes():
                     if node.X>max_x:
                         max_x=node.X
-                        max_inactive_node=node
-        for element in boundary_sub_model_part.Elements:
-            for node in element.GetNodes():
-                if node.X > max_x:
-                    element.Set(KratosMultiphysics.TO_SPLIT,False)
+                        self.max_inactive_node=node
+        self.boundary_sub_model_part.AddElements(boundary_element_id_list)
 
-
-
-
+    def __CreateInactiveTrailingEdgeElementBall(self):
+        deactivated_model_part=self.fluid_model_part.CreateSubModelPart("deactivated")
         max_x_node=-1e10
-        deactivated_model_part=self.fluid_model_part.CreateSubModelPart('deactivated')
-        for element in boundary_sub_model_part.Elements:
+        for element in self.boundary_sub_model_part.Elements:
             for elnode in element.GetNodes():
-                if elnode.Id == max_inactive_node.Id:
-                    self.DeactivateActive(element)
+                if elnode.Id == self.max_inactive_node.Id:
+                    self.__DeactivateActive(element)
                     deactivated_model_part.Elements.append(element)
         max_x_center=-1e10
         for element in deactivated_model_part.Elements:
@@ -55,18 +60,14 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
         self.trailing_edge_node = max_node
 
-        for element in boundary_sub_model_part.Elements:
+        for element in self.boundary_sub_model_part.Elements:
             center_X=element.GetGeometry().Center().X
-            if center_X>max_inactive_node.X:
-                self.DeactivateBoundary(element)
+            if center_X>self.max_inactive_node.X:
+                self.__DeactivateBoundary(element)
 
-        self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
-
-    def DeactivateElement(self,elem):
-        self.fluid_model_part.GetElement(elem).Set(KratosMultiphysics.ACTIVE,False)
-
-    def DeactivateBoundary(self,elem):
+    def __DeactivateBoundary(self,elem):
         elem.Set(KratosMultiphysics.TO_SPLIT,False)
-    def DeactivateActive(self,elem):
+    def __DeactivateActive(self,elem):
         elem.Set(KratosMultiphysics.ACTIVE,False)
         elem.Set(KratosMultiphysics.TO_SPLIT,False)
+
