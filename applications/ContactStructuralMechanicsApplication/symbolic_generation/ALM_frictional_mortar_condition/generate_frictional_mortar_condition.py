@@ -53,7 +53,7 @@ rhs_template_end_string = "}\n"
 output_count = 0
 total_combs = normal_combs * len(nnodes_combinations)
 
-for normalvar in range(2):
+for normalvar in range(normal_combs):
 
     if normalvar == 0:
         normalvarstring = "false"
