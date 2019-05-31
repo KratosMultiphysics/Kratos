@@ -71,46 +71,7 @@ namespace Kratos
         << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
 
         // sum all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
-        // TODO Mahmoud: Calculation using the exact value for the external force at the last time step, not just an approximation
-        // #pragma omp parallel
-        // {
-        // Matrix LHS;
-        // Vector RHS;
-        // Vector disp;
-        // Vector disp_0;
-        // Vector disp_increment;
-        // Vector average_load;
-
-        // #pragma omp for reduction(+:response_increment_value)
-        // for (int i = 0; i< static_cast<int> (rModelPart.NumberOfConditions()); i++)
-        // {
-        //     auto cond_it = rModelPart.ConditionsBegin() + i;
-        //     cond_it->GetValuesVector(disp,0);
-        //     cond_it->GetValuesVector(disp_0,1);
-        //     disp_increment = disp - disp_0;
-
-        //     cond_it->CalculateRightHandSide(RHS, r_current_process_info);
-        //     average_load = 0.5 * (RHS + mConditionsRHS[cond_it->Id()]);
-        //     response_increment_value += inner_prod(average_load , disp_increment);
-        //     mConditionsRHS[cond_it->Id()] = RHS;
-
-        //     //////////////////////////////////////////////////////////////////////////
-        //     //// calculation based on the external force
-        //     // Vector ReactionForce;
-        //     // Vector ReactionForce_0;
-        //     // for (auto& node_i : cond_it->GetGeometry())
-        //     // {
-        //     //     ReactionForce = node_i.FastGetSolutionStepValue(REACTION);
-        //     //     ReactionForce_0 = node_i.FastGetSolutionStepValue(REACTION,1);
-        //     // }
-        //     // average_load = 0.50 * (ReactionForce + ReactionForce_0);
-        //     // response_increment_value += inner_prod(average_load , disp_increment);
-        //     // KRATOS_WATCH(response_increment_value)
-        //     // KRATOS_WATCH(disp_increment)
-        //     //////////////////////////////////////////////////////////////////////////
-        // }
-        // }
-
+        // Calculating the response using the strain energy is error-prone for shell elements
         Matrix LHS;
         Vector RHS;
         Vector disp;
@@ -135,7 +96,6 @@ namespace Kratos
 
             response_increment_value += inner_prod(average_load , disp_increment);
         }
-        ////////////////////////////////////////////////////////////////////////////////////
         return response_increment_value;
         KRATOS_CATCH("");
     }
@@ -240,34 +200,14 @@ namespace Kratos
             mExternalForceDisplacementDerivative[rAdjointCondition.Id()] = ZeroMatrix(vec_size, vec_size);
 
         // Summing up the partial derivative terms
-        //rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]
-        //                  + prod(displacement - displacement_previous_step,  mExternalForceDisplacementDerivative[rAdjointCondition.Id()] + partial_derivative_matrix ) );
-
-        //rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]);
-
+        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]
+                          + prod(displacement - displacement_previous_step,  mExternalForceDisplacementDerivative[rAdjointCondition.Id()] + partial_derivative_matrix ) );
 
         // Storing the RHS for each condition
         mConditionsRHS[rAdjointCondition.Id()] = RHS;
 
         // storing the partial derivative partial f_{ext}_i}{\partial u},
        mExternalForceDisplacementDerivative[rAdjointCondition.Id()] = partial_derivative_matrix;
-
-       // Reaction forces are assempled to use displacement control, this is added temporarily
-       ///////////////////////////////////////////////////////////////////////////////////////
-        Vector ReactionForce;
-        Vector ReactionForce_0;
-       for (auto& node_i : rAdjointCondition.GetGeometry())
-       {
-           ReactionForce = node_i.FastGetSolutionStepValue(REACTION);
-           ReactionForce_0 = node_i.FastGetSolutionStepValue(REACTION,1);
-       }
-       rResponseGradient = 0.50 * (ReactionForce + ReactionForce_0);
-       //std::cout << std::setprecision(16) ;
-    //    KRATOS_WATCH(ReactionForce[0])
-    //    KRATOS_WATCH(ReactionForce[1])
-    //    KRATOS_WATCH(ReactionForce[2])
-       ///////////////////////////////////////////////////////////////////////////////////////
-      // KRATOS_WATCH(partial_derivative_matrix)
 
         // This stores rResponseGradient values for each condition
         mResponseGradient_1[rAdjointCondition.Id()] = rResponseGradient;
@@ -311,6 +251,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    // shape sensitivity partial derivative for element sensitivities, necessary for displacement control
     void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                                 const Variable<array_1d<double, 3>>& rVariable,
                                                 const Matrix& rSensitivityMatrix,
@@ -318,8 +259,6 @@ namespace Kratos
                                                 const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
-
-        // rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         ProcessInfo process_info = rProcessInfo;
 
@@ -336,11 +275,8 @@ namespace Kratos
         if (rSensitivityGradient.size() != mat_size)
             rSensitivityGradient.resize(mat_size, false);
 
-        double Delta = rProcessInfo[PERTURBATION_SIZE];
         Vector displacement = ZeroVector(mat_size);
         Vector displacement_previous_step = ZeroVector(mat_size);
-        Vector RHS;
-        Matrix LHS;
 
         // Accessing nodal displacements at each node for the previous the current and the previous time steps
         int i_1 = 0;
@@ -355,51 +291,13 @@ namespace Kratos
             i_1 += 3;
         }
 
-        rAdjointElement.CalculateRightHandSide(RHS, process_info);
-
-        // TODO, use rVariable instead of the nodal degrees of freedom
-        int i_2 = 0;
-        for (auto& node_i : rAdjointElement.GetGeometry())
-        {
-            Vector perturbed_RHS = Vector(0);
-
-            // Pertubation, gradient analysis and recovery of x
-            node_i.X0() += Delta;
-            node_i.X() += Delta;
-            rAdjointElement.CalculateRightHandSide(perturbed_RHS, process_info);
-            row(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / Delta;
-            node_i.X0() -= Delta;
-            node_i.X() -= Delta;
-
-            // Reset pertubed vector
-            perturbed_RHS = Vector(0);
-
-            // Pertubation, gradient analysis and recovery of y
-            node_i.Y0() += Delta;
-            node_i.Y() += Delta;
-            rAdjointElement.CalculateRightHandSide(perturbed_RHS, process_info);
-            row(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / Delta;
-            node_i.Y0() -= Delta;
-            node_i.Y() -= Delta;
-
-            // Reset pertubed vector
-            perturbed_RHS = Vector(0);
-
-            // Pertubation, gradient analysis and recovery of z
-            node_i.Z0() += Delta;
-            node_i.Z() += Delta;
-            rAdjointElement.CalculateRightHandSide(perturbed_RHS, process_info);
-            row(partial_derivative_matrix, i_2 + 2) = (perturbed_RHS - RHS) / Delta;
-            node_i.Z0() -= Delta;
-            node_i.Z() -= Delta;
-
-            i_2 += 3;
-        }
+        // Getting the partial derivative
+        for(int j = 0; j < 6; ++j)
+            for(int i = 0; i < 6; ++i)
+                partial_derivative_matrix(j, i) = rSensitivityMatrix(j,i);
 
         // Summing up the terms for the sensitivity calculation
         rSensitivityGradient = -0.50 * prod(mReactionForceDesignVariableDerivative[rAdjointElement.Id()] + partial_derivative_matrix, displacement - displacement_previous_step);
-        KRATOS_WATCH(partial_derivative_matrix)
-        KRATOS_WATCH(displacement - displacement_previous_step)
         // passing the value of the partial derivative matrix to a member variable
         mReactionForceDesignVariableDerivative[rAdjointElement.Id()] = partial_derivative_matrix;
 
@@ -407,7 +305,7 @@ namespace Kratos
     }
 
 
-    // Element partial derivative for element sensitivities, necessary for displacement control
+    // Element sensitivity partial derivative for element sensitivities, necessary for displacement control
     void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                                 const Variable<double>& rVariable,
                                                 const Matrix& rSensitivityMatrix,
@@ -430,14 +328,11 @@ namespace Kratos
         if(mReactionForceDesignVariableDerivative[rAdjointElement.Id()].size1() == 0)
             mReactionForceDesignVariableDerivative[rAdjointElement.Id()] = ZeroMatrix(1, mat_size);
 
-        // if (rSensitivityGradient.size() != mat_size)
-        //     rSensitivityGradient.resize(mat_size, false);
+        if (rSensitivityGradient.size() != mat_size)
+            rSensitivityGradient.resize(mat_size, false);
 
-        double Delta = rProcessInfo[PERTURBATION_SIZE];
         Vector displacement = ZeroVector(mat_size);
         Vector displacement_previous_step = ZeroVector(mat_size);
-        Vector RHS;
-        Matrix LHS;
 
         // Accessing nodal displacements at each node for the previous the current and the previous time steps
         int i_1 = 0;
