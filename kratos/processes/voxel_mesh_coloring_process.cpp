@@ -157,12 +157,17 @@ namespace Kratos
 		ApplyRayCastingProcess<3> ray_casting_process(mrVolumePart, TheSubModelPart);
 		ray_casting_process.Initialize();
 
+		array_1d< std::size_t, 3 > min_position;
+		array_1d< std::size_t, 3 > max_position;
+		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
+		KRATOS_WATCH(min_position);
+		KRATOS_WATCH(max_position);
         #pragma omp parallel for
-		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+		for (std::size_t k = min_position[2]; k < max_position[2]; k++) {
+			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
                 bool previous_cell_was_empty = true;
                 int previous_cell_color = 1;
- 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+ 				for (std::size_t i = min_position[0]; i < max_position[0]; i++) {
                     std::size_t index = i + j * mNumberOfDivisions[0] + k * mNumberOfDivisions[1] * mNumberOfDivisions[0];
                     auto& r_element = *(elements_begin + index);
                     double &element_distance = r_element.GetValue(DISTANCE);
@@ -535,7 +540,7 @@ namespace Kratos
     void VoxelMeshColoringProcess::MarkIntersectedCells(Element::GeometryType& TheGeometry){
 		array_1d< std::size_t, 3 > min_position;
 		array_1d< std::size_t, 3 > max_position;
-		CalculateMinMaxCellsPositions(&TheGeometry, &TheGeometry + 1, min_position, max_position);
+		CalculateMinMaxCellsPositions(TheGeometry, min_position, max_position);
 
         for ( std::size_t i_z = min_position[2]; i_z < max_position[ 2 ]; i_z++ ) {
             for ( std::size_t i_y = min_position[1]; i_y < max_position[ 1 ]; i_y++ ) {
@@ -550,25 +555,21 @@ namespace Kratos
     }
 
 
-template<typename TIteratorType>
-void VoxelMeshColoringProcess::CalculateMinMaxCellsPositions(TIteratorType GeometriesBegin, TIteratorType GeometriesEnd, array_1d< std::size_t, 3 >& MinCellPosition, array_1d< std::size_t, 3 >& MaxCellPosition){
-	if(GeometriesBegin == GeometriesEnd)
+template<typename TPointsContainerType>
+void VoxelMeshColoringProcess::CalculateMinMaxCellsPositions(TPointsContainerType const& Points, array_1d< std::size_t, 3 >& MinCellPosition, array_1d< std::size_t, 3 >& MaxCellPosition){
+	if(Points.empty())
 		return;
 
 	Point min_point;
 	Point max_point;
-	max_point = GeometriesBegin->GetPoint(0);
-	min_point = GeometriesBegin->GetPoint(0);
-	for(; GeometriesBegin != GeometriesEnd ; GeometriesBegin++){
-        for (unsigned int i_point = 0; i_point < GeometriesBegin->PointsNumber(); i_point++)
-        {
-			Point const& point = GeometriesBegin->GetPoint(i_point);
-            for(std::size_t i = 0; i<3; i++)
-            {
-                min_point[i] =  (min_point[i] >  point[i] ) ?  point[i] : min_point[i];
-                max_point[i] =  (max_point[i] <  point[i] ) ?  point[i] : max_point[i];
-            }
-        }
+	max_point = *(Points.begin());
+	min_point = *(Points.begin());
+	for(auto const& point : Points){
+		for(std::size_t i = 0; i<3; i++)
+		{
+			min_point[i] =  (min_point[i] >  point[i] ) ?  point[i] : min_point[i];
+			max_point[i] =  (max_point[i] <  point[i] ) ?  point[i] : max_point[i];
+		}
 	}
 		
 	for ( int i = 0; i < 3; i++ ) {
