@@ -72,21 +72,28 @@ for normalvar in range(2):
         number_dof = dim * (2 * nnodes + nnodes_master)
 
         # Defining the unknowns
-        u1 = DefineMatrix('u1', nnodes, dim) # u1(i,j) is the current displacement of node i component j at domain 1
-        u2 = DefineMatrix('u2', nnodes_master, dim) # u2(i,j) is the current displacement of node i component j at domain 2
-        u1old = DefineMatrix('u1old', nnodes, dim) # u1(i,j) is the previous displacement of node i component j at domain 1
-        u2old = DefineMatrix('u2old', nnodes_master, dim) # u2(i,j) is the previous displacement of node i component j at domain 2
-        LM = DefineMatrix('LM', nnodes, dim)
+        u1 = DefineMatrix('u1', nnodes, dim, "Symbol")              # u1(i,j) is the current displacement of node i component j at domain 1
+        u2 = DefineMatrix('u2', nnodes_master, dim, "Symbol")       # u2(i,j) is the current displacement of node i component j at domain 2
+        u1old = DefineMatrix('u1old', nnodes, dim, "Symbol")        # u1(i,j) is the previous displacement of node i component j at domain 1
+        u2old = DefineMatrix('u2old', nnodes_master, dim, "Symbol") # u2(i,j) is the previous displacement of node i component j at domain 2
+        LM = DefineMatrix('LM', nnodes, dim, "Symbol")              # Lm are the Lagrange multipliers
+
         # Normal and tangets of the slave
-        NormalSlave = DefineMatrix('NormalSlave', nnodes, dim)
+        if normalvar == 1:
+            NormalSlave = DefineMatrix('NormalSlave', nnodes, dim)
+        else:
+            NormalSlave = DefineMatrix('NormalSlave', nnodes, dim, "Symbol")
 
         # The resultant tangent
-        TangentSlave = DefineMatrix('TangentSlave', nnodes, dim)
+        if normalvar == 1:
+            TangentSlave = DefineMatrix('TangentSlave', nnodes, dim)
+        else:
+            TangentSlave = DefineMatrix('TangentSlave', nnodes, dim, "Symbol")
 
         # Define test functions
-        w1 = DefineMatrix('w1',nnodes,dim)
-        w2 = DefineMatrix('w2',nnodes_master,dim)
-        wLM = DefineMatrix('wLM',nnodes,dim)
+        w1 = DefineMatrix('w1',nnodes,dim, "Symbol")
+        w2 = DefineMatrix('w2',nnodes_master,dim, "Symbol")
+        wLM = DefineMatrix('wLM',nnodes,dim, "Symbol")
 
         # Defining normal and tangent components
         LMNormal = DefineVector('LMNormal', nnodes)
@@ -96,22 +103,13 @@ for normalvar in range(2):
         LMTangent = DefineMatrix('LMTangent', nnodes, dim)
         wLMTangent = DefineMatrix('wLMTangent', nnodes, dim)
 
-        for node in range(nnodes):
-            LMNormal[node] = LM.row(node) * NormalSlave.row(node).transpose()
-            wLMNormal[node] = wLM.row(node) * NormalSlave.row(node).transpose()
-
-            # We calculate the LM tangent resultant
-            for idim in range(dim):
-                LMTangent[node,idim] = LM[node,idim] - LMNormal[node] * NormalSlave[node, idim]
-                wLMTangent[node,idim] = wLM[node,idim] - wLMNormal[node] * NormalSlave[node, idim]
-
         # Defining additional variables
         NormalGap = DefineVector('NormalGap', nnodes)
         TangentSlip = DefineMatrix('TangentSlip', nnodes, dim)
         DOperator = DefineMatrix('DOperator', nnodes, nnodes)
         MOperator = DefineMatrix('MOperator', nnodes, nnodes_master)
-        DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes)
-        MOperatorold = DefineMatrix('MOperatorold',nnodes,nnodes_master)
+        DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes, "Symbol")
+        MOperatorold = DefineMatrix('MOperatorold',nnodes,nnodes_master, "Symbol")
 
         # Define other parameters
         X1 = DefineMatrix('X1',nnodes,dim)
@@ -121,10 +119,10 @@ for normalvar in range(2):
         x1old = X1 + u1old
         x2old = X2 + u2old
 
-        #Define other symbols
-        mu  = DefineVector('mu',nnodes)
-        DynamicFactor  = DefineVector('DynamicFactor',nnodes)
-        PenaltyParameter  = DefineVector('PenaltyParameter',nnodes)
+        # Define other symbols
+        mu  = DefineVector('mu',nnodes, "Symbol")
+        DynamicFactor  = DefineVector('DynamicFactor',nnodes, "Symbol")
+        PenaltyParameter  = DefineVector('PenaltyParameter',nnodes, "Symbol")
         delta_time = Symbol('delta_time', positive=True)
         ScaleFactor = Symbol('ScaleFactor', positive=True)
         TangentFactor = Symbol('TangentFactor', positive=True)
@@ -148,6 +146,16 @@ for normalvar in range(2):
             NormalSlave = DefineDofDependencyMatrix(NormalSlave, u1_var)
         DOperator = DefineDofDependencyMatrix(DOperator, u12_var) # If you consider Gitterle you need to keep the old operators
         MOperator = DefineDofDependencyMatrix(MOperator, u12_var)
+
+        # Definitions of components
+        for node in range(nnodes):
+            LMNormal[node] = LM.row(node) * NormalSlave.row(node).transpose()
+            wLMNormal[node] = wLM.row(node) * NormalSlave.row(node).transpose()
+
+            # We calculate the LM tangent resultant
+            for idim in range(dim):
+                LMTangent[node,idim] = LM[node,idim] - LMNormal[node] * NormalSlave[node, idim]
+                wLMTangent[node,idim] = wLM[node,idim] - wLMNormal[node] * NormalSlave[node, idim]
 
         # Defining the normal NormalGap and tangent slip
         Dx1Mx2 = DOperator * x1 - MOperator * x2
@@ -234,26 +242,26 @@ for normalvar in range(2):
                 rhs_out = OutputVector_CollectingFactorsNonZero(rhs, "rhs", mode, 1, number_dof)
                 print("Substitution strings are ready....")
 
-                if (slip == 0):
+                if slip == 0:
                     lhs_string += "    \n    // NODE " + str(node) + "\n"
                     lhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
-                elif (slip == 1):
+                elif slip == 1:
                     lhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n    "
                 else:
                     lhs_string += "} else { // ACTIVE-STICK\n    "
                 lhs_string += lhs_out.replace("\n","\n    ")
-                if (slip == 2):
+                if slip == 2:
                     lhs_string += "}\n"
 
-                if (slip == 0):
+                if slip == 0:
                     rhs_string += "    \n    // NODE " + str(node) + "\n"
                     rhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
-                elif (slip == 1):
+                elif slip == 1:
                     rhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n    "
                 else:
                     rhs_string += "} else { // ACTIVE-STICK\n    "
                 rhs_string += rhs_out.replace("\n","\n    ")
-                if (slip == 2):
+                if slip == 2:
                     rhs_string += "}\n"
 
         lhs_string += lhs_template_end_string

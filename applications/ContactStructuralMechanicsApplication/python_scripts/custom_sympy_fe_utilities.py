@@ -1,61 +1,30 @@
 import sympy
 
-class FSymbol(sympy.Symbol):
-    """This class defines a Symbol with an internal Fucntion callable
-
-    Public member variables:
-    name -- The name of the variable
-    """
-    def __init__(self, name):
-        """ The default constructor of the class
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        name -- The name of the variable and function
-        """
-        #super(FSymbol, self).__init__(name)
-        sympy.Symbol.__init__(name)
-        self.internal_function = sympy.Function(name)
-
-    def __call__(self, *args):
-        """ The call operator of the class
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        args -- The call arguments
-        """
-        return self.internal_function.__call__(args)
-
-    def diff(self, *symbols, **kwargs):
-        """
-        Differentiate f with respect to symbols.
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        args -- The call arguments
-        """
-        return self.internal_function.diff(symbols, kwargs)
-
 def GetSympyVersion():
     """ This method returns the current Sympy version
     """
     return sympy.__version__
 
-def DefineMatrix( name, m, n ):
+def DefineMatrix( name, m, n, mode = "Function" ):
     """ This method defines a symbolic matrix
 
     Keyword arguments:
     name -- Name of variables.
     m -- Number of rows.
     n -- Number of columns.
+    mode -- The type of variable is defined (function or symbol)
     """
     if float(GetSympyVersion()) <= 1.2:
         return sympy.Matrix( m,n, lambda i,j: sympy.var(name+'_%d_%d' % (i,j)) )
     else:
-        raise Exception("Not implemented yet")
-        #return sympy.Matrix( m,n, lambda i,j: FSymbol(name+'_%d_%d' % (i,j)))
+        if mode == "Symbol":
+            return sympy.Matrix( m,n, lambda i,j: sympy.var(name+'_%d_%d' % (i,j)) )
+        elif mode == "Function":
+            return sympy.Matrix( m,n, lambda i,j: sympy.symbols(name+'_%d_%d' % (i,j), cls=sympy.Function))
+        else:
+            raise Exception("Not implemented yet")
 
-def DefineSymmetricMatrix( name, m, n = -1):
+def DefineSymmetricMatrix( name, m, n = -1, mode = "Symbol"):
     """ This method defines a symbolic symmetric matrix
 
     Keyword arguments:
@@ -75,14 +44,15 @@ def DefineSymmetricMatrix( name, m, n = -1):
    
     return tmp
 
-def DefineVector( name, m):
+def DefineVector( name, m, mode = "Symbol"):
     """ This method defines a symbolic vector
 
     Keyword arguments:
     name -- Name of variables.
-    m -- Number of rows.
+    m -- Number of components.
+    mode -- The type of variable is defined (function or symbol)
     """
-    return DefineMatrix( name, m, 1)
+    return DefineMatrix( name, m, 1, mode)
 
 def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity = False):
     """ This method defines shape functions and derivatives
