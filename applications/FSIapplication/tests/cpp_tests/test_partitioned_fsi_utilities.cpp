@@ -17,9 +17,11 @@
 
 // Project includes
 #include "containers/model.h"
+#include "geometries/quadrilateral_2d_4.h"
 #include "includes/define.h"
 #include "includes/model_part_io.h"
 #include "includes/global_variables.h"
+#include "processes/structured_mesh_generator_process.h"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
@@ -452,6 +454,55 @@ namespace Testing {
         std::array<double, 8> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
         for (unsigned int i = 0; i < 8; ++i) {
             KRATOS_CHECK_NEAR(interface_vector(i), expected_results[i], tolerance);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DEmbeddedToPositiveFacePressureInterpolator, FSIApplicationFastSuite)
+    {
+        // Set the partitioned FSI utilities
+        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
+
+        // Set the model part containing the origin skin
+        Model model;
+        ModelPart &r_skin_model_part = model.CreateModelPart("OriginModelPart");
+        r_skin_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
+        GenerateTestSkinModelPart(r_skin_model_part);
+
+        // Create a background mesh
+        ModelPart &r_background_model_part = model.CreateModelPart("BackgroundModelPart");
+        r_background_model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+        auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, -2.0, -2.0, 0.0);
+        auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, -2.0,  3.0, 0.0);
+        auto p_point_3 = Kratos::make_intrusive<Node<3>>(3,  3.0,  3.0, 0.0);
+        auto p_point_4 = Kratos::make_intrusive<Node<3>>(4,  3.0, -3.0, 0.0);
+
+        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+        Parameters mesher_parameters(R"(
+        {
+            "number_of_divisions": 7,
+            "element_name": "Element2D3N"
+        })");
+        StructuredMeshGeneratorProcess(geometry, r_background_model_part, mesher_parameters).Execute();
+
+        // Set a fake pressure field in the background mesh
+        for (auto &r_node : r_background_model_part.Nodes()) {
+            r_node.FastGetSolutionStepValue(PRESSURE) = r_node.Id();
+        }
+
+        // Call the embedded pressure interpolation method
+        partitioned_fsi_utilities.EmbeddedPressureToPositiveFacePressureInterpolator(
+            r_background_model_part,
+            r_skin_model_part);
+
+        // Check results
+        unsigned int i = 0;
+        const double tolerance = 1.0e-4;
+        std::array<double, 8> expected_results = {26.5105,37.8462,39.0974,27.8053};
+        for (const auto &r_node : r_skin_model_part.Nodes()) {
+            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE), expected_results[i], tolerance);
+            i++;
         }
     }
 
