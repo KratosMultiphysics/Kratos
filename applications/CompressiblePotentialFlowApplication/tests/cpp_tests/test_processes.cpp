@@ -19,10 +19,6 @@
 namespace Kratos {
   namespace Testing {
 
-    typedef ModelPart::IndexType IndexType;
-    typedef ModelPart::NodeIterator NodeIteratorType;
-
-
     KRATOS_TEST_CASE_IN_SUITE(MoveModelModelPartProcess, CompressiblePotentialApplicationFastSuite)
     {
 
@@ -58,7 +54,6 @@ namespace Kratos {
           KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference(i_node,i_dim), 1e-6);
         }
       }
-
     }
   } // namespace Testing
 }  // namespace Kratos.
