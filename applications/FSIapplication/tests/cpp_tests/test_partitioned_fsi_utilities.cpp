@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -16,9 +16,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/global_variables.h"
 #include "containers/model.h"
+#include "includes/define.h"
+#include "includes/model_part_io.h"
+#include "includes/global_variables.h"
 #include "spaces/ublas_space.h"
 #include "testing/testing.h"
 
@@ -76,6 +77,167 @@ namespace Testing {
             it_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
             it_node.FastGetSolutionStepValue(MESH_DISPLACEMENT) = aux_mesh_disp;
         }
+    }
+
+    void GenerateTestSkinModelPart(ModelPart &rTestSkinModelPart)
+    {
+        rTestSkinModelPart.SetBufferSize(1);
+        Properties::Pointer p_properties_1(new Properties(1));
+        rTestSkinModelPart.AddProperties(p_properties_1);
+        rTestSkinModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        rTestSkinModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+        rTestSkinModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+        rTestSkinModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
+        std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
+        std::vector<ModelPart::IndexType> cond_nodes_2 = {2,3};
+        std::vector<ModelPart::IndexType> cond_nodes_3 = {3,4};
+        rTestSkinModelPart.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
+        rTestSkinModelPart.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
+        rTestSkinModelPart.CreateNewCondition("Condition2D2N", 3, cond_nodes_3, p_properties_1);
+    }
+
+    /**
+     * @brief Helper accessing class
+     * This helper class has the unique purpose to give access to the protectedmethods
+     * of PartitionedFSIUtilities. It aims to make it possible its standalone testing
+     * @tparam TSpace Linear algebra space type
+     * @tparam TValueType Residual and unknown value type (array_1d<double, 3> or double)
+     * @tparam TDim Problem domain size
+     */
+    template<class TSpace, class TValueType, unsigned int TDim>
+    class PartitionedFSIUtilitiesAccessor : public PartitionedFSIUtilities<TSpace, TValueType, TDim>
+    {
+    public:
+
+        PartitionedFSIUtilitiesAccessor()
+        {
+        }
+
+        void AccessComputeConsistentResidual(
+            ModelPart &rModelPart,
+            Variable<TValueType> &rOriginalVariable,
+            Variable<TValueType> &rModifiedVariable,
+            Variable<TValueType> &rResidualVariable)
+        {
+            this->ComputeConsistentResidual(rModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
+        }
+
+        void AccessComputeNodeByNodeResidual(
+            ModelPart &rModelPart,
+            Variable<TValueType> &rOriginalVariable,
+            Variable<TValueType> &rModifiedVariable,
+            Variable<TValueType> &rResidualVariable)
+        {
+            this->ComputeNodeByNodeResidual(rModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
+        }
+    };
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesComputeConsistentResidual, FSIApplicationFastSuite)
+    {
+        // Set the partitioned FSI utilities
+        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
+
+        // Set the model part in where the error is to be computed
+        Model model;
+        ModelPart &main_model_part = model.CreateModelPart("OriginModelPart");
+        main_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        main_model_part.AddNodalSolutionStepVariable(VECTOR_PROJECTED);
+        main_model_part.AddNodalSolutionStepVariable(FSI_INTERFACE_RESIDUAL);
+        GenerateTestSkinModelPart(main_model_part);
+
+        // Set a fake field to compute the error
+        array_1d<double,3> unit_val;
+        unit_val[0] = 1.0;
+        unit_val[1] = 1.0;
+        unit_val[2] = 1.0;
+        for (auto &it_node : main_model_part.Nodes()) {
+            it_node.FastGetSolutionStepValue(VELOCITY) = unit_val;
+            it_node.FastGetSolutionStepValue(VECTOR_PROJECTED) = 2.0 * unit_val;
+        }
+
+        // Compute the consistent residual
+        PartitionedFSIUtilitiesAccessor<SpaceType,array_1d<double,3>,2> aux_partitioned_fsi_utilities_accessor;
+        aux_partitioned_fsi_utilities_accessor.AccessComputeConsistentResidual(
+            main_model_part,
+            VECTOR_PROJECTED,
+            VELOCITY,
+            FSI_INTERFACE_RESIDUAL);
+
+        // Check results
+        double tol = 1.0e-10;
+        unsigned int aux_count = 0;
+        std::array<double, 12> expected_values = {0.5,0.5,0.5,1.0,1.0,1.0,1.0,1.0,1.0,0.5,0.5,0.5};
+        for (auto &r_node : main_model_part.Nodes()) {
+            const auto &r_fsi_int_res = r_node.FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
+            for (unsigned int i = 0; i < 3; ++i) {
+                KRATOS_CHECK_NEAR(r_fsi_int_res[i], expected_values[3 * aux_count + i], tol);
+            }
+            aux_count++;
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesComputeNodeByNodeResidual, FSIApplicationFastSuite)
+    {
+        // Set the partitioned FSI utilities
+        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
+
+        // Set the model part in where the error is to be computed
+        Model model;
+        ModelPart &main_model_part = model.CreateModelPart("OriginModelPart");
+        main_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        main_model_part.AddNodalSolutionStepVariable(VECTOR_PROJECTED);
+        main_model_part.AddNodalSolutionStepVariable(FSI_INTERFACE_RESIDUAL);
+        GenerateTestSkinModelPart(main_model_part);
+
+        // Set a fake field to compute the error
+        array_1d<double,3> unit_val;
+        unit_val[0] = 1.0;
+        unit_val[1] = 1.0;
+        unit_val[2] = 1.0;
+        for (auto &it_node : main_model_part.Nodes()) {
+            it_node.FastGetSolutionStepValue(VELOCITY) = unit_val;
+            it_node.FastGetSolutionStepValue(VECTOR_PROJECTED) = 2.0 * unit_val;
+        }
+
+        // Compute the node by node residual
+        PartitionedFSIUtilitiesAccessor<SpaceType,array_1d<double,3>,2> aux_partitioned_fsi_utilities_accessor;
+        aux_partitioned_fsi_utilities_accessor.AccessComputeNodeByNodeResidual(
+            main_model_part,
+            VECTOR_PROJECTED,
+            VELOCITY,
+            FSI_INTERFACE_RESIDUAL);
+
+        // Check results
+        double tol = 1.0e-10;
+        unsigned int aux_count = 0;
+        std::array<double, 12> expected_values = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+        for (auto &r_node : main_model_part.Nodes()) {
+            const auto &r_fsi_int_res = r_node.FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
+            for (unsigned int i = 0; i < 3; ++i) {
+                KRATOS_CHECK_NEAR(r_fsi_int_res[i], expected_values[3 * aux_count + i], tol);
+            }
+            aux_count++;
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesCopySkinToElements, FSIApplicationFastSuite)
+    {
+        // Set the partitioned FSI utilities
+        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
+
+        // Set the model part that contains the condition based skin
+        Model model;
+        ModelPart &main_model_part = model.CreateModelPart("OriginModelPart");
+        GenerateTestSkinModelPart(main_model_part);
+
+        // Set the new skin model part
+        ModelPart &element_based_skin = model.CreateModelPart("ElementBasedSkin");
+        partitioned_fsi_utilities.CopySkinToElements(main_model_part, element_based_skin);
+
+        // Check results
+        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfNodes(), 4);
+        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfElements(), 3);
+        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfConditions(), 0);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesDoubleGetInterfaceResidualsize, FSIApplicationFastSuite)
