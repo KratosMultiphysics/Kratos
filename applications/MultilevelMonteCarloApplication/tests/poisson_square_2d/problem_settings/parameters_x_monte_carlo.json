@@ -9,9 +9,9 @@
     "multilevel_monte_carlo" : {
         "run_multilevel_monte_carlo"    : "True",
         "initial_tolerance"             : 0.2,
-        "tolerance"                     : 0.07,
-        "confidence"                    : 0.7,
-        "number_samples_screening"      : 25,
+        "tolerance"                     : 0.1,
+        "confidence"                    : 0.8,
+        "number_samples_screening"      : 10,
         "levels_screening"              : 2,
         "maximum_number_levels"         : 4,
         "initial_mesh_size"             : 0.1,

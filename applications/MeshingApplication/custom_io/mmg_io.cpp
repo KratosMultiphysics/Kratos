@@ -109,26 +109,8 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
     std::unordered_map<IndexType,Element::Pointer> ref_element;     /// Reference element
 
-    // Getting auxiliar properties
-    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
-
     // Fill the maps
-    /* Conditions */
-    const std::string condition_type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
-    Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_type_name);
-    ref_condition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
-    for (auto& r_color : colors) {
-        ref_condition[r_color.first] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
-    }
-
-    /* Elements */
-    const std::string element_type_name = (Dimension == 2) ? "Element2D3N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "Element3D4N" : "Element3D3N";
-    Element const& r_clone_element = KratosComponents<Element>::Get(element_type_name);
-    ref_element[0] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
-    for (auto& r_color : colors) {
-        ref_element[r_color.first] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
-    }
-
+    mMmmgUtilities.WriteReferenceEntitities(rModelPart, mFilename, ref_condition, ref_element);
 
     // Writing the new mesh data on the model part
     NodeType::DofsContainerType empty_dofs;
@@ -158,6 +140,11 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
     mMmmgUtilities.GenerateMeshDataFromModelPart(rModelPart, colors, aux_ref_cond, aux_ref_elem);
 
+    // Generate the maps of reference
+    std::unordered_map<IndexType,Element::Pointer>   ref_element;   /// Reference element
+    std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
+    mMmmgUtilities.GenerateReferenceMaps(rModelPart, aux_ref_cond, aux_ref_elem, ref_condition, ref_element);
+
     // We initialize the solution data with the given modelpart
     mMmmgUtilities.GenerateSolDataFromModelPart(rModelPart);
 
@@ -169,6 +156,9 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
 
     // Automatically save the solution
     mMmmgUtilities.OutputSol(mFilename);
+
+    // Output the reference files
+    mMmmgUtilities.OutputReferenceEntitities(mFilename, ref_condition, ref_element);
 
     // Writing the colors to a JSON
     AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(mFilename, colors);

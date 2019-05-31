@@ -54,7 +54,7 @@ const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchProcess(
-    ModelPart & rMainModelPart,
+    ModelPart& rMainModelPart,
     Parameters ThisParameters
     ):mrMainModelPart(rMainModelPart),
       mThisParameters(ThisParameters)
