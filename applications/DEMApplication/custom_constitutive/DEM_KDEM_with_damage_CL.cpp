@@ -74,7 +74,6 @@ namespace Kratos {
 
         const double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                                           + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-        double delta_acummulated = 0.0;
 
         if (!failure_type) { // This means it has not broken
 
@@ -97,6 +96,7 @@ namespace Kratos {
                     failure_type = 2; // failure by shear
                 } else {
                     const double delta_at_undamaged_peak = tau_strength * calculation_area / kt_el;
+                    double delta_acummulated = 0.0;
 
                     if (mKtUpdated) {
                         delta_acummulated = current_tangential_force_module / mKtUpdated;
