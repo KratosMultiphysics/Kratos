@@ -462,7 +462,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
         debug_metric = False
         if debug_metric:
             params = KratosMultiphysics.Parameters("""{}""")
-            KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2, self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]).Execute()
+            KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 3, self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]).Execute()
             MeshingApplication.ComputeHessianSolMetricProcess(self.FEM_Solution.main_model_part, KratosFemDem.EQUIVALENT_NODAL_STRESS, params).Execute()
 
 		if self.DoRemeshing:
@@ -471,7 +471,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if is_remeshing:
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
                 parameters = self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]
-                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2, parameters).Execute()
+                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 3, parameters).Execute()
 
 				# we eliminate the nodal DEM forces
 				self.RemoveDummyNodalForces()
