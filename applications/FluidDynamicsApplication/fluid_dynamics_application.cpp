@@ -130,9 +130,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(PRESSURE_MASSMATRIX_COEFFICIENT);
     KRATOS_REGISTER_VARIABLE(FLUID_STRESS);
     KRATOS_REGISTER_VARIABLE(DIVERGENCE);
-    KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT_X);
-    KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT_Y);
-    KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT_Z);
+    KRATOS_REGISTER_VARIABLE(VELOCITY_H1SEMINORM);
     KRATOS_REGISTER_VARIABLE(AUX_DISTANCE);
 
     // KRATOS_REGISTER_VARIABLE(Y_WALL);
@@ -239,6 +237,8 @@ void KratosFluidDynamicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D", mHerschelBulkleyVMS2D);
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D", mHerschelBulkleyVMS3D);
+    KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D3N", mHerschelBulkleyVMS2D); //this is the name the element should have according to the naming convention
+    KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D4N", mHerschelBulkleyVMS3D); //this is the name the element should have according to the naming convention
 
     KRATOS_REGISTER_ELEMENT("Stokes3D4N", mStokes3D);
     KRATOS_REGISTER_ELEMENT("StokesTwoFluid3D4N", mStokes3DTwoFluid);
