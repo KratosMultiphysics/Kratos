@@ -33,7 +33,7 @@ class PotentialFlowTests(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = False
+        self.print_output = True
 
     def test_Naca0012SmallAdjoint(self):
         if not hdf5_is_available:
@@ -66,10 +66,10 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_EmbeddedCircle(self):
         settings_file_name = "embedded_circle_parameters.json"
         work_folder = "embedded_test"
-        self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.327805503865, 0.0, 1e-9)
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 7.035245462470813, 0.0, 1e-9)
 
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()

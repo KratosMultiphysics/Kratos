@@ -69,20 +69,19 @@
                     "model_part_name" : "MainModelPart.Parts_Parts_Auto1"
                 }
             }],
-
-        "print_output_process" : [
-            {
-                "python_module"   : "json_output_process",
-                "kratos_module" : "KratosMultiphysics",
-                "help"                  : "",
-                "process_name"          : "JsonOutputProcess",
-                "Parameters"            : {
-                    "output_variables" : ["VELOCITY_POTENTIAL"],
-                    "output_file_name" : "embedded_circle_velocity_potential_results.json",
-                    "model_part_name"  : "MainModelPart.Parts_Parts_Asto1",
-                    "time_frequency"   : -2
+        "list_other_processes" :[{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["VELOCITY_POTENTIAL"],
+                "input_file_name"  : "embedded_circle_velocity_potential_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "tolerance"            : 1e-9,
+                "relative_tolerance"   : 1e-12,
+                "time_frequency"   : -2
                 }
-            }
-            ]
+        }]
     }
 }
