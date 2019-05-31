@@ -172,6 +172,14 @@ protected:
      */
     Plane3D SetIntersectionPlane(const std::vector<array_1d<double,3>> &rIntPtsVector);
 
+    /**
+     * @brief Calculates the domain characteristic length
+     * This method computes the domain characteristic length as the norm of
+     * the diagonal vector that joins the maximum and minimum coordinates
+     * @return double the calculated characteristic length
+     */
+    double CalculateCharacteristicLength();
+
     ///@}
 private:
     ///@name Member Variables
