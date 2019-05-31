@@ -92,11 +92,20 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             solver.ImportCouplingInterfaceData(solver_data, from_solver)
 
+            pre
+            data_transfer_op()
+            post
+
+
     def _SynchronizeOutputData(self, solver_name):
         solver = self.participating_solvers[solver_name]
         output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
 
         for i in range(output_data_list.size()):
+            pre
+            data_transfer_op()
+            post
+
             output_data = output_data_list[i]
             to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
             data_name = output_data["data_name"].GetString()

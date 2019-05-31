@@ -86,3 +86,12 @@ if __name__ == '__main__':
 
     simulation = CoSimulationAnalysis(model, parameters)
     simulation.Run()
+
+
+
+class BaseSolverInterface(object):
+    pass
+
+
+class BaseCompositeSolver(BaseSolverInterface):
+    pass
