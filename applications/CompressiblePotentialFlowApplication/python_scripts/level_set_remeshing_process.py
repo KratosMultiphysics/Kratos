@@ -20,6 +20,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "skin_model_part_name": "insert_skin_model_part",
                 "maximum_iterations": 1,
                 "remeshing_flag": false,
+                "ray_casting_tolerance": 1e-9,
                 "moving_parameters":    {
                     "origin"                        : [0.0,0.0,0.0],
                     "rotation_angle"                : 0.0,
@@ -62,6 +63,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.moving_parameters = settings["moving_parameters"]
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]
+        self.ray_casting_tolerance = settings["ray_casting_tolerance"].GetDouble()
 
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
 
@@ -108,7 +110,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def _CalculateDistance(self):
         ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
-        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
+        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part,self.ray_casting_tolerance).Execute()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','CalculateDistance time: ',time.time()-ini_time)
 
     def _ExtendDistance(self):
