@@ -533,29 +533,13 @@ namespace Kratos
 	}
 
     void VoxelMeshColoringProcess::MarkIntersectedCells(Element::GeometryType& TheGeometry){
-        Point min_point;
-        Point max_point;
-        max_point = TheGeometry.GetPoint(0);
-        min_point  = TheGeometry.GetPoint(0);
-        for (unsigned int point = 0; point<TheGeometry.PointsNumber(); point++)
-        {
-            for(std::size_t i = 0; i<3; i++)
-            {
-                min_point[i]  =  (min_point[i]  >  TheGeometry.GetPoint(point)[i] ) ?  TheGeometry.GetPoint(point)[i] : min_point[i];
-                max_point[i] =  (max_point[i] <  TheGeometry.GetPoint(point)[i] ) ?  TheGeometry.GetPoint(point)[i] : max_point[i];
-            }
-        }
-         
-        array_1d< std::size_t, 3 > min_index;
-        array_1d< std::size_t, 3 > max_index;
-        for ( int i = 0; i < 3; i++ ) {
-            min_index[ i ] = CalculatePosition( min_point[i], i );
-            max_index[ i ] = CalculatePosition( max_point[i], i ) + 1;
-        }
+		array_1d< std::size_t, 3 > min_position;
+		array_1d< std::size_t, 3 > max_position;
+		CalculateMinMaxCellsPositions(&TheGeometry, &TheGeometry + 1, min_position, max_position);
 
-        for ( std::size_t i_z = min_index[2]; i_z < max_index[ 2 ]; i_z++ ) {
-            for ( std::size_t i_y = min_index[1]; i_y < max_index[ 1 ]; i_y++ ) {
-                for ( std::size_t i_x = min_index[0]; i_x < max_index[ 0 ]; i_x++ ) {
+        for ( std::size_t i_z = min_position[2]; i_z < max_position[ 2 ]; i_z++ ) {
+            for ( std::size_t i_y = min_position[1]; i_y < max_position[ 1 ]; i_y++ ) {
+                for ( std::size_t i_x = min_position[0]; i_x < max_position[ 0 ]; i_x++ ) {
                     if(CellIntersectGeometry(i_x, i_y, i_z, TheGeometry)){
                         std::size_t cell_index = i_x + i_y * mNumberOfDivisions[0] + i_z*mNumberOfDivisions[1]*mNumberOfDivisions[0];
                         mCellIsEmpty[cell_index] = false;                   
@@ -564,6 +548,34 @@ namespace Kratos
             }
         }
     }
+
+
+template<typename TIteratorType>
+void VoxelMeshColoringProcess::CalculateMinMaxCellsPositions(TIteratorType GeometriesBegin, TIteratorType GeometriesEnd, array_1d< std::size_t, 3 >& MinCellPosition, array_1d< std::size_t, 3 >& MaxCellPosition){
+	if(GeometriesBegin == GeometriesEnd)
+		return;
+
+	Point min_point;
+	Point max_point;
+	max_point = GeometriesBegin->GetPoint(0);
+	min_point = GeometriesBegin->GetPoint(0);
+	for(; GeometriesBegin != GeometriesEnd ; GeometriesBegin++){
+        for (unsigned int i_point = 0; i_point < GeometriesBegin->PointsNumber(); i_point++)
+        {
+			Point const& point = GeometriesBegin->GetPoint(i_point);
+            for(std::size_t i = 0; i<3; i++)
+            {
+                min_point[i] =  (min_point[i] >  point[i] ) ?  point[i] : min_point[i];
+                max_point[i] =  (max_point[i] <  point[i] ) ?  point[i] : max_point[i];
+            }
+        }
+	}
+		
+	for ( int i = 0; i < 3; i++ ) {
+		MinCellPosition[ i ] = CalculatePosition( min_point[i], i );
+		MaxCellPosition[ i ] = CalculatePosition( max_point[i], i ) + 1;
+	}
+}
 
 std::size_t VoxelMeshColoringProcess::CalculateCellIndex(Point const &ThePoint ) const {
     std::size_t result = 0;

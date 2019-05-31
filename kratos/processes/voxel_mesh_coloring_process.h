@@ -209,6 +209,9 @@ namespace Kratos
 
           void MarkIntersectedCells(Element::GeometryType&);
 
+          template<typename TIteratorType>
+          void CalculateMinMaxCellsPositions(TIteratorType GeometriesBegin, TIteratorType GeometriesEnd, array_1d< std::size_t, 3 >& MinCellPosition, array_1d< std::size_t, 3 >& MaxCellPosition);
+
           std::size_t CalculateCellIndex(Point const &ThePoint ) const;
 
           std::size_t CalculatePosition( double Coordinate, int ThisDimension ) const;
