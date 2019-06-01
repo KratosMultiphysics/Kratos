@@ -268,12 +268,22 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         // The increment of time
         const double delta_time = rCurrentProcessInfo.Has(DELTA_TIME) ? rCurrentProcessInfo[DELTA_TIME] : 1.0;
 
-        // Delta mortar condition matrices - DOperator and MOperator
-        const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
-        const BoundedMatrix<double, TNumNodes, TNumNodesMaster> DeltaMOperator = MOperator - rPreviousMortarOperators.MOperator;
+        BoundedMatrix<double, TNumNodes, TDim> delta_D_x1_M_x2;
+        const bool objective_formulation = pCondition->IsDefined(MODIFIED) ? pCondition->IsNot(MODIFIED) : true;
+        if (objective_formulation) {
+            // Delta mortar condition matrices - DOperator and MOperator
+            const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
+            const BoundedMatrix<double, TNumNodes, TNumNodesMaster> DeltaMOperator = MOperator - rPreviousMortarOperators.MOperator;
 
-        // Delta objetive gap and slip
-        const BoundedMatrix<double, TNumNodes, TDim> delta_D_x1_M_x2 = prod(DeltaDOperator, x1) - prod(DeltaMOperator, x2);
+            // Delta objetive gap and slip
+            noalias(delta_D_x1_M_x2)  = prod(DeltaDOperator, x1) - prod(DeltaMOperator, x2);
+        } else {
+            const BoundedMatrix<double, TNumNodes, TDim> delta_x1 = x1 - MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry, false, 1);
+            const BoundedMatrix<double, TNumNodes, TDim> delta_x2 = x2 - MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry, false, 1);
+
+            // Delta objetive gap and slip
+            noalias(delta_D_x1_M_x2)  = prod(DOperator, delta_x1) - prod(MOperator, delta_x2);
+        }
 
         // The estimation of the slip time derivative
         const BoundedMatrix<double, TNumNodes, TDim> slip_time_derivative = - delta_D_x1_M_x2/delta_time;
