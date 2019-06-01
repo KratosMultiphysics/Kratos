@@ -20,6 +20,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "skin_model_part_name": "insert_skin_model_part",
                 "maximum_iterations": 1,
                 "remeshing_flag": false,
+                "ray_casting_tolerance": 1e-9,
                 "moving_parameters":    {
                     "origin"                        : [0.0,0.0,0.0],
                     "rotation_angle"                : 0.0,
@@ -62,8 +63,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.moving_parameters = settings["moving_parameters"]
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]
-
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
+        self.ray_casting_tolerance = settings["ray_casting_tolerance"].GetDouble()
 
     def ExecuteInitialize(self):
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Executing Initialize Geometry')
@@ -79,18 +79,14 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             self._CalculateDistance()
             self._UpdateParameters()
         self._ModifyFinalDistance()
-        self._ExtendDistance()
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
 
-        #############################################################################################
-        #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
         # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
-            self.main_model_part, avg_elem_num, avg_node_num).Execute()
-        ##############################################################################################
+            self.main_model_part    , avg_elem_num, avg_node_num).Execute()
 
     def _InitializeSkinModelPart(self):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).
@@ -109,7 +105,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def _CalculateDistance(self):
         ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
-        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
+        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part,self.ray_casting_tolerance).Execute()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','CalculateDistance time: ',time.time()-ini_time)
 
     def _ExtendDistance(self):
@@ -130,7 +126,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             "coarsening_type":"ruge_stuben",
             "coarse_enough" : 5000,
             "krylov_type": "lgmres",
-            "tolerance": 1e-3,
+            "tolerance": 1e-8,
             "verbosity": 0,
             "scaling": false
         }""")
@@ -155,6 +151,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,self.main_model_part.Nodes)
 
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
         metric_process.Execute()

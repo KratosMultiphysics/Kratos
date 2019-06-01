@@ -3078,19 +3078,18 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
 {
     ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
-    const auto& flags = KratosComponents<Flags>::GetComponents();
+    const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
-    for (auto& flag : flags) {
-        const std::string name_sub_model = "FLAG_"+flag.first;
-        if (name_sub_model.find("NOT") == std::string::npos) { // Avoiding inactive flags
+    for (auto& r_flag : r_flags) {
+        const std::string name_sub_model = "FLAG_" + r_flag.first;
+        if (name_sub_model.find("NOT") == std::string::npos && name_sub_model.find("ALL") == std::string::npos) { // Avoiding inactive flags
             r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
-            ModelPart& auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            FastTransferBetweenModelPartsProcess transfer_process = FastTransferBetweenModelPartsProcess(auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(flag.second));
-            transfer_process.Execute();
+            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
+            FastTransferBetweenModelPartsProcess(r_auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
             // If the number of elements transfered is 0 we remove the model part
-            if (auxiliar_sub_model_part.NumberOfNodes() == 0
-            && auxiliar_sub_model_part.NumberOfElements() == 0
-            && auxiliar_sub_model_part.NumberOfConditions() == 0) {
+            if (r_auxiliar_sub_model_part.NumberOfNodes() == 0
+            && r_auxiliar_sub_model_part.NumberOfElements() == 0
+            && r_auxiliar_sub_model_part.NumberOfConditions() == 0) {
                 r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
             }
         }
@@ -3103,16 +3102,16 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
-    const auto& flags = KratosComponents<Flags>::GetComponents();
+    const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
-    ModelPart& auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-    for (auto& flag : flags) {
-        const std::string name_sub_model = "FLAG_"+flag.first;
-        if (auxiliar_model_part.HasSubModelPart(name_sub_model)) {
-            ModelPart& auxiliar_sub_model_part = auxiliar_model_part.GetSubModelPart(name_sub_model);
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Nodes());
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Conditions());
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Elements());
+    ModelPart& r_auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    for (auto& r_flag : r_flags) {
+        const std::string name_sub_model = "FLAG_" + r_flag.first;
+        if (r_auxiliar_model_part.HasSubModelPart(name_sub_model)) {
+            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Nodes());
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Conditions());
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Elements());
         }
     }
 
