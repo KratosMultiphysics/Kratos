@@ -45,7 +45,10 @@ def DefineVector( name, m):
     name -- Name of variables.
     m -- Number of rows.
     """
-    return DefineMatrix( name, m, 1)
+    if float(GetSympyVersion()) <= 1.2:
+        return sympy.Matrix( m,1, lambda i,j: sympy.var(name+'_%d' % (i)) )
+    else:
+        raise Exception("Not implemented yet")
 
 def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity = False):
     """ This method defines shape functions and derivatives
