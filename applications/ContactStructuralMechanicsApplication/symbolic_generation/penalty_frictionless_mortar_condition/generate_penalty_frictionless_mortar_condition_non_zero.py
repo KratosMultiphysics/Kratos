@@ -66,7 +66,7 @@ for normalvar in range(normal_combs):
         output_count += 1
         number_dof = dim * (nnodes_master + nnodes)
 
-        #Defining the unknowns
+        # Defining the unknowns
         u1 = custom_sympy_fe_utilities.DefineMatrix('u1',nnodes,dim)        #u1(i,j) is displacement of node i component j at domain 1
         u2 = custom_sympy_fe_utilities.DefineMatrix('u2',nnodes_master,dim) #u2(i,j) is displacement of node i component j at domain 2
 
@@ -86,7 +86,7 @@ for normalvar in range(normal_combs):
         x1 = X1 + u1
         x2 = X2 + u2
 
-        #Define other symbols
+        # Define other symbols
         DynamicFactor = custom_sympy_fe_utilities.DefineVector('DynamicFactor',nnodes)
         PenaltyParameter = custom_sympy_fe_utilities.DefineVector('PenaltyParameter',nnodes)
 
