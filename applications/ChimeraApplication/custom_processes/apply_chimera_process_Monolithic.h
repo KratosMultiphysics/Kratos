@@ -525,6 +525,9 @@ class ApplyChimeraProcessMonolithic : public Process
 
         for (auto& container : master_slave_container_vector)
             mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
+        
+        for (auto& container : master_slave_container_vector)
+            container.clear();
 
         counter /= TDim + 1;
         KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter << std::endl;
