@@ -431,7 +431,7 @@ namespace Kratos
         * Checks the correct work of the weighted gap computation (with objective slip)
         * Test 4
         */
-        KRATOS_TEST_CASE_IN_SUITE(WeightedGap4, KratosContactStructuralMechanicsFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap4, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
@@ -497,7 +497,7 @@ namespace Kratos
         * Checks the correct work of the weighted gap computation (with non-objective slip)
         * Test 5
         */
-        KRATOS_TEST_CASE_IN_SUITE(WeightedGap5, KratosContactStructuralMechanicsFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap5, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
