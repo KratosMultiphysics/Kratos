@@ -1,0 +1,18 @@
+{
+    "system_parameters":{
+        "stiffness" : 2.0
+    },
+    "initial_values":{
+        "displacement": 0.0
+     },
+     "boundary_conditions":{
+        "external_load": 0.0
+     },
+     "solver_parameters": {
+         "buffer_size": 3
+     },
+     "output_parameters":{
+        "file_name": "results_sdof.dat"
+     }
+
+}

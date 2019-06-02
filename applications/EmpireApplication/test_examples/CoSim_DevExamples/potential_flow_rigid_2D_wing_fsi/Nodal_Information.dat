@@ -1,0 +1,834 @@
+Nodes Information 
+
+Node	X
+Node #201 : (0.00460718, 0.0526603, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #202 : (0.498097, -0.0435779, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #203 : (0.497124, -0.0433484, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #204 : (0.496052, -0.0430958, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #205 : (0.494873, -0.0428185, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #206 : (0.493576, -0.0425136, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #207 : (0.492149, -0.0421786, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #208 : (0.49058, -0.0418105, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #209 : (0.488852, -0.041406, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #210 : (0.486952, -0.0409616, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #211 : (0.484861, -0.0404735, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #212 : (0.482561, -0.0399374, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #213 : (0.480029, -0.0393486, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #214 : (0.477243, -0.0387022, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #215 : (0.474177, -0.0379925, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #216 : (0.470804, -0.0372135, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #217 : (0.467091, -0.0363587, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #218 : (0.463005, -0.0354209, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #219 : (0.458507, -0.0343923, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #220 : (0.453557, -0.0332644, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #221 : (0.448108, -0.0320279, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #222 : (0.442109, -0.0306729, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #223 : (0.435506, -0.0291886, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #224 : (0.428235, -0.0275631, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #225 : (0.420229, -0.0257838, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #226 : (0.411413, -0.0238371, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #227 : (0.401704, -0.0217082, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #228 : (0.39101, -0.0193814, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #229 : (0.379229, -0.0168397, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #230 : (0.366251, -0.0140652, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #231 : (0.351951, -0.0110386, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #232 : (0.336192, -0.00773984, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #233 : (0.318821, -0.00414763, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #234 : (0.299672, -0.000239984, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #235 : (0.278556, 0.00400558, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #236 : (0.255268, 0.00861153, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #237 : (0.229576, 0.0135995, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #238 : (0.201226, 0.018989, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #239 : (0.169932, 0.0247952, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #240 : (0.135376, 0.0310257, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #241 : (0.0972029, 0.0376753, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #242 : (0.0537862, 0.0449168, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #243 : (-0.498097, 0.0435779, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #244 : (-0.497981, 0.0445709, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #245 : (-0.497779, 0.0456486, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #246 : (-0.497469, 0.0468161, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #247 : (-0.497029, 0.0480698, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #248 : (-0.496435, 0.0494043, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #249 : (-0.495659, 0.050811, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #250 : (-0.494677, 0.0522795, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #251 : (-0.493466, 0.0537983, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #252 : (-0.492004, 0.0553561, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #253 : (-0.490272, 0.0569424, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #254 : (-0.488249, 0.0585481, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #255 : (-0.485915, 0.0601659, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #256 : (-0.483248, 0.0617894, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #257 : (-0.480224, 0.0634134, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #258 : (-0.476816, 0.0650332, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #259 : (-0.472994, 0.0666444, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #260 : (-0.468724, 0.0682423, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #261 : (-0.463969, 0.0698217, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #262 : (-0.458686, 0.0713768, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #263 : (-0.452831, 0.0729007, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #264 : (-0.44635, 0.0743853, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #265 : (-0.439189, 0.075821, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #266 : (-0.431285, 0.0771965, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #267 : (-0.422569, 0.0784982, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #268 : (-0.412969, 0.0797105, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #269 : (-0.402402, 0.080815, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #270 : (-0.39078, 0.0817904, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #271 : (-0.378007, 0.082612, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #272 : (-0.363977, 0.0832515, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #273 : (-0.348576, 0.0836765, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #274 : (-0.331682, 0.0838502, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #275 : (-0.313159, 0.0837309, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #276 : (-0.292865, 0.083272, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #277 : (-0.270644, 0.0824213, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #278 : (-0.246327, 0.0811214, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #279 : (-0.219737, 0.079309, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #280 : (-0.19068, 0.0769153, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #281 : (-0.158951, 0.0738664, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #282 : (-0.124331, 0.0700833, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #283 : (-0.0865898, 0.0654822, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #284 : (-0.0446544, 0.0598599, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #285 : (-0.00460718, -0.0526603, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #286 : (-0.498155, 0.0425797, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #287 : (-0.498143, 0.0414833, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #288 : (-0.498041, 0.0402797, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #289 : (-0.497826, 0.0389687, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #290 : (-0.497472, 0.0375513, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #291 : (-0.496952, 0.0360313, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #292 : (-0.49624, 0.0344145, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #293 : (-0.495311, 0.0327085, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #294 : (-0.494142, 0.0309205, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #295 : (-0.492711, 0.0290575, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #296 : (-0.490998, 0.0271249, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #297 : (-0.48898, 0.0251264, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #298 : (-0.486636, 0.0230645, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #299 : (-0.48394, 0.02094, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #300 : (-0.480865, 0.018753, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #301 : (-0.477381, 0.0165026, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #302 : (-0.473453, 0.0141876, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #303 : (-0.469045, 0.0118064, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #304 : (-0.464112, 0.00935766, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #305 : (-0.45861, 0.00684004, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #306 : (-0.452486, 0.00425266, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #307 : (-0.445683, 0.00159519, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #308 : (-0.438137, -0.00113191, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #309 : (-0.429781, -0.00392723, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #310 : (-0.420537, -0.0067882, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #311 : (-0.410322, -0.00971084, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #312 : (-0.399046, -0.0126895, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #313 : (-0.38661, -0.0157168, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #314 : (-0.372904, -0.0187829, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #315 : (-0.357811, -0.0218757, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #316 : (-0.341203, -0.0249804, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #317 : (-0.322941, -0.0280793, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #318 : (-0.302876, -0.0311514, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #319 : (-0.280844, -0.0341724, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #320 : (-0.256672, -0.0371147, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #321 : (-0.23017, -0.0399472, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #322 : (-0.201139, -0.0426357, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #323 : (-0.169363, -0.0451427, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #324 : (-0.134612, -0.0474286, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #325 : (-0.0966452, -0.0494512, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #326 : (-0.0543705, -0.0511964, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #327 : (0.497099, -0.0436348, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #328 : (0.495999, -0.0436974, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #329 : (0.49479, -0.0437658, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #330 : (0.49346, -0.0438409, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #331 : (0.491997, -0.043923, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #332 : (0.490387, -0.044013, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #333 : (0.488616, -0.0441114, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #334 : (0.486667, -0.044219, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #335 : (0.484523, -0.0443366, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #336 : (0.482164, -0.0444651, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #337 : (0.479569, -0.0446053, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #338 : (0.476713, -0.0447582, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #339 : (0.473571, -0.0449248, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #340 : (0.470113, -0.045106, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #341 : (0.466309, -0.0453031, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #342 : (0.462122, -0.0455171, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #343 : (0.457514, -0.0457492, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #344 : (0.452443, -0.0460003, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #345 : (0.446862, -0.0462718, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #346 : (0.440719, -0.0465646, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #347 : (0.433958, -0.0468796, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #348 : (0.426515, -0.0472179, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #349 : (0.418322, -0.0475799, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #350 : (0.409302, -0.0479661, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #351 : (0.39937, -0.0483767, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #352 : (0.388435, -0.0488112, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #353 : (0.376392, -0.0492686, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #354 : (0.363129, -0.0497474, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #355 : (0.348521, -0.0502447, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #356 : (0.332428, -0.0507568, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #357 : (0.314698, -0.0512781, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #358 : (0.295161, -0.0518011, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #359 : (0.273629, -0.0523155, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #360 : (0.249894, -0.0528075, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #361 : (0.223727, -0.0532584, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #362 : (0.194872, -0.053643, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #363 : (0.163045, -0.0539269, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #364 : (0.127932, -0.0540622, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #365 : (0.0891839, -0.0539821, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Node #366 : (0.0451694, -0.0535743, 0)
+    Dofs :
+        Free VELOCITY_POTENTIAL degree of freedom
+        Free AUXILIARY_VELOCITY_POTENTIAL degree of freedom
+
+Number of Nodes= 166
