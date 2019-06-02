@@ -63,11 +63,11 @@ def AdaptativeRemeshingRunSolutionLoop(analysis):
         analysis.time = analysis._GetSolver().AdvanceInTime(analysis.time)
         # We reinitialize if remeshed previously
         if root_model_part.Is(KratosMultiphysics.MODIFIED):
-            ReInitializeSolver(analysis)
+            analysis.ReInitializeSolver()
         analysis.InitializeSolutionStep()
         # We reinitialize if remeshed on the InitializeSolutionStep
         if root_model_part.Is(KratosMultiphysics.MODIFIED):
-            ReInitializeSolver(analysis)
+            analysis.ReInitializeSolver()
             analysis.InitializeSolutionStep()
         analysis._GetSolver().Predict()
         analysis._GetSolver().SolveSolutionStep()
@@ -96,7 +96,7 @@ def SPRAdaptativeRemeshingRunSolutionLoop(analysis, with_contact = False):
         non_linear_iteration = 1
         while non_linear_iteration <= analysis.non_linear_iterations:
             if root_model_part.Is(KratosMultiphysics.MODIFIED):
-                ReInitializeSolver(analysis)
+                analysis.ReInitializeSolver()
             if non_linear_iteration == 1 or root_model_part.Is(KratosMultiphysics.MODIFIED):
                 analysis.InitializeSolutionStep()
                 solver.Predict()
@@ -137,25 +137,3 @@ def SPRAdaptativeRemeshingRunSolutionLoop(analysis, with_contact = False):
                 root_model_part.Set(KratosMultiphysics.MODIFIED, True)
                 non_linear_iteration += 1
         analysis.OutputSolutionStep()
-
-def ReInitializeSolver(analysis):
-    """ This reinitializes after remesh
-
-        Keyword arguments:
-        analysis The AnalysisStage to be reinitialized
-    """
-    solver = analysis._GetSolver()
-    processes = analysis._GetListOfProcesses()
-    solver.Clear()
-    # WE INITIALIZE THE SOLVER
-    solver.Initialize()
-    # WE RECOMPUTE THE PROCESSES AGAIN
-    ## Processes initialization
-    for process in processes:
-        process.ExecuteInitialize()
-    ## Processes before the loop
-    for process in processes:
-        process.ExecuteBeforeSolutionLoop()
-    ## Processes of initialize the solution step
-    for process in processes:
-        process.ExecuteInitializeSolutionStep()

@@ -194,6 +194,28 @@ class AnalysisStage(object):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
 
+    def ReInitializeSolver(self):
+        """ This reinitializes the solver and the processes (used for example on remesh or on adaptive NR)
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        solver = self._GetSolver()
+        processes = self._GetListOfProcesses()
+        solver.Clear()
+        # WE INITIALIZE THE SOLVER
+        solver.Initialize()
+        # WE RECOMPUTE THE PROCESSES AGAIN
+        ## Processes initialization
+        for process in processes:
+            process.ExecuteInitialize()
+        ## Processes before the loop
+        for process in processes:
+            process.ExecuteBeforeSolutionLoop()
+        ## Processes of initialize the solution step
+        for process in processes:
+            process.ExecuteInitializeSolutionStep()
+
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
