@@ -291,7 +291,7 @@ namespace Kratos
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
-//                     r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.FinalizeSolutionStep(r_process_info);
                 }
             }
 
@@ -349,7 +349,7 @@ namespace Kratos
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
-//                     r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.FinalizeSolutionStep(r_process_info);
                 }
             }
 
@@ -399,7 +399,7 @@ namespace Kratos
             const double slope = 0.0;
 
             // We create our problem
-            const double delta_x = 0.1;
+            const double delta_x = 1.0e-1;
             CreateNewProblem(r_model_part, number_of_divisions, lenght, radius, angle, slope, delta_x);
 
             // We compute the explicit contribution
@@ -409,7 +409,7 @@ namespace Kratos
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
-//                     r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.FinalizeSolutionStep(r_process_info);
                 }
             }
 
@@ -479,7 +479,7 @@ namespace Kratos
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
                     r_cond.AddExplicitContribution(r_process_info);
-//                     r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.FinalizeSolutionStep(r_process_info);
                 }
             }
 
@@ -547,7 +547,7 @@ namespace Kratos
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
                     r_cond.AddExplicitContribution(r_process_info);
-//                     r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.FinalizeSolutionStep(r_process_info);
                 }
             }
 
