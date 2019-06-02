@@ -110,6 +110,7 @@ class PotentialFlowSolver(FluidSolver):
         # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE) # Required for variational_distance_process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Required for modify_distance_process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) # Required for modify_distance_process
@@ -118,6 +119,8 @@ class PotentialFlowSolver(FluidSolver):
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+
+        KratosMultiphysics.Logger.PrintInfo("PotentialFlowSolver", "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -134,5 +137,21 @@ class PotentialFlowSolver(FluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
 
-    def AdvanceInTime(self, current_time):
-        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+    # def AdvanceInTime(self, current_time):
+    #     raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+
+    def Predict(self):
+        self.solver.Predict()
+
+    def FinalizeSolutionStep(self):
+        (self.solver).FinalizeSolutionStep()
+
+    def SolveSolutionStep(self):
+        self.solver.Clear()
+        is_converged = self.solver.SolveSolutionStep()
+        if not is_converged:
+            msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning("PotentialFlowSolver",msg)
+            return is_converged
+
