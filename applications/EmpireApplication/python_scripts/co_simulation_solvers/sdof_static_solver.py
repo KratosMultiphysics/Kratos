@@ -1,12 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-import KratosMultiphysics
-import co_simulation_ios.co_simulation_io_factory as io_factory
 # Importing the base class
 from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 from co_simulation_tools import RecursivelyValidateAndAssignDefaults
 
 # Other imports
-import numpy as np
 import json
 import os
 
@@ -65,10 +62,9 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
 
         if os.path.isfile(self.output_file_name):
             os.remove(self.output_file_name)
-        self.force
-
-    def OutputSolutionStep(self):
-        with open(self.output_file_name, "a") as results_sdof_static:
+    
+    # def OutputSolutionStep(self):
+        # with open(self.output_file_name, "a") as results_sdof_static:
             #outputs displacements
             # results_sdof_static.write("displacement values are \t" + str(self.x + "\n")
             return

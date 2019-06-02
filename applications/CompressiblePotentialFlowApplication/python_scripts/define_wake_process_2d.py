@@ -239,13 +239,12 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
 
-        def CleanMarking(self):
+    def CleanMarking(self):
         # This function removes all the markers set by FindWakeElements()
         for elem in self.trailing_edge_model_part.Elements:
             elem.SetValue(CPFApp.TRAILING_EDGE, False)
             elem.SetValue(CPFApp.KUTTA, False)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
-            print(elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
 
         for elem in self.wake_elements_sub_modelpart.Elements:
             elem.SetValue(CPFApp.WAKE, False)

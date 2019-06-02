@@ -1,6 +1,5 @@
 # Importing the base class
 from co_simulation_solvers.co_simulation_base_coupling_solver import CoSimulationBaseCouplingSolver
-import KratosMultiphysics
 # Other imports
 from co_simulation_convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
 from co_simulation_convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
@@ -61,7 +60,6 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
             self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name in self.solver_names:
-                print('solver_name', solver_name)
                 solver = self.solvers[solver_name]
                 self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()

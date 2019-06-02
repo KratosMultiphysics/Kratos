@@ -1,9 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library => only needed to get the CoSim-Python-Scripts on the path!
-import KratosMultiphysics
-import KratosMultiphysics.EmpireApplication
-
 # Importing the base class
 from co_simulation_steady_analysis import CoSimulationSteadyAnalysis
 import json

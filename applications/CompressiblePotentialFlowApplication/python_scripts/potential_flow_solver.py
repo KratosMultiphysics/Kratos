@@ -142,7 +142,7 @@ class PotentialFlowSolver(FluidSolver):
 
     def Predict(self):
         self.solver.Predict()
-    
+
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 
