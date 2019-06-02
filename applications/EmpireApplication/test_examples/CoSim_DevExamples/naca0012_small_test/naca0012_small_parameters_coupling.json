@@ -70,7 +70,6 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.Body2D_Body",
-                "wake_direction"  : [10.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         },{
