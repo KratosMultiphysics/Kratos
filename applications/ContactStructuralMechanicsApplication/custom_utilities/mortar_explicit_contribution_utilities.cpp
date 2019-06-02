@@ -118,7 +118,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = this_mortar_condition_matrices.MOperator;
 
         // Computing contribution of the NODAL_AREA
-        if (ComputeNodalArea) {
+        if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
                 #pragma omp atomic
@@ -262,7 +262,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = this_mortar_condition_matrices.MOperator;
 
         // Computing contribution of the NODAL_AREA
-        if (ComputeNodalArea) {
+        if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
                 #pragma omp atomic
