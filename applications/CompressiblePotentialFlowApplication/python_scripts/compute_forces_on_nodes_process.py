@@ -43,8 +43,8 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
             for node in cond.GetNodes():
                 added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
-                nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
-                node.SetValue(KratosMultiphysics.REACTION, nodal_force)
+                nodal_force = node.GetSolutionStepValue(KratosMultiphysics.REACTION) + added_force
+                node.SetSolutionStepValue(KratosMultiphysics.REACTION, nodal_force)
 
         total_force = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part, 0)
 

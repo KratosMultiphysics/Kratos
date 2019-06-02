@@ -137,17 +137,18 @@ class PotentialFlowSolver(FluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
 
-    # def AdvanceInTime(self, current_time):
-    #     raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+    def AdvanceInTime(self, current_time):
+        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
     def Predict(self):
         self.solver.Predict()
-
+    
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         self.solver.Clear()
+        self.solver.InitializeSolutionStep()
         is_converged = self.solver.SolveSolutionStep()
         if not is_converged:
             msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
