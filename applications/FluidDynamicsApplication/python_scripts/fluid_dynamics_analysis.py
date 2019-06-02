@@ -5,6 +5,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 
 from analysis_stage import AnalysisStage
 
+# Import auxiliar methods
+from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
+
 class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
@@ -34,13 +37,15 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
+        # Create utilities
+        self.adaptive_utilities = AuxiliarMethodsAdaptiveRemeshing(self)
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
 
-        import KratosMultiphysics.auxiliar_methods_adaptative_remeshing as auxiliar_methods_adaptative_remeshing
-        auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
+        self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
 
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid

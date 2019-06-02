@@ -10,7 +10,7 @@ import sys
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 # Import auxiliar methods
-import KratosMultiphysics.auxiliar_methods_adaptative_remeshing as auxiliar_methods_adaptative_remeshing
+from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
 
 class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
@@ -44,10 +44,13 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                 self.process_remesh = True
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+        # Create utilities
+        self.adaptive_utilities = AuxiliarMethodsAdaptiveRemeshing(self)
+
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
-        auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingDetectBoundary(self)
+        self.adaptive_utilities.AdaptativeRemeshingDetectBoundary()
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
@@ -56,9 +59,9 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
 
         # If we remesh using a process
         if self.process_remesh:
-            auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
+            self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
         else: # Remeshing adaptively
-            auxiliar_methods_adaptative_remeshing.SPRAdaptativeRemeshingRunSolutionLoop(self)
+            self.adaptive_utilities.SPRAdaptativeRemeshingRunSolutionLoop()
 
     #### Internal functions ####
     def _CreateSolver(self):
