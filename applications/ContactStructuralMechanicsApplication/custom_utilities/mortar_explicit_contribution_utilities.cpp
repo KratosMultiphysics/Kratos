@@ -260,7 +260,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         // Current coordinates
         const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry);
-        const BoundedMatrix<double, TNumNodes, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
+        const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 
         const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2);
 
@@ -279,9 +279,9 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             noalias(delta_D_x1_M_x2)  = prod(DeltaDOperator, x1) - prod(DeltaMOperator, x2);
         } else {
             const BoundedMatrix<double, TNumNodes, TDim> delta_x1 = x1 - MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry, false, 1);
-            const BoundedMatrix<double, TNumNodes, TDim> delta_x2 = x2 - MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry, false, 1);
+            const BoundedMatrix<double, TNumNodesMaster, TDim> delta_x2 = x2 - MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry, false, 1);
 
-            // Delta objetive gap and slip
+            // Delta non-objetive gap and slip
             noalias(delta_D_x1_M_x2)  = prod(DOperator, delta_x1) - prod(MOperator, delta_x2);
         }
 
