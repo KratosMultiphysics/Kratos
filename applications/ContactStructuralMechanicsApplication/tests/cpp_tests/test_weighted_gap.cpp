@@ -213,6 +213,7 @@ namespace Kratos
                     p_auxiliar_condition->SetValue(NORMAL, r_slave_cond->GetValue(NORMAL));
                     p_auxiliar_condition->SetValue(PAIRED_NORMAL, r_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
+                    p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Initialize();
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
@@ -287,8 +288,12 @@ namespace Kratos
 
             // We compute the explicit contribution
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions())
-                r_cond.AddExplicitContribution(r_process_info);
+            for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(r_process_info);
+//                     r_cond.FinalizeSolutionStep(r_process_info);
+                }
+            }
 
             // DEBUG
 //             GiDIOGapDebug(r_model_part);
@@ -341,8 +346,12 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
-            for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions())
-                r_cond.AddExplicitContribution(r_process_info);
+            for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(r_process_info);
+//                     r_cond.FinalizeSolutionStep(r_process_info);
+                }
+            }
 
             // DEBUG
 //             GiDIOGapDebug(r_model_part);
@@ -398,8 +407,10 @@ namespace Kratos
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(r_process_info);
+//                     r_cond.FinalizeSolutionStep(r_process_info);
+                }
             }
 
 //             // DEBUG
@@ -465,9 +476,11 @@ namespace Kratos
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
-                r_cond.Set(MODIFIED, true);
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.Set(MODIFIED, true);
+                    r_cond.AddExplicitContribution(r_process_info);
+//                     r_cond.FinalizeSolutionStep(r_process_info);
+                }
             }
 
 //             // DEBUG
@@ -531,9 +544,11 @@ namespace Kratos
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
-                r_cond.Set(MODIFIED, true);
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.Set(MODIFIED, true);
+                    r_cond.AddExplicitContribution(r_process_info);
+//                     r_cond.FinalizeSolutionStep(r_process_info);
+                }
             }
 
 //             // DEBUG
