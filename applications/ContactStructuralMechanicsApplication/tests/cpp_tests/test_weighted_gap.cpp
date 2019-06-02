@@ -553,7 +553,7 @@ namespace Kratos
         }
 
         /**
-        * Checks the correct work of the weighted gap computation (with objective slip)
+        * Checks the correct work of the weighted gap computation (with non-objective slip)
         * Test 4
         */
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap4, KratosContactStructuralMechanicsFastSuite)
