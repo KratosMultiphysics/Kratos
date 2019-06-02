@@ -10,7 +10,7 @@ import sys
 from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
 
 # Import auxiliar methods
-from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
+from KratosMultiphysics.ContactStructuralMechanicsApplication.auxiliar_methods_contact_adaptative_remeshing import AuxiliarMethodsContactAdaptiveRemeshing
 
 class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """
@@ -58,7 +58,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         # Create utilities
-        self.adaptive_utilities = AuxiliarMethodsAdaptiveRemeshing(self)
+        self.adaptive_utilities = AuxiliarMethodsContactAdaptiveRemeshing(self)
 
     def Initialize(self):
         """ Initializing the Analysis """
@@ -73,7 +73,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         if self.process_remesh:
             self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
         else: # Remeshing adaptively
-            self.adaptive_utilities.SPRAdaptativeRemeshingRunSolutionLoop(True)
+            self.adaptive_utilities.SPRAdaptativeRemeshingRunSolutionLoop()
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -113,47 +113,6 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             raise NameError("wrong parameter name")
 
         return list_of_processes
-
-    def _transfer_slave_to_master(self):
-        """ This method to transfer information from the slave side to the master side
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        computing_model_part = self._GetSolver().GetComputingModelPart()
-        map_parameters = KM.Parameters("""
-        {
-            "echo_level"                       : 0,
-            "destination_variable_historical"  : false,
-            "absolute_convergence_tolerance"   : 1.0e-9,
-            "relative_convergence_tolerance"   : 1.0e-4,
-            "max_number_iterations"            : 10,
-            "origin_variable"                  : "AUGMENTED_NORMAL_CONTACT_PRESSURE",
-            "destination_variable"             : "CONTACT_PRESSURE",
-            "integration_order"                : 2
-        }
-        """)
-
-        interface_model_part = computing_model_part.GetSubModelPart("Contact")
-        main_model_part = computing_model_part.GetRootModelPart()
-        main_model_part.RemoveSubModelPart("ComputingContact")
-
-        if interface_model_part.HasSubModelPart("SlaveSubModelPart"):
-            slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
-        else:
-            slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
-            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE).Execute()
-            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE).Execute()
-        if interface_model_part.HasSubModelPart("MasterSubModelPart"):
-            master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
-        else:
-            master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
-            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER).Execute()
-            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER).Execute()
-
-        mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
-        mortar_mapping.Execute()
 
 if __name__ == "__main__":
     from sys import argv

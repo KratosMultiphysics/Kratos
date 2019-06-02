@@ -90,7 +90,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
             self.analysis.FinalizeSolutionStep()
             self.analysis.OutputSolutionStep()
 
-    def SPRAdaptativeRemeshingRunSolutionLoop(self, with_contact = False):
+    def SPRAdaptativeRemeshingRunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered with SPR convergence criteria
 
             Keyword arguments:
@@ -101,8 +101,6 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
         solver = self.analysis._GetSolver()
         computing_model_part = solver.GetComputingModelPart()
         root_model_part = computing_model_part.GetRootModelPart()
-        metric_process = solver.get_metric_process()
-        remeshing_process = solver.get_remeshing_process()
         convergence_criteria = solver.get_convergence_criterion()
         builder_and_solver = solver.get_builder_and_solver()
         mechanical_solution_strategy = solver.get_mechanical_solution_strategy()
@@ -122,8 +120,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
                 is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                 solver.SolveSolutionStep()
                 is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                if with_contact:
-                    self.analysis._transfer_slave_to_master()
+                self.ExecuteBeforeFinalizeSolutionStep()
                 self.analysis.FinalizeSolutionStep()
                 if is_converged:
                     self.analysis.is_printing_rank = True
@@ -134,22 +131,20 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
                     KratosMultiphysics.Logger.PrintInfo(self.analysis._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                     break
                 else:
-                    if with_contact:
-                        # Before remesh we set the flag INTERFACE to the conditions (we need edges to preserve submodelparts)
-                        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, computing_model_part.GetSubModelPart("Contact").Conditions)
-
-                        # We remove the contact model part to avoid problems (it will  be recomputed later)
-                        contact_model_part = computing_model_part.GetSubModelPart("Contact")
-                        for model_part in contact_model_part.SubModelParts:
-                            contact_model_part.RemoveSubModelPart(model_part.Name)
-                        computing_model_part.RemoveSubModelPart("ComputingContact")
-
+                    # Remesh
+                    metric_process = solver.get_metric_process()
+                    remeshing_process = solver.get_remeshing_process()
                     metric_process.Execute()
                     remeshing_process.Execute()
 
-                    if with_contact:
-                        # We remove the contact model part to avoid problems (it will  be recomputed later)
-                        computing_model_part.RemoveSubModelPart("Contact")
                     root_model_part.Set(KratosMultiphysics.MODIFIED, True)
                     non_linear_iteration += 1
             self.analysis.OutputSolutionStep()
+
+    def ExecuteBeforeFinalizeSolutionStep(self):
+        """This function is executed before the FinalizeSolutionStep
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        pass
