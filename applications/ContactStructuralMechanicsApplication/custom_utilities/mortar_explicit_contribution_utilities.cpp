@@ -24,7 +24,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     ProcessInfo& rCurrentProcessInfo,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
-    const bool ComputeNodalArea
+    const bool ComputeNodalArea,
+    const bool ComputeDualLM
     )
 {
     KRATOS_TRY
@@ -59,6 +60,9 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    // Dual LM
+    bool dual_LM = false;
+
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
@@ -69,8 +73,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         // Initialize the mortar operators
         this_mortar_condition_matrices.Initialize();
 
-        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        if (ComputeDualLM) {
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        }
 
         PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
@@ -162,7 +168,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
-    const bool ComputeNodalArea
+    const bool ComputeNodalArea,
+    const bool ComputeDualLM
     )
 {
     KRATOS_TRY;
@@ -197,6 +204,9 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    // Dual LM
+    bool dual_LM = false;
+
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
@@ -207,8 +217,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         // Initialize the mortar operators
         this_mortar_condition_matrices.Initialize();
 
-        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        if (ComputeDualLM) {
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        }
 
         PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of pCondition points
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
@@ -303,7 +315,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
-            const array_1d<double, TDim> slip_node = - delta_time * (r_slip_time_derivative_node - inner_prod(normal, r_slip_time_derivative_node) * normal);
+            const array_1d<double, TDim> slip_node = delta_time * (r_slip_time_derivative_node - inner_prod(normal, r_slip_time_derivative_node) * normal);
 
             // The weighted slip
             array_1d<double, 3>& r_weighted_slip = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
@@ -336,7 +348,8 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
-    const bool ComputeNodalArea
+    const bool ComputeNodalArea,
+    const bool ComputeDualLM
     )
 {
     // We "save" the mortar operator for the next step
@@ -380,8 +393,10 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         // Initialize the mortar operators
         rPreviousMortarOperators.Initialize();
 
-        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        if (ComputeDualLM) {
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        }
 
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -423,7 +438,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     }
 
     // Computing contribution of the NODAL_AREA
-    if (ComputeNodalArea) {
+    if (ComputeNodalArea && dual_LM) {
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);

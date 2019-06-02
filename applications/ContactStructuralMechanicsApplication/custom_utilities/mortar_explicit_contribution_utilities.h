@@ -136,13 +136,16 @@ public:
      * @param IntegrationOrder The integration order of the utility
      * @param AxisymmetricCase If consider the axisymmetric coefficient
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @return The mortar operators
      */
     static MortarConditionMatrices AddExplicitContributionOfMortarCondition(
         PairedCondition* pCondition,
         ProcessInfo& rCurrentProcessInfo,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
-        const bool ComputeNodalArea = false
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true
 
         );
     /**
@@ -154,6 +157,8 @@ public:
      * @param IntegrationOrder The integration order of the utility
      * @param AxisymmetricCase If consider the axisymmetric coefficient
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @return The mortar operators
      */
     static MortarConditionMatrices AddExplicitContributionOfMortarFrictionalCondition(
         PairedCondition* pCondition,
@@ -161,7 +166,8 @@ public:
         const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
-        const bool ComputeNodalArea = false
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true
         );
 
     /**
@@ -215,6 +221,7 @@ public:
      * @param IntegrationOrder The integration order of the utility
      * @param AxisymmetricCase If consider the axisymmetric coefficient
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
      * @return True is dual LM, false otherwise
      */
     static bool ComputePreviousMortarOperators(
@@ -223,7 +230,8 @@ public:
         MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
-        const bool ComputeNodalArea = false
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true
         );
 
     /**
