@@ -133,6 +133,10 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                         is_converged_0 += 1;
                     }
 
+//                     // BEGIN Adding debugging value of TANGENTIAL_CONTACT_STRESS
+//                     it_node->SetValue(TANGENTIAL_CONTACT_STRESS, augmented_tangent_pressure);
+//                     // END Adding debugging value of TANGENTIAL_CONTACT_STRESS
+
                     // Check for the slip/stick state
                     if (augmented_tangent_pressure < mu * std::abs(augmented_normal_pressure)) { // STICK CASE
 //                         KRATOS_WARNING_IF("ComputePenaltyFrictionalActiveSet", norm_2(r_gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
