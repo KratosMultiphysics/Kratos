@@ -47,7 +47,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 "step_size"                  : 1.0
             },
             "filter_penalty_term"           : false,
-            "penalty_filter_radius" : -1.0
+            "penalty_filter_radius"         : -1.0
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
