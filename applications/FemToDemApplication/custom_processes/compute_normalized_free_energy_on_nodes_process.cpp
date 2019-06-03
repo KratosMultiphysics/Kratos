@@ -150,7 +150,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2
     const Geometry<Node<3>>& rGeometry
     )
 {
-    Vector node_1_coordinates = rGeometry[0].Coordinates();
+    const auto& r_node_1_coordinates = rGeometry[0].Coordinates();
     Vector node_2_coordinates = rGeometry[1].Coordinates();
     Vector node_3_coordinates = rGeometry[2].Coordinates();
 
