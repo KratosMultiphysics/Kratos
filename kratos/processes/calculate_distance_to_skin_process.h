@@ -60,10 +60,10 @@ public:
 
     /**
      * @brief Construct a new Calculate Distance To Skin Process object
-     * Constructor without user defined extra rays epsilon, used to 
+     * Constructor without user defined extra rays epsilon, used to
      * generate the extra rays when voting is required for coloring
      * @param rVolumePart model part containing the volume elements
-     * @param rSkinPart model part containing the skin to compute 
+     * @param rSkinPart model part containing the skin to compute
      * the distance to as conditions
      */
     CalculateDistanceToSkinProcess(
@@ -72,17 +72,18 @@ public:
 
     /**
      * @brief Construct a new Calculate Distance To Skin Process object
-     * Constructor with user defined extra rays epsilon, used to 
+     * Constructor with user defined extra rays epsilon, used to
      * generate the extra rays when voting is required for coloring
      * @param rVolumePart model part containing the volume elements
-     * @param rSkinPart model part containing the skin to compute 
+     * @param rSkinPart model part containing the skin to compute
      * the distance to as conditions
-     * @param ExtraRaysEpsilon user-defined extra rays epsilon
+     * @param RayCastingRelativeTolerance user-defined tolerance for the
+     * apply_ray_casting_process
      */
     CalculateDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const double ExtraRaysEpsilon);
+        const double RayCastingRelativeTolerance);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
@@ -106,7 +107,7 @@ public:
 
     /**
      * @brief Initialize method
-     * This method calls the base discontinuous distance process initialize method 
+     * This method calls the base discontinuous distance process initialize method
      * and the method that initializes the nodal (continuous) distance values
      */
     void Initialize() override;
@@ -114,7 +115,7 @@ public:
     /**
      * @brief Computes the nodal (continuous) distance field
      * This method firstly computes the elemental distances, getting the
-     * minimum absolute value between the neighbouring elements for each node. 
+     * minimum absolute value between the neighbouring elements for each node.
      * Finally, a raycasting operation is performed to distingish between positive
      * and negative distance values thanks to the obtained signed ray distance.
      * @param rIntersectedObjects array containing pointers to the intersecting objects
@@ -124,7 +125,7 @@ public:
     /**
      * @brief Computes the discontinuous elemental distance
      * This method firstly computes the elemental distances. The base discontinuous
-     * distance class is not used in this case since a naive elemental distance 
+     * distance class is not used in this case since a naive elemental distance
      * (avoiding the complexities implemented in the base class) is enough to serve
      * as base to compute the continuous distance field.
      * @param rIntersectedObjects array containing pointers to the intersecting objects
@@ -154,7 +155,7 @@ public:
 
     /**
      * @brief Translates the minimum elemental distance values to the nodes
-     * For each element, this method takes each node elemental distance value and 
+     * For each element, this method takes each node elemental distance value and
      * checks if the already saved nodal value is greater. If it is, it saves the
      * current elemental (discontinuous) value in the node. At the end, the minimum
      * elemental distance value between the neighbour elements is saved at each node.
@@ -197,7 +198,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const double mExtraRaysEpsilon = 1.0e-8;
+    const double mRayCastingRelativeTolerance = 1.0e-8;
 
     ///@}
     ///@name Private Operators
