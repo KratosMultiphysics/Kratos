@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastS
     const auto & node_3 = mp.CreateNewNode(3,1.0,2.0,3.0);
 
     auto target_node = mp.CreateNewNode(4,1.0,2.0,4.0);
-    auto & global_pointers_container = target_node->GetValue(NEIGHBOUR_NODES);
+    auto& global_pointers_container = target_node->GetValue(NEIGHBOUR_NODES);
 
     global_pointers_container.push_back(GlobalPointer<Node<3>>(&*node_1));
     global_pointers_container.push_back(GlobalPointer<Node<3>>(&*node_2));
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastS
     serializer.save("model", current_model);
     serializer.load("model", loaded_model);
 
-    auto & new_global_pointers = loaded_model.GetModelPart("test").pGetNode(4)->GetValue(NEIGHBOUR_NODES);
+    auto& new_global_pointers = loaded_model.GetModelPart("test").pGetNode(4)->GetValue(NEIGHBOUR_NODES);
 
     for(std::size_t i=0; i<global_pointers_container.size(); ++i)
     {
