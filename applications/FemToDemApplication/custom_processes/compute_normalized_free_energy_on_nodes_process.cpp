@@ -71,7 +71,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
         const double normalized_free_energy = this->CalculateNormalizedFreeEnergy(r_strain_vector, r_stress_vector, damage, r_mat_properties, r_geometry);
 
         for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++) {
-            const int node_id = r_geometry.GetPoint(i).Id();
+            const std::size_t node_id = r_geometry.GetPoint(i).Id();
             pNodeNormalizedFreeEnergyVector[node_id - 1].NormalizedFreeEnergy += normalized_free_energy;
             pNodeNormalizedFreeEnergyVector[node_id - 1].NElems += 1;
         }
