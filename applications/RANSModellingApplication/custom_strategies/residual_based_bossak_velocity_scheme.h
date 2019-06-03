@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "custom_strategies/relaxed_dof_updater.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -70,6 +71,7 @@ public:
 
     ResidualBasedBossakVelocityScheme(
         const double AlphaBossak,
+        const double RelaxationFactor,
         const std::vector<Variable<double> const*> rDisplacementVariables,
         const std::vector<Variable<double> const*> rVelocityVariables,
         const std::vector<Variable<double> const*> rAccelerationVariables,
@@ -81,6 +83,7 @@ public:
                               rAccelerationComponentVariables.size() > 0),
           mUpdateDisplacement(rDisplacementVariables.size() > 0 ||
                               rDisplacementComponentVariables.size() > 0),
+          mRelaxationFactor(RelaxationFactor),
           mDisplacementVariables(rDisplacementVariables),
           mVelocityVariables(rVelocityVariables),
           mAccelerationVariables(rAccelerationVariables),
@@ -151,7 +154,7 @@ public:
     {
         KRATOS_TRY;
 
-        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+        mpDofUpdater->UpdateDofs(rDofSet, rDx, mRelaxationFactor);
 
         this->UpdateTimeSchemeVariables(rModelPart);
 
@@ -436,10 +439,15 @@ protected:
     {
         KRATOS_TRY;
 
-        UpdateAcceleration<Variable<double>>(rModelPart, mVelocityVariables, mAccelerationVariables);
-        UpdateAcceleration<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(rModelPart, mVelocityComponentVariables, mAccelerationComponentVariables);
-        UpdateDisplacement<Variable<double>>(rModelPart, mDisplacementVariables, mVelocityVariables, mAccelerationVariables);
-        UpdateDisplacement<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(rModelPart, mDisplacementComponentVariables, mVelocityComponentVariables, mAccelerationComponentVariables);
+        UpdateAcceleration<Variable<double>>(rModelPart, mVelocityVariables,
+                                             mAccelerationVariables);
+        UpdateAcceleration<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+            rModelPart, mVelocityComponentVariables, mAccelerationComponentVariables);
+        UpdateDisplacement<Variable<double>>(rModelPart, mDisplacementVariables,
+                                             mVelocityVariables, mAccelerationVariables);
+        UpdateDisplacement<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+            rModelPart, mDisplacementComponentVariables,
+            mVelocityComponentVariables, mAccelerationComponentVariables);
 
         KRATOS_CATCH("");
     }
@@ -506,8 +514,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-        TSparseSpace::CreateDofUpdater();
+    typedef RelaxedDofUpdater<TSparseSpace> DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+
+    DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
+
+    double mRelaxationFactor;
 
     const std::vector<Variable<double> const*> mDisplacementVariables;
     const std::vector<Variable<double> const*> mVelocityVariables;
