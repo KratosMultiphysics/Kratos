@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Tosi
+//
 
 #ifndef KRATOS_WEIGHTED_DIVERGENCE_CALCULATION_PROCESS_H
 #define KRATOS_WEIGHTED_DIVERGENCE_CALCULATION_PROCESS_H
@@ -212,7 +213,7 @@ public:
                 }
                 // Retrieve divergence from previous time step
                 auto divergence_old = it_elem->GetValue(DIVERGENCE);
-                auto velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1SEMINORM);
+                auto velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
 
                 // Compute divergence weighted time average
                 auto divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(divergence_old,2) + (time_step_current - time_step_previous) * divergence_current) /  (time_step_current-time_coefficient*final_time));
@@ -220,7 +221,7 @@ public:
 
                 // Compute divergence_norm weighted time average
                 auto velocity_seminorm_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(velocity_seminorm_old,2) + (time_step_current - time_step_previous) * velocity_seminorm_current) /  (time_step_current-time_coefficient*final_time));
-                it_elem->SetValue(VELOCITY_H1SEMINORM,velocity_seminorm_current_avg);
+                it_elem->SetValue(VELOCITY_H1_SEMINORM,velocity_seminorm_current_avg);
 
             }
         }
