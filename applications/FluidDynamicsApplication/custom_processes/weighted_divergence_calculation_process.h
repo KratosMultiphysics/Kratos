@@ -29,9 +29,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <boost/functional/hash.hpp> //TODO: remove this dependence when Kratos has en internal one
-#include <unordered_map> //TODO: remove this dependence when Kratos has en internal one
-#include <utility>
 
 namespace Kratos
 {
