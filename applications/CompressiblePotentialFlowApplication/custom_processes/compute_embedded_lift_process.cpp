@@ -33,10 +33,10 @@ void ComputeEmbeddedLiftProcess::Execute()
 
     mrResultForce = ZeroVector(3);
 
-    #pragma omp parallel for
+    // #pragma omp parallel for THIS PROCESS IS NOT THREADSAFE
     for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
         auto it=mrModelPart.ElementsBegin()+i;
-        if (it->Is(TO_SPLIT) && it -> Is(ACTIVE)){
+        if (it->Is(TO_SPLIT) && it->Is(ACTIVE)){
             auto r_geometry = it->GetGeometry();
             const std::size_t NumNodes = r_geometry.PointsNumber();
 
