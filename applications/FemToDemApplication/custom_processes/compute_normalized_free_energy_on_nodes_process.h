@@ -76,6 +76,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     unsigned int mNNodes;
     bool mComputeNormalizedFreeEnergy = false;
     bool mCorrectWithDisplacements = false;
+    double mCorrectionFactor = 1.0;
 
 }; // Class ComputeNormalizedFreeEnergyOnNodesProcess
 
