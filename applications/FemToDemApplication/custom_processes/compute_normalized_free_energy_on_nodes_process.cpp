@@ -65,7 +65,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
 
         const Vector& r_strain_vector = (*it_elem)->GetValue(STRAIN_VECTOR);
         const Vector& r_stress_vector = (*it_elem)->GetValue(STRESS_VECTOR);
-        const double damage = (*it_elem)->GetValue(DAMAGE_ELEMENT);
+        const double damage = it_elem->GetValue(DAMAGE_ELEMENT);
 
         // Compute Normalized Free Energy on that element
         const double normalized_free_energy = this->CalculateNormalizedFreeEnergy(r_strain_vector, r_stress_vector, damage, r_mat_properties, r_geometry);
