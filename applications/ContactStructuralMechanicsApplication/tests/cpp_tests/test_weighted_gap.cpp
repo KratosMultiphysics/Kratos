@@ -1150,8 +1150,8 @@ namespace Kratos
                 }
             }
 
-            // DEBUG
-            GiDIOGapDebug(r_model_part);
+//             // DEBUG
+//             GiDIOGapDebug(r_model_part);
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
