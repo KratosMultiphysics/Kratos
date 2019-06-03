@@ -146,19 +146,22 @@ public:
                 Vector values_y(number_nodes_element);
                 Vector values_z(number_nodes_element);
                 for(int i_node=0; i_node < static_cast<int>(number_nodes_element); ++i_node){
-                    values_x[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_X);
-                    values_y[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_Y);
-                    values_z[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_Z);
+                    const auto &r_velocity = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+                    values_x[i_node] = r_velocity[0];
+                    values_y[i_node] = r_velocity[1];
+                    values_z[i_node] = r_velocity[2];
+                    KRATOS_WATCH(r_velocity);
+                    KRATOS_WATCH(values_x);
                 }
 
                 // Set integration points
                 const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod(); // Default is 0
-                const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method); // Default is [3 dimensional integration point(0.333333 , 0.333333 , 0), weight = 0.5]
+                const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
                 const std::size_t number_of_integration_points = r_integration_points.size(); // Default is 1
 
                 // Set containers of the shape functions and the local gradients
-                const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method); // [1,3]((0.333333,0.333333,0.333333))
-                const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method); // [1]([3,2]((-1,-1),(1,0),(0,1)))
+                const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
+                const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
                 // Initialize auxiliary local variables
                 double divergence_current = 0;
@@ -167,7 +170,7 @@ public:
                 // Loop over integration points
                 for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ){
                     // Getting the shape functions
-                    noalias(N) = row(rNcontainer, point_number); // [3](0.333333,0.333333,0.333333)
+                    noalias(N) = row(rNcontainer, point_number);
 
                     // Get the jacobians
                     GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
