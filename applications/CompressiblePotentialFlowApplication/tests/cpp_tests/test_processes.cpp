@@ -64,6 +64,12 @@ namespace Kratos {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
+      model_part.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
+
+      array_1d<double, 3> free_stream_velocity;
+      free_stream_velocity[0] = 1.0; free_stream_velocity[1] = 0.0; free_stream_velocity[2] = 0.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
       // Set the element properties
       model_part.CreateNewProperties(0);
       Properties::Pointer pElemProp = model_part.pGetProperties(0);
@@ -77,8 +83,8 @@ namespace Kratos {
 
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement -> Set(TO_SPLIT);
+      pElement -> Set(ACTIVE);
 
-      KRATOS_WATCH("HEY1")
       // Define the nodal values
       Vector potential(3);
       potential(0) = 1.0;
@@ -86,10 +92,9 @@ namespace Kratos {
       potential(2) = 3.0;
 
       Vector distances(3);
-      potential(0) = -1.0;
-      potential(1) = -1.0;
-      potential(2) = 1.0;
-      KRATOS_WATCH("HEY2")
+      distances(0) = -1.0;
+      distances(1) = -1.0;
+      distances(2) = 1.0;
 
 
       for (unsigned int i = 0; i < 3; i++)
@@ -97,18 +102,15 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < 3; i++)
         pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = distances(i);
-      KRATOS_WATCH("HEY3")
 
       Vector resultant_force(3);
-      ComputeEmbeddedLiftProcess ComputeEmbeddedLiftProcess(model_part, resultant_force);
-      ComputeEmbeddedLiftProcess.Execute();
-      KRATOS_WATCH("HEY4")
+      ComputeEmbeddedLiftProcess(model_part, resultant_force).Execute();
 
-      // std::vector<double> reference({0.5, 0.0, -0.5});
+      std::vector<double> reference({0.0, 1.5, 0.0});
 
-      // for (unsigned int i = 0; i < 3; i++) {
-      //   KRATOS_CHECK_NEAR(resultant_force(i), reference[i], 1e-6);
-      // }
+      for (unsigned int i = 0; i < 3; i++) {
+        KRATOS_CHECK_NEAR(resultant_force(i), reference[i], 1e-6);
+      }
     }
   } // namespace Testing
 }  // namespace Kratos.
