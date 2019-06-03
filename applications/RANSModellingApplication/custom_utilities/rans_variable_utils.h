@@ -21,7 +21,9 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "rans_modelling_application_variables.h"
 #include "utilities/variable_utils.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -64,10 +66,12 @@ public:
 
     void ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
                             unsigned int& rNumberOfNodesAboveMaximum,
+                            unsigned int& rNumberOfSelectedNodes,
                             const double MinimumValue,
                             const double MaximumValue,
                             const Variable<double>& rVariable,
-                            ModelPart::NodesContainerType& rNodes)
+                            ModelPart::NodesContainerType& rNodes,
+                            const Flags& rNodeFlag)
     {
         KRATOS_TRY
 
@@ -77,27 +81,33 @@ public:
 
         unsigned int number_of_nodes_below_minimum = 0;
         unsigned int number_of_nodes_above_maximum = 0;
+        unsigned int number_of_nodes_selected = 0;
 
-#pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum)
+#pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum, number_of_nodes_selected)
         for (int i = 0; i < number_of_nodes; i++)
         {
             ModelPart::NodeType& r_node = *(rNodes.begin() + i);
             double& r_value = r_node.FastGetSolutionStepValue(rVariable);
 
-            if (r_value < MinimumValue)
+            if (r_node.Is(rNodeFlag))
             {
-                number_of_nodes_below_minimum++;
-                r_value = MinimumValue;
-            }
-            else if (r_value > MaximumValue)
-            {
-                number_of_nodes_above_maximum++;
-                r_value = MaximumValue;
+                if (r_value < MinimumValue)
+                {
+                    number_of_nodes_below_minimum++;
+                    r_value = MinimumValue;
+                }
+                else if (r_value > MaximumValue)
+                {
+                    number_of_nodes_above_maximum++;
+                    r_value = MaximumValue;
+                }
+                number_of_nodes_selected++;
             }
         }
 
         rNumberOfNodesBelowMinimum = number_of_nodes_below_minimum;
         rNumberOfNodesAboveMaximum = number_of_nodes_above_maximum;
+        rNumberOfSelectedNodes = number_of_nodes_selected;
 
         KRATOS_CATCH("")
     }
@@ -138,11 +148,32 @@ public:
 
         double min_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
 
-// #pragma omp parallel for reduction(min : min_value) #Not working in windows
-        for (int i = 0; i < number_of_nodes; i++)
+        int number_of_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector node_partition;
+        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+        Vector min_values(number_of_threads);
+
+#pragma omp parallel
         {
-            const double value = (rNodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            min_value = std::min(min_value, value);
+            int k = OpenMPUtils::ThisThread();
+
+            auto NodesBegin = rNodes.begin() + node_partition[k];
+            auto NodesEnd = rNodes.begin() + node_partition[k + 1];
+            min_values[k] = NodesBegin->FastGetSolutionStepValue(rVariable);
+
+            for (auto itNode = NodesBegin; itNode != NodesEnd; itNode++)
+            {
+                const double value = itNode->FastGetSolutionStepValue(rVariable);
+                min_values[k] = std::min(min_values[k], value);
+            }
+
+#pragma omp critical
+            {
+                for (int i = 0; i < number_of_threads; ++i)
+                {
+                    min_value = std::min(min_value, min_values[i]);
+                }
+            }
         }
 
         return min_value;
@@ -164,11 +195,32 @@ public:
 
         double max_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
 
-// #pragma omp parallel for reduction(max : max_value) # not working in windows
-        for (int i = 0; i < number_of_nodes; i++)
+        int number_of_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector node_partition;
+        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+        Vector max_values(number_of_threads);
+
+#pragma omp parallel
         {
-            const double value = (rNodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            max_value = std::max(max_value, value);
+            int k = OpenMPUtils::ThisThread();
+
+            auto NodesBegin = rNodes.begin() + node_partition[k];
+            auto NodesEnd = rNodes.begin() + node_partition[k + 1];
+            max_values[k] = NodesBegin->FastGetSolutionStepValue(rVariable);
+
+            for (auto itNode = NodesBegin; itNode != NodesEnd; itNode++)
+            {
+                const double value = itNode->FastGetSolutionStepValue(rVariable);
+                max_values[k] = std::max(max_values[k], value);
+            }
+
+#pragma omp critical
+            {
+                for (int i = 0; i < number_of_threads; ++i)
+                {
+                    max_value = std::max(max_value, max_values[i]);
+                }
+            }
         }
 
         return max_value;

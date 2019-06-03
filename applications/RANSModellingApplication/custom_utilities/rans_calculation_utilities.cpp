@@ -126,8 +126,91 @@ RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType RansCalculat
 
         de_dx[g] = inv_current_dx_de;
     }
-
     return de_dx;
+}
+
+void RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensitivity(
+    Matrix& rOutput, const ShapeParameter& rShapeDerivative, const Matrix& rDnDe, const Matrix& rDeDx)
+{
+    std::size_t domain_size = rDeDx.size1();
+    if (rOutput.size1() != domain_size || rOutput.size2() != domain_size)
+        rOutput.resize(domain_size, domain_size);
+
+    const Vector& r_dnc_de = row(rDnDe, rShapeDerivative.NodeIndex);
+
+    for (std::size_t j = 0; j < domain_size; ++j)
+    {
+        const Vector& r_de_dxj = column(rDeDx, j);
+        for (std::size_t i = 0; i < domain_size; ++i)
+        {
+            rOutput(i, j) = -1.0 * rDeDx(i, rShapeDerivative.Direction) *
+                            inner_prod(r_dnc_de, r_de_dxj);
+        }
+    }
+}
+
+template <unsigned int TDim>
+void RansCalculationUtilities::CalculateGradient(BoundedMatrix<double, TDim, TDim>& rOutput,
+                                                 const Geometry<ModelPart::NodeType>& rGeometry,
+                                                 const Variable<array_1d<double, 3>>& rVariable,
+                                                 const Matrix& rShapeDerivatives,
+                                                 const int Step) const
+{
+    rOutput.clear();
+    std::size_t number_of_nodes = rGeometry.PointsNumber();
+
+    for (unsigned int a = 0; a < number_of_nodes; ++a)
+    {
+        const array_1d<double, 3>& r_value =
+            rGeometry[a].FastGetSolutionStepValue(rVariable, Step);
+        for (unsigned int i = 0; i < TDim; ++i)
+        {
+            for (unsigned int j = 0; j < TDim; ++j)
+            {
+                rOutput(i, j) += rShapeDerivatives(a, j) * r_value[i];
+            }
+        }
+    }
+}
+
+void RansCalculationUtilities::CalculateGradient(array_1d<double, 3>& rOutput,
+                                                 const Geometry<ModelPart::NodeType>& rGeometry,
+                                                 const Variable<double>& rVariable,
+                                                 const Matrix& rShapeDerivatives,
+                                                 const int Step) const
+{
+    rOutput.clear();
+    std::size_t number_of_nodes = rGeometry.PointsNumber();
+    unsigned int domain_size = rShapeDerivatives.size2();
+
+    for (std::size_t a = 0; a < number_of_nodes; ++a)
+    {
+        const double value = rGeometry[a].FastGetSolutionStepValue(rVariable, Step);
+        for (unsigned int i = 0; i < domain_size; ++i)
+            rOutput[i] += rShapeDerivatives(a, i) * value;
+    }
+}
+
+template <unsigned int TDim>
+Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector) const
+{
+    Vector result(TDim);
+
+    for (unsigned int i_dim = 0; i_dim < TDim; ++i_dim)
+        result[i_dim] = rVector[i_dim];
+
+    return result;
+}
+
+Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector,
+                                           const unsigned int Dim) const
+{
+    Vector result(Dim);
+
+    for (unsigned int i_dim = 0; i_dim < Dim; ++i_dim)
+        result[i_dim] = rVector[i_dim];
+
+    return result;
 }
 
 // template instantiations
@@ -136,6 +219,23 @@ template double RansCalculationUtilities::CalculateMatrixTrace<2>(
     const BoundedMatrix<double, 2, 2>&);
 template double RansCalculationUtilities::CalculateMatrixTrace<3>(
     const BoundedMatrix<double, 3, 3>&);
+
+template void RansCalculationUtilities::CalculateGradient<2>(
+    BoundedMatrix<double, 2, 2>&,
+    const Geometry<ModelPart::NodeType>&,
+    const Variable<array_1d<double, 3>>&,
+    const Matrix&,
+    const int) const;
+
+template void RansCalculationUtilities::CalculateGradient<3>(
+    BoundedMatrix<double, 3, 3>&,
+    const Geometry<ModelPart::NodeType>&,
+    const Variable<array_1d<double, 3>>&,
+    const Matrix&,
+    const int) const;
+
+template Vector RansCalculationUtilities::GetVector<2>(const array_1d<double, 3>&) const;
+template Vector RansCalculationUtilities::GetVector<3>(const array_1d<double, 3>&) const;
 
 ///@}
 

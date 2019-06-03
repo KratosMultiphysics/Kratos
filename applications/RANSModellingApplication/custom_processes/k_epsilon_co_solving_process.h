@@ -84,6 +84,26 @@ public:
     {
     }
 
+    /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
+    void ExecuteInitialize() override
+    {
+        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
+        int number_of_nodes = r_nodes.size();
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+        {
+            NodeType& r_node = *(r_nodes.begin() + i_node);
+
+            if (r_node.Is(STRUCTURE))
+                r_node.Set(SELECTED, false);
+            else if (r_node.Is(INLET))
+                r_node.Set(SELECTED, false);
+            else
+                r_node.Set(SELECTED, true);
+        }
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -225,10 +245,10 @@ private:
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
         }
 
-        unsigned int lower_number_of_nodes, higher_number_of_nodes;
+        unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
         RansVariableUtils().ClipScalarVariable(
-            lower_number_of_nodes, higher_number_of_nodes, nu_t_min, nu_t_max,
-            TURBULENT_VISCOSITY, this->mrModelPart.Nodes());
+            lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes, nu_t_min,
+            nu_t_max, TURBULENT_VISCOSITY, this->mrModelPart.Nodes(), SELECTED);
 
         KRATOS_WARNING_IF(this->Info(),
                           (lower_number_of_nodes > 0 || higher_number_of_nodes > 0) &&
@@ -236,7 +256,15 @@ private:
             << "TURBULENT_VISCOSITY out of bounds. [ " << lower_number_of_nodes
             << " nodes < " << std::scientific << nu_t_min << ", "
             << higher_number_of_nodes << " nodes > " << std::scientific << nu_t_max
-            << "  out of total number of " << number_of_nodes << " nodes. ]\n";
+            << "  out of total number of " << total_selected_nodes << " nodes. ]\n";
+
+        const double current_nu_t_min = RansVariableUtils().GetMinimumScalarValue(
+            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
+        const double current_nu_t_max = RansVariableUtils().GetMaximumScalarValue(
+            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
+        KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
+            << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
+            << ", " << current_nu_t_max << " ].\n";
     }
 
     ///@}
