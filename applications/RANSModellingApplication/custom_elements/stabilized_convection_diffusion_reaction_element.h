@@ -700,6 +700,38 @@ public:
         KRATOS_CATCH("");
     }
 
+    /// Implementation of Calculate to compute an error estimate.
+    /**
+     * If rVariable == ERROR_RATIO, this function will provide an a posteriori
+     * estimate of the norm of the subscale velocity, calculated as TauOne*||MomentumResidual||.
+     * Note that the residual of the momentum equation is evaluated at the element center
+     * and that the result has units of velocity (L/T).
+     * The error estimate both saved as the elemental ERROR_RATIO variable and returned as rOutput.
+     * If rVARIABLE == NODAL_AREA, the element's contribution to nodal area is added to its nodes.
+     * @param rVariable Use ERROR_RATIO or NODAL_AREA
+     * @param rOutput Returns the error estimate for ERROR_RATIO, unused for NODAL_AREA
+     * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
+     * @see MarkForRefinement for a use of the error ratio
+     */
+    void Calculate(const Variable<double>& rVariable,
+                   double& rOutput,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (rVariable == NODAL_AREA)
+        {
+            const double length = this->GetGeometry().Length();
+
+            // Carefully write results to nodal variables, to avoid parallelism problems
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) +=
+                    length * length;
+                this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+            }
+        }
+    }
+
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
