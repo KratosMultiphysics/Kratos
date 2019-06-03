@@ -20,11 +20,9 @@ class ComputeEmbeddedLiftProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
         self.main_model_part=Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
         self.result_force=KratosMultiphysics.Vector(3)
-        self.process=CPFApp.ComputeEmbeddedLiftProcess(self.main_model_part,self.result_force)
 
     def ExecuteFinalizeSolutionStep(self):
-        print("wip_compute_lift_level_set_process")
-        self.process.Execute()
+        CPFApp.ComputeEmbeddedLiftProcess(self.main_model_part,self.result_force).Execute()
         self.lift_coefficient = self.result_force[1]
         self.drag_coefficient = self.result_force[0]
 

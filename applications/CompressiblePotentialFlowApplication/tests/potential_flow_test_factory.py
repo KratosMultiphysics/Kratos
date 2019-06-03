@@ -33,7 +33,7 @@ class PotentialFlowTests(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = True
+        self.print_output = False
 
     def test_Naca0012SmallAdjoint(self):
         if not hdf5_is_available:
