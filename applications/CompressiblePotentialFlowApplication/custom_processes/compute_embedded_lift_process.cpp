@@ -42,7 +42,7 @@ void ComputeEmbeddedLiftProcess::Execute()
 
             array_1d<double,3> elemental_distances;
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+                elemental_distances[i_node] = r_geometry[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
 
             const Vector& r_elemental_distances=elemental_distances;
             ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
