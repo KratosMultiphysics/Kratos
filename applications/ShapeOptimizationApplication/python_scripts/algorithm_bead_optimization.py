@@ -35,7 +35,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "bead_direction"                : [],
             "bead_side"                     : "both",
             "fix_boundaries"                : [],
-            "filter_penalty_term"           : false,
             "estimated_lagrange_multiplier" : 1.0,
             "max_total_iterations"          : 10000,
             "max_outer_iterations"          : 10000,
@@ -47,7 +46,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 "normalize_search_direction" : true,
                 "step_size"                  : 1.0
             },
-            "penalty_filtering" : false,
+            "filter_penalty_term"           : false,
             "penalty_filter_radius" : -1.0
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
