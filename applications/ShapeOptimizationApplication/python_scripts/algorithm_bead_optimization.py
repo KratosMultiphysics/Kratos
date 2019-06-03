@@ -55,7 +55,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.optimization_settings = optimization_settings
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
-        # change the default value of penalty filtering to the filter radious of the mapper.
+        # change the default value of penalty filtering to the filter radius of the mapper.
         if self.algorithm_settings["penalty_filter_radius"].GetDouble() == -1.0:
             self.algorithm_settings["penalty_filter_radius"].SetDouble(self.mapper_settings["filter_radius"].GetDouble())
 
