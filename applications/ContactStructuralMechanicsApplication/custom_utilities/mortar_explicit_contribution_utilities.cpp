@@ -21,11 +21,12 @@ namespace Kratos
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarCondition(
     PairedCondition* pCondition,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
-    const bool ComputeDualLM
+    const bool ComputeDualLM,
+    Variable<double>& rAreaVariable
     )
 {
     KRATOS_TRY
@@ -117,10 +118,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = this_mortar_condition_matrices.DOperator;
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = this_mortar_condition_matrices.MOperator;
 
-        // Computing contribution of the NODAL_AREA
+        // Computing contribution of the rAreaVariable
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+                double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
                 #pragma omp atomic
                 r_nodal_area += DOperator(i_node, i_node);
             }
@@ -164,12 +165,13 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarFrictionalCondition(
     PairedCondition* pCondition,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
-    const bool ComputeDualLM
+    const bool ComputeDualLM,
+    Variable<double>& rAreaVariable
     )
 {
     KRATOS_TRY;
@@ -261,10 +263,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = this_mortar_condition_matrices.DOperator;
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = this_mortar_condition_matrices.MOperator;
 
-        // Computing contribution of the NODAL_AREA
+        // Computing contribution of the rAreaVariable
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+                double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
                 #pragma omp atomic
                 r_nodal_area += DOperator(i_node, i_node);
             }
@@ -340,14 +342,32 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 /***********************************************************************************/
 
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputeNodalArea(
+    PairedCondition* pCondition,
+    const ProcessInfo& rCurrentProcessInfo,
+    Variable<double>& rAreaVariable,
+    const IndexType IntegrationOrder,
+    const bool AxisymmetricCase
+    )
+{
+    MortarOperator<TNumNodes, TNumNodesMaster> mortar_operator;
+    mortar_operator.Initialize();
+    ComputePreviousMortarOperators(pCondition, rCurrentProcessInfo, mortar_operator, IntegrationOrder, AxisymmetricCase, true, true, rAreaVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
     PairedCondition* pCondition,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
-    const bool ComputeDualLM
+    const bool ComputeDualLM,
+    Variable<double>& rAreaVariable
     )
 {
     // We "save" the mortar operator for the next step
@@ -435,11 +455,11 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         }
     }
 
-    // Computing contribution of the NODAL_AREA
+    // Computing contribution of the rAreaVariable
     if (ComputeNodalArea && dual_LM) {
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+            double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
             #pragma omp atomic
             r_nodal_area += DOperator(i_node, i_node);
         }
