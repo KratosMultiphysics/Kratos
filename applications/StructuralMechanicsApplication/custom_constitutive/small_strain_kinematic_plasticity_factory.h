@@ -10,8 +10,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED
 
 // System includes
 
@@ -21,7 +21,7 @@
 #include "includes/constitutive_law.h"
 
 // Integrators
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
@@ -30,13 +30,14 @@
 #include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
 
 // Plastic potentials
 #include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-
+#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -59,12 +60,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class SmallStrainIsotropicDamageFactory
+ * @class SmallStrainKinematicPlasticityFactory
  * @ingroup StructuralMechanicsApplication
  * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageFactory
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainKinematicPlasticityFactory
     : public ConstitutiveLaw
 {
   public:
@@ -72,7 +73,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageFac
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamageFactory);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainKinematicPlasticityFactory);
 
     ///@}
     ///@name Life Cycle
@@ -81,14 +82,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageFac
     /**
     * Default constructor.
     */
-    SmallStrainIsotropicDamageFactory()
+    SmallStrainKinematicPlasticityFactory()
     {
     }
 
     /**
     * Destructor.
     */
-    ~SmallStrainIsotropicDamageFactory() override
+    ~SmallStrainKinematicPlasticityFactory() override
     {
     }
 

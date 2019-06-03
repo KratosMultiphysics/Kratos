@@ -70,6 +70,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_traction_only_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_plasticity_factory.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_kinematic_plasticity_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/finite_strain_isotropic_plasticity_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_plasticity.cpp

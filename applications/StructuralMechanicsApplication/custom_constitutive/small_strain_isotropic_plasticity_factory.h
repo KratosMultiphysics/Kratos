@@ -20,6 +20,25 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
+// Integrators
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+
+// Yield surfaces
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+
+// Plastic potentials
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals

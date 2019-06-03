@@ -26,7 +26,43 @@ ConstitutiveLaw::Pointer SmallStrainIsotropicDamageFactory::Create(Kratos::Param
     const std::string& yield = NewParameters["yield_surface"].GetString();
     const std::string& potential = NewParameters["plastic_potential"].GetString();
 
-    const std::string& name = "SmallStrainIsotropicDamage" + law_type + yield + potential;
-    return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+
+    if (law_type == "3D") {
+        if (yield == "VonMises") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else if (yield == "ModifiedMohrCoulomb") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else if (yield == "Tresca") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else if (yield == "DruckerPrager") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else if (yield == "MohrCoulomb") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else if (yield == "Rankine") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else if (yield == "SimoJu") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+        } else {
+            KRATOS_ERROR << "This yield surface is not available: " << yield << std::endl;
+        }
+    } else {
+        if (yield == "VonMises") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else if (yield == "ModifiedMohrCoulomb") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else if (yield == "Tresca") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else if (yield == "DruckerPrager") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else if (yield == "MohrCoulomb") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else if (yield == "Rankine") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else if (yield == "SimoJu") {
+            return GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>().Clone();
+        } else {
+            KRATOS_ERROR << "This yield surface is not available: " << yield << std::endl;
+        }
+    }
 }
 } // namespace Kratos

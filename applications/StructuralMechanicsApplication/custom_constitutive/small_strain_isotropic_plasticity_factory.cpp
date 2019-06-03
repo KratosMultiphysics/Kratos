@@ -26,11 +26,83 @@ ConstitutiveLaw::Pointer SmallStrainIsotropicPlasticityFactory::Create(Kratos::P
     const std::string& yield = NewParameters["yield_surface"].GetString();
     const std::string& potential = NewParameters["plastic_potential"].GetString();
 
-    KRATOS_ERROR_IF(yield == "SimoJu") << "SimoJu yield surface not available in plasticity " << yield << std::endl;
+    KRATOS_ERROR_IF(yield == "SimoJu") << "SimoJu yield surface not available in plasticity "   << yield << std::endl;
     KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
 
-    const std::string name = "SmallStrainIsotropicPlasticity" + law_type + yield + potential;
-    return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+    if (law_type == "3D") {
+        if (yield == "VonMises") {
+            if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "ModifiedMohrCoulomb") {
+            if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "Tresca") {
+            if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "DruckerPrager") {
+            if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "MohrCoulomb") {
+            if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+        }
+    } else {
+        KRATOS_ERROR << "2D version not available yet..." << std::endl;
+    }
+
 }
 
 } // namespace Kratos
