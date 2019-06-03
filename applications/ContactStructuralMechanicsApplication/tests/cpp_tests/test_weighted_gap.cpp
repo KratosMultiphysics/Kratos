@@ -1356,7 +1356,7 @@ namespace Kratos
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
         /**
@@ -1411,7 +1411,7 @@ namespace Kratos
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
     } // namespace Testing
