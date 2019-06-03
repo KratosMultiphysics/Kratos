@@ -155,7 +155,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2
     const auto& r_node_3_coordinates = rGeometry[2].Coordinates();
 
     const double length1 = norm_2(r_node_1_coordinates-r_node_2_coordinates);
-    const double length2 = norm_2(node_2_coordinates-node_3_coordinates);
+    const double length2 = norm_2(r_node_2_coordinates-r_node_3_coordinates);
     const double length3 = norm_2(r_node_3_coordinates-r_node_1_coordinates);
     return (length1 + length2 + length3) / 3.0;
 }
