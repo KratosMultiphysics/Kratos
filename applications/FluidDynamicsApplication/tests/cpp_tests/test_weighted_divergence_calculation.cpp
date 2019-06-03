@@ -19,11 +19,9 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "includes/cfd_variables.h"
 
 // Application includes
 #include "custom_elements/navier_stokes.h"
-#include "custom_elements/fluid_element.h"
 #include "custom_processes/weighted_divergence_calculation_process.h"
 #include "fluid_dynamics_application_variables.h"
 
