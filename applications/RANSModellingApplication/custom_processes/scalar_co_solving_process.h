@@ -100,9 +100,10 @@ public:
     ///@name Operations
     ///@{
 
-    void AddStrategy(SolvingStrategyType* pStrategy)
+    void AddStrategy(SolvingStrategyType* pStrategy, Variable<double>* pScalarVariable)
     {
         mrSolvingStrategiesList.push_back(pStrategy);
+        mrSolvingVariablesList.push_back(pScalarVariable);
     }
 
     /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
@@ -201,27 +202,6 @@ protected:
                         "Please override it in derrived class.";
     }
 
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    std::vector<SolvingStrategyType*> mrSolvingStrategiesList;
-    Variable<double>& mrConvergenceVariable;
-
-    int mMaxIterations;
-    double mConvergenceAbsoluteTolerance;
-    double mConvergenceRelativeTolerance;
-
-    ///@}
-    ///@name Operations
-    ///@{
-
     void SolveSolutionStep()
     {
         this->UpdateBeforeSolveSolutionStep();
@@ -239,6 +219,7 @@ private:
         RansVariableUtils rans_variable_utils;
 
         ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
         int iteration_format_length =
             static_cast<int>(std::log10(this->mMaxIterations)) + 1;
@@ -249,8 +230,18 @@ private:
             rans_variable_utils.CopyScalarVar(
                 this->mrConvergenceVariable, OLD_CONVERGENCE_VARIABLE, r_nodes);
 
-            for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
+            for (int i = 0;
+                 i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
+            {
+                auto p_solving_strategy = this->mrSolvingStrategiesList[i];
+                auto p_scalar_variable = this->mrSolvingVariablesList[i];
+
                 p_solving_strategy->SolveSolutionStep();
+                const unsigned int iterations = r_current_process_info[NL_ITERATION_NUMBER];
+                KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
+                    << "Solving " << p_scalar_variable->Name() << " used "
+                    << iterations << " iterations.\n";
+            }
 
             this->UpdateConvergenceVariable();
 
@@ -283,10 +274,9 @@ private:
                 if (is_converged)
                 {
                     std::stringstream conv_msg;
-                    conv_msg
-                        << "[Itr.#" << std::setw(iteration_format_length) << iteration
-                        << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
-                        << " *** CONVERGENCE IS ACHIEVED ***\n";
+                    conv_msg << "[Itr.#" << std::setw(iteration_format_length) << iteration
+                             << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
+                             << " *** CONVERGENCE IS ACHIEVED ***\n";
                     KRATOS_INFO(this->Info()) << conv_msg.str();
                 }
             }
@@ -308,6 +298,28 @@ private:
         for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
             p_solving_strategy->FinalizeSolutionStep();
     }
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    std::vector<SolvingStrategyType*> mrSolvingStrategiesList;
+    std::vector<Variable<double>*> mrSolvingVariablesList;
+    Variable<double>& mrConvergenceVariable;
+
+    int mMaxIterations;
+    double mConvergenceAbsoluteTolerance;
+    double mConvergenceRelativeTolerance;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     ///@}
     ///@name Un accessible methods
