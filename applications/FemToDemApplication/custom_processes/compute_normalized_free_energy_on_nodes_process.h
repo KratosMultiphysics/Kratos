@@ -19,9 +19,42 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class ComputeNormalizedFreeEnergyOnNodesProcess
+ * @ingroup FemToDemApplication
+ * @brief This class calculates the Free Energy indicator at all the nodes of the mesh. This indicator will be used to compute the metric and the remesh
+ * @author Alejandro Cornejo
+ */
 class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 {
-  protected:
+    ///@name Type Definitions
+    ///@{
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+protected:
     struct NodeNormalizedFreeEnergy
     {
         int NElems;
@@ -34,24 +67,39 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         }
     };
 
-  public:
+public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNormalizedFreeEnergyOnNodesProcess);
 
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-    // Constructor
-	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, Parameters ThisParameters);
+    /**
+     * @brief This is the default constructor (double)
+     * @param rModelPart The model part to be used
+     * @param ThisParameters The input parameters
+     */
+	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart& rModelPart, Parameters ThisParameters);
 
     // Destructor
     ~ComputeNormalizedFreeEnergyOnNodesProcess() override = default;
 
     void Execute() override;
 
+    /**
+     * @brief This method Calculates and extrapolates the
+     * free energy indicator over the nodes
+     * @param pNodeNormalizedFreeEnergyVector the indicator container
+     */
     void NormalizedFreeEnergyExtrapolation(NodeNormalizedFreeEnergy *pNodeNormalizedFreeEnergyVector);
 
+    /**
+     * @brief This method computes the free energy 
+     * @param rStrainVector The strain vector
+     * @param rStressVector The stress vector
+     * @param Damage The damage variable
+     * @param rMatProps The material properties
+     * @param rGeometry The geometry of the element
+     */
     double CalculateNormalizedFreeEnergy(
         const Vector& rStrainVector, 
         const Vector& rStressVector, 
@@ -70,7 +118,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     double CalculateI2Invariant(const Vector& rStressVector);
     double CalculateI3Invariant(const Vector& rStressVector);
 
-  protected:
+protected:
     // Member Variables
     ModelPart& mrModelPart;
     unsigned int mNNodes;
