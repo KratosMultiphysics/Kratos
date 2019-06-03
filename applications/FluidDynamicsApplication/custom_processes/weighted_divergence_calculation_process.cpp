@@ -150,10 +150,8 @@ namespace Kratos
                 it_elem->SetValue(DIVERGENCE,divergence_current_avg);
 
                 // Compute divergence_norm weighted time average
-                // auto velocity_seminorm_current_avg = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(velocity_seminorm_old,2) + (time_step_current - time_step_previous) * velocity_seminorm_current) /  (time_step_current-mTimeCoefficient*final_time));
                 auto velocity_seminorm_current_avg = ComputeWeightedTimeAverage(velocity_seminorm_old, velocity_seminorm_current);
                 it_elem->SetValue(VELOCITY_H1_SEMINORM,velocity_seminorm_current_avg);
-
             }
         }
 
