@@ -25,7 +25,6 @@
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
 #include "elements/levelset_convection_element_simplex.h"
-#include "elements/mesh_element.h"
 #include "includes/condition.h"
 #include "conditions/mesh_condition.h"
 #include "includes/periodic_condition.h"
