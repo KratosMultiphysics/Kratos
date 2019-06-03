@@ -122,22 +122,18 @@
         }],
         "auxiliar_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "partitioned_single_mesh_temporal_input_process",
+            "python_module" : "single_mesh_temporal_input_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {
-                    "file_access_mode" : "read_only",
+                    "file_name" : "primal-<time>",
                     "file_driver" : "mpio"
                 },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-                },
-                "element_data_value_settings" : {
-                    "list_of_variables": []
-                },
-                "file_name" : "primal"
+                }
             }
         },{
             "kratos_module"   : "KratosMultiphysics",

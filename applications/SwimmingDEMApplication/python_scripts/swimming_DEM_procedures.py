@@ -262,15 +262,6 @@ class IOTools:
 
         return directories
 
-    def ControlEcho(self, step, incremental_time, total_steps_expected):
-
-        if incremental_time > self.parameters["ControlTime"].GetDouble():
-            percentage = 100.0 * (float(step) / total_steps_expected)
-
-            Say('Real time calculation: ' + str(incremental_time))
-            Say('Percentage Completed: ' + str(percentage) + ' %')
-            Say("TIME STEP = " + str(step) + '\n')
-
 class ProjectionDebugUtils:
 
     def __init__(self, domain_volume, fluid_model_part, particles_model_part, custom_functions_calculator):
@@ -462,7 +453,11 @@ class PostUtils:
         Logger.PrintInfo("SwimmingDEM","*******************  PRINTING RESULTS FOR GID  ***************************")
         Logger.Flush()
 
-        if self.project_parameters['Multifile'].GetString() == "multiple_files":
+        gid_output_options = self.project_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
+        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+        multiple_files_option_key = result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString()
+
+        if multiple_files_option_key == "MultipleFiles":
             renumbering_utility = SDEM.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
             renumbering_utility.Renumber()
 
@@ -486,7 +481,7 @@ class PostUtils:
                                                self.vars_man.mixed_nodal_results,
                                                self.vars_man.gauss_points_results)
 
-        if self.project_parameters['Multifile'].GetString() == "multiple_files":
+        if multiple_files_option_key == "MultipleFiles":
             renumbering_utility.UndoRenumber()
 
 class ResultsFileCreator:

@@ -32,6 +32,7 @@ KRATOS_CREATE_VARIABLE( Vector3, PAIRED_NORMAL )                                
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                  // Delta coordinates used to map
 KRATOS_CREATE_VARIABLE( double, NORMAL_GAP )                                    // The normal gap employed in contact formulation
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENT_SLIP )                       // The tangent slip gap employed in contact formulation
 
 /* Weighted values */
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                  // The integrated gap employed in mortar formulation

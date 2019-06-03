@@ -170,7 +170,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 	double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry)
 	{
     	Vector lengths = ZeroVector(6);
-        auto& r_edges = rGeometry.Edges();
+        auto r_edges = rGeometry.Edges();
         for (unsigned int edge = 0; edge < 6; edge++) { // Loop over edges
             const double X1 = r_edges[edge][0].X0();
             const double X2 = r_edges[edge][1].X0();
@@ -193,7 +193,10 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
-        return SumB / SumA;
+        if (SumA > tolerance)
+            return SumB / SumA;
+        else 
+            return 0.0;
     }
 
     double ComputeTensionFactor3D(const Vector& rStressVector)
@@ -206,7 +209,10 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
-        return SumB / SumA;
+        if (SumA > tolerance)
+            return SumB / SumA;
+        else 
+            return 0.0;
     }
 
     void CalculatePrincipalStresses2D(const Vector& rStressVector, Vector& rPrincipalStressVector)

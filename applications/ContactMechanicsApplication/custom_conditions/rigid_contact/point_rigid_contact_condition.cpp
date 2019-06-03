@@ -77,7 +77,7 @@ namespace Kratos
          NodesArrayType const& ThisNodes,
          PropertiesType::Pointer pProperties) const
    {
-     return Kratos::make_shared<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+     return Kratos::make_intrusive<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
    }
 
 
@@ -86,7 +86,7 @@ namespace Kratos
 
    Condition::Pointer PointRigidContactCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
    {
-     return Kratos::make_shared<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
+     return Kratos::make_intrusive<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 
@@ -314,8 +314,8 @@ namespace Kratos
       noalias(mContactStressVector) = ZeroVector(voigt_size);
 
       mpFrictionLaw = GetProperties()[FRICTION_LAW]->Clone();
-      //mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
-      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_intrusive<CoulombAdhesionFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_intrusive<HardeningCoulombFrictionLaw>();
 
       KRATOS_CATCH( "" )
    }

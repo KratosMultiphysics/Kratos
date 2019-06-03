@@ -127,7 +127,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of SurfaceBaseDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceBaseDiscreteElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceBaseDiscreteElement);
     ///@}
     ///@name Life Cycle
     ///@{

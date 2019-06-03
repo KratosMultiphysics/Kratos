@@ -16,14 +16,16 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
 #include "includes/define.h"
 #include "processes/process.h"
+#include "spaces/ublas_space.h"
+
+// Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FSI_utils.h"
-#include "custom_utilities/aitken_utils.h"
 #include "custom_utilities/partitioned_fsi_utilities.hpp"
 #include "custom_utilities/nodal_update_utilities.h"
+
 namespace Kratos
 {
 
@@ -42,12 +44,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
         .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
-        ;
-
-    py::class_<AitkenUtils>(m,"AitkenUtils")
-        .def(py::init<>())
-        .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
-        .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
         ;
 
     py::class_<PartitionedFSIUtilities<TSpace,double,2>, PartitionedFSIUtilities<TSpace,double,2>::Pointer>(m,"PartitionedFSIUtilitiesDouble2D")
