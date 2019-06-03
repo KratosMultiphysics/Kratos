@@ -86,7 +86,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
     for (auto& r_node : mrModelPart.Nodes()) {
         const std::size_t Id = r_node.Id();
         const double nodal_free_energy = pNodeNormalizedFreeEnergyVector[Id - 1].NormalizedFreeEnergy;
-        double& r_norm = it_node->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
+        double& r_norm = r_node.FastGetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
         r_norm = nodal_free_energy;
 
         if (mCorrectWithDisplacements) {
