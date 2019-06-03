@@ -15,7 +15,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 	puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
     puts $FileVar "           \"hessian_variable_parameters\":              \{"
     puts $FileVar "              \"normalized_free_energy\":           false,"
-    puts $FileVar "              \"correct_with_displacements\":       true"
+    puts $FileVar "              \"correct_with_displacements\":       true,"
+    puts $FileVar "              \"correction_factor\":                1.0"
     puts $FileVar "         \}"
     puts $FileVar "    \},"
     

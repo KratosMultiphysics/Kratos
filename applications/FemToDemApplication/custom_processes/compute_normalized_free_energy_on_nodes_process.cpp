@@ -27,12 +27,14 @@ ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesPro
     Parameters default_parameters = Parameters(R"(
     {
         "normalized_free_energy" : false,
-        "correct_with_displacements" : true
+        "correct_with_displacements" : true,
+        "correction_factor"  : 1.0 
     })" );
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mComputeNormalizedFreeEnergy = ThisParameters["normalized_free_energy"].GetBool();
     mCorrectWithDisplacements = ThisParameters["correct_with_displacements"].GetBool();
+    mCorrectionFactor = ThisParameters["correction_factor"].GetDouble();
 }
 
 /***********************************************************************************/
@@ -91,6 +93,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
             const double r_displ = norm_2(it_node->GetSolutionStepValue(DISPLACEMENT));
             r_norm *= r_displ;
         }
+        r_norm *= mCorrectionFactor;
     }
 }
 
