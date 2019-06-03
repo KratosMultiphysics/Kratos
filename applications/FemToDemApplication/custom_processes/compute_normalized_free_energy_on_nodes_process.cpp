@@ -83,7 +83,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
     }
 
     // Loop over nodes to assign the variable
-    for (ModelPart::NodeIterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); ++it_node) {
+    for (auto& r_node : mrModelPart.Nodes()) {
         const std::size_t Id = r_node.Id();
         const double nodal_free_energy = pNodeNormalizedFreeEnergyVector[Id - 1].NormalizedFreeEnergy;
         double& r_norm = it_node->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
