@@ -102,6 +102,7 @@ public:
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
      * @param EnsureContact To check if the contact is lost
+     * @param NormalTangentRatio Ratio between the normal and tangent that will accepted as converged
      * @param pTable The pointer to the output r_table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
@@ -112,6 +113,7 @@ public:
         const TDataType LMNormalAbsTolerance,
         const TDataType LMTangentRatioTolerance,
         const TDataType LMTangentAbsTolerance,
+        const TDataType NormalTangentRatio,
         const bool EnsureContact = false,
         const bool PrintingOutput = false
         ) : BaseType()
@@ -133,6 +135,9 @@ public:
         // The tangent contact residual
         mLMTangentRatioTolerance = LMTangentRatioTolerance;
         mLMTangentAbsTolerance = LMTangentAbsTolerance;
+
+        // We get the  ratio between the normal and tangent that will accepted as converged
+        mNormalTangentRatio = NormalTangentRatio;
     }
 
     /**
@@ -169,6 +174,9 @@ public:
         mLMTangentRatioTolerance =  ThisParameters["frictional_contact_residual_relative_tolerance"].GetDouble();
         mLMTangentAbsTolerance =  ThisParameters["frictional_contact_residual_absolute_tolerance"].GetDouble();
 
+        // We get the  ratio between the normal and tangent that will accepted as converged
+        mNormalTangentRatio = ThisParameters["ratio_normal_tangent_threshold"].GetDouble();
+
         // Set local flags
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
@@ -192,6 +200,7 @@ public:
       ,mLMTangentAbsTolerance(rOther.mLMTangentAbsTolerance)
       ,mLMTangentInitialResidualNorm(rOther.mLMTangentInitialResidualNorm)
       ,mLMTangentCurrentResidualNorm(rOther.mLMTangentCurrentResidualNorm)
+      ,mNormalTangentRatio(rOther.mNormalTangentRatio)
     {
     }
 
@@ -247,7 +256,7 @@ public:
                     const auto curr_var = it_dof->GetVariable();
                     if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
 
                         const TDataType normal_comp_residual = residual_dof_value * normal_x;
@@ -256,7 +265,7 @@ public:
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
 
                         const TDataType normal_comp_residual = residual_dof_value * normal_y;
@@ -265,7 +274,7 @@ public:
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
 
                         const TDataType normal_comp_residual = residual_dof_value * normal_z;
@@ -311,6 +320,7 @@ public:
             const TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
             const TDataType residual_normal_lm_abs = mLMNormalCurrentResidualNorm/lm_dof_num;
             const TDataType residual_tangent_lm_abs = mLMTangentCurrentResidualNorm/lm_dof_num;
+            const TDataType normal_tangent_ratio = residual_tangent_lm_abs/residual_normal_lm_abs;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -344,7 +354,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT) && residual_normal_lm_ratio == 0.0) ? true : (residual_normal_lm_ratio <= mLMNormalRatioTolerance || residual_normal_lm_abs <= mLMNormalAbsTolerance) && (residual_tangent_lm_ratio <= mLMTangentRatioTolerance || residual_tangent_lm_abs <= mLMTangentAbsTolerance);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT) && residual_normal_lm_ratio == 0.0) ? true : (residual_normal_lm_ratio <= mLMNormalRatioTolerance || residual_normal_lm_abs <= mLMNormalAbsTolerance) && (residual_tangent_lm_ratio <= mLMTangentRatioTolerance || residual_tangent_lm_abs <= mLMTangentAbsTolerance || normal_tangent_ratio <= mNormalTangentRatio);
 
             if (disp_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -489,20 +499,22 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
-    TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
-    TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+    TDataType mDispRatioTolerance;           /// The ratio threshold for the norm of the displacement residual
+    TDataType mDispAbsTolerance;             /// The absolute value threshold for the norm of the displacement residual
+    TDataType mDispInitialResidualNorm;      /// The reference norm of the displacement residual
+    TDataType mDispCurrentResidualNorm;      /// The current norm of the displacement residual
 
-    TDataType mLMNormalRatioTolerance;      /// The ratio threshold for the norm of the normal LM residual
-    TDataType mLMNormalAbsTolerance;        /// The absolute value threshold for the norm of the normal LM  residual
-    TDataType mLMNormalInitialResidualNorm; /// The reference norm of the normal LM residual
-    TDataType mLMNormalCurrentResidualNorm; /// The current norm of the normal LM residual
+    TDataType mLMNormalRatioTolerance;       /// The ratio threshold for the norm of the normal LM residual
+    TDataType mLMNormalAbsTolerance;         /// The absolute value threshold for the norm of the normal LM  residual
+    TDataType mLMNormalInitialResidualNorm;  /// The reference norm of the normal LM residual
+    TDataType mLMNormalCurrentResidualNorm;  /// The current norm of the normal LM residual
 
     TDataType mLMTangentRatioTolerance;      /// The ratio threshold for the norm of the tangent LM residual
     TDataType mLMTangentAbsTolerance;        /// The absolute value threshold for the norm of the tangent LM  residual
     TDataType mLMTangentInitialResidualNorm; /// The reference norm of the tangent LM residual
     TDataType mLMTangentCurrentResidualNorm; /// The current norm of the tangent LM residual
+
+    TDataType mNormalTangentRatio;           /// The ratio to accept a non converged tangent component in case
 
     ///@}
     ///@name Private Operators
