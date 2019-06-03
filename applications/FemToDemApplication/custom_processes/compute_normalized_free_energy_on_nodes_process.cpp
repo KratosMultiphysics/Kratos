@@ -60,7 +60,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
     double gauss_point_damage;
     // Loop over elements to extrapolate the stress to the nodes
     for (auto& r_elem : mrModelPart.Elements()) {
-        auto& r_geometry = (*it_elem)->GetGeometry();
+        auto& r_geometry = r_elem.GetGeometry();
         auto& r_mat_properties = (*it_elem)->GetProperties();
 
         const Vector& r_strain_vector = (*it_elem)->GetValue(STRAIN_VECTOR);
