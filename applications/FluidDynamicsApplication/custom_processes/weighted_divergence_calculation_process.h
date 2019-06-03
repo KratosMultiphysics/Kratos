@@ -145,7 +145,7 @@ public:
                 Vector values_x(number_nodes_element);
                 Vector values_y(number_nodes_element);
                 Vector values_z(number_nodes_element);
-                for(int i_node=0; i_node < number_nodes_element; ++i_node){
+                for(int i_node=0; i_node < static_cast<int>(number_nodes_element); ++i_node){
                     values_x[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_X);
                     values_y[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_Y);
                     values_z[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_Z);
