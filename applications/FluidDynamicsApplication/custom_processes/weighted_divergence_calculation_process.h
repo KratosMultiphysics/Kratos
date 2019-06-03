@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Tosi
 //
@@ -102,8 +102,8 @@ public:
 
         // Extract time information
         const auto& r_current_process_info = mrModelPart.GetProcessInfo();
-    	const double& time_step_current  = r_current_process_info[TIME];
-	    const auto& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo();
+        const double& time_step_current  = r_current_process_info[TIME];
+        const auto& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo();
         const double& time_step_previous = r_previous_process_info[TIME];
         const double& final_time = r_current_process_info[END_TIME];
 
