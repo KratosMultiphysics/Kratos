@@ -20,9 +20,9 @@ namespace Kratos
 
 // Constructor
 ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesProcess(
-    ModelPart &r_model_part, 
+    ModelPart &rModelPart, 
     int Dimension, 
-    Parameters ThisParameters) : mrModelPart(r_model_part)
+    Parameters ThisParameters) : mrModelPart(rModelPart)
 {
     mNNodes = mrModelPart.NumberOfNodes();
     mDimension = Dimension;
@@ -69,11 +69,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
         const double damage = (*it_elem)->GetValue(DAMAGE_ELEMENT);
 
         // Compute Normalized Free Energy on that element
-        const double normalized_free_energy = this->CalculateNormalizedFreeEnergy(r_strain_vector,
-                                                                                    r_stress_vector,
-                                                                                    damage,
-                                                                                    r_mat_properties,
-                                                                                    r_geometry);
+        const double normalized_free_energy = this->CalculateNormalizedFreeEnergy(r_strain_vector, r_stress_vector, damage, r_mat_properties, r_geometry);
 
         for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++) {
             const int node_id = r_geometry.GetPoint(i).Id();
