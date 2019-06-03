@@ -410,11 +410,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
 
-    const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D;
-    const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D;
+    const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
+    const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
 
-    const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D;
-    const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D;
+    const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
+    const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
