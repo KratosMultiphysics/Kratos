@@ -90,7 +90,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
         r_norm = nodal_free_energy;
 
         if (mCorrectWithDisplacements) {
-            const double r_displ = norm_2(it_node->GetSolutionStepValue(DISPLACEMENT));
+            const double displ = norm_2(r_node.FastGetSolutionStepValue(DISPLACEMENT));
             r_norm *= r_displ;
         }
         r_norm *= mCorrectionFactor;
