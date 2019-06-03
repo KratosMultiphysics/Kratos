@@ -261,7 +261,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_ERROR << "You are calling to the base class method AddExplicitContribution, check your condition definition" << std::endl;
+    const IndexType integration_order = this->GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? this->GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    MortarExplicitContributionUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::ComputeNodalArea(this, rCurrentProcessInfo, rDestinationVariable, integration_order, false);
 }
 
 /***********************************************************************************/
@@ -347,8 +348,8 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
+            PointType global_point;
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-                PointType global_point;
                 r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                 points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
@@ -362,14 +363,13 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                 // Integrating the mortar operators
+                PointType local_point_parent, gp_global;
                 for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                     // We reset the derivatives
                     derivative_data.ResetDerivatives();
 
                     // We compute the local coordinates
                     const PointType local_point_decomp = PointType(integration_points_slave[point_number].Coordinates());
-                    PointType local_point_parent;
-                    PointType gp_global;
                     decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                     r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 

@@ -86,6 +86,10 @@ def AuxiliarSetSettings(settings, contact_settings):
 
     return settings
 
+def AuxiliarValidateSettings(solver):
+    default_settings = solver.GetDefaultSettings()
+    default_settings.RecursivelyAddMissingParameters(solver.settings)
+    solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
 def AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":
