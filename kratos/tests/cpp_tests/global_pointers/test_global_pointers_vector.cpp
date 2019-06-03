@@ -56,9 +56,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableTest, KratosCoreFastS
     ModelPart& mp = current_model.CreateModelPart("test");
     mp.AddNodalSolutionStepVariable(TEMPERATURE); //not to have an empty var list
 
-    const auto & node_1 = mp.CreateNewNode(1,1.0,2.0,3.0);
-    const auto & node_2 = mp.CreateNewNode(2,1.0,2.0,3.0);
-    const auto & node_3 = mp.CreateNewNode(3,1.0,2.0,3.0);
+    const auto& node_1 = mp.CreateNewNode(1,1.0,2.0,3.0);
+    const auto& node_2 = mp.CreateNewNode(2,1.0,2.0,3.0);
+    const auto& node_3 = mp.CreateNewNode(3,1.0,2.0,3.0);
 
     auto target_node = mp.CreateNewNode(4,1.0,2.0,4.0);
     auto& global_pointers_container = target_node->GetValue(NEIGHBOUR_NODES);
