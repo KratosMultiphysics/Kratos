@@ -17,7 +17,7 @@ class ShallowWaterAnalysis(AnalysisStage):
         return solver
 
     def _GetOrderOfProcessesInitialization(self):
-        return ["bathymetry_process_list",
+        return ["topography_process_list",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list"]
 

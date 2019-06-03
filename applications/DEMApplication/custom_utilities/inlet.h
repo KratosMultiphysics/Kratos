@@ -23,7 +23,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
 #include "../custom_elements/discrete_element.h"
@@ -39,8 +39,8 @@ namespace Kratos {
     {
     public:
 
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Inlet);

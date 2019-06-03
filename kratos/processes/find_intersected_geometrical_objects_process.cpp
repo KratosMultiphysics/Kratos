@@ -24,10 +24,10 @@
 namespace Kratos
 {
 /// Local Flags
-KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTING_CONDITIONS, 1);
-KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTING_ELEMENTS,   2);
-KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_CONDITIONS,  3);
-KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_ELEMENTS,    4);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTING_CONDITIONS, 0);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTING_ELEMENTS,   1);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_CONDITIONS,  2);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_ELEMENTS,    3);
 
 /***********************************************************************************/
 /***********************************************************************************/

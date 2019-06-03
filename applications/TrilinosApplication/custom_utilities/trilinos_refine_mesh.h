@@ -22,7 +22,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "custom_utilities/parallel_fill_communicator.h"
-
+#include "includes/global_pointer_variables.h"
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
 #include "Epetra_SerialDenseMatrix.h"
