@@ -101,11 +101,11 @@ public:
         const double time_coefficient = 0.2;
 
         // Extract time information
-        const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-    	const double& time_step_current  = rCurrentProcessInfo[TIME];
-	    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
-        const double& time_step_previous = rPreviousProcessInfo[TIME];
-        const double& final_time = rCurrentProcessInfo[END_TIME];
+        const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+    	const double& time_step_current  = r_current_process_info[TIME];
+	    const auto& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo();
+        const double& time_step_previous = r_previous_process_info[TIME];
+        const double& final_time = r_current_process_info[END_TIME];
 
         if (time_step_current >= time_coefficient * final_time) {
 
