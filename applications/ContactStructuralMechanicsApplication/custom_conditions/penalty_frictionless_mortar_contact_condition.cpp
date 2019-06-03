@@ -91,7 +91,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 {
     KRATOS_TRY;
 
-    // TODO: Add something if necessary
+    BaseType::AddExplicitContribution(rRHSVector, rRHSVariable, rDestinationVariable, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
