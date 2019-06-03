@@ -1318,6 +1318,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             auto& r_process_info = r_model_part.GetProcessInfo();
@@ -1366,6 +1367,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             auto& r_process_info = r_model_part.GetProcessInfo();
