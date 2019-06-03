@@ -147,7 +147,7 @@ namespace Kratos
                     velocity_seminorm_current += aux_current_velocity_seminorm * gauss_point_volume;
                 }
                 // Retrieve divergence from previous time step
-                auto divergence_old = it_elem->GetValue(DIVERGENCE);
+                const double divergence_old = it_elem->GetValue(DIVERGENCE);
                 const double velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
 
                 // Compute divergence weighted time average
