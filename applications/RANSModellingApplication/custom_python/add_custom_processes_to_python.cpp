@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_processes/scalar_co_solving_process.h"
 #include "custom_processes/k_epsilon_co_solving_process.h"
+#include "custom_processes/k_epsilon_steady_co_solving_process.h"
 
 // RANS Y Plus models
 #include "custom_processes/y_plus_model_processes/rans_logarithmic_y_plus_model_process.h"
@@ -43,6 +44,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef KEpsilonCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonCoSolvingProcessType;
     py::class_<KEpsilonCoSolvingProcessType, KEpsilonCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
         m, "KEpsilonCoSolvingProcess")
+        .def(py::init<ModelPart&, Parameters&, Process&>());
+
+    typedef KEpsilonSteadyCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonSteadyCoSolvingProcessType;
+    py::class_<KEpsilonSteadyCoSolvingProcessType, KEpsilonSteadyCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
+        m, "KEpsilonSteadyCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&, Process&>());
 
     py::class_<RansLogarithmicYPlusModelProcess, RansLogarithmicYPlusModelProcess::Pointer, Process>(

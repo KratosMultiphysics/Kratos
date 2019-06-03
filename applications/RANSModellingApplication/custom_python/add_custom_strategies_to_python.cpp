@@ -22,6 +22,7 @@
 
 // strategies
 #include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
+#include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"
 
 // convergence criterians
 #include "custom_strategies/generic_convergence_criteria.h"
@@ -49,8 +50,14 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<GenericResidualBasedBossakVelocityScalarScheme<SparseSpaceType, LocalSpaceType>,
                typename GenericResidualBasedBossakVelocityScalarScheme<SparseSpaceType, LocalSpaceType>::Pointer, BaseSchemeType>(
         m, "GenericResidualBasedBossakVelocityDynamicScalarScheme")
-        .def(py::init<const double, const Variable<double>&, const Variable<double>&,
+        .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&,
                       const Variable<double>&>())
+        ;
+
+    py::class_<GenericResidualBasedSimpleSteadyScalarScheme<SparseSpaceType, LocalSpaceType>,
+               typename GenericResidualBasedSimpleSteadyScalarScheme<SparseSpaceType, LocalSpaceType>::Pointer, BaseSchemeType>(
+        m, "GenericResidualBasedSimpleSteadyScalarScheme")
+        .def(py::init<const double>())
         ;
 }
 

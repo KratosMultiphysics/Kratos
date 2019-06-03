@@ -15,7 +15,7 @@ else:
 
 class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
     def __init__(self, model, settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
+        self._validate_settings_in_baseclass = True  # To be removed eventually
 
         super(TurbulenceEddyViscosityModelConfiguration, self).__init__(
             model, settings)
@@ -39,6 +39,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
     def GetDefaultSettings(self):
         return Kratos.Parameters(r'''{
             "model_type"            : "",
+            "velocity_pressure_relaxation_factor": 0.2,
             "model_settings"        : {},
             "distance_calculation"  : {
                 "max_iterations"         : 5,
@@ -131,6 +132,30 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                        scalar_variable, scalar_variable_rate,
                        relaxed_scalar_variable_rate):
         import python_linear_solver_factory as linear_solver_factory
+
+        default_solver_settings = Kratos.Parameters(r'''{
+                "relative_tolerance"    : 1e-3,
+                "absolute_tolerance"    : 1e-5,
+                "max_iterations"        : 200,
+                "relaxation_factor"     : 0.5,
+                "echo_level"            : 0,
+                "linear_solver_settings": {
+                    "solver_type"  : "amgcl"
+                },
+                "reform_dofs_at_each_step": true,
+                "move_mesh_strategy": 0,
+                "move_mesh_flag": false,
+                "compute_reactions": false
+        }''')
+
+        default_scheme_settings = Kratos.Parameters(r'''{
+            "scheme_type": "bossak",
+            "alpha_bossak": -0.3
+        }''')
+
+        solver_settings.ValidateAndAssignDefaults(default_solver_settings)
+        scheme_settings.ValidateAndAssignDefaults(default_scheme_settings)
+
         linear_solver = linear_solver_factory.ConstructSolver(
             solver_settings["linear_solver_settings"])
         convergence_criteria = KratosRANS.GenericScalarConvergenceCriteria(
@@ -138,19 +163,33 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             solver_settings["absolute_tolerance"].GetDouble())
         builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(
             linear_solver)
-        time_scheme = KratosRANS.GenericResidualBasedBossakVelocityDynamicScalarScheme(
-            scheme_settings["alpha_bossak"].GetDouble(), scalar_variable,
-            scalar_variable_rate, relaxed_scalar_variable_rate)
+
+        if (scheme_settings["scheme_type"].GetString() == "bossak"):
+            time_scheme = KratosRANS.GenericResidualBasedBossakVelocityDynamicScalarScheme(
+                scheme_settings["alpha_bossak"].GetDouble(),
+                solver_settings["relaxation_factor"].GetDouble(),
+                scalar_variable, scalar_variable_rate,
+                relaxed_scalar_variable_rate)
+        elif (scheme_settings["scheme_type"].GetString() == "steady"):
+            time_scheme = KratosRANS.GenericResidualBasedSimpleSteadyScalarScheme(
+                solver_settings["relaxation_factor"].GetDouble())
+            self.fluid_model_part.ProcessInfo[KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
+        else:
+            raise Exception("Unknown scheme_type = \"" +
+                            scheme_settings["scheme_type"] + "\"")
 
         strategy = Kratos.ResidualBasedNewtonRaphsonStrategy(
             model_part, time_scheme, linear_solver, convergence_criteria,
             builder_and_solver, solver_settings["max_iterations"].GetInt(),
-            False, False, False)
+            solver_settings["compute_reactions"].GetBool(),
+            solver_settings["reform_dofs_at_each_step"].GetBool(),
+            solver_settings["move_mesh_flag"].GetBool())
 
-        strategy.SetEchoLevel(solver_settings["echo_level"].GetInt())
-        builder_and_solver.SetEchoLevel(solver_settings["echo_level"].GetInt())
+        strategy.SetEchoLevel(solver_settings["echo_level"].GetInt() - 2)
+        builder_and_solver.SetEchoLevel(
+            solver_settings["echo_level"].GetInt() - 3)
         convergence_criteria.SetEchoLevel(
-            solver_settings["echo_level"].GetInt())
+            solver_settings["echo_level"].GetInt() - 1)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                 "Successfully created solving strategy.")
