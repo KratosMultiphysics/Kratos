@@ -32,6 +32,224 @@
     << ": The sizes of the local and distributed buffers do not match." << std::endl;
 #endif
 
+// Methods based on MPI_Reduce, supporting sum, max or min operations.
+/* Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
+ * The returned value is only meaningful on the Root rank.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)                                       \
+virtual type Sum(const type rLocalValue, const int Root) const { return rLocalValue; }                              \
+virtual std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const {                        \
+    return rLocalValues;                                                                                            \
+}                                                                                                                   \
+virtual void Sum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {   \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");                    \
+    rGlobalValues = Sum(rLocalValues, Root);                                                                        \
+}                                                                                                                   \
+virtual type Min(const type rLocalValue, const int Root) const { return rLocalValue; }                              \
+virtual std::vector<type> Min(const std::vector<type>& rLocalValues, const int Root) const {                        \
+    return rLocalValues;                                                                                            \
+}                                                                                                                   \
+virtual void Min(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {   \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");                    \
+    rGlobalValues = Min(rLocalValues, Root);                                                                        \
+}                                                                                                                   \
+virtual type Max(const type rLocalValue, const int Root) const { return rLocalValue; }                              \
+virtual std::vector<type> Max(const std::vector<type>& rLocalValues, const int Root) const {                        \
+    return rLocalValues;                                                                                            \
+}                                                                                                                   \
+virtual void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {   \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");                    \
+    rGlobalValues = Max(rLocalValues, Root);                                                                        \
+}                                                                                                                   \
+
+#endif
+
+// Methods based on MPI_Allreduce, supporting sum, max or min operations.
+/* Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
+ * The returned value is defined on all ranks.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type)                        \
+virtual type SumAll(const type rLocalValue) const { return rLocalValue; }                               \
+virtual std::vector<type> SumAll(const std::vector<type>& rLocalValues) const {                         \
+    return rLocalValues;                                                                                \
+}                                                                                                       \
+virtual void SumAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {    \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");     \
+    rGlobalValues = SumAll(rLocalValues);                                                               \
+}                                                                                                       \
+virtual type MinAll(const type rLocalValue) const { return rLocalValue; }                               \
+virtual std::vector<type> MinAll(const std::vector<type>& rLocalValues) const {                         \
+    return rLocalValues;                                                                                \
+}                                                                                                       \
+virtual void MinAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {    \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");     \
+    rGlobalValues = MinAll(rLocalValues);                                                               \
+}                                                                                                       \
+virtual type MaxAll(const type rLocalValue) const { return rLocalValue; }                               \
+virtual std::vector<type> MaxAll(const std::vector<type>& rLocalValues) const {                         \
+    return rLocalValues;                                                                                \
+}                                                                                                       \
+virtual void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {    \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");     \
+    rGlobalValues = MaxAll(rLocalValues);                                                               \
+}                                                                                                       \
+
+#endif
+
+// Compute the partial sum of the given quantity from rank 0 to the current rank (included).
+/* This is a wrapper to MPI_Scan.
+ * Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
+ * The returned value is defined on all ranks.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)                      \
+virtual type ScanSum(const type rLocalValue) const { return rLocalValue; }                          \
+virtual std::vector<type> ScanSum(const std::vector<type>& rLocalValues) const {                    \
+    return rLocalValues;                                                                            \
+}                                                                                                   \
+virtual void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rPartialSums) const {\
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum"); \
+    rPartialSums = ScanSum(rLocalValues);                                                           \
+}                                                                                                   \
+
+#endif
+
+// Exchange data with other ranks. This is a wrapper for MPI_Sendrecv.
+/* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
+ * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
+ * communicated. If the dimensions of the receiving buffer are known at the destination rank, the output buffer
+ * variant should be preferred.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)                                 \
+virtual std::vector<type> SendRecv(                                                                             \
+    const std::vector<type>& rSendValues, const int SendDestination, const int RecvSource) const {              \
+    KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))                                     \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
+    return rSendValues;                                                                                         \
+}                                                                                                               \
+virtual std::vector<type> SendRecv(                                                                             \
+    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,                         \
+    const int RecvSource, const int RecvTag) const {                                                            \
+    KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))                                     \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
+    return rSendValues;                                                                                         \
+}                                                                                                               \
+virtual void SendRecv(                                                                                          \
+    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,                         \
+    std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {                            \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");              \
+    rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);                                           \
+}                                                                                                               \
+
+#endif
+
+// Synchronize a buffer to the value held by the broadcasting rank.
+/* This is a wrapper for MPI_Bcast.
+ *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+ *  @param[in] SourceRank The rank transmitting the value.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type)    \
+virtual void Broadcast(type& rBuffer, const int SourceRank) const {}                \
+virtual void Broadcast(std::vector<type>& rBuffer, const int SourceRank) const {}   \
+
+#endif
+
+/// Wrappers for MPI_Scatter and MPI_Scatterv calls.
+/* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
+ * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
+ * communicated. If the dimensions of the receiving buffers are known at the destination rank, the output buffer
+ * variant should be preferred.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)                                                              \
+virtual std::vector<type> Scatter(const std::vector<type>& rSendValues, const int SourceRank) const {                                       \
+     KRATOS_ERROR_IF( Rank() != SourceRank )                                                                                                \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;                                \
+    return rSendValues;                                                                                                                     \
+}                                                                                                                                           \
+virtual void Scatter(                                                                                                                       \
+    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues, const int SourceRank) const {                                     \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");                                             \
+    rRecvValues = Scatter(rSendValues, SourceRank);                                                                                         \
+}                                                                                                                                           \
+virtual std::vector<type> Scatterv(const std::vector<std::vector<type>>& rSendValues, const int SourceRank) const {                         \
+    KRATOS_ERROR_IF( Rank() != SourceRank )                                                                                                 \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;                                \
+    KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )                                                              \
+    << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;  \
+    return rSendValues[0];                                                                                                                  \
+}                                                                                                                                           \
+virtual void Scatterv(                                                                                                                      \
+    const std::vector<type>& rSendValues, const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,                        \
+    std::vector<type>& rRecvValues, const int SourceRank) const {                                                                           \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");                           \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");                                            \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");                                          \
+    KRATOS_ERROR_IF( Rank() != SourceRank )                                                                                                 \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;                                \
+    rRecvValues = rSendValues;                                                                                                              \
+}                                                                                                                                           \
+
+#endif
+
+/// Wrappers for MPI_Gather, MPI_Gatherv and MPI_Allgather calls.
+/* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
+ * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
+ * communicated. If the dimensions of the receiving buffers are known at the destination rank, the output buffer
+ * variant should be preferred.
+ */
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)                                       \
+virtual std::vector<type> Gather(const std::vector<type>& rSendValues, const int DestinationRank) const {           \
+    KRATOS_ERROR_IF( Rank() != DestinationRank )                                                                    \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;        \
+    return rSendValues;                                                                                             \
+}                                                                                                                   \
+virtual void Gather(                                                                                                \
+    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues, const int DestinationRank) const {        \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");                      \
+    rRecvValues = Gather(rSendValues, DestinationRank);                                                             \
+}                                                                                                                   \
+virtual std::vector<std::vector<type>> Gatherv(                                                                     \
+    const std::vector<type>& rSendValues, const int DestinationRank) const {                                        \
+    KRATOS_ERROR_IF( Rank() != DestinationRank )                                                                    \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;        \
+    return std::vector<std::vector<type>>{rSendValues};                                                             \
+}                                                                                                                   \
+virtual void Gatherv(                                                                                               \
+    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                                           \
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets, const int DestinationRank) const {   \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");    \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");                     \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");                    \
+    KRATOS_ERROR_IF( Rank() != DestinationRank )                                                                    \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;        \
+    rRecvValues = rSendValues;                                                                                      \
+}                                                                                                                   \
+virtual std::vector<type> AllGather(const std::vector<type>& rSendValues) const { return rSendValues; }             \
+virtual void AllGather(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues) const {                \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");                   \
+    rRecvValues = AllGather(rSendValues);                                                                           \
+}                                                                                                                   \
+
+#endif
+
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(type)   \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)    \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type) \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)   \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type) \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)   \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
+
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos Core
@@ -80,29 +298,13 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     /** Wrapper for MPI_Barrier. */
     virtual void Barrier() const {}
 
+    // Complete interface for basic types
+
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(double)
+
     // Reduce operations
-
-    /// Sum rLocalValue across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local contribution to the sum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The summed quantity (meaningful only in Root).
-     */
-    virtual int Sum(const int rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
-
-    /// Sum rLocalValue across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local contribution to the sum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The summed quantity (meaningful only in Root).
-     */
-    virtual double Sum(const double rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
 
     /// Sum rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Reduce.
@@ -115,79 +317,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValues across all ranks in the Communicator (int vector version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contribution to the sum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The summed quantity (meaningful only in Root).
-     */
-    virtual std::vector<int> Sum(const std::vector<int>& rLocalValues, const int Root) const
-    {
-        return rLocalValues;
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contribution to the sum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The summed quantity (meaningful only in Root).
-     */
-    virtual std::vector<double> Sum(const std::vector<double>& rLocalValues, const int Root) const
-    {
-        return rLocalValues;
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contributions to the sum.
-     *  @param[out] rGlobalValues Total sums (meaningful only in Root).
-     *  @param[in] Root The rank where the result will be computed.
-     */
-    virtual void Sum(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");
-        rGlobalValues = Sum(rLocalValues, Root);
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contributions to the sum.
-     *  @param[out] rGlobalValues Total sums (meaningful only in Root).
-     *  @param[in] Root The rank where the result will be computed.
-     */
-    virtual void Sum(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues,
-        const int Root) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");
-        rGlobalValues = Sum(rLocalValues, Root);
-    }
-
-    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local value to consider in computing the minimum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The minimum value (meaningful only in Root).
-     */
-    virtual int Min(const int rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local value to consider in computing the minimum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The minimum value (meaningful only in Root).
-     */
-    virtual double Min(const double rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
 
     /// Obtain the minimum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Reduce.
@@ -196,80 +325,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @return The minimum value (meaningful only in Root).
      */
     virtual array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the minimum of rLocalValues across all ranks in the Communicator (int vector version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local values to consider in computing the minimum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The minimum values (meaningful only in Root).
-     */
-    virtual std::vector<int> Min(const std::vector<int>& rLocalValues, const int Root) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the minimum of rLocalValues across all ranks in the Communicator (double vector version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local values to consider in computing the minimum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The minimum values (meaningful only in Root).
-     */
-    virtual std::vector<double> Min(const std::vector<double>& rLocalValues, const int Root) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contributions to the minimum.
-     *  @param[out] rGlobalValues Global minima (meaningful only in Root).
-     *  @param[in] Root The rank where the result will be computed.
-     */
-    virtual void Min(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");
-        rGlobalValues = Min(rLocalValues, Root);
-    }
-
-    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contributions to the minimum.
-     *  @param[out] rGlobalValues Global minima (meaningful only in Root).
-     *  @param[in] Root The rank where the result will be computed.
-     */
-    virtual void Min(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues,
-        const int Root) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");
-        rGlobalValues = Min(rLocalValues, Root);
-    }
-
-    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local value to consider in computing the maximum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The maximum value (meaningful only in Root).
-     */
-    virtual int Max(const int rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local value to consider in computing the maximum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The maximum value (meaningful only in Root).
-     */
-    virtual double Max(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
@@ -283,58 +338,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
-    }
-
-    /// Obtain the maximum of rLocalValues across all ranks in the Communicator (int vector version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local values to consider in computing the maximum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The maximum values (meaningful only in Root).
-     */
-    virtual std::vector<int> Max(const std::vector<int>& rLocalValues, const int Root) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the maximum of rLocalValues across all ranks in the Communicator (double vector version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local values to consider in computing the maximum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The maximum values (meaningful only in Root).
-     */
-    virtual std::vector<double> Max(const std::vector<double>& rLocalValues, const int Root) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contributions to the maximum.
-     *  @param[out] rGlobalValues Global maxima (meaningful only in Root).
-     *  @param[in] Root The rank where the result will be computed.
-     */
-    virtual void Max(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues,
-        const int Root) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");
-        rGlobalValues = Max(rLocalValues, Root);
-    }
-
-    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValues Local contributions to the maximum.
-     *  @param[out] rGlobalValues Global maxima (meaningful only in Root).
-     *  @param[in] Root The rank where the result will be computed.
-     */
-    virtual void Max(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues,
-        const int Root) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");
-        rGlobalValues = Max(rLocalValues, Root);
     }
 
     virtual Kratos::Flags AndReduce(
@@ -355,98 +358,12 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     // Allreduce operations
 
-    /// Sum rLocalValue across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Alleduce.
-     *  @param[in] rLocalValue Local contribution to the sum.
-     *  @return The summed quantity.
-     */
-    virtual int SumAll(const int rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Sum rLocalValue across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Alleduce.
-     *  @param[in] rLocalValue Local contribution to the sum.
-     *  @return The summed quantity.
-     */
-    virtual double SumAll(const double rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
     /// Sum rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Alleduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @return The summed quantity.
      */
     virtual array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (int vector version).
-    /** This is a wrapper to MPI_Alleduce.
-     *  @param[in] rLocalValues Local contribution to the sum.
-     *  @return The summed quantites.
-     */
-    virtual std::vector<int> SumAll(const std::vector<int>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (double vector version).
-    /** This is a wrapper to MPI_Alleduce.
-     *  @param[in] rLocalValues Local contribution to the sum.
-     *  @return The summed quantities.
-     */
-    virtual std::vector<double> SumAll(const std::vector<double>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local contributions to the sum.
-     *  @param[out] rGlobalValues Total sums.
-     */
-    virtual void SumAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");
-        rGlobalValues = SumAll(rLocalValues);
-    }
-
-    /// Sum rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local contributions to the sum.
-     *  @param[out] rGlobalValues Total sums.
-     */
-    virtual void SumAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");
-        rGlobalValues = SumAll(rLocalValues);
-    }
-
-    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValue Local value to consider in computing the minimum.
-     *  @return The minimum value.
-     */
-    virtual int MinAll(const int rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValue Local value to consider in computing the minimum.
-     *  @return The minimum value.
-     */
-    virtual double MinAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
@@ -461,72 +378,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minima of rLocalValues across all ranks in the Communicator (int vector version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local values to consider in computing minima.
-     *  @return The minimum values.
-     */
-    virtual std::vector<int> MinAll(const std::vector<int>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the minima of rLocalValues across all ranks in the Communicator (double vector version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local values to consider in computing minima.
-     *  @return The minimum values.
-     */
-    virtual std::vector<double> MinAll(const std::vector<double>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local contributions to the minimum.
-     *  @param[out] rGlobalValues Global minima.
-     */
-    virtual void MinAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");
-        rGlobalValues = MinAll(rLocalValues);
-    }
-
-    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local contributions to the minimum.
-     *  @param[out] rGlobalValues Global minima.
-     */
-    virtual void MinAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");
-        rGlobalValues = MinAll(rLocalValues);
-    }
-
-    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValue Local value to consider in computing the maximum.
-     *  @return The maximum value.
-     */
-    virtual int MaxAll(const int rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValue Local value to consider in computing the maximum.
-     *  @return The maximum value.
-     */
-    virtual double MaxAll(const double rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
     /// Obtain the maximum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
@@ -537,51 +388,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maxima of rLocalValues across all ranks in the Communicator (int vector version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local values to consider in computing maxima.
-     *  @return The maximum values.
-     */
-    virtual std::vector<int> MaxAll(const std::vector<int>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the maxima of rLocalValues across all ranks in the Communicator (double vector version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local values to consider in computing maxima.
-     *  @return The maximum values.
-     */
-    virtual std::vector<double> MaxAll(const std::vector<double>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local contributions to the maximum.
-     *  @param[out] rGlobalValues Global maxima.
-     */
-    virtual void MaxAll(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rGlobalValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
-        rGlobalValues = MaxAll(rLocalValues);
-    }
-
-    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValues Local contributions to the maximum.
-     *  @param[out] rGlobalValues Global maxima.
-     */
-    virtual void MaxAll(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rGlobalValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
-        rGlobalValues = MaxAll(rLocalValues);
-    }
 
     virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
     {
@@ -593,127 +399,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return Values;
     }
 
-    // Scan operations
-
-    /// Compute the partial sums of rLocalValue across all ranks in the Communicator (int version).
-    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
-     *  This is a wrapper to MPI_Scan.
-     *  @param[in] rLocalValue Local contribution to the partial sum.
-     *  @return The summed quantity.
-     */
-    virtual int ScanSum(const int rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Compute the partial sums of rLocalValue across all ranks in the Communicator (double version).
-    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
-     *  This is a wrapper to MPI_Scan.
-     *  @param[in] rLocalValue Local contribution to the partial sum.
-     *  @return The summed quantity.
-     */
-    virtual double ScanSum(const double rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int vector version).
-    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
-     *  This is a wrapper to MPI_Scan.
-     *  @param[in] rLocalValues Local contributions to the partial sum.
-     *  @return The summed quantities.
-     */
-    virtual std::vector<int> ScanSum(const std::vector<int>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double vector version).
-    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
-     *  This is a wrapper to MPI_Scan.
-     *  @param[in] rLocalValues Local contributions to the partial sum.
-     *  @return The summed quantities.
-     */
-    virtual std::vector<double> ScanSum(const std::vector<double>& rLocalValues) const
-    {
-        return rLocalValues;
-    }
-
-    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int version).
-    /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
-     *  This is a wrapper to MPI_Scan.
-     *  @param[in] rLocalValues Local contributions to the partial sum.
-     *  @param[out] rPartialSums Partial sums for the quantities.
-     */
-    virtual void ScanSum(
-        const std::vector<int>& rLocalValues,
-        std::vector<int>& rPartialSums) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum");
-        rPartialSums = ScanSum(rLocalValues);
-    }
-
-    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double version).
-    /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
-     *  This is a wrapper to MPI_Scan.
-     *  @param[in] rLocalValues Local contributions to the partial sum.
-     *  @param[out] rPartialSums Partial sums for the quantities.
-     */
-    virtual void ScanSum(
-        const std::vector<double>& rLocalValues,
-        std::vector<double>& rPartialSums) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum");
-        rPartialSums = ScanSum(rLocalValues);
-    }
-
     // Sendrecv operations
-
-    /// Exchange data with other ranks (int version).
-    /** This is a wrapper for MPI_Sendrecv.
-     *  @param[in] rSendValues Values to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the values will be sent to.
-     *  @param[in] RecvSource Rank values are expected from.
-     *  @return Received values from rank RecvSource.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<int> SendRecv(
-        const std::vector<int>& rSendValues,
-        const int SendDestination,
-        const int RecvSource) const
-    {
-        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-
-        return rSendValues;
-    }
-
-    /// Exchange data with other ranks (double version).
-    /** This is a wrapper for MPI_Sendrecv.
-     *  @param[in] rSendValues Values to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the values will be sent to.
-     *  @param[in] RecvSource Rank values are expected from.
-     *  @return Received values from rank RecvSource.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<double> SendRecv(
-        const std::vector<double>& rSendValues,
-        const int SendDestination,
-        const int RecvSource) const
-    {
-        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-
-        return rSendValues;
-    }
 
     /// Exchange data with other ranks (string version).
     /** This is a wrapper for MPI_Sendrecv.
@@ -738,40 +424,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rSendValues;
     }
 
-    /// Exchange data with other ranks (int version).
-    /** This is a wrapper for MPI_Sendrecv.
-     *  @param[in] rSendValues Values to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the values will be sent to.
-     *  @param[in] SendTag Message tag for sent values.
-     *  @param[out] rRecvValues Received values from rank RecvSource.
-     *  @param[in] RecvSource Rank values are expected from.
-     *  @param[in] RecvTag Message tag for received values.
-     */
-    virtual void SendRecv(
-        const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
-        std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
-        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
-    }
-
-    /// Exchange data with other ranks (double version).
-    /** This is a wrapper for MPI_Sendrecv.
-     *  @param[in] rSendValues Values to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the values will be sent to.
-     *  @param[in] SendTag Message tag for sent values.
-     *  @param[out] rRecvValues Received values from rank RecvSource.
-     *  @param[in] RecvSource Rank values are expected from.
-     *  @param[in] RecvTag Message tag for received values.
-     */
-    virtual void SendRecv(
-        const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
-        std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
-        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
-    }
-
     /// Exchange data with other ranks (string version).
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues String to send to rank SendDestination.
@@ -787,430 +439,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     {
         KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
-    }
-
-    // Broadcast
-
-    /// Synchronize a buffer to the value held by the broadcasting rank (int version).
-    /** This is a wrapper for MPI_Bcast.
-     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
-     *  @param[in] SourceRank The rank transmitting the value.
-     */
-    virtual void Broadcast(
-        int& rBuffer,
-        const int SourceRank) const
-    {}
-
-    /// Synchronize a buffer to the value held by the broadcasting rank (double version).
-    /** This is a wrapper for MPI_Bcast.
-     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
-     *  @param[in] SourceRank The rank transmitting the value.
-     */
-    virtual void Broadcast(
-        double& rBuffer,
-        const int SourceRank) const
-    {}
-
-    /// Synchronize a buffer to the value held by the broadcasting rank (int version).
-    /** This is a wrapper for MPI_Bcast.
-     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
-     *  @param[in] SourceRank The rank transmitting the value.
-     */
-    virtual void Broadcast(
-        std::vector<int>& rBuffer,
-        const int SourceRank) const
-    {}
-
-    /// Synchronize a buffer to the value held by the broadcasting rank (double version).
-    /** This is a wrapper for MPI_Bcast.
-     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
-     *  @param[in] SourceRank The rank transmitting the value.
-     */
-    virtual void Broadcast(
-        std::vector<double>& rBuffer,
-        const int SourceRank) const
-    {}
-
-    // Scatter operations
-
-    /// Wrapper for MPI_Scatter calls (int version).
-    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
-     *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @return Scattered values for this rank.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<int> Scatter(
-        const std::vector<int>& rSendValues,
-        const int SourceRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != SourceRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        return rSendValues;
-    }
-
-    /// Wrapper for MPI_Scatter calls (double version).
-    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
-     *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @return Scattered values for this rank.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<double> Scatter(
-        const std::vector<double>& rSendValues,
-        const int SourceRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != SourceRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        return rSendValues;
-    }
-
-    /// Wrapper for MPI_Scatter calls (int version).
-    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
-     *  @param[out] rRecvValues Container for the values to be sent.
-     *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @note The expected size of rSendValues is the size of rRecvValues times DataCommunicator::Size().
-     */
-    virtual void Scatter(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues,
-        const int SourceRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");
-        rRecvValues = Scatter(rSendValues, SourceRank);
-    }
-
-    /// Wrapper for MPI_Scatter calls (double version).
-    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
-     *  @param[out] rRecvValues Container for the values to be sent.
-     *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @note The expected size of rSendValues is the size of rRecvValues times DataCommunicator::Size().
-     */
-    virtual void Scatter(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues,
-        const int SourceRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");
-        rRecvValues = Scatter(rSendValues, SourceRank);
-    }
-
-    // Scatterv operations
-
-    /// Wrapper for MPI_Scatterv calls (int version).
-    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
-     *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @return Scattered values for this rank.
-     *  @note rSendValues should contain as many vectors as ranks in the communicator.
-     *  The i-th vector in the list will be sent to rank i.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<int> Scatterv(
-        const std::vector<std::vector<int>>& rSendValues,
-        const int SourceRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != SourceRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )
-        << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;
-        return rSendValues[0];
-    }
-
-    /// Wrapper for MPI_Scatterv calls (double version).
-    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
-     *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @return Scattered values for this rank.
-     *  @note rSendValues should contain as many vectors as ranks in the communicator.
-     *  The i-th vector in the list will be sent to rank i.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<double> Scatterv(
-        const std::vector<std::vector<double>>& rSendValues,
-        const int SourceRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != SourceRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )
-        << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;
-        return rSendValues[0];
-    }
-
-    /// Wrapper for MPI_Scatterv calls (int version).
-    /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
-     *  @param[in] rSendCounts Number of values to be sent per rank, in order of increasing rank.
-     *  @param[in] rSendOffsets Offset from the start of rSendValues of the first value to be sent to each rank.
-     *  @param[out] rRecvValues Received values.
-     *  The received values at rank i correspond to the range rSendValues[rSendOffsets[i]] to
-     *  rSendValues[rSendOffsets[i] + rSendCounts[i]].
-     */
-    virtual void Scatterv(
-        const std::vector<int>& rSendValues,
-        const std::vector<int>& rSendCounts,
-        const std::vector<int>& rSendOffsets,
-        std::vector<int>& rRecvValues,
-        const int SourceRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");
-        KRATOS_ERROR_IF( Rank() != SourceRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        rRecvValues = rSendValues;
-    }
-
-    /// Wrapper for MPI_Scatterv calls (double version).
-    /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
-     *  @param[in] rSendCounts Number of values to be sent per rank, in order of increasing rank.
-     *  @param[in] rSendOffsets Offset from the start of rSendValues of the first value to be sent to each rank.
-     *  @param[out] rRecvValues Received values.
-     *  The received values at rank i correspond to the range rSendValues[rSendOffsets[i]] to
-     *  rSendValues[rSendOffsets[i] + rSendCounts[i]].
-     */
-    virtual void Scatterv(
-        const std::vector<double>& rSendValues,
-        const std::vector<int>& rSendCounts,
-        const std::vector<int>& rSendOffsets,
-        std::vector<double>& rRecvValues,
-        const int SourceRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");
-        KRATOS_ERROR_IF( Rank() != SourceRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        rRecvValues = rSendValues;
-    }
-
-    // Gather operations
-
-    /// Wrapper for MPI_Gather calls (int version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[in] DestinationRank The rank where the values will be gathered.
-     *  @return Gathered values for this rank (meaningful only on DestinationRank).
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<int> Gather(
-        const std::vector<int>& rSendValues,
-        const int DestinationRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != DestinationRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        return rSendValues;
-    }
-
-    /// Wrapper for MPI_Gather calls (double version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[in] DestinationRank The rank where the values will be gathered.
-     *  @return Gathered values for this rank (meaningful only on DestinationRank).
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<double> Gather(
-        const std::vector<double>& rSendValues,
-        const int DestinationRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != DestinationRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        return rSendValues;
-    }
-
-    /// Wrapper for MPI_Gather calls (int version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[out] rRecvValues Container for the result of the MPI_Allgather call.
-     *  @param[in] DestinationRank The rank where the values will be gathered.
-     *  @note rRecvValues is only meaningful on rank DestinationRank.
-     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
-     */
-    virtual void Gather(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues,
-        const int DestinationRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");
-        rRecvValues = Gather(rSendValues, DestinationRank);
-    }
-
-    /// Wrapper for MPI_Gather calls (double version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[out] rRecvValues Container for the result of the MPI_Allgather call.
-     *  @param[in] DestinationRank The rank where the values will be gathered.
-     *  @note rRecvValues is only meaningful on rank DestinationRank.
-     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
-     */
-    virtual void Gather(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues,
-        const int DestinationRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");
-        rRecvValues = Gather(rSendValues, DestinationRank);
-    }
-
-    // Gatherv operations
-
-    /// Wrapper for MPI_Gatherv calls (int version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[in] DestinationRank The rank where the values will be gathered.
-     *  @return Gathered values for this rank (meaningful only on DestinationRank).
-     *  On DestinationRank, the i-th component of the return corresponds to
-     *  the vector received from rank i.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<std::vector<int>> Gatherv(
-        const std::vector<int>& rSendValues,
-        const int DestinationRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != DestinationRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        return std::vector<std::vector<int>>{rSendValues};
-    }
-
-    /// Wrapper for MPI_Gatherv calls (double version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[in] DestinationRank The rank where the values will be gathered.
-     *  @return Gathered values for this rank (meaningful only on DestinationRank).
-     *  On DestinationRank, the i-th component of the return corresponds to
-     *  the vector received from rank i.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers, since the dimensions of the
-     *  receiving buffer have to be communicated. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<std::vector<double>> Gatherv(
-        const std::vector<double>& rSendValues,
-        const int DestinationRank) const
-    {
-        KRATOS_ERROR_IF( Rank() != DestinationRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        return std::vector<std::vector<double>>{rSendValues};
-    }
-
-    /// Wrapper for MPI_Gatherv calls (int version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[out] rRecvValues Received values (meaningful only on DestinationRank).
-     *  @param[in] rRecvCounts Number of values to be received per rank, in order of increasing rank.
-     *  @param[in] rRecvOffsets Offset from the start of rRecvValues of the first value received from each rank.
-     *  The gathered values are arranged so that the first rRecvCounts[i] values in rSendValues of rank i
-     *  are placed on the range rRecvValues[rRecvOffsets[i]] to rRecvValues[rRecvOffsets[i] + rRecvCounts[i]].
-     */
-    virtual void Gatherv(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues,
-        const std::vector<int>& rRecvCounts,
-        const std::vector<int>& rRecvOffsets,
-        const int DestinationRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");
-        KRATOS_ERROR_IF( Rank() != DestinationRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        rRecvValues = rSendValues;
-    }
-
-    /// Wrapper for MPI_Gatherv calls (int version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @param[out] rRecvValues Received values (meaningful only on DestinationRank).
-     *  @param[in] rRecvCounts Number of values to be received per rank, in order of increasing rank.
-     *  @param[in] rRecvOffsets Offset from the start of rRecvValues of the first value received from each rank.
-     *  The gathered values are arranged so that the first rRecvCounts[i] values in rSendValues of rank i
-     *  are placed on the range rRecvValues[rRecvOffsets[i]] to rRecvValues[rRecvOffsets[i] + rRecvCounts[i]].
-     */
-    virtual void Gatherv(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues,
-        const std::vector<int>& rRecvCounts,
-        const std::vector<int>& rRecvOffsets,
-        const int DestinationRank) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");
-        KRATOS_ERROR_IF( Rank() != DestinationRank )
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        rRecvValues = rSendValues;
-    }
-
-    // Allgather operations
-
-    /// Wrapper for MPI_Allgather calls (int version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @return Gathered values.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<int> AllGather(
-        const std::vector<int>& rSendValues) const
-    {
-        return rSendValues;
-    }
-
-    /// Wrapper for MPI_Allgather calls (double version).
-    /** @param[in] rSendValues Values to be gathered from this rank.
-     *  @return Gathered values.
-     *  @note This version has a performance penalty compared to the variant
-     *  taking both input and output buffers. If the dimensions of the
-     *  receiving buffer are known at the destination rank, the other variant
-     *  should be preferred.
-     */
-    virtual std::vector<double> AllGather(
-        const std::vector<double>& rSendValues) const
-    {
-        return rSendValues;
-    }
-
-    /// Wrapper for MPI_Allgather calls (int version).
-    /** @param rSendValues[in] Values to be gathered from this rank.
-     *  @param rRecvValues[out] Container for the result of the MPI_Allgather call.
-     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
-     */
-    virtual void AllGather(
-        const std::vector<int>& rSendValues,
-        std::vector<int>& rRecvValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");
-        rRecvValues = AllGather(rSendValues);
-    }
-
-    /// Wrapper for MPI_Allgather calls (double version).
-    /** @param rSendValues[in] Values to be gathered from this rank.
-     *  @param rRecvValues[out] Container for the result of the MPI_Allgather call.
-     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
-     */
-    virtual void AllGather(
-        const std::vector<double>& rSendValues,
-        std::vector<double>& rRecvValues) const
-    {
-        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");
-        rRecvValues = AllGather(rSendValues);
     }
 
     ///@}
@@ -1424,5 +652,14 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 } // namespace Kratos.
 
 #undef KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK
+
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
+#undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE
 
 #endif // KRATOS_DATA_COMMUNICATOR_H_INCLUDED  defined
