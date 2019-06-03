@@ -144,6 +144,7 @@ namespace Kratos
 
         double ComputeAuxiliaryElementDivergence(const Vector grad_x, const Vector grad_y, const Vector grad_z);
         double ComputeAuxiliaryElementVelocitySeminorm(const Vector grad_x, const Vector grad_y, const Vector grad_z);
+        double ComputeWeightedTimeAverage(const double old_average, const double current_value);
 
         ///@}
         ///@name Protected  Access
@@ -170,7 +171,8 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        ModelPart& mrModelPart;
+        const ModelPart& mrModelPart;
+        double mTimeCoefficient;
 
         ///@}
         ///@name Private Operations

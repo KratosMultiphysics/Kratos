@@ -30,7 +30,8 @@ namespace Kratos
         Process(),
         mrModelPart(rModelPart)
     {
-
+        // Set time coefficient: computations will be performed ONLY AFTER 20% of total time of the simulation
+        mTimeCoefficient = 0.2;
     }
 
     std::string WeightedDivergenceCalculationProcess::Info() const
@@ -53,18 +54,12 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // Set time coefficient: computations will be performed ONLY AFTER (time_coefficient * END_TIME)
-        const double time_coefficient = 0.2;
-
         // Extract time information
         const auto& r_current_process_info = mrModelPart.GetProcessInfo();
         const double& time_step_current  = r_current_process_info[TIME];
-        const auto& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo();
-        const double& time_step_previous = r_previous_process_info[TIME];
         const double& final_time = r_current_process_info[END_TIME];
 
-        if (time_step_current >= time_coefficient * final_time) {
-
+        if (time_step_current >= mTimeCoefficient * final_time) {
             // Check and set number of elements
             KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
             const unsigned int number_elements = mrModelPart.NumberOfElements();
@@ -151,17 +146,32 @@ namespace Kratos
                 const double velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
 
                 // Compute divergence weighted time average
-                auto divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(divergence_old,2) + (time_step_current - time_step_previous) * divergence_current) /  (time_step_current-time_coefficient*final_time));
+                auto divergence_current_avg = ComputeWeightedTimeAverage(divergence_old, divergence_current);
                 it_elem->SetValue(DIVERGENCE,divergence_current_avg);
 
                 // Compute divergence_norm weighted time average
-                auto velocity_seminorm_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(velocity_seminorm_old,2) + (time_step_current - time_step_previous) * velocity_seminorm_current) /  (time_step_current-time_coefficient*final_time));
+                // auto velocity_seminorm_current_avg = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(velocity_seminorm_old,2) + (time_step_current - time_step_previous) * velocity_seminorm_current) /  (time_step_current-mTimeCoefficient*final_time));
+                auto velocity_seminorm_current_avg = ComputeWeightedTimeAverage(velocity_seminorm_old, velocity_seminorm_current);
                 it_elem->SetValue(VELOCITY_H1_SEMINORM,velocity_seminorm_current_avg);
 
             }
         }
 
         KRATOS_CATCH("");
+    }
+
+    // Compute time average
+    double WeightedDivergenceCalculationProcess::ComputeWeightedTimeAverage(const double old_average, const double current_value)
+    {
+        // Extract time information
+        const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+        const double& time_step_current  = r_current_process_info[TIME];
+        const auto& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo();
+        const double& time_step_previous = r_previous_process_info[TIME];
+        const double& final_time = r_current_process_info[END_TIME];
+
+        const double new_average = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(old_average,2) + (time_step_current - time_step_previous) * current_value) /  (time_step_current-mTimeCoefficient*final_time));
+        return new_average;
     }
 
     // Compute local auxiliar divergence
