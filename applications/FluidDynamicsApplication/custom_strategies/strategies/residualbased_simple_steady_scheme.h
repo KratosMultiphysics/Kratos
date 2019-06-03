@@ -230,9 +230,6 @@ public:
 
     rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
-    if (mpTurbulenceModel != 0) // If not null
-      mpTurbulenceModel->Execute();
-
     KRATOS_CATCH("");
   }
 
@@ -241,6 +238,9 @@ public:
                                        TSystemVectorType &rDx,
                                        TSystemVectorType &rb) override
   {
+    if (mpTurbulenceModel != 0) // If not null
+      mpTurbulenceModel->Execute();
+
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
     //if orthogonal subscales are computed

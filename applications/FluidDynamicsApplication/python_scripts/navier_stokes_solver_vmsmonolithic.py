@@ -361,9 +361,18 @@ class NavierStokesSolverMonolithic(FluidSolver):
                     raise Exception(err_msg)
             else:
                 self.turbulence_model_configuration.Initialize()
-                self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.settings["move_mesh_strategy"].GetInt(),
+                if self.settings["time_scheme"].GetString() == "bossak":
+                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                                self.settings["alpha"].GetDouble(),
+                                self.settings["move_mesh_strategy"].GetInt(),
+                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                self.settings["turbulence_model"]["velocity_pressure_relaxation_factor"].GetDouble(),
+                                self.turbulence_model_configuration.GetTurbulenceSolvingProcess())
+                # Time scheme for steady state fluid solver
+                elif self.settings["time_scheme"].GetString() == "steady":
+                    self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                            self.settings["velocity_relaxation"].GetDouble(),
+                            self.settings["pressure_relaxation"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                             self.turbulence_model_configuration.GetTurbulenceSolvingProcess())
 

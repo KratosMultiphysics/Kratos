@@ -198,6 +198,7 @@ namespace Kratos {
             double NewAlphaBossak,
             double MoveMeshStrategy,
             unsigned int DomainSize,
+            const double RelaxationFactor,
             Process::Pointer pTurbulenceModel)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
@@ -210,6 +211,7 @@ namespace Kratos {
             mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
+            mRelaxationFactor = RelaxationFactor;
 
 
             //Allocate auxiliary memory
@@ -247,7 +249,13 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            mpDofUpdater->UpdateDofs(rDofSet,Dv);
+            const int number_of_dofs = static_cast<int>(Dv.size());
+            TSystemVectorType relaxed_dx(number_of_dofs);
+            #pragma omp parallel for
+            for (int i = 0; i < number_of_dofs; ++i)
+                relaxed_dx[i] = Dv[i] * mRelaxationFactor;
+
+            mpDofUpdater->UpdateDofs(rDofSet,relaxed_dx);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
@@ -559,22 +567,12 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        void InitializeNonLinIteration(ModelPart& r_model_part,
-                                               TSystemMatrixType& A,
-                                               TSystemVectorType& Dx,
-                                               TSystemVectorType& b) override
-        {
-            KRATOS_TRY
-
-            if (mpTurbulenceModel != 0) // If not null
-                mpTurbulenceModel->Execute();
-
-            KRATOS_CATCH("")
-        }
-
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+            if (mpTurbulenceModel != 0) // If not null
+                mpTurbulenceModel->Execute();
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
@@ -760,6 +758,7 @@ namespace Kratos {
         double mBetaNewmark;
         double mGammaNewmark;
         double mMeshVelocity;
+        double mRelaxationFactor = 1.0;
 
         double ma0;
         double ma1;
