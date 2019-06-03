@@ -22,6 +22,7 @@
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "rans_modelling_application_variables.h"
+#include "stabilized_convection_diffusion_reaction_utilities.h"
 #include "utilities/time_discretization.h"
 
 namespace Kratos
@@ -351,7 +352,7 @@ public:
                 this->CalculateSourceTerm(r_current_data, rCurrentProcessInfo);
 
             double tau, element_length;
-            this->CalculateStabilizationTau(
+            StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor, reaction,
                 effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time);
 
@@ -548,7 +549,7 @@ public:
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
 
             double tau, element_length;
-            this->CalculateStabilizationTau(
+            StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor, reaction,
                 effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time);
 
@@ -624,7 +625,7 @@ public:
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
 
             double tau, element_length;
-            this->CalculateStabilizationTau(
+            StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor, reaction,
                 effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time);
 
@@ -649,7 +650,7 @@ public:
                 residual /= variable_gradient_norm;
 
                 double chi, k1, k2;
-                this->CalculateCrossWindDiffusionParameters(
+                StabilizedConvectionDiffusionReactionUtilities::CalculateCrossWindDiffusionParameters(
                     chi, k1, k2, velocity_magnitude, tau, effective_kinematic_viscosity,
                     reaction, bossak_alpha, bossak_gamma, delta_time, element_length);
 
@@ -915,21 +916,10 @@ protected:
                            const Matrix& rShapeDerivatives,
                            const int Step = 0) const
     {
-        rOutput.clear();
         const GeometryType& r_geometry = this->GetGeometry();
 
-        for (unsigned int a = 0; a < TNumNodes; ++a)
-        {
-            const array_1d<double, 3>& r_value =
-                r_geometry[a].FastGetSolutionStepValue(rVariable, Step);
-            for (unsigned int i = 0; i < TDim; ++i)
-            {
-                for (unsigned int j = 0; j < TDim; ++j)
-                {
-                    rOutput(i, j) += rShapeDerivatives(a, j) * r_value[i];
-                }
-            }
-        }
+        RansCalculationUtilities().CalculateGradient<TDim>(
+            rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
     void CalculateGradient(array_1d<double, 3>& rOutput,
@@ -937,14 +927,9 @@ protected:
                            const Matrix& rShapeDerivatives,
                            const int Step = 0) const
     {
-        rOutput.clear();
         const GeometryType& r_geometry = this->GetGeometry();
-        for (unsigned int a = 0; a < TNumNodes; ++a)
-        {
-            const double value = r_geometry[a].FastGetSolutionStepValue(rVariable, Step);
-            for (unsigned int i = 0; i < TDim; ++i)
-                rOutput[i] += rShapeDerivatives(a, i) * value;
-        }
+        RansCalculationUtilities().CalculateGradient(
+            rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
     void CalculateSymmetricGradientMatrix(BoundedMatrix<double, TDim, TDim>& rOutput,
@@ -997,81 +982,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void CalculateStabilizationTau(double& tau,
-                                   double& element_length,
-                                   const array_1d<double, 3>& rVelocity,
-                                   const Matrix& rContravariantMetricTensor,
-                                   const double reaction,
-                                   const double effective_kinematic_viscosity,
-                                   const double alpha,
-                                   const double gamma,
-                                   const double delta_time)
-    {
-        unsigned int dim = rContravariantMetricTensor.size2();
-        Vector velocity(dim);
-        for (unsigned int d = 0; d < dim; ++d)
-            velocity[d] = rVelocity[d];
-        Vector temp(dim);
-        noalias(temp) = prod(rContravariantMetricTensor, velocity);
-        const double velocity_norm = norm_2(rVelocity);
-        element_length = 2.0 * velocity_norm / std::sqrt(inner_prod(velocity, temp));
-
-        const double stab_convection =
-            std::pow(2.0 * norm_2(rVelocity) / element_length, 2);
-        const double stab_diffusion = std::pow(
-            12.0 * effective_kinematic_viscosity / (element_length * element_length), 2);
-        const double stab_dynamics = std::pow((1 - alpha) / (gamma * delta_time), 2);
-        const double stab_reaction = std::pow(reaction, 2);
-
-        tau = 1.0 / std::sqrt(stab_dynamics + stab_convection + stab_diffusion + stab_reaction);
-    }
-
-    double CalculatePsiOne(const double velocity_norm, const double tau, const double reaction_tilde)
-    {
-        return velocity_norm + tau * velocity_norm * reaction_tilde;
-    }
-
-    double CalculatePsiTwo(const double reaction_tilde, const double tau, const double element_length)
-    {
-        return (reaction_tilde + tau * reaction_tilde * std::abs(reaction_tilde)) *
-               std::pow(element_length, 2) / 6.0;
-    }
-
-    void CalculateCrossWindDiffusionParameters(double& chi,
-                                               double& k1,
-                                               double& k2,
-                                               const double velocity_magnitude,
-                                               const double tau,
-                                               const double effective_kinematic_viscosity,
-                                               const double reaction,
-                                               const double alpha,
-                                               const double gamma,
-                                               const double delta_time,
-                                               const double element_length)
-    {
-        const double reaction_dynamics = reaction + (1 - alpha) / (gamma * delta_time);
-
-        chi = 2.0 / (std::abs(reaction_dynamics) * element_length + 2.0 * velocity_magnitude);
-
-        const double psi_one =
-            this->CalculatePsiOne(velocity_magnitude, tau, reaction_dynamics);
-        const double psi_two = this->CalculatePsiTwo(reaction_dynamics, tau, element_length);
-
-        double value = 0.0;
-
-        value = 0.5 * std::abs(psi_one - tau * velocity_magnitude * reaction_dynamics) * element_length;
-        value -= (effective_kinematic_viscosity + tau * std::pow(velocity_magnitude, 2));
-        value += psi_two;
-
-        k1 = std::max(value, 0.0);
-
-        value = 0.5 * std::abs(psi_one) * element_length;
-        value -= effective_kinematic_viscosity;
-        value += psi_two;
-
-        k2 = std::max(value, 0.0);
-    }
 
     ///@}
     ///@name Serialization
