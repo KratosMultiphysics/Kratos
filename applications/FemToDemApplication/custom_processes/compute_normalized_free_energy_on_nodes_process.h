@@ -107,24 +107,83 @@ public:
         const Properties& rMatProps,
         Geometry<Node<3>>& rGeometry);
 
+    /**
+     * @brief This method computes characteristic 
+     * length of the element in 2D
+     * @param rGeometry The geometry of the element
+     */
 	double CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry);
+
+    /**
+     * @brief This method computes characteristic 
+     * length of the element in 3D
+     * @param rGeometry The geometry of the element
+     */
 	double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry);
+
+    /**
+     * @brief This method computes the tensile
+     * factor (0 to 1) in 2D
+     * length of the element in 2D
+     * @param rStressVector The Stress Vector
+     */
     double ComputeTensionFactor2D(const Vector& rStressVector);
+
+    /**
+     * @brief This method computes the tensile
+     * factor (0 to 1) in 2D
+     * length of the element in 3D
+     * @param rStressVector The Stress Vector
+     */
     double ComputeTensionFactor3D(const Vector& rStressVector);
+
+    /**
+     * @brief This method computes the principal stresses in 2D
+     * length of the element in 3D
+     * @param rStressVector The Stress Vector
+     * @param rPrincipalStressVector The principal Stress Vector
+     */
     void CalculatePrincipalStresses2D(const Vector& rStressVector, Vector& rPrincipalStressVector);
+
+    /**
+     * @brief This method computes the principal stresses in 3D
+     * length of the element in 3D
+     * @param rStressVector The Stress Vector
+     * @param rPrincipalStressVector The principal Stress Vector
+     */
     void CalculatePrincipalStresses3D(const Vector& rStressVector, Vector& rPrincipalStressVector);
-    void ObtainMaximumNodeId(int &rmax_id);
+
+    /**
+     * @brief This method returns the maximum Id
+     * @param rMaxId The max Id
+     */
+    void ObtainMaximumNodeId(int& rMaxId);
+
+    /**
+     * @brief This method computes the I1 stress invarian
+     * @param rStressVector The Stress Vector
+     */
     double CalculateI1Invariant(const Vector& rStressVector);
+
+    /**
+     * @brief This method computes the I2 stress invarian
+     * @param rStressVector The Stress Vector
+     */
     double CalculateI2Invariant(const Vector& rStressVector);
+
+    /**
+     * @brief This method computes the I3 stress invarian
+     * @param rStressVector The Stress Vector
+     */
     double CalculateI3Invariant(const Vector& rStressVector);
 
 protected:
     // Member Variables
-    ModelPart& mrModelPart;
-    unsigned int mNNodes;
-    bool mComputeNormalizedFreeEnergy = false;
-    bool mCorrectWithDisplacements = false;
-    double mCorrectionFactor = 1.0;
+    ModelPart& mrModelPart;                     // The model part to compute
+    unsigned int mNNodes;                       // The number of nodes
+    bool mComputeNormalizedFreeEnergy = false;  // Bool discerning the computation of the normalized free energy o full free energy
+    bool mCorrectWithDisplacements = false;     // Bool discerning wether or not to multiply the nodel free energy with the displacement field
+    double mCorrectionFactor = 1.0;             // Constant whose value is multiplied to the original energy
 
 }; // Class ComputeNormalizedFreeEnergyOnNodesProcess
 
