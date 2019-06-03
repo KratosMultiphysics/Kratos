@@ -122,23 +122,24 @@ public:
 
             // Iterate over the elements
             #pragma omp parallel for firstprivate(DN_DX,  N, J0)
-            for(int i_elem=0; i_elem < number_elements; ++i_elem) {
+            for(int i_elem = 0; i_elem < static_cast<int>(number_elements); ++i_elem) {
                 auto it_elem = mrModelPart.ElementsBegin() + i_elem;
                 auto& r_geometry = it_elem->GetGeometry();
 
                 // Current geometry information
                 const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
-                // KRATOS_WATCH(local_space_dimension);
                 const std::size_t number_nodes_element = r_geometry.PointsNumber();
-                // KRATOS_WATCH(number_nodes_element);
 
                 // Resize if needed
-                if (DN_DX.size1() != number_nodes_element || DN_DX.size2() != dimension)
+                if (DN_DX.size1() != number_nodes_element || DN_DX.size2() != dimension) {
                     DN_DX.resize(number_nodes_element, dimension);
-                if (N.size() != number_nodes_element)
+                }
+                if (N.size() != number_nodes_element) {
                     N.resize(number_nodes_element);
-                if (J0.size1() != dimension || J0.size2() != local_space_dimension)
+                }
+                if (J0.size1() != dimension || J0.size2() != local_space_dimension) {
                     J0.resize(dimension, local_space_dimension);
+                }
 
                 // Build values vectors of the velocity
                 Vector values_x(number_nodes_element);
