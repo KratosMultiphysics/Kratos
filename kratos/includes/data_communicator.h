@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <type_traits>
 
 // External includes
 
@@ -272,6 +273,34 @@ namespace Kratos
   */
 class KRATOS_API(KRATOS_CORE) DataCommunicator
 {
+  private:
+
+    template<typename T> class serialization_is_required {
+    private:
+
+        template<typename U> struct serialization_traits {
+            constexpr static bool is_std_vector = false;
+            constexpr static bool value_type_is_compound = false;
+        };
+
+        template<typename U> struct serialization_traits<std::vector<U>> {
+            constexpr static bool is_std_vector = true;
+            constexpr static bool value_type_is_compound = std::is_compound<U>::value;
+        };
+
+        constexpr static bool is_vector_of_simple_types = serialization_traits<T>::is_std_vector && !serialization_traits<T>::value_type_is_compound;
+        constexpr static bool can_be_sent_directly = !std::is_compound<T>::value || is_vector_of_simple_types;
+
+    public:
+
+        constexpr static bool value = !can_be_sent_directly;
+    };
+
+    template<bool value> struct TypeFromBool {};
+
+    void CheckSerializationForSimpleType(TypeFromBool<true>) const {};
+    KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type, please implement direct communication support for this type.") void CheckSerializationForSimpleType(TypeFromBool<false>) const {};
+
   public:
     ///@name Type Definitions
     ///@{
@@ -504,6 +533,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination, const int SendTag,
         const int RecvSource, const int RecvTag) const
     {
+        CheckSerializationForSimpleType(TypeFromBool<serialization_is_required<TObject>::value>());
         if (this->IsDistributed())
         {
             MpiSerializer send_serializer;
