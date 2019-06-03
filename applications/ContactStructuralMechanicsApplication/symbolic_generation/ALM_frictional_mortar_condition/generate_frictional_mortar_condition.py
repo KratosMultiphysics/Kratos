@@ -23,7 +23,7 @@ def convert_chain_int_int(list_slip_stick):
 #dim_combinations = [2]
 #nnodes_combinations = [2]
 #nnodes_master_combinations = [2]
-#normal_combs = 2
+#normal_combs = 1
 
 dim_combinations = [2,3,3,3,3]
 nnodes_combinations = [2,3,4,3,4]
@@ -41,11 +41,11 @@ def real_norm(input):
 
     return output
 
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::CalculateLocalLHS(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize\n    for (std::size_t i = 0; i < MatrixSize; ++i)\n        for (std::size_t j = 0; j < MatrixSize; ++j)\n            rLocalLHS(i, j) = 0.0;\n\n    // The geometry of the condition\n    const GeometryType& r_geometry = this->GetGeometry();\n\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodes, TDim>& u1old = rDerivativeData.u1old;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2old = rDerivativeData.u2old;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    // The normal and tangent vectors\n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n    const BoundedMatrix<double, TNumNodes, TDim> TangentSlave = MortarUtilities::ComputeTangentMatrix<TNumNodes,TDim>(r_geometry);\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(r_geometry, DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    const double TangentFactor = rDerivativeData.TangentFactor;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperatorold = mPreviousMortarOperators.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperatorold = mPreviousMortarOperators.DOperator;\n\n    // Mortar operators derivatives\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n//    // The delta time\n//    const double delta_time = rCurrentProcessInfo[DELTA_TIME];\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::CalculateLocalLHS(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize\n    for (std::size_t i = 0; i < MatrixSize; ++i)\n        for (std::size_t j = 0; j < MatrixSize; ++j)\n            rLocalLHS(i, j) = 0.0;\n\n    // The geometry of the condition\n    const GeometryType& r_geometry = this->GetGeometry();\n\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodes, TDim>& u1old = rDerivativeData.u1old;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2old = rDerivativeData.u2old;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    // The normal and tangent vectors\n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n    const BoundedMatrix<double, TNumNodes, TDim> TangentSlave = MortarUtilities::ComputeTangentMatrix<TNumNodes,TDim>(r_geometry);\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(r_geometry, DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    const double TangentFactor = rDerivativeData.TangentFactor;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperatorold = mPreviousMortarOperators.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperatorold = mPreviousMortarOperators.DOperator;\n\n    // Mortar operators derivatives\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n//    // The delta time\n//    const double delta_time = rCurrentProcessInfo[DELTA_TIME];\n\n    const double norm_delta_M = norm_frobenius(MOperator - MOperatorold);\n    const double norm_delta_D = norm_frobenius(DOperator - DOperatorold);\n"
 
 lhs_template_end_string = "}\n"
 
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::CalculateLocalRHS(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize\n    for (std::size_t i = 0; i < MatrixSize; ++i)\n        rLocalRHS[i] = 0.0;\n\n    // The geometry of the condition\n    const GeometryType& r_geometry = this->GetGeometry();\n\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodes, TDim>& u1old = rDerivativeData.u1old;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2old = rDerivativeData.u2old;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    // The normal and tangent vectors\n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n    const BoundedMatrix<double, TNumNodes, TDim> TangentSlave = MortarUtilities::ComputeTangentMatrix<TNumNodes,TDim>(r_geometry);\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(r_geometry, DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    const double TangentFactor = rDerivativeData.TangentFactor;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperatorold = mPreviousMortarOperators.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperatorold = mPreviousMortarOperators.DOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n//    // The delta time\n//    const double delta_time = rCurrentProcessInfo[DELTA_TIME];\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::CalculateLocalRHS(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize\n    for (std::size_t i = 0; i < MatrixSize; ++i)\n        rLocalRHS[i] = 0.0;\n\n    // The geometry of the condition\n    const GeometryType& r_geometry = this->GetGeometry();\n\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodes, TDim>& u1old = rDerivativeData.u1old;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2old = rDerivativeData.u2old;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(r_geometry, VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    // The normal and tangent vectors\n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n    const BoundedMatrix<double, TNumNodes, TDim> TangentSlave = MortarUtilities::ComputeTangentMatrix<TNumNodes,TDim>(r_geometry);\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(r_geometry, DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    const double TangentFactor = rDerivativeData.TangentFactor;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperatorold = mPreviousMortarOperators.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperatorold = mPreviousMortarOperators.DOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n//    // The delta time\n//    const double delta_time = rCurrentProcessInfo[DELTA_TIME];\n\n    const double norm_delta_M = norm_frobenius(MOperator - MOperatorold);\n    const double norm_delta_D = norm_frobenius(DOperator - DOperatorold);\n"
 
 rhs_template_end_string = "}\n"
 
@@ -105,7 +105,8 @@ for normalvar in range(normal_combs):
 
         # Defining additional variables
         NormalGap = DefineVector('NormalGap', nnodes)
-        TangentSlip = DefineMatrix('TangentSlip', nnodes, dim)
+        TangentSlipNonObjective = DefineMatrix('TangentSlipNonObjective', nnodes, dim)
+        TangentSlipObjective = DefineMatrix('TangentSlipObjective', nnodes, dim)
         DOperator = DefineMatrix('DOperator', nnodes, nnodes)
         MOperator = DefineMatrix('MOperator', nnodes, nnodes_master)
         DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes, "Symbol")
@@ -153,21 +154,32 @@ for normalvar in range(normal_combs):
             wLMNormal[node] = wLM.row(node) * NormalSlave.row(node).transpose()
 
             # We calculate the LM tangent resultant
+            #aux = wLM.row(node).dot(TangentSlave.row(node)) * TangentSlave.row(node)
             for idim in range(dim):
                 LMTangent[node,idim] = LM[node,idim] - LMNormal[node] * NormalSlave[node, idim]
+                #wLMTangent[node,idim] = aux[idim]
                 wLMTangent[node,idim] = wLM[node,idim] - wLMNormal[node] * NormalSlave[node, idim]
 
         # Defining the normal NormalGap and tangent slip
         Dx1Mx2 = DOperator * x1 - MOperator * x2
-        DeltaDx1DeltaMx2 = (DOperator - DOperatorold) * x1 - (MOperator - MOperatorold) * x2
-        Dx1oldMx2old = DOperator * x1old - MOperator * x2old
+        #Dx1oldMx2old = DOperator * x1old - MOperator * x2old
         Dw1Mw2 = DOperator * w1 - MOperator * w2
+
+        # Delta operations
+        DDeltax1MDeltax2 = DOperator * (x1 - x1old) - MOperator * (x2 - x2old)
+        DeltaDx1DeltaMx2 = (DOperator - DOperatorold) * x1 - (MOperator - MOperatorold) * x2
         for node in range(nnodes):
             NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
-            gap_time_derivative = - DeltaDx1DeltaMx2.row(node)/delta_time
-            auxTangentSlip = delta_time * (gap_time_derivative - gap_time_derivative.dot(NormalSlave.row(node)) * NormalSlave.row(node))
+            #gap_time_derivative = - Dx1Mx2.row(node)/delta_time
+            gap_time_derivative_non_objective = DDeltax1MDeltax2.row(node)/delta_time
+            gap_time_derivative_objective = - DeltaDx1DeltaMx2.row(node)/delta_time
+            auxTangentSlipNonObjective = delta_time * (gap_time_derivative_non_objective - gap_time_derivative_non_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
+            auxTangentSlipObjective = delta_time * (gap_time_derivative_objective - gap_time_derivative_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
+            #auxTangentSlipNonObjective = delta_time * gap_time_derivative_non_objective.dot(TangentSlave.row(node)) * TangentSlave.row(node)
+            #auxTangentSlipObjective = delta_time * gap_time_derivative_objective.dot(TangentSlave.row(node)) * TangentSlave.row(node)
             for idim in range(dim):
-                TangentSlip[node, idim] = - auxTangentSlip[idim]
+                TangentSlipNonObjective[node, idim] = auxTangentSlipNonObjective[idim]
+                TangentSlipObjective[node, idim] = auxTangentSlipObjective[idim]
 
         # Define dofs & test function vector
         dofs = Matrix( zeros(number_dof, 1) )
@@ -201,7 +213,7 @@ for normalvar in range(normal_combs):
         lhs_string += lhs_template_begin_string
         rhs_string += rhs_template_begin_string
         for node in range(nnodes):
-            for slip in range(3):
+            for slip in range(4):
                 rv_galerkin = 0
                 if (slip == 0): # Inactive
                     rv_galerkin -= ScaleFactor**2.0 / PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
@@ -216,9 +228,14 @@ for normalvar in range(normal_combs):
                         modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) + augmented_tangent_contact_pressure
                         rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
                     else: # Stick
-                        augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlip.row(node)
+                        if (slip == 2): # Obtective
+                            augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipObjective.row(node)
 
-                        rv_galerkin += ScaleFactor * (TangentSlip.row(node)).dot(wLMTangent.row(node))
+                            rv_galerkin += ScaleFactor * (TangentSlipObjective.row(node)).dot(wLMTangent.row(node))
+                        else: # Non-Obtective
+                            augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipNonObjective.row(node)
+
+                            rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
 
                     augmented_contact_pressure = augmented_normal_contact_pressure * NormalSlave.row(node)
                     augmented_contact_pressure += augmented_tangent_contact_pressure
@@ -245,24 +262,36 @@ for normalvar in range(normal_combs):
                 if slip == 0:
                     lhs_string += "    \n    // NODE " + str(node) + "\n"
                     lhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
+                    lhs_string += lhs_out.replace("\n","\n    ")
                 elif slip == 1:
                     lhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n    "
+                    lhs_string += lhs_out.replace("\n","\n    ")
                 else:
-                    lhs_string += "} else { // ACTIVE-STICK\n    "
-                lhs_string += lhs_out.replace("\n","\n    ")
-                if slip == 2:
-                    lhs_string += "}\n"
+                    if slip == 2:
+                        lhs_string += "} else { // ACTIVE-STICK\n        if (norm_delta_D > OperatorThreshold && norm_delta_M > OperatorThreshold) { // OBJECTIVE-STICK\n        "
+                        lhs_string += lhs_out.replace("\n","\n        ")
+                    else:
+                        lhs_string += "} else { // NONOBJECTIVE-STICK\n        "
+                        lhs_string += lhs_out.replace("\n","\n        ")
+                if slip == 3:
+                    lhs_string += "}\n    }\n"
 
                 if slip == 0:
                     rhs_string += "    \n    // NODE " + str(node) + "\n"
                     rhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
+                    rhs_string += rhs_out.replace("\n","\n    ")
                 elif slip == 1:
                     rhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n    "
+                    rhs_string += rhs_out.replace("\n","\n    ")
                 else:
-                    rhs_string += "} else { // ACTIVE-STICK\n    "
-                rhs_string += rhs_out.replace("\n","\n    ")
-                if slip == 2:
-                    rhs_string += "}\n"
+                    if slip == 2:
+                        rhs_string += "} else { // ACTIVE-STICK\n        if (norm_delta_D > OperatorThreshold && norm_delta_M > OperatorThreshold) { // OBJECTIVE-STICK\n        "
+                        rhs_string += rhs_out.replace("\n","\n        ")
+                    else:
+                        rhs_string += "} else { // NONOBJECTIVE-STICK\n        "
+                        rhs_string += rhs_out.replace("\n","\n        ")
+                if slip == 3:
+                    rhs_string += "}\n    }\n"
 
         lhs_string += lhs_template_end_string
         rhs_string += rhs_template_end_string
