@@ -275,7 +275,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    WeightedDivergenceCalculationProcess& operator=(WeightedDivergenceCalculationProcess const& rOther);
+    WeightedDivergenceCalculationProcess& operator=(WeightedDivergenceCalculationProcess const& rOther) = delete;
 
     /// Copy constructor.
     WeightedDivergenceCalculationProcess(WeightedDivergenceCalculationProcess const& rOther);
