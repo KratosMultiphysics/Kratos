@@ -53,7 +53,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::Execute()
 /***********************************************************************************/
 
 void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolation(
-    NodeNormalizedFreeEnergy *pNodeNormalizedFreeEnergyVector
+    NodeNormalizedFreeEnergy* pNodeNormalizedFreeEnergyVector
     )
 {
     Vector gauss_point_stress;
