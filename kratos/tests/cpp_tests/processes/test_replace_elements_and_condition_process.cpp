@@ -421,23 +421,23 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     }
 
     for (auto& r_element : sister_model_part.Elements()) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (std::find(modified_elems_ids.begin(), modified_elems_ids.end(), r_element.Id()) != modified_elems_ids.end()) {
-            CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
             KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
         }
         else {
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name),"Element \"N6Kratos7ElementE\" not found!");
+            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D");
         }
         
     }
 
     for (auto& r_element : parent_model_part.Elements()) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (std::find(modified_elems_ids.begin(), modified_elems_ids.end(), r_element.Id()) != modified_elems_ids.end()) {
-            CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
             KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
         }
         else {
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name),"Element \"N6Kratos7ElementE\" not found!");
+            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D");
         }
         
     }
