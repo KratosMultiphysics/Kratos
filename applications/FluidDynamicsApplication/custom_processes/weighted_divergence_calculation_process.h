@@ -67,8 +67,7 @@ public:
     ///@{
 
     /// Constructor for WeightedDivergenceCalculationProcess Process
-    WeightedDivergenceCalculationProcess(ModelPart& rModelPart
-                    ):
+    WeightedDivergenceCalculationProcess(ModelPart& rModelPart):
         Process(),
         mrModelPart(rModelPart)
     {
