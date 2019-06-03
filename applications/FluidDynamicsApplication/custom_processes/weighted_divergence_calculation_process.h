@@ -76,6 +76,9 @@ public:
     /// Destructor.
     ~WeightedDivergenceCalculationProcess() override = default;
 
+    /// Assignment operator.
+    WeightedDivergenceCalculationProcess& operator=(WeightedDivergenceCalculationProcess const& rOther) = delete;
+
 
     ///@}
     ///@name Operators
@@ -150,8 +153,6 @@ public:
                     values_x[i_node] = r_velocity[0];
                     values_y[i_node] = r_velocity[1];
                     values_z[i_node] = r_velocity[2];
-                    KRATOS_WATCH(r_velocity);
-                    KRATOS_WATCH(values_x);
                 }
 
                 // Set integration points
@@ -273,9 +274,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    WeightedDivergenceCalculationProcess& operator=(WeightedDivergenceCalculationProcess const& rOther) = delete;
 
     /// Copy constructor.
     WeightedDivergenceCalculationProcess(WeightedDivergenceCalculationProcess const& rOther);
