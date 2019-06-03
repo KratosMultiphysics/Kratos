@@ -69,7 +69,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared< ShellKLDiscreteElement >(
+        return Kratos::make_intrusive< ShellKLDiscreteElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 

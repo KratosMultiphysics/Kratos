@@ -66,7 +66,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_shared<LoadCurveDiscreteCondition>(
+            return Kratos::make_intrusive<LoadCurveDiscreteCondition>(
                 NewId, 
                 GetGeometry().Create(ThisNodes), 
                 pProperties);

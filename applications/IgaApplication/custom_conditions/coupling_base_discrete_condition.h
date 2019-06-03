@@ -61,7 +61,7 @@ public:
 
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< CouplingBaseDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< CouplingBaseDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     /// Destructor.

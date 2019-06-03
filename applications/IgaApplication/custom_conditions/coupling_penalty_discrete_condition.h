@@ -66,7 +66,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared<CouplingPenaltyDiscreteCondition>(
+        return Kratos::make_intrusive<CouplingPenaltyDiscreteCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -76,7 +76,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared< CouplingPenaltyDiscreteCondition >(
+        return Kratos::make_intrusive< CouplingPenaltyDiscreteCondition >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
