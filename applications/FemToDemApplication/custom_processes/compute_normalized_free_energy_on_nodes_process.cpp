@@ -42,7 +42,7 @@ ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesPro
 
 void ComputeNormalizedFreeEnergyOnNodesProcess::Execute()
 {
-    int max_id;
+	std::size_t max_id;
     this->ObtainMaximumNodeId(max_id);
     NodeNormalizedFreeEnergy *NodeNormalizedFreeEnergyVector = new NodeNormalizedFreeEnergy[max_id];
     this->NormalizedFreeEnergyExtrapolation(NodeNormalizedFreeEnergyVector);
@@ -280,14 +280,14 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::CalculatePrincipalStresses3D(
 /***********************************************************************************/
 
 void ComputeNormalizedFreeEnergyOnNodesProcess::ObtainMaximumNodeId(
-    int& rMaxId
+    std::size_t& rMaxId
     )
 {
-    int aux = 0;
-    int id;
+    std::size_t aux = 0;
+    std::size_t id;
 
-    for (ModelPart::NodeIterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); ++it_node) {
-        id = (*it_node).Id();
+    for (auto& r_node : mrModelPart.Nodes()) {
+        id = r_node.Id();
         if (id > aux)
             aux = id;
     }

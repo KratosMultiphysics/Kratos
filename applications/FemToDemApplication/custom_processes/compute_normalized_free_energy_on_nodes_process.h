@@ -157,7 +157,7 @@ public:
      * @brief This method returns the maximum Id
      * @param rMaxId The max Id
      */
-    void ObtainMaximumNodeId(int& rMaxId);
+    void ObtainMaximumNodeId(std::size_t& rMaxId);
 
     /**
      * @brief This method computes the I1 stress invarian
