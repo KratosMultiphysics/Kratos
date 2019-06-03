@@ -185,14 +185,14 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor2D(
 {
     Vector principal_stress_vector;
     this->CalculatePrincipalStresses2D(rStressVector, principal_stress_vector);
-    double SumA = 0.0, SumB = 0.0, SumC = 0.0;
+    double sum_a = 0.0, sum_b = 0.0, sum_c = 0.0;
     for (unsigned int cont = 0; cont < 2; cont++) {
-        SumA += std::abs(principal_stress_vector[cont]);
-        SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
-        SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        sum_a += std::abs(principal_stress_vector[cont]);
+        sum_b += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
+        sum_c += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
     }
-    if (SumA > tolerance)
-        return SumB / SumA;
+    if (sum_a > tolerance)
+        return sum_b / sum_a;
     else 
         return 0.0;
 }
@@ -206,14 +206,14 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::ComputeTensionFactor3D(
 {
     Vector principal_stress_vector;
     this->CalculatePrincipalStresses3D(rStressVector, principal_stress_vector);
-    double SumA = 0.0, SumB = 0.0, SumC = 0.0;
+    double sum_a = 0.0, sum_b = 0.0, sum_c = 0.0;
     for (unsigned int cont = 0; cont < 3; cont++) {
-        SumA += std::abs(principal_stress_vector[cont]);
-        SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
-        SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        sum_a += std::abs(principal_stress_vector[cont]);
+        sum_b += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
+        sum_c += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
     }
-    if (SumA > tolerance)
-        return SumB / SumA;
+    if (sum_a > tolerance)
+        return sum_b / sum_a;
     else 
         return 0.0;
 }
