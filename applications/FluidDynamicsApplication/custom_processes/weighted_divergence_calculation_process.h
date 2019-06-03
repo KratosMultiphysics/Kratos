@@ -14,20 +14,7 @@
 #define KRATOS_WEIGHTED_DIVERGENCE_CALCULATION_PROCESS_H
 
 
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/element.h"
-#include "includes/kratos_flags.h"
 #include "processes/process.h"
-#include "geometries/geometry.h"
-#include "utilities/geometry_utilities.h"
-#include "utilities/math_utils.h"
-#include "includes/kratos_parameters.h"
-#include "utilities/variable_utils.h"
-
-#include <string>
-#include <iostream>
-#include <sstream>
 
 
 namespace Kratos
