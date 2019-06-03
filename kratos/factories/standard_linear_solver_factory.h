@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/scaling_solver.h"
 
