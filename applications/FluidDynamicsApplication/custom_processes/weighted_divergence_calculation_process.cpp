@@ -73,7 +73,8 @@ namespace Kratos
             const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
             // Auxiliar containers
-            Matrix DN_DX, J0;
+            Element::GeometryType::JacobiansType J0;
+            Matrix DN_DX;
             Vector N;
 
             // Iterate over the elements
@@ -83,18 +84,14 @@ namespace Kratos
                 auto& r_geometry = it_elem->GetGeometry();
 
                 // Current geometry information
-                const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
                 const std::size_t number_nodes_element = r_geometry.PointsNumber();
 
                 // Resize if needed
                 if (DN_DX.size1() != number_nodes_element || DN_DX.size2() != dimension) {
-                    DN_DX.resize(number_nodes_element, dimension);
+                    DN_DX.resize(number_nodes_element, dimension,false);
                 }
                 if (N.size() != number_nodes_element) {
-                    N.resize(number_nodes_element);
-                }
-                if (J0.size1() != dimension || J0.size2() != local_space_dimension) {
-                    J0.resize(dimension, local_space_dimension);
+                    N.resize(number_nodes_element,false);
                 }
 
                 // Build values vectors of the velocity
@@ -121,16 +118,18 @@ namespace Kratos
                 double divergence_current = 0;
                 double velocity_seminorm_current = 0;
 
+                // Get the jacobian
+                r_geometry.Jacobian(J0);
+
                 // Loop over integration points
                 for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ){
                     // Getting the shape functions
                     noalias(N) = row(rNcontainer, point_number);
 
-                    // Get the jacobians
-                    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
+                    // Calculate inverse jacobian and jacobian determinant
                     double detJ0;
                     Matrix InvJ0;
-                    MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                    MathUtils<double>::InvertMatrix(J0[point_number], InvJ0, detJ0);
                     const Matrix& rDN_De = rDN_DeContainer[point_number];
                     GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
@@ -140,12 +139,13 @@ namespace Kratos
                     const Vector grad_z = prod(trans(DN_DX), values_z);
 
                     // Compute divergence and velocity seminorm
-                    const double aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
-                    const double aux_current_velocity_seminorm = grad_x[0]*grad_x[0] + grad_x[1]*grad_x[1] + grad_x[2]*grad_x[2] + grad_y[0]*grad_y[0] + grad_y[1]*grad_y[1] + grad_y[2]*grad_y[2] + grad_z[0]*grad_z[0] + grad_z[1]*grad_z[1] + grad_z[2]*grad_z[2];
+                    const double aux_current_divergence = ComputeAuxiliaryElementDivergence(grad_x, grad_y, grad_z);
+                    const double aux_current_velocity_seminorm = ComputeAuxiliaryElementVelocitySeminorm(grad_x, grad_y, grad_z);
                     const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
                     divergence_current += std::pow(aux_current_divergence,2) * gauss_point_volume;
                     velocity_seminorm_current += aux_current_velocity_seminorm * gauss_point_volume;
                 }
+
                 // Retrieve divergence from previous time step
                 const double divergence_old = it_elem->GetValue(DIVERGENCE);
                 const double velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
@@ -162,6 +162,20 @@ namespace Kratos
         }
 
         KRATOS_CATCH("");
+    }
+
+    // Compute local auxiliar divergence
+    double WeightedDivergenceCalculationProcess::ComputeAuxiliaryElementDivergence(const Vector grad_x, const Vector grad_y, const Vector grad_z)
+    {
+        const double aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
+        return aux_current_divergence;
+    }
+
+    // Compute local auxiliar velocity seminorm
+    double WeightedDivergenceCalculationProcess::ComputeAuxiliaryElementVelocitySeminorm(const Vector grad_x, const Vector grad_y, const Vector grad_z)
+    {
+        const double aux_current_velocity_seminorm = inner_prod(grad_x, grad_x) + inner_prod(grad_y, grad_y) + inner_prod(grad_z,grad_z);
+        return aux_current_velocity_seminorm;
     }
 
     /* External functions *****************************************************/
