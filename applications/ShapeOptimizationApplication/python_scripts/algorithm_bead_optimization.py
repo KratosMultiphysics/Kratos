@@ -46,7 +46,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
                 "step_size"                  : 1.0
-            }
+            },
+            "penalty_filtering" : false,
+            "penalty_filter_radius" : -1.0
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -54,12 +56,17 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.optimization_settings = optimization_settings
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
+        # change the default value of penalty filtering to the filter radious of the mapper.
+        if self.algorithm_settings["penalty_filter_radius"].GetDouble() == -1.0:
+            self.algorithm_settings["penalty_filter_radius"].SetDouble(self.mapper_settings["filter_radius"].GetDouble())
+
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
 
         self.design_surface = None
         self.mapper = None
+        self.penalty_filter = None
         self.data_logger = None
         self.optimization_utilities = None
 
@@ -111,6 +118,15 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+
+        if  self.filter_penalty_term:
+            if self.algorithm_settings["penalty_filter_radius"].GetDouble() != self.mapper_settings["filter_radius"].GetDouble() :
+                penalty_filter_settings = self.mapper_settings.Clone()
+                penalty_filter_settings["filter_radius"].SetDouble(self.algorithm_settings["penalty_filter_radius"].GetDouble())
+                self.penalty_filter = mapper_factory.CreateMapper(self.design_surface, self.design_surface, penalty_filter_settings)
+                self.penalty_filter.Initialize()
+            else:
+                self.penalty_filter = self.mapper
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
@@ -268,7 +284,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Filter penalty term if specified
                 if self.filter_penalty_term:
-                    self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
+                    self.penalty_filter.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
 
                 # Compute value of Lagrange function
                 L = objective_value + current_lambda*penalty_value + 0.5*penalty_factor*penalty_value**2
