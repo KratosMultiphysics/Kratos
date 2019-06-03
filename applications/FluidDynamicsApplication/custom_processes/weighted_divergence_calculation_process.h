@@ -110,14 +110,8 @@ public:
         if (time_step_current >= time_coefficient * final_time) {
 
             // Check and set number of elements
-            int number_elements;
-            KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
-            number_elements = mrModelPart.Elements().size();
-
-            // Check and set number of nodes
-            int number_nodes;
-            KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "the number of nodes in the domain is zero. weighted divergence calculation cannot be applied" << std::endl;
-            number_nodes = mrModelPart.Nodes().size();
+            KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
+            const unsigned int number_elements = mrModelPart.NumberOfElements();
 
             // Current domain size
             const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
