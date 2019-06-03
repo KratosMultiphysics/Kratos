@@ -74,7 +74,7 @@ public:
     }
 
     /// Destructor.
-    ~WeightedDivergenceCalculationProcess() override {}
+    ~WeightedDivergenceCalculationProcess() override = default;
 
 
     ///@}
