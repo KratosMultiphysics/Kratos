@@ -194,7 +194,7 @@ public:
                 }
                 // Retrieve divergence from previous time step
                 auto divergence_old = it_elem->GetValue(DIVERGENCE);
-                auto velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
+                const double velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
 
                 // Compute divergence weighted time average
                 auto divergence_current_avg = std::sqrt(((time_step_previous-time_coefficient*final_time) * std::pow(divergence_old,2) + (time_step_current - time_step_previous) * divergence_current) /  (time_step_current-time_coefficient*final_time));
