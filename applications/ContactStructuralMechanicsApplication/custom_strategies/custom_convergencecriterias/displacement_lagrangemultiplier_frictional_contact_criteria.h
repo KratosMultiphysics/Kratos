@@ -239,7 +239,7 @@ public:
                     const auto curr_var = it_dof->GetVariable();
                      if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
 
                         const TDataType normal_dof_value = dof_value * normal_x;
@@ -252,7 +252,7 @@ public:
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
 
                         const TDataType normal_dof_value = dof_value * normal_y;
@@ -265,7 +265,7 @@ public:
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
 
                         const TDataType normal_dof_value = dof_value * normal_z;
