@@ -63,7 +63,7 @@ void ComputeNormalizedFreeEnergyOnNodesProcess::NormalizedFreeEnergyExtrapolatio
         auto& r_geometry = r_elem.GetGeometry();
         auto& r_mat_properties = r_elem.GetProperties();
 
-        const Vector& r_strain_vector = (*it_elem)->GetValue(STRAIN_VECTOR);
+        const Vector& r_strain_vector = r_elem.GetValue(STRAIN_VECTOR);
         const Vector& r_stress_vector = (*it_elem)->GetValue(STRESS_VECTOR);
         const double damage = (*it_elem)->GetValue(DAMAGE_ELEMENT);
 
