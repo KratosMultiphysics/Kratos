@@ -43,6 +43,7 @@ namespace Kratos
 //             gid_io.WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
 //             gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(NODAL_VOLUME, rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
 //         }
@@ -150,6 +151,15 @@ namespace Kratos
                     p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Initialize();
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                }
+            }
+
+            // Pre move mesh NODAL_AREA
+            VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
+            Vector aux_vector;
+            for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
                 }
             }
 
@@ -296,6 +306,15 @@ namespace Kratos
                     p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Initialize();
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                }
+            }
+
+            // Pre move mesh NODAL_AREA
+            VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
+            Vector aux_vector;
+            for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
                 }
             }
 
@@ -513,6 +532,15 @@ namespace Kratos
                 }
             }
 
+            // Pre move mesh NODAL_AREA
+            VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
+            Vector aux_vector;
+            for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                }
+            }
+
             if (MoveMesh > 0.0) {
                 for (auto& r_node : r_slave_model_part.Nodes()) {
                     r_node.FastGetSolutionStepValue(DISPLACEMENT_X) = MoveMesh;
@@ -539,7 +567,8 @@ namespace Kratos
             rModelPart.CreateSubModelPart("MasterModelPart");
             ModelPart& r_master_model_part = rModelPart.GetSubModelPart("MasterModelPart");
 
-            Properties::Pointer p_cond_prop = rModelPart.CreateNewProperties(0);
+            Properties::Pointer p_cond_prop_0 = rModelPart.CreateNewProperties(0);
+            Properties::Pointer p_cond_prop_1 = rModelPart.CreateNewProperties(1);
 
             double x, y;
 
@@ -568,7 +597,7 @@ namespace Kratos
             for (std::size_t i = 0; i < NumberOfDivisions; i++) {
                 r_cond++;
                 const std::size_t ref_id = (2 * i)+1;
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", r_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", r_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
                 r_slave_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, true);
                 p_cond->Set(MASTER, false);
@@ -600,8 +629,9 @@ namespace Kratos
                 }
             } else {
                 // Creating the second plane
-                dx = 0.25 * Lenght/static_cast<double>(NumberOfDivisions);
-                for (std::size_t i = 0; i < NumberOfDivisions + 1; ++i) {
+                std::size_t subdivision_plane = NumberOfDivisions/4;
+                dx = 0.25 * Lenght/static_cast<double>(subdivision_plane);
+                for (std::size_t i = 0; i < subdivision_plane + 1; ++i) {
                     x = dx * i;
                     y = Slope * dx * i + 1.0e-3;
                     id_node++;
@@ -627,7 +657,7 @@ namespace Kratos
                 r_cond++;
                 this_set.AddId(r_cond);
                 const std::size_t ref_id = (2 * (i + NumberOfDivisions + 1)+1);
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", r_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", r_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
                 r_master_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, false);
                 p_cond->Set(MASTER, true);
@@ -679,7 +709,7 @@ namespace Kratos
             for (auto& r_slave_cond : slave_conds) {
                 for (auto& r_master_cond : master_conds) {
                     r_cond++;
-                    Condition::Pointer p_auxiliar_condition = r_computing_contact_model_part.CreateNewCondition("ALMFrictionalMortarContactCondition3D4N", r_cond, r_slave_cond->GetGeometry(), p_cond_prop);
+                    Condition::Pointer p_auxiliar_condition = r_computing_contact_model_part.CreateNewCondition("ALMFrictionalMortarContactCondition3D4N", r_cond, r_slave_cond->GetGeometry(), p_cond_prop_0);
                     // We set the geometrical values
                     p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, r_master_cond->pGetGeometry());
                     p_auxiliar_condition->SetValue(NORMAL, r_slave_cond->GetValue(NORMAL));
@@ -689,6 +719,15 @@ namespace Kratos
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Initialize();
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                }
+            }
+
+            // Pre move mesh NODAL_AREA
+            VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
+            Vector aux_vector;
+            for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
                 }
             }
 
@@ -889,7 +928,7 @@ namespace Kratos
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                         const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.25;
-                        KRATOS_CHECK_LESS_EQUAL((weighted_slip_corrected[0] - slip[0])/slip[0], tolerance);
+                        KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
                 }
@@ -945,7 +984,7 @@ namespace Kratos
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                         const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_AREA);
-                        KRATOS_CHECK_LESS_EQUAL((weighted_slip_corrected[0] - slip[0])/slip[0], tolerance);
+                        KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
                 }
@@ -1002,7 +1041,7 @@ namespace Kratos
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                         const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.25;
-                        KRATOS_CHECK_LESS_EQUAL((weighted_slip_corrected[0] - slip[0])/slip[0], tolerance);
+                        KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
                 }
@@ -1059,7 +1098,70 @@ namespace Kratos
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                         const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_AREA);
-                        KRATOS_CHECK_LESS_EQUAL((weighted_slip_corrected[0] - slip[0])/slip[0], tolerance);
+                        KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                        ++counter;
+                    }
+                }
+            }
+            KRATOS_CHECK(counter != 0);
+        }
+
+        /**
+        * Checks the correct work of the weighted gap computation (with objective slip)
+        * Test 5
+        */
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap5, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
+            r_model_part.CreateSubModelPart("ComputingContact");
+
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            auto& r_process_info = r_model_part.GetProcessInfo();
+            r_process_info[STEP] = 1;
+            r_process_info[NL_ITERATION_NUMBER] = 1;
+            r_process_info[DELTA_TIME] = 1.0;
+            r_process_info[DISTANCE_THRESHOLD] = 1.0;
+
+            // First we create the nodes
+            const std::size_t number_of_divisions = 8;
+            const double lenght = 4.0;
+            const double radius = 0.0;
+            const double angle = 0.0;
+            const double slope = 0.0;
+
+            // We create our problem
+            const double delta_x = 0.1;
+            CreateNewProblem3D(r_model_part, number_of_divisions, lenght, radius, angle, slope, delta_x);
+
+            // We compute the explicit contribution
+            const array_1d<double, 3> zero_vector = ZeroVector(3);;
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
+                if (r_cond.Is(SLAVE)) {
+                    r_cond.AddExplicitContribution(r_process_info);
+                    r_cond.FinalizeSolutionStep(r_process_info);
+                }
+            }
+
+            // DEBUG
+            GiDIOGapDebug(r_model_part);
+
+            const double tolerance = 1.0e-4;
+            array_1d<double, 3> slip = ZeroVector(3);
+            slip[0] = - delta_x;
+            std::size_t counter = 0;
+            for (auto& r_node : r_model_part.Nodes()) {
+                if (r_node.Is(SLAVE)) {
+                    if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0 && r_node.GetValue(NODAL_VOLUME) > 0.0) {
+                        const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_VOLUME);
+                        KRATOS_CHECK_LESS_EQUAL(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
                         ++counter;
                     }
                 }
@@ -1069,9 +1171,9 @@ namespace Kratos
 
         /**
         * Checks the correct work of the weighted gap computation (with non-objective slip)
-        * Test 5
+        * Test 6
         */
-        KRATOS_TEST_CASE_IN_SUITE(WeightedGap5, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap6, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
@@ -1117,7 +1219,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1137,9 +1239,9 @@ namespace Kratos
 
         /**
         * Checks the correct work of the weighted gap computation (with non-objective slip)
-        * Test 6
+        * Test 7
         */
-        KRATOS_TEST_CASE_IN_SUITE(WeightedGap6, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap7, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
@@ -1185,7 +1287,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1205,9 +1307,9 @@ namespace Kratos
 
         /**
         * Checks the correct work of the weighted slip computation (2D case)
-        * Test 7
+        * Test 8
         */
-        KRATOS_TEST_CASE_IN_SUITE(WeightedGap7, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap8, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
@@ -1246,16 +1348,16 @@ namespace Kratos
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
                     const auto weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
-                    KRATOS_CHECK_LESS_EQUAL((weighted_slip_corrected[0] - slip[0])/slip[0], tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 }
             }
         }
 
         /**
         * Checks the correct work of the weighted slip computation (2D case) (with non-objective slip)
-        * Test 8
+        * Test 9
         */
-        KRATOS_TEST_CASE_IN_SUITE(WeightedGap8, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap9, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
@@ -1295,7 +1397,7 @@ namespace Kratos
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
                     const auto weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
-                    KRATOS_CHECK_LESS_EQUAL((weighted_slip_corrected[0] - slip[0])/slip[0], tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 }
             }
         }
