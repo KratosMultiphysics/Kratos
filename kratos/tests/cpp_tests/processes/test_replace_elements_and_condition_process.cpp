@@ -426,7 +426,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
             KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
         }
         else {
-            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D");
+            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D3N");
         }
         
     }
@@ -437,7 +437,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
             KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
         }
         else {
-            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D");
+            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D3N");
         }
         
     }
