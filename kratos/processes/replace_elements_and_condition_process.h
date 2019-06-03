@@ -16,7 +16,6 @@
 #define  KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED
 
 // System includes
-#include <unordered_set>
 
 // External includes
 
