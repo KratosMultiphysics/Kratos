@@ -244,8 +244,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
-    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2,23)).c_str(),
-        "NearestNeighborLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5 in rank 23");
+    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2)).c_str(),
+        "NearestNeighborLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)

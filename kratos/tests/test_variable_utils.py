@@ -616,6 +616,50 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.Y, node_ref.Y)
             self.assertAlmostEqual(node.Z, node_ref.Z)
 
+    def test_UpdateCurrentPosition(self):
+        # Set the test model part
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        # Set a fake displacement field
+        for node in model_part.Nodes:
+            aux_disp = Vector(3)
+            aux_disp[0] = float(node.Id)
+            aux_disp[1] = 1.5 * float(node.Id)
+            aux_disp[2] = 2.0 * float(node.Id)
+            node.SetSolutionStepValue(DISPLACEMENT, aux_disp)
+
+        # Update current position
+        VariableUtils().UpdateCurrentPosition(model_part.Nodes)
+
+        # Check current position
+        for node in model_part.Nodes:
+            self.assertAlmostEqual(node.X, node.X0 + float(node.Id))
+            self.assertAlmostEqual(node.Y, node.Y0 + 1.5 * float(node.Id))
+            self.assertAlmostEqual(node.Z, node.Z0 + 2.0 * float(node.Id))
+
+        # Set a fake displacement field in another variable
+        for node in model_part.Nodes:
+            aux_disp = Vector(3)
+            aux_disp[0] = 3.0 * float(node.Id)
+            aux_disp[1] = 4.0 * float(node.Id)
+            aux_disp[2] = 5.0 * float(node.Id)
+            node.SetSolutionStepValue(MESH_DISPLACEMENT, aux_disp)
+
+        # Update current position using an alternative variable
+        VariableUtils().UpdateCurrentPosition(model_part.Nodes, MESH_DISPLACEMENT)
+
+        # Check current position
+        for node in model_part.Nodes:
+            self.assertAlmostEqual(node.X, node.X0 + 3.0 * float(node.Id))
+            self.assertAlmostEqual(node.Y, node.Y0 + 4.0 * float(node.Id))
+            self.assertAlmostEqual(node.Z, node.Z0 + 5.0 * float(node.Id))
 
 if __name__ == '__main__':
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
