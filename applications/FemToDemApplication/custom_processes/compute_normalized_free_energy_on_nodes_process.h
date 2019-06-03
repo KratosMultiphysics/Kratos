@@ -36,13 +36,14 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 
   public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNormalizedFreeEnergyOnNodesProcess);
 
     typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     // Constructor
-	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, int Dimension, Parameters ThisParameters);
+	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, Parameters ThisParameters);
 
     // Destructor
     ~ComputeNormalizedFreeEnergyOnNodesProcess() override = default;
@@ -72,7 +73,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
   protected:
     // Member Variables
     ModelPart& mrModelPart;
-    unsigned int mNNodes, mDimension;
+    unsigned int mNNodes;
     bool mComputeNormalizedFreeEnergy = false;
     bool mCorrectWithDisplacements = false;
 

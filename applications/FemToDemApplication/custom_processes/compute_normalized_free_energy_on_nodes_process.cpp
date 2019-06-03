@@ -21,12 +21,9 @@ namespace Kratos
 // Constructor
 ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesProcess(
     ModelPart &rModelPart, 
-    int Dimension, 
     Parameters ThisParameters) : mrModelPart(rModelPart)
 {
     mNNodes = mrModelPart.NumberOfNodes();
-    mDimension = Dimension;
-
     Parameters default_parameters = Parameters(R"(
     {
         "normalized_free_energy" : false,
@@ -109,6 +106,8 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
     )
 {
     double normalized_free_energy;
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    std::size_t dimension = r_process_info[DOMAIN_SIZE];
 
     normalized_free_energy = inner_prod(rStrainVector, rStressVector);
     if (mComputeNormalizedFreeEnergy) {
@@ -125,7 +124,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
         KRATOS_ERROR_IF(density < tolerance) << "The DENSITY is null or not assigned" << std::endl;
 
         double characteristic_length, r;
-        if (mDimension == 2) {
+        if (dimension == 2) {
             characteristic_length = this->CalculateCharacteristicLength2D(rGeometry);
             r = this->ComputeTensionFactor2D(rStressVector);
         } else {
