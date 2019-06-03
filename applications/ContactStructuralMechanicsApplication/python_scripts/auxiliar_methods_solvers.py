@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 
@@ -87,6 +86,10 @@ def AuxiliarSetSettings(settings, contact_settings):
 
     return settings
 
+def AuxiliarValidateSettings(solver):
+    default_settings = solver.GetDefaultSettings()
+    default_settings.RecursivelyAddMissingParameters(solver.settings)
+    solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
 def AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":

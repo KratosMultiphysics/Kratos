@@ -24,18 +24,61 @@ namespace Kratos
  * the stress displacement derivative. It is designed to be used in adjoint
  * sensitivity analysis.
  */
-class AdjointFiniteDifferenceTrussElement : public AdjointFiniteDifferencingBaseElement
+template <typename TPrimalElement>
+class AdjointFiniteDifferenceTrussElement
+    : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElement);
 
-    AdjointFiniteDifferenceTrussElement(): AdjointFiniteDifferencingBaseElement()
+    // redefine the typedefs because of templated base class
+    typedef AdjointFiniteDifferencingBaseElement<TPrimalElement> BaseType;
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::IndexType IndexType;
+    typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::PropertiesType PropertiesType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::VectorType VectorType;
+    typedef typename BaseType::MatrixType MatrixType;
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::IntegrationMethod IntegrationMethod;
+    typedef typename BaseType::GeometryDataType GeometryDataType;
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElement);
+
+    AdjointFiniteDifferenceTrussElement(IndexType NewId = 0)
+    : BaseType(NewId)
     {
     }
 
-    AdjointFiniteDifferenceTrussElement(Element::Pointer pPrimalElement);
+    AdjointFiniteDifferenceTrussElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
+    {
+    }
 
-    ~AdjointFiniteDifferenceTrussElement() override;
+    AdjointFiniteDifferenceTrussElement(IndexType NewId,
+                        typename GeometryType::Pointer pGeometry,
+                        typename PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
+
+    Element::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              typename PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElement<TPrimalElement>>(
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId,
+                              typename GeometryType::Pointer pGeometry,
+                              typename PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElement<TPrimalElement>>(
+            NewId, pGeometry, pProperties);
+    }
 
     /**
      * Calculates the derivative of stresses/stress resultants w.r.t primal displacement. The calculation is done analytically.

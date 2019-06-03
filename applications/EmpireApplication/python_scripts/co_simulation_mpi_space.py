@@ -12,12 +12,6 @@ class CoSimulationMPISpace(CoSimulationSpace):
     i.e. MPI can only be used with Kratos compiled with MPI
     """
 
-    mpi_op_types_dict = {
-        "max" : mpi.MPI_op.MAX,
-        "min" : mpi.MPI_op.MIN,
-        "sum" : mpi.MPI_op.SUM
-    }
-
     def __init__(self):
         # Precompute rank and size such that they don't have to be recomputed all the time
         self.comm_rank = mpi.rank

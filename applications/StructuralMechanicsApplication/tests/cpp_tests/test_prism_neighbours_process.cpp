@@ -19,6 +19,7 @@
 #include "geometries/prism_3d_6.h"
 #include "testing/testing.h"
 #include "includes/gid_io.h"
+#include "includes/global_pointer_variables.h"
 
 /* Processes */
 #include "custom_processes/prism_neighbours_process.h"
@@ -46,7 +47,7 @@ namespace Kratos
             const std::size_t NumberNeighbours
             )
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1  = ThisModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);

@@ -33,9 +33,11 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw& rReferenceContinuumConstitutiveLaw);
 
-        virtual void Initialize();
+        virtual void Initialize(SphericContinuumParticle* owner_sphere);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
+
+        virtual void Check(Properties::Pointer pProp) const;
 
         virtual std::string GetTypeOfLaw();
 

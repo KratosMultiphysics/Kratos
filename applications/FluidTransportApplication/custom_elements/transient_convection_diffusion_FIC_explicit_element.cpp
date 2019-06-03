@@ -89,6 +89,7 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+
     Vector detJContainer(NumGPoints);
     Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
 
@@ -97,6 +98,7 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
     this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
 
     Variables.IterationNumber = rCurrentProcessInfo[NL_ITERATION_NUMBER];
+    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux = ZeroMatrix( TNumNodes, TNumNodes );
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -124,11 +126,35 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
-        array_1d <double, TNumNodes> AuxMVector;
-        noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
+        array_1d <double, TNumNodes> AuxMVector1;
+        array_1d <double, TNumNodes> AuxMVector2;
 
-        noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+        noalias(AuxMVector1) = Variables.rho_dot_c * Variables.N;
+        noalias(AuxMVector2) = Variables.rho_dot_c * 0.5 * prod(Variables.GradNT,Variables.HVector);
+
+        //// M matrix
+        BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );
+        BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux2 = ZeroMatrix( TNumNodes, TNumNodes );
+
+        MMatrixAux1 = outer_prod(AuxMVector1,Variables.N) * Variables.IntegrationCoefficient;
+        MMatrixAux2 = outer_prod(AuxMVector2,Variables.N) * Variables.IntegrationCoefficient;
+
+        // We are not considering MMatrixAux2, which is the h term
+        MMatrixAux += MMatrixAux1 ;
     }
+
+    for (unsigned int i = 0 ; i < TNumNodes ; i++ )
+    {
+        for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
+        {
+            // LHS = Md lumped
+            rLeftHandSideMatrix (i,i) += MMatrixAux(i,j);
+        }
+        // rLeftHandSideMatrix (i,i) = Geom.Area() / 3.0;
+
+    }
+
+    //rLeftHandSideMatrix = MMatrixAux;
 
     //RightHandSideVector
 
@@ -136,20 +162,26 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
     const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-    array_1d<double,TNumNodes> NodalPhiCurrent;
+    //array_1d<double,TNumNodes> NodalPhiCurrent;
+    //array_1d<double,TNumNodes> PrevNodalPhi;
 
-    const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+   // const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        NodalPhiCurrent[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar,0);
-    }
+  //  for (unsigned int i = 0; i < TNumNodes; i++)
+  //  {
+  //      NodalPhiCurrent[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar,0);
+   //     PrevNodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar,2);
+   // }
 
     array_1d<double,TNumNodes> aux_vector;
+    //array_1d<double,TNumNodes> aux_vector_2;
 
-    noalias(aux_vector) = NodalPhiCurrent - Variables.NodalPhi;
+    // noalias(aux_vector) = NodalPhiCurrent - 2.0 * Variables.NodalPhi + PrevNodalPhi;
+    //noalias(aux_vector_2) = Variables.NodalPhi - PrevNodalPhi;
 
-    noalias(rRightHandSideVector) -= 1.0 / (Theta*DeltaTime) * prod(rLeftHandSideMatrix, aux_vector);
+    //noalias(rRightHandSideVector) -= 1.0 / (Theta * DeltaTime) * (prod(rLeftHandSideMatrix, aux_vector) + prod(MMatrixAux, aux_vector_2));
+    noalias(rRightHandSideVector) += 1.0 / (Theta * DeltaTime) * (prod(rLeftHandSideMatrix, Variables.NodalPhi));
+    aux_vector = 1.0 / (Theta * DeltaTime) * (prod(rLeftHandSideMatrix, Variables.NodalPhi));
 
     KRATOS_CATCH("")
 }
@@ -196,6 +228,11 @@ void TransientConvectionDiffusionFICExplicitElement<TDim,TNumNodes>::InitializeE
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar, 1);
+
+        for (unsigned int j = 0; j < TDim; j++)
+        {
+            rVariables.NodalPhiGradient [j][i] =Geom[i].FastGetSolutionStepValue(NODAL_PHI_GRADIENT)[j];
+        }
 
         rVariables.NodalVel[i] = ZeroVector(3);
         const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();

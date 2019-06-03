@@ -26,10 +26,12 @@
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
+
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
 #include "../../DEMApplication/custom_elements/discrete_element.h"
-#include "custom_elements/spheric_swimming_particle.h"
+#include "custom_elements/swimming_particle.h"
+#include "custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.h"
 #include "includes/define.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "../../DEMApplication/custom_elements/spheric_particle.h"
@@ -48,7 +50,22 @@ typedef ModelPart::NodesContainerType               NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(BassetForceTools);
 
-BassetForceTools(): mFirstTimeAppending(true), mNumberOfQuadratureStepsInWindow(0), mTimeWindow(0.0){}
+BassetForceTools(Parameters& r_parameters)
+    : mFirstTimeAppending(true), mNumberOfQuadratureStepsInWindow(0), mTimeWindow(0.0)
+{
+    Parameters default_parameters( R"(
+            {
+                "do_use_mae": false,
+                "m": 10,
+                "window_time_interval": 0.1,
+                "type": 2
+            }
+            )" );
+
+    r_parameters.ValidateAndAssignDefaults(default_parameters);
+    mBassetForceType = r_parameters["type"].GetInt();
+
+}
 /// Calculator
 
 virtual ~BassetForceTools(){}
@@ -67,6 +84,7 @@ void AppendIntegrandsWindow(ModelPart& r_model_part);
 private:
 
 bool mFirstTimeAppending;
+int mBassetForceType;
 int mNumberOfQuadratureStepsInWindow;
 int mNumberOfExponentials;
 double mTimeWindow;

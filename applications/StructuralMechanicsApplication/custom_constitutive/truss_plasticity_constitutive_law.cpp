@@ -72,7 +72,7 @@ bool& TrussPlasticityConstitutiveLaw::GetValue(
     bool& rValue
     )
 {
-    if(rThisVariable == INELASTIC_FLAG) rValue = this->mInElasticFlagVector[0];
+    if(rThisVariable == INELASTIC_FLAG) rValue = this->mCurrentInElasticFlag;
     else KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
@@ -123,7 +123,7 @@ void TrussPlasticityConstitutiveLaw::SetValue(const Variable<bool>& rThisVariabl
                           const bool& rValue,
                           const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rThisVariable == INELASTIC_FLAG) this->mInElasticFlagVector[0] = rValue;
+    if(rThisVariable == INELASTIC_FLAG) this->mCurrentInElasticFlag = rValue;
     else KRATOS_ERROR << "Can't set the specified value" << std::endl;
 }
 
@@ -143,7 +143,7 @@ double& TrussPlasticityConstitutiveLaw::CalculateValue(
         const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
         const double hardening_modulus = r_material_properties[HARDENING_MODULUS_1D];
         const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
-        if (this->mInElasticFlagVector[0])
+        if (this->mCurrentInElasticFlag)
         {
             KRATOS_DEBUG_ERROR_IF((hardening_modulus+youngs_modulus)<numerical_limit)
              << "Dividing by 0 when calculating the plastic tangent modulus" << std::endl;
@@ -172,7 +172,7 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
         double current_stress = this->mStressState;
 
 
-        if (this->mInElasticFlagVector[0])
+        if (this->mCurrentInElasticFlag)
         {
             const double hardening_modulus = r_material_properties[HARDENING_MODULUS_1D];
             const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
@@ -241,7 +241,7 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponse(
     if (SaveInternalVariables)
     {
         this->mStressState = rStressVector[0];
-        this->mInElasticFlagVector[0] = this->CheckIfIsPlasticRegime(rMaterialProperties,rStressVector[0]);
+        this->mCurrentInElasticFlag = this->CheckIfIsPlasticRegime(rMaterialProperties,rStressVector[0]);
 
         if (this->CheckPlasticIterationHistory())
         {
@@ -320,7 +320,7 @@ void TrussPlasticityConstitutiveLaw::FinalizeNonLinearIteration(const Properties
                     const Vector& rShapeFunctionsValues,
                     const ProcessInfo& rCurrentProcessInfo)
 {
-    this->mInElasticFlagVector[1] = this->mInElasticFlagVector[0];
+    this->mPreviousInElasticFlag = this->mCurrentInElasticFlag;
 }
 
 void TrussPlasticityConstitutiveLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
@@ -330,8 +330,8 @@ void TrussPlasticityConstitutiveLaw::FinalizeSolutionStep(const Properties& rMat
 {
     this->mAccumulatedPlasticStrainVector[1] = this->mAccumulatedPlasticStrainVector[0];
     this->mPlasticAlphaVector[1] = this->mPlasticAlphaVector[0];
-    this->mInElasticFlagVector[0] = false;
-    this->mInElasticFlagVector[1] = false;
+    this->mCurrentInElasticFlag = false;
+    this->mPreviousInElasticFlag = false;
 }
 
 } // Namespace Kratos

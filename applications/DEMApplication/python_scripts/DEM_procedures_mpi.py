@@ -81,7 +81,7 @@ class Procedures(DEM_procedures.Procedures):
             for to_erase_file in files_to_delete_list:
                 os.remove(to_erase_file)
 
-    def KRATOSprint(self, message):
+    def KratosPrintInfo(self, message):
         if (mpi.rank == 0):
             Logger.Print(*args, label="DEM")
             Logger.Flush()
@@ -92,9 +92,9 @@ class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).PrintGraph(time)
 
-    def FinalizeGraphs(self,RigidFace_model_part):
+    def FinalizeGraphs(self,rigid_face_model_part):
         if (mpi.rank == 0):
-            super(DEMFEMProcedures,self).FinalizeGraphs(RigidFace_model_part)
+            super(DEMFEMProcedures,self).FinalizeGraphs(rigid_face_model_part)
 
     def FinalizeBallsGraphs(self,spheres_model_part):
         if (mpi.rank == 0):
@@ -182,8 +182,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
 
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
 
-        MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
-        MPICommSetup.Execute()
+        ModelPartCommunicatorUtilities.SetMPICommunicator(spheres_model_part)
 
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Communicator Set")
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+spheres_mp_filename+"_"+str(mpi.rank))
@@ -191,7 +190,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
         my_input_filename = spheres_mp_filename + "_" + str(mpi.rank)
         model_part_io_spheres = ModelPartIO(my_input_filename)
 
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     def GetSearchStrategy(self, solver, model_part):
         return MPI_DEMSearch(model_part.GetCommunicator())

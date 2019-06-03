@@ -18,6 +18,10 @@
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : true,
 "RemoveBallsInEmbeddedOption"      : false,
+"solver_settings" :{
+    "strategy"                 : "sphere_strategy",
+    "RemoveBallsInitiallyTouchingWalls": false
+},
 
 "DeltaOption"                      : "Absolute",
 "SearchTolerance"                  : 0.0,
@@ -39,7 +43,6 @@
 "ControlTime"                      : 100,
 "NeighbourSearchFrequency"         : 1,
 "PeriodicDomainOption"             : false,
-
 "ElementType"                      : "SphericPartDEMElement3D",
 
 "GraphExportFreq"                  : 100,

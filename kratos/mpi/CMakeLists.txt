@@ -7,7 +7,6 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 set( KRATOS_MPI_SOURCES
    mpi_environment.cpp
    sources/mpi_data_communicator.cpp
-   utilities/mpi_coloring_utilities.cpp
 )
 
 ## Kratos MPI extension Python interface
@@ -46,14 +45,21 @@ install(TARGETS KratosMPICore DESTINATION libs )
 install(TARGETS KratosMPI DESTINATION libs)
 
 # Install python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi_module_init.py" DESTINATION "KratosMultiphysics/mpi" RENAME "__init__.py" )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/mpi_module_init.py" DESTINATION "KratosMultiphysics/mpi" RENAME "__init__.py" )
+
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/mpi
+    FILES_MATCHING PATTERN "*.py"
+    PATTERN "mpi_module_init.py" EXCLUDE
+  )
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos/mpi
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos/mpi
     PATTERN "*.git" EXCLUDE
     PATTERN "*.c" EXCLUDE
     PATTERN "*.h" EXCLUDE
     PATTERN "*.cpp" EXCLUDE
     PATTERN "*.hpp" EXCLUDE
-    )
+  )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)

@@ -192,7 +192,7 @@ public:
         }
 
         // Perform MPI sync if needed
-        mrModelPart.GetCommunicator().MinAll(NewDt);
+        NewDt = mrModelPart.GetCommunicator().GetDataCommunicator().MinAll(NewDt);
 
         return NewDt;
 

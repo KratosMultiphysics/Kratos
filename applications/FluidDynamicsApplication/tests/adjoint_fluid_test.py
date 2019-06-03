@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-hdf5_is_available = kratos_utilities.IsApplicationAvailable("HDF5Application")
+hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
@@ -44,6 +44,7 @@ class AdjointFluidTest(UnitTest.TestCase):
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {
+                    "file_name" : "primal_output-<time>",
                     "file_access_mode" : "truncate"
                 },
                 "model_part_output_settings" : {
@@ -53,8 +54,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
                 },
                 "output_time_settings" : {
-                    "output_step_frequency": 1,
-                    "file_name" : "primal_output"
+                    "step_frequency": 1
                 }
             }
         }'''))

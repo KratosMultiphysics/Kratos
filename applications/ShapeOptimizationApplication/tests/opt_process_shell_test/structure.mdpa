@@ -62,7 +62,7 @@ Begin Elements ShellThinElement3D3N
         28          0          2          4          3
 End Elements
 
-Begin Conditions ShapeOptimizationCondition3D3N
+Begin Conditions SurfaceCondition3D3N
          1          0         23         21         22
          2          0         15         11         17
          3          0          9         13         14

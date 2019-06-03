@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -33,11 +33,32 @@
 
 namespace Kratos
 {
-///this function provides basic routines for working with simplicial meshes.
-///It is faster than using Geometry as it is more specialized
+/**
+ * @class GeometryUtils
+ * @ingroup KratosCore
+ * @brief This function provides basic routines for working with simplicial meshes
+ * @details It is faster than using Geometry as it is more specialized
+ * @author Riccardo Rossi
+ */
 class GeometryUtils
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
+    /// The size type definition
+    typedef std::size_t SizeType;
+
+    /// The index type definition
+    typedef std::size_t IndexType;
+
+    /// Definition of the node
+    typedef Node<3> NodeType;
+
+    /// Definition of the geometry
+    typedef Geometry<NodeType> GeometryType;
+
+    ///@}
 
     /**this function is designed to compute the shape function derivatives, shape functions and volume in 3D
      * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
@@ -200,28 +221,32 @@ public:
         hmin = std::sqrt(hmin);
     }
 
-
-
+    /**
+     * @brief This function is designed to compute the shape function derivatives, shape functions and length
+     * @param rGeometry it is the array of nodes. It is expected to be a line
+     * @param rDN_DX a stack matrix of size 3*2 to store the shape function's derivatives
+     * @param rN an array_1d to store the shape functions at the barycenter
+     * @param rLength the volume of the element
+     */
     static inline void CalculateGeometryData(
-        const Element::GeometryType& rGeometry,
-        BoundedMatrix<double,2,1>& DN_DX,
-        array_1d<double,2>& N,
-        double& Area)
+        const GeometryType& rGeometry,
+        BoundedMatrix<double,2,1>& rDN_DX,
+        array_1d<double,2>& rN,
+        double& rLength
+        )
     {
-        double x10 = std::abs(rGeometry[1].X() - rGeometry[0].X());
+        const double lx = rGeometry[0].X() - rGeometry[1].X();
+        const double ly = rGeometry[0].Y() - rGeometry[1].Y();
+        const double detJ = 0.5 * std::sqrt(std::pow(lx, 2) + std::pow(ly, 2));
 
+        rDN_DX(0,0) = -0.5;
+        rDN_DX(1,0) = 0.5;
+        rDN_DX /= detJ;
 
-        double detJ = x10;
+        rN[0] = 0.5;
+        rN[1] = 0.5;
 
-        DN_DX(0,0) = 1.0/(rGeometry[0].X() - rGeometry[1].X());
-        DN_DX(0,1) = 1.0/(rGeometry[1].X() - rGeometry[0].X());
-
-
-        //DN_DX /= detJ;
-        N[0] = 0.5;
-        N[1] = 0.5;
-
-        Area = detJ;
+        rLength = 2.0 * detJ;
     }
 
     /**
@@ -327,7 +352,7 @@ public:
     }
 
     /**
-     * Calculate the exact distances to the interface SEGMENT defined by a set 
+     * Calculate the exact distances to the interface SEGMENT defined by a set
      * of initial distances.
      * @param ThisGeometryThe Triangle itself. Note: If the geometry is not a
      * triangle the result is undefined and may cause memory error.
@@ -392,16 +417,16 @@ public:
 		}
 		else
 		{
-			std::cout << "This is a triangle with more than two intersections!" << std::endl;	
-			std::cout << "Warning: Too many intersections: " << number_of_intersection_points << std::endl;		
+			std::cout << "This is a triangle with more than two intersections!" << std::endl;
+			std::cout << "Warning: Too many intersections: " << number_of_intersection_points << std::endl;
 			std::cout << "Warning: The distances are: " << Distances << std::endl;
-			
+
 		}
 
     }
 
     /**
-     * Calculate the exact distances to the plane interface defined by a set 
+     * Calculate the exact distances to the plane interface defined by a set
      * of initial distances.
      * @param ThisGeometry Geometry can be either a triangle or a tetrahedra
      * @param Distances The distances which define the isosurface as input.
@@ -821,7 +846,7 @@ public:
 
     /**
      * @brief Calculate the deformation gradient.
-     * 
+     *
      * See, e.g., P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008.
      * @param rJ element Jacobian.
      * @param rInvJ0 inverse of the element Jacobian of the initial configuration.
@@ -836,7 +861,7 @@ public:
 
     /**
      * @brief Calculate the Jacobian on the initial configuration.
-     * 
+     *
      * @param rGeom element geometry.
      * @param rCoords local coordinates of the current integration point.
      * @param rJ0 Jacobian on the initial configuration.
@@ -856,6 +881,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined 
+#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
 
 
