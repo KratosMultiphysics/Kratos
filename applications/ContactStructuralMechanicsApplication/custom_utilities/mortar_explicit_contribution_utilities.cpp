@@ -297,7 +297,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             const BoundedMatrix<double, TNumNodesMaster, TDim> delta_x2 = x2 - MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry, false, 1);
 
             // Delta non-objetive gap and slip
-            noalias(slip_time_derivative)  = - (prod(DOperator, delta_x1) - prod(MOperator, delta_x2))/delta_time;
+            noalias(slip_time_derivative)  = (prod(DOperator, delta_x1) - prod(MOperator, delta_x2))/delta_time;
         }
 
         array_1d<double, TDim> normal, aux_array;
