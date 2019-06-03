@@ -17,8 +17,8 @@
 // System includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/checks.h"
+#include "includes/model_part.h"
 #include "residual_based_bossak_velocity_scheme.h"
 
 // Application includes
@@ -53,12 +53,14 @@ public:
     /// Constructor.
 
     GenericResidualBasedBossakVelocityScalarScheme(const double AlphaBossak,
-                                            const Variable<double>& rScalarVariable,
-                                            const Variable<double>& rScalarRateVariable,
-                                            const Variable<double>& rRelaxedScalarRateVariable)
-        : ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(AlphaBossak, {}, {&rScalarVariable}, {&rScalarRateVariable}, {}, {}, {}),
-        mrScalarRateVariable(rScalarRateVariable),
-        mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
+                                                   const double RelaxationFactor,
+                                                   const Variable<double>& rScalarVariable,
+                                                   const Variable<double>& rScalarRateVariable,
+                                                   const Variable<double>& rRelaxedScalarRateVariable)
+        : ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(
+              AlphaBossak, RelaxationFactor, {}, {&rScalarVariable}, {&rScalarRateVariable}, {}, {}, {}),
+          mrScalarRateVariable(rScalarRateVariable),
+          mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
     {
     }
 
@@ -78,13 +80,14 @@ public:
         for (int iNode = 0; iNode < number_of_nodes; ++iNode)
         {
             NodeType& r_node = *(rModelPart.NodesBegin() + iNode);
-            const double scalar_rate_dot_old = r_node.FastGetSolutionStepValue(
-                mrScalarRateVariable, 1);
-            const double scalar_rate_dot = r_node.FastGetSolutionStepValue(
-                mrScalarRateVariable, 0);
+            const double scalar_rate_dot_old =
+                r_node.FastGetSolutionStepValue(mrScalarRateVariable, 1);
+            const double scalar_rate_dot =
+                r_node.FastGetSolutionStepValue(mrScalarRateVariable, 0);
 
             r_node.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
-                this->mAlphaBossak * scalar_rate_dot_old + (1.0 - this->mAlphaBossak) * scalar_rate_dot;
+                this->mAlphaBossak * scalar_rate_dot_old +
+                (1.0 - this->mAlphaBossak) * scalar_rate_dot;
         }
 
         KRATOS_CATCH("");
@@ -107,7 +110,6 @@ public:
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrScalarRateVariable, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrRelaxedScalarRateVariable, r_node);
         }
-
 
         return value;
         KRATOS_CATCH("");
