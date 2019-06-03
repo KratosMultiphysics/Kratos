@@ -211,9 +211,9 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
 
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex2D", mDistanceCalculationElementSimplex2D)
-    KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D", mDistanceCalculationElementSimplex2D)
+    KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D", mDistanceCalculationElementSimplex3D)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D", mLevelSetConvectionElementSimplex2D)
-    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D", mLevelSetConvectionElementSimplex3D)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D", mLevelSetConvectionElementSimplex3D)
 
     //Register general geometries:
 
