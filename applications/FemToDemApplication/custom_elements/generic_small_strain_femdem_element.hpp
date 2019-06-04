@@ -109,6 +109,31 @@ public:
 	{
 	}
 
+    /**
+     * this is called in the beginning of each solution step
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     */
+    void ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
+    void AuxComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
+
+    /**
+     * this storages the mEdgeNeighboursContainer
+     */
+    void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element*>>& rtoSave) {mEdgeNeighboursContainer = rtoSave;}
+
+	void SetNodeIndexes(Matrix& rMatrix) // Defines the numbering of the edges with the corresponding nodes
+	{
+		rMatrix.resize(6, 2);
+		rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
+		rMatrix(1, 1) = 2; rMatrix(2, 0) = 0; rMatrix(2, 1) = 3;
+		rMatrix(3, 0) = 1; rMatrix(3, 1) = 2; rMatrix(4, 0) = 1;
+		rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
+	}
+
 private:
 
     ///@name Static Member Variables
