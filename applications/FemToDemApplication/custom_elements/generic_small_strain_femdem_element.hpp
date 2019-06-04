@@ -129,6 +129,15 @@ public:
      */
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -187,6 +196,15 @@ public:
     void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
     void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
 
+    /**
+     * this integrates the constitutive law
+     */
+    void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage,const Vector& rStrainVector,const Vector& rStressVector,const int Edge,const double CharacteristicLength,bool& rIsDamaging);
+
+    /**
+     * this evaluates the constitutive law
+     */
+    void CalculateEquivalentStress(const array_1d<double, VoigtSize>& rPredictiveStressVector, const Vector& rStrainVector, double& rEquivalentStress, ConstitutiveLaw::Parameters& rValues);
 
 private:
 

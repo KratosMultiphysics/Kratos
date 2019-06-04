@@ -150,6 +150,37 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeNonLinearIteratio
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
+	MatrixType& rLeftHandSideMatrix,
+	VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMechanics(
+	double& rThreshold,
+	double& rDamage,
+	const Vector& rStrainVector,
+	const Vector& rStressVector,
+	const int Edge,
+	const double CharacteristicLength,
+	bool& rIsDamaging
+	)
+{
+    double uniaxial_stress;
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void GenericSmallStrainFemDemElement<3,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
@@ -673,6 +704,18 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Get2MaxValues(
 	rMaxValues[1] = V[1];
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+template<>
+void GenericSmallStrainFemDemElement<2,0>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
