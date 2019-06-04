@@ -613,6 +613,88 @@ static void CalculateEquivalentStressDruckerPrager(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+static void GetInitialUniaxialThresholdHuberVonMises(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double yield_tension = r_material_properties[YIELD_STRESS_T];
+    rThreshold = std::abs(yield_tension);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void GetInitialUniaxialThresholdModifiedMohrCoulomb(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    rThreshold = std::abs(yield_compression);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void GetInitialUniaxialThresholdRankine(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<TVoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void GetInitialUniaxialThresholdTresca(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<TVoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void GetInitialUniaxialThresholdSimoJu(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    rThreshold = std::abs(yield_compression / std::sqrt(r_material_properties[YOUNG_MODULUS]));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void GetInitialUniaxialThresholdDruckerPrager(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double yield_tension = r_material_properties[YIELD_STRESS_T];
+    const double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+    const double sin_phi = std::sin(friction_angle);
+    rThreshold = std::abs(yield_tension * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 
