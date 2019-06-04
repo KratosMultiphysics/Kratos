@@ -65,9 +65,9 @@ namespace Kratos {
       potential(1) = 2.0;
       potential(2) = 3.0;
 
-      for (unsigned int i = 0; i < 3; i++)
+      for (unsigned int i = 0; i < 3; i++){
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
-
+      }
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
@@ -98,9 +98,9 @@ namespace Kratos {
       potential(1) = 2.0;
       potential(2) = 3.0;
 
-      for (unsigned int i = 0; i < 3; i++)
+      for (unsigned int i = 0; i < 3; i++){
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
-
+      }
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
@@ -149,16 +149,20 @@ namespace Kratos {
       pElement->GetValue(WAKE) = true;
 
       for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) > 0.0)
+        if (distances(i) > 0.0){
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
-        else
+        }
+        else{
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+        }
       }
       for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) < 0.0)
+        if (distances(i) < 0.0){
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
-        else
+        }
+        else{
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+        }
       }
 
       // Compute RHS and LHS
@@ -197,16 +201,20 @@ namespace Kratos {
       pElement->GetValue(WAKE) = true;
 
       for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) > 0.0)
+        if (distances(i) > 0.0){
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
-        else
+        }
+        else{
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+        }
       }
       for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) < 0.0)
+        if (distances(i) < 0.0){
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
-        else
+        }
+        else{
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+        }
       }
 
       // Compute RHS and LHS
@@ -271,16 +279,17 @@ namespace Kratos {
       Element::DofsVectorType ElementalDofList;
       pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
 
-      for (int i = 0; i < 3; i++)
+      for (int i = 0; i < 3; i++){
         ElementalDofList[i]->SetEquationId(i);
+      }
 
       Element::EquationIdVectorType EquationIdVector;
       pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       // Check the EquationIdVector values
-      KRATOS_CHECK(EquationIdVector[0] == 0);
-      KRATOS_CHECK(EquationIdVector[1] == 1);
-      KRATOS_CHECK(EquationIdVector[2] == 2);
+      for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
+        KRATOS_CHECK(EquationIdVector[i] == i);
+      }
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -310,19 +319,17 @@ namespace Kratos {
       Element::DofsVectorType ElementalDofList;
       pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
 
-      for (int i = 0; i < 6; i++)
+      for (int i = 0; i < 6; i++){
         ElementalDofList[i]->SetEquationId(i);
+      }
 
       Element::EquationIdVectorType EquationIdVector;
       pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       //Check the EquationIdVector values
-      KRATOS_CHECK(EquationIdVector[0] == 0);
-      KRATOS_CHECK(EquationIdVector[1] == 1);
-      KRATOS_CHECK(EquationIdVector[2] == 2);
-      KRATOS_CHECK(EquationIdVector[3] == 3);
-      KRATOS_CHECK(EquationIdVector[4] == 4);
-      KRATOS_CHECK(EquationIdVector[5] == 5);
+      for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
+        KRATOS_CHECK(EquationIdVector[i] == i);
+      }
     }
   } // namespace Testing
 }  // namespace Kratos.
