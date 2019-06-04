@@ -483,7 +483,19 @@ static void CalculateEquivalentStressMohrCoulomb(
     ConstitutiveLaw::Parameters& rValues
     )
 {
+    double I1, J2, J3, lode_angle;
+    array_1d<double, TVoigtSize> deviator = ZeroVector(TVoigtSize);
 
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(deviator, J3);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0;
+
+    rEquivalentStress = (std::cos(lode_angle) - std::sin(lode_angle) * std::sin(friction_angle) / std::sqrt(3.0)) * std::sqrt(J2) +
+        I1 * std::sin(friction_angle) / 3.0;
 }
 
 /***********************************************************************************/
@@ -497,7 +509,10 @@ static void CalculateEquivalentStressRankine(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-
+    array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
+    // The rEquivalentStress is the maximum principal stress
+    rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
 }
 
 
@@ -512,7 +527,13 @@ static void CalculateEquivalentStressTresca(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-
+    double I1, J2, J3, lode_angle;
+    array_1d<double, TVoigtSize> deviator = ZeroVector(TVoigtSize);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(deviator, J3);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+    rEquivalentStress = 2.0 * std::cos(lode_angle) * std::sqrt(J2);
 }
 
 /***********************************************************************************/
