@@ -21,6 +21,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/zarate_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fem_dem_elastic_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_small_strain_femdem_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/femdem2d_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/femdem3d_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/romfemdem3d_element.cpp

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "femdem3d_element.hpp"
+#include "generic_small_strain_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
 #include "solid_mechanics_application_variables.h"
 
@@ -25,7 +25,7 @@ namespace Kratos
 //***********************DEFAULT CONSTRUCTOR******************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
+GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
 	: SmallDisplacementElement(NewId, pGeometry)
 {
 	//DO NOT ADD DOFS HERE!!!
@@ -33,7 +33,7 @@ GenericSmallStrainFemDemElement::GenericSmallStrainFemDemElement(IndexType NewId
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 	: SmallDisplacementElement(NewId, pGeometry, pProperties)
 {
 	//BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
@@ -58,7 +58,7 @@ GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GenericSmallStrainFemDemElemen
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement &GenericSmallStrainFemDemElement<TDim,TyieldSurf>::operator=(GenericSmallStrainFemDemElement const &rOther)
+GenericSmallStrainFemDemElement<TDim, TyieldSurf> &GenericSmallStrainFemDemElement<TDim,TyieldSurf>::operator=(GenericSmallStrainFemDemElement const &rOther)
 {
 	SmallDisplacementElement::operator=(rOther);
 	return *this;

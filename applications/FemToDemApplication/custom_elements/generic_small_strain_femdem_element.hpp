@@ -69,7 +69,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// The base element type
-    typedef BaseSolidElement BaseType;
+    typedef SmallDisplacementElement BaseType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
