@@ -235,6 +235,7 @@ void MPIDataCommunicator::Barrier() const
 
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(double)
 
 // Reduce operations
@@ -1073,6 +1074,11 @@ template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const unsigned i
     return MPI_UNSIGNED;
 }
 
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const long unsigned int&) const
+{
+    return MPI_UNSIGNED_LONG;
+}
+
 template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const double&) const
 {
     return MPI_DOUBLE;
@@ -1091,6 +1097,11 @@ template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vecto
 template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<unsigned int>&) const
 {
     return MPI_UNSIGNED;
+}
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<long unsigned int>&) const
+{
+    return MPI_UNSIGNED_LONG;
 }
 
 template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<double>&) const
@@ -1126,6 +1137,16 @@ template<> inline void* MPIDataCommunicator::MPIBuffer(unsigned int& rValues) co
 }
 
 template<> inline const void* MPIDataCommunicator::MPIBuffer(const unsigned int& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline void* MPIDataCommunicator::MPIBuffer(long unsigned int& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const long unsigned int& rValues) const
 {
     return &rValues;
 }
@@ -1178,6 +1199,16 @@ template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<u
     return rValues.data();
 }
 
+template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<long unsigned int>& rValues) const
+{
+    return rValues.data();
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<long unsigned int>& rValues) const
+{
+    return rValues.data();
+}
+
 template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<double>& rValues) const
 {
     return rValues.data();
@@ -1224,6 +1255,11 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const unsigned int& rV
     return 1;
 }
 
+template<> inline int MPIDataCommunicator::MPIMessageSize(const long unsigned int& rValues) const
+{
+    return 1;
+}
+
 template<> inline int MPIDataCommunicator::MPIMessageSize(const double& rValues) const
 {
     return 1;
@@ -1240,6 +1276,11 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<int>
 }
 
 template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<unsigned int>& rValues) const
+{
+    return rValues.size();
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<long unsigned int>& rValues) const
 {
     return rValues.size();
 }
