@@ -33,8 +33,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The size type definition
-    typedef std::size_t SizeType;
+/// The size type definition
+typedef std::size_t SizeType;
+    
 
 ///@}
 ///@name  Enum's
@@ -235,7 +236,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressHuberVonMises(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
@@ -247,7 +248,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressModifiedMohrCoulomb(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
@@ -259,7 +260,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressMohrCoulomb(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
@@ -271,7 +272,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressRankine(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
@@ -283,7 +284,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressRankineFragile(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
@@ -295,7 +296,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressTresca(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
@@ -307,7 +308,7 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressSimoJu(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedVectorType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);

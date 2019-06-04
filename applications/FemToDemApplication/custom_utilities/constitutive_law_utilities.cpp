@@ -408,6 +408,107 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressHuberVonMises(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    double I1, J2;
+    array_1d<double, TVoigtSize> deviator = ZeroVector(TVoigtSize);
+
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+
+    rEquivalentStress = std::sqrt(3.0 * J2);
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressModifiedMohrCoulomb(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressMohrCoulomb(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressRankine(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressRankineFragile(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressTresca(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressSimoJu(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 
