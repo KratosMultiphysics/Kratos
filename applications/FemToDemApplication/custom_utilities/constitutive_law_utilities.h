@@ -22,6 +22,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -226,6 +227,18 @@ class ConstitutiveLawUtilities
         array_1d<double, Dimension>& rPrincipalStressVector,
         const BoundedVectorType& rStressVector
         );
+
+    /**
+     * @brief This method the uniaxial equivalent stress
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressVonMises(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
 
   private:
 
