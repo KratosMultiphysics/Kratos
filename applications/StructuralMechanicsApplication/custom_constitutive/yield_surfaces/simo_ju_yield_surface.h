@@ -178,9 +178,9 @@ class SimoJuYieldSurface
 
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double yield_compressionompression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double yield_tensionension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = yield_compressionompression / yield_tensionension;
+        const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.0 / (fracture_energy * n * n / (CharacteristicLength * std::pow(yield_compressionompression, 2)) - 0.5);
