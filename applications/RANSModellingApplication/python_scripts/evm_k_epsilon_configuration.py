@@ -186,23 +186,10 @@ class TurbulenceKEpsilonConfiguration(
 
     def GetTurbulenceSolvingProcess(self):
         if self.turbulence_model_process is None:
-            if (self.model_settings["scheme_settings"]["scheme_type"].
-                    GetString() == "bossak"):
-                self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
-                    self.fluid_model_part,
-                    self.model_settings["coupling_settings"],
-                    self.GetYPlusModel())
-            elif (self.model_settings["scheme_settings"]["scheme_type"].
-                  GetString() == "steady"):
-                self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
-                self.turbulence_model_process = KratosRANS.KEpsilonSteadyCoSolvingProcess(
-                    self.fluid_model_part,
-                    self.model_settings["coupling_settings"],
-                    self.GetYPlusModel())
-            else:
-                raise Exception("Unknown scheme_type = \"" +
-                                self.model_settings["scheme_settings"]
-                                ["scheme_type"].GetString() + "\"")
+            self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
+                self.fluid_model_part,
+                self.model_settings["coupling_settings"],
+                self.GetYPlusModel())
 
             Kratos.Logger.PrintInfo(self.__class__.__name__,
                                     "Created turbulence solving process.")

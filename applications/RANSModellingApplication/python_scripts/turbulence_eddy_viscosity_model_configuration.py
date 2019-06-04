@@ -173,6 +173,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         elif (scheme_settings["scheme_type"].GetString() == "steady"):
             time_scheme = KratosRANS.GenericResidualBasedSimpleSteadyScalarScheme(
                 solver_settings["relaxation_factor"].GetDouble())
+            self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
             self.fluid_model_part.ProcessInfo[KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
         else:
             raise Exception("Unknown scheme_type = \"" +

@@ -13,9 +13,9 @@
 #include "spaces/ublas_space.h"
 
 // Application includes
-#include "custom_processes/scalar_co_solving_process.h"
-#include "custom_processes/k_epsilon_co_solving_process.h"
-#include "custom_processes/k_epsilon_steady_co_solving_process.h"
+#include "custom_processes/solving_strategies/scalar_co_solving_process.h"
+#include "custom_processes/solving_strategies/k_epsilon_co_solving_process.h"
+#include "custom_processes/solving_strategies/k_epsilon_steady_co_solving_process.h"
 
 // RANS Y Plus models
 #include "custom_processes/y_plus_model_processes/rans_logarithmic_y_plus_model_process.h"
