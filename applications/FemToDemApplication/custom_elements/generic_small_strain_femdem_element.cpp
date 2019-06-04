@@ -242,16 +242,6 @@ void GenericSmallStrainFemDemElement<3,5>::CalculateAverageVariableOnEdge(
     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
 }
 template<>
-void GenericSmallStrainFemDemElement<3,6>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
 void GenericSmallStrainFemDemElement<2,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
@@ -303,16 +293,6 @@ void GenericSmallStrainFemDemElement<2,4>::CalculateAverageVariableOnEdge(
 }
 template<>
 void GenericSmallStrainFemDemElement<2,5>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,6>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
     Vector& rAverageVector,
@@ -388,11 +368,6 @@ double GenericSmallStrainFemDemElement<3,5>::CalculateElementalDamage(const Vect
     return this->CalculateElementalDamage3D(rEdgeDamages);
 }
 template<>
-double GenericSmallStrainFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
 double GenericSmallStrainFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
    return this->CalculateElementalDamage2D(rEdgeDamages);
@@ -419,11 +394,6 @@ double GenericSmallStrainFemDemElement<2,4>::CalculateElementalDamage(const Vect
 }
 template<>
 double GenericSmallStrainFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
    return this->CalculateElementalDamage2D(rEdgeDamages);
 }
@@ -542,11 +512,7 @@ void GenericSmallStrainFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rC
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
-template<>
-void GenericSmallStrainFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -563,8 +529,6 @@ template<>
 void GenericSmallStrainFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 template<> 
 void GenericSmallStrainFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -716,6 +680,117 @@ void GenericSmallStrainFemDemElement<2,0>::CalculateEquivalentStress(
 {
     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
 }
+template<>
+void GenericSmallStrainFemDemElement<3,0>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,1>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,1>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,2>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,2>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,3>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,3>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,4>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,4>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,5>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,5>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -725,12 +800,10 @@ template class GenericSmallStrainFemDemElement<2,2>;
 template class GenericSmallStrainFemDemElement<2,3>;
 template class GenericSmallStrainFemDemElement<2,4>;
 template class GenericSmallStrainFemDemElement<2,5>;
-template class GenericSmallStrainFemDemElement<2,6>;
 template class GenericSmallStrainFemDemElement<3,0>;
 template class GenericSmallStrainFemDemElement<3,1>;
 template class GenericSmallStrainFemDemElement<3,2>;
 template class GenericSmallStrainFemDemElement<3,3>;
 template class GenericSmallStrainFemDemElement<3,4>;
 template class GenericSmallStrainFemDemElement<3,5>;
-template class GenericSmallStrainFemDemElement<3,6>;
 } // namespace Kratos
