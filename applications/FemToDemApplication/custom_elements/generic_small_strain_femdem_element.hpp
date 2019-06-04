@@ -120,6 +120,11 @@ public:
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    
+    /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
     void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);

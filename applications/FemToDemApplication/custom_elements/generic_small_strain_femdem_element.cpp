@@ -97,6 +97,46 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
 	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
 	this->InitializeInternalVariablesAfterMapping();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+	KRATOS_TRY
+
+	//create and initialize element variables:
+	ElementDataType variables;
+	this->InitializeElementData(variables,rCurrentProcessInfo);
+
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+	//set constitutive law flags:
+	Flags &ConstitutiveLawOptions = values.GetOptions();
+
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+	for (SizeType point_number = 0; point_number < integration_points.size(); point_number++) {
+		//compute element kinematic variables B, F, DN_DX ...
+		this->CalculateKinematics(variables,point_number);
+
+		//calculate material response
+		this->CalculateMaterialResponse(variables, values, point_number);
+	}
+	this->SetValue(STRESS_VECTOR, values.GetStressVector());
+	this->SetValue(STRAIN_VECTOR, values.GetStrainVector());
+
+	KRATOS_CATCH("")
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
