@@ -110,7 +110,7 @@ public:
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
 
-        if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0) {
+        if (stress_increment_1 >= 1.0e-3 && stress_increment_2 <= 0.0) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
         } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0) {
