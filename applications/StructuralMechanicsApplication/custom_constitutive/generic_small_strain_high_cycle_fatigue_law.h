@@ -128,6 +128,7 @@ public:
             mPreviousMaxStress(rOther.mPreviousMaxStress),  
             mPreviousMinStress(rOther.mPreviousMinStress),  
             mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal), 
+            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal), 
             mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
             mStressVector(rOther.mStressVector), 
             mMaxDetected(rOther.mMaxDetected),
@@ -337,7 +338,7 @@ private:
     void SetMinDetected(const bool toMinDetected){mMinDetected = toMinDetected;}
 
     double GetWohlerStress() {return mWohlerStress;}
-    void SetWohlerStress(const double toWohleStress) {mWohlerStress = toWohleStress;}
+    void SetWohlerStress(const double toWohlerStress) {mWohlerStress = toWohlerStress;}
     
     ///@}
     ///@name Member Variables
@@ -352,9 +353,9 @@ private:
     unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
-    double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
     bool mMaxDetected = false; // Maximum's indicator in the current cycle
     bool mMinDetected = false; // Minimum's indicator in the current cycle
+    double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
 
     ///@}
     ///@name Private Operators
