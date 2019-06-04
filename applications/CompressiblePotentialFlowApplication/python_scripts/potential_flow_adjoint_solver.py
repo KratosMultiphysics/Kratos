@@ -31,9 +31,11 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
+
         self.formulation = PotentialFlowAdjointFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
+
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
 
     def AddVariables(self):
@@ -77,26 +79,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.response_function.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
-
-    # def PrepareModelPart(self):
-    #     super(PotentialFlowAdjointSolver, self).PrepareModelPart()
-    #    # defines how the primal elements should be replaced with their adjoint counterparts
-    #     replacement_settings = KratosMultiphysics.Parameters("""
-    #         {
-    #             "element_name_table" :
-    #             {
-    #                 "IncompressiblePotentialFlowElement2D3N" : "AdjointPotentialFlowElement2D3N"
-    #             },
-    #             "condition_name_table" :
-    #             {
-    #                 "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
-    #             }
-    #         }
-    #     """)
-
-    #     ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-
-    #     KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
