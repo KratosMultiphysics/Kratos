@@ -696,6 +696,7 @@ static void GetInitialUniaxialThresholdDruckerPrager(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterHuberVonMises(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
@@ -713,6 +714,7 @@ static void CalculateDamageParameterHuberVonMises(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterModifiedMohrCoulomb(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
@@ -732,54 +734,65 @@ static void CalculateDamageParameterModifiedMohrCoulomb(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterMohrCoulomb(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
     const double CharacteristicLength
     )
 {
-    
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterRankine(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
     const double CharacteristicLength
     )
 {
-    
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterTresca(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
     const double CharacteristicLength
     )
 {
-    
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterSimoJu(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
     const double CharacteristicLength
     )
 {
-    
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    const double yield_tension = r_material_properties[YIELD_STRESS_T];
+    const double n = yield_compression / yield_tension;
+    rAParameter = 1.0 / (fracture_energy * n * n / (CharacteristicLength * std::pow(yield_compressionompression, 2)) - 0.5);
+    KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
 static void CalculateDamageParameterDruckerPrager(
     ConstitutiveLaw::Parameters& rValues,
     double& rAParameter,
