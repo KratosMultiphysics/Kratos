@@ -134,6 +134,41 @@ double GenericSmallStrainFemDemElement<3,6>::CalculateElementalDamage(const Vect
 {
    return this->CalculateElementalDamage3D(rEdgeDamages);
 }
+template<>
+double GenericSmallStrainFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
@@ -159,8 +194,9 @@ double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamag
 	damage_mode_fracture[0] = 0.5 * (rEdgeDamages[0] + rEdgeDamages[1]);
 	damage_mode_fracture[1] = 0.5 * (rEdgeDamages[0] + rEdgeDamages[2]);
 	damage_mode_fracture[2] = 0.5 * (rEdgeDamages[1] + rEdgeDamages[2]);
-
-	return this->GetMaxValue(damage_mode_fracture);
+	Vector two_max_values;
+	this->Get2MaxValues(two_max_values, damage_mode_fracture[0], damage_mode_fracture[1], damage_mode_fracture[2]);
+	return 0.5*(two_max_values[0] + two_max_values[1]);
 }
 
 
