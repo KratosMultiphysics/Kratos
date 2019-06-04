@@ -418,10 +418,8 @@ static void CalculateEquivalentStressHuberVonMises(
 {
     double I1, J2;
     array_1d<double, TVoigtSize> deviator = ZeroVector(TVoigtSize);
-
     ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
     ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-
     rEquivalentStress = std::sqrt(3.0 * J2);
 }
 
@@ -437,7 +435,41 @@ static void CalculateEquivalentStressModifiedMohrCoulomb(
     ConstitutiveLaw::Parameters& rValues
     )
 {
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    const double yield_tension = r_material_properties[YIELD_STRESS_T];
+    double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
+    // Check input variables
+    if (friction_angle < tolerance) {
+        friction_angle = 32.0 * Globals::Pi / 180.0;
+        KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
+    }
+
+    double theta;
+    const double R = std::abs(yield_compression / yield_tension);
+    const double Rmorh = std::pow(std::tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2);
+    const double alpha_r = R / Rmorh;
+    const double sin_phi = std::sin(friction_angle);
+
+    double I1, J2, J3;
+    array_1d<double, TVoigtSize> deviator = ZeroVector(TVoigtSize);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(deviator, J3);
+
+    const double K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sin_phi;
+    const double K2 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) / sin_phi;
+    const double K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
+
+    // Check Modified Mohr-Coulomb criterion
+    if (std::abs(I1) < tolerance) {
+        rEquivalentStress = 0.0;
+    } else {
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, theta);
+        rEquivalentStress = (2.0 * std::tan(Globals::Pi * 0.25 + friction_angle * 0.5) / std::cos(friction_angle)) * ((I1 * K3 / 3.0) +
+                    std::sqrt(J2) * (K1 * std::cos(theta) - K2 * std::sin(theta) * sin_phi / std::sqrt(3.0)));
+    }
 }
 
 /***********************************************************************************/
@@ -468,15 +500,6 @@ static void CalculateEquivalentStressRankine(
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-static void CalculateEquivalentStressRankineFragile(
-    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues);
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -497,6 +520,20 @@ static void CalculateEquivalentStressTresca(
 
 template<SizeType TVoigtSize>
 static void CalculateEquivalentStressSimoJu(
+    const array_1d<double, TVoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+static void CalculateEquivalentStressDruckerPrager(
     const array_1d<double, TVoigtSize>& rPredictiveStressVector,
     const Vector& rStrainVector,
     double& rEquivalentStress,

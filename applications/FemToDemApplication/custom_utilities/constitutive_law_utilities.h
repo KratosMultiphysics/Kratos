@@ -373,6 +373,83 @@ class ConstitutiveLawUtilities
         ConstitutiveLaw::Parameters& rValues,
         double& rThreshold);
 
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterHuberVonMises(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterModifiedMohrCoulomb(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterMohrCoulomb(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterRankine(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterTresca(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterSimoJu(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateDamageParameterDruckerPrager(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength);
+
   private:
 
 }; // class ConstitutiveLawUtilities
