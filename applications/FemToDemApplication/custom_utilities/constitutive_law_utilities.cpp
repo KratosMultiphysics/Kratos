@@ -584,7 +584,30 @@ static void CalculateEquivalentStressDruckerPrager(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+    const double sin_phi = std::sin(friction_angle);
+    const double root_3 = std::sqrt(3.0);
+
+    // Check input variables
+    if (friction_angle < tolerance) {
+        friction_angle = 32.0 * Globals::Pi / 180.0;
+        KRATOS_WARNING("DruckerPragerYieldSurface") << "Friction Angle not defined, assumed equal to 32 " << std::endl;
+    }
+
+    double I1, J2;
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    array_1d<double, TVoigtSize> deviator = ZeroVector(TVoigtSize);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+
+    if (std::abs(I1) < tolerance) {
+        rEquivalentStress = 0.0;
+    } else {
+        const double CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
+        const double TEN0 = 2.0 * I1 * sin_phi / (root_3 * (3.0 - sin_phi)) + std::sqrt(J2);
+        rEquivalentStress = std::abs(CFL * TEN0);
+    } 
 }
 
 /***********************************************************************************/
