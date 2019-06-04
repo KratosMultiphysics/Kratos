@@ -229,16 +229,89 @@ class ConstitutiveLawUtilities
         );
 
     /**
-     * @brief This method the uniaxial equivalent stress
+     * @brief This method the uniaxial equivalent stress of Huber-VonMises
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      */
-    static void CalculateEquivalentStressVonMises(
+    static void CalculateEquivalentStressHuberVonMises(
         const array_1d<double, VoigtSize>& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method the uniaxial equivalent stress of ModifiedMohrCoulomb
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressModifiedMohrCoulomb(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method the uniaxial equivalent stress of MohrCoulomb
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressMohrCoulomb(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method the uniaxial equivalent stress of Rankine
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressRankine(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method the uniaxial equivalent stress of Rankine Fragile
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressRankineFragile(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method the uniaxial equivalent stress of Tresca
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressTresca(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method the uniaxial equivalent stress of SimoJu
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressSimoJu(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
 
   private:
 
