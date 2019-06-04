@@ -40,11 +40,10 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
 	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
 	// Each component == Each edge
-	mNumberOfEdges = 6;
-	mNonConvergedThresholds = ZeroVector(mNumberOfEdges);   // Equivalent stress
-	mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
-	mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
-	mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
+	mNonConvergedThresholds = ZeroVector(NumberOfEdges);   // Equivalent stress
+	mThresholds = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+	mDamages = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+	mNonConvergedDamages = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
 }
 
 //******************************COPY CONSTRUCTOR**************************************

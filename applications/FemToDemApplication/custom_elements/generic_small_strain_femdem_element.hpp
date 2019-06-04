@@ -62,6 +62,12 @@ public:
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
 
+    /// We define the dimension
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
+
+    /// We define the number of edges
+    static constexpr SizeType NumberOfEdges = (TDim == 3) ? 6 : 3;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
