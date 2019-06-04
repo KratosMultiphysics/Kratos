@@ -32,6 +32,86 @@ namespace Kratos {
         }
     }
 
+    void DEM_KDEM_with_damage::CalculateNormalForces(double LocalElasticContactForce[3],
+            const double kn_el,
+            double equiv_young,
+            double indentation,
+            double calculation_area,
+            double& acumulated_damage,
+            SphericContinuumParticle* element1,
+            SphericContinuumParticle* element2,
+            int i_neighbour_count,
+            int time_steps) {
+
+        KRATOS_TRY
+        const double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
+        const double damage_energy = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
+        const double damage_threshold_tolerance = 1.0e-1;
+        double k_unload = 0.0;
+
+        if (damage_energy) {
+            k_unload = kn_el / damage_energy;
+        }
+
+        if (mKnUpdated > kn_el) { // This only happens the first time we enter the function
+            mKnUpdated = kn_el;
+        }
+
+        if (indentation >= 0.0) { //COMPRESSION
+            LocalElasticContactForce[2] = kn_el * indentation;
+        }
+        else { //tension
+
+            int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+
+            if (!failure_type) {
+
+                const double limit_force = (1.0 - mDamage) * tension_limit * calculation_area;
+                LocalElasticContactForce[2] = mKnUpdated * indentation;
+                if (fabs(LocalElasticContactForce[2]) > limit_force) {
+                    if (!damage_energy) {
+                        failure_type = 4; // failure by traction
+                        LocalElasticContactForce[2] = 0.0;
+                    } else {
+                        const double delta_at_undamaged_peak = limit_force / kn_el;
+                        double delta_acummulated = 0.0;
+
+                        if (mKnUpdated) {
+                            delta_acummulated = fabs(LocalElasticContactForce[2]) / mKnUpdated;
+                        } else {
+                            delta_acummulated = delta_at_undamaged_peak + limit_force / k_unload;
+                        }
+
+                        double returned_by_mapping_force = limit_force - k_unload * (delta_acummulated - delta_at_undamaged_peak);
+
+                        if (returned_by_mapping_force < 0.0) {
+
+                            returned_by_mapping_force = 0.0;
+                        }
+
+                        LocalElasticContactForce[2] = -returned_by_mapping_force;
+
+                        if (delta_acummulated) {
+                            mKnUpdated = returned_by_mapping_force / delta_acummulated;
+                        }
+
+                        if (limit_force) {
+                            mDamage = 1.0 - returned_by_mapping_force/limit_force;
+                            if (mDamage < damage_threshold_tolerance) {
+                                failure_type = 4; // failure by traction
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                LocalElasticContactForce[2] = 0.0;
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void DEM_KDEM_with_damage::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
@@ -57,7 +137,7 @@ namespace Kratos {
         const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
         const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
         const double damage_energy = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
-        const double damage_threshold_tolerance = 1.0e-2;
+        const double damage_threshold_tolerance = 1.0e-1;
         double k_unload = 0.0;
 
         if (damage_energy) {
@@ -106,10 +186,16 @@ namespace Kratos {
 
                     double returned_by_mapping_force = tau_strength * calculation_area - k_unload * (delta_acummulated - delta_at_undamaged_peak);
 
+                    if (returned_by_mapping_force < 0.0) {
+
+                        returned_by_mapping_force = 0.0;
+                    }
+
                     if (current_tangential_force_module) {
                         LocalElasticContactForce[0] = (returned_by_mapping_force / current_tangential_force_module) * LocalElasticContactForce[0];
                         LocalElasticContactForce[1] = (returned_by_mapping_force / current_tangential_force_module) * LocalElasticContactForce[1];
                     }
+
                     if (delta_acummulated) {
                         mKtUpdated = returned_by_mapping_force / delta_acummulated;
                     }

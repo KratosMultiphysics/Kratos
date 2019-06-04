@@ -24,6 +24,17 @@ namespace Kratos {
 
         void Initialize(SphericContinuumParticle* element) override;
 
+        virtual void CalculateNormalForces(double LocalElasticContactForce[3],
+            const double kn_el,
+            double equiv_young,
+            double indentation,
+            double calculation_area,
+            double& acumulated_damage,
+            SphericContinuumParticle* element1,
+            SphericContinuumParticle* element2,
+            int i_neighbour_count,
+            int time_steps) override;
+
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
@@ -45,6 +56,7 @@ namespace Kratos {
             const ProcessInfo& r_process_info) override;
 
         double mKtUpdated = 1e30;
+        double mKnUpdated = 1e30;
         double mDamage = 0.0;
 
     private:
