@@ -535,7 +535,15 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterHuberVonMises(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
+        const double yield_compression = r_material_properties[YIELD_STRESS_C];
+        rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+        KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+    }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
@@ -546,7 +554,17 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterModifiedMohrCoulomb(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
+        const double yield_compression = r_material_properties[YIELD_STRESS_C];
+        const double yield_tension = r_material_properties[YIELD_STRESS_T];
+        const double n = yield_compression / yield_tension;
+        rAParameter = 1.00 / (fracture_energy * n * n * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+        KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+    }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
@@ -557,7 +575,10 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterMohrCoulomb(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+    }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
@@ -568,7 +589,10 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterRankine(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+    }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
@@ -579,7 +603,10 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterTresca(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+    }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
@@ -590,7 +617,16 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterSimoJu(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+        const double yield_compression = r_material_properties[YIELD_STRESS_C];
+        const double yield_tension = r_material_properties[YIELD_STRESS_T];
+        const double n = yield_compression / yield_tension;
+        rAParameter = 1.0 / (fracture_energy * n * n / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+        KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+    }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
@@ -601,7 +637,10 @@ class ConstitutiveLawUtilities
     static void CalculateDamageParameterDruckerPrager(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength);
+        const double CharacteristicLength)
+    {
+        CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength); 
+    }
 
   private:
 
