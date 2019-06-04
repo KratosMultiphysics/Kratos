@@ -298,10 +298,15 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     template<bool value> struct TypeFromBool {};
 
-    template<typename T> void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<true>) const {};
+    template<typename T> void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<true>) const {}
     template<typename T>
-    KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type, please implement direct communication support for this type.")
-    void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const {};
+    KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type. Please implement direct communication support for this type.")
+    void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const
+    {
+        #ifdef KRATOS_DEBUG
+        KRATOS_WARNING("DataCommunicator") << *this << "Calling serialization-based communication for a simple type. Please implement direct communication support for this type." << std::endl;
+        #endif
+    }
 
   public:
     ///@name Type Definitions
