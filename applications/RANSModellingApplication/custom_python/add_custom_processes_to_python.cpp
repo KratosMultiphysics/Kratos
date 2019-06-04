@@ -19,6 +19,7 @@
 
 // RANS Y Plus models
 #include "custom_processes/y_plus_model_processes/rans_logarithmic_y_plus_model_process.h"
+#include "custom_processes/y_plus_model_processes/rans_tke_y_plus_model_process.h"
 
 // RANS initialization processes
 #include "custom_processes/k_epsilon_evaluation_utau_process.h"
@@ -35,6 +36,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
+
+    // Adding solving strategies
     typedef ScalarCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> ScalarCoSolvingProcessType;
     py::class_<ScalarCoSolvingProcessType, ScalarCoSolvingProcessType::Pointer, Process>(
         m, "ScalarCoSolvingProcess")
@@ -51,10 +54,15 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "KEpsilonSteadyCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&, Process&>());
 
+    // Adding y_plus calculation models
     py::class_<RansLogarithmicYPlusModelProcess, RansLogarithmicYPlusModelProcess::Pointer, Process>(
         m, "RansLogarithmicYPlusModelProcess")
         .def(py::init<ModelPart&, Parameters&>());
+    py::class_<RansTKEYPlusModelProcess, RansTKEYPlusModelProcess::Pointer, Process>(
+        m, "RansTKEYPlusModelProcess")
+        .def(py::init<ModelPart&, Parameters&>());
 
+    // Adding initialization processes
     py::class_<RansKEpsilonEvaluationUtauProcess, RansKEpsilonEvaluationUtauProcess::Pointer, Process>(
         m, "RansKEpsilonEvaluationUtauProcess")
         .def(py::init<Model&, Parameters&, Process&>());
