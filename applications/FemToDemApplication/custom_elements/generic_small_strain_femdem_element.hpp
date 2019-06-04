@@ -140,6 +140,28 @@ public:
      */
     void InitializeInternalVariablesAfterMapping();
 
+    /**
+     * this saves the converged values with the later non-conv values
+     */
+    void UpdateDataBase();
+
+    /**
+     * this computes the damage of the FE
+     */
+    double CalculateElementalDamage(const Vector& rEdgeDamages);
+    double CalculateElementalDamage3D(const Vector& rEdgeDamages);
+    double CalculateElementalDamage2D(const Vector& rEdgeDamages);
+
+    /**
+     * this computes the maximum value of a vector
+     */
+    double GetMaxValue(const Vector& rValues);
+
+    /**
+     * this computes the 2 maximum values over 3 doubles
+     */
+    void Get2MaxValues(Vector& rMaxValues, const double a, const double b, const double c);
+
 private:
 
     ///@name Static Member Variables

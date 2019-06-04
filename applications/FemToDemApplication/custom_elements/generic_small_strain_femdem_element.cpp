@@ -97,6 +97,88 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
 	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
 	this->InitializeInternalVariablesAfterMapping();
 }
+/***********************************************************************************/
+/***********************************************************************************/
+template<>
+double GenericSmallStrainFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<3,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<3,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<3,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<3,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<3,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
+{
+	// 7 modes of fracture of the tetrahedron
+	Vector damage_mode_fracture = ZeroVector(7);
+	const double one_third = 1.0 / 3.0;
+	damage_mode_fracture[0] = one_third * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[2]);
+	damage_mode_fracture[1] = one_third * (rEdgeDamages[0] + rEdgeDamages[3] + rEdgeDamages[4]);
+	damage_mode_fracture[2] = one_third * (rEdgeDamages[1] + rEdgeDamages[3] + rEdgeDamages[5]);
+	damage_mode_fracture[3] = 0.25 * (rEdgeDamages[1] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[4]);
+	damage_mode_fracture[4] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[4] + rEdgeDamages[5]);
+	damage_mode_fracture[5] = one_third * (rEdgeDamages[2] + rEdgeDamages[4] + rEdgeDamages[5]);
+	damage_mode_fracture[6] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[5]);
+	return this->GetMaxValue(damage_mode_fracture);
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage2D(const Vector& rEdgeDamages)
+{
+	// 7 modes of fracture of the tetrahedron
+	Vector damage_mode_fracture = ZeroVector(3);
+	damage_mode_fracture[0] = 0.5 * (rEdgeDamages[0] + rEdgeDamages[1]);
+	damage_mode_fracture[1] = 0.5 * (rEdgeDamages[0] + rEdgeDamages[2]);
+	damage_mode_fracture[2] = 0.5 * (rEdgeDamages[1] + rEdgeDamages[2]);
+
+	return this->GetMaxValue(damage_mode_fracture);
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::UpdateDataBase()
+{	
+	for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+		mDamages[edge] = mNonConvergedDamages[edge];
+		mThresholds[edge] = mNonConvergedThresholds[edge];
+	}
+
+	const double converged_damage = this->CalculateElementalDamage(mDamages);
+	if (converged_damage > mDamage) mDamage = converged_damage;
+	const double converged_threshold = this->CalculateElementalDamage(mThresholds);
+	if (converged_threshold > mThreshold) mThreshold = converged_threshold;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -188,10 +270,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 	std::vector<std::vector<Element*>> edge_neighbours_container;
 	Geometry<Node<3>>& r_nodes_current_element = this->GetGeometry();
 
-	Node<3> &pNode0 = r_nodes_current_element[0];
-	Node<3> &pNode1 = r_nodes_current_element[1];
-	Node<3> &pNode2 = r_nodes_current_element[2];
-	Node<3> &pNode3 = r_nodes_current_element[3];
+	Node<3>& pNode0 = r_nodes_current_element[0];
+	Node<3>& pNode1 = r_nodes_current_element[1];
+	Node<3>& pNode2 = r_nodes_current_element[2];
+	Node<3>& pNode3 = r_nodes_current_element[3];
 
 	// Neighbour elements of each node of the current element
 	GlobalPointersVector<Element>& neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
@@ -272,6 +354,50 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 	// Storages the information inside the element
 	this->SaveEdgeNeighboursContainer(edge_neighbours_container);
 }
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetMaxValue(
+    const Vector& rValues
+    )
+{
+    double aux = 0.0;
+    for (IndexType i = 0; i < rValues.size(); ++i) {
+        if (aux < rValues[i]) aux = rValues[i];
+    }
+    return aux;
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Get2MaxValues(
+    Vector& rMaxValues, 
+    const double a, 
+    const double b, 
+    const double c
+    )
+{
+	rMaxValues.resize(2);
+	Vector V;
+	V.resize(3);
+	V[0] = a;
+	V[1] = b;
+	V[2] = c;
+	const int n = 3;
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n - 1; j++) {
+			if (V[j] > V[j + 1]) {
+				double aux = V[j];
+				V[j] = V[j + 1];
+				V[j + 1] = aux;
+			}
+		}
+	}
+	rMaxValues[0] = V[2];
+	rMaxValues[1] = V[1];
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
