@@ -547,7 +547,30 @@ static void CalculateEquivalentStressSimoJu(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    // It compares with fc / sqrt(E)
+    array_1d<double, Dimension> principal_stress_vector;
+    ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    const double yield_tension = r_material_properties[YIELD_STRESS_T];
+    const double n = std::abs(yield_compression / yield_tension);
+
+    double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
+    for (std::size_t cont = 0; cont < 2; ++cont) {
+        SumA += std::abs(principal_stress_vector[cont]);
+        SumB += 0.5 * (principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+    }
+    ere0 = SumB / SumA;
+    ere1 = SumC / SumA;
+
+    double auxf = 0.0;
+    for (std::size_t cont = 0; cont < VoigtSize; ++cont) {
+        auxf += rStrainVector[cont] * rPredictiveStressVector[cont]; // E:S
+    }
+    rEquivalentStress = std::sqrt(auxf);
+    rEquivalentStress *= (ere0 * n + ere1);
 }
 
 /***********************************************************************************/
