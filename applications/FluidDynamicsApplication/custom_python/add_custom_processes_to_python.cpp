@@ -146,6 +146,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<WeightedDivergenceCalculationProcess, WeightedDivergenceCalculationProcess::Pointer, Process >
         (m, "WeightedDivergenceCalculationProcess")
         .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
     ;
 }
 

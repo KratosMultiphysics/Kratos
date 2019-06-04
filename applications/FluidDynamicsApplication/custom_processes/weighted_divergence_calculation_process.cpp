@@ -26,12 +26,26 @@ namespace Kratos
     /* Public functions *******************************************************/
 
     // Constructor
-    WeightedDivergenceCalculationProcess::WeightedDivergenceCalculationProcess(ModelPart& rModelPart):
+    WeightedDivergenceCalculationProcess::WeightedDivergenceCalculationProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters):
         Process(),
         mrModelPart(rModelPart)
     {
-        // Set time coefficient: computations will be performed ONLY AFTER 20% of total time of the simulation
-        mTimeCoefficient = 0.2;
+        /**
+         * We configure using the following parameters:
+         * time_coefficient: Coefficient determining initial time for computing the average, i.e. TIME_START = time_coefficient * TIME_END
+         */
+        Parameters default_parameters = Parameters(R"(
+        {
+            "time_coefficient"  : 0.2
+        })"
+        );
+
+            ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+            // Set time coefficient: computations will be performed ONLY AFTER time_coefficient% of total time of the simulation
+            mTimeCoefficient = ThisParameters["time_coefficient"].GetDouble();
     }
 
     std::string WeightedDivergenceCalculationProcess::Info() const
@@ -61,6 +75,7 @@ namespace Kratos
         const double& final_time = r_current_process_info[END_TIME];
 
         if (time_step_previous >= mTimeCoefficient * final_time) {
+            KRATOS_WATCH(mTimeCoefficient);
             // Check and set number of elements
             KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
             const unsigned int number_elements = mrModelPart.NumberOfElements();
