@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_parameters.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -70,12 +71,16 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        /// Constructor with Kratos ModelPart
+        /// Default constructor
         /**
          * @brief Construct WeightedDivergenceCalculationProcess object
          * @param rModelPart Model part the weighted process is applied to
+         * @param ThisParameters The input parameters
          */
-        WeightedDivergenceCalculationProcess(ModelPart& rModelPart);
+        WeightedDivergenceCalculationProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
 
         /// Destructor.
         ~WeightedDivergenceCalculationProcess() override = default;
