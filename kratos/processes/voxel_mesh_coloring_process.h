@@ -69,7 +69,7 @@ namespace Kratos
 
       /// Constructors to be used. They take the geometry to be meshed and ModelPart to be filled. The second constructor is
       /// provided for the Python interface.
-      VoxelMeshColoringProcess(Point const& MinPoint, Point const& MaxPoint, 
+      VoxelMeshColoringProcess(Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions, 
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
 

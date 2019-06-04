@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-    VoxelMeshColoringProcess::VoxelMeshColoringProcess(Point const& MinPoint, Point const& MaxPoint,
+    VoxelMeshColoringProcess::VoxelMeshColoringProcess(Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions,
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters)
 		: Process()
@@ -41,40 +41,19 @@ namespace Kratos
                     Point(MinPoint[0],  MaxPoint[1],  MaxPoint[2]))
 		, mMinPoint(MinPoint)
         , mMaxPoint(MaxPoint)
+		, mNumberOfDivisions(NumberOfDivisions)
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart) {
 
 		Parameters default_parameters(R"(
             {
-	            "create_skin_sub_model_part": true,
-	            "start_node_id":1,
-                "start_element_id":1,
-                "start_condition_id":1,
-                "number_of_divisions":1,
-                "elements_properties_id":0,
-                "conditions_properties_id":0,
-                "element_name": "PLEASE SPECIFY IT",
-                "condition_name": "PLEASE SPECIFY IT",
+                "model_part_name": "PLEASE SPECIFY IT",
 				"inside_color": -1,
 				"outside_color": 1,
 				"apply_outside_color": true
             }  )");
 
-		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
-
 		TheParameters.ValidateAndAssignDefaults(default_parameters);
 
-		mStartNodeId = TheParameters["start_node_id"].GetInt();
-		mStartElementId = TheParameters["start_element_id"].GetInt();
-		mStartConditionId = TheParameters["start_condition_id"].GetInt();
-
-        mNumberOfDivisions[0] = TheParameters["number_of_divisions"].GetInt();
-        mNumberOfDivisions[1] = TheParameters["number_of_divisions"].GetInt();
-        mNumberOfDivisions[2] = TheParameters["number_of_divisions"].GetInt();
-		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
-		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
-		mElementName = TheParameters["element_name"].GetString();
-		mConditionName = TheParameters["condition_name"].GetString();
-        mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 		mInsideColor = TheParameters["inside_color"].GetDouble();
         mOutsideColor = TheParameters["outside_color"].GetDouble();
 		mApplyOutsideColor = TheParameters["apply_outside_color"].GetBool();
