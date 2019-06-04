@@ -191,7 +191,7 @@ public:
             {
                 if(color >= 0)
                 {
-                    auto tmp = mrComm.SerializedSendRecv(neighbours_ids[color], color, color );
+                    auto tmp = mrComm.SendRecv(neighbours_ids[color], color, color );
                     for(auto& item : tmp)
                     {
                         auto& ids = neighbours_ids[current_rank][item.first];
@@ -256,7 +256,7 @@ public:
                     {
                         neighbours_to_send[id] = mr_model_part.Nodes()[id].GetValue(NEIGHBOUR_NODES);
                     }
-                    auto received_neighbours = mrComm.SerializedSendRecv(neighbours_to_send, color, color );
+                    auto received_neighbours = mrComm.SendRecv(neighbours_to_send, color, color );
                     for(auto& item : received_neighbours)
                     {
                         auto& r_node = mr_model_part.Nodes()[item.first];

@@ -528,7 +528,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @param[in] RecvTag Message tag for received values.
      *  @return Received data from rank RecvSource.
      */
-    template<class TObject> TObject SerializedSendRecv(
+    template<class TObject> TObject SendRecv(
         const TObject& rSendObject,
         const int SendDestination, const int SendTag,
         const int RecvSource, const int RecvTag) const
@@ -564,10 +564,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @param[in] RecvSource Rank the data is expected from.
      *  @return Received data from rank RecvSource.
      */
-    template<class TObject> TObject SerializedSendRecv(
+    template<class TObject> TObject SendRecv(
         const TObject& rSendObject, const int SendDestination, const int RecvSource) const
     {
-        return SerializedSendRecv(rSendObject, SendDestination, 0, RecvSource, 0);
+        return SendRecv(rSendObject, SendDestination, 0, RecvSource, 0);
     }
 
     /// Send data to other ranks (string version).

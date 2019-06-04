@@ -199,13 +199,13 @@ public:
             {
                 auto& gps_to_be_sent = mNonLocalPointers[color];
 
-                auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
+                auto recv_global_pointers = mrDataCommunicator.SendRecv(gps_to_be_sent, color, color );
 
                 std::vector< typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                 for(auto& gp : recv_global_pointers.GetContainer())
                     locally_gathered_data.push_back( rUserFunctor(gp) );
 
-                auto remote_data = SendRecv(locally_gathered_data, color, color );
+                auto remote_data = mrDataCommunicator.SendRecv(locally_gathered_data, color, color );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
                     rNonLocalData[gps_to_be_sent(i)] = remote_data[i];
@@ -347,13 +347,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    template< class TDataType>
-    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
-    {
-        return mrDataCommunicator.SerializedSendRecv(send_buffer, send_rank, send_rank);
-    }
-
-    //TODO explicitly instantiate this function to SendRecv for basic types
 
 
     ///@}

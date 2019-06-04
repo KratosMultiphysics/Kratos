@@ -41,7 +41,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
         it_node->FastGetSolutionStepValue(TEMPERATURE) = 10.0*world_rank;
     }
 
-    auto recv_node_container = r_comm.SerializedSendRecv(model_part.Nodes(), recv_rank, send_rank);
+    auto recv_node_container = r_comm.SendRecv(model_part.Nodes(), recv_rank, send_rank);
 
     for (auto& node: recv_node_container)
     {
