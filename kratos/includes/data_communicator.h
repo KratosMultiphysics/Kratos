@@ -298,8 +298,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     template<bool value> struct TypeFromBool {};
 
-    void CheckSerializationForSimpleType(TypeFromBool<true>) const {};
-    KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type, please implement direct communication support for this type.") void CheckSerializationForSimpleType(TypeFromBool<false>) const {};
+    template<typename T> void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<true>) const {};
+    template<typename T>
+    KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type, please implement direct communication support for this type.")
+    void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const {};
 
   public:
     ///@name Type Definitions
@@ -533,7 +535,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination, const int SendTag,
         const int RecvSource, const int RecvTag) const
     {
-        CheckSerializationForSimpleType(TypeFromBool<serialization_is_required<TObject>::value>());
+        CheckSerializationForSimpleType(rSendObject, TypeFromBool<serialization_is_required<TObject>::value>());
         if (this->IsDistributed())
         {
             MpiSerializer send_serializer;
