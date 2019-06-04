@@ -115,10 +115,15 @@ public:
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * this is called at the end of each solution step
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
-    void ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
-    void AuxComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
+    void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this storages the mEdgeNeighboursContainer

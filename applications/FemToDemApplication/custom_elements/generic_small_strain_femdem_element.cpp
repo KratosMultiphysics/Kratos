@@ -189,13 +189,8 @@ double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamag
 template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage2D(const Vector& rEdgeDamages)
 {
-	// 7 modes of fracture of the tetrahedron
-	Vector damage_mode_fracture = ZeroVector(3);
-	damage_mode_fracture[0] = 0.5 * (rEdgeDamages[0] + rEdgeDamages[1]);
-	damage_mode_fracture[1] = 0.5 * (rEdgeDamages[0] + rEdgeDamages[2]);
-	damage_mode_fracture[2] = 0.5 * (rEdgeDamages[1] + rEdgeDamages[2]);
 	Vector two_max_values;
-	this->Get2MaxValues(two_max_values, damage_mode_fracture[0], damage_mode_fracture[1], damage_mode_fracture[2]);
+	this->Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
 	return 0.5*(two_max_values[0] + two_max_values[1]);
 }
 
@@ -214,6 +209,23 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::UpdateDataBase()
 	if (converged_damage > mDamage) mDamage = converged_damage;
 	const double converged_threshold = this->CalculateElementalDamage(mThresholds);
 	if (converged_threshold > mThreshold) mThreshold = converged_threshold;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+	this->UpdateDataBase();
+
+	if (mDamage >= 0.98) {
+		this->Set(ACTIVE, false);
+		// We set a "flag" to generate the DEM 
+		rCurrentProcessInfo[GENERATE_DEM] = true;
+	}
 }
 
 /***********************************************************************************/
