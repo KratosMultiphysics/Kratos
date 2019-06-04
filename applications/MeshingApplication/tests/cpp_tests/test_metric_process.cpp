@@ -28,6 +28,7 @@
 #include "custom_processes/metrics_hessian_process.h"
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_error_process.h"
+#include "custom_processes/metrics_divergencefree_process.h"
 
 namespace Kratos
 {
@@ -462,5 +463,246 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(7)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(8)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
         }
+
+        /**
+        * Checks the correct work of the divergencefree metric process with maximum strategy
+        * Test triangle
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(DivergenceFreeMetricProcess1, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            Parameters this_parameters = Parameters(R"(
+            {
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 10.0,
+                "refinement_strategy"                 : "maximum_strategy",
+                "maximum_strategy":
+                {
+                    "reference_variable_name"         : "DISTANCE"
+                }
+            })"
+            );
+
+            auto& process_info = r_model_part.GetProcessInfo();
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
+
+            Create2DGeometry(r_model_part, "Element2D3N");
+
+            // Set DISTANCE variable
+            for (std::size_t i_elem = 0; i_elem < r_model_part.Elements().size(); ++i_elem) {
+                auto it_elem = r_model_part.Elements().begin() + i_elem;
+                it_elem->SetValue(DISTANCE, 1.0);
+            }
+
+            // Set other variables
+            for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
+                auto it_node = r_model_part.Nodes().begin() + i_node;
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
+            }
+
+            // Compute metric
+            MetricDivergenceFreeProcess<2> divergencefree_process = MetricDivergenceFreeProcess<2>(r_model_part, this_parameters);
+            divergencefree_process.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            const double tolerance = 1.0e-4;
+            array_1d<double, 3> ref_metric;
+            ref_metric[0] = 4;
+            ref_metric[1] = 4;
+            ref_metric[2] = 0;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+        }
+
+        /**
+        * Checks the correct work of the divergencefree metric process with mean distribution strategy
+        * Test triangle
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(DivergenceFreeMetricProcess2, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            Parameters this_parameters = Parameters(R"(
+            {
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 10.0,
+                "refinement_strategy"                 : "mean_distribution_strategy",
+                "mean_distribution_strategy":
+                {
+                    "reference_variable_name"         : "DISTANCE"
+                }
+            })"
+            );
+
+            r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+            auto& process_info = r_model_part.GetProcessInfo();
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
+
+            Create2DGeometry(r_model_part, "Element2D3N");
+
+            // Set DISTANCE variable
+            for (std::size_t i_elem = 0; i_elem < r_model_part.Elements().size(); ++i_elem) {
+                auto it_elem = r_model_part.Elements().begin() + i_elem;
+                it_elem->SetValue(DISTANCE, 1.0);
+            }
+
+            // Set other variables
+            for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
+                auto it_node = r_model_part.Nodes().begin() + i_node;
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
+            }
+
+            // Compute metric
+            MetricDivergenceFreeProcess<2> divergencefree_process = MetricDivergenceFreeProcess<2>(r_model_part, this_parameters);
+            divergencefree_process.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            const double tolerance = 1.0e-4;
+            array_1d<double, 3> ref_metric;
+            ref_metric[0] = 1.23457;
+            ref_metric[1] = 1.23457;
+            ref_metric[2] = 0;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+        }
+
+        /**
+        * Checks the correct work of the divergencefree metric process with maximum strategy
+        * Test tetrahedra
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(DivergenceFreeMetricProcess3, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            Parameters this_parameters = Parameters(R"(
+            {
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 10.0,
+                "refinement_strategy"                 : "maximum_strategy",
+                "maximum_strategy":
+                {
+                    "reference_variable_name"         : "DISTANCE"
+                }
+            })"
+            );
+
+            auto& process_info = r_model_part.GetProcessInfo();
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
+
+            Create3DGeometry(r_model_part, "Element3D4N");
+
+            // Set DISTANCE variable
+            for (std::size_t i_elem = 0; i_elem < r_model_part.Elements().size(); ++i_elem) {
+                auto it_elem = r_model_part.Elements().begin() + i_elem;
+                it_elem->SetValue(DISTANCE, 1.0);
+            }
+
+            // Set other variables
+            for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
+                auto it_node = r_model_part.Nodes().begin() + i_node;
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
+            }
+
+            // Compute metric
+            MetricDivergenceFreeProcess<3> divergencefree_process = MetricDivergenceFreeProcess<3>(r_model_part, this_parameters);
+            divergencefree_process.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            const double tolerance = 1.0e-4;
+            array_1d<double, 6> ref_metric = ZeroVector(6);
+            ref_metric[0] = 4;
+            ref_metric[1] = 4;
+            ref_metric[2] = 4;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+        }
+
+        /**
+        * Checks the correct work of the divergencefree metric process with mean distribution strategy
+        * Test tetrahedra
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(DivergenceFreeMetricProcess4, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            Parameters this_parameters = Parameters(R"(
+            {
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 10.0,
+                "refinement_strategy"                 : "mean_distribution_strategy",
+                "mean_distribution_strategy":
+                {
+                    "reference_variable_name"         : "DISTANCE"
+                }
+            })"
+            );
+
+            r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+            auto& process_info = r_model_part.GetProcessInfo();
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
+
+            Create3DGeometry(r_model_part, "Element3D4N");
+
+            // Set DISTANCE variable
+            for (std::size_t i_elem = 0; i_elem < r_model_part.Elements().size(); ++i_elem) {
+                auto it_elem = r_model_part.Elements().begin() + i_elem;
+                it_elem->SetValue(DISTANCE, 1.0);
+            }
+
+            // Set other variables
+            for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
+                auto it_node = r_model_part.Nodes().begin() + i_node;
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
+            }
+
+            // Compute metric
+            MetricDivergenceFreeProcess<3> divergencefree_process = MetricDivergenceFreeProcess<3>(r_model_part, this_parameters);
+            divergencefree_process.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            const double tolerance = 1.0e-4;
+            array_1d<double, 6> ref_metric = ZeroVector(6);
+            ref_metric[0] = 1.23457;
+            ref_metric[1] = 1.23457;
+            ref_metric[2] = 1.23457;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
