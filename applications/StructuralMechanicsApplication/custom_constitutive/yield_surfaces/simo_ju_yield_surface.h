@@ -125,9 +125,9 @@ class SimoJuYieldSurface
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
 
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double yield_compressionompression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double yield_tensionension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = std::abs(yield_compressionompression / yield_tensionension);
+        const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = std::abs(yield_compression / yield_tension);
 
         double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
         for (std::size_t cont = 0; cont < 2; ++cont) {
