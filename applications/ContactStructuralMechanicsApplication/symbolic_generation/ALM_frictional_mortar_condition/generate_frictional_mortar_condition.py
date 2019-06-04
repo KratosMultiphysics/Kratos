@@ -225,7 +225,7 @@ for normalvar in range(normal_combs):
                     if slip == 1: # Slip
                         augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
 
-                        modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) + augmented_tangent_contact_pressure
+                        modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
                         rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
                     else: # Stick
                         if slip == 2: # Objective
