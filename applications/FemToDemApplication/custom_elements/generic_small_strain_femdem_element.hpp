@@ -123,12 +123,20 @@ public:
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-    
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+
+
+
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
     void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
     void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    std::vector<Element*> GetEdgeNeighbourElements(const int edge) {return mEdgeNeighboursContainer[edge];}
 
     /**
      * this storages the mEdgeNeighboursContainer
@@ -171,6 +179,14 @@ public:
      * this computes the 2 maximum values over 3 doubles
      */
     void Get2MaxValues(Vector& rMaxValues, const double a, const double b, const double c);
+
+    /**
+     * this computes the average vector on the edge for a certain variable
+     */
+	void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+
 
 private:
 

@@ -139,6 +139,54 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeNonLinearIteration(
+    ProcessInfo& CurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void GenericSmallStrainFemDemElement<3,0>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageStress,
+    const int edge
+    )
+{
+
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageStress,
+    const int edge
+    )
+{
+    auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+    KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+    auto& neighbour = r_elem_neigb[edge];
+    rAverageStress = 0.5*(neighbour.GetValue(ThisVariable) + pCurrentElement->GetValue(ThisVariable));
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageStress,
+    const int edge
+    )
+{
+
+}
+/***********************************************************************************/
+/***********************************************************************************/
 template<>
 double GenericSmallStrainFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
