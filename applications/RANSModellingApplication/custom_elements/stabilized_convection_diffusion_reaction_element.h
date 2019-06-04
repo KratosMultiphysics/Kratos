@@ -321,7 +321,7 @@ public:
             this->GetGeometryParameterDerivatives();
         const unsigned int num_gauss_points = gauss_weights.size();
 
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
@@ -515,7 +515,7 @@ public:
             this->GetGeometryParameterDerivatives();
         const unsigned int num_gauss_points = gauss_weights.size();
 
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
@@ -591,7 +591,7 @@ public:
             this->GetGeometryParameterDerivatives();
         const unsigned int num_gauss_points = gauss_weights.size();
 
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
@@ -1014,6 +1014,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double GetDeltaTime(const ProcessInfo& rProcessInfo) const
+    {
+        if (this->Has(DELTA_TIME))
+        {
+            return this->GetValue(DELTA_TIME);
+        }
+        else
+        {
+            return rProcessInfo[DELTA_TIME];
+        }
+    }
 
     ///@}
     ///@name Serialization
