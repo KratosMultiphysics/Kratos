@@ -19,6 +19,7 @@
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {
@@ -556,14 +557,14 @@ static void CalculateEquivalentStressSimoJu(
     const double yield_tension = r_material_properties[YIELD_STRESS_T];
     const double n = std::abs(yield_compression / yield_tension);
 
-    double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
+    double sum_a = 0.0, sum_b = 0.0, sum_c = 0.0, ere0, ere1;
     for (std::size_t cont = 0; cont < 2; ++cont) {
-        SumA += std::abs(principal_stress_vector[cont]);
-        SumB += 0.5 * (principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
-        SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        sum_a += std::abs(principal_stress_vector[cont]);
+        sum_b += 0.5 * (principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        sum_c += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
     }
-    ere0 = SumB / SumA;
-    ere1 = SumC / SumA;
+    ere0 = sum_b / sum_a;
+    ere1 = sum_c / sum_a;
 
     double auxf = 0.0;
     for (std::size_t cont = 0; cont < VoigtSize; ++cont) {
@@ -690,6 +691,102 @@ static void GetInitialUniaxialThresholdDruckerPrager(
     const double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
     const double sin_phi = std::sin(friction_angle);
     rThreshold = std::abs(yield_tension * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterHuberVonMises(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+    const double young_modulus = r_material_properties[YOUNG_MODULUS];
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+    KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterModifiedMohrCoulomb(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+    const double young_modulus = r_material_properties[YOUNG_MODULUS];
+    const double yield_compression = r_material_properties[YIELD_STRESS_C];
+    const double yield_tension = r_material_properties[YIELD_STRESS_T];
+    const double n = yield_compression / yield_tension;
+    rAParameter = 1.00 / (fracture_energy * n * n * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+    KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterMohrCoulomb(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterRankine(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterTresca(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterSimoJu(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+static void CalculateDamageParameterDruckerPrager(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    
 }
 
 /***********************************************************************************/
