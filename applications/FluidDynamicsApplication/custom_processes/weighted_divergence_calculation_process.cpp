@@ -34,7 +34,7 @@ namespace Kratos
     {
         /**
          * We configure using the following parameters:
-         * time_coefficient: Coefficient determining initial time, i.e. TIME_START = time_coefficient * TIME_END
+         * time_coefficient: Coefficient determining initial time for computing the average, i.e. TIME_START = time_coefficient * TIME_END
          */
         Parameters default_parameters = Parameters(R"(
         {
