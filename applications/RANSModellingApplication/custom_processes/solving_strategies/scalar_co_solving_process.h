@@ -76,7 +76,8 @@ public:
             "relative_tolerance"    : 1e-3,
             "absolute_tolerance"    : 1e-5,
             "max_iterations"        : 10,
-            "echo_level"            : 0
+            "echo_level"            : 0,
+            "relaxation_factor"     : 1.0
         })");
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -84,6 +85,7 @@ public:
         mEchoLevel = rParameters["echo_level"].GetInt();
         mConvergenceRelativeTolerance = rParameters["relative_tolerance"].GetDouble();
         mConvergenceAbsoluteTolerance = rParameters["absolute_tolerance"].GetDouble();
+        mRelaxationFactor = rParameters["relaxation_factor"].GetDouble();
         mMaxIterations = rParameters["max_iterations"].GetInt();
     }
 
@@ -116,12 +118,10 @@ public:
     virtual int Check() override
     {
         KRATOS_CHECK_VARIABLE_KEY(IS_CO_SOLVING_PROCESS_ACTIVE);
-        KRATOS_CHECK_VARIABLE_KEY(OLD_CONVERGENCE_VARIABLE);
         KRATOS_CHECK_VARIABLE_KEY(this->mrConvergenceVariable);
 
         for (ModelPart::NodeType& r_node : mrModelPart.Nodes())
         {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(OLD_CONVERGENCE_VARIABLE, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(this->mrConvergenceVariable, r_node);
         }
 
@@ -221,14 +221,17 @@ protected:
         ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
         const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
+        Vector old_values(r_nodes.size());
+        Vector new_values(r_nodes.size());
+        Vector delta_values(r_nodes.size());
+
         int iteration_format_length =
             static_cast<int>(std::log10(this->mMaxIterations)) + 1;
 
         while (!is_converged && iteration <= this->mMaxIterations)
         {
-            // Copy the existing convergence variable to the old_convergence_variable
-            rans_variable_utils.CopyScalarVar(
-                this->mrConvergenceVariable, OLD_CONVERGENCE_VARIABLE, r_nodes);
+            rans_variable_utils.GetNodalVariablesVector(
+                old_values, r_nodes, this->mrConvergenceVariable);
 
             for (int i = 0;
                  i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
@@ -244,11 +247,16 @@ protected:
             }
 
             this->UpdateConvergenceVariable();
+            rans_variable_utils.GetNodalVariablesVector(
+                new_values, r_nodes, this->mrConvergenceVariable);
+            noalias(delta_values) = new_values - old_values;
 
-            const double increase_norm = rans_variable_utils.GetScalarVariableDifferenceNormSquare(
-                r_nodes, OLD_CONVERGENCE_VARIABLE, this->mrConvergenceVariable);
-            double solution_norm = rans_variable_utils.GetScalarVariableSolutionNormSquare(
-                r_nodes, this->mrConvergenceVariable);
+            double increase_norm = std::pow(norm_2(delta_values), 2);
+            double solution_norm = std::pow(norm_2(new_values), 2);
+
+            noalias(new_values) = old_values + delta_values * mRelaxationFactor;
+            rans_variable_utils.SetNodalVariables(new_values, r_nodes,
+                                                  this->mrConvergenceVariable);
 
             if (solution_norm <= std::numeric_limits<double>::epsilon())
                 solution_norm = 1.0;
@@ -316,6 +324,7 @@ private:
     int mMaxIterations;
     double mConvergenceAbsoluteTolerance;
     double mConvergenceRelativeTolerance;
+    double mRelaxationFactor;
 
     ///@}
     ///@name Operations

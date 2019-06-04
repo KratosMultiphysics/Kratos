@@ -22,8 +22,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "rans_modelling_application_variables.h"
-#include "utilities/variable_utils.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -226,6 +226,30 @@ public:
         return max_value;
 
         KRATOS_CATCH("");
+    }
+
+    void GetNodalVariablesVector(Vector& rValues,
+                                 const ModelPart::NodesContainerType& rNodes,
+                                 const Variable<double>& rVariable)
+    {
+        const int number_of_nodes = rNodes.size();
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            rValues[i_node] =
+                (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable);
+    }
+
+    void SetNodalVariables(const Vector& rValues,
+                           ModelPart::NodesContainerType& rNodes,
+                           const Variable<double>& rVariable)
+    {
+        const int number_of_nodes = rNodes.size();
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable) =
+                rValues[i_node];
     }
 
     double GetScalarVariableDifferenceNormSquare(const ModelPart::NodesContainerType& rNodes,
