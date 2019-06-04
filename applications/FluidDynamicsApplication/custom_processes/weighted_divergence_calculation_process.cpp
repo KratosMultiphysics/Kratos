@@ -56,10 +56,11 @@ namespace Kratos
 
         // Extract time information
         const auto& r_current_process_info = mrModelPart.GetProcessInfo();
-        const double& time_step_current  = r_current_process_info[TIME];
+        const auto& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo();
+        const double& time_step_previous = r_previous_process_info[TIME];
         const double& final_time = r_current_process_info[END_TIME];
 
-        if (time_step_current >= mTimeCoefficient * final_time) {
+        if (time_step_previous >= mTimeCoefficient * final_time) {
             // Check and set number of elements
             KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
             const unsigned int number_elements = mrModelPart.NumberOfElements();
@@ -168,7 +169,7 @@ namespace Kratos
         const double& time_step_previous = r_previous_process_info[TIME];
         const double& final_time = r_current_process_info[END_TIME];
 
-        const double new_average = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(old_average,2) + (time_step_current - time_step_previous) * current_value) /  (time_step_current-mTimeCoefficient*final_time));
+        const double new_average = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(old_average,2) + (time_step_current - time_step_previous) * current_value) / (time_step_current - mTimeCoefficient*final_time));
         return new_average;
     }
 
