@@ -113,7 +113,7 @@ public:
         if (stress_increment_1 >= 1.0e-3 && stress_increment_2 <= 0.0) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
-        } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0) {
+        } else if (stress_increment_1 <= -1.0e-3 && stress_increment_2 >= 0.0) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
         }
