@@ -31,9 +31,9 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
-        self.element_name = "AdjointPotentialFlowElement"
-        self.condition_name = "AdjointPotentialWallCondition"
-
+        self.formulation = PotentialFlowAdjointFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
 
     def AddVariables(self):
