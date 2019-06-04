@@ -278,18 +278,6 @@ class ConstitutiveLawUtilities
         ConstitutiveLaw::Parameters& rValues);
 
     /**
-     * @brief This method the uniaxial equivalent stress of Rankine Fragile
-     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
-     * @param rStrainVector The StrainVector vector
-     * @param rValues Parameters of the constitutive law
-     */
-    static void CalculateEquivalentStressRankineFragile(
-        const BoundedVectorType& rPredictiveStressVector,
-        const Vector& rStrainVector,
-        double& rEquivalentStress,
-        ConstitutiveLaw::Parameters& rValues);
-
-    /**
      * @brief This method the uniaxial equivalent stress of Tresca
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
@@ -313,6 +301,77 @@ class ConstitutiveLawUtilities
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues);
 
+    /**
+     * @brief This method the uniaxial equivalent stress of Drucker-Prager
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressDruckerPrager(
+        const BoundedVectorType& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * for VonMises
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdHuberVonMises(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold);
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * for ModifiedMohrCoulomb
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdModifiedMohrCoulomb(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold);
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * for Rankine
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdRankine(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold);
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * for Tresca
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdTresca(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold);
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * for SimoJu
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdSimoJu(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold);
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * for SimoJu
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdDruckerPrager(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold);
 
   private:
 
