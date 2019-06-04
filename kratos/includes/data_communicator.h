@@ -444,8 +444,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void Broadcast(std::string& rBuffer, const int SourceRank) const {};
 
     template<class TObject>
-    void SerializedBroadcast(TObject& rBroadcastObject, const int SourceRank) const
+    void Broadcast(TObject& rBroadcastObject, const int SourceRank) const
     {
+        CheckSerializationForSimpleType(rBroadcastObject, TypeFromBool<serialization_is_required<TObject>::value>());
         if (this->IsDistributed())
         {
             unsigned int message_size;
@@ -591,9 +592,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @param[in] SendDestination Rank the data will be sent to.
      *  @param[in] SendTag Message tag for sent values.
      */
-    template<class TObject> void SerializedSend(
+    template<class TObject> void Send(
         const TObject& rSendObject, const int SendDestination, const int SendTag = 0) const
     {
+        CheckSerializationForSimpleType(rSendObject, TypeFromBool<serialization_is_required<TObject>::value>());
         if (this->IsDistributed())
         {
             MpiSerializer send_serializer;
@@ -627,9 +629,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @param[in] RecvSource Rank the data will be received from.
      *  @param[in] RecvTag Message tag for received values.
      */
-    template<class TObject> void SerializedRecv(
+    template<class TObject> void Recv(
         TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
     {
+        CheckSerializationForSimpleType(rRecvObject, TypeFromBool<serialization_is_required<TObject>::value>());
         if (this->IsDistributed())
         {
             std::string recv_message;

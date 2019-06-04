@@ -70,7 +70,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, 
             it_node->FastGetSolutionStepValue(TEMPERATURE) = 10.0*world_rank;
         }
 
-        r_comm.SerializedSend(model_part.Nodes(), recv_rank);
+        r_comm.Send(model_part.Nodes(), recv_rank);
     }
     if (world_rank == recv_rank)
     {
@@ -78,7 +78,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, 
         ModelPart& model_part = model.CreateModelPart("Recv");
         model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-        r_comm.SerializedRecv(model_part.Nodes(), send_rank);
+        r_comm.Recv(model_part.Nodes(), send_rank);
 
         for (auto& node: model_part.Nodes())
         {
@@ -109,7 +109,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, Kr
         }
     }
 
-    r_comm.SerializedBroadcast(model_part.Nodes(), source_rank);
+    r_comm.Broadcast(model_part.Nodes(), source_rank);
 
     for (auto& node: model_part.Nodes())
     {
