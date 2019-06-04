@@ -154,36 +154,175 @@ template<>
 void GenericSmallStrainFemDemElement<3,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
-    Vector& rAverageStress,
+    Vector& rAverageVector,
     const int edge
     )
 {
-
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,1>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,2>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,3>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,4>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,5>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,6>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,0>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,1>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,2>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,3>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,4>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,5>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,6>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
-    Vector& rAverageStress,
+    Vector& rAverageVector,
     const int edge
     )
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
     auto& neighbour = r_elem_neigb[edge];
-    rAverageStress = 0.5*(neighbour.GetValue(ThisVariable) + pCurrentElement->GetValue(ThisVariable));
+    rAverageVector = 0.5*(neighbour.GetValue(ThisVariable) + pCurrentElement->GetValue(ThisVariable));
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
-    Vector& rAverageStress,
+    Vector& rAverageVector,
     const int edge
     )
 {
+    std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
+	Vector current_element_variable = this->GetValue(ThisVariable);
+	rAverageVector = current_element_variable;
+	int counter = 0;
 
+	for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
+		rAverageVector += p_edge_neighbours[elem]->GetValue(ThisVariable);
+		counter++;
+	}
+	rAverageVector /= (counter + 1);
 }
 /***********************************************************************************/
 /***********************************************************************************/
