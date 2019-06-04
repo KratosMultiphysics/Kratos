@@ -215,24 +215,24 @@ for normalvar in range(normal_combs):
         for node in range(nnodes):
             for slip in range(4):
                 rv_galerkin = 0
-                if (slip == 0): # Inactive
+                if slip == 0: # Inactive
                     rv_galerkin -= ScaleFactor**2.0 / PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
                     rv_galerkin -= ScaleFactor**2.0 / (PenaltyParameter[node] * TangentFactor) * (LMTangent.row(node)).dot(wLMTangent.row(node))
                 else:
                     augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                     rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
 
-                    if (slip == 1): # Slip
+                    if slip == 1: # Slip
                         augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
 
                         modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) + augmented_tangent_contact_pressure
                         rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
                     else: # Stick
-                        if (slip == 2): # Obtective
+                        if slip == 2: # Objective
                             augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipObjective.row(node)
 
                             rv_galerkin += ScaleFactor * (TangentSlipObjective.row(node)).dot(wLMTangent.row(node))
-                        else: # Non-Obtective
+                        else: # Non-Objective
                             augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipNonObjective.row(node)
 
                             rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
