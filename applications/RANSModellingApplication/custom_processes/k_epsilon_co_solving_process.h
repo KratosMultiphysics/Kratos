@@ -234,15 +234,18 @@ private:
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
-            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            const double epsilon =
-                r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-            const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
-            const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
-            const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-                c_mu, tke, epsilon, f_mu);
+            if (!r_node.Is(STRUCTURE))
+            {
+                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+                const double epsilon =
+                    r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
+                const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
+                const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
+                const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
+                    c_mu, tke, epsilon, f_mu);
 
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
+                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
+            }
         }
 
         unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
@@ -262,7 +265,7 @@ private:
             this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
         const double current_nu_t_max = RansVariableUtils().GetMaximumScalarValue(
             this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
-        KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
+        KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 1)
             << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
             << ", " << current_nu_t_max << " ].\n";
     }
