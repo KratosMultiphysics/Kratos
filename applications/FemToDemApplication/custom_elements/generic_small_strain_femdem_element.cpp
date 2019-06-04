@@ -36,15 +36,15 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 	: SmallDisplacementElement(NewId, pGeometry, pProperties)
 {
-	//BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
-	// mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+	// BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
+	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
-	// // Each component == Each edge
-	// mNumberOfEdges = 6;
-	// mNonConvergedThresholds = ZeroVector(mNumberOfEdges);   // Equivalent stress
-	// mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
-	// mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
-	// mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
+	// Each component == Each edge
+	mNumberOfEdges = 6;
+	mNonConvergedThresholds = ZeroVector(mNumberOfEdges);   // Equivalent stress
+	mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
+	mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
+	mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
 }
 
 //******************************COPY CONSTRUCTOR**************************************
