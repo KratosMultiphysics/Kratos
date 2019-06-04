@@ -101,6 +101,7 @@ public:
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
+     * @param NormalTangentRatio Ratio between the normal and tangent that will accepted as converged
      * @param EnsureContact To check if the contact is lost
      * @param pTable The pointer to the output r_table
      * @param PrintingOutput If the output is going to be printed in a txt file
@@ -112,6 +113,7 @@ public:
         const TDataType LMNormalAbsTolerance,
         const TDataType LMTangentRatioTolerance,
         const TDataType LMTangentAbsTolerance,
+        const TDataType NormalTangentRatio,
         const bool EnsureContact = false,
         const bool PrintingOutput = false
         )
@@ -134,6 +136,9 @@ public:
         // The tangent contact residual
         mLMTangentRatioTolerance = LMTangentRatioTolerance;
         mLMTangentAbsTolerance = LMTangentAbsTolerance;
+
+        // We get the  ratio between the normal and tangent that will accepted as converged
+        mNormalTangentRatio = NormalTangentRatio;
     }
 
     /**
@@ -153,7 +158,8 @@ public:
             "contact_displacement_relative_tolerance"            : 1.0e-4,
             "contact_displacement_absolute_tolerance"            : 1.0e-9,
             "frictional_contact_displacement_relative_tolerance" : 1.0e-4,
-            "frictional_contact_displacement_absolute_tolerance" : 1.0e-9
+            "frictional_contact_displacement_absolute_tolerance" : 1.0e-9,
+            "ratio_normal_tangent_threshold"                     : 1.0e-4
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -163,12 +169,15 @@ public:
         mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
 
         // The normal contact solution
-        mLMNormalRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
-        mLMNormalAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
+        mLMNormalRatioTolerance = ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
+        mLMNormalAbsTolerance = ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
 
         // The tangent contact solution
-        mLMTangentRatioTolerance =  ThisParameters["frictional_contact_displacement_relative_tolerance"].GetDouble();
-        mLMTangentAbsTolerance =  ThisParameters["frictional_contact_displacement_absolute_tolerance"].GetDouble();
+        mLMTangentRatioTolerance = ThisParameters["frictional_contact_displacement_relative_tolerance"].GetDouble();
+        mLMTangentAbsTolerance = ThisParameters["frictional_contact_displacement_absolute_tolerance"].GetDouble();
+
+        // We get the  ratio between the normal and tangent that will accepted as converged
+        mNormalTangentRatio = ThisParameters["ratio_normal_tangent_threshold"].GetDouble();
 
         // Set local flags
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
@@ -189,6 +198,7 @@ public:
       ,mLMNormalAbsTolerance(rOther.mLMNormalAbsTolerance)
       ,mLMTangentRatioTolerance(rOther.mLMNormalRatioTolerance)
       ,mLMTangentAbsTolerance(rOther.mLMNormalAbsTolerance)
+      ,mNormalTangentRatio(rOther.mNormalTangentRatio)
     {
     }
 
@@ -242,7 +252,7 @@ public:
                     const auto curr_var = it_dof->GetVariable();
                     if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
 
                         dof_value = it_dof->GetSolutionStepValue(0);
@@ -257,7 +267,7 @@ public:
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
 
                         dof_value = it_dof->GetSolutionStepValue(0);
@@ -272,7 +282,7 @@ public:
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
-                        const auto& it_node = r_nodes_array.find(it_dof->Id());
+                        const auto it_node = r_nodes_array.find(it_dof->Id());
                         const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
 
                         dof_value = it_dof->GetSolutionStepValue(0);
@@ -301,6 +311,7 @@ public:
             const TDataType normal_lm_abs = std::sqrt(normal_lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
             const TDataType tangent_lm_ratio = std::sqrt(tangent_lm_increase_norm/tangent_lm_solution_norm);
             const TDataType tangent_lm_abs = std::sqrt(tangent_lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType normal_tangent_ratio = tangent_lm_abs/normal_lm_abs;
 
             TDataType residual_disp_ratio;
 
@@ -349,7 +360,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm == 0.0) ? true : (normal_lm_ratio <= mLMNormalRatioTolerance || normal_lm_abs <= mLMNormalAbsTolerance) && (tangent_lm_ratio <= mLMTangentRatioTolerance || tangent_lm_abs <= mLMTangentAbsTolerance);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm == 0.0) ? true : (normal_lm_ratio <= mLMNormalRatioTolerance || normal_lm_abs <= mLMNormalAbsTolerance) && (tangent_lm_ratio <= mLMTangentRatioTolerance || tangent_lm_abs <= mLMTangentAbsTolerance || normal_tangent_ratio <= mNormalTangentRatio);
 
             if ( disp_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -499,11 +510,13 @@ private:
     TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
     TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
 
-    TDataType mLMNormalRatioTolerance; /// The ratio threshold for the norm of the LM (normal)
-    TDataType mLMNormalAbsTolerance;   /// The absolute value threshold for the norm of the LM (normal)
+    TDataType mLMNormalRatioTolerance;  /// The ratio threshold for the norm of the LM (normal)
+    TDataType mLMNormalAbsTolerance;    /// The absolute value threshold for the norm of the LM (normal)
 
     TDataType mLMTangentRatioTolerance; /// The ratio threshold for the norm of the LM (tangent)
     TDataType mLMTangentAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent)
+
+    TDataType mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
 
     ///@}
     ///@name Private Operators
