@@ -95,7 +95,30 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
     )
 {
 	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
-	// this->InitializeInternalVariablesAfterMapping();
+	this->InitializeInternalVariablesAfterMapping();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeInternalVariablesAfterMapping()
+{
+    // After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
+    const double element_threhsold = mThreshold;
+    if (norm_2(mThresholds) < std::numeric_limits<double>::epsilon()) {
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            mThresholds[edge] = element_threhsold;
+        }
+    }
+
+    // IDEM with the edge damages
+    const double damage_element = mDamage;
+    if (norm_2(mDamages) < std::numeric_limits<double>::epsilon()) {
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            mDamages[edge] = damage_element;
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -154,7 +177,6 @@ template<>
 void GenericSmallStrainFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 template<> 
 void GenericSmallStrainFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-
 
 /***********************************************************************************/
 /***********************************************************************************/

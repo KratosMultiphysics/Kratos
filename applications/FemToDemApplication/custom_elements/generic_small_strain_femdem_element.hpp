@@ -134,6 +134,12 @@ public:
 		rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
 	}
 
+    /**
+     * this imposes the damage/threshold to be equal
+     * at the edges 
+     */
+    void InitializeInternalVariablesAfterMapping();
+
 private:
 
     ///@name Static Member Variables
