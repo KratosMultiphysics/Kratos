@@ -69,7 +69,7 @@ namespace Kratos
 
       /// Constructors to be used. They take the geometry to be meshed and ModelPart to be filled. The second constructor is
       /// provided for the Python interface.
-      VoxelMeshGeneratorProcess(Point const& MinPoint, Point const& MaxPoint, 
+      VoxelMeshGeneratorProcess(Point const& MinPoint, Point const& MaxPoint,
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
 
@@ -152,6 +152,8 @@ namespace Kratos
           array_1d<double,3> mCellSizes;
 
           const double mExtraRaysEpsilon = 1.0e-8;
+          Parameters mColoringParameters;
+          std::string mEntitiesToGenerate;
 
 
       ///@}
@@ -161,6 +163,8 @@ namespace Kratos
           void Generate3DMesh();
 
           void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
+
+          void GenerateCenterOfElements(Point const& rMinPoint, Point const& rMaxPoint);
 
           Node<3>::Pointer pGetNode(std::size_t I, std::size_t J, std::size_t K);
             ///@}

@@ -22,6 +22,8 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/checks.h"
+#include "processes/voxel_mesh_coloring_process.h"
+
 
 
 namespace Kratos
@@ -52,7 +54,9 @@ namespace Kratos
                 "elements_properties_id":0,
                 "conditions_properties_id":0,
                 "element_name": "PLEASE SPECIFY IT",
-                "condition_name": "PLEASE SPECIFY IT"
+                "condition_name": "PLEASE SPECIFY IT",
+				"coloring_settings_list": [],
+				"entities_to_generate": "elements"
             }  )");
 
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
@@ -72,8 +76,10 @@ namespace Kratos
 		mConditionName = TheParameters["condition_name"].GetString();
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
         mCellSizes = mMaxPoint - mMinPoint;
+		mColoringParameters = TheParameters["coloring_settings_list"];
         for(int i = 0 ; i < 3 ; i++)
             mCellSizes[i] /= mNumberOfDivisions[i];
+		mEntitiesToGenerate=TheParameters["entities_to_generate"].GetString();
 
         Check();
     }
@@ -84,9 +90,31 @@ namespace Kratos
 
 	void VoxelMeshGeneratorProcess::Execute() {
 
-        /// Fill container with objects
+		if(mEntitiesToGenerate == "center_of_elements")
+			GenerateCenterOfElements(mMinPoint, mMaxPoint);
 
-        Generate3DMesh();
+		if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
+			if (mCreateSkinSubModelPart)
+				if(!mrVolumePart.HasSubModelPart("Skin"))
+					mrVolumePart.CreateSubModelPart("Skin");
+
+			GenerateNodes3D(mMinPoint, mMaxPoint);
+		}
+
+		if(mEntitiesToGenerate == "elements")
+        	Generate3DMesh();
+
+		if(mEntitiesToGenerate == "elements")
+			for(auto item : mColoringParameters){
+				std::string model_part_name = item["model_part_name"].GetString();
+				if(model_part_name == mrSkinPart.Name())
+					VoxelMeshColoringProcess(mMinPoint, mMaxPoint, mNumberOfDivisions, mrVolumePart, mrSkinPart, item).Execute();
+				else {
+					ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
+					VoxelMeshColoringProcess(mMinPoint, mMaxPoint, mNumberOfDivisions, mrVolumePart, skin_part, item).Execute();
+				}
+			}
+
 	}
 
 	std::string VoxelMeshGeneratorProcess::Info() const {
@@ -102,12 +130,6 @@ namespace Kratos
 	}
 
 	void VoxelMeshGeneratorProcess::Generate3DMesh() {
-		if (mCreateSkinSubModelPart)
-			if(!mrVolumePart.HasSubModelPart("Skin"))
-				mrVolumePart.CreateSubModelPart("Skin");
-
-		GenerateNodes3D(mMinPoint, mMaxPoint);
-
         if(!mrVolumePart.HasProperties(mElementPropertiesId))
             mrVolumePart.CreateNewProperties(mElementPropertiesId);
 
@@ -160,6 +182,26 @@ namespace Kratos
 						mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
                                                                    global_coordinates[1],
                                                                    global_coordinates[2]);
+				}
+			}
+		}
+	}
+
+	void VoxelMeshGeneratorProcess::GenerateCenterOfElements(Point const& rMinPoint, Point const& rMaxPoint) {
+		GeometryType::CoordinatesArrayType local_element_size = mCellSizes;
+		Point local_coordinates = rMinPoint;
+		auto global_coordinates = Point{ZeroVector(3)};
+		std::size_t node_id = mStartNodeId;
+
+		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+					global_coordinates[0] = rMinPoint[0] + ((i + 0.5) * local_element_size[0]);
+					global_coordinates[1] = rMinPoint[1] + ((j + 0.5) * local_element_size[1]);
+					global_coordinates[2] = rMinPoint[2] + ((k + 0.5) * local_element_size[2]);
+					mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
+                                                          global_coordinates[1],
+                                                          global_coordinates[2]);
 				}
 			}
 		}
