@@ -894,6 +894,47 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllUnsignedIntVector
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllLongUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<long unsigned int> local{1, 1};
+    std::vector<long unsigned int> output{0, 0};
+
+    const unsigned int expected = world_size;
+
+    // two-buffer version
+    mpi_world_communicator.SumAll(local, output);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(output[i], expected);
+    }
+
+    // return buffer version
+    std::vector<long unsigned int> returned_result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(returned_result[i], expected);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<long unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
