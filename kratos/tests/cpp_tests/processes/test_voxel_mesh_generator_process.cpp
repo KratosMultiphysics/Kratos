@@ -25,12 +25,90 @@ namespace Kratos {
   namespace Testing {
 
 
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessNodesPositions, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   5,
+			"element_name":     "Element3D4N"
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+
+
+		// Generating the mesh
+		VoxelMeshGeneratorProcess(Point{1.00, 2.00, 3.00}, Point{11.00, 12.00, 13.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		auto i_node = volume_part.NodesBegin();
+		for (std::size_t k = 0; k <= 5; k++) {
+			for (std::size_t j = 0; j <= 5; j++) {
+				for (std::size_t i = 0; i <= 5; i++) {
+					auto& node = *i_node++;
+					double x = 2.00*i + 1.00;
+					double y = 2.00*j + 2.00;
+					double z = 2.00*k + 3.00;
+                	KRATOS_CHECK_NEAR(node.X(), x, 1e-6);
+                	KRATOS_CHECK_NEAR(node.Y(), y, 1e-6);
+                	KRATOS_CHECK_NEAR(node.Z(), z, 1e-6);
+				}
+            }
+		}
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessCentersPositions, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   10,
+			"element_name":     "Element3D4N",
+			"entities_to_generate": "center_of_elements"
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+
+
+		// Generating the mesh
+		VoxelMeshGeneratorProcess(Point{1.00, 2.00, 3.00}, Point{11.00, 12.00, 13.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		auto i_node = volume_part.NodesBegin();
+		for (std::size_t k = 0; k < 10; k++) {
+			for (std::size_t j = 0; j < 10; j++) {
+				for (std::size_t i = 0; i < 10; i++) {
+					auto& node = *i_node++;
+					double x = i+1.50;
+					double y = j+2.50;
+					double z = k+3.50;
+                	KRATOS_CHECK_NEAR(node.X(), x, 1e-6);
+                	KRATOS_CHECK_NEAR(node.Y(), y, 1e-6);
+                	KRATOS_CHECK_NEAR(node.Z(), z, 1e-6);
+				}
+            }
+		}
+	}
+
+
 	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorTetrahedraSkinProcess, KratosCoreFastSuite)
 	{
 		Parameters mesher_parameters(R"(
 		{
 			"number_of_divisions":   10,
-			"element_name":     "Element3D4N"
+			"element_name":     "Element3D4N",
+			"coloring_settings_list": [
+				{
+					"model_part_name": "SkinPart",
+					"inside_color": -1,
+					"outside_color": 1,
+					"apply_outside_color": true
+				}
+			]
 		})");
 
         Model current_model;
@@ -57,7 +135,7 @@ namespace Kratos {
 		// Generating the mesh
 		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 		// Compute distance
-		VoxelMeshColoringProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+		// VoxelMeshColoringProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
 
 		Tetrahedra3D4<Node<3>> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
