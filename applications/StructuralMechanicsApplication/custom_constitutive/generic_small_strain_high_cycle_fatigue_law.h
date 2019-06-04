@@ -348,13 +348,13 @@ private:
     double mMinStress = 0.0;
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
-    unsigned int mNumberOfCyclesGlobal = 1;
-    unsigned int mNumberOfCyclesLocal = 1;
+    unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
+    unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
-    double mWohlerStress = 1.0;
-    bool mMaxDetected = false;
-    bool mMinDetected = false;
+    double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
+    bool mMaxDetected = false; // Maximum's indicator in the current cycle
+    bool mMinDetected = false; // Minimum's indicator in the current cycle
 
     ///@}
     ///@name Private Operators
