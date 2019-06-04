@@ -89,8 +89,13 @@ public:
     ///@{
 
     /**
-     * @brief  
-     * @param 
+     * @brief This method checks and saves the previous stress state if it was a maximum or a minimum.
+     * @param CurrentStress Equivalent stress in the current step.
+     * @param rMaximumStress Maximum stress. 
+     * @param rMinimumStress Minimum stress. 
+     * @param PreviousStresses Equivalent stresses in the two previous steps. 
+     * @param rMaxIndicator Indicator of a maximum in the current cycle. 
+     * @param rMinIndicator Indicator of a minimum in the current cycle. 
      */
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
@@ -150,19 +155,20 @@ public:
     }
 
     /**
-     * @brief This method computes the reduction factor used in the high cycle fatigue model 
+     * @brief This method computes internal variables (B0, Sth and ALPHAT) of the CL  
      * @param MaxStress Signed maximum stress in the current cycle.
      * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
      * @param MaterialParameters Material properties.
-     * @param NumbreOfCycles Number of cycles at the current step.
-     * @param FatigueReductionFactor Reduction factor from the previous step to be reevaluated.
-     * @param B0 Internal variable of the fatigue model used for the calculation of the FatigueReductionFactor.
+     * @param rB0 Internal variable of the fatigue model.
+     * @param rSth Internal variable of the fatigue model of the fatigue model. 
+     * @param rAlphat Internal variable of the fatigue model.
      */
-    static void CalculateFatigueParameterB0AndSth(const double MaxStress,
+    static void CalculateFatigueParameters(const double MaxStress,
                                             double ReversionFactor,
                                             const Properties& rMaterialParameters,
                                             double& rB0,
-                                            double& rSth)
+                                            double& rSth,
+                                            double& rAlphat)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
@@ -176,40 +182,51 @@ public:
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
 
-        double alphat;
         if (std::abs(ReversionFactor) < 1.0) {
             rSth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
-			alphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
+			rAlphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
             rSth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
-			alphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
+			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > rSth && MaxStress <= yield_stress) {
-            const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (yield_stress - rSth))/alphat,(1.0/BETAF)));
+            const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (yield_stress - rSth))/rAlphat,(1.0/BETAF)));
             rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(N_F)), square_betaf));
         }
     }
 
     /**
-     * @brief This method computes the reduction factor used in the high cycle fatigue model 
-     * @param MaxStress Signed maximum stress in the current cycle.
-     * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
+     * @brief This method computes the reduction factor and the wohler stress (SN curve) 
      * @param MaterialParameters Material properties.
-     * @param NumbreOfCycles Number of cycles at the current step.
-     * @param FatigueReductionFactor Reduction factor from the previous step to be reevaluated.
-     * @param B0 Internal variable of the fatigue model used for the calculation of the FatigueReductionFactor.
+     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param LocalNumberOfCycles Number of cycles in the current load.
+     * @param GlobalNumberOfCycles Number of cycles in the whole analysis.
+     * @param B0 Internal variable of the fatigue model.
+     * @param Sth Endurance limit of the fatigue model.
+     * @param Alphat Internal variable of the fatigue model.
+     * @param rFatigueReductionFactor Reduction factor from the previous step to be reevaluated.
+     * @param rWohlerStress Normalized Wohler stress used to build the life prediction curves (SN curve).
      */
-    static void CalculateFatigueReductionFactor(const double SquareBetaF,
-                                                const double MaxStress,
-                                                unsigned int& LocalNumberOfCycles,
-                                                const double B0,
-                                                const double Sth,
-                                                double& rFatigueReductionFactor)
+    static void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters,
+                                                                const double MaxStress,
+                                                                unsigned int LocalNumberOfCycles,
+                                                                unsigned int GlobalNumberOfCycles,
+                                                                const double B0,
+                                                                const double Sth,
+                                                                const double Alphat,
+                                                                double& rFatigueReductionFactor,
+                                                                double& rWohlerStress)
 	{
+        const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+        if (GlobalNumberOfCycles > 2){
+            const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+            rWohlerStress = (Sth + (yield_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / yield_stress;
+        }
+
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), SquareBetaF));
+            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
         }
     }
 

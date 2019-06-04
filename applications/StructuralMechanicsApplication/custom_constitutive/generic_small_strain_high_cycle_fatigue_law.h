@@ -131,7 +131,8 @@ public:
             mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
             mStressVector(rOther.mStressVector), 
             mMaxDetected(rOther.mMaxDetected),
-            mMinDetected(rOther.mMinDetected)
+            mMinDetected(rOther.mMinDetected),
+            mWohlerStress(rOther.mWohlerStress)
     {
     }
 
@@ -335,8 +336,8 @@ private:
     bool GetMinDetected() {return mMinDetected;}
     void SetMinDetected(const bool toMinDetected){mMinDetected = toMinDetected;}
 
-    // double GetWohlerStress() {return mWohlerStress;}
-    // void SetWohlerStress(const double toWohleStress) {mWohlerStress = toWohleStress;}
+    double GetWohlerStress() {return mWohlerStress;}
+    void SetWohlerStress(const double toWohleStress) {mWohlerStress = toWohleStress;}
     
     ///@}
     ///@name Member Variables
@@ -351,7 +352,7 @@ private:
     unsigned int mNumberOfCyclesLocal = 1;
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
-    // double mWohlerStress = 1.0;
+    double mWohlerStress = 1.0;
     bool mMaxDetected = false;
     bool mMinDetected = false;
 
@@ -386,6 +387,7 @@ private:
         rSerializer.save("StressVector", mStressVector);
         rSerializer.save("MaxDetected", mMaxDetected);
         rSerializer.save("MinDetected", mMinDetected);
+        rSerializer.save("WohlerStress", mWohlerStress);
     }
 
     void load(Serializer &rSerializer) override
@@ -403,6 +405,7 @@ private:
         rSerializer.load("StressVector", mStressVector);
         rSerializer.load("MaxDetected", mMaxDetected);
         rSerializer.load("MinDetected", mMinDetected);
+        rSerializer.load("WohlerStress", mWohlerStress);
     }
     ///@}
 
