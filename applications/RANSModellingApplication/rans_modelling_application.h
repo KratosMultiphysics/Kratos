@@ -10,24 +10,20 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-
-#if !defined(KRATOS_RANS_MODELLING_APPLICATION_H_INCLUDED )
-#define  KRATOS_RANS_MODELLING_APPLICATION_H_INCLUDED
-
+#if !defined(KRATOS_RANS_MODELLING_APPLICATION_H_INCLUDED)
+#define KRATOS_RANS_MODELLING_APPLICATION_H_INCLUDED
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
+#include "custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
 #include "includes/kratos_application.h"
-#include "custom_elements/evm_k_epsilon/evm_k_element.h"
-#include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 ///@name Kratos Globals
 ///@{
 
@@ -49,8 +45,9 @@ namespace Kratos {
 
 /// Short class definition.
 /** Detail class definition.
-*/
-class KratosRANSModellingApplication : public KratosApplication {
+ */
+class KratosRANSModellingApplication : public KratosApplication
+{
 public:
     ///@name Type Definitions
     ///@{
@@ -66,12 +63,13 @@ public:
     KratosRANSModellingApplication();
 
     /// Destructor.
-    ~KratosRANSModellingApplication() override {}
+    ~KratosRANSModellingApplication() override
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -83,11 +81,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -109,8 +105,8 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-          KRATOS_WATCH("in my application");
-          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -126,43 +122,35 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 
@@ -177,31 +165,27 @@ private:
     ///@{
 
     /// k-epsilon turbulence model elements
-    const EvmKElement<2, 3> mRANSEVMK2D;
-    const EvmKElement<3, 4> mRANSEVMK3D;
+    const EvmLowReKElement<2, 3> mRANSEVMLowReK2D;
+    const EvmLowReKElement<3, 4> mRANSEVMLowReK3D;
 
-    const EvmEpsilonElement<2, 3> mRANSEVMEPSILON2D;
-    const EvmEpsilonElement<3, 4> mRANSEVMEPSILON3D;
+    const EvmLowReEpsilonElement<2, 3> mRANSEVMLowReEpsilon2D;
+    const EvmLowReEpsilonElement<3, 4> mRANSEVMLowReEpsilon3D;
 
     ///@}
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -213,17 +197,14 @@ private:
     /// Copy constructor.
     KratosRANSModellingApplication(KratosRANSModellingApplication const& rOther);
 
-
     ///@}
 
 }; // Class KratosRANSModellingApplication
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -231,7 +212,6 @@ private:
 
 ///@}
 
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_RANS_MODELLING_APPLICATION_H_INCLUDED  defined

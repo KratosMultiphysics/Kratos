@@ -66,7 +66,7 @@ class TurbulenceKEpsilonConfiguration(
             default_settings)
         self.model_settings = parameters["model_settings"]
 
-        self.model_elements_list = ["RANSEVMK", "RANSEVMEPSILON"]
+        self.model_elements_list = ["RANSEVMLowReK", "RANSEVMLowReEpsilon"]
         self.model_conditions_list = ["Condition", "Condition"]
         self.rans_solver_configurations = []
         self.is_initial_values_assigned = False
@@ -188,8 +188,7 @@ class TurbulenceKEpsilonConfiguration(
         if self.turbulence_model_process is None:
             self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
                 self.fluid_model_part,
-                self.model_settings["coupling_settings"],
-                self.GetYPlusModel())
+                self.model_settings["coupling_settings"], self.GetYPlusModel())
 
             Kratos.Logger.PrintInfo(self.__class__.__name__,
                                     "Created turbulence solving process.")

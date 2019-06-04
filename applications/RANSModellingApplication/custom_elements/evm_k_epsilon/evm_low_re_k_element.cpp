@@ -15,7 +15,7 @@
 // External includes
 
 // Include Base h
-#include "evm_k_element.h"
+#include "evm_low_re_k_element.h"
 
 namespace Kratos
 {
@@ -42,8 +42,8 @@ namespace Kratos
  * Constructor.
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKElementData>(NewId)
+EvmLowReKElement<TDim, TNumNodes>::EvmLowReKElement(IndexType NewId)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReKElementData>(NewId)
 {
 }
 
@@ -51,8 +51,8 @@ EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId)
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId, const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKElementData>(
+EvmLowReKElement<TDim, TNumNodes>::EvmLowReKElement(IndexType NewId, const NodesArrayType& ThisNodes)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReKElementData>(
           NewId, ThisNodes)
 {
 }
@@ -61,8 +61,8 @@ EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId, const NodesArrayType&
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKElementData>(
+EvmLowReKElement<TDim, TNumNodes>::EvmLowReKElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReKElementData>(
           NewId, pGeometry)
 {
 }
@@ -71,10 +71,10 @@ EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId, GeometryType::Pointer
  * Constructor using Properties
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId,
-                                          GeometryType::Pointer pGeometry,
-                                          PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKElementData>(
+EvmLowReKElement<TDim, TNumNodes>::EvmLowReKElement(IndexType NewId,
+                                                    GeometryType::Pointer pGeometry,
+                                                    PropertiesType::Pointer pProperties)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReKElementData>(
           NewId, pGeometry, pProperties)
 {
 }
@@ -83,8 +83,8 @@ EvmKElement<TDim, TNumNodes>::EvmKElement(IndexType NewId,
  * Copy Constructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>::EvmKElement(EvmKElement<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKElementData>(rOther)
+EvmLowReKElement<TDim, TNumNodes>::EvmLowReKElement(EvmLowReKElement<TDim, TNumNodes> const& rOther)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReKElementData>(rOther)
 {
 }
 
@@ -92,7 +92,7 @@ EvmKElement<TDim, TNumNodes>::EvmKElement(EvmKElement<TDim, TNumNodes> const& rO
  * Destructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>::~EvmKElement()
+EvmLowReKElement<TDim, TNumNodes>::~EvmLowReKElement()
 {
 }
 
@@ -102,8 +102,8 @@ EvmKElement<TDim, TNumNodes>::~EvmKElement()
 
 /// Assignment operator.
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKElement<TDim, TNumNodes>& EvmKElement<TDim, TNumNodes>::operator=(
-    EvmKElement<TDim, TNumNodes> const& rOther)
+EvmLowReKElement<TDim, TNumNodes>& EvmLowReKElement<TDim, TNumNodes>::operator=(
+    EvmLowReKElement<TDim, TNumNodes> const& rOther)
 {
     BaseType::operator=(rOther);
     Flags::operator=(rOther);
@@ -128,12 +128,12 @@ EvmKElement<TDim, TNumNodes>& EvmKElement<TDim, TNumNodes>::operator=(
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                      NodesArrayType const& ThisNodes,
-                                                      PropertiesType::Pointer pProperties) const
+Element::Pointer EvmLowReKElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                           NodesArrayType const& ThisNodes,
+                                                           PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmKElement>(
+    return Kratos::make_intrusive<EvmLowReKElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
@@ -146,12 +146,12 @@ Element::Pointer EvmKElement<TDim, TNumNodes>::Create(IndexType NewId,
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                      GeometryType::Pointer pGeom,
-                                                      PropertiesType::Pointer pProperties) const
+Element::Pointer EvmLowReKElement<TDim, TNumNodes>::Create(IndexType NewId,
+                                                           GeometryType::Pointer pGeom,
+                                                           PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmKElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EvmLowReKElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -163,11 +163,11 @@ Element::Pointer EvmKElement<TDim, TNumNodes>::Create(IndexType NewId,
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmKElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                     NodesArrayType const& ThisNodes) const
+Element::Pointer EvmLowReKElement<TDim, TNumNodes>::Clone(IndexType NewId,
+                                                          NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmKElement>(
+    return Kratos::make_intrusive<EvmLowReKElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
     KRATOS_CATCH("");
 }
@@ -179,8 +179,8 @@ Element::Pointer EvmKElement<TDim, TNumNodes>::Clone(IndexType NewId,
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& CurrentProcessInfo)
+void EvmLowReKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                                                         ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -195,8 +195,8 @@ void EvmKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResul
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+void EvmLowReKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                                                   ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
@@ -206,13 +206,13 @@ void EvmKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void EvmLowReKElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues, int Step)
+void EvmLowReKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -227,7 +227,7 @@ void EvmKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues, int Step)
+void EvmLowReKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -242,7 +242,7 @@ void EvmKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValue
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod EvmKElement<TDim, TNumNodes>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod EvmLowReKElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -257,7 +257,7 @@ GeometryData::IntegrationMethod EvmKElement<TDim, TNumNodes>::GetIntegrationMeth
  * this method is: MANDATORY
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-int EvmKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EvmLowReKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -307,25 +307,25 @@ int EvmKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 /// Turn back information as a string.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string EvmKElement<TDim, TNumNodes>::Info() const
+std::string EvmLowReKElement<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "EvmKElement #" << Element::Id();
+    buffer << "EvmLowReKElement #" << Element::Id();
     return buffer.str();
 }
 
 /// Print information about this object.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+void EvmLowReKElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "EvmKElement #" << Element::Id();
+    rOStream << "EvmLowReKElement #" << Element::Id();
 }
 
 /// Print object's data.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+void EvmLowReKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
 }
@@ -381,8 +381,8 @@ void EvmKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
-    EvmKElementData& rData,
+void EvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+    EvmLowReKElementData& rData,
     double& rEffectiveKinematicViscosity,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -394,8 +394,7 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     const double& c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     const double& tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
 
-    const double& nu_t =
-        this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
+    const double& nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
     const double& tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
     const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double& wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
@@ -412,8 +411,8 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
-    EvmKElementData& rData,
+void EvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+    EvmLowReKElementData& rData,
     double& rEffectiveKinematicViscosity,
     double& rVariableGradientNorm,
     double& rVariableRelaxedAcceleration,
@@ -435,18 +434,18 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EvmKElement<TDim, TNumNodes>::CalculateReactionTerm(const EvmKElementData& rData,
-                                                           const ProcessInfo& rCurrentProcessInfo,
-                                                           const int Step) const
+double EvmLowReKElement<TDim, TNumNodes>::CalculateReactionTerm(const EvmLowReKElementData& rData,
+                                                                const ProcessInfo& rCurrentProcessInfo,
+                                                                const int Step) const
 {
     return 2.0 * rData.KinematicViscosity / std::pow(rData.WallDistance, 2) +
            rData.Gamma;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EvmKElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmKElementData& rData,
-                                                         const ProcessInfo& rCurrentProcessInfo,
-                                                         const int Step) const
+double EvmLowReKElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmLowReKElementData& rData,
+                                                              const ProcessInfo& rCurrentProcessInfo,
+                                                              const int Step) const
 {
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
@@ -462,7 +461,7 @@ double EvmKElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmKElementData& 
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void EvmLowReKElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 
@@ -471,7 +470,7 @@ void EvmKElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+void EvmLowReKElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 
@@ -502,13 +501,14 @@ void EvmKElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 /// input stream function
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream, EvmKElement<TDim, TNumNodes>& rThis);
+inline std::istream& operator>>(std::istream& rIStream,
+                                EvmLowReKElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const EvmKElement<TDim, TNumNodes>& rThis)
+                                const EvmLowReKElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -518,9 +518,9 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 // Class template instantiation
 
-template class EvmKElement<2, 3>;
-template class EvmKElement<3, 4>;
-template class EvmKElement<2, 4>;
-template class EvmKElement<3, 8>;
+template class EvmLowReKElement<2, 3>;
+template class EvmLowReKElement<3, 4>;
+template class EvmLowReKElement<2, 4>;
+template class EvmLowReKElement<3, 8>;
 
 } // namespace Kratos.
