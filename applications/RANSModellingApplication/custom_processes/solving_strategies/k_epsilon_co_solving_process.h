@@ -30,10 +30,10 @@
 
 // Application includes
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_processes/scalar_co_solving_process.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "rans_modelling_application_variables.h"
+#include "scalar_co_solving_process.h"
 
 namespace Kratos
 {

@@ -30,9 +30,9 @@
 
 // Application includes
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_processes/k_epsilon_co_solving_process.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
+#include "k_epsilon_co_solving_process.h"
 #include "rans_modelling_application_variables.h"
 
 namespace Kratos
@@ -174,16 +174,18 @@ template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-inline std::istream& operator>>(std::istream& rIStream,
-                                KEpsilonSteadyCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    KEpsilonSteadyCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
 /// output stream function
 template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const KEpsilonSteadyCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const KEpsilonSteadyCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
