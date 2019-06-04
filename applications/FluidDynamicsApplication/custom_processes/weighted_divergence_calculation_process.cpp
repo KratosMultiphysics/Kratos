@@ -44,7 +44,7 @@ namespace Kratos
 
             ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-            // Set time coefficient: computations will be performed ONLY AFTER 20% of total time of the simulation
+            // Set time coefficient: computations will be performed ONLY AFTER time_coefficient% of total time of the simulation
             mTimeCoefficient = ThisParameters["time_coefficient"].GetDouble();
     }
 
