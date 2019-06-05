@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Counted pointer of LaplacianElement
-    KRATOS_CLASS_POINTER_DEFINITION(LaplacianElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianElement);
 
     ///@}
     ///@name Life Cycle

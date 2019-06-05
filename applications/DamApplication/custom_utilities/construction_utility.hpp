@@ -314,11 +314,18 @@ class ConstructionUtility
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName, int current_number_of_phase)
+    void InitializeSolutionStep(std::string ThermalSubModelPartName, std::string MechanicalSubModelPartName, std::string HeatFluxSubModelPartName, std::string HydraulicPressureSubModelPartName, bool thermal_conditions, bool mechanical_conditions, int current_number_of_phase)
     {
         KRATOS_TRY;
 
-        const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nelements_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nelements_mech = mrMechanicalModelPart.GetSubModelPart(MechanicalSubModelPartName).Elements().size();
+
+        int nconditions_thermal = 0;
+        int nconditions_mech = 0;
+        if (thermal_conditions) nconditions_thermal = mrThermalModelPart.GetSubModelPart(HeatFluxSubModelPartName).Conditions().size();
+        if (mechanical_conditions) nconditions_mech = mrMechanicalModelPart.GetSubModelPart(HydraulicPressureSubModelPartName).Conditions().size();
+
         int direction;
 
         if (mGravityDirection == "X")
@@ -333,86 +340,84 @@ class ConstructionUtility
 
         if (current_height > mHighestBlockHeight) mHighestBlockHeight = current_height;
 
-        if (nelements != 0)
+        if (nelements_thermal != 0)
         {
-            // ELEMENTS
-            ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(MechanicalSubModelPartName).ElementsBegin();
+            // Thermal Elements
             ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();
 
             #pragma omp parallel for
-            for (int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements_thermal; ++k)
             {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-                array_1d<double, 3> central_position = it->GetGeometry().Center();
+                array_1d<double, 3> central_position = it_thermal->GetGeometry().Center();
 
                 if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
                 {
-                    it->Set(ACTIVE, true);
                     it_thermal->Set(ACTIVE, true);
+                }
+            }
+        }
 
-                    const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
+        if (nelements_mech != 0)
+        {
+            // Mechanical Elements
+            ModelPart::ElementsContainerType::iterator el_begin_mech = mrMechanicalModelPart.GetSubModelPart(MechanicalSubModelPartName).ElementsBegin();
+
+            #pragma omp parallel for
+            for (int k = 0; k < nelements_mech; ++k)
+            {
+                ModelPart::ElementsContainerType::iterator it_mech = el_begin_mech + k;
+                array_1d<double, 3> central_position = it_mech->GetGeometry().Center();
+
+                if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
+                {
+                    it_mech->Set(ACTIVE, true);
+
+                    const unsigned int number_of_points = it_mech->GetGeometry().PointsNumber();
                     for (unsigned int i = 0; i < number_of_points; i++)
                     {
-                        it->GetGeometry()[i].Set(ACTIVE, true);
-                        it->GetGeometry()[i].Set(SOLID, false);
+                        it_mech->GetGeometry()[i].Set(ACTIVE, true);
+                        it_mech->GetGeometry()[i].Set(SOLID, false);
                     }
                 }
             }
         }
 
-        // Mechanical Conditions
-        const int nconditions_mech = mrMechanicalModelPart.GetMesh(0).Conditions().size();
-
-        if (nconditions_mech != 0)
+        if (thermal_conditions && nconditions_thermal != 0)
         {
-            ModelPart::ConditionsContainerType::iterator cond_begin_mech = mrMechanicalModelPart.ConditionsBegin();
+            // Thermal Conditions
+            ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.GetSubModelPart(HeatFluxSubModelPartName).ConditionsBegin();
 
-            for (int k = 0; k < nconditions_mech; ++k)
-            {
-                ModelPart::ConditionsContainerType::iterator it_cond_mech = cond_begin_mech + k;
-                const unsigned int number_of_points = (*it_cond_mech).GetGeometry().PointsNumber();
-                bool active_condition = true;
-
-                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                {
-                    if ((*it_cond_mech).GetGeometry()[i_node].IsNot(ACTIVE))
-                    {
-                        active_condition = false;
-                        break;
-                    }
-                }
-                if (active_condition) it_cond_mech->Set(ACTIVE, true);
-                else it_cond_mech->Set(ACTIVE, false);
-            }
-        }
-
-        // Thermal Conditions
-        const int nconditions_thermal = mrThermalModelPart.GetMesh(0).Conditions().size();
-
-        if (nconditions_thermal != 0)
-        {
-            ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
-
+            #pragma omp parallel for
             for (int k = 0; k < nconditions_thermal; ++k)
             {
                 ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
-                const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();
-                bool active_condition = true;
+                array_1d<double, 3> central_position = it_cond_thermal->GetGeometry().Center();
 
-                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
                 {
-                    if ((*it_cond_thermal).GetGeometry()[i_node].IsNot(ACTIVE))
-                    {
-                        active_condition = false;
-                        break;
-                    }
+                    if ((it_cond_thermal)->IsNot(ACTIVE)) it_cond_thermal->Set(ACTIVE, true);
                 }
-                if (active_condition) it_cond_thermal->Set(ACTIVE, true);
-                else it_cond_thermal->Set(ACTIVE, false);
             }
         }
 
+        if (mechanical_conditions && nconditions_mech != 0)
+        {
+            // Mechanical Conditions
+            ModelPart::ConditionsContainerType::iterator cond_begin_mech = mrMechanicalModelPart.GetSubModelPart(HydraulicPressureSubModelPartName).ConditionsBegin();
+
+            #pragma omp parallel for
+            for (int k = 0; k < nconditions_mech; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_mech = cond_begin_mech + k;
+                array_1d<double, 3> central_position = it_cond_mech->GetGeometry().Center();
+
+                if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
+                {
+                    if ((it_cond_mech)->IsNot(ACTIVE)) it_cond_mech->Set(ACTIVE, true);
+                }
+            }
+        }
         KRATOS_CATCH("");
     }
 

@@ -66,7 +66,7 @@ AxisymContactDomainLM2DCondition&  AxisymContactDomainLM2DCondition::operator=(A
 
 Condition::Pointer AxisymContactDomainLM2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<AxisymContactDomainLM2DCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<AxisymContactDomainLM2DCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 

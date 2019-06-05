@@ -21,9 +21,8 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/point_2d.h"
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -68,6 +67,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(RAIN)                                  // Source term
         KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)                // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
         KRATOS_REGISTER_VARIABLE(MANNING)                               // Friction coefficient
+        KRATOS_REGISTER_VARIABLE(EQUIVALENT_MANNING)
+        KRATOS_REGISTER_VARIABLE(WATER_HEIGHT)
+        KRATOS_REGISTER_VARIABLE(WATER_SURFACE)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variableS for PFEM2

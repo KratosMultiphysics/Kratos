@@ -50,8 +50,8 @@ namespace Kratos
 
 ShellThinElement3D3N::CalculationData::CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
         const ProcessInfo& rCurrentProcessInfo)
-    : LCS0( pCoordinateTransformation->CreateReferenceCoordinateSystem() )
-    , LCS( pCoordinateTransformation->CreateLocalCoordinateSystem() )
+    : LCS0(pCoordinateTransformation->CreateReferenceCoordinateSystem())
+    , LCS(pCoordinateTransformation->CreateLocalCoordinateSystem())
     , CurrentProcessInfo(rCurrentProcessInfo)
 
 {
@@ -67,9 +67,9 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         bool NLGeom)
     : BaseShellElement(NewId, pGeometry)
-    , mpCoordinateTransformation( NLGeom ?
-                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
-                                  new ShellT3_CoordinateTransformation(pGeometry))
+    , mpCoordinateTransformation(NLGeom ?
+                                 new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
+                                 new ShellT3_CoordinateTransformation(pGeometry))
 {
 }
 
@@ -78,9 +78,9 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
         PropertiesType::Pointer pProperties,
         bool NLGeom)
     : BaseShellElement(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation( NLGeom ?
-                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
-                                  new ShellT3_CoordinateTransformation(pGeometry))
+    , mpCoordinateTransformation(NLGeom ?
+                                 new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
+                                 new ShellT3_CoordinateTransformation(pGeometry))
 {
 }
 
@@ -99,13 +99,13 @@ ShellThinElement3D3N::~ShellThinElement3D3N()
 
 Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    return Kratos::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
+    GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
+    return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
 }
 
 Element::Pointer ShellThinElement3D3N::Create(IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< ShellThinElement3D3N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom) );
+    return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 
 void ShellThinElement3D3N::Initialize()
@@ -115,7 +115,7 @@ void ShellThinElement3D3N::Initialize()
     const int points_number = GetGeometry().PointsNumber();
 
     KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThinElement3D3N - Wrong number of nodes"
-        << points_number << std::endl;
+                                            << points_number << std::endl;
 
     BaseShellElement::Initialize();
 
@@ -156,14 +156,15 @@ void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
 
 void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-    if((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18))
+    if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
         rMassMatrix.resize(18, 18, false);
+    }
     noalias(rMassMatrix) = ZeroMatrix(18, 18);
 
     // Compute the local coordinate system.
 
     ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
-        mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
+        mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
     // lumped area
 
@@ -174,13 +175,13 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
     const SizeType num_gps = GetNumberOfGPs();
 
     double av_mass_per_unit_area = 0.0;
-    for(SizeType i = 0; i < num_gps; i++)
+    for (SizeType i = 0; i < num_gps; i++) {
         av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea(GetProperties());
+    }
     av_mass_per_unit_area /= double(num_gps);
 
     // loop on nodes
-    for(SizeType i = 0; i < 3; i++)
-    {
+    for (SizeType i = 0; i < 3; i++) {
         SizeType index = i * 6;
 
         double nodal_mass = av_mass_per_unit_area * lump_area;
@@ -206,151 +207,140 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
 {
     const SizeType num_gps = GetNumberOfGPs();
 
-    if (rValues.size() != num_gps)
+    if (rValues.size() != num_gps) {
         rValues.resize(num_gps);
+    }
 
     // The membrane formulation needs to iterate to find the correct
     // mid-surface strain values.
     // Check if we are doing a non-linear analysis type. If not, print warning
 
-    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-    {
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) {
         KRATOS_WARNING_ONCE("ShellThinElement3D3N") << "Warning: Gauss point results have "
-            << "been requested for a linear analysis.\nThe membrane formulation used "
-            << "requires iteration to accurately determine recovered "
-            << "quantities (strain, stress, etc...)." << std::endl;
+                << "been requested for a linear analysis.\nThe membrane formulation used "
+                << "requires iteration to accurately determine recovered "
+                << "quantities (strain, stress, etc...)." << std::endl;
     }
 
 
-	if (rVariable == VON_MISES_STRESS ||
-		rVariable == VON_MISES_STRESS_TOP_SURFACE ||
-		rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
-		rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
-	{
-		// Von mises calcs
-		// Initialize common calculation variables
-		CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
-		data.CalculateLHS = false;
-		data.CalculateRHS = true;
-		InitializeCalculationData(data);
+    if (rVariable == VON_MISES_STRESS ||
+            rVariable == VON_MISES_STRESS_TOP_SURFACE ||
+            rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
+            rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+        // Von mises calcs
+        // Initialize common calculation variables
+        CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+        data.CalculateLHS = false;
+        data.CalculateRHS = true;
+        InitializeCalculationData(data);
 
-		// Gauss Loop.
-		for (SizeType i = 0; i < num_gps; i++)
-		{
-			// set the current integration point index
-			data.gpIndex = i;
-			ShellCrossSection::Pointer& section = mSections[i];
+        // Gauss Loop.
+        for (SizeType i = 0; i < num_gps; i++) {
+            // set the current integration point index
+            data.gpIndex = i;
+            ShellCrossSection::Pointer& section = mSections[i];
 
-			// calculate beta0
-			CalculateBeta0(data);
+            // calculate beta0
+            CalculateBeta0(data);
 
-			// calculate the total strain displ. matrix
-			CalculateBMatrix(data);
+            // calculate the total strain displ. matrix
+            CalculateBMatrix(data);
 
-			// compute generalized strains
-			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+            // compute generalized strains
+            noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
-			// calculate section response
-			CalculateSectionResponse(data);
+            // calculate section response
+            CalculateSectionResponse(data);
 
-			// Compute stresses
-			CalculateStressesFromForceResultants(data.generalizedStresses,
-				section->GetThickness(GetProperties()));
+            // Compute stresses
+            CalculateStressesFromForceResultants(data.generalizedStresses,
+                                                 section->GetThickness(GetProperties()));
 
-			// calculate von mises stress
-			CalculateVonMisesStress(data, rVariable, rValues[i]);
+            // calculate von mises stress
+            CalculateVonMisesStress(data, rVariable, rValues[i]);
 
-		} // end gauss loop
-	}
-	else if (rVariable == TSAI_WU_RESERVE_FACTOR)
-	{
-		// resize output
-		if (rValues.size() != num_gps)
-			rValues.resize(num_gps);
+        } // end gauss loop
+    } else if (rVariable == TSAI_WU_RESERVE_FACTOR) {
+        // resize output
+        if (rValues.size() != num_gps) {
+            rValues.resize(num_gps);
+        }
 
-		// Just to store the rotation matrix for visualization purposes
-		Matrix R(mStrainSize, mStrainSize);
+        // Just to store the rotation matrix for visualization purposes
+        Matrix R(mStrainSize, mStrainSize);
 
-		// Initialize common calculation variables
-		CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
-		data.CalculateLHS = false;
-		data.CalculateRHS = true;
-		InitializeCalculationData(data);
+        // Initialize common calculation variables
+        CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
+        data.CalculateLHS = false;
+        data.CalculateRHS = true;
+        InitializeCalculationData(data);
 
-		// Get all laminae strengths
-		const PropertiesType & props = GetProperties();
-		ShellCrossSection::Pointer & section = mSections[0];
-		std::vector<Matrix> Laminae_Strengths =
-			std::vector<Matrix>(section->NumberOfPlies());
-		for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
-		{
-			Laminae_Strengths[ply].resize(3, 3, 0.0);
-			Laminae_Strengths[ply].clear();
-		}
-		section->GetLaminaeStrengths(Laminae_Strengths, props);
+        // Get all laminae strengths
+        const PropertiesType& props = GetProperties();
+        ShellCrossSection::Pointer& section = mSections[0];
+        std::vector<Matrix> Laminae_Strengths =
+            std::vector<Matrix>(section->NumberOfPlies());
+        for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
+            Laminae_Strengths[ply].resize(3, 3, 0.0);
+            Laminae_Strengths[ply].clear();
+        }
+        section->GetLaminaeStrengths(Laminae_Strengths, props);
 
-		// Retrieve ply orientations
-		Vector ply_orientation(section->NumberOfPlies());
-		section->GetLaminaeOrientation(props, ply_orientation);
-		double total_rotation = 0.0;
+        // Retrieve ply orientations
+        Vector ply_orientation(section->NumberOfPlies());
+        section->GetLaminaeOrientation(props, ply_orientation);
+        double total_rotation = 0.0;
 
-		// Gauss Loop.
-		for (SizeType i = 0; i < num_gps; i++)
-		{
-			// set the current integration point index
-			data.gpIndex = i;
-			ShellCrossSection::Pointer& section = mSections[i];
+        // Gauss Loop.
+        for (SizeType i = 0; i < num_gps; i++) {
+            // set the current integration point index
+            data.gpIndex = i;
+            ShellCrossSection::Pointer& section = mSections[i];
 
-			// calculate beta0
-			CalculateBeta0(data);
+            // calculate beta0
+            CalculateBeta0(data);
 
-			// calculate the total strain displ. matrix
-			CalculateBMatrix(data);
+            // calculate the total strain displ. matrix
+            CalculateBMatrix(data);
 
-			// compute generalized strains
-			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
+            // compute generalized strains
+            noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
-			//Calculate lamina stresses
-			CalculateLaminaStrains(data);
-			CalculateLaminaStresses(data);
+            //Calculate lamina stresses
+            CalculateLaminaStrains(data);
+            CalculateLaminaStresses(data);
 
-			// Rotate lamina stress to lamina material principal directions
-			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
-			{
-				total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
-				section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
-				//top surface of current ply
-				data.rlaminateStresses[2 * ply] = prod(R, data.rlaminateStresses[2 * ply]);
-				//bottom surface of current ply
-				data.rlaminateStresses[2 * ply + 1] = prod(R, data.rlaminateStresses[2 * ply + 1]);
-			}
+            // Rotate lamina stress to lamina material principal directions
+            for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
+                total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
+                section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
+                //top surface of current ply
+                data.rlaminateStresses[2 * ply] = prod(R, data.rlaminateStresses[2 * ply]);
+                //bottom surface of current ply
+                data.rlaminateStresses[2 * ply + 1] = prod(R, data.rlaminateStresses[2 * ply + 1]);
+            }
 
-			// Calculate Tsai-Wu criterion for each ply, take min of all plies
-			double min_tsai_wu = 0.0;
-			double temp_tsai_wu = 0.0;
-			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
-			{
-				temp_tsai_wu = CalculateTsaiWuPlaneStress(data, Laminae_Strengths[ply], ply);
-				if (ply == 0)
-				{
-					min_tsai_wu = temp_tsai_wu;
-				}
-				else if (temp_tsai_wu < min_tsai_wu)
-				{
-					min_tsai_wu = temp_tsai_wu;
-				}
-			}
+            // Calculate Tsai-Wu criterion for each ply, take min of all plies
+            double min_tsai_wu = 0.0;
+            double temp_tsai_wu = 0.0;
+            for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
+                temp_tsai_wu = CalculateTsaiWuPlaneStress(data, Laminae_Strengths[ply], ply);
+                if (ply == 0) {
+                    min_tsai_wu = temp_tsai_wu;
+                } else if (temp_tsai_wu < min_tsai_wu) {
+                    min_tsai_wu = temp_tsai_wu;
+                }
+            }
 
-			// Output min Tsai-Wu result
-			rValues[i] = min_tsai_wu;
+            // Output min Tsai-Wu result
+            rValues[i] = min_tsai_wu;
 
-		}// Gauss loop
-	}
-	else
-	{
-		for (SizeType i = 0; i < num_gps; i++)
-			mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
-	}
+        }// Gauss loop
+    } else {
+        for (SizeType i = 0; i < num_gps; i++) {
+            mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
+        }
+    }
 
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 }
@@ -363,15 +353,16 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& 
     // mid-surface strain values.
     // Check if we are doing a non-linear analysis type. If not, print warning
 
-    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-    {
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) {
         KRATOS_WARNING_ONCE("ShellThinElement3D3N") << "Warning: Gauss point results have "
-            << "been requested for a linear analysis.\nThe membrane formulation used "
-            << "requires iteration to accurately determine recovered "
-            << "quantities (strain, stress, etc...)." << std::endl;
+                << "been requested for a linear analysis.\nThe membrane formulation used "
+                << "requires iteration to accurately determine recovered "
+                << "quantities (strain, stress, etc...)." << std::endl;
     }
 
-    if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
+    if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) {
+        return;
+    }
 }
 
 void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
@@ -379,27 +370,25 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<
         const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_AXIS_1 ||
-        rVariable == LOCAL_AXIS_2 ||
-        rVariable == LOCAL_AXIS_3) {
+            rVariable == LOCAL_AXIS_2 ||
+            rVariable == LOCAL_AXIS_3) {
         BaseShellElement::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
-    }
-    else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
-             rVariable == LOCAL_MATERIAL_AXIS_2 ||
-             rVariable == LOCAL_MATERIAL_AXIS_3) {
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
+               rVariable == LOCAL_MATERIAL_AXIS_2 ||
+               rVariable == LOCAL_MATERIAL_AXIS_3) {
         BaseShellElement::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
 }
 
-void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
+void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
 {
-	if (rVariable == LOCAL_ELEMENT_ORIENTATION)
-	{
-		Output.resize(3, 3, false);
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        Output.resize(3, 3, false);
 
-		// Compute the local coordinate system.
-		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-		Output = localCoordinateSystem.Orientation();
-	}
+        // Compute the local coordinate system.
+        ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        Output = localCoordinateSystem.Orientation();
+    }
 }
 
 // =====================================================================================
@@ -408,336 +397,284 @@ void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix &
 //
 // =====================================================================================
 
-void ShellThinElement3D3N::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int & ijob, bool & bGlobal)
+void ShellThinElement3D3N::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal)
 {
-	if (rVariable == SHELL_STRAIN)
-	{
-		ijob = 1;
-	}
-	else if (rVariable == SHELL_STRAIN_GLOBAL)
-	{
-		ijob = 1;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_CURVATURE)
-	{
-		ijob = 2;
-	}
-	else if (rVariable == SHELL_CURVATURE_GLOBAL)
-	{
-		ijob = 2;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_FORCE)
-	{
-		ijob = 3;
-	}
-	else if (rVariable == SHELL_FORCE_GLOBAL)
-	{
-		ijob = 3;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_MOMENT)
-	{
-		ijob = 4;
-	}
-	else if (rVariable == SHELL_MOMENT_GLOBAL)
-	{
-		ijob = 4;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_STRESS_TOP_SURFACE)
-	{
-		ijob = 5;
-	}
-	else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL)
-	{
-		ijob = 5;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE)
-	{
-		ijob = 6;
-	}
-	else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL)
-	{
-		ijob = 6;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE)
-	{
-		ijob = 7;
-	}
-	else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL)
-	{
-		ijob = 7;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE)
-	{
-		ijob = 8;
-	}
-	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL)
-	{
-		ijob = 8;
-		bGlobal = true;
-	}
-	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE)
-	{
-		ijob = 9;
-	}
-	else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL)
-	{
-		ijob = 9;
-		bGlobal = true;
-	}
+    if (rVariable == SHELL_STRAIN) {
+        ijob = 1;
+    } else if (rVariable == SHELL_STRAIN_GLOBAL) {
+        ijob = 1;
+        bGlobal = true;
+    } else if (rVariable == SHELL_CURVATURE) {
+        ijob = 2;
+    } else if (rVariable == SHELL_CURVATURE_GLOBAL) {
+        ijob = 2;
+        bGlobal = true;
+    } else if (rVariable == SHELL_FORCE) {
+        ijob = 3;
+    } else if (rVariable == SHELL_FORCE_GLOBAL) {
+        ijob = 3;
+        bGlobal = true;
+    } else if (rVariable == SHELL_MOMENT) {
+        ijob = 4;
+    } else if (rVariable == SHELL_MOMENT_GLOBAL) {
+        ijob = 4;
+        bGlobal = true;
+    } else if (rVariable == SHELL_STRESS_TOP_SURFACE) {
+        ijob = 5;
+    } else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL) {
+        ijob = 5;
+        bGlobal = true;
+    } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
+        ijob = 6;
+    } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL) {
+        ijob = 6;
+        bGlobal = true;
+    } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE) {
+        ijob = 7;
+    } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL) {
+        ijob = 7;
+        bGlobal = true;
+    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE) {
+        ijob = 8;
+    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL) {
+        ijob = 8;
+        bGlobal = true;
+    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE) {
+        ijob = 9;
+    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL) {
+        ijob = 9;
+        bGlobal = true;
+    }
 }
 
-void ShellThinElement3D3N::CalculateStressesFromForceResultants(VectorType & rstresses, const double & rthickness)
+void ShellThinElement3D3N::CalculateStressesFromForceResultants(VectorType& rstresses, const double& rthickness)
 {
-	// Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
+    // Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
 
-	// membrane forces -> in-plane stresses (av. across whole thickness)
-	rstresses[0] /= rthickness;
-	rstresses[1] /= rthickness;
-	rstresses[2] /= rthickness;
+    // membrane forces -> in-plane stresses (av. across whole thickness)
+    rstresses[0] /= rthickness;
+    rstresses[1] /= rthickness;
+    rstresses[2] /= rthickness;
 
-	// bending moments -> peak in-plane stresses (@ top and bottom surface)
-	rstresses[3] *= 6.0 / (rthickness*rthickness);
-	rstresses[4] *= 6.0 / (rthickness*rthickness);
-	rstresses[5] *= 6.0 / (rthickness*rthickness);
+    // bending moments -> peak in-plane stresses (@ top and bottom surface)
+    rstresses[3] *= 6.0 / (rthickness*rthickness);
+    rstresses[4] *= 6.0 / (rthickness*rthickness);
+    rstresses[5] *= 6.0 / (rthickness*rthickness);
 }
 
-void ShellThinElement3D3N::CalculateLaminaStrains(CalculationData & data)
+void ShellThinElement3D3N::CalculateLaminaStrains(CalculationData& data)
 {
-	ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
 
-	// Get laminate properties
-	double thickness = section->GetThickness(GetProperties());
-	double z_current = thickness / -2.0; // start from the top of the 1st layer
+    // Get laminate properties
+    double thickness = section->GetThickness(GetProperties());
+    double z_current = thickness / -2.0; // start from the top of the 1st layer
 
-										 // Establish current strains at the midplane
-										 // (element coordinate system)
-	double e_x = data.generalizedStrains[0];
-	double e_y = data.generalizedStrains[1];
-	double e_xy = data.generalizedStrains[2];	//this is still engineering
-												//strain (2xtensorial shear)
-	double kap_x = data.generalizedStrains[3];
-	double kap_y = data.generalizedStrains[4];
-	double kap_xy = data.generalizedStrains[5];	//this is still engineering
+    // Establish current strains at the midplane
+    // (element coordinate system)
+    double e_x = data.generalizedStrains[0];
+    double e_y = data.generalizedStrains[1];
+    double e_xy = data.generalizedStrains[2];	//this is still engineering
+    //strain (2xtensorial shear)
+    double kap_x = data.generalizedStrains[3];
+    double kap_y = data.generalizedStrains[4];
+    double kap_xy = data.generalizedStrains[5];	//this is still engineering
 
-												// Get ply thicknesses
-	Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-	section->GetPlyThicknesses(GetProperties(), ply_thicknesses);
+    // Get ply thicknesses
+    Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
+    section->GetPlyThicknesses(GetProperties(), ply_thicknesses);
 
-	// Resize output vector. 2 Surfaces for each ply
-	data.rlaminateStrains.resize(2 * section->NumberOfPlies());
-	for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++)
-	{
-		data.rlaminateStrains[i].resize(6, false);
-		data.rlaminateStrains[i].clear();
-	}
+    // Resize output vector. 2 Surfaces for each ply
+    data.rlaminateStrains.resize(2 * section->NumberOfPlies());
+    for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
+        data.rlaminateStrains[i].resize(6, false);
+        data.rlaminateStrains[i].clear();
+    }
 
-	// Loop over all plies - start from bottom ply, bottom surface
-	for (unsigned int plyNumber = 0;
-		plyNumber < section->NumberOfPlies(); ++plyNumber)
-	{
-		// Calculate strains at top surface, arranged in columns.
-		// (element coordinate system)
-		data.rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
-		data.rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
-		data.rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
+    // Loop over all plies - start from bottom ply, bottom surface
+    for (unsigned int plyNumber = 0;
+            plyNumber < section->NumberOfPlies(); ++plyNumber) {
+        // Calculate strains at top surface, arranged in columns.
+        // (element coordinate system)
+        data.rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
+        data.rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
+        data.rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
 
-		// Move to bottom surface of current layer
-		z_current += ply_thicknesses[plyNumber];
+        // Move to bottom surface of current layer
+        z_current += ply_thicknesses[plyNumber];
 
-		// Calculate strains at bottom surface, arranged in columns
-		// (element coordinate system)
-		data.rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
-		data.rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
-		data.rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
-	}
+        // Calculate strains at bottom surface, arranged in columns
+        // (element coordinate system)
+        data.rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
+        data.rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
+        data.rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
+    }
 }
 
-void ShellThinElement3D3N::CalculateLaminaStresses(CalculationData & data)
+void ShellThinElement3D3N::CalculateLaminaStresses(CalculationData& data)
 {
-	ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+    ShellCrossSection::Pointer& section = mSections[data.gpIndex];
 
-	// Setup flag to compute ply constitutive matrices
-	// (units [Pa] and rotated to element orientation)
-	section->SetupGetPlyConstitutiveMatrices();
-	Flags& options = data.SectionParameters.GetOptions();
-	options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-	section->CalculateSectionResponse(data.SectionParameters,
-		ConstitutiveLaw::StressMeasure_PK2);
-	CalculateSectionResponse(data);
+    // Setup flag to compute ply constitutive matrices
+    // (units [Pa] and rotated to element orientation)
+    section->SetupGetPlyConstitutiveMatrices();
+    Flags& options = data.SectionParameters.GetOptions();
+    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    section->CalculateSectionResponse(data.SectionParameters,
+                                      ConstitutiveLaw::StressMeasure_PK2);
+    CalculateSectionResponse(data);
 
-	// Resize output vector. 2 Surfaces for each ply
-	data.rlaminateStresses.resize(2 * section->NumberOfPlies());
-	for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++)
-	{
-		data.rlaminateStresses[i].resize(6, false);
-		data.rlaminateStresses[i].clear();
-	}
+    // Resize output vector. 2 Surfaces for each ply
+    data.rlaminateStresses.resize(2 * section->NumberOfPlies());
+    for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
+        data.rlaminateStresses[i].resize(6, false);
+        data.rlaminateStresses[i].clear();
+    }
 
-	// Loop over all plies - start from top ply, top surface
-	for (unsigned int plyNumber = 0;
-		plyNumber < section->NumberOfPlies(); ++plyNumber)
-	{
-		// determine stresses at currrent ply, top surface
-		// (element coordinate system)
-		data.rlaminateStresses[2 * plyNumber] = prod(
-			section->GetPlyConstitutiveMatrix(plyNumber),
-			data.rlaminateStrains[2 * plyNumber]);
+    // Loop over all plies - start from top ply, top surface
+    for (unsigned int plyNumber = 0;
+            plyNumber < section->NumberOfPlies(); ++plyNumber) {
+        // determine stresses at currrent ply, top surface
+        // (element coordinate system)
+        data.rlaminateStresses[2 * plyNumber] = prod(
+                section->GetPlyConstitutiveMatrix(plyNumber),
+                data.rlaminateStrains[2 * plyNumber]);
 
-		// determine stresses at currrent ply, bottom surface
-		// (element coordinate system)
-		data.rlaminateStresses[2 * plyNumber + 1] = prod(
-			section->GetPlyConstitutiveMatrix(plyNumber),
-			data.rlaminateStrains[2 * plyNumber + 1]);
-	}
+        // determine stresses at currrent ply, bottom surface
+        // (element coordinate system)
+        data.rlaminateStresses[2 * plyNumber + 1] = prod(
+                    section->GetPlyConstitutiveMatrix(plyNumber),
+                    data.rlaminateStrains[2 * plyNumber + 1]);
+    }
 }
 
-double ShellThinElement3D3N::CalculateTsaiWuPlaneStress(const CalculationData & data, const Matrix & rLamina_Strengths, const unsigned int & rPly)
+double ShellThinElement3D3N::CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rPly)
 {
-	// Incoming lamina strengths are organized as follows:
-	// Refer to 'shell_cross_section.cpp' for details.
-	//
-	//	|	T1,		C1,		T2	|
-	//	|	C2,		S12,	S13	|
-	//	|   S23		0		0	|
+    // Incoming lamina strengths are organized as follows:
+    // Refer to 'shell_cross_section.cpp' for details.
+    //
+    //	|	T1,		C1,		T2	|
+    //	|	C2,		S12,	S13	|
+    //	|   S23		0		0	|
 
-	// Convert raw lamina strengths into tsai strengths F_i and F_ij.
-	// Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
-	// All F_i3 components ignored - thin shell theory.
-	//
+    // Convert raw lamina strengths into tsai strengths F_i and F_ij.
+    // Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
+    // All F_i3 components ignored - thin shell theory.
+    //
 
-	// Should be FALSE unless testing against other programs that ignore it.
-	bool disable_in_plane_interaction = false;
+    // Should be FALSE unless testing against other programs that ignore it.
+    bool disable_in_plane_interaction = false;
 
-	// First, F_i
-	Vector F_i = Vector(3, 0.0);
-	F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
-	F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
-	F_i[2] = 0.0;
+    // First, F_i
+    Vector F_i = Vector(3, 0.0);
+    F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
+    F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
+    F_i[2] = 0.0;
 
-	// Second, F_ij
-	Matrix F_ij = Matrix(3, 3, 0.0);
-	F_ij.clear();
-	F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
-	F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
-	F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
-	F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
+    // Second, F_ij
+    Matrix F_ij = Matrix(3, 3, 0.0);
+    F_ij.clear();
+    F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
+    F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
+    F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
+    F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
 
-	if (disable_in_plane_interaction)
-	{
-		F_ij(0, 1) = F_ij(1, 0) = 0.0;
-	}
+    if (disable_in_plane_interaction) {
+        F_ij(0, 1) = F_ij(1, 0) = 0.0;
+    }
 
 
-	// Evaluate Tsai-Wu @ top surface of current layer
-	double var_a = 0.0;
-	double var_b = 0.0;
-	for (SizeType i = 0; i < 3; i++)
-	{
-		var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
-		for (SizeType j = 0; j < 3; j++)
-		{
-			var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
-		}
-	}
-	double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+    // Evaluate Tsai-Wu @ top surface of current layer
+    double var_a = 0.0;
+    double var_b = 0.0;
+    for (SizeType i = 0; i < 3; i++) {
+        var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
+        for (SizeType j = 0; j < 3; j++) {
+            var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
+        }
+    }
+    double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
 
-	// Evaluate Tsai-Wu @ bottom surface of current layer
-	var_a = 0.0;
-	var_b = 0.0;
-	for (SizeType i = 0; i < 3; i++)
-	{
-		var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
-		for (SizeType j = 0; j < 3; j++)
-		{
-			var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
-		}
-	}
-	double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+    // Evaluate Tsai-Wu @ bottom surface of current layer
+    var_a = 0.0;
+    var_b = 0.0;
+    for (SizeType i = 0; i < 3; i++) {
+        var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
+        for (SizeType j = 0; j < 3; j++) {
+            var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
+        }
+    }
+    double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
 
-	// Return min of both surfaces as the result for the whole ply
-	return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
+    // Return min of both surfaces as the result for the whole ply
+    return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
 }
 
-void ShellThinElement3D3N::CalculateVonMisesStress(const CalculationData & data, const Variable<double>& rVariable, double & rVon_Mises_Result)
+void ShellThinElement3D3N::CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result)
 {
-	// calc von mises stresses at top mid and bottom surfaces for
-	// thin shell
-	double von_mises_top, von_mises_mid, von_mises_bottom;
-	double sxx, syy, sxy;
+    // calc von mises stresses at top mid and bottom surfaces for
+    // thin shell
+    double von_mises_top, von_mises_mid, von_mises_bottom;
+    double sxx, syy, sxy;
 
-	// top surface: membrane and +bending contributions
-	//				(no transverse shear)
-	sxx = data.generalizedStresses[0] + data.generalizedStresses[3];
-	syy = data.generalizedStresses[1] + data.generalizedStresses[4];
-	sxy = data.generalizedStresses[2] + data.generalizedStresses[5];
-	von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+    // top surface: membrane and +bending contributions
+    //				(no transverse shear)
+    sxx = data.generalizedStresses[0] + data.generalizedStresses[3];
+    syy = data.generalizedStresses[1] + data.generalizedStresses[4];
+    sxy = data.generalizedStresses[2] + data.generalizedStresses[5];
+    von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
 
-	// mid surface: membrane only contributions
-	//				(no bending or transverse shear)
-	sxx = data.generalizedStresses[0];
-	syy = data.generalizedStresses[1];
-	sxy = data.generalizedStresses[2];
-	von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
-		3.0*(sxy*sxy);
+    // mid surface: membrane only contributions
+    //				(no bending or transverse shear)
+    sxx = data.generalizedStresses[0];
+    syy = data.generalizedStresses[1];
+    sxy = data.generalizedStresses[2];
+    von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
+                    3.0*(sxy*sxy);
 
-	// bottom surface:	membrane and bending contributions
-	//					(no transverse shear)
-	sxx = data.generalizedStresses[0] - data.generalizedStresses[3];
-	syy = data.generalizedStresses[1] - data.generalizedStresses[4];
-	sxy = data.generalizedStresses[2] - data.generalizedStresses[5];
-	von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+    // bottom surface:	membrane and bending contributions
+    //					(no transverse shear)
+    sxx = data.generalizedStresses[0] - data.generalizedStresses[3];
+    syy = data.generalizedStresses[1] - data.generalizedStresses[4];
+    sxy = data.generalizedStresses[2] - data.generalizedStresses[5];
+    von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
 
-	// Output requested quantity
-	if (rVariable == VON_MISES_STRESS_TOP_SURFACE)
-	{
-		rVon_Mises_Result = std::sqrt(von_mises_top);
-	}
-	else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
-	{
-		rVon_Mises_Result = std::sqrt(von_mises_mid);
-	}
-	else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE)
-	{
-		rVon_Mises_Result = std::sqrt(von_mises_bottom);
-	}
-	else if (rVariable == VON_MISES_STRESS)
-	{
-		// take the greatest value and output
-		rVon_Mises_Result =
-			std::sqrt(std::max(von_mises_top,
-				std::max(von_mises_mid, von_mises_bottom)));
-	}
+    // Output requested quantity
+    if (rVariable == VON_MISES_STRESS_TOP_SURFACE) {
+        rVon_Mises_Result = std::sqrt(von_mises_top);
+    } else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
+        rVon_Mises_Result = std::sqrt(von_mises_mid);
+    } else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+        rVon_Mises_Result = std::sqrt(von_mises_bottom);
+    } else if (rVariable == VON_MISES_STRESS) {
+        // take the greatest value and output
+        rVon_Mises_Result =
+            std::sqrt(std::max(von_mises_top,
+                               std::max(von_mises_mid, von_mises_bottom)));
+    }
 }
 
 void ShellThinElement3D3N::DecimalCorrection(Vector& a)
 {
     double norm = norm_2(a);
     double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for(SizeType i = 0; i < a.size(); i++)
-        if(std::abs(a(i)) < tolerance)
+    for (SizeType i = 0; i < a.size(); i++)
+        if (std::abs(a(i)) < tolerance) {
             a(i) = 0.0;
+        }
 }
 
 void ShellThinElement3D3N::SetupOrientationAngles()
 {
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE))
-    {
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
-        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
-    }
-    else
-    {
-        ShellT3_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
+    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
+        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) {
+            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+        }
+    } else {
+        ShellT3_LocalCoordinateSystem lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
         Vector3Type normal;
-        noalias( normal ) = lcs.Vz();
+        noalias(normal) = lcs.Vz();
 
         Vector3Type dZ;
         dZ(0) = 0.0;
@@ -750,14 +687,11 @@ void ShellThinElement3D3N::SetupOrientationAngles()
         // try to normalize the x vector. if it is near zero it means that we need
         // to choose a default one.
         double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-        if(dirX_norm < 1.0E-12)
-        {
+        if (dirX_norm < 1.0E-12) {
             dirX(0) = 1.0;
             dirX(1) = 0.0;
             dirX(2) = 0.0;
-        }
-        else if(dirX_norm != 1.0)
-        {
+        } else if (dirX_norm != 1.0) {
             dirX_norm = std::sqrt(dirX_norm);
             dirX /= dirX_norm;
         }
@@ -768,20 +702,25 @@ void ShellThinElement3D3N::SetupOrientationAngles()
         Vector3Type& a = elem_dirX;
         Vector3Type& b = dirX;
         double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-        if(a_dot_b < -1.0) a_dot_b = -1.0;
-        if(a_dot_b >  1.0) a_dot_b =  1.0;
-        double angle = std::acos( a_dot_b );
+        if (a_dot_b < -1.0) {
+            a_dot_b = -1.0;
+        }
+        if (a_dot_b >  1.0) {
+            a_dot_b =  1.0;
+        }
+        double angle = std::acos(a_dot_b);
 
         // if they are not counter-clock-wise, let's change the sign of the angle
-        if(angle != 0.0)
-        {
+        if (angle != 0.0) {
             const MatrixType& R = lcs.Orientation();
-            if( dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0 )
+            if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0) {
                 angle = -angle;
+            }
         }
 
-        for(CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) {
             (*it)->SetOrientationAngle(angle);
+        }
     }
 }
 
@@ -827,8 +766,9 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // implementation of a variable thickness
 
     double h = 0.0;
-    for(unsigned int i = 0; i < mSections.size(); i++)
+    for (unsigned int i = 0; i < mSections.size(); i++) {
         h += mSections[i]->GetThickness(GetProperties());
+    }
     h /= (double)mSections.size();
 
     data.hMean = h;
@@ -848,8 +788,10 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     data.dA = A / (double)num_gps;
 
     // crete the integration point locations
-    if(data.gpLocations.size() != 0) data.gpLocations.clear();
-    data.gpLocations.resize( num_gps );
+    if (data.gpLocations.size() != 0) {
+        data.gpLocations.clear();
+    }
+    data.gpLocations.resize(num_gps);
 #ifdef OPT_1_POINT_INTEGRATION
     array_1d<double,3>& gp0 = data.gpLocations[0];
     gp0[0] = 1.0/3.0;
@@ -1006,8 +948,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
 
     data.TTu.resize(3, 9, false);
 
-    for(unsigned int i=0; i<3; i++)
-    {
+    for (unsigned int i=0; i<3; i++) {
         data.TTu(i, 0) = 1.0/A4 * x32;
         data.TTu(i, 1) = 1.0/A4 * y32;
         data.TTu(i, 2) = 0.0;
@@ -1027,7 +968,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // in global and local coordinate systems
 
     data.globalDisplacements.resize(18, false);
-    GetValuesVector( data.globalDisplacements );
+    GetValuesVector(data.globalDisplacements);
 
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(
@@ -1061,15 +1002,15 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     //--------------------------------------
     // Initialize the section parameters
 
-    data.SectionParameters.SetElementGeometry( GetGeometry() );
-    data.SectionParameters.SetMaterialProperties( GetProperties() );
-    data.SectionParameters.SetProcessInfo( data.CurrentProcessInfo );
+    data.SectionParameters.SetElementGeometry(GetGeometry());
+    data.SectionParameters.SetMaterialProperties(GetProperties());
+    data.SectionParameters.SetProcessInfo(data.CurrentProcessInfo);
 
-    data.SectionParameters.SetGeneralizedStrainVector( data.generalizedStrains );
-    data.SectionParameters.SetGeneralizedStressVector( data.generalizedStresses );
-    data.SectionParameters.SetConstitutiveMatrix( data.D );
+    data.SectionParameters.SetGeneralizedStrainVector(data.generalizedStrains);
+    data.SectionParameters.SetGeneralizedStressVector(data.generalizedStresses);
+    data.SectionParameters.SetConstitutiveMatrix(data.D);
 
-    data.SectionParameters.SetShapeFunctionsDerivatives( data.dNxy );
+    data.SectionParameters.SetShapeFunctionsDerivatives(data.dNxy);
 
     Flags& options = data.SectionParameters.GetOptions();
     options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS);
@@ -1103,11 +1044,11 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
 
     //---------------------------------------------
     // membrane higher order part Qh
-    noalias( data.Q )  = loc1 * data.Q1;
-    noalias( data.Q ) += loc2 * data.Q2;
-    noalias( data.Q ) += loc3 * data.Q3;
-    noalias( data.TeQ ) = prod( data.Te, data.Q );
-    noalias( data.Qh  ) = /*1.5**/std::sqrt(data.beta0) * prod( data.TeQ, data.TTu );
+    noalias(data.Q)  = loc1 * data.Q1;
+    noalias(data.Q) += loc2 * data.Q2;
+    noalias(data.Q) += loc3 * data.Q3;
+    noalias(data.TeQ) = prod(data.Te, data.Q);
+    noalias(data.Qh) = /*1.5**/std::sqrt(data.beta0) * prod(data.TeQ, data.TTu);
 
     //---------------------------------------------
     // compute the bending B matrix (DKT)
@@ -1175,47 +1116,45 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
     data.H4[8]= -q5*(1.0-2.0*loc3)-loc2*(q4-q5);
 
     double temp = 0.5 / area;
-    for(int i =0; i<9; i++)
-    {
-        data.Bb(0, i) = temp * ( y31*data.H1[i] + y12*data.H3[i]);
+    for (int i =0; i<9; i++) {
+        data.Bb(0, i) = temp * (y31*data.H1[i] + y12*data.H3[i]);
         data.Bb(1, i) = temp * (-x31*data.H2[i] - x12*data.H4[i]);
-        data.Bb(2, i) = temp * (-x31*data.H1[i] - x12*data.H3[i] + y31*data.H2[i] + y12*data.H4[i] );
+        data.Bb(2, i) = temp * (-x31*data.H1[i] - x12*data.H3[i] + y31*data.H2[i] + y12*data.H4[i]);
     }
 
     //---------------------------------------------
     // assemble the 2 mamebrane contributions
     // and the bending contribution
     // into the combined B matrix
-    for(int nodeid = 0; nodeid < 3; nodeid++)
-    {
+    for (int nodeid = 0; nodeid < 3; nodeid++) {
         int i = nodeid * 3;
         int j = nodeid * 6;
 
         // membrane map: [0,1,5] <- [0,1,2]
 
-        data.B(0, j  ) = data.L(0, i  ) + data.Qh(0, i  );
+        data.B(0, j) = data.L(0, i) + data.Qh(0, i);
         data.B(0, j+1) = data.L(0, i+1) + data.Qh(0, i+1);
         data.B(0, j+5) = data.L(0, i+2) + data.Qh(0, i+2);
 
-        data.B(1, j  ) = data.L(1, i  ) + data.Qh(1, i  );
+        data.B(1, j) = data.L(1, i) + data.Qh(1, i);
         data.B(1, j+1) = data.L(1, i+1) + data.Qh(1, i+1);
         data.B(1, j+5) = data.L(1, i+2) + data.Qh(1, i+2);
 
-        data.B(2, j  ) = data.L(2, i  ) + data.Qh(2, i  );
+        data.B(2, j) = data.L(2, i) + data.Qh(2, i);
         data.B(2, j+1) = data.L(2, i+1) + data.Qh(2, i+1);
         data.B(2, j+5) = data.L(2, i+2) + data.Qh(2, i+2);
 
         // bending map: [2,3,4] <- [0,1,2]
 
-        data.B(3, j+2) = data.Bb(0, i  );
+        data.B(3, j+2) = data.Bb(0, i);
         data.B(3, j+3) = data.Bb(0, i+1);
         data.B(3, j+4) = data.Bb(0, i+2);
 
-        data.B(4, j+2) = data.Bb(1, i  );
+        data.B(4, j+2) = data.Bb(1, i);
         data.B(4, j+3) = data.Bb(1, i+1);
         data.B(4, j+4) = data.Bb(1, i+2);
 
-        data.B(5, j+2) = data.Bb(2, i  );
+        data.B(5, j+2) = data.Bb(2, i);
         data.B(5, j+3) = data.Bb(2, i+1);
         data.B(5, j+4) = data.Bb(2, i+2);
     }
@@ -1229,9 +1168,10 @@ void ShellThinElement3D3N::CalculateBeta0(CalculationData& data)
 void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
 {
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
-    const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
-    for(int nodeid = 0; nodeid < GetGeometry().PointsNumber(); nodeid++)
+    const Matrix& shapeFunctions = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
+    for (int nodeid = 0; nodeid < GetGeometry().PointsNumber(); nodeid++) {
         data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
+    }
 #else
     const array_1d<double,3>& loc = data.gpLocations[data.gpIndex];
     data.N(0) = 1.0 - loc[1] - loc[2];
@@ -1240,24 +1180,24 @@ void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
 #endif // !OPT_USES_INTERIOR_GAUSS_POINTS
 
     ShellCrossSection::Pointer& section = mSections[data.gpIndex];
-    data.SectionParameters.SetShapeFunctionsValues( data.N );
+    data.SectionParameters.SetShapeFunctionsValues(data.N);
     data.SectionParameters.SetMaterialProperties(GetProperties());
-    section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
+    section->CalculateSectionResponse(data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2);
 }
 
 void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS)
 {
     // calculate beta0
-    CalculateBeta0( data );
+    CalculateBeta0(data);
 
     // calculate the total strain displ. matrix
-    CalculateBMatrix( data );
+    CalculateBMatrix(data);
 
     // compute generalized strains
-    noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
+    noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
     // calculate section response
-    CalculateSectionResponse( data );
+    CalculateSectionResponse(data);
 
     // multiply the section tangent matrices and stress resultants by 'dA'
     data.D *= data.dA;
@@ -1270,23 +1210,23 @@ void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data
     data.generalizedStresses *= data.dA;
 
     // Add all contributions to the Stiffness Matrix
-    noalias( data.BTD ) = prod( trans( data.B ), data.D );
-    noalias( LHS ) += prod( data.BTD, data.B );
+    noalias(data.BTD) = prod(trans(data.B), data.D);
+    noalias(LHS) += prod(data.BTD, data.B);
 
     // Add all contributions to the residual vector
-    noalias( RHS ) -= prod( trans( data.B ), data.generalizedStresses );
+    noalias(RHS) -= prod(trans(data.B), data.generalizedStresses);
 }
 
 void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorType& RHS)
 {
     Vector3Type meanS;
     meanS.clear();
-    for(int i = 0; i < 3; i++)
-        noalias( meanS ) += data.Sig[i];
+    for (int i = 0; i < 3; i++) {
+        noalias(meanS) += data.Sig[i];
+    }
     meanS /= 3.0;
 
-    for(int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
         int i1 = i;
         int i2 = i == 2 ? 0 : i+1;
 
@@ -1334,13 +1274,12 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
 
     // Get shape functions
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
-    const Matrix & N = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
+    const Matrix& N = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
 #else
     Matrix N(3,3);
 
 
-    for(unsigned int igauss = 0; igauss < num_gps; igauss++)
-    {
+    for (unsigned int igauss = 0; igauss < num_gps; igauss++) {
         const array_1d<double,3>& loc = data.gpLocations[igauss];
         N(igauss,0) = 1.0 - loc[1] - loc[2];
         N(igauss,1) = loc[1];
@@ -1352,24 +1291,22 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
     array_1d<double, 3> bf;
 
     // gauss loop to integrate the external force vector
-    for(unsigned int igauss = 0; igauss < num_gps; igauss++)
-    {
+    for (unsigned int igauss = 0; igauss < num_gps; igauss++) {
         // get mass per unit area
         double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
         bf.clear();
-        for(unsigned int inode = 0; inode < 3; inode++)
-        {
-            if( geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
+        for (unsigned int inode = 0; inode < 3; inode++) {
+            if (geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION)) { //temporary, will be checked once at the beginning only
                 bf += N(igauss,inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            }
         }
         bf *= (mass_per_unit_area * data.dA);
 
         // add it to the RHS vector
-        for(unsigned int inode = 0; inode < 3; inode++)
-        {
+        for (unsigned int inode = 0; inode < 3; inode++) {
             unsigned int index = inode*6;
             double iN = N(igauss,inode);
             rRightHandSideVector[index + 0] += iN * bf[0];
@@ -1380,23 +1317,25 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
 }
 
 void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo,
-    const bool CalculateStiffnessMatrixFlag,
-    const bool CalculateResidualVectorFlag)
+                                        VectorType& rRightHandSideVector,
+                                        const ProcessInfo& rCurrentProcessInfo,
+                                        const bool CalculateStiffnessMatrixFlag,
+                                        const bool CalculateResidualVectorFlag)
 {
     // Resize the Left Hand Side if necessary,
     // and initialize it to Zero
 
-    if((rLeftHandSideMatrix.size1() != 18) || (rLeftHandSideMatrix.size2() != 18))
+    if ((rLeftHandSideMatrix.size1() != 18) || (rLeftHandSideMatrix.size2() != 18)) {
         rLeftHandSideMatrix.resize(18, 18, false);
+    }
     noalias(rLeftHandSideMatrix) = ZeroMatrix(18, 18);
 
     // Resize the Right Hand Side if necessary,
     // and initialize it to Zero
 
-    if(rRightHandSideVector.size() != 18)
+    if (rRightHandSideVector.size() != 18) {
         rRightHandSideVector.resize(18, false);
+    }
     noalias(rRightHandSideVector) = ZeroVector(18);
 
     // Initialize common calculation variables
@@ -1407,8 +1346,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     InitializeCalculationData(data);
 
     // Gauss Loop.
-    for(SizeType i = 0; i < GetNumberOfGPs(); ++i)
-    {
+    for (SizeType i = 0; i < GetNumberOfGPs(); ++i) {
         data.gpIndex = i;
         CalculateGaussPointContribution(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
@@ -1444,13 +1382,16 @@ bool ShellThinElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrS
 
     // quick return
 
-    if(ijob == 0) return false;
+    if (ijob == 0) {
+        return false;
+    }
 
     const SizeType num_gps = GetNumberOfGPs();
 
     // resize output
-    if(rValues.size() != num_gps)
+    if (rValues.size() != num_gps) {
         rValues.resize(num_gps);
+    }
 
     // Just to store the rotation matrix for visualization purposes
 
@@ -1466,180 +1407,149 @@ bool ShellThinElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrS
 
     // Gauss Loop.
 
-    for(SizeType i = 0; i < num_gps; i++)
-    {
+    for (SizeType i = 0; i < num_gps; i++) {
         // set the current integration point index
         data.gpIndex = i;
         ShellCrossSection::Pointer& section = mSections[i];
 
         // calculate beta0
-        CalculateBeta0( data );
+        CalculateBeta0(data);
 
         // calculate the total strain displ. matrix
-        CalculateBMatrix( data );
+        CalculateBMatrix(data);
 
         // compute generalized strains
-        noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
+        noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
         // calculate section response
-        if (ijob > 2)
-		{
-			if (ijob > 7)
-			{
-				//Calculate lamina stresses
-				CalculateLaminaStrains(data);
-				CalculateLaminaStresses(data);
-			}
-			else
-			{
-				// calculate force resultants
-				CalculateSectionResponse(data);
+        if (ijob > 2) {
+            if (ijob > 7) {
+                //Calculate lamina stresses
+                CalculateLaminaStrains(data);
+                CalculateLaminaStresses(data);
+            } else {
+                // calculate force resultants
+                CalculateSectionResponse(data);
 
-				if (ijob > 4)
-				{
-					// Compute stresses
-					CalculateStressesFromForceResultants(data.generalizedStresses,
-						section->GetThickness(GetProperties()));
-				}
-			}
-		}
+                if (ijob > 4) {
+                    // Compute stresses
+                    CalculateStressesFromForceResultants(data.generalizedStresses,
+                                                         section->GetThickness(GetProperties()));
+                }
+            }
+        }
 
         // adjust output
-        DecimalCorrection( data.generalizedStrains );
-        DecimalCorrection( data.generalizedStresses );
+        DecimalCorrection(data.generalizedStrains);
+        DecimalCorrection(data.generalizedStresses);
 
         // store the results, but first rotate them back to the section coordinate system.
         // we want to visualize the results in that system not in the element one!
-        if(section->GetOrientationAngle() != 0.0 && !bGlobal)
-        {
-			if (ijob > 7)
-			{
-				section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
-				for (unsigned int i = 0; i < data.rlaminateStresses.size(); i++)
-				{
-					data.rlaminateStresses[i] = prod(R, data.rlaminateStresses[i]);
-				}
+        if (section->GetOrientationAngle() != 0.0 && !bGlobal) {
+            if (ijob > 7) {
+                section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
+                for (unsigned int i = 0; i < data.rlaminateStresses.size(); i++) {
+                    data.rlaminateStresses[i] = prod(R, data.rlaminateStresses[i]);
+                }
 
-				section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
-				for (unsigned int i = 0; i < data.rlaminateStrains.size(); i++)
-				{
-					data.rlaminateStrains[i] = prod(R, data.rlaminateStrains[i]);
-				}
-			}
-			else if (ijob > 2)
-            {
-                section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
-                data.generalizedStresses = prod( R, data.generalizedStresses );
-            }
-            else
-            {
-                section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
-                data.generalizedStrains = prod( R, data.generalizedStrains );
+                section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
+                for (unsigned int i = 0; i < data.rlaminateStrains.size(); i++) {
+                    data.rlaminateStrains[i] = prod(R, data.rlaminateStrains[i]);
+                }
+            } else if (ijob > 2) {
+                section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
+                data.generalizedStresses = prod(R, data.generalizedStresses);
+            } else {
+                section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
+                data.generalizedStrains = prod(R, data.generalizedStrains);
             }
         }
 
         // save results
-        Matrix & iValue = rValues[i];
-        if(iValue.size1() != 3 || iValue.size2() != 3)
+        Matrix& iValue = rValues[i];
+        if (iValue.size1() != 3 || iValue.size2() != 3) {
             iValue.resize(3, 3, false);
+        }
 
-        if(ijob == 1) // strains
-        {
+        if (ijob == 1) { // strains
             iValue(0, 0) = data.generalizedStrains(0);
             iValue(1, 1) = data.generalizedStrains(1);
             iValue(2, 2) = 0.0;
             iValue(0, 1) = iValue(1, 0) = 0.5 * data.generalizedStrains(2);
             iValue(0, 2) = iValue(2, 0) = 0.0;
             iValue(1, 2) = iValue(2, 1) = 0.0;
-        }
-        else if(ijob == 2) // curvatures
-        {
+        } else if (ijob == 2) { // curvatures
             iValue(0, 0) = data.generalizedStrains(3);
             iValue(1, 1) = data.generalizedStrains(4);
             iValue(2, 2) = 0.0;
             iValue(0, 1) = iValue(1, 0) = 0.5 * data.generalizedStrains(5);
             iValue(0, 2) = iValue(2, 0) = 0.0;
             iValue(1, 2) = iValue(2, 1) = 0.0;
-        }
-        else if(ijob == 3) // forces
-        {
+        } else if (ijob == 3) { // forces
             iValue(0, 0) = data.generalizedStresses(0);
             iValue(1, 1) = data.generalizedStresses(1);
             iValue(2, 2) = 0.0;
             iValue(0, 1) = iValue(1, 0) = data.generalizedStresses(2);
             iValue(0, 2) = iValue(2, 0) = 0.0;
             iValue(1, 2) = iValue(2, 1) = 0.0;
-        }
-        else if(ijob == 4) // moments
-        {
+        } else if (ijob == 4) { // moments
             iValue(0, 0) = data.generalizedStresses(3);
             iValue(1, 1) = data.generalizedStresses(4);
             iValue(2, 2) = 0.0;
             iValue(0, 1) = iValue(1, 0) = data.generalizedStresses(5);
             iValue(0, 2) = iValue(2, 0) = 0.0;
             iValue(1, 2) = iValue(2, 1) = 0.0;
+        } else if (ijob == 5) { // SHELL_STRESS_TOP_SURFACE
+            iValue(0, 0) = data.generalizedStresses(0) +
+                           data.generalizedStresses(3);
+            iValue(1, 1) = data.generalizedStresses(1) +
+                           data.generalizedStresses(4);
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] +
+                                          data.generalizedStresses[5];
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
+        } else if (ijob == 6) { // SHELL_STRESS_MIDDLE_SURFACE
+            iValue(0, 0) = data.generalizedStresses(0);
+            iValue(1, 1) = data.generalizedStresses(1);
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2];
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
+        } else if (ijob == 7) { // SHELL_STRESS_BOTTOM_SURFACE
+            iValue(0, 0) = data.generalizedStresses(0) -
+                           data.generalizedStresses(3);
+            iValue(1, 1) = data.generalizedStresses(1) -
+                           data.generalizedStresses(4);
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] -
+                                          data.generalizedStresses[5];
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
+        } else if (ijob == 8) { // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
+            iValue(0, 0) =
+                data.rlaminateStresses[data.rlaminateStresses.size() - 1][0];
+            iValue(1, 1) =
+                data.rlaminateStresses[data.rlaminateStresses.size() - 1][1];
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) =
+                               data.rlaminateStresses[data.rlaminateStresses.size() - 1][2];
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
+        } else if (ijob == 9) { // SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE
+            iValue(0, 0) = data.rlaminateStresses[0][0];
+            iValue(1, 1) = data.rlaminateStresses[0][1];
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) = data.rlaminateStresses[0][2];
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
         }
-		else if (ijob == 5) // SHELL_STRESS_TOP_SURFACE
-		{
-			iValue(0, 0) = data.generalizedStresses(0) +
-				data.generalizedStresses(3);
-			iValue(1, 1) = data.generalizedStresses(1) +
-				data.generalizedStresses(4);
-			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] +
-				data.generalizedStresses[5];
-			iValue(0, 2) = iValue(2, 0) = 0.0;
-			iValue(1, 2) = iValue(2, 1) = 0.0;
-		}
-		else if (ijob == 6) // SHELL_STRESS_MIDDLE_SURFACE
-		{
-			iValue(0, 0) = data.generalizedStresses(0);
-			iValue(1, 1) = data.generalizedStresses(1);
-			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2];
-			iValue(0, 2) = iValue(2, 0) = 0.0;
-			iValue(1, 2) = iValue(2, 1) = 0.0;
-		}
-		else if (ijob == 7) // SHELL_STRESS_BOTTOM_SURFACE
-		{
-			iValue(0, 0) = data.generalizedStresses(0) -
-				data.generalizedStresses(3);
-			iValue(1, 1) = data.generalizedStresses(1) -
-				data.generalizedStresses(4);
-			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] -
-				data.generalizedStresses[5];
-			iValue(0, 2) = iValue(2, 0) = 0.0;
-			iValue(1, 2) = iValue(2, 1) = 0.0;
-		}
-		else if (ijob == 8) // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
-		{
-			iValue(0, 0) =
-				data.rlaminateStresses[data.rlaminateStresses.size() - 1][0];
-			iValue(1, 1) =
-				data.rlaminateStresses[data.rlaminateStresses.size() - 1][1];
-			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) =
-				data.rlaminateStresses[data.rlaminateStresses.size() - 1][2];
-			iValue(0, 2) = iValue(2, 0) = 0.0;
-			iValue(1, 2) = iValue(2, 1) = 0.0;
-		}
-		else if (ijob == 9) // SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE
-		{
-			iValue(0, 0) = data.rlaminateStresses[0][0];
-			iValue(1, 1) = data.rlaminateStresses[0][1];
-			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) = data.rlaminateStresses[0][2];
-			iValue(0, 2) = iValue(2, 0) = 0.0;
-			iValue(1, 2) = iValue(2, 1) = 0.0;
-		}
 
         // if requested, rotate the results in the global coordinate system
-        if(bGlobal)
-        {
+        if (bGlobal) {
             const Matrix& RG = data.LCS.Orientation();
-            noalias( aux33 ) = prod( trans( RG ), iValue );
-            noalias( iValue ) = prod( aux33, RG );
+            noalias(aux33) = prod(trans(RG), iValue);
+            noalias(iValue) = prod(aux33, RG);
         }
     }
 
