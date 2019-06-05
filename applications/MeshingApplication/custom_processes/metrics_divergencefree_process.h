@@ -45,9 +45,11 @@ namespace Kratos
 /**
  * @class MetricDivergenceFreeProcess
  * @ingroup MeshingApplication
- * @brief This class is can be used to compute the metrics of the model part with a divergencefree already computed
- * @author Vicente Mataix Ferrandiz
- * @author Anna Rehr
+ * @brief This class is can be used to compute the metrics of the model part with different strategies, exploting the divergence.
+ * The developed strategies are:
+ * mean distribution strategy: this strategy builds a metric which tries to uniformly spread the refinement indicator in the whole domain
+ * maximum strategy: this strategy build a metric which aims at refining only if the refinement indicator belong to the interval [coefficient*max(refinement indicator),max(refinement indicator)]
+ * @author Riccardo Tosi
  */
 template<SizeType TDim>
 class KRATOS_API(MESHING_APPLICATION) MetricDivergenceFreeProcess
@@ -115,7 +117,7 @@ public:
     ///@{
 
     /**
-     * @brief We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
+     * @brief We initialize the Metrics of the MMG solver using the Divergence Free Metric matrix approach
      */
     void Execute() override;
 
@@ -202,7 +204,7 @@ private:
     std::string mRefinementStrategy; /// Refinement strategy
     SizeType mEchoLevel;             /// The echo level
 
-    // Mean strategy
+    // Mean dsitribution strategy
     std::string mMeanStrategyReferenceVariable;
     std::string mMeanStrategyReferenceNorm;
     double mMeanStrategyTargetRefinementCoefficient;
@@ -213,7 +215,7 @@ private:
     std::string mMaxStrategyReferenceVariable;
     double mMaxStrategyTargetRefinementCoefficient;
     double mMaxStrategyRefinementCoefficient;
-    double mDivergenceFreeMaxValue; /// Maximum value of the divergence
+    double mDivergenceFreeMaxValue;
 
     ///@}
     ///@name Private Operators
@@ -259,10 +261,8 @@ private:
 };// class MetricDivergenceFreeProcess
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output

@@ -32,7 +32,19 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
      * We configure using the following parameters:
      * minimal_size: The minimal size to consider on the remeshing
      * maximal_size: The maximal size to consider on the remeshing
+     * refinement_strategy: The chosen refinement strategy
      * echo_level: The verbosity
+     *
+     * mean_distribution_strategy
+     * target_refinement_coefficient: Coefficient to make the average element size throughout the domain change by a factor of target_refinement_coefficient after the refinement
+     * refinement_bound: Additional tolerance to bound the density factor (refinement coefficient)
+     * reference_variable_name: The refinement indicator
+     * reference_norm_name: The refinement norm indicator, exploited to estimate some coefficients
+     *
+     * maximum_strategy
+     * target_refinement_coefficient: The range of elements we want to refine w.r.t. the maximum value of reference_variable_name
+     * refinement_coefficient: Coefficient to make the average element size throughout the domain change by a factor of target_refinement_coefficient after the refinement
+     * reference_variable_name: The refinement indicator
      */
     Parameters default_parameters = Parameters(R"(
     {
@@ -62,7 +74,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     mRefinementStrategy = ThisParameters["refinement_strategy"].GetString();
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 
-    // Mean strategy
+    // Mean distribution strategy
     mMeanStrategyReferenceVariable = ThisParameters["mean_distribution_strategy"]["reference_variable_name"].GetString();
     mMeanStrategyReferenceNorm = ThisParameters["mean_distribution_strategy"]["reference_norm_name"].GetString();
     mMeanStrategyTargetRefinementCoefficient = ThisParameters["mean_distribution_strategy"]["target_refinement_coefficient"].GetDouble();
@@ -83,9 +95,8 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
 template<SizeType TDim>
 void MetricDivergenceFreeProcess<TDim>::Execute()
 {
-    /******************************************************************************
-    --1-- Initialize metric --1--
-    ******************************************************************************/
+    // 1) Initialize metric
+
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
@@ -96,21 +107,16 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
 
     if (nodes_array.begin()->Has(tensor_variable) == false) {
         const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
-
         // Iteration over the nodes
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
             (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
     }
 
-    // /******************************************************************************
-    // --2-- Initialize what is needed for each refinement strategy --2--
-    // ******************************************************************************/
+    // 2) Initialize what is needed for each refinement strategy
     InitializeRefinementStrategy();
 
-    // /******************************************************************************
-    // --3-- Calculate metric --3--
-    // ******************************************************************************/
+    // 3) Calculate metric
     CalculateMetric();
 }
 
@@ -124,7 +130,7 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
 
-    // Maximum refinement strategy
+    // Maximum strategy
     if (mRefinementStrategy == "maximum_strategy") {
         // Iteration over all elements to find maximum value of reference variable
         const int number_elements = static_cast<int>(elements_array.size());
@@ -139,7 +145,7 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
         }
     }
 
-    // Mean strategy
+    // Mean distribution strategy
     else if (mRefinementStrategy == "mean_distribution_strategy") {
         // Find of neighbours
         {
@@ -198,7 +204,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
     const int number_nodes = static_cast<int>(nodes_array.size());
     KRATOS_DEBUG_ERROR_IF(number_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
-    // Maximum refinement strategy
+    // Maximum strategy
     if (mRefinementStrategy == "maximum_strategy") {
 
         // Reference variable
@@ -251,7 +257,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         }
     }
 
-    // Mean refinement strategy
+    // Mean distribution strategy
     else if (mRefinementStrategy == "mean_distribution_strategy") {
 
         // Reference variable
