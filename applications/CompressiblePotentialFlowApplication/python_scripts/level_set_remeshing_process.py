@@ -19,6 +19,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "model_part_name": "insert_model_part",
                 "skin_model_part_name": "insert_skin_model_part",
                 "maximum_iterations": 1,
+                "update_coefficient": 0.5,
                 "remeshing_flag": false,
                 "ray_casting_tolerance": 1e-9,
                 "moving_parameters":    {
@@ -59,6 +60,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.do_remeshing = settings["remeshing_flag"].GetBool()
         self.step = 0
         self.max_iter = settings["maximum_iterations"].GetInt()
+        self.update_coefficient = settings["update_coefficient"].GetDouble()
 
         self.moving_parameters = settings["moving_parameters"]
         self.metric_parameters = settings["metric_parameters"]
@@ -81,6 +83,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self._ModifyFinalDistance()
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
+
         #############################################################################################
         #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
         # Find nodal neigbours util call
@@ -176,7 +179,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def _UpdateParameters(self):
         ''' This process updates remeshing parameters in case more than one iteration is performed'''
         previous_size=self.metric_parameters["minimal_size"].GetDouble()
-        self.metric_parameters["minimal_size"].SetDouble(previous_size*0.5)
+        self.metric_parameters["minimal_size"].SetDouble(previous_size*self.update_coefficient)
 
     def _ModifyFinalDistance(self):
         ''' This function modifies the distance field to avoid ill defined cuts.
