@@ -158,7 +158,56 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
     ProcessInfo& rCurrentProcessInfo
     )
 {
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
+    // Kinematic variables
+    Matrix B, F, DN_DX, InvJ0, J, J0;
+    double detJ0;
+
+    const SizeType mat_size = number_of_nodes * dimension;
+    B.resize(VoigtSize, dimension * number_of_nodes);
+
+    // Resizing as needed the RHS
+    if (rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size, false);
+    rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
+
+    // Loop over Gauss Points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+
+		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
+        detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+
+        const double integration_weigth = integration_points[point_number].Weight() * detJ0;
+        const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+		Vector N = row(Ncontainer, point_number);
+
+        Vector VolumeForce = ZeroVector(dimension);
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
+		// Taking into account Volume Force into de RHS
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			int index = dimension * i;
+			for (unsigned int j = 0; j < dimension; j++) {
+				rRightHandSideVector[index + j] += integration_weigth * N[i] * VolumeForce[j];
+			}
+		}
+
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+        this->CalculateB(B, F, DN_DX);
+
+        const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
+    }
 }
 
 /***********************************************************************************/
