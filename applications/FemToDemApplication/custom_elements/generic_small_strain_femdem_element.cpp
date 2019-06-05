@@ -335,8 +335,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableO
 	}
 	rAverageVector /= (counter + 1);
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<>
 double GenericSmallStrainFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
@@ -789,6 +791,106 @@ void GenericSmallStrainFemDemElement<3,5>::CalculateEquivalentStress(
     )
 {
     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void GenericSmallStrainFemDemElement<2,0>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,0>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,1>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,1>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,2>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,2>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,3>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,3>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,4>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,4>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,5>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,5>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
 }
 
 /***********************************************************************************/

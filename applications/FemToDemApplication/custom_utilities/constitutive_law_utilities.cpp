@@ -409,18 +409,6 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-static void GetInitialUniaxialThresholdTresca(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<TVoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 

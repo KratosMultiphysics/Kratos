@@ -206,6 +206,11 @@ public:
      */
     void CalculateEquivalentStress(const array_1d<double, VoigtSize>& rPredictiveStressVector, const Vector& rStrainVector, double& rEquivalentStress, ConstitutiveLaw::Parameters& rValues);
 
+    /**
+     * this gets the initial threshold of the yield surface
+     */
+    void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold);
+
 private:
 
     ///@name Static Member Variables
