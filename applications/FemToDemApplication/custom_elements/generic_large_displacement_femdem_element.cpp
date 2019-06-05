@@ -53,8 +53,8 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacemen
     	mThresholds.resize(NumberOfEdges);
 	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
-	if (mNonConvergedDamages.size() != NumberOfEdges)
-    	mNonConvergedDamages.resize(NumberOfEdges);
+	if (mDamages.size() != NumberOfEdges)
+    	mDamages.resize(NumberOfEdges);
 	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 
 	if (mNonConvergedDamages.size() != NumberOfEdges)
@@ -120,9 +120,52 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::InitializeNonLinear
     ProcessInfo& rCurrentProcessInfo
     )
 {
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
+    // Kinematic variables
+    Matrix B, F, DN_DX, InvJ0, J, J0;
+    B.resize(VoigtSize, dimension * number_of_nodes);
+
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+	//set constitutive law flags:
+	Flags& r_constitutive_law_options = values.GetOptions();
+	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	//create and initialize element variables:
+	ElementDataType variables;
+	this->InitializeElementData(variables, rCurrentProcessInfo);
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
+
+    // Loop over Gauss Points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+        //calculate the elastic matrix
+		this->CalculateMaterialResponse(variables, values, point_number);
+        Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
+        J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
+        const double detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+        this->CalculateB(B, F, DN_DX);
+        
+        Vector stress_vector, strain_vector;
+        stress_vector.resize(VoigtSize);
+        strain_vector.resize(VoigtSize);
+        this->CalculateGreenLagrangeStrainVector(strain_vector, F);
+
+        this->SetValue(STRAIN_VECTOR, strain_vector);
+        
+        // S = C:E -> Assume small deformations
+        this->CalculateStressVectorPredictor(stress_vector, r_constitutive_matrix, strain_vector);
+        this->SetValue(STRESS_VECTOR, stress_vector);
+    }
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/

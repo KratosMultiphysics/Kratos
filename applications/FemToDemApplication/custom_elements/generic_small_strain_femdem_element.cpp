@@ -48,8 +48,8 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
     	mThresholds.resize(NumberOfEdges);
 	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
-	if (mNonConvergedDamages.size() != NumberOfEdges)
-    	mNonConvergedDamages.resize(NumberOfEdges);
+	if (mDamages.size() != NumberOfEdges)
+    	mDamages.resize(NumberOfEdges);
 	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 
 	if (mNonConvergedDamages.size() != NumberOfEdges)
