@@ -359,7 +359,7 @@ protected:
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
         double r1 = TSparseSpace::Dot(aux,b);
         
-        double rmax;
+        double rmax = std::abs(r1);
         while(!converged && it < mMaxLineSearchIterations)
         {
 
@@ -374,7 +374,7 @@ protected:
             double r2 = TSparseSpace::Dot(aux,b);
 
             if(it == 0)
-                rmax = std::max(std::abs(r1),std::abs(r2));
+                rmax = std::max(rmax,std::abs(r2));
             double rmin = std::min(std::abs(r1),std::abs(r2));
 
             //find optimum
