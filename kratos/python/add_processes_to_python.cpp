@@ -27,7 +27,8 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
-#include "processes/find_global_nodal_neighbours_process.h" 
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_elemental_neighbours_process.h" 
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
@@ -138,6 +139,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursProcess::GetNeighbourIds)
     ;
+
+    py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>
+        (m,"FindGlobalNodalElementalNeighboursProcess")
+            .def(py::init<const DataCommunicator&, ModelPart&>())
+    .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
+    .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
+    ;
+
     // Find NODAL_H (Historical variables stored)
     py::class_<FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
     .def(py::init<ModelPart&>())
