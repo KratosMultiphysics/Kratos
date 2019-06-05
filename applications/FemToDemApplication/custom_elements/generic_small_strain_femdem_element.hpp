@@ -331,7 +331,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-}; // Class TotalLagrangian
+}; // Class GenericSmallStrainFemDemElement
 
 ///@}
 ///@name Type Definitions
@@ -342,4 +342,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
+#endif
