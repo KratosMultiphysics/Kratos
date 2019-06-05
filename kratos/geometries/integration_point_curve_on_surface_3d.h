@@ -10,8 +10,8 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_INTEGRATION_POINT_SURFACE_3D_H_INCLUDED )
-#define  KRATOS_INTEGRATION_POINT_SURFACE_3D_H_INCLUDED
+#if !defined(KRATOS_INTEGRATION_POINT_CURVE_ON_SURFACE_3D_H_INCLUDED )
+#define  KRATOS_INTEGRATION_POINT_CURVE_ON_SURFACE_3D_H_INCLUDED
 
 // System includes
 
@@ -24,40 +24,61 @@
 namespace Kratos
 {
 /**
- * @class IntegrationPointSurface3d
+ * @class IntegrationPointCurveOnSurface3d
  * @ingroup KratosCore
  * @brief A sinlge integration point, that can be used for geometries without 
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single integration point.
+ *        This point defines a line segment described on a underlying surface.
  *        Shape functions and integration types have to be precomputed and are set from 
  *        from outside.
  */
-template<class TPointType> class IntegrationPointSurface3d
+template<class TPointType> class IntegrationPointCurveOnSurface3d
     : public Geometry<TPointType>
 {
 public:
 
-    /**
-    * Geometry as base class.
-    */
+    /** Geometry as base class. */
     typedef Geometry<TPointType> BaseType;
 
     typedef Geometry<TPointType> GeometryType;
 
     /**
-     * Pointer definition of IntegrationPointSurface3d
+     * Pointer definition of IntegrationPointCurveOnSurface3d
      */
-    KRATOS_CLASS_POINTER_DEFINITION( IntegrationPointSurface3d );
+    KRATOS_CLASS_POINTER_DEFINITION( IntegrationPointCurveOnSurface3d );
 
+    /** Integration methods implemented in geometry. */
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /** Redefinition of template parameter TPointType. */
+    typedef TPointType PointType;
+
+    /** Type used for indexing in geometry class.std::size_t used for indexing
+    point or integration point access methods and also all other
+    methods which need point or integration point index. */
+    typedef typename BaseType::IndexType IndexType;
+
+    /** This typed used to return size or dimension in
+    geometry. Dimension, WorkingDimension, PointsNumber and
+    ... return this type as their results. */
+    typedef typename BaseType::SizeType SizeType;
+
+    /** Array of counted pointers to point. This type used to hold
+    geometry's points. */
+    typedef  typename BaseType::PointsArrayType PointsArrayType;
+
+    typedef array_1d<double, 2> TangentsArrayType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    IntegrationPointSurface3d(
+    IntegrationPointCurveOnSurface3d(
         const PointsArrayType& ThisPoints,
         const CoordinatesArrayType& rLocalCoordinates,
+        const TangentsArrayType& rTangents,
         const double& rIntegrationWeight,
         ShapeFunctionsDerivativesVectorType& rShapeFunctionsDerivativesVector)
         : BaseType( ThisPoints, nullptr )
@@ -74,16 +95,12 @@ public:
         msGeometryData.SetGeometryData(IntegrationPoints, rShapeFunctionsDerivativesVector);
     }
 
-    IntegrationPointSurface3d(
+    IntegrationPointCurveOnSurface3d(
         const PointsArrayType& ThisPoints,
         const IntgrationPoint& rIntegrationPoint,
         ShapeFunctionsDerivativesVectorType& rShapeFunctionsDerivativesVector)
-        : BaseType(ThisPoints, nullptr)
+        : BaseType(ThisPoints, &msGeometryData)
     {
-        msGeometryData = GeometryData(3, 3, 2);
-
-        mpGeometryData = &mGeometryData;
-
         IntegrationPointsContainerType IntegrationPoints = IntegrationPointsContainerType(1);
         IntegrationPoints[0] = rIntegrationPoint;
 
@@ -99,7 +116,7 @@ public:
      * Any changes to the new geometry points affect the source
      * geometry points too.
      */
-    IntegrationPointSurface3d( IntegrationPointSurface3d const& rOther )
+    IntegrationPointCurveOnSurface3d( IntegrationPointCurveOnSurface3d const& rOther )
         : BaseType( rOther )
     {
     }
@@ -116,7 +133,8 @@ public:
      * Any changes to the new geometry points affect the source
      * geometry points too.
      */
-    template<class TOtherPointType> IntegrationPointSurface3d( IntegrationPointSurface3d<TOtherPointType> const& rOther )
+    template<class TOtherPointType> IntegrationPointCurveOnSurface3d(
+        IntegrationPointCurveOnSurface3d<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -124,7 +142,7 @@ public:
     /**
      * Destructor. Does nothing!!!
      */
-    ~IntegrationPointSurface3d() override {}
+    ~IntegrationPointCurveOnSurface3d() override {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
@@ -151,7 +169,7 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    IntegrationPointSurface3d& operator=( const IntegrationPointSurface3d& rOther )
+    IntegrationPointCurveOnSurface3d& operator=( const IntegrationPointCurveOnSurface3d& rOther )
     {
         BaseType::operator=( rOther );
 
@@ -170,7 +188,7 @@ public:
      * @see ClonePoints
      */
     template<class TOtherPointType>
-    IntegrationPointSurface3d& operator=( IntegrationPointSurface3d<TOtherPointType> const & rOther )
+    IntegrationPointCurveOnSurface3d& operator=( IntegrationPointCurveOnSurface3d<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
 
@@ -182,7 +200,7 @@ public:
     ///@{
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new IntegrationPointSurface3d( ThisPoints ) );
+        return typename BaseType::Pointer( new IntegrationPointCurveOnSurface3d( ThisPoints ) );
     }
 
     ///@}
@@ -196,7 +214,7 @@ public:
 
     @return Point which is the location of this geometry.
     */
-    virtual Point Center() const
+    override Point Center() const
     {
         const SizeType points_number = PointsNumber();
 
@@ -210,13 +228,106 @@ public:
     }
 
 
+    /** Determinant of jacobians for given integration method. This
+    method calculate determinant of jacobian in all
+    integrations points of given integration method.
+
+    @return Vector of double which is vector of determinants of
+    jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
+    integration point index of given integration method.
+
+    @see Jacobian
+    @see InverseOfJacobian
+    */
+    override Vector& DeterminantOfJacobian(Vector& rResult, IntegrationMethod ThisMethod) const
+    {
+        if (rResult.size() != this->IntegrationPointsNumber(ThisMethod))
+            rResult.resize(this->IntegrationPointsNumber(ThisMethod), false);
+
+        for (unsigned int pnt = 0; pnt < this->IntegrationPointsNumber(ThisMethod); pnt++)
+        {
+            rResult[pnt] = DeterminantOfJacobian(
+                0, ThisMethod);
+        }
+        return rResult;
+    }
+
+    /** Determinant of jacobian in specific integration point of
+    given integration method. This method calculate determinant
+    of jacobian in given integration point of given integration
+    method.
+
+    The tangential integration weight is already applied to the
+    length of the line segment.
+
+    @param IntegrationPointIndex index of integration point which jacobians has to
+    be calculated in it.
+
+    @param IntegrationPointIndex index of integration point
+    which determinant of jacobians has to be calculated in it.
+
+    @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
+    i \f$ is the given integration point index of given
+    integration method.
+
+    @see Jacobian
+    @see InverseOfJacobian
+    */
+    override double DeterminantOfJacobian(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        Matrix J;
+        this->Jacobian(J, IntegrationPointIndex, ThisMethod);
+
+        array_1d<double, 3> a1 = row(J, 0);
+        array_1d<double, 3> a2 = row(J, 1);
+
+        return std::norm_2(a1 * mTangents[0] + a2 * mTangents[1]);
+    }
+
+    /** Tangents in global space of the curve defined on the surface.
+
+    The tangential integration weight is already applied to the
+    length of the line segment.
+
+    @param IntegrationPointIndex index of integration point which jacobians has to
+    be calculated in it.
+
+    @param IntegrationPointIndex index of integration point
+    which determinant of jacobians has to be calculated in it.
+
+    @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
+    i \f$ is the given integration point index of given
+    integration method.
+
+    @see Jacobian
+    @see InverseOfJacobian
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        Matrix J;
+        this->Jacobian(J, IntegrationPointIndex, ThisMethod);
+
+        array_1d<double, 3> a_1 = row(J, 0);
+        array_1d<double, 3> a_2 = row(J, 1);
+
+        Matrix Tangents = ZeroMatrix(3, 2);
+        row(Tangents, 0) = Tangents(1)*a_1 + Tangents(0)*a_2;
+        row(Tangents, 1) = Tangents(0)*a_1 + Tangents(1)*a_2
+
+        return rResult;
+    }
 
     ///@}
     ///@name Information
     ///@{
     std::string Info() const override
     {
-        return "2 dimensional single integration point defined in 3D space.";
+        return "2 dimensional single line integration point defined in 3D space.";
     }
 
     /**
@@ -227,7 +338,7 @@ public:
      */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "2 dimensional single integration point defined in 3D space.";
+        rOStream << "2 dimensional single line integration point defined in 3D space.";
     }
 
     /**
@@ -258,7 +369,14 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    GeometryData mGeometryData;
+
+    static const GeometryData msGeometryData;
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
+
+    array_1d<double, 2> mTangents;
 
     ///@}
     ///@name Serialization
@@ -276,13 +394,13 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
-    IntegrationPointSurface3d(): BaseType( PointsArrayType(), nullptr ) {}
+    IntegrationPointCurveOnSurface3d(): BaseType( PointsArrayType(), nullptr ) {}
 
     /**
      * Private Friends
      */
 
-    template<class TOtherPointType> friend class IntegrationPointSurface3d;
+    template<class TOtherPointType> friend class IntegrationPointCurveOnSurface3d;
 
     /**
      * Un accessible methods
@@ -298,14 +416,14 @@ private:
  */
 template< class TPointType > inline std::istream& operator >> (
     std::istream& rIStream,
-    IntegrationPointSurface3d<TPointType>& rThis );
+    IntegrationPointCurveOnSurface3d<TPointType>& rThis );
 
 /**
          * output stream function
  */
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const IntegrationPointSurface3d<TPointType>& rThis )
+    const IntegrationPointCurveOnSurface3d<TPointType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -313,6 +431,15 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
+template<class TPointType>
+const GeometryData BrepCurve<TPointType>::msGeometryData(2,
+    3,
+    2,
+    GeometryData::GI_GAUSS_1,
+    {},
+    {},
+    {});
+
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_POINT_SURFACE_3D_H_INCLUDED  defined 
+#endif // KRATOS_INTEGRATION_POINT_CURVE_ON_SURFACE_3D_H_INCLUDED  defined 

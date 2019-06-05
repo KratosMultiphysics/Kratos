@@ -205,6 +205,30 @@ public:
      */
     typedef GeometryData::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
 
+
+    /**
+    * Derivative type of any order of derivative. Also for shape functions.
+    * The matrix is (derivative direction, corresponding)
+    */
+    typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
+
+    /**
+    * Derivative type of any order of derivative. Also for shape functions.
+    * DenseVector: each respective integration point is accessed.
+    *  Matrix: (derivative direction, corresponding)
+    */
+    typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
+
+    /**
+    * Vector of derivatives until any order of derivative, including for shape functions.
+    * In the first DenseVector the order of derivative is adressed.
+    * Within the second DenseVector each respective integration point is accessed.
+    * The matrix is (derivative direction, corresponding)
+    */
+    typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
+
+
+
     /** Type of the normal vector used for normal to edges in geomety.
      */
     typedef DenseVector<double> NormalType;
@@ -837,6 +861,57 @@ public:
     }
 
     /**
+    * @brief TO BE DONE
+    */
+    virtual array_1d<double, 3> Normal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex) const
+    {
+        Normal(rResult, IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /**
+    * @brief TO BE DONE
+    */
+    virtual array_1d<double, 3> Normal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        const unsigned int local_space_dimension = this->LocalSpaceDimension();
+        const unsigned int dimension = this->WorkingSpaceDimension();
+
+        KRATOS_ERROR_IF(dimension == local_space_dimension)
+            << "Remember the normal can be computed just in geometries with a local dimension: "
+            << this->LocalSpaceDimension() << "smaller than the spatial dimension: "
+            << this->WorkingSpaceDimension() << std::endl;
+
+        // We define the normal and tangents
+        array_1d<double, 3> tangent_xi(3, 0.0);
+        array_1d<double, 3> tangent_eta(3, 0.0);
+
+        Matrix j_node = ZeroMatrix(dimension, local_space_dimension);
+        this->Jacobian(j_node, IntegrationPointIndex, ThisMethod);
+
+        // Using the Jacobian tangent directions
+        if (dimension == 2) {
+            tangent_eta[2] = 1.0;
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+            }
+        }
+        else {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+                tangent_eta[i_dim] = j_node(i_dim, 1);
+            }
+        }
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal;
+    }
+
+    /**
      * @brief It computes the unit normal of the geometry in the given local point
      * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
@@ -848,6 +923,84 @@ public:
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         return normal;
+    }
+
+    /**
+    * @brief 
+    */
+    virtual array_1d<double, 3> UnitNormal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex) const
+    {
+        UnitNormal(rResult, IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /**
+    * @brief
+    */
+    virtual array_1d<double, 3> UnitNormal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        array_1d<double, 3> normal = Normal(rResult, IntegrationPointIndex);
+        const double rResult = norm_2(normal);
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+        else
+            KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: "
+            << norm_normal << std::endl;
+        return rResult;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        const CoordinatesArrayType& rPointLocalCoordinates) const
+    {
+        KRATOS_ERROR 
+            << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0.0;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex) const
+    {
+        Tangents(
+            rResult,
+            IntegrationPointIndex,
+            mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const 
+    {
+        KRATOS_ERROR << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the quality of the geometry according to a given criteria.
@@ -1859,11 +2012,40 @@ public:
         return rResult;
     }
 
-
-
     ///@}
     ///@name Shape Function
     ///@{
+
+    const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivatives(
+        IndexType DerivativeOrder) const
+    {
+        return mpGeometryData->ShapeFunctionsDerivativesIntegrationPoints(DerivativeOrder);
+    }
+
+    const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(
+        IndexType DerivativeOrder,
+        IndexType IntegrationPointIndex) const
+    {
+        return mpGeometryData->ShapeFunctionsDerivatives(DerivativeOrder, IntegrationPointIndex);
+    }
+
+    virtual ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
+        IndexType DerivativeOrder,
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const
+    {
+        KRATOS_ERROR << "Calling base class ShapeFunctionsDerivative method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return rResult;
+    }
+
+    virtual ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
+        IndexType DerivativeOrder,
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const
+    {
+        KRATOS_ERROR << "Calling base class ShapeFunctionsDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return rResult;
+    }
 
     /** This method gives all shape functions values evaluated in all
     integration points of default integration method. It just
