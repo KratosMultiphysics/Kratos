@@ -16,7 +16,7 @@
 
 
 // Project includes
-#include "custom_conditions/line_load_condition_3d.h"
+#include "custom_conditions/line_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/beam_math_utilities.hpp"
 #include "utilities/integration_utilities.h"
@@ -26,7 +26,8 @@ namespace Kratos
 /******************************* CONSTRUCTOR ***************************************/
 /***********************************************************************************/
 
-LineLoadCondition3D::LineLoadCondition3D( IndexType NewId, GeometryType::Pointer pGeometry )
+template<std::size_t TDim>
+LineLoadCondition<TDim>::LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : BaseLoadCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -35,7 +36,8 @@ LineLoadCondition3D::LineLoadCondition3D( IndexType NewId, GeometryType::Pointer
 /***********************************************************************************/
 /***********************************************************************************/
 
-LineLoadCondition3D::LineLoadCondition3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+template<std::size_t TDim>
+LineLoadCondition<TDim>::LineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : BaseLoadCondition( NewId, pGeometry, pProperties )
 {
 }
@@ -43,38 +45,41 @@ LineLoadCondition3D::LineLoadCondition3D( IndexType NewId, GeometryType::Pointer
 /********************************* CREATE ******************************************/
 /***********************************************************************************/
 
-Condition::Pointer LineLoadCondition3D::Create(
+template<std::size_t TDim>
+Condition::Pointer LineLoadCondition<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<LineLoadCondition3D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<LineLoadCondition<TDim>>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer LineLoadCondition3D::Create(
+template<std::size_t TDim>
+Condition::Pointer LineLoadCondition<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<LineLoadCondition3D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<LineLoadCondition<TDim>>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer LineLoadCondition3D::Clone (
+template<std::size_t TDim>
+Condition::Pointer LineLoadCondition<TDim>::Clone (
     IndexType NewId,
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_intrusive<LineLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<LineLoadCondition<TDim>>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -86,14 +91,16 @@ Condition::Pointer LineLoadCondition3D::Clone (
 //******************************* DESTRUCTOR *****************************************
 /***********************************************************************************/
 
-LineLoadCondition3D::~LineLoadCondition3D()
+template<std::size_t TDim>
+LineLoadCondition<TDim>::~LineLoadCondition()
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LineLoadCondition3D::GetValueOnIntegrationPoints(
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::GetValueOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector< array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -109,7 +116,8 @@ void LineLoadCondition3D::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LineLoadCondition3D::CalculateOnIntegrationPoints(
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector< array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -127,10 +135,17 @@ void LineLoadCondition3D::CalculateOnIntegrationPoints(
     if (rVariable == NORMAL) {
         // Declaring tangent and Jacobian
         array_1d<double, 3> tangent_xi, tangent_eta;
-        Matrix J(3, 1);
+        Matrix J(TDim, 1);
 
-        KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
-        noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
+        // Getting LOCAL_AXIS_2
+        if (TDim == 3) {
+            KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
+            noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
+        } else {
+            tangent_eta[0] = 0.0;
+            tangent_eta[1] = 0.0;
+            tangent_eta[2] = 1.0;
+        }
 
         // Iterate over the Gauss points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -139,7 +154,11 @@ void LineLoadCondition3D::CalculateOnIntegrationPoints(
             // Definition of the tangent
             tangent_xi[0] = J(0, 0);
             tangent_xi[1] = J(1, 0);
-            tangent_xi[2] = J(2, 0);
+            if (TDim == 3) {
+                tangent_xi[2] = J(2, 0);
+            } else {
+                tangent_xi[2] = 0.0;
+            }
 
             MathUtils<double>::UnitCrossProduct(rOutput[point_number], tangent_xi, tangent_eta);
         }
@@ -155,7 +174,8 @@ void LineLoadCondition3D::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LineLoadCondition3D::CalculateAll(
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -167,7 +187,6 @@ void LineLoadCondition3D::CalculateAll(
 
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType block_size = this->GetBlockSize();
 
     // Resizing as needed the LHS
@@ -228,7 +247,7 @@ void LineLoadCondition3D::CalculateAll(
 
     // Declaring tangent and Jacobian
     array_1d<double, 3> tangent_xi, tangent_eta;
-    Matrix J(3, 1);
+    Matrix J(TDim, 1);
 
     // Iterate over the Gauss points
     for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
@@ -246,7 +265,11 @@ void LineLoadCondition3D::CalculateAll(
             r_geometry.Jacobian(J, point_number, integration_method);
             tangent_xi[0] = J(0, 0);
             tangent_xi[1] = J(1, 0);
-            tangent_xi[2] = J(2, 0);
+            if (TDim == 3) {
+                tangent_xi[2] = J(2, 0);
+            } else {
+                tangent_xi[2] = 0.0;
+            }
         }
 
         // Adding contributions to the LHS matrix
@@ -261,8 +284,14 @@ void LineLoadCondition3D::CalculateAll(
                 array_1d<double, 3> normal;
 
                 // Getting LOCAL_AXIS_2
-                KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
-                noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
+                if (TDim == 3) {
+                    KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
+                    noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
+                } else {
+                    tangent_eta[0] = 0.0;
+                    tangent_eta[1] = 0.0;
+                    tangent_eta[2] = 1.0;
+                }
                 MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
                 CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
@@ -281,7 +310,7 @@ void LineLoadCondition3D::CalculateAll(
         for (IndexType ii = 0; ii < number_of_nodes; ++ii) {
             const IndexType base = ii * block_size;
 
-            for (IndexType k = 0; k < dimension; ++k) {
+            for (IndexType k = 0; k < TDim; ++k) {
                 rRightHandSideVector[base + k] += integration_weight * rNcontainer( point_number, ii ) * gauss_load[k];
             }
         }
@@ -293,7 +322,8 @@ void LineLoadCondition3D::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LineLoadCondition3D::CalculateAndSubKp(
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateAndSubKp(
     Matrix& rK,
     const array_1d<double, 3>& rTangentXi,
     const Matrix& rDN_De,
@@ -304,19 +334,28 @@ void LineLoadCondition3D::CalculateAndSubKp(
 {
     KRATOS_TRY
 
-    Matrix Kij( 3, 3 );
-    BoundedMatrix<double, 3, 3> cross_tangent_xi;
+    Matrix Kij( TDim, TDim );
+    BoundedMatrix<double, TDim, TDim> cross_tangent_xi;
     const auto& r_geometry = GetGeometry();
-    BeamMathUtils<double>::VectorToSkewSymmetricTensor(rTangentXi, cross_tangent_xi);
+    if (TDim == 2) {
+        const auto& r_properties = GetProperties();
+        const double h0 = (r_properties.Has(THICKNESS) && r_geometry.WorkingSpaceDimension() == 2) ? r_properties.GetValue(THICKNESS): 1.0;
+        cross_tangent_xi( 0, 0 ) =  0.0;
+        cross_tangent_xi( 0, 1 ) =  h0;
+        cross_tangent_xi( 1, 0 ) = -h0;
+        cross_tangent_xi( 1, 1 ) =  0.0;
+    } else {
+        BeamMathUtils<double>::VectorToSkewSymmetricTensor(rTangentXi, cross_tangent_xi);
+    }
 
     // Getting geometry
     const SizeType number_of_nodes = r_geometry.size();
 
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const IndexType row_index = i * 3;
+        const IndexType row_index = i * TDim;
 
         for ( IndexType j = 0; j < number_of_nodes; j++ ) {
-            const IndexType col_index = j * 3;
+            const IndexType col_index = j * TDim;
 
             const double coeff = Pressure * rN[i] * rDN_De( j, 0 ) * IntegrationWeight;
             noalias(Kij) = coeff * cross_tangent_xi;
@@ -331,7 +370,8 @@ void LineLoadCondition3D::CalculateAndSubKp(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LineLoadCondition3D::CalculateAndAddPressureForce(
+template<std::size_t TDim>
+void LineLoadCondition<TDim>::CalculateAndAddPressureForce(
     Vector& rRightHandSideVector,
     const Vector& rN,
     const array_1d<double, 3>& rNormal,
@@ -342,16 +382,21 @@ void LineLoadCondition3D::CalculateAndAddPressureForce(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType block_size = this->GetBlockSize();
 
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
         const IndexType index = block_size * i;
 
         const double coeff = Pressure * rN[i] * IntegrationWeight;
 
-        rRightHandSideVector[index   ]  -= coeff * rNormal[0];
-        rRightHandSideVector[index + 1] -= coeff * rNormal[1];
-        rRightHandSideVector[index + 2] -= coeff * rNormal[2];
+        for ( IndexType j = 0; j < TDim; ++j ) {
+            rRightHandSideVector[index + j] -= coeff * rNormal[j];
+        }
     }
 }
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class LineLoadCondition<2>;
+template class LineLoadCondition<3>;
 
 } // Namespace Kratos
 

@@ -10,8 +10,8 @@
 //
 
 // System includes
-#if !defined(KRATOS_LINE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_LINE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -43,14 +43,15 @@ namespace Kratos
 ///@{
 
 /**
- * @class LineLoadCondition3D
+ * @class LineLoadCondition
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the responsible to add the contributions of the RHS and LHS of the 3D line loads of the structure
+ * @brief This class is the responsible to add the contributions of the RHS and LHS of the line loads of the structure
  * @details It allows to consider different types of pressure and line loads
- * @author Riccardo Rossi
+ * @tparam TDim The dimension of the condition
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LineLoadCondition3D
+template<std::size_t TDim>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LineLoadCondition
     : public BaseLoadCondition
 {
 public:
@@ -78,28 +79,28 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    /// Counted pointer of LineLoadCondition3D
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition3D );
+    /// Counted pointer of LineLoadCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor using an array of nodes
-    LineLoadCondition3D(
+    LineLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    LineLoadCondition3D(
+    LineLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
-    ~LineLoadCondition3D() override;
+    ~LineLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -154,8 +155,8 @@ public:
      * @param rOutput The values of interest (array_1d)
      */
     void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rOutput,
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -166,8 +167,8 @@ public:
      * @param rOutput The values of interest (array_1d)
      */
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector< array_1d<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -189,7 +190,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "LineLoadCondition3D #" << Id();
+        buffer << "LineLoadCondition #" << Id();
         return buffer.str();
     }
 
@@ -197,7 +198,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "LineLoadCondition3D #" << Id();
+        rOStream << "LineLoadCondition #" << Id();
     }
 
     /// Print object's data.
@@ -298,7 +299,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    LineLoadCondition3D() {};
+    LineLoadCondition() {};
 
     ///@}
 
@@ -350,15 +351,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //LineLoadCondition3D& operator=(const LineLoadCondition3D& rOther);
+    //LineLoadCondition& operator=(const LineLoadCondition& rOther);
 
     /// Copy constructor.
-    //LineLoadCondition3D(const LineLoadCondition3D& rOther);
+    //LineLoadCondition(const LineLoadCondition& rOther);
 
 
     ///@}
 
-}; // Class LineLoadCondition3D
+}; // Class LineLoadCondition
 
 ///@}
 ///@name Type Definitions
@@ -370,11 +371,13 @@ private:
 ///@{
 
 /// input stream function
+template<std::size_t TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadCondition3D& rThis);
+        LineLoadCondition<TDim>& rThis);
 /// output stream function
+template<std::size_t TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadCondition3D& rThis)
+        const LineLoadCondition<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -387,6 +390,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_LINE_LOAD_CONDITION_H_INCLUDED  defined
 
 
