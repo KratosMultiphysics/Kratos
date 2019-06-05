@@ -71,6 +71,9 @@ public:
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
+    /// The zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -199,7 +202,9 @@ public:
     /**
      * this integrates the constitutive law
      */
-    void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage,const Vector& rStrainVector,const Vector& rStressVector,const int Edge,const double CharacteristicLength,bool& rIsDamaging);
+    void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage, const Vector& rStrainVector,
+        const Vector& rStressVector, const int Edge, const double CharacteristicLength,
+        ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
 
     /**
      * this evaluates the constitutive law
@@ -225,6 +230,11 @@ public:
      * this computes VolumeForce of the element
      */
     Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+
+    /**
+     * this computes the damage according to a exp softening
+     */
+    void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
 
 private:
 

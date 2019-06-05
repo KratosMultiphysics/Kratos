@@ -171,11 +171,33 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMech
 	const Vector& rStressVector,
 	const int Edge,
 	const double CharacteristicLength,
+    ConstitutiveLaw::Parameters& rValues,
 	bool& rIsDamaging
 	)
 {
     double uniaxial_stress;
+    this->CalculateEquivalentStress(rStressVector, rStrainVector, uniaxial_stress, rValues);
 
+    double initial_threshold;
+    this->GetInitialUniaxialThreshold(rValues, initial_threshold);
+
+    double damage_parameter; // A parameter
+    this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
+
+	if (rThreshold < tolerance) {
+		rThreshold = initial_threshold; // 1st iteration sets threshold as c_max
+	}  else if (initial_threshold > rThreshold) { // remeshing stuff
+		rThreshold = initial_threshold;
+	}
+
+    const double F = uniaxial_stress - rThreshold;
+	if (F <= 0.0) { // Elastic region --> Damage is constant
+		rDamage = mDamages[Edge];
+	} else {
+		this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);
+		rThreshold = uniaxial_stress;
+		rIsDamaging = true;
+	}
 }
 
 /***********************************************************************************/
@@ -1042,6 +1064,22 @@ Vector& GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateVolumeForce(
 
 	rVolumeForce *= GetProperties()[DENSITY];
 	return rVolumeForce;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDamage(
+	double& rDamage,
+	const double DamageParameter,
+	const double UniaxialStress,
+	const double InitialThrehsold
+	)
+{
+	rDamage = 1.0 - (InitialThrehsold / UniaxialStress) * std::exp(DamageParameter *
+			 (1.0 - UniaxialStress / InitialThrehsold)); // Exponential softening law
+	if (rDamage > 0.999) rDamage = 0.999;
 }
 
 /***********************************************************************************/
