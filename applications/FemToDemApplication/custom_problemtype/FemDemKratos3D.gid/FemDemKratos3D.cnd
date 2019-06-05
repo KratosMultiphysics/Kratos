@@ -56,6 +56,8 @@ VALUE: 250e6
 QUESTION: Max_Stress_position_Curve_3
 VALUE: 0.3
 HELP: Value Ranging 0,1
+QUESTION: Large_Displacement_Calculation#CB#(true,false)
+VALUE: false
 END CONDITION
 
 CONDITION: Initial_DEM_Part

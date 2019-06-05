@@ -89,21 +89,39 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar ""
 
     set ElementName ""
-    if {[lindex [lindex $Groups 0] 3] eq "ModifiedMohrCoulomb"} {
-        set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
-    } elseif {[lindex [lindex $Groups 0] 3] eq "Rankine"} {
-        set ElementName "SmallStrainRankineFemDemElement3D"
-    } elseif {[lindex [lindex $Groups 0] 3] eq "SimoJu"} {
-        set ElementName "SmallStrainSimoJuFemDemElement3D"
-    } elseif {[lindex [lindex $Groups 0] 3] eq "DruckerPrager"} {
-        set ElementName "SmallStrainDruckerPragerFemDemElement3D"
-    } elseif {[lindex [lindex $Groups 0] 3] eq "VonMises"} {
-        set ElementName "SmallStrainVonMisesFemDemElement3D"
-    } elseif {[lindex [lindex $Groups 0] 3] eq "Tresca"} {
-        set ElementName "SmallStrainTrescaFemDemElement3D"
+    if {[lindex [lindex $Groups 0] 24] eq "false"} {
+        if {[lindex [lindex $Groups 0] 3] eq "ModifiedMohrCoulomb"} {
+            set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "Rankine"} {
+            set ElementName "SmallStrainRankineFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "SimoJu"} {
+            set ElementName "SmallStrainSimoJuFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "DruckerPrager"} {
+            set ElementName "SmallStrainDruckerPragerFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "VonMises"} {
+            set ElementName "SmallStrainVonMisesFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "Tresca"} {
+            set ElementName "SmallStrainTrescaFemDemElement3D"
+        } else {
+            set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+        }        
     } else {
-        set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
-    }    
+        if {[lindex [lindex $Groups 0] 3] eq "ModifiedMohrCoulomb"} {
+            set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "Rankine"} {
+            set ElementName "LargeDisplacementRankineFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "SimoJu"} {
+            set ElementName "LargeDisplacementSimoJuFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "DruckerPrager"} {
+            set ElementName "LargeDisplacementDruckerPragerFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "VonMises"} {
+            set ElementName "LargeDisplacementVonMisesFemDemElement3D"
+        } elseif {[lindex [lindex $Groups 0] 3] eq "Tresca"} {
+            set ElementName "LargeDisplacementTrescaFemDemElement3D"
+        } else {
+            set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+        }  
+    }   
     ## Elements
     set Groups [GiD_Info conditions Body_Part groups]
 
