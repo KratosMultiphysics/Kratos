@@ -16,6 +16,7 @@
 
 // Project includes
 #include "generic_large_displacement_femdem_element.hpp"
+#include "utilities/geometry_utilities.h"
 #include "fem_to_dem_application_variables.h"
 
 namespace Kratos
@@ -276,40 +277,233 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB3D(
         rB(5, index + 2) = rF(2, 2) * rDN_DX(i, 0) + rF(2, 0) * rDN_DX(i, 2);
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateGreenLagrangeStrainVector(
+    Vector& rStrainVector,
+    const Matrix& rF
+    )
+{
+    Matrix strain_tensor;
+    strain_tensor.resize(TDim, TDim);
+    Matrix identity = identity_matrix<double>(TDim);
+    noalias(strain_tensor) = 0.5 * (prod(trans(rF), rF) - identity);
+    rStrainVector = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateStressVectorPredictor(
+    Vector& rStressVector, 
+    const Matrix& rConstitutiveMAtrix, 
+    const Vector& rStrainVector)
+{
+    noalias(rStressVector) = prod(rConstitutiveMAtrix, rStrainVector);
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateAndAddInternalForcesVector(
+    Vector& rRightHandSideVector, 
+    const Matrix& rB, 
+    const Vector& rStressVector, 
+    const double IntegrationWeight
+    )
+{
+    noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(rB), rStressVector);
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateGeometricK(
+    MatrixType& rLeftHandSideMatrix,
+    const Matrix& rDN_DX,
+    const Vector& rStressVector,
+    const double IntegrationWeight
+    )
+{
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    Matrix reduced_Kg = prod(rDN_DX, IntegrationWeight * Matrix(prod(stress_tensor, trans(rDN_DX))));
+    MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateAndAddMaterialK(
+    MatrixType& rLeftHandSideMatrix,
+    const Matrix& B,
+    const Matrix& D,
+    const double IntegrationWeight,
+	const double Damage
+    )
+{
+    // Secant Constitutive Tensor
+    noalias(rLeftHandSideMatrix) += (1.0 - Damage) * IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateDerivativesOnReferenceConfiguration(
+    Matrix& rJ0,
+    Matrix& rInvJ0,
+    Matrix& rDN_DX,
+    const IndexType PointNumber,
+    IntegrationMethod ThisIntegrationMethod
+    )
+{
+    GeometryType &r_geom = GetGeometry();
+    GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
+    double detJ0;
+    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
+    const Matrix &rDN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
+    return detJ0;
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rDeformationGradientGP,
+    const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	rTangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+    Matrix perturbed_deformation_gradient;
+    const double size_1 = rDeformationGradientGP.size1();
+    const double size_2 = rDeformationGradientGP.size2();
+	
+	for (unsigned int i_component = 0; i_component < size_1; i_component++) {
+	    for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
+            double perturbation;
+            const int component_voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
+            this->CalculatePerturbation(rStrainVectorGP, perturbation, component_voigt_index);
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient, rDeformationGradientGP, perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain, perturbed_deformation_gradient);
+            this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix, rValues);
+            const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
+            this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component_voigt_index);
+        }
+	}
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::PerturbateDeformationGradient(
+    Matrix& rPerturbedDeformationGradient,
+    const Matrix& rDeformationGradientGP,
+    const double Perturbation,
+    const int ComponentI,
+    const int ComponentJ
+    )
+{
+    rPerturbedDeformationGradient = rDeformationGradientGP;
+    if (ComponentI == ComponentJ) {
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
+    } else {
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += 0.5 * Perturbation;
+        rPerturbedDeformationGradient(ComponentJ, ComponentI) += 0.5 * Perturbation;
+    }
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+template<unsigned int TDim, unsigned int TyieldSurf>
+int GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateVoigtIndex(
+    const SizeType VoigtSize,
+    const int ComponentI,
+    const int ComponentJ
+    )
+{
+    if (VoigtSize == 6) {
+        switch(ComponentI) {
+            case 0:
+                switch(ComponentJ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 5;
+                    default:
+                        return 0;
+                }
+            case 1:
+                switch(ComponentJ) {
+                    case 0:
+                        return 3;
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 4;
+                    default:
+                        return 0;
+                }
+            case 2:
+                switch(ComponentJ) {
+                    case 0:
+                        return 5;
+                    case 1:
+                        return 4;
+                    case 2:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            default:
+                return 0;
+        }
+    } else {
+        switch(ComponentI) {
+            case 0:
+                switch(ComponentJ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            case 1:
+                switch(ComponentJ) {
+                    case 0:
+                        return 2;
+                    case 1:
+                        return 1;
+                    default:
+                        return 0;
+                }
+            default:
+                return 0;
+        }
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
