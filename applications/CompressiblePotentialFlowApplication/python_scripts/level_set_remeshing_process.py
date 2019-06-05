@@ -82,7 +82,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
         #############################################################################################
-        # TEMPOORARY NODAL NEIGHBOUR CALL
+        #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
+        # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
