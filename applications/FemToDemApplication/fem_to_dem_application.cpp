@@ -46,12 +46,7 @@ mLargeDisplacementDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer
 mLargeDisplacementVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
 mLargeDisplacementVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
 mLargeDisplacementTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mLargeDisplacementTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mFemDem2DElement(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mFemDem3DElement(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mRomFemDem3DElement(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mFemDem3DLargeDisplacementElement(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mFemDem3DHexahedronElement(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8))))
+mLargeDisplacementTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {}
 
 void KratosFemToDemApplication::Register() 
@@ -159,12 +154,6 @@ void KratosFemToDemApplication::Register()
 	KRATOS_REGISTER_ELEMENT("LargeDisplacementVonMisesFemDemElement3D", mLargeDisplacementVonMisesFemDemElement3D)
 	KRATOS_REGISTER_ELEMENT("LargeDisplacementTrescaFemDemElement2D", mLargeDisplacementTrescaFemDemElement2D)
 	KRATOS_REGISTER_ELEMENT("LargeDisplacementTrescaFemDemElement3D", mLargeDisplacementTrescaFemDemElement3D)
-	
-	KRATOS_REGISTER_ELEMENT("FemDem2DElement", mFemDem2DElement)
-	KRATOS_REGISTER_ELEMENT("FemDem3DElement", mFemDem3DElement)
-	KRATOS_REGISTER_ELEMENT("RomFemDem3DElement", mRomFemDem3DElement)
-	KRATOS_REGISTER_ELEMENT("FemDem3DLargeDisplacementElement", mFemDem3DLargeDisplacementElement)
-	KRATOS_REGISTER_ELEMENT("FemDem3DHexahedronElement", mFemDem3DHexahedronElement)
 	
 	//Register Constitutive Laws
 	Serializer::Register("ZarateLaw", mZarateLaw);

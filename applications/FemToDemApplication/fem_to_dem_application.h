@@ -31,11 +31,6 @@
 //#include "custom_elements/zaratipito_element.hpp"
 #include "custom_constitutive/zarate_law.hpp"
 #include "custom_constitutive/fem_dem_elastic_law.hpp"
-#include "custom_elements/femdem2d_element.hpp"
-#include "custom_elements/femdem3d_element.hpp"
-#include "custom_elements/romfemdem3d_element.hpp"
-#include "custom_elements/femdem3d_large_displacement_element.hpp"
-#include "custom_elements/femdem3d_hexahedron_element.hpp"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "custom_elements/generic_large_displacement_femdem_element.hpp"
 
@@ -119,7 +114,6 @@ private:
 	const GenericSmallStrainFemDemElement<3,4> mSmallStrainVonMisesFemDemElement3D;
 	const GenericSmallStrainFemDemElement<2,5> mSmallStrainTrescaFemDemElement2D;
 	const GenericSmallStrainFemDemElement<3,5> mSmallStrainTrescaFemDemElement3D;
-	const GenericLargeDisplacementFemDemElement<2,4> mLargeDisplacementVonMisesFemDemElement2D;
 
 	const GenericLargeDisplacementFemDemElement<2,0> mLargeDisplacementModifiedMohrCoulombFemDemElement2D;
 	const GenericLargeDisplacementFemDemElement<3,0> mLargeDisplacementModifiedMohrCoulombFemDemElement3D;
@@ -133,13 +127,6 @@ private:
 	const GenericLargeDisplacementFemDemElement<3,4> mLargeDisplacementVonMisesFemDemElement3D;
 	const GenericLargeDisplacementFemDemElement<2,5> mLargeDisplacementTrescaFemDemElement2D;
 	const GenericLargeDisplacementFemDemElement<3,5> mLargeDisplacementTrescaFemDemElement3D;
-	
-	const FemDem2DElement mFemDem2DElement;
-	const FemDem3DElement   mFemDem3DElement;
-	const RomFemDem3DElement mRomFemDem3DElement;
-	const FemDem3DLargeDisplacementElement mFemDem3DLargeDisplacementElement;
-	const FemDem3DHexahedronElement mFemDem3DHexahedronElement;
-
 
 	//elastic laws
    const ZarateLaw mZarateLaw;
