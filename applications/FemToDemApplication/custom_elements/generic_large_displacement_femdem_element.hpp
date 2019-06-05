@@ -83,6 +83,57 @@ public:
 	{
 	}
 
+   /**
+     * this is called in the beginning of each solution step
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called at the end of each solution step
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental left hand side matrix only
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental right hand side vector only
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this computes the deformation matrix B
+     */
+    void CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
 private:
 
     ///@name Static Member Variables

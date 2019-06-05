@@ -33,7 +33,11 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacemen
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacementFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacementFemDemElement(
+    IndexType NewId, 
+    GeometryType::Pointer pGeometry, 
+    PropertiesType::Pointer pProperties
+    )
 	: GenericSmallStrainFemDemElement(NewId, pGeometry, pProperties)
 {
 	// BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
@@ -70,7 +74,11 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf> &GenericLargeDisplacemen
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Create(
+    IndexType NewId, 
+    NodesArrayType const& rThisNodes, 
+    PropertiesType::Pointer pProperties
+    ) const
 {
 	return Element::Pointer(new GenericLargeDisplacementFemDemElement(NewId, GetGeometry().Create(rThisNodes), pProperties));
 }
@@ -90,6 +98,112 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::~GenericLargeDisplacementFemDemElement()
 {
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::FinalizeNonLinearIteration(
+    ProcessInfo& CurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
+	MatrixType& rLeftHandSideMatrix,
+	VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix, 
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB(
+    Matrix& rB, 
+    const Matrix& rF, 
+    const Matrix& rDN_DX
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /***********************************************************************************/
 /***********************************************************************************/
