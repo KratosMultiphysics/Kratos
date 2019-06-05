@@ -83,25 +83,10 @@ public:
 	{
 	}
 
-   /**
-     * this is called in the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * this is called at the end of each solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * this is called for non-linear analysis at the end of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -133,6 +118,8 @@ public:
      * this computes the deformation matrix B
      */
     void CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+    void CalculateB2D(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+    void CalculateB3D(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
 
 private:
 

@@ -44,18 +44,26 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacemen
 	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
 	// Each component == Each edge
-    mNonConvergedThresholds.resize(NumberOfEdges);
+	if (mNonConvergedThresholds.size() != NumberOfEdges)
+    	mNonConvergedThresholds.resize(NumberOfEdges);
 	noalias(mNonConvergedThresholds) = ZeroVector(NumberOfEdges);   // Equivalent stress
-    mThresholds.resize(NumberOfEdges);
+
+	if (mThresholds.size() != NumberOfEdges)
+    	mThresholds.resize(NumberOfEdges);
 	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
-    mDamages.resize(NumberOfEdges);
+
+	if (mNonConvergedDamages.size() != NumberOfEdges)
+    	mNonConvergedDamages.resize(NumberOfEdges);
 	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
-    mNonConvergedDamages.resize(NumberOfEdges);
+
+	if (mNonConvergedDamages.size() != NumberOfEdges)
+    	mNonConvergedDamages.resize(NumberOfEdges);
 	noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::GenericLargeDisplacementFemDemElement(GenericLargeDisplacementFemDemElement const& rOther)
 	: GenericSmallStrainFemDemElement(rOther)
@@ -64,6 +72,7 @@ GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::GenericLargeDisplacement
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericLargeDisplacementFemDemElement<TDim, TyieldSurf> &GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::operator=(GenericLargeDisplacementFemDemElement const& rOther)
 {
@@ -73,6 +82,7 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf> &GenericLargeDisplacemen
 
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Create(
     IndexType NewId, 
@@ -85,6 +95,7 @@ Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Create(
 
 //************************************CLONE*******************************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
 {
@@ -94,6 +105,7 @@ Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Clone(I
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::~GenericLargeDisplacementFemDemElement()
 {
@@ -110,15 +122,6 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::InitializeNonLinear
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::FinalizeNonLinearIteration(
-    ProcessInfo& CurrentProcessInfo
-    )
-{
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -160,16 +163,119 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void GenericLargeDisplacementFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
+
+
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB(
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB2D(
     Matrix& rB, 
     const Matrix& rF, 
     const Matrix& rDN_DX
     )
 {
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    for (SizeType i = 0; i < number_of_nodes; i++) {
+        unsigned int index = 2 * i;
+        rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+        rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+        rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+        rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+        rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+        rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
 
+    }
 }
-
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB3D(
+    Matrix& rB, 
+    const Matrix& rF, 
+    const Matrix& rDN_DX
+    )
+{
+	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
+        const auto index = dimension * i;
+        rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
+        rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
+        rB(0, index + 2) = rF(2, 0) * rDN_DX(i, 0);
+        rB(1, index + 0) = rF(0, 1) * rDN_DX(i, 1);
+        rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
+        rB(1, index + 2) = rF(2, 1) * rDN_DX(i, 1);
+        rB(2, index + 0) = rF(0, 2) * rDN_DX(i, 2);
+        rB(2, index + 1) = rF(1, 2) * rDN_DX(i, 2);
+        rB(2, index + 2) = rF(2, 2) * rDN_DX(i, 2);
+        rB(3, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
+        rB(3, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
+        rB(3, index + 2) = rF(2, 0) * rDN_DX(i, 1) + rF(2, 1) * rDN_DX(i, 0);
+        rB(4, index + 0) = rF(0, 1) * rDN_DX(i, 2) + rF(0, 2) * rDN_DX(i, 1);
+        rB(4, index + 1) = rF(1, 1) * rDN_DX(i, 2) + rF(1, 2) * rDN_DX(i, 1);
+        rB(4, index + 2) = rF(2, 1) * rDN_DX(i, 2) + rF(2, 2) * rDN_DX(i, 1);
+        rB(5, index + 0) = rF(0, 2) * rDN_DX(i, 0) + rF(0, 0) * rDN_DX(i, 2);
+        rB(5, index + 1) = rF(1, 2) * rDN_DX(i, 0) + rF(1, 0) * rDN_DX(i, 2);
+        rB(5, index + 2) = rF(2, 2) * rDN_DX(i, 0) + rF(2, 0) * rDN_DX(i, 2);
+    }
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -220,4 +326,5 @@ template class GenericLargeDisplacementFemDemElement<3,2>;
 template class GenericLargeDisplacementFemDemElement<3,3>;
 template class GenericLargeDisplacementFemDemElement<3,4>;
 template class GenericLargeDisplacementFemDemElement<3,5>;
+
 } // namespace Kratos
