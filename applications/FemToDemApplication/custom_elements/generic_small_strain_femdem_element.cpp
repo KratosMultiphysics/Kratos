@@ -40,16 +40,20 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
 	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
 	// Each component == Each edge
-	mNonConvergedThresholds = ZeroVector(NumberOfEdges);   // Equivalent stress
-	mThresholds = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
-	mDamages = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
-	mNonConvergedDamages = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
+    mNonConvergedThresholds.resize(NumberOfEdges);
+	noalias(mNonConvergedThresholds) = ZeroVector(NumberOfEdges);   // Equivalent stress
+    mThresholds.resize(NumberOfEdges);
+	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+    mDamages.resize(NumberOfEdges);
+	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+    mNonConvergedDamages.resize(NumberOfEdges);
+	noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const &rOther)
+GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const& rOther)
 	: SmallDisplacementElement(rOther)
 {
 }
@@ -57,7 +61,7 @@ GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GenericSmallStrainFemDemElemen
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement<TDim, TyieldSurf> &GenericSmallStrainFemDemElement<TDim,TyieldSurf>::operator=(GenericSmallStrainFemDemElement const &rOther)
+GenericSmallStrainFemDemElement<TDim, TyieldSurf> &GenericSmallStrainFemDemElement<TDim,TyieldSurf>::operator=(GenericSmallStrainFemDemElement const& rOther)
 {
 	SmallDisplacementElement::operator=(rOther);
 	return *this;
@@ -66,7 +70,7 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf> &GenericSmallStrainFemDemEleme
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const &rThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const
 {
 	return Element::Pointer(new GenericSmallStrainFemDemElement(NewId, GetGeometry().Create(rThisNodes), pProperties));
 }
@@ -164,8 +168,14 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 
 	//resizing as needed the LHS
 	unsigned int mat_size = number_of_nodes * (dimension); 
-	rLeftHandSideMatrix  = ZeroMatrix(mat_size, mat_size);
-	rRightHandSideVector = ZeroVector(mat_size);
+	if (rLeftHandSideMatrix.size1() != mat_size)
+	rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+
+	noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+	if (rRightHandSideVector.size() != mat_size )
+	rRightHandSideVector.resize(mat_size, false);
+
+	noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
 	//create and initialize element variables:
 	ElementDataType variables;
@@ -799,7 +809,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
     )
 {
 	std::vector<std::vector<Element*>> edge_neighbours_container;
-	Geometry<Node<3>>& r_nodes_current_element = this->GetGeometry();
+	auto& r_nodes_current_element = this->GetGeometry();
 
 	Node<3>& pNode0 = r_nodes_current_element[0];
 	Node<3>& pNode1 = r_nodes_current_element[1];
@@ -807,17 +817,17 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 	Node<3>& pNode3 = r_nodes_current_element[3];
 
 	// Neighbour elements of each node of the current element
-	GlobalPointersVector<Element>& neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
-	GlobalPointersVector<Element>& neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
-	GlobalPointersVector<Element>& neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
-	GlobalPointersVector<Element>& neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
+	GlobalPointersVector<Element>& r_neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
+	GlobalPointersVector<Element>& r_neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
+	GlobalPointersVector<Element>& r_neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
+	GlobalPointersVector<Element>& r_neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
 
 	// Nodal neighbours container
 	std::vector<GlobalPointersVector<Element>> nodal_neighbours;
-	nodal_neighbours.push_back(neigh_node_0);
-	nodal_neighbours.push_back(neigh_node_1);
-	nodal_neighbours.push_back(neigh_node_2);
-	nodal_neighbours.push_back(neigh_node_3);
+	nodal_neighbours.push_back(r_neigh_node_0);
+	nodal_neighbours.push_back(r_neigh_node_1);
+	nodal_neighbours.push_back(r_neigh_node_2);
+	nodal_neighbours.push_back(r_neigh_node_3);
 
 	// Aux indexes
 	Matrix nodes_indexes = ZeroMatrix(6, 2);
@@ -839,7 +849,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 		// Loop over neigh elements of the node 1
 		for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_1.size(); neigh_elem++) {
 			// Nodes of the neigh element
-			Geometry<Node<3>>& r_nodes_neigh_elem = r_neigh_of_node_1[neigh_elem].GetGeometry();
+			auto& r_nodes_neigh_elem = r_neigh_of_node_1[neigh_elem].GetGeometry();
 
 			// Loop over the nodes of the neigh element
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
@@ -855,7 +865,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 		// Loop over neigh elements of the node 2
 		for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_2.size(); neigh_elem++) {
 			// Nodes of the neigh element
-			Geometry<Node<3>> &r_nodes_neigh_elem = r_neigh_of_node_2[neigh_elem].GetGeometry();
+			auto &r_nodes_neigh_elem = r_neigh_of_node_2[neigh_elem].GetGeometry();
 
 			// Loop over the nodes of the neigh element
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
