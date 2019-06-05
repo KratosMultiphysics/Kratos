@@ -146,7 +146,62 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
     ProcessInfo& rCurrentProcessInfo
     )
 {
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
+    // Kinematic variables
+    Matrix B, F, DN_DX, InvJ0, J, J0;
+    double detJ0;
+
+    const SizeType mat_size = number_of_nodes * dimension;
+    B.resize(VoigtSize, dimension * number_of_nodes);
+
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+	//set constitutive law flags:
+	Flags& r_constitutive_law_options = values.GetOptions();
+	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	//create and initialize element variables:
+	ElementDataType variables;
+	this->InitializeElementData(variables, rCurrentProcessInfo);
+
+    if (rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
+
+    // Loop over Gauss Points
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number ) {
+        //calculate the elastic matrix
+		this->CalculateMaterialResponse(variables, values, point_number);
+        Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
+
+		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
+        detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+
+        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        const Matrix& r_Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+		Vector N = row(r_Ncontainer, point_number);
+
+
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+        this->CalculateB(B, F, DN_DX);
+
+        const double damage_element = this->CalculateElementalDamage(mDamages);
+
+		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
+
+        this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, r_constitutive_matrix, integration_weigth, damage_element);
+        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, r_integrated_stress_vector, integration_weigth);
+    }
 }
 
 /***********************************************************************************/
@@ -174,19 +229,19 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
     rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     Matrix delta_position(number_of_nodes, dimension);
     noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
     delta_position = this->CalculateDeltaPosition(delta_position);
 
     // Loop over Gauss Points
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number ) {
 
 		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
 
-        const double integration_weigth = integration_points[point_number].Weight() * detJ0;
+        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
         const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
 
