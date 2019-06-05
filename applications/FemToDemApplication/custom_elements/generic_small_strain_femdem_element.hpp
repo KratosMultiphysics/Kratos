@@ -236,7 +236,8 @@ public:
      */
     void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
 
-    // Methods to compute the tangent constitutive tensor via numerical derivation
+
+    // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
     /**
      * this computes the Tangent tensor via numerical derivation (perturbations)
      */
@@ -261,6 +262,7 @@ public:
      * this assings the components to the tangent tensor
      */
     void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
+    // *****************************************************************
 
 
 private:

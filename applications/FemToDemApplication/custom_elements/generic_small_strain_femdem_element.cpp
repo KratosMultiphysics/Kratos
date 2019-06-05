@@ -200,12 +200,14 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 		// Loop over edges of the element...
 		Vector average_stress_edge(VoigtSize);
 		Vector average_strain_edge(VoigtSize);
+        noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+        noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 		bool is_damaging = false;
 
 		for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
 
 			this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-			this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_stress_edge, edge);
+			this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
 			double damage_edge = mDamages[edge];
 			double threshold = mThresholds[edge];
@@ -416,27 +418,27 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
+    Vector& rAverageVector, // must be assigned to the current element outside this method
     const int edge
     )
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
     auto& neighbour = r_elem_neigb[edge];
-    rAverageVector = 0.5*(neighbour.GetValue(ThisVariable) + pCurrentElement->GetValue(ThisVariable));
+
+    rAverageVector += pCurrentElement->GetValue(ThisVariable);
+    rAverageVector *= 0.5;
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
+    Vector& rAverageVector, // must be assigned to the current element outside this method
     const int edge
     )
 {
     std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
-	Vector current_element_variable = this->GetValue(ThisVariable);
-	rAverageVector = current_element_variable;
 	int counter = 0;
 
 	for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
@@ -1174,7 +1176,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDamag
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
 	Matrix& rTangentTensor,
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
@@ -1192,34 +1194,102 @@ void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
 		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
 		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
 		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
-		const Vector& delta_stress = perturbed_stress - rStressVectorGP;
-		this->AssignComponentsToTangentTensor(rTangentTensor, delta_stress, perturbation, component);
+		const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
+		this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component);
 	}
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculatePerturbation(
+	const Vector& rStrainVectorGP,
+	double& rPerturbation,
+	const int Component
+	)
+{
+	double perturbation_1, perturbation_2;
+	if (std::abs(rStrainVectorGP[Component]) > tolerance) {
+		perturbation_1 = 1.0e-5 * rStrainVectorGP[Component];
+	} else {
+		double min_strain_component = this->GetMinAbsValue(rStrainVectorGP);
+		perturbation_1 = 1.0e-5 * min_strain_component;
+	}
+	const double max_strain_component = this->GetMaxAbsValue(rStrainVectorGP);
+	perturbation_2 = 1.0e-10 * max_strain_component;
+	rPerturbation = std::max(perturbation_1, perturbation_2);
+	if (rPerturbation < 1e-8) rPerturbation = 1e-8;
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::PerturbateStrainVector(
+	Vector& rPerturbedStrainVector,
+	const Vector& rStrainVectorGP,
+	const double Perturbation,
+	const int Component
+	)
+{
+    noalias(rPerturbedStrainVector) = rStrainVectorGP;
+    rPerturbedStrainVector[Component] += Perturbation;
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
+	Vector& rPerturbedStressVector,
+	const Vector& rPerturbedStrainVector,
+	const Matrix& rElasticMatrix
+	)
+{
+	const Vector& r_perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
+	Vector damages_edges = ZeroVector(NumberOfEdges);
+	const double characteristic_length = this->CalculateCharacteristicLength(this);
+    bool dummy = false;
 
+    Vector average_stress_edge = r_perturbed_predictive_stress;
+    Vector average_strain_edge = rPerturbedStrainVector;
 
+	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+        this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+        this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
+        double damage_edge = mDamages[edge];
+        double threshold = mThresholds[edge];
+        
+        this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+            average_stress_edge, edge, characteristic_length, values, dummy);
 
+        damages_edges[edge] = damage_edge;
+	} // Loop edges
+	const double damage_element = this->CalculateElementalDamage(damages_edges);
+	rPerturbedStressVector = (1.0 - damage_element) * r_perturbed_predictive_stress;
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AssignComponentsToTangentTensor(
+	Matrix& rTangentTensor,
+	const Vector& rDeltaStress,
+	const double Perturbation,
+	const int Component
+	)
+{
+	const int voigt_size = rDeltaStress.size();
+	for (IndexType row = 0; row < voigt_size; ++row) {
+		rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
+	}
+}
 
-
-
-
-
-
-
-
-
-
-
-
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
