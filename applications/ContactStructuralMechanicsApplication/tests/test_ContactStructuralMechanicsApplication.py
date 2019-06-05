@@ -213,7 +213,7 @@ def AssembleTestSuites():
     #smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))              # FIXME
     smallSuite.addTest(TALMNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
     smallSuite.addTest(TALMPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))
-    #smallSuite.addTest(TALMThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution')) # FIXME
+    smallSuite.addTest(TALMThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution'))
     #smallSuite.addTest(TALMHyperSimplePatchFrictionalSlipTestContact('test_execution'))          # FIXME
     #smallSuite.addTest(TALMHyperSimplePatchFrictionalStickTestContact('test_execution'))         # FIXME
 
@@ -361,7 +361,7 @@ def AssembleTestSuites():
             ##TALMHyperSimplePatchFrictionalTestContact,              # FIXME
             #TALMNoFrictionHyperSimplePatchFrictionalTestContact,
             #TALMPerfectStickHyperSimplePatchFrictionalTestContact,
-            ##TALMThresholdSlipHyperSimplePatchFrictionalTestContact, # FIXME
+            #TALMThresholdSlipHyperSimplePatchFrictionalTestContact,
             ##TALMHyperSimplePatchFrictionalSlipTestContact,          # FIXME
             ##TALMHyperSimplePatchFrictionalStickTestContact,         # FIXME
             #TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact,
