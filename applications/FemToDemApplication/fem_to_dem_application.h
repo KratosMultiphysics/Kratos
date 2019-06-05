@@ -108,6 +108,16 @@ private:
 	// Elements
 	const GenericSmallStrainFemDemElement<2,0> mSmallStrainModifiedMohrCoulombFemDemElement2D;
 	const GenericSmallStrainFemDemElement<3,0> mSmallStrainModifiedMohrCoulombFemDemElement3D;
+	const GenericSmallStrainFemDemElement<2,1> mSmallStrainRankineFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,1> mSmallStrainRankineFemDemElement3D;
+	const GenericSmallStrainFemDemElement<2,2> mSmallStrainSimoJuFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,2> mSmallStrainSimoJuFemDemElement3D;
+	const GenericSmallStrainFemDemElement<2,3> mSmallStrainDruckerPragerFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,3> mSmallStrainDruckerPragerFemDemElement3D;
+	const GenericSmallStrainFemDemElement<2,4> mSmallStrainVonMisesFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,4> mSmallStrainVonMisesFemDemElement3D;
+	const GenericSmallStrainFemDemElement<2,5> mSmallStrainTrescaFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,5> mSmallStrainTrescaFemDemElement3D;
 
 	const FemDem2DElement mFemDem2DElement;
 	const FemDem3DElement   mFemDem3DElement;
