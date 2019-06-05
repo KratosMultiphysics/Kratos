@@ -36,6 +36,7 @@
 #include "custom_elements/romfemdem3d_element.hpp"
 #include "custom_elements/femdem3d_large_displacement_element.hpp"
 #include "custom_elements/femdem3d_hexahedron_element.hpp"
+#include "custom_elements/generic_small_strain_femdem_element.hpp"
 
 #include "fem_to_dem_application_variables.h"
 
@@ -105,6 +106,9 @@ protected:
 private:
 	
 	// Elements
+	const GenericSmallStrainFemDemElement<2,0> mSmallStrainModifiedMohrCoulombFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,0> mSmallStrainModifiedMohrCoulombFemDemElement3D;
+
 	const FemDem2DElement mFemDem2DElement;
 	const FemDem3DElement   mFemDem3DElement;
 	const RomFemDem3DElement mRomFemDem3DElement;
