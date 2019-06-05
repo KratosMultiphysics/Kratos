@@ -49,7 +49,8 @@ namespace Kratos
                 "model_part_name": "PLEASE SPECIFY IT",
 				"inside_color": -1,
 				"outside_color": 1,
-				"apply_outside_color": true
+				"apply_outside_color": true,
+				"coloring_entities": "nodes"
             }  )");
 
 		TheParameters.ValidateAndAssignDefaults(default_parameters);
@@ -58,8 +59,11 @@ namespace Kratos
         mOutsideColor = TheParameters["outside_color"].GetDouble();
 		mApplyOutsideColor = TheParameters["apply_outside_color"].GetBool();
         mCellSizes = mMaxPoint - mMinPoint;
+		mColoringEntities = TheParameters["coloring_entities"].GetString();
+		mStartNodeId = 1;
         for(int i = 0 ; i < 3 ; i++)
             mCellSizes[i] /= mNumberOfDivisions[i];
+			
 
         Check();
     }
@@ -74,15 +78,19 @@ namespace Kratos
 		mFindIntersectedObjectsProcess.Initialize();
 
 		if(mApplyOutsideColor){
-			#pragma omp parallel for
-			for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
-				ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
-				itNode->GetSolutionStepValue(DISTANCE) = mOutsideColor;
+			if(mColoringEntities == "nodes"){
+				#pragma omp parallel for
+				for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
+					ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
+					itNode->GetSolutionStepValue(DISTANCE) = mOutsideColor;
+				}
 			}
-						#pragma omp parallel for
-			for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k) {
-				auto i_element = mrVolumePart.ElementsBegin() + k;
-				i_element->GetValue(DISTANCE) = mOutsideColor;
+			if(mColoringEntities == "elements"){
+				#pragma omp parallel for
+				for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k) {
+					auto i_element = mrVolumePart.ElementsBegin() + k;
+					i_element->GetValue(DISTANCE) = mOutsideColor;
+				}
 			}
 		}
 
@@ -101,7 +109,11 @@ namespace Kratos
             MarkIntersectedCells(r_geometry);
         }
 
-	    this->CalculateVoxelsColor(mrSkinPart, mInsideColor);
+		if(mColoringEntities == "elements")
+	    	this->CalculateVoxelsColor(mrSkinPart, mInsideColor);
+
+		if(mColoringEntities == "nodes")
+	    	this->CalculateRayDistances(mrSkinPart, mInsideColor);
 	}
 
 	std::string VoxelMeshColoringProcess::Info() const {
@@ -139,8 +151,7 @@ namespace Kratos
 		array_1d< std::size_t, 3 > min_position;
 		array_1d< std::size_t, 3 > max_position;
 		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
-		KRATOS_WATCH(min_position);
-		KRATOS_WATCH(max_position);
+ 
         #pragma omp parallel for
 		for (std::size_t k = min_position[2]; k < max_position[2]; k++) {
 			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
@@ -182,6 +193,10 @@ namespace Kratos
 		ApplyRayCastingProcess<3> ray_casting_process(mrVolumePart, TheSubModelPart);
 		ray_casting_process.Initialize();
 
+		array_1d< std::size_t, 3 > min_position;
+		array_1d< std::size_t, 3 > max_position;
+		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
+ 
         #pragma omp parallel for
 		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
@@ -189,8 +204,8 @@ namespace Kratos
                 int previous_cell_color = 1;
  				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
                     std::size_t index = i + j * mNumberOfDivisions[0] + k * mNumberOfDivisions[1] * mNumberOfDivisions[0];
-                    auto& r_node = *(nodes_begin + GetNodeId(i,j,k) -1);
-                    double &node_distance = r_node.GetSolutionStepValue(DISTANCE);
+                   auto& r_node = *(nodes_begin + GetNodeId(i,j,k) -1);
+                   double &node_distance = r_node.GetSolutionStepValue(DISTANCE);
                     if(mCellIsEmpty[index] & previous_cell_was_empty){
 						if(previous_cell_color != mOutsideColor)
                         	node_distance = previous_cell_color;
@@ -204,7 +219,6 @@ namespace Kratos
                         }
 						else{
 							previous_cell_color = mOutsideColor;
-
 						}
                        if(mCellIsEmpty[index]){
                             previous_cell_was_empty = true;

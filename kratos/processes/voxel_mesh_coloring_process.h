@@ -158,6 +158,7 @@ namespace Kratos
           double mInsideColor;
           double mOutsideColor;
           bool mApplyOutsideColor;
+          std::string mColoringEntities;
 
 
       ///@}
