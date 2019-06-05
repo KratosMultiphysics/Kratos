@@ -1007,6 +1007,16 @@ void GenericSmallStrainFemDemElement<3,5>::CalculateDamageParameter(
 
 /***********************************************************************************/
 /***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristicLength(
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf> *pCurrentElement
+    )
+{
+    return pCurrentElement->GetGeometry().Length();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;

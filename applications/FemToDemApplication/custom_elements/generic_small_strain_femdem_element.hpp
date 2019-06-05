@@ -216,6 +216,11 @@ public:
      */
     void CalculateDamageParameter(ConstitutiveLaw::Parameters& rValues, double& rAParameter, const double CharacteristicLength);
 
+    /**
+     * this computes the CharacteristicLength of the element
+     */
+    double CalculateCharacteristicLength(GenericSmallStrainFemDemElement *pCurrentElement);
+
 private:
 
     ///@name Static Member Variables
