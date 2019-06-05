@@ -135,7 +135,6 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
             const double divergencefree_elem_value = abs(it_elem->GetValue(r_reference_var));
             if (divergencefree_elem_value > mDivergenceFreeMaxValue) {
                 mDivergenceFreeMaxValue = divergencefree_elem_value;
-            KRATOS_WATCH(mDivergenceFreeMaxValue);
             }
         }
     }
@@ -170,7 +169,6 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
             divergencefree_interp_value /= local_volume;
             if (divergencefree_interp_value > mMeanStrategyDivergenceFreeInterpolationValue) {
                 mMeanStrategyDivergenceFreeInterpolationValue = divergencefree_interp_value;
-            KRATOS_WATCH(mMeanStrategyDivergenceFreeInterpolationValue);
             }
         }
     }
@@ -292,8 +290,9 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             // Set element size
             double element_size;
             double factor = mMeanStrategyTargetRefinementCoefficient*divergencedomain_value/sqrt(number_elements)/divergencefree_interp_value;
-            if (factor > mMeanStrategyRefinementBound) factor = mMeanStrategyRefinementBound;
+
             if (factor < 1.0/mMeanStrategyRefinementBound) factor = 1.0/mMeanStrategyRefinementBound;
+            if (factor > mMeanStrategyRefinementBound) factor = mMeanStrategyRefinementBound;
             element_size = factor*nodal_h;
 
             // Check with max and min size
