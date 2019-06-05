@@ -104,16 +104,24 @@ namespace Kratos
 		if(mEntitiesToGenerate == "elements")
         	Generate3DMesh();
 
-		if(mEntitiesToGenerate == "elements")
-			for(auto item : mColoringParameters){
-				std::string model_part_name = item["model_part_name"].GetString();
-				if(model_part_name == mrSkinPart.Name())
-					VoxelMeshColoringProcess(mMinPoint, mMaxPoint, mNumberOfDivisions, mrVolumePart, mrSkinPart, item).Execute();
-				else {
-					ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
-					VoxelMeshColoringProcess(mMinPoint, mMaxPoint, mNumberOfDivisions, mrVolumePart, skin_part, item).Execute();
-				}
+		auto number_of_divisions = mNumberOfDivisions;
+
+		if(mEntitiesToGenerate == "center_of_elements")
+			for(std::size_t i = 0 ; i < 3 ; i++)
+				number_of_divisions[i] -= 1;
+			
+		for(auto item : mColoringParameters){
+			if(mEntitiesToGenerate != "elements")
+				KRATOS_ERROR_IF(item["coloring_entities"].GetString() == "elements") << "The coloring entities is set to element but there are no elements generated."
+																					 << " Please set the entities_to_generate to 'elements' or set coloring entities to 'nodes'" << std::endl;
+			std::string model_part_name = item["model_part_name"].GetString();
+			if(model_part_name == mrSkinPart.Name())
+				VoxelMeshColoringProcess(mMinPoint, mMaxPoint, number_of_divisions, mrVolumePart, mrSkinPart, item).Execute();
+			else {
+				ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
+				VoxelMeshColoringProcess(mMinPoint, mMaxPoint, number_of_divisions, mrVolumePart, skin_part, item).Execute();
 			}
+		}
 
 	}
 
