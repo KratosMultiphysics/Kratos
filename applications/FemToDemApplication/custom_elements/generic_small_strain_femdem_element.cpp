@@ -157,7 +157,95 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 	ProcessInfo& rCurrentProcessInfo
     )
 {
+	KRATOS_TRY
+	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
+	//resizing as needed the LHS
+	unsigned int mat_size = number_of_nodes * (dimension); 
+	rLeftHandSideMatrix  = ZeroMatrix(mat_size, mat_size);
+	rRightHandSideVector = ZeroVector(mat_size);
+
+	//create and initialize element variables:
+	ElementDataType variables;
+	this->InitializeElementData(variables, rCurrentProcessInfo);
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+	//set constitutive law flags:
+	Flags& ConstitutiveLawOptions = values.GetOptions();
+
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	// reading integration points
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+	//auxiliary terms
+	Vector VolumeForce(dimension);
+	const double characteristic_length = this->CalculateCharacteristicLength(this);
+
+	for (SizeType point_number = 0; point_number < integration_points.size(); point_number++) {
+
+		//compute element kinematic variables B, F, DN_DX ...
+		this->CalculateKinematics(variables,point_number);
+
+		//calculate material response
+		this->CalculateMaterialResponse(variables, values, point_number);
+
+		//calculating weights for integration on the "reference configuration"
+		variables.IntegrationWeight = integration_points[point_number].Weight() * variables.detJ;
+		variables.IntegrationWeight = this->CalculateIntegrationWeight( variables.IntegrationWeight );
+
+		// Loop over edges of the element...
+		Vector average_stress_edge(VoigtSize);
+		Vector average_strain_edge(VoigtSize);
+		bool is_damaging = false;
+
+		for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+
+			this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+			this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_stress_edge, edge);
+
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
+			
+			this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+                average_stress_edge, edge, characteristic_length, values, is_damaging);
+
+			mNonConvergedDamages[edge] = damage_edge;
+			mNonConvergedThresholds[edge] = threshold;
+
+		} // Loop over edges
+
+		// Calculate the elemental Damage...
+		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		const Vector& r_predictive_stress_vector = values.GetStressVector();
+		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
+		const Vector& r_strain_vector = values.GetStrainVector();
+
+		//contributions to stiffness matrix calculated on the reference config
+		const Matrix& C =  values.GetConstitutiveMatrix();
+		Matrix tangent_tensor;
+		// if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]
+		// 	+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
+
+		// 	this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
+		// 	noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
+		// } else {
+			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
+		// }
+		
+		//contribution to external forces
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, variables.N);
+
+		// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+		this->CalculateAndAddExternalForces(rRightHandSideVector, variables, VolumeForce, variables.IntegrationWeight );
+
+		// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+		rRightHandSideVector -= variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
+	}
+	KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1070,7 +1158,7 @@ Vector& GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateVolumeForce(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDamage(
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDamage(
 	double& rDamage,
 	const double DamageParameter,
 	const double UniaxialStress,
@@ -1084,6 +1172,54 @@ void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDama
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
+	Matrix& rTangentTensor,
+	const Vector& rStrainVectorGP,
+	const Vector& rStressVectorGP,
+	const Matrix& rElasticMatrix
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	rTangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+	
+	for (unsigned int component = 0; component < number_components; component++) {
+		double perturbation;
+		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
+		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
+		const Vector& delta_stress = perturbed_stress - rStressVectorGP;
+		this->AssignComponentsToTangentTensor(rTangentTensor, delta_stress, perturbation, component);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
