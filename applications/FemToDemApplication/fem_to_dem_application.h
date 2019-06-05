@@ -37,6 +37,7 @@
 #include "custom_elements/femdem3d_large_displacement_element.hpp"
 #include "custom_elements/femdem3d_hexahedron_element.hpp"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
+#include "custom_elements/generic_large_displacement_femdem_element.hpp"
 
 #include "fem_to_dem_application_variables.h"
 
@@ -118,7 +119,21 @@ private:
 	const GenericSmallStrainFemDemElement<3,4> mSmallStrainVonMisesFemDemElement3D;
 	const GenericSmallStrainFemDemElement<2,5> mSmallStrainTrescaFemDemElement2D;
 	const GenericSmallStrainFemDemElement<3,5> mSmallStrainTrescaFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,4> mLargeDisplacementVonMisesFemDemElement2D;
 
+	const GenericLargeDisplacementFemDemElement<2,0> mLargeDisplacementModifiedMohrCoulombFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,0> mLargeDisplacementModifiedMohrCoulombFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,1> mLargeDisplacementRankineFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,1> mLargeDisplacementRankineFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,2> mLargeDisplacementSimoJuFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,2> mLargeDisplacementSimoJuFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,3> mLargeDisplacementDruckerPragerFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,3> mLargeDisplacementDruckerPragerFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,4> mLargeDisplacementVonMisesFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,4> mLargeDisplacementVonMisesFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,5> mLargeDisplacementTrescaFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,5> mLargeDisplacementTrescaFemDemElement3D;
+	
 	const FemDem2DElement mFemDem2DElement;
 	const FemDem3DElement   mFemDem3DElement;
 	const RomFemDem3DElement mRomFemDem3DElement;
