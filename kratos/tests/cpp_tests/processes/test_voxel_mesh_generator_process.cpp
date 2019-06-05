@@ -106,7 +106,8 @@ namespace Kratos {
 					"model_part_name": "SkinPart",
 					"inside_color": -1,
 					"outside_color": 1,
-					"apply_outside_color": true
+					"apply_outside_color": true,
+					"coloring_entities": "elements"
 				}
 			]
 		})");
