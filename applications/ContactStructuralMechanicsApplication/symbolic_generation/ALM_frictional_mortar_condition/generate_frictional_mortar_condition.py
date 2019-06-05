@@ -1,10 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
-from KratosMultiphysics.ContactStructuralMechanicsApplication  import *
+# Import KratosMultiphysics
+import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication  as StructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication  as ContactStructuralMechanicsApplication
 
-from sympy import *
-from custom_sympy_fe_utilities import *
+# Import sympy utils
+import sympy
+import custom_sympy_fe_utilities
 
 do_simplifications = False
 mode = "c" #to output to a c++ file
@@ -72,81 +75,84 @@ for normalvar in range(normal_combs):
         number_dof = dim * (2 * nnodes + nnodes_master)
 
         # Defining the unknowns
-        u1 = DefineMatrix('u1', nnodes, dim, "Symbol")              # u1(i,j) is the current displacement of node i component j at domain 1
-        u2 = DefineMatrix('u2', nnodes_master, dim, "Symbol")       # u2(i,j) is the current displacement of node i component j at domain 2
-        u1old = DefineMatrix('u1old', nnodes, dim, "Symbol")        # u1(i,j) is the previous displacement of node i component j at domain 1
-        u2old = DefineMatrix('u2old', nnodes_master, dim, "Symbol") # u2(i,j) is the previous displacement of node i component j at domain 2
-        LM = DefineMatrix('LM', nnodes, dim, "Symbol")              # Lm are the Lagrange multipliers
+        u1 = custom_sympy_fe_utilities.DefineMatrix('u1', nnodes, dim, "Symbol")              # u1(i,j) is the current displacement of node i component j at domain 1
+        u2 = custom_sympy_fe_utilities.DefineMatrix('u2', nnodes_master, dim, "Symbol")       # u2(i,j) is the current displacement of node i component j at domain 2
+        u1old = custom_sympy_fe_utilities.DefineMatrix('u1old', nnodes, dim, "Symbol")        # u1(i,j) is the previous displacement of node i component j at domain 1
+        u2old = custom_sympy_fe_utilities.DefineMatrix('u2old', nnodes_master, dim, "Symbol") # u2(i,j) is the previous displacement of node i component j at domain 2
+        LM = custom_sympy_fe_utilities.DefineMatrix('LM', nnodes, dim, "Symbol")              # Lm are the Lagrange multipliers
 
         # Normal and tangets of the slave
         if normalvar == 1:
-            NormalSlave = DefineMatrix('NormalSlave', nnodes, dim)
+            NormalSlave = custom_sympy_fe_utilities.DefineMatrix('NormalSlave', nnodes, dim)
         else:
-            NormalSlave = DefineMatrix('NormalSlave', nnodes, dim, "Symbol")
+            NormalSlave = custom_sympy_fe_utilities.DefineMatrix('NormalSlave', nnodes, dim, "Symbol")
 
         # The resultant tangent
         if normalvar == 1:
-            TangentSlave = DefineMatrix('TangentSlave', nnodes, dim)
+            TangentSlave = custom_sympy_fe_utilities.DefineMatrix('TangentSlave', nnodes, dim)
         else:
-            TangentSlave = DefineMatrix('TangentSlave', nnodes, dim, "Symbol")
+            TangentSlave = custom_sympy_fe_utilities.DefineMatrix('TangentSlave', nnodes, dim, "Symbol")
 
         # Define test functions
-        w1 = DefineMatrix('w1',nnodes,dim, "Symbol")
-        w2 = DefineMatrix('w2',nnodes_master,dim, "Symbol")
-        wLM = DefineMatrix('wLM',nnodes,dim, "Symbol")
+        w1 = custom_sympy_fe_utilities.DefineMatrix('w1',nnodes,dim, "Symbol")
+        w2 = custom_sympy_fe_utilities.DefineMatrix('w2',nnodes_master,dim, "Symbol")
+        wLM = custom_sympy_fe_utilities.DefineMatrix('wLM',nnodes,dim, "Symbol")
 
         # Defining normal and tangent components
-        LMNormal = DefineVector('LMNormal', nnodes)
-        wLMNormal = DefineVector('wLMNormal', nnodes)
+        LMNormal = custom_sympy_fe_utilities.DefineVector('LMNormal', nnodes)
+        wLMNormal = custom_sympy_fe_utilities.DefineVector('wLMNormal', nnodes)
 
         # The resultant tangent LM
-        LMTangent = DefineMatrix('LMTangent', nnodes, dim)
-        wLMTangent = DefineMatrix('wLMTangent', nnodes, dim)
+        LMTangent = custom_sympy_fe_utilities.DefineMatrix('LMTangent', nnodes, dim)
+        wLMTangent = custom_sympy_fe_utilities.DefineMatrix('wLMTangent', nnodes, dim)
 
         # Defining additional variables
-        NormalGap = DefineVector('NormalGap', nnodes)
-        TangentSlipNonObjective = DefineMatrix('TangentSlipNonObjective', nnodes, dim)
-        TangentSlipObjective = DefineMatrix('TangentSlipObjective', nnodes, dim)
-        DOperator = DefineMatrix('DOperator', nnodes, nnodes)
-        MOperator = DefineMatrix('MOperator', nnodes, nnodes_master)
-        DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes, "Symbol")
-        MOperatorold = DefineMatrix('MOperatorold',nnodes,nnodes_master, "Symbol")
+        NormalGap = custom_sympy_fe_utilities.DefineVector('NormalGap', nnodes)
+        NormalwGap = custom_sympy_fe_utilities.DefineVector('NormalwGap', nnodes)
+        TangentSlipNonObjective = custom_sympy_fe_utilities.DefineMatrix('TangentSlipNonObjective', nnodes, dim)
+        TangentwSlipNonObjective = custom_sympy_fe_utilities.DefineMatrix('TangentwSlipNonObjective', nnodes, dim)
+        TangentSlipObjective = custom_sympy_fe_utilities.DefineMatrix('TangentSlipObjective', nnodes, dim)
+        TangentwSlipObjective = custom_sympy_fe_utilities.DefineMatrix('TangentwSlipObjective', nnodes, dim)
+        DOperator = custom_sympy_fe_utilities.DefineMatrix('DOperator', nnodes, nnodes)
+        MOperator = custom_sympy_fe_utilities.DefineMatrix('MOperator', nnodes, nnodes_master)
+        DOperatorold = custom_sympy_fe_utilities.DefineMatrix('DOperatorold',nnodes,nnodes, "Symbol")
+        MOperatorold = custom_sympy_fe_utilities.DefineMatrix('MOperatorold',nnodes,nnodes_master, "Symbol")
 
         # Define other parameters
-        X1 = DefineMatrix('X1',nnodes,dim)
-        X2 = DefineMatrix('X2',nnodes_master,dim)
+        X1 = custom_sympy_fe_utilities.DefineMatrix('X1',nnodes,dim)
+        X2 = custom_sympy_fe_utilities.DefineMatrix('X2',nnodes_master,dim)
         x1 = X1 + u1
         x2 = X2 + u2
         x1old = X1 + u1old
         x2old = X2 + u2old
 
         # Define other symbols
-        mu  = DefineVector('mu',nnodes, "Symbol")
-        DynamicFactor  = DefineVector('DynamicFactor',nnodes, "Symbol")
-        PenaltyParameter  = DefineVector('PenaltyParameter',nnodes, "Symbol")
-        delta_time = Symbol('delta_time', positive=True)
-        ScaleFactor = Symbol('ScaleFactor', positive=True)
-        TangentFactor = Symbol('TangentFactor', positive=True)
+        mu  = custom_sympy_fe_utilities.DefineVector('mu',nnodes, "Symbol")
+        DynamicFactor  = custom_sympy_fe_utilities.DefineVector('DynamicFactor',nnodes, "Symbol")
+        PenaltyParameter  = custom_sympy_fe_utilities.DefineVector('PenaltyParameter',nnodes, "Symbol")
+        delta_time = sympy.Symbol('delta_time', positive=True)
+        ScaleFactor = sympy.Symbol('ScaleFactor', positive=True)
+        TangentFactor = sympy.Symbol('TangentFactor', positive=True)
 
         # Define variables list for later derivation
         u1_var = []
         u2_var = []
         LM_var = []
-        CreateVariableMatrixList(u1_var, u1)
-        CreateVariableMatrixList(u2_var, u2)
+        custom_sympy_fe_utilities.CreateVariableMatrixList(u1_var, u1)
+        custom_sympy_fe_utilities.CreateVariableMatrixList(u2_var, u2)
         u12_var=u1_var.copy()
         u1_LM_var=u1_var.copy()
-        CreateVariableMatrixList(u12_var, u2)
-        CreateVariableMatrixList(LM_var, LM)
-        CreateVariableMatrixList(u1_LM_var, LM)
+        custom_sympy_fe_utilities.CreateVariableMatrixList(u12_var, u2)
+        custom_sympy_fe_utilities.CreateVariableMatrixList(LM_var, LM)
+        custom_sympy_fe_utilities.CreateVariableMatrixList(u1_LM_var, LM)
         all_var=u12_var.copy()
-        CreateVariableMatrixList(all_var, LM)
+        custom_sympy_fe_utilities.CreateVariableMatrixList(all_var, LM)
 
         # Force the variables to be dependendant of the DOF
         if normalvar == 1:
-            NormalSlave = DefineDofDependencyMatrix(NormalSlave, u1_var)
-        DOperator = DefineDofDependencyMatrix(DOperator, u12_var) # If you consider Gitterle you need to keep the old operators
-        MOperator = DefineDofDependencyMatrix(MOperator, u12_var)
+            NormalSlave = custom_sympy_fe_utilities.DefineDofDependencyMatrix(NormalSlave, u1_var)
+        DOperator = custom_sympy_fe_utilities.DefineDofDependencyMatrix(DOperator, u12_var) # If you consider Gitterle you need to keep the old operators
+        MOperator = custom_sympy_fe_utilities.DefineDofDependencyMatrix(MOperator, u12_var)
 
         # Definitions of components
         for node in range(nnodes):
@@ -168,22 +174,30 @@ for normalvar in range(normal_combs):
         # Delta operations
         DDeltax1MDeltax2 = DOperator * (x1 - x1old) - MOperator * (x2 - x2old)
         DeltaDx1DeltaMx2 = (DOperator - DOperatorold) * x1 - (MOperator - MOperatorold) * x2
+        DeltaDw1DeltaMw2 = (DOperator - DOperatorold) * w1 - (MOperator - MOperatorold) * w2
         for node in range(nnodes):
             NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
+            NormalwGap[node] = - Dw1Mw2.row(node).dot(NormalSlave.row(node))
             #gap_time_derivative = - Dx1Mx2.row(node)/delta_time
             gap_time_derivative_non_objective = DDeltax1MDeltax2.row(node)/delta_time
+            gap_time_derivative_non_objective_w = Dw1Mw2.row(node)/delta_time
             gap_time_derivative_objective = - DeltaDx1DeltaMx2.row(node)/delta_time
+            gap_time_derivative_objective_w = - DeltaDw1DeltaMw2.row(node)/delta_time
             auxTangentSlipNonObjective = delta_time * (gap_time_derivative_non_objective - gap_time_derivative_non_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
+            auxTangentwSlipNonObjective = delta_time * (gap_time_derivative_non_objective_w - gap_time_derivative_non_objective_w.dot(NormalSlave.row(node)) * NormalSlave.row(node))
             auxTangentSlipObjective = delta_time * (gap_time_derivative_objective - gap_time_derivative_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
+            auxTangentwSlipObjective = delta_time * (gap_time_derivative_objective_w - gap_time_derivative_objective_w.dot(NormalSlave.row(node)) * NormalSlave.row(node))
             #auxTangentSlipNonObjective = delta_time * gap_time_derivative_non_objective.dot(TangentSlave.row(node)) * TangentSlave.row(node)
             #auxTangentSlipObjective = delta_time * gap_time_derivative_objective.dot(TangentSlave.row(node)) * TangentSlave.row(node)
             for idim in range(dim):
                 TangentSlipNonObjective[node, idim] = auxTangentSlipNonObjective[idim]
+                TangentwSlipNonObjective[node, idim] = auxTangentwSlipNonObjective[idim]
                 TangentSlipObjective[node, idim] = auxTangentSlipObjective[idim]
+                TangentwSlipObjective[node, idim] = auxTangentwSlipObjective[idim]
 
         # Define dofs & test function vector
-        dofs = Matrix( zeros(number_dof, 1) )
-        testfunc = Matrix( zeros(number_dof, 1) )
+        dofs = sympy.Matrix( sympy.zeros(number_dof, 1) )
+        testfunc = sympy.Matrix( sympy.zeros(number_dof, 1) )
         count = 0
         for i in range(0,nnodes_master):
             for k in range(0,dim):
@@ -242,21 +256,21 @@ for normalvar in range(normal_combs):
 
                     rv_galerkin += DynamicFactor[node] * augmented_contact_pressure.dot(Dw1Mw2.row(node))
 
-                if(do_simplifications):
-                    rv_galerkin = simplify(rv_galerkin)
+                if do_simplifications:
+                    rv_galerkin = sympy.simplify(rv_galerkin)
 
                 #############################################################################
                 # Complete functional
-                rv = Matrix(zeros(1, 1))
+                rv = sympy.Matrix(sympy.zeros(1, 1))
                 rv[0,0] = rv_galerkin
 
-                rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
+                rhs,lhs = custom_sympy_fe_utilities.Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
                 print("LHS= ", lhs.shape)
                 print("RHS= ", rhs.shape)
                 print("LHS and RHS have been created!")
 
-                lhs_out = OutputMatrix_CollectingFactorsNonZero(lhs, "lhs", mode, 1, number_dof)
-                rhs_out = OutputVector_CollectingFactorsNonZero(rhs, "rhs", mode, 1, number_dof)
+                lhs_out = custom_sympy_fe_utilities.OutputMatrix_CollectingFactorsNonZero(lhs, "lhs", mode, 1, number_dof)
+                rhs_out = custom_sympy_fe_utilities.OutputVector_CollectingFactorsNonZero(rhs, "rhs", mode, 1, number_dof)
                 print("Substitution strings are ready....")
 
                 if slip == 0:
@@ -323,9 +337,9 @@ for normalvar in range(normal_combs):
         der_var_used_index = []
 
         if normalvar == 1:
-            var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(NormalSlave, "NormalSlave", "NormalSlave", u1_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(DOperator, "DOperator", "DOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(MOperator, "MOperator", "MOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+            var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = custom_sympy_fe_utilities.DefineVariableLists(NormalSlave, "NormalSlave", "NormalSlave", u1_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = custom_sympy_fe_utilities.DefineVariableLists(DOperator, "DOperator", "DOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = custom_sympy_fe_utilities.DefineVariableLists(MOperator, "MOperator", "MOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
 
         #############################################################################
         ############################### SUBSTITUTION ################################
@@ -343,8 +357,8 @@ for normalvar in range(normal_combs):
             lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
             rhs_string = rhs_string.replace(var_strings[index], var_strings_subs[index])
 
-        lhs_string = SubstituteIndex(lhs_string, mode, number_dof)
-        rhs_string = SubstituteIndex(rhs_string, mode, number_dof)
+        lhs_string = custom_sympy_fe_utilities.SubstituteIndex(lhs_string, mode, number_dof)
+        rhs_string = custom_sympy_fe_utilities.SubstituteIndex(rhs_string, mode, number_dof)
         lhs_string = lhs_string.replace("array[1]d", "array_1d") # Repair the definition
         rhs_string = rhs_string.replace("array[1]d", "array_1d") # Repair the definition
 
