@@ -24,6 +24,7 @@
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
 #include "custom_processes/metrics_error_process.h"
+#include "custom_processes/metrics_divergencefree_process.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 #include "custom_processes/multiscale_refining_process.h"
@@ -102,6 +103,17 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<MetricErrorProcess<3>, MetricErrorProcess<3>::Pointer, Process>(m, "MetricErrorProcess3D")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    // DIVERGENCEFREE
+    py::class_<MetricDivergenceFreeProcess<2>, MetricDivergenceFreeProcess<2>::Pointer, Process>(m, "MetricDivergenceFreeProcess2D")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    py::class_<MetricDivergenceFreeProcess<3>, MetricDivergenceFreeProcess<3>::Pointer, Process>(m, "MetricDivergenceFreeProcess3D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     ;
