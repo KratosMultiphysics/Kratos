@@ -896,6 +896,118 @@ void GenericSmallStrainFemDemElement<3,5>::GetInitialUniaxialThreshold(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void GenericSmallStrainFemDemElement<2,0>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,0>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,1>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,1>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,2>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,2>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,3>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,3>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,4>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,4>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,5>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,5>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
 template class GenericSmallStrainFemDemElement<2,2>;

@@ -211,6 +211,11 @@ public:
      */
     void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold);
 
+    /**
+     * this computes the damage parameter "A"
+     */
+    void CalculateDamageParameter(ConstitutiveLaw::Parameters& rValues, double& rAParameter, const double CharacteristicLength);
+
 private:
 
     ///@name Static Member Variables
