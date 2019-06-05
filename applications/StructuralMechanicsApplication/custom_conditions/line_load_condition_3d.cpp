@@ -135,8 +135,6 @@ void LineLoadCondition3D::CalculateOnIntegrationPoints(
         // Iterate over the Gauss points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             r_geometry.Jacobian(J, point_number, integration_method);
-            const double det_j = r_geometry.DeterminantOfJacobian( r_integration_points[point_number] );
-            const double integration_weight = GetIntegrationWeight(r_integration_points, point_number, det_j);
 
             // Definition of the tangent
             tangent_xi[0] = J(0, 0);
@@ -232,16 +230,16 @@ void LineLoadCondition3D::CalculateAll(
     array_1d<double, 3> tangent_xi, tangent_eta;
     Matrix J(3, 1);
 
-    // Getting LOCAL_AXIS_2
-    if ( gauss_pressure != 0.0 ) {
-        KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
-        noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
-    }
-
     // Iterate over the Gauss points
     for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
         const double det_j = r_geometry.DeterminantOfJacobian( integration_points[point_number] );
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
+
+        // Calculating the pressure on the gauss point
+        double gauss_pressure = 0.0;
+        for ( IndexType ii = 0; ii < number_of_nodes; ii++ ) {
+            gauss_pressure += rNcontainer( point_number, ii ) * pressure_on_nodes[ii];
+        }
 
         // Definition of the tangent
         if ( gauss_pressure != 0.0 ) {
@@ -249,12 +247,6 @@ void LineLoadCondition3D::CalculateAll(
             tangent_xi[0] = J(0, 0);
             tangent_xi[1] = J(1, 0);
             tangent_xi[2] = J(2, 0);
-        }
-
-        // Calculating the pressure on the gauss point
-        double gauss_pressure = 0.0;
-        for ( IndexType ii = 0; ii < number_of_nodes; ii++ ) {
-            gauss_pressure += rNcontainer( point_number, ii ) * pressure_on_nodes[ii];
         }
 
         // Adding contributions to the LHS matrix
@@ -267,6 +259,10 @@ void LineLoadCondition3D::CalculateAll(
         if ( CalculateResidualVectorFlag ) {
             if ( gauss_pressure != 0.0 ) {
                 array_1d<double, 3> normal;
+
+                // Getting LOCAL_AXIS_2
+                KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
+                noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
                 MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
                 CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
@@ -299,6 +295,7 @@ void LineLoadCondition3D::CalculateAll(
 
 void LineLoadCondition3D::CalculateAndSubKp(
     Matrix& rK,
+    const array_1d<double, 3>& rTangentXi,
     const Matrix& rDN_De,
     const Vector& rN,
     const double Pressure,
