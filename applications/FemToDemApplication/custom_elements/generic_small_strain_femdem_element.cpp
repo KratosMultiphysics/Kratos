@@ -525,14 +525,14 @@ double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamag
 	damage_mode_fracture[4] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[4] + rEdgeDamages[5]);
 	damage_mode_fracture[5] = one_third * (rEdgeDamages[2] + rEdgeDamages[4] + rEdgeDamages[5]);
 	damage_mode_fracture[6] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[5]);
-	return this->GetMaxValue(damage_mode_fracture);
+	return ConstitutiveLawUtilities<VoigtSize>::GetMaxValue(damage_mode_fracture);
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage2D(const Vector& rEdgeDamages)
 {
 	Vector two_max_values;
-	this->Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
+	ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
 	return 0.5*(two_max_values[0] + two_max_values[1]);
 }
 
@@ -738,52 +738,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 	// Storages the information inside the element
 	this->SaveEdgeNeighboursContainer(edge_neighbours_container);
 }
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetMaxValue(
-    const Vector& rValues
-    )
-{
-    double aux = 0.0;
-    for (IndexType i = 0; i < rValues.size(); ++i) {
-        if (aux < rValues[i]) aux = rValues[i];
-    }
-    return aux;
-}
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Get2MaxValues(
-    Vector& rMaxValues, 
-    const double a, 
-    const double b, 
-    const double c
-    )
-{
-	rMaxValues.resize(2);
-	Vector V;
-	V.resize(3);
-	V[0] = a;
-	V[1] = b;
-	V[2] = c;
-	const int n = 3;
-
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
-			if (V[j] > V[j + 1]) {
-				double aux = V[j];
-				V[j] = V[j + 1];
-				V[j + 1] = aux;
-			}
-		}
-	}
-	rMaxValues[0] = V[2];
-	rMaxValues[1] = V[1];
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<>
 void GenericSmallStrainFemDemElement<2,0>::CalculateEquivalentStress(
     const array_1d<double,VoigtSize>& rPredictiveStressVector,
@@ -1180,7 +1138,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
 	Matrix& rTangentTensor,
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
-	const Matrix& rElasticMatrix
+	const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
 	)
 {
 	const double number_components = rStrainVectorGP.size();
@@ -1193,7 +1152,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
 		double perturbation;
 		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
 		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
-		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
+		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix, rValues);
 		const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
 		this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component);
 	}
@@ -1213,10 +1172,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculatePerturbation(
 	if (std::abs(rStrainVectorGP[Component]) > tolerance) {
 		perturbation_1 = 1.0e-5 * rStrainVectorGP[Component];
 	} else {
-		double min_strain_component = this->GetMinAbsValue(rStrainVectorGP);
+		double min_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMinAbsValue(rStrainVectorGP);
 		perturbation_1 = 1.0e-5 * min_strain_component;
 	}
-	const double max_strain_component = this->GetMaxAbsValue(rStrainVectorGP);
+	const double max_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMaxAbsValue(rStrainVectorGP);
 	perturbation_2 = 1.0e-10 * max_strain_component;
 	rPerturbation = std::max(perturbation_1, perturbation_2);
 	if (rPerturbation < 1e-8) rPerturbation = 1e-8;
@@ -1244,7 +1203,8 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
 	Vector& rPerturbedStressVector,
 	const Vector& rPerturbedStrainVector,
-	const Matrix& rElasticMatrix
+	const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
 	)
 {
 	const Vector& r_perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
@@ -1263,7 +1223,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
         double threshold = mThresholds[edge];
         
         this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-            average_stress_edge, edge, characteristic_length, values, dummy);
+            average_stress_edge, edge, characteristic_length, rValues, dummy);
 
         damages_edges[edge] = damage_edge;
 	} // Loop edges

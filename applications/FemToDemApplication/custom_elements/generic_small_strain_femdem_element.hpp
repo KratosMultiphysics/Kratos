@@ -183,16 +183,6 @@ public:
     double CalculateElementalDamage2D(const Vector& rEdgeDamages);
 
     /**
-     * this computes the maximum value of a vector
-     */
-    double GetMaxValue(const Vector& rValues);
-
-    /**
-     * this computes the 2 maximum values over 3 doubles
-     */
-    void Get2MaxValues(Vector& rMaxValues, const double a, const double b, const double c);
-
-    /**
      * this computes the average vector on the edge for a certain variable
      */
 	void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
@@ -241,7 +231,7 @@ public:
     /**
      * this computes the Tangent tensor via numerical derivation (perturbations)
      */
-    void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix);
+    void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this computes the perturbation to the strain
@@ -256,7 +246,7 @@ public:
     /**
      * this integrated the perturbed strain
      */
-    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix);
+    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this assings the components to the tangent tensor

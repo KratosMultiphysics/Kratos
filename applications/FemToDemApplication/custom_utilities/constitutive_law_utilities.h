@@ -642,6 +642,88 @@ class ConstitutiveLawUtilities
         CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength); 
     }
 
+    /**
+     * @brief This method returns max value over a vector
+     * @param rValues The values
+     */
+    static double GetMaxValue(const Vector& rValues)
+    {
+        double aux = 0.0;
+        for (IndexType i = 0; i < rValues.size(); ++i) {
+            if (aux < rValues[i]) aux = rValues[i];
+        }
+        return aux;
+    }
+
+    /**
+     * @brief This method returns max abs value over a vector
+     * @param rValues The values
+     */
+    static double GetMaxAbsValue(const Vector& rArrayValues)
+    {
+        const SizeType dimension = rArrayValues.size();
+
+        IndexType counter = 0;
+        double aux = 0.0;
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) > aux) {
+                aux = std::abs(rArrayValues[i]);
+                ++counter;
+            }
+        }
+        return aux;
+    }
+
+    /**
+     * @brief This method returns min abs value over a vector
+     * @param rValues The values
+     */
+    static double GetMinAbsValue(const Vector& rArrayValues)
+    {
+        const SizeType dimension = rArrayValues.size();
+        IndexType counter = 0;
+        double aux = std::numeric_limits<double>::max();
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) < aux) {
+                aux = std::abs(rArrayValues[i]);
+                ++counter;
+            }
+        }
+        return aux;
+    }
+
+    /**
+     * @brief This method returns the 2 max values of a vector
+     * @param rValues The values
+     */
+    static void Get2MaxValues(
+        Vector& rMaxValues, 
+        const double a, 
+        const double b, 
+        const double c
+        )
+    {
+        rMaxValues.resize(2);
+        Vector V;
+        V.resize(3);
+        V[0] = a;
+        V[1] = b;
+        V[2] = c;
+        const int n = 3;
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n - 1; j++) {
+                if (V[j] > V[j + 1]) {
+                    double aux = V[j];
+                    V[j] = V[j + 1];
+                    V[j + 1] = aux;
+                }
+            }
+        }
+        rMaxValues[0] = V[2];
+        rMaxValues[1] = V[1];
+    }
+
   private:
 
 }; // class ConstitutiveLawUtilities
