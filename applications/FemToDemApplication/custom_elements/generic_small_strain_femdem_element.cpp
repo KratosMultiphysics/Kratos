@@ -40,13 +40,20 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
 	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
 	// Each component == Each edge
-    mNonConvergedThresholds.resize(NumberOfEdges);
+	if (mNonConvergedThresholds.size() != NumberOfEdges)
+    	mNonConvergedThresholds.resize(NumberOfEdges);
 	noalias(mNonConvergedThresholds) = ZeroVector(NumberOfEdges);   // Equivalent stress
-    mThresholds.resize(NumberOfEdges);
+
+	if (mThresholds.size() != NumberOfEdges)
+    	mThresholds.resize(NumberOfEdges);
 	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
-    mDamages.resize(NumberOfEdges);
+
+	if (mNonConvergedDamages.size() != NumberOfEdges)
+    	mNonConvergedDamages.resize(NumberOfEdges);
 	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
-    mNonConvergedDamages.resize(NumberOfEdges);
+
+	if (mNonConvergedDamages.size() != NumberOfEdges)
+    	mNonConvergedDamages.resize(NumberOfEdges);
 	noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
 }
 
@@ -811,10 +818,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
 	std::vector<std::vector<Element*>> edge_neighbours_container;
 	auto& r_nodes_current_element = this->GetGeometry();
 
-	Node<3>& pNode0 = r_nodes_current_element[0];
-	Node<3>& pNode1 = r_nodes_current_element[1];
-	Node<3>& pNode2 = r_nodes_current_element[2];
-	Node<3>& pNode3 = r_nodes_current_element[3];
+	auto& pNode0 = r_nodes_current_element[0];
+	auto& pNode1 = r_nodes_current_element[1];
+	auto& pNode2 = r_nodes_current_element[2];
+	auto& pNode3 = r_nodes_current_element[3];
 
 	// Neighbour elements of each node of the current element
 	GlobalPointersVector<Element>& r_neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
