@@ -1018,6 +1018,35 @@ double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristic
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+Vector& GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateVolumeForce(
+    Vector& rVolumeForce, 
+    const Vector& rN
+    )
+{
+	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+	if (rVolumeForce.size() != dimension)
+		rVolumeForce.resize(dimension, false);
+
+	noalias(rVolumeForce) = ZeroVector(dimension);
+
+	for (unsigned int j = 0; j < number_of_nodes; j++) {
+		if (GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION)) { // it must be checked once at the begining only
+			array_1d<double, 3> &VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+			for (unsigned int i = 0; i < dimension; i++)
+				rVolumeForce[i] += rN[j] * VolumeAcceleration[i];
+		}
+	}
+
+	rVolumeForce *= GetProperties()[DENSITY];
+	return rVolumeForce;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
 template class GenericSmallStrainFemDemElement<2,2>;

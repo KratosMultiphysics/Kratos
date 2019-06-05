@@ -221,6 +221,11 @@ public:
      */
     double CalculateCharacteristicLength(GenericSmallStrainFemDemElement *pCurrentElement);
 
+    /**
+     * this computes VolumeForce of the element
+     */
+    Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+
 private:
 
     ///@name Static Member Variables
