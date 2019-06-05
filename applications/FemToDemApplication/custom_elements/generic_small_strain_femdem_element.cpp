@@ -1362,7 +1362,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
     Vector average_stress_edge = r_perturbed_predictive_stress;
     Vector average_strain_edge = rPerturbedStrainVector;
 
-	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+	for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
         this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
         this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
@@ -1392,6 +1392,124 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AssignComponentsToTangent
 	const int voigt_size = rDeltaStress.size();
 	for (IndexType row = 0; row < voigt_size; ++row) {
 		rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
+	}
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
+	const Variable<double> &rVariable,
+	std::vector<double> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == DAMAGE_ELEMENT || rVariable == IS_DAMAGED || rVariable == STRESS_THRESHOLD || rVariable == EQUIVALENT_STRESS_VM) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
+	const Variable<Vector> &rVariable,
+	std::vector<Vector> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRAIN_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
+	const Variable<Matrix> &rVariable,
+	std::vector<Matrix> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRAIN_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+	const Variable<double> &rVariable,
+	std::vector<double> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == DAMAGE_ELEMENT) {
+		rOutput.resize(1);
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = mDamage;
+		}
+	} else if (rVariable == IS_DAMAGED) {
+		rOutput.resize(1);
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = double(this->GetValue(IS_DAMAGED));
+		}
+	} else if (rVariable == STRESS_THRESHOLD) {
+		rOutput.resize(1);
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = mThreshold;
+		}
+	}
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+	const Variable<Vector> &rVariable,
+	std::vector<Vector> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRESS_VECTOR) {
+		rOutput[0] = this->GetValue(STRESS_VECTOR);
+	} else if (rVariable == STRAIN_VECTOR) {
+		rOutput[0] = this->GetValue(STRAIN_VECTOR);
+	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+		rOutput[0] = (1.0 - mDamage) * (this->GetValue(STRESS_VECTOR));
+	}
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+	const Variable<Matrix> &rVariable,
+	std::vector<Matrix> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+	if (rOutput[0].size2() != dimension)
+		rOutput[0].resize(dimension, dimension, false);
+
+	if (rVariable == STRESS_TENSOR) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STRESS_VECTOR));
+	} else if (rVariable == STRAIN_TENSOR) {
+		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
+	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * (this->GetValue(STRESS_VECTOR)));
 	}
 }
 

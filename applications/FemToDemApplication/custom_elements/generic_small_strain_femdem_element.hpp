@@ -269,6 +269,32 @@ public:
     void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
     // *****************************************************************
 
+    /**
+     * Access for variables on Integration points.
+     * This gives access to variables stored in the constitutive law on each integration point.
+     * Specializations of element must specify the actual interface to the integration points!
+     * Note, that these functions expect a std::vector of values for the specified variable type that
+     * contains a value for each integration point!
+     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * GetValueOnIntegrationPoints: get the values for given Variable.
+     * these methods are: OPTIONAL
+     */
+	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Calculate variables on Integration points.
+     * This gives access to variables computed in the constitutive law on each integration point.
+     * Specialisations of element must specify the actual interface to the integration points!
+     * Note, that these functions expect a std::vector of values for the specified variable type that
+     * contains a value for each integration point!
+     * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
+     * these methods are: OPTIONAL
+     */
+	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
 private:
 
@@ -279,7 +305,6 @@ private:
     ///@name Member Variables
     ///@{
 
-	int mNumberOfEdges;
 	Vector mNonConvergedThresholds;     // Equivalent stress
 	Vector mThresholds;                 // Stress mThreshold on edge
 	Vector mDamages;                    // Converged Damage on each edge
