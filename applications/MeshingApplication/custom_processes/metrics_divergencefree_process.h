@@ -8,6 +8,7 @@
 //                       license: MeshingApplication/license.txt
 //
 //  Main authors:    Riccardo Tosi
+//                   Brendan Keith
 //
 
 #if !defined(KRATOS_DIVERGENCEFREE_METRICS_PROCESS)

@@ -8,6 +8,7 @@
 //                       license: MeshingApplication/license.txt
 //
 //  Main authors:    Riccardo Tosi
+//                   Brendan Keith
 //
 
 // System includes
@@ -147,36 +148,36 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
 
     // Mean distribution strategy
     else if (mRefinementStrategy == "mean_distribution_strategy") {
-        // Find of neighbours
-        {
-            FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
-            if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-            find_neighbours.Execute();
-        }
+        // // Find of neighbours
+        // {
+        //     FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
+        //     if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+        //     find_neighbours.Execute();
+        // }
 
-        // Iteration over nodes
-        const int number_nodes = static_cast<int>(nodes_array.size());
+        // // Iteration over nodes
+        // const int number_nodes = static_cast<int>(nodes_array.size());
 
-        mMeanStrategyDivergenceFreeInterpolationValue = -1;
-        const auto& r_reference_var  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
-        for(int i_node = 0; i_node < number_nodes; ++i_node) {
-            auto it_node = nodes_array.begin() + i_node;
+        // mMeanStrategyDivergenceFreeInterpolationValue = -1;
+        // const auto& r_reference_var  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
+        // for(int i_node = 0; i_node < number_nodes; ++i_node) {
+        //     auto it_node = nodes_array.begin() + i_node;
 
-            // Initialize Divergence
-            double divergencefree_interp_value = 0;
-            double local_volume = 0;
+        //     // Initialize Divergence
+        //     double divergencefree_interp_value = 0;
+        //     double local_volume = 0;
 
-            // Get divergence value on the node: cycle the neigh elements and take sum of DIVERGENCE value
-            auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-            for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
-                divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetGeometry().Area();
-                local_volume += i_neighbour_elements->GetGeometry().Area();
-            }
-            divergencefree_interp_value /= local_volume;
-            if (divergencefree_interp_value > mMeanStrategyDivergenceFreeInterpolationValue) {
-                mMeanStrategyDivergenceFreeInterpolationValue = divergencefree_interp_value;
-            }
-        }
+        //     // Get divergence value on the node: cycle the neigh elements and take sum of DIVERGENCE value
+        //     auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+        //     for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
+        //         divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetGeometry().Area();
+        //         local_volume += i_neighbour_elements->GetGeometry().Area();
+        //     }
+        //     divergencefree_interp_value /= local_volume;
+        //     if (divergencefree_interp_value > mMeanStrategyDivergenceFreeInterpolationValue) {
+        //         mMeanStrategyDivergenceFreeInterpolationValue = divergencefree_interp_value;
+        //     }
+        // }
     }
 }
 
