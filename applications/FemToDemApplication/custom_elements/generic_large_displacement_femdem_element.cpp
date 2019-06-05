@@ -134,7 +134,113 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
 	ProcessInfo& rCurrentProcessInfo
     )
 {
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
+    // Kinematic variables
+    Matrix B, F, DN_DX, InvJ0, J, J0;
+    double detJ0;
+
+    const SizeType mat_size = number_of_nodes * dimension;
+    B.resize(VoigtSize, dimension * number_of_nodes);
+
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+	//set constitutive law flags:
+	Flags& r_constitutive_law_options = values.GetOptions();
+	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	//create and initialize element variables:
+	ElementDataType variables;
+	this->InitializeElementData(variables, rCurrentProcessInfo);
+
+    if (rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+
+    // Resizing as needed the RHS
+    if (rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size, false);
+    rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
+
+    const double characteristic_length = this->CalculateCharacteristicLength(this);
+
+    // Loop over Gauss Points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        //calculate the elastic matrix
+		this->CalculateMaterialResponse(variables, values, point_number);
+        Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
+
+		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
+        detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+
+        const double integration_weigth = integration_points[point_number].Weight() * detJ0;
+        const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+		Vector N = row(Ncontainer, point_number);
+
+        Vector VolumeForce = ZeroVector(dimension);
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
+		// Taking into account Volume Force into de RHS
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			int index = dimension * i;
+			for (unsigned int j = 0; j < dimension; j++) {
+				rRightHandSideVector[index + j] += integration_weigth * N[i] * VolumeForce[j];
+			}
+		}
+
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+        this->CalculateB(B, F, DN_DX);
+        Vector strain_vector;
+        this->CalculateGreenLagrangeStrainVector(strain_vector, F);
+        bool is_damaging = false;
+        if (yield_surface != "Elastic") {
+    		// Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+
+                double damage_edge = mDamages[edge];
+                double threshold = mThresholds[edge];
+                
+                this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+                    average_stress_edge, edge, characteristic_length, values, is_damaging);
+
+                mNonConvergedDamages[edge] = damage_edge;
+                mNonConvergedThresholds[edge] = threshold;
+            } // Loop over edges
+        }
+
+        const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+
+		Vector stress_vector = ZeroVector(VoigtSize);
+		this->CalculateStressVectorPredictor(stress_vector, r_constitutive_matrix, strain_vector);
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+        Matrix tangent_tensor;
+
+        if (is_damaging == true) { // Tangent Tensor
+            this->CalculateTangentTensor(tangent_tensor, strain_vector, r_integrated_stress_vector, F, r_constitutive_matrix, values);
+            rLeftHandSideMatrix += integration_weigth * prod(trans(B), Matrix(prod(tangent_tensor, B)));
+        } else { // Secant
+            this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, r_constitutive_matrix, integration_weigth, damage_element);
+        }
+
+        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, r_integrated_stress_vector, integration_weigth);
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
+    }
 }
 
 /***********************************************************************************/
@@ -189,7 +295,6 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
         const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
         const Matrix& r_Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		Vector N = row(r_Ncontainer, point_number);
-
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
