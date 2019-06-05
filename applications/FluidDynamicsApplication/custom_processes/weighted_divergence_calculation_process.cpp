@@ -75,7 +75,6 @@ namespace Kratos
         const double& final_time = r_current_process_info[END_TIME];
 
         if (time_step_previous >= mTimeCoefficient * final_time) {
-            KRATOS_WATCH(mTimeCoefficient);
             // Check and set number of elements
             KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "the number of elements in the domain is zero. weighted divergence calculation cannot be applied"<< std::endl;
             const unsigned int number_elements = mrModelPart.NumberOfElements();
