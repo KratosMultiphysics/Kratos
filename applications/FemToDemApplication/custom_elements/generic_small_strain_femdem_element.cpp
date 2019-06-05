@@ -158,6 +158,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
     )
 {
 	KRATOS_TRY
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -197,28 +198,30 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 		variables.IntegrationWeight = integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight( variables.IntegrationWeight );
 
-		// Loop over edges of the element...
-		Vector average_stress_edge(VoigtSize);
-		Vector average_strain_edge(VoigtSize);
-        noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-        noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
-		bool is_damaging = false;
+        bool is_damaging = false;
+        if (yield_surface != "Elastic") {
+    		// Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
-		for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
 
-			this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-			this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
-			double damage_edge = mDamages[edge];
-			double threshold = mThresholds[edge];
-			
-			this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-                average_stress_edge, edge, characteristic_length, values, is_damaging);
+                double damage_edge = mDamages[edge];
+                double threshold = mThresholds[edge];
+                
+                this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+                    average_stress_edge, edge, characteristic_length, values, is_damaging);
 
-			mNonConvergedDamages[edge] = damage_edge;
-			mNonConvergedThresholds[edge] = threshold;
+                mNonConvergedDamages[edge] = damage_edge;
+                mNonConvergedThresholds[edge] = threshold;
 
-		} // Loop over edges
+            } // Loop over edges
+        }
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
@@ -227,16 +230,15 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 		const Vector& r_strain_vector = values.GetStrainVector();
 
 		//contributions to stiffness matrix calculated on the reference config
-		const Matrix& C =  values.GetConstitutiveMatrix();
+		const Matrix& r_elastic_matrix =  values.GetConstitutiveMatrix();
 		Matrix tangent_tensor;
-		// if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]
-		// 	+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
 
-		// 	this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
-		// 	noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
-		// } else {
-			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
-		// }
+		if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
+			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_elastic_matrix, values);
+			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
+		} else {
+			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(r_elastic_matrix, variables.B)));
+		}
 		
 		//contribution to external forces
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, variables.N);
