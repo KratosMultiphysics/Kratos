@@ -20,7 +20,6 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
@@ -252,9 +251,9 @@ class IncompressibleFluidSolver:
 # self.solver.ApplyFractionalVelocityFixity()
             (self.neighbour_search).Execute()
 # self.slip_conditions_initialized = False
-        if self.use_slip_conditions:
-            self.normal_util.CalculateOnSimplex(
-                self.model_part, self.domain_size, IS_STRUCTURE)
+            if self.use_slip_conditions:
+                self.normal_util.CalculateOnSimplex(
+                    self.model_part, self.domain_size, IS_STRUCTURE)
 
         if self.divergence_clearance_steps > 0:
             self.do_divergence_clearance()

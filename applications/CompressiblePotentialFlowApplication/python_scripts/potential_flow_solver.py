@@ -7,6 +7,40 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 # Importing the base class
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
+class PotentialFlowFormulation(object):
+    """Helper class to define embedded-dependent parameters."""
+    def __init__(self, formulation_settings):
+        self.element_name = None
+        self.condition_name = None
+
+        if formulation_settings.Has("element_type"):
+            element_type = formulation_settings["element_type"].GetString()
+            if element_type == "incompressible":
+                self._SetUpIncompressibleElement(formulation_settings)
+            elif element_type == "embedded_incompressible":
+                self._SetUpEmbeddedIncompressibleElement(formulation_settings)
+        else:
+            raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
+
+
+    def _SetUpIncompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "incompressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "IncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_incompressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
 
@@ -38,6 +72,9 @@ class PotentialFlowSolver(FluidSolver):
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
+            "formulation": {
+                "element_type": "incompressible"
+            },
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
             "no_skin_parts": [""],
@@ -55,9 +92,9 @@ class PotentialFlowSolver(FluidSolver):
         self._is_printing_rank = True
 
         # Set the element and condition names for the replace settings
-        # TODO: Create a formulation class helper as soon as there is more than one element is present
-        self.element_name = "IncompressiblePotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
+        self.formulation = PotentialFlowFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
         self.min_buffer_size = 1
 
         # Construct the linear solvers
@@ -68,9 +105,15 @@ class PotentialFlowSolver(FluidSolver):
         # Degrees of freedom
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-
+        # Embedded variables
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.GEOMETRY_DISTANCE)
         # Kratos variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE) # Required for variational_distance_process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Required for modify_distance_process
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) # Required for modify_distance_process
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Required for modify_distance_process
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)

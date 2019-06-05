@@ -24,6 +24,7 @@
 #endif /* MMG_INCLUDES defined */
 
 // Project includes
+#include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/mmg_utilities.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -211,7 +212,7 @@ DiscretizationOption MmgUtilities<TMMGLibrary>::GetDiscretization()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const SizeType RemoveRegions)
+void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const bool RemoveRegions)
 {
     mRemoveRegions = RemoveRegions;
 }
@@ -220,7 +221,7 @@ void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const SizeType RemoveRegions)
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-SizeType MmgUtilities<TMMGLibrary>::GetRemoveRegions()
+bool MmgUtilities<TMMGLibrary>::GetRemoveRegions()
 {
     return mRemoveRegions;
 }
@@ -1633,13 +1634,9 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
 {
-    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1653,13 +1650,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
 {
-    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1673,13 +1666,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
 {
-    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1693,13 +1682,9 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
 {
-    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1713,13 +1698,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
 {
-    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1733,13 +1714,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
-    const std::string& rOutputName,
-    const bool PostOutput,
-    const int Step
-    )
+void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
 {
-    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1747,6 +1724,53 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
 
     // b) Function calling
     KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh,mMmgSol, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
+    const std::string& rOutputName,
+    const std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+    const std::unordered_map<IndexType,Element::Pointer>& rRefElement
+    )
+{
+    /* ELEMENTS */
+    std::string element_name;
+    Parameters elem_reference_json;
+    for (auto& r_elem : rRefElement) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_elem.second), element_name);
+        const std::string name = std::to_string(r_elem.first);
+        elem_reference_json.AddEmptyValue(name);
+        elem_reference_json[name].SetString(element_name);
+    }
+
+    const std::string& r_elem_json_text = elem_reference_json.PrettyPrintJsonString();
+
+    std::filebuf elem_buffer;
+    elem_buffer.open(rOutputName + ".elem.ref.json",std::ios::out);
+    std::ostream elem_os(&elem_buffer);
+    elem_os << r_elem_json_text;
+    elem_buffer.close();
+
+    /* CONDITIONS */
+    std::string condition_name;
+    Parameters cond_reference_json;
+    for (auto& r_cond : rRefCondition) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(r_cond.second), condition_name);
+        const std::string name = std::to_string(r_cond.first);
+        cond_reference_json.AddEmptyValue(name);
+        cond_reference_json[name].SetString(condition_name);
+    }
+
+    const std::string& r_cond_json_text = cond_reference_json.PrettyPrintJsonString();
+
+    std::filebuf cond_buffer;
+    cond_buffer.open(rOutputName + ".cond.ref.json",std::ios::out);
+    std::ostream cond_os(&cond_buffer);
+    cond_os << r_cond_json_text;
+    cond_buffer.close();
 }
 
 /***********************************************************************************/
@@ -2736,6 +2760,43 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
+    ModelPart& rModelPart,
+    const ColorsMapType& rColorMapCondition,
+    const ColorsMapType& rColorMapElement,
+    std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+    std::unordered_map<IndexType,Element::Pointer>& rRefElement
+    )
+{
+    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
+
+    auto& r_conditions_array = rModelPart.Conditions();
+    auto& r_elements_array = rModelPart.Elements();
+
+    if (r_conditions_array.size() > 0) {
+        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
+        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
+    }
+    if (r_elements_array.size() > 0) {
+        rRefElement[0] = r_elements_array.begin()->Create(0, r_elements_array.begin()->GetGeometry(), r_elements_array.begin()->pGetProperties());
+    }
+
+    // Now we add the reference elements and conditions
+    for (auto& ref_cond : rColorMapCondition) {
+        Condition::Pointer p_cond = rModelPart.pGetCondition(ref_cond.second);
+        rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+    }
+    for (auto& ref_elem : rColorMapElement) {
+        Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
+        rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
 {
     // Iterate in the nodes
@@ -2892,11 +2953,11 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     rModelPart.AddElements(created_elements_vector.begin(), created_elements_vector.end());
 
     // We add nodes, conditions and elements to the sub model parts
-    for (auto & color_list : rColors) {
-        const IndexType key = color_list.first;
+    for (auto& r_color_list : rColors) {
+        const IndexType key = r_color_list.first;
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
-            for (auto sub_model_part_name : color_list.second) {
+            for (auto sub_model_part_name : r_color_list.second) {
                 ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
@@ -2974,23 +3035,61 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
+    ModelPart& rModelPart,
+    const std::string& rFilename,
+    std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+    std::unordered_map<IndexType,Element::Pointer>& rRefElement
+    )
+{
+    // Getting auxiliar properties
+    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
+
+    /* Elements */
+    std::ifstream elem_infile(rFilename + ".elem.ref.json");
+    KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream elem_buffer;
+    elem_buffer << elem_infile.rdbuf();
+    Parameters elem_ref_json(elem_buffer.str());
+    for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
+        const std::size_t key = std::stoi(it_param.name());;
+        Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
+        rRefElement[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+    }
+
+    /* Conditions */
+    std::ifstream cond_infile(rFilename + ".cond.ref.json");
+    KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream cond_buffer;
+    cond_buffer << cond_infile.rdbuf();
+    Parameters cond_ref_json(cond_buffer.str());
+    for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
+        const std::size_t key = std::stoi(it_param.name());;
+        Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
+        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
     ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
-    const auto& flags = KratosComponents<Flags>::GetComponents();
+    const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
-    for (auto& flag : flags) {
-        const std::string name_sub_model = "FLAG_"+flag.first;
-        if (name_sub_model.find("NOT") == std::string::npos) { // Avoiding inactive flags
+    for (auto& r_flag : r_flags) {
+        const std::string name_sub_model = "FLAG_" + r_flag.first;
+        if (name_sub_model.find("NOT") == std::string::npos && name_sub_model.find("ALL") == std::string::npos) { // Avoiding inactive flags
             r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
-            ModelPart& auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            FastTransferBetweenModelPartsProcess transfer_process = FastTransferBetweenModelPartsProcess(auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(flag.second));
-            transfer_process.Execute();
+            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
+            FastTransferBetweenModelPartsProcess(r_auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
             // If the number of elements transfered is 0 we remove the model part
-            if (auxiliar_sub_model_part.NumberOfNodes() == 0
-            && auxiliar_sub_model_part.NumberOfElements() == 0
-            && auxiliar_sub_model_part.NumberOfConditions() == 0) {
+            if (r_auxiliar_sub_model_part.NumberOfNodes() == 0
+            && r_auxiliar_sub_model_part.NumberOfElements() == 0
+            && r_auxiliar_sub_model_part.NumberOfConditions() == 0) {
                 r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
             }
         }
@@ -3003,16 +3102,16 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
-    const auto& flags = KratosComponents<Flags>::GetComponents();
+    const auto& r_flags = KratosComponents<Flags>::GetComponents();
 
-    ModelPart& auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-    for (auto& flag : flags) {
-        const std::string name_sub_model = "FLAG_"+flag.first;
-        if (auxiliar_model_part.HasSubModelPart(name_sub_model)) {
-            ModelPart& auxiliar_sub_model_part = auxiliar_model_part.GetSubModelPart(name_sub_model);
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Nodes());
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Conditions());
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Elements());
+    ModelPart& r_auxiliar_model_part = rModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    for (auto& r_flag : r_flags) {
+        const std::string name_sub_model = "FLAG_" + r_flag.first;
+        if (r_auxiliar_model_part.HasSubModelPart(name_sub_model)) {
+            ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Nodes());
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Conditions());
+            VariableUtils().SetFlag(*(r_flag.second), true, r_auxiliar_sub_model_part.Elements());
         }
     }
 
