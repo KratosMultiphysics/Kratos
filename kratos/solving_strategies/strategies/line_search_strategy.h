@@ -133,8 +133,11 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
-    {}
+    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag),
+       mSettings(Parameters(R"({})"))
+    {
+        CheckDefaultsAndAssignSettings();
+    }
 
     LineSearchStrategy(
         ModelPart& model_part,
@@ -146,8 +149,44 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
-    {}
+    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag),
+       mSettings(Parameters(R"({})"))
+    {
+        CheckDefaultsAndAssignSettings();
+    }
+
+    LineSearchStrategy(
+        ModelPart& model_part,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        Parameters Settings,
+        int MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false
+    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag),
+       mSettings(Settings)
+    {
+        CheckDefaultsAndAssignSettings();
+    }
+
+    LineSearchStrategy(
+        ModelPart& model_part,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        Parameters Settings,
+        int MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false
+    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag),
+       mSettings(Settings)
+    {
+        CheckDefaultsAndAssignSettings();
+    }
 
     /**
      * Destructor.
@@ -216,6 +255,14 @@ private:
     ///@name Protected member Variables
     ///@{
 
+    Parameters mSettings;
+    int mMaxLineSearchIterations;
+    double mFirstAlphaValue;
+    double mSecondAlphaValue;
+    double mMinAlpha;
+    double mMaxAlpha;
+    double mLineSearchTolerance;
+
 
     ///@}
     ///@name Protected Operators
@@ -259,6 +306,25 @@ protected:
     ///@}
     ///@name Private Operators
     ///@{
+    void CheckDefaultsAndAssignSettings()
+    {
+        Parameters default_settings(R"({
+            "max_line_search_iterations" : 5,
+            "first_alpha_value"          : 0.5,
+            "second_alpha_value"         : 1.0,
+            "min_alpha"                  : 0.1,
+            "max_alpha"                  : 2.0,
+            "line_search_tolerance"      : 0.5
+        })");
+        mSettings.ValidateAndAssignDefaults(default_settings);
+        mMaxLineSearchIterations = mSettings["max_line_search_iterations"].GetInt();
+        mFirstAlphaValue = mSettings["first_alpha_value"].GetDouble();
+        mSecondAlphaValue = mSettings["second_alpha_value"].GetDouble();
+        mMinAlpha = mSettings["min_alpha"].GetDouble();
+        mMaxAlpha = mSettings["max_alpha"].GetDouble();
+        mLineSearchTolerance = mSettings["line_search_tolerance"].GetDouble();
+        
+    }
 
     /**
      * Here the database is updated
@@ -274,14 +340,10 @@ protected:
         typename TSchemeType::Pointer pScheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
-        TSystemVectorType aux(b.size()); //TODO: do it by using the space
+        TSystemVectorType aux(TSparseSpace::Size(b));
         
-        double x1 = 0.5;
-        double x2 = 1.0;
-        double xmin = 0.1;
-        double xmax = 2.0;
-        double line_search_tolerance = 0.5;
-        int max_iterations = 5;
+        double x1 = mFirstAlphaValue;
+        double x2 = mSecondAlphaValue;
 
         bool converged = false;
         int it = 0;
@@ -298,7 +360,7 @@ protected:
         double r1 = TSparseSpace::Dot(aux,b);
         
         double rmax;
-        while(converged == false && it < max_iterations)
+        while(!converged && it < mMaxLineSearchIterations)
         {
 
             //compute residual with 2 coefficient update (x2)
@@ -320,16 +382,16 @@ protected:
             if(std::abs(r1 - r2) > 1e-10)
                 x =  (r1*x2 - r2*x1)/(r1 - r2);
             
-            if(x < xmin)
-                x = xmin;
-            else if(x > xmax)
-                x = xmax;
+            if(x < mMinAlpha)
+                x = mMinAlpha;
+            else if(x > mMaxAlpha)
+                x = mMaxAlpha;
 
             //perform final update
             TSparseSpace::Assign(aux,x-xprevious, Dx);
             xprevious = x;
             BaseType::UpdateDatabase(A,aux,b,MoveMesh);
-            if(rmin < line_search_tolerance*rmax)
+            if(rmin < mLineSearchTolerance*rmax)
             {
                 std::cout << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
                 converged = true;
@@ -345,7 +407,7 @@ protected:
             std::cout << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
 
 
-            if(std::abs(rf) < rmax*line_search_tolerance)
+            if(std::abs(rf) < rmax*mLineSearchTolerance)
             {
                 converged = true;
                 TSparseSpace::Assign(aux,x, Dx);
