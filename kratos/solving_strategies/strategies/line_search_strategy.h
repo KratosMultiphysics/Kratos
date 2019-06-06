@@ -255,13 +255,14 @@ private:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mSettings;
-    int mMaxLineSearchIterations;
-    double mFirstAlphaValue;
-    double mSecondAlphaValue;
-    double mMinAlpha;
-    double mMaxAlpha;
-    double mLineSearchTolerance;
+    Parameters mSettings;           //Parameters used by the strategy
+    int mMaxLineSearchIterations;   //Maximum number of iterations line search do
+    double mFirstAlphaValue;        //First alpha guess value used for the first iteration
+    double mSecondAlphaValue;       //Second alpha guess value used for the first iteration
+    double mMinAlpha;               //Minimum possible alpha value at the end of the algorithm
+    double mMaxAlpha;               //Maximum possible alpha value at the end of the algorithm
+    double mLineSearchTolerance;    //Tolerance of the line search algorithm, defined as the ratio between
+                                    //maximum residual*alpha*dx and current iteration residual*alpha*dx
 
 
     ///@}
