@@ -60,13 +60,13 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
 
       // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
 
       for (unsigned int i = 0; i < 3; i++){
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
       }
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
@@ -74,10 +74,10 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      std::vector<double> reference({0.615562, 0.0, -0.615562});
+      std::vector<double> reference({0.615561780, 0.0, -0.615561780});
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
-        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-5);
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
       }
     }
 
@@ -93,13 +93,13 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
 
       // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
 
       for (unsigned int i = 0; i < 3; i++){
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
       }
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
@@ -107,21 +107,13 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      Matrix reference = ZeroMatrix(3,3);
+      std::array<double,9> reference({0.615556466,-0.615561780,5.314318652e-06, 
+                                      -0.615561780,1.231123561,-0.615561780,
+                                      5.314318652e-06,-0.615561780, 0.615556466});
 
-      reference(0,0) = 0.615556;
-      reference(0,1) = -0.615562;
-
-      reference(1,0) = -0.615562;
-      reference(1,1) = 1.23112;
-      reference(1,2) = -0.615562;
-
-      reference(2,1) = -0.615562;
-      reference(2,2) = 0.615556;
-
-      for (unsigned int i = 0; i < reference.size1(); i++) {
-        for (unsigned int j = 0; j < reference.size1(); j++) {
-          KRATOS_CHECK_NEAR(LHS(i,j), reference(i,j), 1e-5);
+      for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; j < LHS.size2(); j++) {
+          KRATOS_CHECK_NEAR(LHS(i,j), reference[i*3+j], 1e-6);
         }
       }
     }
@@ -135,10 +127,10 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
 
       // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
 
       Vector distances(3);
       distances(0) = 1.0;
@@ -150,18 +142,18 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < 3; i++){
         if (distances(i) > 0.0){
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
         }
         else{
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
         }
       }
       for (unsigned int i = 0; i < 3; i++){
         if (distances(i) < 0.0){
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i]+5;
         }
         else{
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i]+5;
         }
       }
 
@@ -171,10 +163,10 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      std::vector<double> reference({0.615562, 0.0, 0.0, 0.0, 0.0, -0.615562});
+      std::array<double,6> reference({0.615561780, 0.0, 0.0, 0.0, 0.0, -0.615561780});
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
-        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-5);
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
       }
     }
 
@@ -187,10 +179,10 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
 
       // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
 
       Vector distances(3);
       distances(0) = 1.0;
@@ -202,18 +194,18 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < 3; i++){
         if (distances(i) > 0.0){
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
         }
         else{
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
         }
       }
       for (unsigned int i = 0; i < 3; i++){
         if (distances(i) < 0.0){
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i]+5;
         }
         else{
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i]+5;
         }
       }
 
@@ -225,38 +217,16 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      Matrix reference = ZeroMatrix(6,6);
-
-      reference(0,0) = 0.615556;
-      reference(0,1) = -0.615562;
-
-      reference(1,0) = -0.615562;
-      reference(1,1) = 1.23112;
-      reference(1,2) = -0.615562;
-      reference(1,3) = 0.615562;
-      reference(1,4) = -1.23112;
-      reference(1,5) = 0.615562;
-
-      reference(2,1) = -0.615562;
-      reference(2,2) = 0.615556;
-      reference(2,4) = 0.615562;
-      reference(2,5) = -0.615556;
-
-      reference(3,0) = -0.615556;
-      reference(3,1) = 0.615562;
-      reference(3,3) = 0.615556;
-      reference(3,4) = -0.615562;
-
-      reference(4,3) = -0.615562;
-      reference(4,4) = 1.23112;
-      reference(4,5) = -0.615562;
-
-      reference(5,4) = -0.615562;
-      reference(5,5) = 0.615556;
-
-      for (unsigned int i = 0; i < reference.size1(); i++) {
-        for (unsigned int j = 0; j < reference.size1(); j++) {
-          KRATOS_CHECK_NEAR(LHS(i,j), reference(i,j), 1e-5);
+      std::array<double,36> reference({0.615556466,-0.615561780,5.314318652e-06,0.0,0.0,0.0,
+                                  -0.615561780,1.231123561,-0.615561780,0.615561780,-1.231123561,0.615561780,
+                                  5.314318652e-06,-0.615561780, 0.615556466,-5.314318652e-06,0.615561780, -0.615556466,
+                                  -0.615556466, 0.615561780,-5.314318652e-06,0.615556466, -0.615561780,5.314318652e-06,
+                                  0.0,0.0,0.0,-0.615561780,1.231123561,-0.615561780,
+                                  0.0,0.0,0.0,5.314318652e-06,-0.615561780,0.615556466});
+      
+      for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; j < LHS.size2(); j++) {
+          KRATOS_CHECK_NEAR(LHS(i,j), reference[6*i+j], 1e-6);
         }
       }
     }
@@ -305,10 +275,10 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
-      array_1d<double, 3> distances;
-      distances[0] = -0.5;
-      distances[1] = -0.5;
-      distances[2] = 0.5;
+      Vector distances(3);
+      distances(0) = -0.5;
+      distances(1) = -0.5;
+      distances(2) = 0.5;
       pElement->SetValue(ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
