@@ -11,6 +11,7 @@
 
 // Project includes
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos
 {

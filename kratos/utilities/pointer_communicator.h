@@ -145,7 +145,7 @@ public:
     }
 
     template< class TFunctorType >
-    GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType rFunctor):
+    GlobalPointerCommunicator(const DataCommunicator& rComm, TFunctorType rFunctor):
         mrDataCommunicator(rComm)
     {
         if(rComm.IsDistributed())

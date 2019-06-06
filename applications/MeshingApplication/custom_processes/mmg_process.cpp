@@ -259,7 +259,9 @@ template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
-    mMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+    if (mThisParameters["preserve_flags"].GetBool()) {
+        mMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+    }
 
     // The auxiliar color maps
     ColorsMapType aux_ref_cond, aux_ref_elem;
@@ -409,7 +411,9 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     mMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
-    mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
+    if (mThisParameters["preserve_flags"].GetBool()) {
+        mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
+    }
 
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
@@ -775,6 +779,7 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
         "save_colors_files"                    : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
+        "preserve_flags"                       : true,
         "interpolate_non_historical"           : true,
         "extrapolate_contour_values"           : true,
         "surface_elements"                     : false,
