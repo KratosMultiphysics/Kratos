@@ -60,7 +60,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace, double, 2>::CheckCurrentCoordinatesStructure)
         .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace, double, 2>::InitializeInterfaceVector)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace, double, 2>::CreateCouplingElementBasedSkin)
-        .def("ComputeAndCheckEmbeddedInterfacePower", &PartitionedFSIUtilities<TSpace, double, 2>::ComputeAndCheckEmbeddedInterfacePower)
         .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace, double, 2>::EmbeddedPressureToPositiveFacePressureInterpolator);
 
     py::class_<PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>, PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::Pointer>(m, "PartitionedFSIUtilitiesArray2D")
@@ -77,7 +76,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::CheckCurrentCoordinatesStructure)
         .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::InitializeInterfaceVector)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::CreateCouplingElementBasedSkin)
-        .def("ComputeAndCheckEmbeddedInterfacePower", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::ComputeAndCheckEmbeddedInterfacePower)
         .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace, array_1d<double, 3>, 2>::EmbeddedPressureToPositiveFacePressureInterpolator);
 
     py::class_<PartitionedFSIUtilities<TSpace,double,3>, PartitionedFSIUtilities<TSpace,double,3>::Pointer>(m,"PartitionedFSIUtilitiesDouble3D")

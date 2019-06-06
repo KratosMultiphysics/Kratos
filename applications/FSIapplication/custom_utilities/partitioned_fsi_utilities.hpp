@@ -29,8 +29,6 @@
 #include "includes/model_part.h"
 #include "includes/communicator.h"
 #include "includes/ublas_interface.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/math_utils.h"
 #include "utilities/openmp_utils.h"
@@ -93,15 +91,11 @@ public:
 
     /** Copy constructor.
     */
-
-    /*@{ */
-    PartitionedFSIUtilities(const PartitionedFSIUtilities& Other);
-    /*@{ */
+    PartitionedFSIUtilities(const PartitionedFSIUtilities& Other) = delete;
 
     /** Destructor.
      */
-
-    virtual ~PartitionedFSIUtilities(){}
+    virtual ~PartitionedFSIUtilities() = default;
 
     /*@} */
     /**@name Public Operators*/
@@ -155,6 +149,44 @@ public:
         }
 
         return element_name;
+    }
+
+    /**
+     * @brief Create a coupling element based skin object
+     * This method creates an element based skin model part by
+     * copying the conditions of a given skin model part
+     * @param rOriginInterfaceModelPart Origin skin model part to copy the conditions from
+     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin elements
+     */
+    void CreateCouplingElementBasedSkin(
+        const ModelPart &rOriginInterfaceModelPart,
+        ModelPart &rDestinationInterfaceModelPart)
+    {
+        // Check the origin interface model part
+        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
+
+        // Check the destination interface model part
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.IsSubModelPart()) << "Destination model part must be a root model part." << std::endl;
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfNodes() != 0) << "Destination interface model part should be empty. Current number of nodes: " << rDestinationInterfaceModelPart.NumberOfNodes() << std::endl;
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfElements() != 0) << "Destination interface model part should be empty. Current number of elements: " << rDestinationInterfaceModelPart.NumberOfElements() << std::endl;
+
+        // Emulate the origin interface nodes in the coupling skin
+        for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
+            rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+        }
+
+        // Create the new element based skin
+        for (const auto &r_cond: rOriginInterfaceModelPart.Conditions()) {
+            // Set the element nodes vector
+            std::vector<ModelPart::IndexType> nodes_vect;
+            for (const auto &r_node : r_cond.GetGeometry()) {
+                nodes_vect.push_back(r_node.Id());
+            }
+
+            // Create the new skin element
+            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
+        }
     }
 
     /**
@@ -613,248 +645,13 @@ public:
     }
 
     /**
-     * This function computes the nodal error of a vector magnitude in a consistent manner.
-     * The error is defined as the integral over the interface of a tests function times
-     * the difference between rOriginalVariable and rModifiedVariable.
-     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
-     * @param rOriginalVariable: variable with the reference value
-     * @param rModifiedVariable: variable with the computed vvalue
-     * @param rErrorStorageVariable: variable to store the error nodal value
+     * @brief Pressure to positive face pressure interpolator
+     * This method interpolates the pressure in the embedded fluid
+     * background mesh to the positive face pressure of all nodes
+     * in the provided structure interface model part.
+     * @param rFluidModelPart embedded fluid background mesh model part
+     * @param rStructureSkinModelPart structure interface model part
      */
-    void ComputeConsistentResidual(
-        ModelPart& rInterfaceModelPart,
-        const Variable<TValueType>& rOriginalVariable,
-        const Variable<TValueType>& rModifiedVariable,
-        const Variable<TValueType>& rErrorStorageVariable)
-    {
-        // Initialize the interface residual variable
-        VariableUtils().SetVariable<TValueType>(rErrorStorageVariable, rErrorStorageVariable.Zero(), rInterfaceModelPart.Nodes());
-
-        #pragma omp parallel for
-        for(int i_cond = 0; i_cond < static_cast<int>(rInterfaceModelPart.NumberOfConditions()); ++i_cond) {
-
-            auto it_cond = rInterfaceModelPart.ConditionsBegin() + i_cond;
-
-            auto& rGeom = it_cond->GetGeometry();
-            // const unsigned int BlockSize = typeid(TValueType).name() == "double" ? 1 : TDim;
-            const unsigned int n_nodes = rGeom.PointsNumber();
-
-            // Auxiliar array to save the computed consisted residual
-            // Vector cons_res_vect = ZeroVector(BlockSize*n_nodes);
-
-            // Initialize auxiliar array to save the condition nodes consistent residual
-            std::vector<TValueType> cons_res_vect(n_nodes);
-            for (unsigned int i = 0; i < n_nodes; ++i) {
-                cons_res_vect[i] = rErrorStorageVariable.Zero();
-            }
-
-            // Compute the consistent residual
-            const auto &r_int_pts = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const auto N_container = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-            Vector jac_gauss;
-            rGeom.DeterminantOfJacobian(jac_gauss, GeometryData::GI_GAUSS_2);
-
-            for (unsigned int i_gauss = 0; i_gauss < r_int_pts.size(); ++i_gauss) {
-                // Compute condition Gauss pt. data
-                const Vector N_gauss = row(N_container, i_gauss);
-                const double w_gauss = jac_gauss[i_gauss] * r_int_pts[i_gauss].Weight();
-
-                // Add the current Gauss pt. residual contribution
-                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    for (unsigned int j_node = 0; j_node < n_nodes; ++j_node) {
-                        const double aux_val = w_gauss * N_gauss[i_node] * N_gauss[j_node];
-                        const TValueType value = rGeom[j_node].FastGetSolutionStepValue(rOriginalVariable);
-                        const TValueType value_projected = rGeom[j_node].FastGetSolutionStepValue(rModifiedVariable);
-                        cons_res_vect[i_node] += aux_val * (value - value_projected);
-                    }
-                }
-            }
-
-            // Save the computed consistent residual values
-            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                rGeom[i_node].SetLock(); // So it is safe to write in the condition node in OpenMP
-                rGeom[i_node].FastGetSolutionStepValue(rErrorStorageVariable) += cons_res_vect[i_node];
-                rGeom[i_node].UnSetLock(); // Free the condition node for other threads
-            }
-
-            // Synchronize the computed error values
-            rInterfaceModelPart.GetCommunicator().AssembleCurrentData(rErrorStorageVariable);
-        }
-    }
-
-    void ComputeAndCheckEmbeddedInterfacePower(
-        const ModelPart &rFluidModelPart,
-        const ModelPart &rStructureInterfaceModelPart)
-    {
-        double fluid_interface_area = 0.0;
-        double fluid_interface_power = 0.0;
-        double fluid_interface_p_norm = 0.0;
-        double fluid_interface_v_norm = 0.0;
-        double fluid_interface_d_0_norm = 0.0;
-        double fluid_interface_d_1_norm = 0.0;
-        double fluid_interface_v_mesh_norm = 0.0;
-        double structure_interface_area = 0.0;
-        double structure_interface_power = 0.0;
-        double structure_interface_power_v_struct = 0.0;
-        double structure_interface_v_norm = 0.0;
-        double structure_interface_p_norm = 0.0;
-        double structure_interface_d_0_norm = 0.0;
-        double structure_interface_d_1_norm = 0.0;
-        double structure_interface_res_norm = 0.0;
-        double structure_interface_v_struct_norm = 0.0;
-        double structure_interface_scalar_proj_norm = 0.0;
-        double structure_interface_vector_proj_norm = 0.0;
-
-        // Compute fluid interface power
-        for (unsigned int i_elem = 0; i_elem < rFluidModelPart.NumberOfElements(); ++i_elem) {
-            const auto it_elem = rFluidModelPart.ElementsBegin() + i_elem;
-            const auto p_geom = it_elem->pGetGeometry();
-
-            // Check if the element is split
-            unsigned int n_pos = 0;
-            unsigned int n_neg = 0;
-            Vector distances;
-            distances.resize(p_geom->PointsNumber());
-            for (unsigned int i_node = 0; i_node < p_geom->PointsNumber(); ++i_node) {
-                const double d = (*p_geom)[i_node].FastGetSolutionStepValue(DISTANCE);
-                distances[i_node] = d;
-                if (d < 0.0) {
-                    n_neg++;
-                } else {
-                    n_pos++;
-                }
-            }
-
-            // Compute the power over the element intersection
-            const bool is_split = (n_pos != 0 && n_neg != 0) ? true : false;
-            if (is_split) {
-                // Get the modified shape functions
-                ModifiedShapeFunctions::UniquePointer p_mod_func = nullptr;
-                if (p_geom->PointsNumber() == 3) {
-                    p_mod_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
-                } else {
-                    p_mod_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
-                }
-
-                // Get the positive interface values
-                Matrix N_pos_int;
-                Vector w_pos_int;
-                ModifiedShapeFunctions::ShapeFunctionsGradientsType grad_N_pos_int;
-                p_mod_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-                    N_pos_int,
-                    grad_N_pos_int,
-                    w_pos_int,
-                    GeometryData::GI_GAUSS_2);
-
-                std::vector<Vector> n_pos_int;
-                p_mod_func->ComputePositiveSideInterfaceAreaNormals(
-                    n_pos_int,
-                    GeometryData::GI_GAUSS_2);
-
-                // Compute the intersection power
-                for (unsigned int i_gauss = 0; i_gauss < w_pos_int.size(); ++i_gauss) {
-                    // Get pressure and mesh velocity in the gauss point
-                    double p_gauss = 0.0;
-                    array_1d<double,3> v_gauss = ZeroVector(3);
-                    array_1d<double,3> d_0_gauss = ZeroVector(3);
-                    array_1d<double,3> d_1_gauss = ZeroVector(3);
-                    array_1d<double,3> v_mesh_gauss = ZeroVector(3);
-                    for (unsigned int i_node = 0; i_node < p_geom->PointsNumber(); ++i_node) {
-                        p_gauss += N_pos_int(i_gauss,i_node) * (*p_geom)[i_node].FastGetSolutionStepValue(PRESSURE);
-                        v_gauss += N_pos_int(i_gauss,i_node) * (*p_geom)[i_node].FastGetSolutionStepValue(VELOCITY);
-                        d_0_gauss += N_pos_int(i_gauss,i_node) * (*p_geom)[i_node].FastGetSolutionStepValue(DISPLACEMENT,0);
-                        d_1_gauss += N_pos_int(i_gauss,i_node) * (*p_geom)[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
-                        v_mesh_gauss += N_pos_int(i_gauss,i_node) * (*p_geom)[i_node].FastGetSolutionStepValue(MESH_VELOCITY);
-                    }
-                    // Add the contribution of the current gauss pt. to the total power
-                    const double n_pos_int_norm = norm_2(n_pos_int[i_gauss]);
-                    fluid_interface_area += w_pos_int[i_gauss];
-                    fluid_interface_power += w_pos_int[i_gauss] * p_gauss * inner_prod(n_pos_int[i_gauss], v_mesh_gauss) / n_pos_int_norm;
-                    fluid_interface_p_norm += w_pos_int[i_gauss] * p_gauss;
-                    fluid_interface_v_norm += w_pos_int[i_gauss] * norm_2(v_gauss);
-                    fluid_interface_d_0_norm += w_pos_int[i_gauss] * norm_2(d_0_gauss);
-                    fluid_interface_d_1_norm += w_pos_int[i_gauss] * norm_2(d_1_gauss);
-                    fluid_interface_v_mesh_norm += w_pos_int[i_gauss] * norm_2(v_mesh_gauss);
-                }
-            }
-        }
-
-        // Compute structure interface power
-        for (unsigned int i_cond = 0; i_cond < rStructureInterfaceModelPart.NumberOfConditions(); ++i_cond) {
-            auto it_cond = rStructureInterfaceModelPart.ConditionsBegin() + i_cond;
-            const auto &r_geom = it_cond->GetGeometry();
-            const auto N_gauss = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-            const unsigned int n_int_pts = r_geom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
-            auto gauss_pts = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            Vector detJ_vector(n_int_pts);
-            r_geom.DeterminantOfJacobian(detJ_vector, GeometryData::GI_GAUSS_2);
-            // Compute the current condition power
-            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                double scalar_proj_gauss = 0.0;
-                double pos_face_pres_gauss = 0.0;
-                double scalar_int_res_gauss = 0.0;
-                array_1d<double,3> v_gauss = ZeroVector(3);
-                array_1d<double,3> d_0_gauss = ZeroVector(3);
-                array_1d<double,3> d_1_gauss = ZeroVector(3);
-                array_1d<double,3> v_struct_gauss = ZeroVector(3);
-                array_1d<double,3> vector_proj_gauss = ZeroVector(3);
-                auto aux_area_normal = r_geom.Normal(gauss_pts[i_gauss].Coordinates());
-                const double n_norm = norm_2(aux_area_normal);
-                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                    v_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(VELOCITY);
-                    v_struct_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(STRUCTURE_VELOCITY);
-                    d_0_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, 0);
-                    d_1_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
-                    pos_face_pres_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                    scalar_proj_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(SCALAR_PROJECTED);
-                    vector_proj_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(VECTOR_PROJECTED);
-                    scalar_int_res_gauss += N_gauss(i_gauss, i_node) * r_geom[i_node].FastGetSolutionStepValue(SCALAR_INTERFACE_RESIDUAL);
-                }
-                // Add the contribution of the current gauss pt. to the total power
-                const double integration_weight = gauss_pts[i_gauss].Weight() * detJ_vector[i_gauss];
-                structure_interface_area += integration_weight;
-                structure_interface_power += integration_weight * pos_face_pres_gauss * inner_prod(v_gauss, aux_area_normal) / n_norm;
-                structure_interface_power_v_struct += integration_weight * pos_face_pres_gauss * inner_prod(v_struct_gauss, aux_area_normal) / n_norm;
-                structure_interface_p_norm += integration_weight * pos_face_pres_gauss;
-                structure_interface_v_norm += integration_weight * norm_2(v_gauss);
-                structure_interface_v_struct_norm += integration_weight * norm_2(v_struct_gauss);
-                structure_interface_d_0_norm += integration_weight * norm_2(d_0_gauss);
-                structure_interface_d_1_norm += integration_weight * norm_2(d_1_gauss);
-                structure_interface_res_norm += integration_weight * scalar_int_res_gauss;
-                structure_interface_scalar_proj_norm += integration_weight * scalar_proj_gauss;
-                structure_interface_vector_proj_norm += integration_weight * norm_2(vector_proj_gauss);
-            }
-        }
-
-        std::cout << std::endl;
-        std::cout << "FSI interface requirements: " << std::endl;
-        std::cout << "Fluid interface ||v||: " << fluid_interface_v_norm << std::endl;
-        std::cout << "Fluid interface ||v_mesh||: " << fluid_interface_v_mesh_norm << std::endl;
-        std::cout << "Fluid interface ||p||: " << fluid_interface_p_norm << std::endl;
-        std::cout << "Structure interface ||v||: " << structure_interface_v_norm << std::endl;
-        std::cout << "Structure interface ||p||: " << structure_interface_p_norm << std::endl;
-
-        std::cout << std::endl;
-        std::cout << "Fluid interface area: " << fluid_interface_area << std::endl;
-        std::cout << "Fluid interface power: " << fluid_interface_power << std::endl;
-        std::cout << "Fluid interface ||p||: " << fluid_interface_p_norm << std::endl;
-        std::cout << "Fluid interface ||v_mesh||: " << fluid_interface_v_mesh_norm << std::endl;
-        std::cout << "Fluid interface ||d_0||: " << fluid_interface_d_0_norm << std::endl;
-        std::cout << "Fluid interface ||d_1||: " << fluid_interface_d_1_norm << std::endl;
-        std::cout << "Structure interface area: " << structure_interface_area << std::endl;
-        std::cout << "Structure interface power: " << structure_interface_power << std::endl;
-        std::cout << "Structure interface power(v_struct): " << structure_interface_power_v_struct << std::endl;
-        std::cout << "Structure interface ||p||: " << structure_interface_p_norm << std::endl;
-        std::cout << "Structure interface ||v||: " << structure_interface_v_norm << std::endl;
-        std::cout << "Structure interface ||v_struct||: " << structure_interface_v_struct_norm << std::endl;
-        std::cout << "Structure interface ||d_0||: " << structure_interface_d_0_norm << std::endl;
-        std::cout << "Structure interface ||d_1||: " << structure_interface_d_1_norm << std::endl;
-        std::cout << "Structure interface ||res||: " << structure_interface_res_norm << std::endl;
-        std::cout << "Structure interface ||scal_proj||: " << structure_interface_scalar_proj_norm << std::endl;
-        std::cout << "Structure interface ||vect_proj||: " << structure_interface_vector_proj_norm << std::endl;
-        std::cout << std::endl;
-    }
-
     void EmbeddedPressureToPositiveFacePressureInterpolator(
         ModelPart &rFluidModelPart,
         ModelPart &rStructureSkinModelPart)
@@ -901,6 +698,89 @@ protected:
     /*@} */
     /**@name Protected Operations*/
     /*@{ */
+
+    /**
+     * @brief Get the skin element name
+     * Auxiliary method that returns the auxiliary embedded skin element type name
+     * @return std::string Element type registering name
+     */
+    std::string GetSkinElementName()
+    {
+        std::string element_name;
+        if (TDim == 2) {
+            element_name = "Element2D2N";
+        } else {
+            element_name = "Element3D3N";
+        }
+
+        return element_name;
+    }
+
+    /**
+     * This function computes the nodal error of a vector magnitude in a consistent manner.
+     * The error is defined as the integral over the interface of a tests function times
+     * the difference between rOriginalVariable and rModifiedVariable.
+     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
+     * @param rOriginalVariable: variable with the reference value
+     * @param rModifiedVariable: variable with the computed vvalue
+     * @param rErrorStorageVariable: variable to store the error nodal value
+     */
+    void ComputeConsistentResidual(
+        ModelPart& rInterfaceModelPart,
+        const Variable<TValueType>& rOriginalVariable,
+        const Variable<TValueType>& rModifiedVariable,
+        const Variable<TValueType>& rErrorStorageVariable)
+    {
+        // Initialize the interface residual variable
+        VariableUtils().SetVariable<TValueType>(rErrorStorageVariable, rErrorStorageVariable.Zero(), rInterfaceModelPart.Nodes());
+
+        #pragma omp parallel for
+        for(int i_cond = 0; i_cond < static_cast<int>(rInterfaceModelPart.NumberOfConditions()); ++i_cond) {
+
+            auto it_cond = rInterfaceModelPart.ConditionsBegin() + i_cond;
+
+            auto& rGeom = it_cond->GetGeometry();
+            const unsigned int n_nodes = rGeom.PointsNumber();
+
+            // Initialize auxiliar array to save the condition nodes consistent residual
+            std::vector<TValueType> cons_res_vect(n_nodes);
+            for (unsigned int i = 0; i < n_nodes; ++i) {
+                cons_res_vect[i] = rErrorStorageVariable.Zero();
+            }
+
+            // Compute the consistent residual
+            const auto &r_int_pts = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const auto N_container = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            Vector jac_gauss;
+            rGeom.DeterminantOfJacobian(jac_gauss, GeometryData::GI_GAUSS_2);
+
+            for (unsigned int i_gauss = 0; i_gauss < r_int_pts.size(); ++i_gauss) {
+                // Compute condition Gauss pt. data
+                const Vector N_gauss = row(N_container, i_gauss);
+                const double w_gauss = jac_gauss[i_gauss] * r_int_pts[i_gauss].Weight();
+
+                // Add the current Gauss pt. residual contribution
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                    for (unsigned int j_node = 0; j_node < n_nodes; ++j_node) {
+                        const double aux_val = w_gauss * N_gauss[i_node] * N_gauss[j_node];
+                        const TValueType value = rGeom[j_node].FastGetSolutionStepValue(rOriginalVariable);
+                        const TValueType value_projected = rGeom[j_node].FastGetSolutionStepValue(rModifiedVariable);
+                        cons_res_vect[i_node] += aux_val * (value - value_projected);
+                    }
+                }
+            }
+
+            // Save the computed consistent residual values
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                rGeom[i_node].SetLock(); // So it is safe to write in the condition node in OpenMP
+                rGeom[i_node].FastGetSolutionStepValue(rErrorStorageVariable) += cons_res_vect[i_node];
+                rGeom[i_node].UnSetLock(); // Free the condition node for other threads
+            }
+
+            // Synchronize the computed error values
+            rInterfaceModelPart.GetCommunicator().AssembleCurrentData(rErrorStorageVariable);
+        }
+    }
 
     /**
      * This function computes the nodal error of a vector magnitude. The error is defined
