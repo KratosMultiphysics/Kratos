@@ -31,7 +31,7 @@ namespace Kratos {
         /**
 	     * Auxiliar function to generate a triangular element to be tested.
 	     */
-        void GenerateTestModelPart(
+        void GenerateModelPartToTest(
             ModelPart& rModelPart) {
 
             // Variables addition
@@ -85,7 +85,7 @@ namespace Kratos {
             // Create a test element inside a modelpart
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
-            GenerateTestModelPart(model_part);
+            GenerateModelPartToTest(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the fluid element
