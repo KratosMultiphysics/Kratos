@@ -67,7 +67,12 @@ class FSICouplingInterfaceTest(UnitTest.TestCase):
             KratosUtilities.DeleteFileIfExisting('FSIProblemEmulatorTest/test_FSI_emulator_Structural.time')
 
     def checkResults(self):
-        pass
+        # Check the previously performed update
+        for node in self.fsi_coupling_interface.GetInterfaceModelPart().Nodes:
+            disp_relax = node.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT)
+            expected_disp_relax = [0.005 * node.Id, 0.0, 0.0]
+            for i in range(3):
+                self.assertAlmostEqual(disp_relax[i], expected_disp_relax[i])
 
 if __name__ == '__main__':
     test = FSICouplingInterfaceTest()
