@@ -101,56 +101,6 @@ public:
     /**@name Public Operators*/
     /*@{ */
 
-    void CreateCouplingElementBasedSkin(
-        const ModelPart &rOriginInterfaceModelPart,
-        ModelPart &rDestinationInterfaceModelPart)
-    {
-        // Check the origin interface model part
-        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
-
-        // Check the destination interface model part
-        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.IsSubModelPart()) << "Destination model part must be a root model part." << std::endl;
-        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfNodes() != 0) << "Destination interface model part should be empty. Current number of nodes: " << rDestinationInterfaceModelPart.NumberOfNodes() << std::endl;
-        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfElements() != 0) << "Destination interface model part should be empty. Current number of elements: " << rDestinationInterfaceModelPart.NumberOfElements() << std::endl;
-
-        // Emulate the origin interface nodes in the coupling skin
-        for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
-            rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
-        }
-
-        // Create the new element based skin
-        auto p_fake_prop = Kratos::make_shared<Properties>(0);
-        for (const auto &r_cond: rOriginInterfaceModelPart.Conditions()) {
-            // Set the points array
-            Geometry<Node<3>>::PointsArrayType points_array;
-            for (const auto &r_node : r_cond.GetGeometry()) {
-                points_array.push_back(rDestinationInterfaceModelPart.pGetNode(r_node.Id()));
-            }
-
-            // Set the element nodes vector
-            std::vector<ModelPart::IndexType> nodes_vect;
-            for (auto &r_node : r_cond.GetGeometry()) {
-                nodes_vect.push_back(r_node.Id());
-            }
-
-            // Create the new skin element
-            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, p_fake_prop);
-        }
-    }
-
-    std::string GetSkinElementName()
-    {
-        std::string element_name;
-        if (TDim == 2) {
-            element_name = "Element2D2N";
-        } else {
-            element_name = "Element3D3N";
-        }
-
-        return element_name;
-    }
-
     /**
      * @brief Create a coupling element based skin object
      * This method creates an element based skin model part by
