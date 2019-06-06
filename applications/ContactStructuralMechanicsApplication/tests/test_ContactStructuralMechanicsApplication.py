@@ -210,7 +210,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TComponentsALMThreeDPatchComplexGeomTestContact('test_execution'))
 
     # ALM frictional tests
-    #smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))              # FIXME
+    smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))
     smallSuite.addTest(TALMNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
     smallSuite.addTest(TALMPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))
     smallSuite.addTest(TALMThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution'))
@@ -358,7 +358,7 @@ def AssembleTestSuites():
             #TComponentsALMThreeDPatchComplexGeomTestContact,
             #TComponentsALMTThreeDPatchMatchingTestContact,
             #TComponentsALMThreeDPatchNotMatchingTestContact,
-            ##TALMHyperSimplePatchFrictionalTestContact,              # FIXME
+            #TALMHyperSimplePatchFrictionalTestContact,
             #TALMNoFrictionHyperSimplePatchFrictionalTestContact,
             #TALMPerfectStickHyperSimplePatchFrictionalTestContact,
             #TALMThresholdSlipHyperSimplePatchFrictionalTestContact,
