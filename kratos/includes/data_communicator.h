@@ -289,11 +289,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         };
 
         constexpr static bool is_vector_of_simple_types = serialization_traits<T>::is_std_vector && !serialization_traits<T>::value_type_is_compound;
-        constexpr static bool can_be_sent_directly = !std::is_compound<T>::value || is_vector_of_simple_types;
 
     public:
-
-        constexpr static bool value = !can_be_sent_directly;
+        constexpr static bool value = std::is_compound<T>::value && !is_vector_of_simple_types;
     };
 
     template<bool value> struct TypeFromBool {};
@@ -301,12 +299,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     template<typename T> void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<true>) const {}
     template<typename T>
     KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type. Please implement direct communication support for this type.")
-    void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const
-    {
-        #ifdef KRATOS_DEBUG
-        KRATOS_WARNING("DataCommunicator") << *this << "Calling serialization-based communication for a simple type. Please implement direct communication support for this type." << std::endl;
-        #endif
-    }
+    void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const {}
 
   public:
     ///@name Type Definitions
