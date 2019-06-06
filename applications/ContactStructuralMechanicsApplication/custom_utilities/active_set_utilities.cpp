@@ -356,6 +356,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 //                         const array_1d<double, 3> tangent_direction = tangent_lagrange_multiplier/norm_2(tangent_lagrange_multiplier);
 //                         const array_1d<double, 3> augmented_contact_tangent_pressure = mu * augmented_normal_pressure * tangent_direction;
 //                         it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_contact_tangent_pressure);
+//                         noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = augmented_contact_tangent_pressure/scale_factor;
                         if (!is_slip) {
                             it_node->Set(SLIP, true);
                             #pragma omp atomic
