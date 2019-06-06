@@ -127,22 +127,15 @@ public:
         }
 
         // Create the new element based skin
-        auto p_fake_prop = Kratos::make_shared<Properties>(0);
         for (const auto &r_cond: rOriginInterfaceModelPart.Conditions()) {
-            // Set the points array
-            Geometry<Node<3>>::PointsArrayType points_array;
-            for (const auto &r_node : r_cond.GetGeometry()) {
-                points_array.push_back(rDestinationInterfaceModelPart.pGetNode(r_node.Id()));
-            }
-
             // Set the element nodes vector
             std::vector<ModelPart::IndexType> nodes_vect;
-            for (auto &r_node : r_cond.GetGeometry()) {
+            for (const auto &r_node : r_cond.GetGeometry()) {
                 nodes_vect.push_back(r_node.Id());
             }
 
             // Create the new skin element
-            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, p_fake_prop);
+            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
         }
     }
 
