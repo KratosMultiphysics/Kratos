@@ -439,7 +439,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     // Broadcast operations
 
-    template<class TObject>
+    /// Synchronize a buffer to the value held by the broadcasting rank.
+    /** This is a wrapper for MPI_Bcast.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
+     */
+    template<typename TObject>
     void Broadcast(TObject& rBroadcastObject, const int SourceRank) const
     {
         this->BroadcastImpl(rBroadcastObject, SourceRank);
@@ -447,7 +454,18 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     // Sendrecv operations
 
-    template<class TObject>
+    /// Exchange data with other ranks.
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @param[in] RecvTag Message tag for received values.
+     *  @return Received values from rank RecvSource.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
+     */
+    template<typename TObject>
     TObject SendRecv(
         const TObject& rSendObject, const int SendDestination, const int SendTag,
         const int RecvSource, const int RecvTag) const
@@ -455,13 +473,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return this->SendRecvImpl(rSendObject, SendDestination, SendTag, RecvSource, RecvTag);
     }
 
-    /// Exchange data with other ranks (generic version).
-    /** This is a wrapper for MPI_Sendrecv that uses serialization to tranfer arbitrary objects.
-     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
-     *  @param[in] rSendValues Objects to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the data will be sent to.
-     *  @param[in] RecvSource Rank the data is expected from.
-     *  @return Received data from rank RecvSource.
+    /// Exchange data with other ranks.
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @return Received values from rank RecvSource.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
      */
     template<class TObject>
     TObject SendRecv(
@@ -470,6 +489,17 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return this->SendRecvImpl(rSendObject, SendDestination, 0, RecvSource, 0);
     }
 
+    /// Exchange data with other ranks.
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     *  @param[out] rRecvValues Received values from rank RecvSource.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @param[in] RecvTag Message tag for received values.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
+     */
     template<class TObject>
     void SendRecv(
         const TObject& rSendObject, const int SendDestination, const int SendTag,
@@ -478,6 +508,15 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         this->SendRecvImpl(rSendObject, SendDestination, SendTag, rRecvObject, RecvSource, RecvTag);
     }
 
+    /// Exchange data with other ranks.
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[out] rRecvValues Received values from rank RecvSource.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
+     */
     template<class TObject>
     void SendRecv(
         const TObject& rSendObject, const int SendDestination, TObject& rRecvObject, const int RecvSource) const
@@ -485,12 +524,13 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         this->SendRecvImpl(rSendObject, SendDestination, 0, rRecvObject, RecvSource, 0);
     }
 
-    /// Exchange data with other ranks (generic version).
-    /** This is a wrapper for MPI_Send that uses serialization to tranfer arbitrary objects.
-     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
+    /// Exchange data with other ranks.
+    /** This is a wrapper for MPI_Send.
      *  @param[in] rSendValues Objects to send to rank SendDestination.
      *  @param[in] SendDestination Rank the data will be sent to.
      *  @param[in] SendTag Message tag for sent values.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
      */
     template<typename TObject>
     void Send(const TObject& rSendValues, const int SendDestination, const int SendTag = 0) const
@@ -498,12 +538,13 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         this->SendImpl(rSendValues, SendDestination, SendTag);
     }
 
-    /// Exchange data with other ranks (generic version).
-    /** This is a wrapper for MPI_Recv that uses serialization to tranfer arbitrary objects.
-     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
+    /// Exchange data with other ranks.
+    /** This is a wrapper for MPI_Recv.
      *  @param[out] rRecvObject Objects to receive from rank RecvSource.
      *  @param[in] RecvSource Rank the data will be received from.
      *  @param[in] RecvTag Message tag for received values.
+     *  This function will transfer basic types (or std::vectors of basic types) directly.
+     *  For complex classes, serialization will be used to package the object(s) before communication.
      */
     template<typename TObject>
     void Recv(TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
@@ -683,8 +724,18 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(unsigned int)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(double)
 
+    /// Synchronize a buffer to the value held by the broadcasting rank (string version).
+    /** This is a wrapper for MPI_Bcast.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     */
     virtual void BroadcastImpl(std::string& rBuffer, const int SourceRank) const {};
 
+    /// Synchronize a buffer to the value held by the broadcasting rank (generic version).
+    /** This is a wrapper for MPI_Bcast, using serialization to package complex objects.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     */
     template<class TObject>
     void BroadcastImpl(TObject& rBroadcastObject, const int SourceRank) const
     {
@@ -720,7 +771,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         }
     }
 
-
     /// Exchange data with other ranks (string version).
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues String to send to rank SendDestination.
@@ -738,6 +788,15 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         rRecvValues = SendRecvImpl(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);
     }
 
+    /// Exchange data with other ranks (string version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues String to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the string will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
+     *  @param[in] RecvSource Rank the string is expected from.
+     *  @param[in] RecvTag Message tag for received values.
+     *  @return Received string from rank RecvSource.
+     */
     virtual std::string SendRecvImpl(
         const std::string& rSendValues, const int SendDestination, const int SendTag,
         const int RecvSource, const int RecvTag) const
