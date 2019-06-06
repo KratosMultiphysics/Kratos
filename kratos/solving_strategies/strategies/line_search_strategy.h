@@ -393,7 +393,7 @@ protected:
             xprevious = x;
             BaseType::UpdateDatabase(A,aux,b,MoveMesh);
             if(rmin < mLineSearchTolerance*rmax) {
-                std::cout << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
+                KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
                 converged = true;
                 TSparseSpace::Assign(aux,x, Dx);
                 break;
