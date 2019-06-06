@@ -671,6 +671,7 @@ void  GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateTangentTe
 	perturbed_strain.resize(number_components);
 	perturbed_stress.resize(number_components);
     Matrix perturbed_deformation_gradient;
+    perturbed_deformation_gradient.resize(number_components, number_components);
     const double size_1 = rDeformationGradientGP.size1();
     const double size_2 = rDeformationGradientGP.size2();
 	
