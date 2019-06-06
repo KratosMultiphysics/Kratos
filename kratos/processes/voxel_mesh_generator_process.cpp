@@ -105,10 +105,16 @@ namespace Kratos
         	Generate3DMesh();
 
 		auto number_of_divisions = mNumberOfDivisions;
+		auto min_point = mMinPoint;
+		auto max_point = mMaxPoint;
 
-		if(mEntitiesToGenerate == "center_of_elements")
-			for(std::size_t i = 0 ; i < 3 ; i++)
-				number_of_divisions[i] -= 1;
+
+		// if(mEntitiesToGenerate == "center_of_elements")
+		// 	for(std::size_t i = 0 ; i < 3 ; i++){
+		// 		number_of_divisions[i] -= 1;
+		// 		min_point[i] += 0.5 * mCellSizes[i];
+		// 		max_point[i] -= 0.5 * mCellSizes[i];
+		// 	}
 			
 		for(auto item : mColoringParameters){
 			if(mEntitiesToGenerate != "elements")
@@ -116,10 +122,10 @@ namespace Kratos
 																					 << " Please set the entities_to_generate to 'elements' or set coloring entities to 'nodes'" << std::endl;
 			std::string model_part_name = item["model_part_name"].GetString();
 			if(model_part_name == mrSkinPart.Name())
-				VoxelMeshColoringProcess(mMinPoint, mMaxPoint, number_of_divisions, mrVolumePart, mrSkinPart, item).Execute();
+				VoxelMeshColoringProcess(min_point, max_point, number_of_divisions, mrVolumePart, mrSkinPart, item).Execute();
 			else {
 				ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
-				VoxelMeshColoringProcess(mMinPoint, mMaxPoint, number_of_divisions, mrVolumePart, skin_part, item).Execute();
+				VoxelMeshColoringProcess(min_point, max_point, number_of_divisions, mrVolumePart, skin_part, item).Execute();
 			}
 		}
 
@@ -222,6 +228,9 @@ namespace Kratos
     int VoxelMeshGeneratorProcess::Check()
     {
         KRATOS_TRY
+
+		KRATOS_ERROR_IF(mEntitiesToGenerate != "nodes" && mEntitiesToGenerate != "elements" && mEntitiesToGenerate != "center_of_elements") << mEntitiesToGenerate 
+			<< " is not accepted as entities_to_generate. The valid options are 'nodes', 'elements' and 'center_of_elements'." << std::endl;
 
         return 0;
 
