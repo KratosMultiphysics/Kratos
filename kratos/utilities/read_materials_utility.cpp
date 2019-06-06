@@ -199,7 +199,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
                 p_prop->SetValue(variable, value.GetInt());
             } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
                 const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
-                array_1d<double, 3> temp(3, 0.0);
+                array_1d<double, 3> temp = ZeroVector(3);
                 const Vector& value_variable = value.GetVector();
                 KRATOS_ERROR_IF(value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 3" << std::endl;
                 for (IndexType index = 0; index < 3; ++index)
