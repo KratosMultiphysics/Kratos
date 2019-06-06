@@ -218,19 +218,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
 		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
 
-        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
         const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
-
-        Vector VolumeForce = ZeroVector(dimension);
-		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
-		// Taking into account Volume Force into de RHS
-		for (unsigned int i = 0; i < number_of_nodes; i++) {
-			int index = dimension * i;
-			for (unsigned int j = 0; j < dimension; j++) {
-				rRightHandSideVector[index + j] += integration_weigth * N[i] * VolumeForce[j];
-			}
-		}
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
@@ -274,6 +264,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
         }
 
         this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, r_integrated_stress_vector, integration_weigth);
+        Vector volume_force = ZeroVector(dimension);
+		volume_force = this->CalculateVolumeForce(volume_force, N);
+        this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
 }
@@ -390,13 +383,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
 		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
 
-        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
         const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
-
-        Vector volume_force = ZeroVector(dimension);
-		volume_force = this->CalculateVolumeForce(volume_force, N);
-        this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, variables.IntegrationWeight );
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
@@ -435,6 +424,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
 		this->SetValue(STRESS_VECTOR_INTEGRATED, r_integrated_stress_vector);
 		this->SetValue(STRAIN_VECTOR, strain_vector);
 
+        Vector volume_force = ZeroVector(dimension);
+		volume_force = this->CalculateVolumeForce(volume_force, N);
+        this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
         // KRATOS_WATCH(this->Id())
         // KRATOS_WATCH(strain_vector)
