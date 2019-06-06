@@ -89,7 +89,7 @@ namespace Kratos
 				#pragma omp parallel for
 				for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k) {
 					auto i_element = mrVolumePart.ElementsBegin() + k;
-					i_element->GetValue(DISTANCE) = mOutsideColor;
+					i_element->SetValue(DISTANCE, mOutsideColor);
 				}
 			}
 		}
@@ -198,13 +198,13 @@ namespace Kratos
 		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
  
         #pragma omp parallel for
-		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+		for (std::size_t k = min_position[2]; k < max_position[2]; k++) {
+			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
                 bool previous_cell_was_empty = true;
                 int previous_cell_color = 1;
- 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+ 				for (std::size_t i = min_position[0]; i < max_position[0]; i++) {
                     std::size_t index = i + j * mNumberOfDivisions[0] + k * mNumberOfDivisions[1] * mNumberOfDivisions[0];
-                   auto& r_node = *(nodes_begin + GetNodeId(i,j,k) -1);
+                   auto& r_node = *(nodes_begin + index);
                    double &node_distance = r_node.GetSolutionStepValue(DISTANCE);
                     if(mCellIsEmpty[index] & previous_cell_was_empty){
 						if(previous_cell_color != mOutsideColor)
