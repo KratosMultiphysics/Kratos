@@ -2,25 +2,57 @@
 from __future__ import print_function, absolute_import, division
 
 # Import Kratos core and apps
-import KratosMultiphysics
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as km
+import KratosMultiphysics.ShapeOptimizationApplication as kso
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_response import CreateResponseFunction
-import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.KratosUnittest import WorkFolderScope
 
 # Additional imports
 from analyzer_base import AnalyzerBaseClass
 
 # Python Libraries
 from shutil import copyfile, rmtree
-from decimal import *
+import os
+import decimal
 import math
 
 # Read parameters
 with open("optimization_parameters.json",'r') as parameter_file:
-    parameters_optimization = Parameters(parameter_file.read())
+    parameters_optimization = km.Parameters(parameter_file.read())
 
-model = Model()
+model = km.Model()
+
+def update_mdpa_coordinates(mdpa_file_path, current_model_part):
+    new_file_name = mdpa_file_path
+    old_file_name = mdpa_file_path + ".tmp"
+    os.rename(new_file_name, old_file_name)
+
+    with open(new_file_name,'w') as new_file, open(old_file_name,'r') as old_file:
+
+        in_nodes = False
+
+        for i, line in enumerate(old_file):
+
+            if line.startswith("End Nodes"):
+                in_nodes = False
+
+            if in_nodes is True:
+                line_split = line.split()
+                node_id = int(line_split[0])
+
+                # coordinate update
+                updated_node = current_model_part.GetNode(node_id)
+                node_x = format(updated_node.X0, '.9f')
+                node_y = format(updated_node.Y0, '.9f')
+                node_z = format(updated_node.Z0, '.9f')
+                line_ls = [str(node_id), str(node_x), str(node_y), str(node_z)]
+                line_to_write = str(3*" ").join(line_ls)
+                new_file.write(line_to_write + '\n')
+            else:
+                new_file.write(line)
+
+            if line.startswith("Begin Nodes"):
+                in_nodes = True
 
 def solve_potential(current_design, optimization_iteration):
     """ A new directory for the execution of the potential flow analysis is created.
@@ -32,85 +64,35 @@ def solve_potential(current_design, optimization_iteration):
     """
 
     newpath = "sensitivity_analysis_" + str(optimization_iteration)
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)
+    if os.path.exists(newpath):
+        shutil.rmtree(newpath)
+    os.mkdir(newpath)
 
-    copyfile("ProjectParametersPrimal.json",  newpath + "/ProjectParametersPrimal.json")
-    copyfile("ProjectParametersAdjoint.json",  newpath + "/ProjectParametersAdjoint.json")
-    copyfile("response_parameters.json",  newpath + "/response_parameters.json")
-    mdpa_name = "naca0012_Case_0_DS_100_AOA_5.0_Far_Field_Mesh_Size_2_Airfoil_Mesh_Size_0.001"
-    copyfile(mdpa_name+".mdpa",  newpath + "/"+mdpa_name+".mdpa")
+    copyfile("ProjectParametersPrimal.json",  os.path.join(newpath, "ProjectParametersPrimal.json"))
+    copyfile("ProjectParametersAdjoint.json",  os.path.join(newpath, "ProjectParametersAdjoint.json"))
+    copyfile("response_parameters.json",  os.path.join(newpath, "response_parameters.json"))
+    mdpa_file_name = "naca0012_Case_0_DS_100_AOA_5.0_Far_Field_Mesh_Size_2_Airfoil_Mesh_Size_0.001" + ".mdpa"
+    copyfile(mdpa_file_name,  os.path.join(newpath, mdpa_file_name))
 
-    os.chdir(newpath)
-    ## updating the coordinates of the mdpa file
+    with WorkFolderScope(newpath, __file__):
 
-    new_file_name = mdpa_name+".mdpa"
-    old_file_name = mdpa_name+"_old.mdpa"
-    os.rename(new_file_name, old_file_name)
+        current_model_part = model.GetModelPart(parameters_optimization["optimization_settings"]["model_settings"]["model_part_name"].GetString())
+        update_mdpa_coordinates(mdpa_file_name, current_model_part)
 
-    if not os.path.isfile(old_file_name):
-        raise RuntimeError("mdpa file does not exist", old_file_name)
+        print("#"*80)
+        print("Start sensitivity analysis\n")
 
-    new_file = open(new_file_name,'w')
-    old_file = open(old_file_name,'r')
+        ## run sensitivity analysis
+        with open("response_parameters.json",'r') as parameter_file:
+            parameters_sensitivity = km.Parameters( parameter_file.read())
 
-    tmp_design_nodes = {} #loop with pybind is slow
+        model_sensitivity = km.Model()
+        response_function = CreateResponseFunction("dummy", parameters_sensitivity["kratos_response_settings"], model_sensitivity)
 
-    full_design_model = model.GetModelPart(parameters_optimization["optimization_settings"]["model_settings"]["model_part_name"].GetString())
+        response_function.RunCalculation(calculate_gradient=True)
 
-    for node in full_design_model.Nodes:
-        tmp_design_nodes[node.Id] = [node.X0, node.Y0, node.Z0]
-
-    inNodes = False
-
-    i = 0
-    for line in old_file:
-        i += 1
-
-        if line.startswith("End Nodes"):
-            inNodes = False
-
-        if inNodes is True:
-            line_split = line.split()
-            node_id = int(line_split[0])
-
-            # coordinate update
-            node_x = format(tmp_design_nodes[node_id][0], '.9f')
-            node_y = format(tmp_design_nodes[node_id][1], '.9f')
-            node_z = format(tmp_design_nodes[node_id][2], '.9f')
-            line_ls = [str(node_id), str(node_x), str(node_y), str(node_z)]
-            line_to_write = str(3*" ").join(line_ls)
-            new_file.write(line_to_write + '\n')
-        else:
-            new_file.write(line)
-
-        if line.startswith("Begin Nodes"):
-            inNodes = True
-
-    new_file.close()
-    old_file.close()
-
-    #########
-    print("#"*80)
-    print("#### Start sensitivity analysis")
-    ## run sensitivity analysis
-    with open("response_parameters.json",'r') as parameter_file:
-        parameters_sensitivity = KratosMultiphysics.Parameters( parameter_file.read())
-
-    model_sensitivity = KratosMultiphysics.Model()
-    response_function = CreateResponseFunction("dummy", parameters_sensitivity["kratos_response_settings"], model_sensitivity)
-
-    response_function.RunCalculation(calculate_gradient=True)
-    print("#### End sensitivity analysis")
-    print("#"*80)
-
-    ## deleting hdf5 and .res files
-    model_part_name = "primal_output"
-    for name in os.listdir():
-        if name.find(model_part_name) == 0:
-            kratos_utils.DeleteFileIfExisting(name)
-
-    os.chdir("..")
+        print("\nEnd sensitivity analysis")
+        print("#"*80)
 
     return response_function.GetValue(), response_function.GetShapeGradient()
 
