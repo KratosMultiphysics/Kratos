@@ -349,7 +349,7 @@ protected:
         int it = 0;
         double xprevious = 0.0;
 
-        //compute residual with 1 coefficient update (x1)
+        //Compute residual with 1 coefficient update (x1)
         //since no update was performed yet, this includes an increment wrt the previous
         //solution of x1*Dx
         TSparseSpace::Assign(aux,x1-xprevious, Dx);
@@ -360,10 +360,9 @@ protected:
         double r1 = TSparseSpace::Dot(aux,b);
         
         double rmax = std::abs(r1);
-        while(!converged && it < mMaxLineSearchIterations)
-        {
+        while(!converged && it < mMaxLineSearchIterations) {
 
-            //compute residual with 2 coefficient update (x2)
+            //Compute residual with 2 coefficient update (x2)
             //since the database was initialized with x1*Dx
             //we need to apply ONLY THE INCREMENT, that is (x2-xprevious)*Dx
             TSparseSpace::Assign(aux,x2-xprevious, Dx);
@@ -373,26 +372,27 @@ protected:
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
             double r2 = TSparseSpace::Dot(aux,b);
 
-            if(it == 0)
+            if(it == 0) {
                 rmax = std::max(rmax,std::abs(r2));
+            }
             double rmin = std::min(std::abs(r1),std::abs(r2));
 
-            //find optimum
+            //Find optimum
             double x = 1.0;
             if(std::abs(r1 - r2) > 1e-10)
                 x =  (r1*x2 - r2*x1)/(r1 - r2);
             
-            if(x < mMinAlpha)
+            if(x < mMinAlpha) {
                 x = mMinAlpha;
-            else if(x > mMaxAlpha)
+            } else if(x > mMaxAlpha) {
                 x = mMaxAlpha;
+            }                
 
-            //perform final update
+            //Perform final update
             TSparseSpace::Assign(aux,x-xprevious, Dx);
             xprevious = x;
             BaseType::UpdateDatabase(A,aux,b,MoveMesh);
-            if(rmin < mLineSearchTolerance*rmax)
-            {
+            if(rmin < mLineSearchTolerance*rmax) {
                 std::cout << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
                 converged = true;
                 TSparseSpace::Assign(aux,x, Dx);
@@ -407,20 +407,14 @@ protected:
             std::cout << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
 
 
-            if(std::abs(rf) < rmax*mLineSearchTolerance)
-            {
+            if(std::abs(rf) < rmax*mLineSearchTolerance) {
                 converged = true;
                 TSparseSpace::Assign(aux,x, Dx);
-            }
-            else
-            {
-                if(std::abs(r1)>std::abs(r2))
-                {
+            } else {
+                if(std::abs(r1)>std::abs(r2)) {
                     r1 = rf;
                     x1 = x;
-                }
-                else
-                {
+                } else {
                     r2 = r1;
                     x2 = x1;
                     r1 = rf;
