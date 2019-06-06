@@ -65,7 +65,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared<IgaShell5pElement>(
+        return Kratos::make_intrusive<IgaShell5pElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -75,7 +75,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared< IgaShell5pElement >(
+        return Kratos::make_intrusive< IgaShell5pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 

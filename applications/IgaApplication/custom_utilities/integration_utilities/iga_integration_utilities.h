@@ -159,7 +159,7 @@ namespace IgaIntegrationUtilities
 
                         Element ele(0, non_zero_control_points);
 
-                        Element::Pointer element = Kratos::make_shared<Element>(ele);
+                        Element::Pointer element = Kratos::make_intrusive<Element>(ele);
 
                         if (ShapeFunctionDerivativesOrder > -1)
                         {
@@ -246,7 +246,7 @@ namespace IgaIntegrationUtilities
 
                             Element ele(0, non_zero_control_points);
 
-                            Element::Pointer element = Kratos::make_shared<Element>(ele);
+                            Element::Pointer element = Kratos::make_intrusive<Element>(ele);
 
                             if (ShapeFunctionDerivativesOrder > -1)
                             {
@@ -450,7 +450,7 @@ namespace IgaIntegrationUtilities
 
                     Element ele(0, non_zero_control_points);
 
-                    Element::Pointer element = Kratos::make_shared<Element>(ele);
+                    Element::Pointer element = Kratos::make_intrusive<Element>(ele);
 
                     if (ShapeFunctionDerivativesOrder > -1)
                     {
