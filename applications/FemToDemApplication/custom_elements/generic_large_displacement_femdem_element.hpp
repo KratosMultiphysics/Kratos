@@ -139,32 +139,32 @@ public:
     /**
      * this adds geometric contribution to the LHS
      */
-    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix,const Matrix& rDN_DX,const Vector& rStressVector,const double IntegrationWeight);
+    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix, const Matrix& rDN_DX, const Vector& rStressVector, const double IntegrationWeight);
 
     /**
      * this adds material contribution to the LHS when secant
      */
-    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B,const Matrix& D,const double IntegrationWeight,const double Damage);
+    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B, const Matrix& D, const double IntegrationWeight, const double Damage);
 
     /**
      * this computes the derivatives of the kinematics in the ref conf
      */
-    double CalculateDerivativesOnReferenceConfiguration(Matrix& rJ0,Matrix& rInvJ0,Matrix& rDN_DX,const IndexType PointNumber,IntegrationMethod ThisIntegrationMethod);
+    double CalculateDerivativesOnReferenceConfiguration(Matrix& rJ0, Matrix& rInvJ0, Matrix& rDN_DX, const IndexType PointNumber, IntegrationMethod ThisIntegrationMethod);
 
     /**
      * this computes constituive tangent tensor via perturbations
      */
-    void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rDeformationGradientGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensor(Matrix& rTangentTensor, const Vector& rStrainVectorGP, const Vector& rStressVectorGP, const Matrix& rDeformationGradientGP, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this perturbates F
      */
-    void PerturbateDeformationGradient(Matrix& rPerturbedDeformationGradient,const Matrix& rDeformationGradientGP,const double Perturbation,const int ComponentI,const int ComponentJ);
+    void PerturbateDeformationGradient(Matrix& rPerturbedDeformationGradient, const Matrix& rDeformationGradientGP, const double Perturbation, const int ComponentI, const int ComponentJ);
 
     /**
      * this gets the voigt index for a set of components
      */
-    int CalculateVoigtIndex(const SizeType VoigtSize,const int ComponentI,const int ComponentJ);
+    int CalculateVoigtIndex(const SizeType VoigtSize, const int ComponentI, const int ComponentJ);
 
 private:
 
