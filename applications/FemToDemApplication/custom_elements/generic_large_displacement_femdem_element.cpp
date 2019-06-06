@@ -252,7 +252,6 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
             noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
@@ -489,12 +488,12 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB2D(
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     for (SizeType i = 0; i < number_of_nodes; i++) {
         unsigned int index = 2 * i;
-        rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-        rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-        rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-        rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-        rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-        rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
+        rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
+        rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
+        rB(1, index + 0) = rF(0, 1) * rDN_DX(i, 1);
+        rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
+        rB(2, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
+        rB(2, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
 
     }
 }
@@ -540,7 +539,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateGreenLagra
     )
 {
     Matrix strain_tensor;
-    strain_tensor.resize(TDim, TDim);
+    if (strain_tensor.size1() != TDim)
+        strain_tensor.resize(TDim, TDim);
+
     Matrix identity = identity_matrix<double>(TDim);
     noalias(strain_tensor) = 0.5 * (prod(trans(rF), rF) - identity);
     rStrainVector = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
@@ -555,6 +556,8 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateStressVect
     const Matrix& rConstitutiveMAtrix, 
     const Vector& rStrainVector)
 {
+    if (rStressVector.size() != VoigtSize)
+        rStressVector.resize(VoigtSize);
     noalias(rStressVector) = prod(rConstitutiveMAtrix, rStrainVector);
 }
 
@@ -617,11 +620,11 @@ double GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateDerivati
     IntegrationMethod ThisIntegrationMethod
     )
 {
-    GeometryType &r_geom = GetGeometry();
+    GeometryType& r_geom = GetGeometry();
     GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
     double detJ0;
     MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
-    const Matrix &rDN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    const Matrix& rDN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
     GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
     return detJ0;
 }
