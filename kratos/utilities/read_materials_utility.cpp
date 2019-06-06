@@ -253,13 +253,13 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             std::string output_var_name = table_param["output_variable"].GetString();
             TrimComponentName(output_var_name);
 
-            const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
-            const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+            const auto& r_input_var = KratosComponents<Variable<double>>().Get(input_var_name);
+            const auto& r_output_var = KratosComponents<Variable<double>>().Get(output_var_name);
             for (IndexType i = 0; i < table_param["data"].size(); ++i) {
                 table.insert(table_param["data"][i][0].GetDouble(),
                             table_param["data"][i][1].GetDouble());
             }
-            p_prop->SetTable(input_var, output_var, table);
+            p_prop->SetTable(r_input_var, r_output_var, table);
         }
     } else {
         KRATOS_INFO("Read materials") << "No tables defined for material ID: " << property_id << std::endl;
