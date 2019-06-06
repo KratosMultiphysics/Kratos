@@ -34,6 +34,8 @@
 #include "custom_utilities/rans_variable_utils.h"
 #include "rans_modelling_application_variables.h"
 #include "scalar_co_solving_process.h"
+#include "scalar_co_solving_utilities.h"
+#include "custom_processes/wall_processes/rans_wall_velocity_calculation_process.h"
 
 namespace Kratos
 {
@@ -120,9 +122,12 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY_MAX);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
         KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
+        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
+        KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
         KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
+        KRATOS_CHECK_VARIABLE_KEY(RANS_WALL_Y_PLUS);
 
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
@@ -135,6 +140,8 @@ public:
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         }
 
         return value;
@@ -192,6 +199,8 @@ private:
     void UpdateBeforeSolveSolutionStep() override
     {
         mrYPlusModelProcess.Execute();
+        RansWallVelocityCalculationProcess rans_wall_velocity_calculation_process(this->mrModelPart);
+        rans_wall_velocity_calculation_process.Execute();
     }
 
     void UpdateAfterSolveSolutionStep() override
@@ -202,6 +211,7 @@ private:
     void UpdateConvergenceVariable() override
     {
         UpdateTurbulentViscosity();
+        UpdateBoundaryConditions();
     }
 
     void UpdateEffectiveViscosity()
@@ -239,10 +249,15 @@ private:
                 const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
                 const double epsilon =
                     r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-                const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
-                const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
+                // const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
+                // const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
                 const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-                    c_mu, tke, epsilon, f_mu);
+                    c_mu, tke, epsilon, 1.0);
+
+                // const double l_max = 0.05; // hard coded domain maximum width
+                // const double check_value = c_mu * std::pow(tke, 1.5)/epsilon;
+                // const double l_star = std::min(check_value, l_max);
+                // const double nu_t = std::max(nu_t_min, l_star * std::pow(tke, 0.5));
 
                 r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
             }
@@ -268,6 +283,50 @@ private:
         KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 1)
             << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
             << ", " << current_nu_t_max << " ].\n";
+    }
+
+    void UpdateBoundaryConditions()
+    {
+        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
+        const int number_of_nodes = r_nodes.size();
+
+        const ProcessInfo& r_current_process_info = this->mrModelPart.GetProcessInfo();
+
+        const double c_mu_25 =
+            std::pow(r_current_process_info[TURBULENCE_RANS_C_MU], 0.25);
+        const double von_karman = r_current_process_info[WALL_VON_KARMAN];
+        const double beta = r_current_process_info[WALL_SMOOTHNESS_BETA];
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+        {
+            NodeType& r_node = *(r_nodes.begin() + i_node);
+            if (r_node.Is(STRUCTURE))
+            {
+                // calculate u_tau
+                const double velocity_magnitude = norm_2(r_node.FastGetSolutionStepValue(WALL_VELOCITY));
+                const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE);
+                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+                const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+                const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
+
+                if (y_plus > 10.9931899)
+                {
+                    r_node.SetValue(
+                        Y_WALL, std::exp((velocity_magnitude / u_tau - beta) * von_karman) *
+                                    nu / u_tau);
+                }
+                else if (y_plus > std::numeric_limits<double>::epsilon())
+                {
+                    r_node.SetValue(Y_WALL, y_plus * nu / u_tau);
+                }
+
+                // update the nu_t value
+                double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+                nu_t = von_karman * u_tau * wall_distance;
+            }
+        }
     }
 
     ///@}

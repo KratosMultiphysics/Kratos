@@ -26,8 +26,9 @@ class ApplyConstantScalarValueProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        from model_part_factory import ApplyFlagsToNodeList
+        from model_part_factory import ApplyFlagsToNodeList, ApplyFlagsToConditionsList
         ApplyFlagsToNodeList(self.model_part.Nodes, self.settings["boundary_condition_type"].GetString(), True)
+        ApplyFlagsToConditionsList(self.model_part.Conditions, self.settings["boundary_condition_type"].GetString(), True)
         self.settings.RemoveValue("boundary_condition_type")
 
         self.scalar_value_process = KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.settings)

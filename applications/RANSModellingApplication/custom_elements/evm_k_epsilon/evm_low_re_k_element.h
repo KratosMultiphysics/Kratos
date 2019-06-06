@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_EVM_K_ELEMENT_H_INCLUDED)
-#define KRATOS_EVM_K_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_EVM_LOW_RE_K_ELEMENT_H_INCLUDED)
+#define KRATOS_EVM_LOW_RE_K_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -371,4 +371,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EVM_K_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_EVM_LOW_RE_K_ELEMENT_H_INCLUDED  defined

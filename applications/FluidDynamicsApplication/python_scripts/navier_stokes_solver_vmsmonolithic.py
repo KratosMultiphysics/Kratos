@@ -16,7 +16,10 @@ class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
-        self.condition_name = "MonolithicWallCondition"
+        if CheckIfApplicationsAvailable("RANSModellingApplication"):
+            self.condition_name = "RANSEVMVMSMonolithicWallCondition"
+        else:
+            self.condition_name = "MonolithicWallCondition"
         self.element_integrates_in_time = False
         self.process_data = {}
 

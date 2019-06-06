@@ -18,9 +18,17 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_application.h"
+
+// Element includes
+#include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/evm_k_element.h"
 #include "custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.h"
 #include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
-#include "includes/kratos_application.h"
+
+// Condition includes
+#include "custom_conditions/evm_k_epsilon/evm_epsilon_wall_condition.h"
+#include "custom_conditions/evm_k_epsilon/evm_vms_monolithic_wall_condition.h"
 
 namespace Kratos
 {
@@ -170,6 +178,20 @@ private:
 
     const EvmLowReEpsilonElement<2, 3> mRANSEVMLowReEpsilon2D;
     const EvmLowReEpsilonElement<3, 4> mRANSEVMLowReEpsilon3D;
+
+    const EvmKElement<2, 3> mRANSEVMK2D;
+    const EvmKElement<3, 4> mRANSEVMK3D;
+
+    const EvmEpsilonElement<2, 3> mRANSEVMEpsilon2D;
+    const EvmEpsilonElement<3, 4> mRANSEVMEpsilon3D;
+
+    /// k-epsilon turbulence model conditions
+    const EvmEpsilonWallCondition<2> mRansEVMEpsilonWallCondition2D2N;
+    const EvmEpsilonWallCondition<3> mRansEVMEpsilonWallCondition3D3N;
+
+    const EVMVMSMonolithicWallCondition<2> mRansEVMVMSMonolithicWallCondition2D2N;
+    const EVMVMSMonolithicWallCondition<3> mRansEVMVMSMonolithicWallCondition3D3N;
+
 
     ///@}
     ///@name Private Operators

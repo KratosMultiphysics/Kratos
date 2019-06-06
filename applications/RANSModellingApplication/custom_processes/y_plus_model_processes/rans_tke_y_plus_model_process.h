@@ -159,19 +159,17 @@ public:
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
 
-            if (!r_node.Is(STRUCTURE))
-            {
-                const double wall_distance =
-                    r_node.FastGetSolutionStepValue(DISTANCE, mStep);
-                const double kinematic_viscosity =
-                    r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
-                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY, mStep);
+            const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE, mStep);
+            const double kinematic_viscosity =
+                r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
+            const double tke =
+                r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY, mStep);
 
-                const double u_tau = std::max(mMinimumUTau, std::pow(mCmu, 0.25) * std::pow(tke, 0.5));
-                const double yplus = u_tau * wall_distance / kinematic_viscosity;
+            const double u_tau =
+                std::max(mMinimumUTau, std::pow(mCmu, 0.25) * std::pow(tke, 0.5));
+            const double yplus = u_tau * wall_distance / kinematic_viscosity;
 
-                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
-            }
+            r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
         }
     }
 
@@ -296,8 +294,7 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansTKEYPlusModelProcess& rThis);
+inline std::ostream& operator<<(std::ostream& rOStream, const RansTKEYPlusModelProcess& rThis);
 
 ///@}
 

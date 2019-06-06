@@ -32,3 +32,17 @@ def ApplyFlagsToNodeList(nodes, flag_name, value):
         variable_utils.SetFlag(Kratos.OUTLET, value, nodes)
     elif (flag_name == "structure"):
         variable_utils.SetFlag(Kratos.STRUCTURE, value, nodes)
+
+def ApplyFlagsToConditionsList(conditions, flag_name, value):
+    allowed_flag_names = ["inlet", "outlet", "structure", "none"]
+
+    if not flag_name in allowed_flag_names:
+        raise Exception("Unknown flag name: " + flag_name + ". Allowed flag names are: " + allowed_flag_names)
+
+    variable_utils = Kratos.VariableUtils()
+    if (flag_name == "inlet"):
+        variable_utils.SetFlag(Kratos.INLET, value, conditions)
+    elif (flag_name == "outlet"):
+        variable_utils.SetFlag(Kratos.OUTLET, value, conditions)
+    elif (flag_name == "structure"):
+        variable_utils.SetFlag(Kratos.STRUCTURE, value, conditions)

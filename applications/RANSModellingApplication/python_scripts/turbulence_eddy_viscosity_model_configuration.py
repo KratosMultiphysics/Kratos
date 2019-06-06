@@ -172,7 +172,8 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             time_scheme = KratosRANS.GenericResidualBasedSimpleSteadyScalarScheme(
                 solver_settings["relaxation_factor"].GetDouble())
             self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
-            self.fluid_model_part.ProcessInfo[KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
+            self.fluid_model_part.ProcessInfo[
+                KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
         else:
             raise Exception("Unknown scheme_type = \"" +
                             scheme_settings["scheme_type"] + "\"")
@@ -196,40 +197,27 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         return strategy, linear_solver, convergence_criteria, builder_and_solver, time_scheme
 
     def __InitializeModelPart(self):
-        variable_utils = Kratos.VariableUtils()
-        variable_utils.SetScalarVar(Kratos.DISTANCE, 1.0,
-                                    self.fluid_model_part.Nodes)
-        variable_utils.SetScalarVar(Kratos.DISTANCE, 0.0,
-                                    self.fluid_model_part.Nodes,
-                                    Kratos.STRUCTURE, True)
-
         self.__CalculateWallDistances()
-
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                 "Model part initialized.")
 
     def __CalculateWallDistances(self):
         if (self.distance_calculation_process is None):
-            import python_linear_solver_factory as linear_solver_factory
-            self.distance_calculation_linear_solver = linear_solver_factory.ConstructSolver(
-                self.settings["distance_calculation"]
-                ["linear_solver_settings"])
-            max_iterations = self.settings["distance_calculation"][
-                "max_iterations"].GetInt()
             if (self.domain_size == 2):
-                self.distance_calculation_process = Kratos.VariationalDistanceCalculationProcess2D(
+                self.distance_calculation_process = KratosRANS.RansExactWallDistanceCalculationProcess2D(
                     self.fluid_model_part,
-                    self.distance_calculation_linear_solver, max_iterations)
+                    self.settings["distance_calculation"])
             elif (self.domain_size == 3):
-                self.distance_calculation_process = Kratos.VariationalDistanceCalculationProcess3D(
+                self.distance_calculation_process = KratosRANS.RansExactWallDistanceCalculationProcess3D(
                     self.fluid_model_part,
-                    self.distance_calculation_linear_solver, max_iterations)
+                    self.settings["distance_calculation"])
             else:
                 raise Exception("Unsupported domain size")
 
+            self.distance_calculation_process.Check()
             Kratos.Logger.PrintInfo(
                 self.__class__.__name__,
-                "Variational distance calculation process initialized.")
+                "RansExactWallDistanceCalculationProcess initialized.")
 
         self.distance_calculation_process.Execute()
         Kratos.Logger.PrintInfo(self.__class__.__name__,

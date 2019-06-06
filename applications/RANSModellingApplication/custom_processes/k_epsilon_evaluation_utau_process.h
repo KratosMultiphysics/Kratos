@@ -14,6 +14,7 @@
 #define KRATOS_RANS_K_EPSILON_EVALUATION_UTAU_PROCESS_H_INCLUDED
 
 // System includes
+#include <cmath>
 #include <string>
 
 // External includes
@@ -296,6 +297,8 @@ private:
 
     void ApplyValuesForAllNodes(NodesContainerType& rNodes)
     {
+        KRATOS_INFO(this->Info())
+            << "Applying k-epsilon values to all nodes in " << mModelPartName << ".\n";
         int number_of_nodes = rNodes.size();
 
 #pragma omp parallel for
@@ -310,6 +313,8 @@ private:
 
     void ApplyValuesForFreeNodes(NodesContainerType& rNodes)
     {
+        KRATOS_INFO(this->Info())
+            << "Applying k-epsilon values to free nodes in " << mModelPartName << ".\n";
         int number_of_nodes = rNodes.size();
 
 #pragma omp parallel for
@@ -317,7 +322,8 @@ private:
         {
             NodeType& r_node = *(rNodes.begin() + i_node);
 
-            if (!r_node.IsFixed(TURBULENT_KINETIC_ENERGY) && !r_node.IsFixed(TURBULENT_ENERGY_DISSIPATION_RATE))
+            if (!r_node.IsFixed(TURBULENT_KINETIC_ENERGY) &&
+                !r_node.IsFixed(TURBULENT_ENERGY_DISSIPATION_RATE))
                 CalculateTurbulentValues(r_node);
         }
     }

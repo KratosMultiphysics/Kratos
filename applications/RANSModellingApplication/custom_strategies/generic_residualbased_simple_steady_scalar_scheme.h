@@ -96,6 +96,11 @@ public:
     {
         KRATOS_TRY;
 
+        const GeometryType& r_geometry = rCurrentElement->GetGeometry();
+        const double local_delta_time = this->GetGeometryLocalTimeStep(r_geometry);
+
+        rCurrentElement->SetValue(DELTA_TIME, local_delta_time);
+
         rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentElement->CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
@@ -108,8 +113,8 @@ public:
         if (SteadyLHS.size1() != 0)
             noalias(LHS_Contribution) += SteadyLHS;
 
-        AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution,
-                      RHS_Contribution, CurrentProcessInfo);
+        AddRelaxation(rCurrentElement->GetGeometry(), local_delta_time,
+                      LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -121,6 +126,11 @@ public:
                                                 ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
+
+        const GeometryType& r_geometry = rCurrentCondition->GetGeometry();
+        const double local_delta_time = this->GetGeometryLocalTimeStep(r_geometry);
+
+        rCurrentCondition->SetValue(DELTA_TIME, local_delta_time);
 
         rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentCondition->CalculateLocalSystem(
@@ -134,8 +144,8 @@ public:
         if (SteadyLHS.size1() != 0)
             noalias(LHS_Contribution) += SteadyLHS;
 
-        AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution,
-                      RHS_Contribution, CurrentProcessInfo);
+        AddRelaxation(rCurrentCondition->GetGeometry(), local_delta_time,
+                      LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -203,6 +213,7 @@ protected:
     ///@name Protected Operators
     ///@{
     void AddRelaxation(const GeometryType& rGeometry,
+                       const double LocalDeltaTime,
                        LocalSystemMatrixType& LHS_Contribution,
                        LocalSystemVectorType& RHS_Contribution,
                        ProcessInfo& CurrentProcessInfo)
@@ -210,32 +221,10 @@ protected:
         if (LHS_Contribution.size1() == 0)
             return;
 
-        const unsigned int NumNodes = rGeometry.PointsNumber();
-        const unsigned int Dimension = rGeometry.WorkingSpaceDimension();
-
         Matrix Mass;
         this->CalculateLumpedMassMatrix(rGeometry, Mass);
 
-        unsigned int DofIndex = 0;
-        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-        {
-            const array_1d<double, 3>& rVel =
-                rGeometry[iNode].FastGetSolutionStepValue(VELOCITY, 0);
-            const double Area = rGeometry[iNode].FastGetSolutionStepValue(NODAL_AREA, 0);
-            double VelNorm = 0.0;
-            for (unsigned int d = 0; d < Dimension; ++d)
-                VelNorm += rVel[d] * rVel[d];
-            VelNorm = sqrt(VelNorm);
-            double LocalDt;
-            if (VelNorm != 0.0)
-                LocalDt = pow(Area, 0.5) / VelNorm;
-            else
-                LocalDt = 1.0;
-
-            Mass(DofIndex, DofIndex) *= 1.0 / (mRelaxationFactor * LocalDt);
-            DofIndex++;
-        }
-        noalias(LHS_Contribution) += Mass;
+        noalias(LHS_Contribution) += Mass * (1.0 / (mRelaxationFactor * LocalDeltaTime));
     }
 
     void CalculateLumpedMassMatrix(const GeometryType& rGeometry,
@@ -244,18 +233,37 @@ protected:
         const unsigned int number_of_nodes = rGeometry.PointsNumber();
 
         if (rLumpedMass.size1() != number_of_nodes)
-        {
             rLumpedMass.resize(number_of_nodes, number_of_nodes, false);
-        }
 
-        noalias(rLumpedMass) = ZeroMatrix(number_of_nodes, number_of_nodes);
+        rLumpedMass.clear();
 
         const double size_fraction = rGeometry.DomainSize() / number_of_nodes;
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
             rLumpedMass(i, i) = size_fraction;
+    }
+
+    double GetGeometryLocalTimeStep(const GeometryType& rGeometry) const
+    {
+        const unsigned int number_of_nodes = rGeometry.PointsNumber();
+
+        double geometry_local_dt = 0.0;
+
+        for (unsigned int i_node = 0; i_node < number_of_nodes; i_node++)
+        {
+            const array_1d<double, 3>& r_velocity =
+                rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);
+            const double area = rGeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+            double velocity_magnitude = norm_2(r_velocity);
+
+            const double local_dt =
+                (velocity_magnitude > std::numeric_limits<double>::epsilon())
+                    ? std::pow(area, 0.5) / velocity_magnitude
+                    : 1.0;
+            geometry_local_dt += local_dt;
         }
+
+        return geometry_local_dt / number_of_nodes;
     }
 
     ///@}

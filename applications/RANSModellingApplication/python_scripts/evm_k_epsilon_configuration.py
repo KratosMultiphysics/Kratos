@@ -20,31 +20,11 @@ class TurbulenceKEpsilonConfiguration(
             model, parameters)
 
         default_settings = Kratos.Parameters(r'''{
-            "scheme_settings": {
-                "scheme_type": "bossak",
-                "alpha_bossak": -0.3
-            },
-            "echo_level"        :0,
-            "turbulent_kinetic_energy_settings":{
-                "relative_tolerance"    : 1e-3,
-                "absolute_tolerance"    : 1e-5,
-                "max_iterations"        : 200,
-                "relaxation_factor"     : 0.5,
-                "echo_level"            : 0,
-                "linear_solver_settings": {
-                    "solver_type"  : "amgcl"
-                }
-            },
-            "turbulent_energy_dissipation_rate_settings":{
-                "relative_tolerance"    : 1e-3,
-                "absolute_tolerance"    : 1e-5,
-                "max_iterations"        : 200,
-                "relaxation_factor"     : 0.5,
-                "echo_level"            : 0,
-                "linear_solver_settings": {
-                    "solver_type"  : "amgcl"
-                }
-            },
+            "scheme_settings": {},
+            "echo_level"          :0,
+            "use_high_re_elements": true,
+            "turbulent_kinetic_energy_settings":{},
+            "turbulent_energy_dissipation_rate_settings":{},
             "constants":
             {
                 "wall_smoothness_beta"    : 5.2,
@@ -57,17 +37,27 @@ class TurbulenceKEpsilonConfiguration(
             },
             "flow_parameters":
             {
-                "ramp_up_time"                        : 0.5
+                "ramp_up_time"            : 0.5,
+                "wall_y_plus"             : 11.06
             },
             "coupling_settings" :{}
         }''')
 
         parameters["model_settings"].ValidateAndAssignDefaults(
             default_settings)
+        parameters["model_settings"]["constants"].ValidateAndAssignDefaults(
+            default_settings["constants"])
+        parameters["model_settings"][
+            "flow_parameters"].ValidateAndAssignDefaults(
+                default_settings["flow_parameters"])
         self.model_settings = parameters["model_settings"]
 
-        self.model_elements_list = ["RANSEVMLowReK", "RANSEVMLowReEpsilon"]
-        self.model_conditions_list = ["Condition", "Condition"]
+        if (self.model_settings["use_high_re_elements"].GetBool()):
+            self.model_elements_list = ["RANSEVMK", "RANSEVMEpsilon"]
+            self.model_conditions_list = ["Condition", "RANSEVMEpsilonWallCondition"]
+        else:
+            self.model_elements_list = ["RANSEVMLowReK", "RANSEVMLowReEpsilon"]
+            self.model_conditions_list = ["Condition", "Condition"]
         self.rans_solver_configurations = []
         self.is_initial_values_assigned = False
 
@@ -98,6 +88,11 @@ class TurbulenceKEpsilonConfiguration(
             KratosRANS.TURBULENT_VISCOSITY_MIN] = self.nu_t_min
         self.fluid_model_part.ProcessInfo[
             KratosRANS.TURBULENT_VISCOSITY_MAX] = self.nu_t_max
+
+        if (self.model_settings["use_high_re_elements"].GetBool()):
+            self.fluid_model_part.ProcessInfo[
+                KratosRANS.RANS_WALL_Y_PLUS] = self.model_settings[
+                    "flow_parameters"]["wall_y_plus"].GetDouble()
 
     def PrepareSolvingStrategy(self):
         scheme_settings = self.model_settings["scheme_settings"]
@@ -154,6 +149,8 @@ class TurbulenceKEpsilonConfiguration(
             KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         self.fluid_model_part.AddNodalSolutionStepVariable(
             KratosRANS.RANS_AUXILIARY_VARIABLE_2)
+        self.fluid_model_part.AddNodalSolutionStepVariable(
+            KratosRANS.WALL_VELOCITY)
 
         super(TurbulenceKEpsilonConfiguration, self).AddVariables()
 

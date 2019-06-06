@@ -158,61 +158,33 @@ public:
 
         const int number_of_nodes = r_nodes.size();
 
+        const double c_mu_25 =
+            std::pow(mrModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.25);
+
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
+            const double kinematic_viscosity =
+                r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
+            const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE, mStep);
 
-            if (!r_node.Is(STRUCTURE))
+            if (r_node.Is(STRUCTURE) && !r_node.Is(INLET))
+            {
+                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+                const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) =
+                    u_tau * wall_distance / kinematic_viscosity;
+            }
+            else
             {
                 const array_1d<double, 3>& velocity =
                     r_node.FastGetSolutionStepValue(VELOCITY, mStep);
                 const double velocity_norm = norm_2(velocity);
 
-                const double wall_distance =
-                    r_node.FastGetSolutionStepValue(DISTANCE, mStep);
-                const double kinematic_viscosity =
-                    r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
-
-                const double von_karman = mVonKarman;
-                const double beta = mBeta;
-
-                // linear region
-                double utau = sqrt(velocity_norm * kinematic_viscosity / wall_distance);
-                double yplus = wall_distance * utau / kinematic_viscosity;
-
-                const double limit_yplus = 11.06;
-                const double inv_von_karman = 1.0 / von_karman;
-
-                // log region
-                if (yplus > limit_yplus)
-                {
-                    unsigned int iter = 0;
-                    double dx = 1e10;
-                    const double tol = mTolerance;
-                    double uplus = inv_von_karman * log(yplus) + beta;
-
-                    while (iter < mMaxIterations && fabs(dx) > tol * utau)
-                    {
-                        // Newton-Raphson iteration
-                        double f = utau * uplus - velocity_norm;
-                        double df = uplus + inv_von_karman;
-                        dx = f / df;
-
-                        // Update variables
-                        utau -= dx;
-                        yplus = wall_distance * utau / kinematic_viscosity;
-                        uplus = inv_von_karman * log(yplus) + beta;
-                        ++iter;
-                    }
-
-                    KRATOS_WARNING_IF("RansLogarithmicYPlusModelProcess", iter == mMaxIterations && mEchoLevel > 2)
-                        << "Y plus calculation in Wall (logarithmic region) "
-                           "Newton-Raphson did not converge. "
-                           "residual > tolerance [ "
-                        << std::scientific << dx << " > " << std::scientific
-                        << tol << " ]\n";
-                }
+                const double yplus = CalculateLogarithmicWallLawYplus(
+                    velocity_norm, mVonKarman, mBeta, kinematic_viscosity,
+                    wall_distance, mMaxIterations, mTolerance);
 
                 r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
             }
@@ -224,10 +196,10 @@ public:
         {
             const unsigned int number_of_negative_y_plus_nodes =
                 rans_variable_utils.GetNumberOfNegativeScalarValueNodes(r_nodes, RANS_Y_PLUS);
-            KRATOS_INFO("RansLogarithmicYPlusModelProcess")
+            KRATOS_INFO_IF("RansLogarithmicYPlusModelProcess", number_of_negative_y_plus_nodes > 0)
                 << "RANS_Y_PLUS is negative in "
                 << number_of_negative_y_plus_nodes << " out of "
-                << number_of_nodes << " nodes in " << mrModelPart.Name() << ".";
+                << number_of_nodes << " nodes in " << mrModelPart.Name() << ".\n";
         }
 
         if (mEchoLevel > 1)
@@ -237,10 +209,9 @@ public:
             const double max_value =
                 rans_variable_utils.GetMaximumScalarValue(r_nodes, RANS_Y_PLUS);
             KRATOS_INFO("RansLogarithmicYPlusModelProcess")
-                << "RANS_Y_PLUS calculated for " << number_of_nodes
-                << ". RANS_Y_PLUS is bounded between [ " << std::scientific
+                << "RANS_Y_PLUS is bounded between [ " << std::scientific
                 << min_value << ", " << std::scientific << max_value << " ] in "
-                << mrModelPart.Name() << ".";
+                << mrModelPart.Name() << ".\n";
         }
     }
 
@@ -336,6 +307,53 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double CalculateLogarithmicWallLawYplus(const double VelocityMagnitude,
+                                            const double VonKarman,
+                                            const double Beta,
+                                            const double KinematicViscosity,
+                                            const double WallDistance,
+                                            const unsigned int MaxIterations = 200,
+                                            const double Tolerance = 1e-6)
+    {
+        // linear region
+        double utau = sqrt(VelocityMagnitude * KinematicViscosity / WallDistance);
+        double yplus = WallDistance * utau / KinematicViscosity;
+
+        const double limit_yplus = 11.06;
+        const double inv_von_karman = 1.0 / VonKarman;
+
+        // log region
+        if (yplus > limit_yplus)
+        {
+            unsigned int iter = 0;
+            double dx = 1e10;
+            const double tol = Tolerance;
+            double uplus = inv_von_karman * log(yplus) + Beta;
+
+            while (iter < MaxIterations && fabs(dx) > tol * utau)
+            {
+                // Newton-Raphson iteration
+                double f = utau * uplus - VelocityMagnitude;
+                double df = uplus + inv_von_karman;
+                dx = f / df;
+
+                // Update variables
+                utau -= dx;
+                yplus = WallDistance * utau / KinematicViscosity;
+                uplus = inv_von_karman * log(yplus) + Beta;
+                ++iter;
+            }
+
+            KRATOS_WARNING_IF("RansLogarithmicYPlusModelProcess", iter == MaxIterations && mEchoLevel > 0)
+                << "Y plus calculation in Wall (logarithmic region) "
+                   "Newton-Raphson did not converge. "
+                   "residual > tolerance [ "
+                << std::scientific << dx << " > " << std::scientific << tol << " ]\n";
+        }
+
+        return yplus;
+    }
 
     ///@}
     ///@name Private  Access
