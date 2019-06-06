@@ -6,18 +6,13 @@
         "start_time"      : 0.0,
         "end_time"        : 1
     },
-    "restart_options"                  : {
-        "SaveRestart"      : "False",
-        "RestartFrequency" : 0,
-        "LoadRestart"      : "False",
-        "Restart_Step"     : 0
-    },
     "solver_settings"                  : {
         "solver_type"            : "potential_flow",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "model_import_settings"  : {
-            "input_type"     : "use_input_model_part"
+            "input_type"     : "mdpa",
+            "input_filename" : "naca0012_Case_0_DS_100_AOA_5.0_Far_Field_Mesh_Size_2_Airfoil_Mesh_Size_0.001"
         },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
@@ -36,8 +31,9 @@
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0]
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_potential"         : 1.0
             }
         },{
             "python_module" : "define_wake_process_2d",
@@ -45,7 +41,6 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_BodySurface",
-                "wake_direction"       : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         },{
@@ -54,8 +49,7 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_BodySurface",
-                "velocity_infinity" : [10.0,0.0,0.0],
-                "create_output_file": true
+                "moment_reference_point" : [0.0,0.0,0.0]
             }
         }],
         "list_other_processes" :[{
@@ -103,7 +97,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_nonhistorical_results" : ["POTENTIAL_JUMP","TRAILING_EDGE","WAKE"],
-                        "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL", "MESH_CHANGE"],
+                        "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
                         "gauss_point_results" : ["PRESSURE","VELOCITY","WAKE","KUTTA"],
                         "elemental_conditional_flags_results": ["STRUCTURE"]
                     },
