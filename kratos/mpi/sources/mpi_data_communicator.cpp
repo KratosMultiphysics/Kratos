@@ -99,27 +99,22 @@ void MPIDataCommunicator::ScanSum(                                              
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)           \
-std::vector<type> MPIDataCommunicator::SendRecv(                                        \
-    const std::vector<type>& rSendValues,                                               \
-    const int SendDestination, const int RecvSource) const {                            \
-    return SendRecvDetail(rSendValues, SendDestination, 0, RecvSource, 0);              \
-}                                                                                       \
-std::vector<type> MPIDataCommunicator::SendRecv(                                        \
+std::vector<type> MPIDataCommunicator::SendRecvImpl(                                    \
     const std::vector<type>& rSendValues,                                               \
     const int SendDestination, const int SendTag,                                       \
     const int RecvSource, const int RecvTag) const {                                    \
     return SendRecvDetail(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);  \
 }                                                                                       \
-void MPIDataCommunicator::SendRecv(                                                     \
+void MPIDataCommunicator::SendRecvImpl(                                                 \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag, \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {    \
     SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag); \
 }                                                                                       \
-void MPIDataCommunicator::Send(const std::vector<type>& rSendValues,                    \
+void MPIDataCommunicator::SendImpl(const std::vector<type>& rSendValues,                \
     const int SendDestination, const int SendTag) const {                               \
     SendDetail(rSendValues, SendDestination, SendTag);                                  \
 }                                                                                       \
-void MPIDataCommunicator::Recv(std::vector<type>& rRecvValues,                          \
+void MPIDataCommunicator::RecvImpl(std::vector<type>& rRecvValues,                      \
     const int RecvSource, const int RecvTag) const {                                    \
     RecvDetail(rRecvValues, RecvSource, RecvTag);                                       \
 }                                                                                       \
@@ -193,15 +188,20 @@ void MPIDataCommunicator::AllGather(                                            
 
 #endif
 
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(type)   \
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)    \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(type) \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type) \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(type)    \
+
+#endif
+
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(type)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type) \
 
 #endif
 
@@ -233,9 +233,9 @@ void MPIDataCommunicator::Barrier() const
 
 // Complete interface for basic types
 
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(int)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(unsigned int)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE(double)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(double)
 
 // Reduce operations
 
@@ -345,47 +345,6 @@ Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const
     return out;
 }
 
-// Broadcast operations
-
-void MPIDataCommunicator::BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const
-{
-    BroadcastDetail(rBroadcastValues, SourceRank);
-}
-
-// Sendrecv operations
-
-std::string MPIDataCommunicator::SendRecv(
-    const std::string& rSendValues,
-    const int SendDestination,
-    const int RecvSource) const
-{
-    int send_size = rSendValues.size();
-    int recv_size;
-    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
-
-    std::string recv_values;
-    recv_values.resize(recv_size);
-    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
-    return recv_values;
-}
-
-void MPIDataCommunicator::SendRecv(
-        const std::string& rSendValues, const int SendDestination, const int SendTag,
-        std::string& rRecvValues, const int RecvSource, const int RecvTag) const
-{
-    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
-}
-
-void MPIDataCommunicator::Send(const std::string& rSendValues, const int SendDestination, const int SendTag) const
-{
-    SendDetail(rSendValues, SendDestination, SendTag);
-}
-
-void MPIDataCommunicator::Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag) const
-{
-    RecvDetail(rRecvValues, RecvSource, RecvTag);
-}
-
 // Access
 
 MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCommunicator)
@@ -448,6 +407,52 @@ void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
 void MPIDataCommunicator::CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const
 {
     KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << MPICallName << " failed with error code " << ierr << "." << std::endl;
+}
+
+// Protected interface reimplementing DataCommunicator calls
+
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(double)
+
+// Broadcast operations
+
+void MPIDataCommunicator::BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const
+{
+    BroadcastDetail(rBroadcastValues, SourceRank);
+}
+
+// Sendrecv operations
+
+std::string MPIDataCommunicator::SendRecvImpl(
+    const std::string& rSendValues, const int SendDestination, const int SendTag,
+    const int RecvSource, const int RecvTag) const
+{
+    int send_size = rSendValues.size();
+    int recv_size;
+    SendRecvDetail(send_size, SendDestination, SendTag, recv_size, RecvSource, RecvTag);
+
+    std::string recv_values;
+    recv_values.resize(recv_size);
+    SendRecvDetail(rSendValues,SendDestination, SendTag, recv_values, RecvSource, RecvTag);
+    return recv_values;
+}
+
+void MPIDataCommunicator::SendRecvImpl(
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        std::string& rRecvValues, const int RecvSource, const int RecvTag) const
+{
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
+}
+
+void MPIDataCommunicator::SendImpl(const std::string& rSendValues, const int SendDestination, const int SendTag) const
+{
+    SendDetail(rSendValues, SendDestination, SendTag);
+}
+
+void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSource, const int RecvTag) const
+{
+    RecvDetail(rRecvValues, RecvSource, RecvTag);
 }
 
 // Implementation details of MPI calls
@@ -1268,4 +1273,5 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE
-#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE

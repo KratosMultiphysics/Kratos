@@ -62,17 +62,15 @@ void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalVa
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)               \
-std::vector<type> SendRecv(const std::vector<type>& rSendValues,                             \
-    const int SendDestination, const int RecvSource) const override;                         \
-std::vector<type> SendRecv(const std::vector<type>& rSendValues,                             \
+std::vector<type> SendRecvImpl(const std::vector<type>& rSendValues,                         \
     const int SendDestination, const int SendTag,                                            \
     const int RecvSource, const int RecvTag) const override;                                 \
-void SendRecv(                                                                               \
+void SendRecvImpl(                                                                           \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
-void Send(const std::vector<type>& rSendValues,                                              \
+void SendImpl(const std::vector<type>& rSendValues,                                          \
     const int SendDestination, const int SendTag = 0) const override;                        \
-void Recv(std::vector<type>& rRecvValues,                                                    \
+void RecvImpl(std::vector<type>& rRecvValues,                                                \
     const int RecvSource, const int RecvTag = 0) const override;                             \
 
 #endif
@@ -118,15 +116,20 @@ void AllGather(const std::vector<type>& rSendValues, std::vector<type>& rRecvVal
 
 #endif
 
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(type)   \
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)    \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type) \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type) \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
+
+#endif
+
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(type)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type) \
 
 #endif
 
@@ -175,9 +178,9 @@ class MPIDataCommunicator: public DataCommunicator
 
     void Barrier() const override;
 
-    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(int)
-    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(unsigned int)
-    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE(double)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(double)
 
     // Reduce operations
 
@@ -208,25 +211,6 @@ class MPIDataCommunicator: public DataCommunicator
     Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
     Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
-
-    // Broadcast operations
-
-    void BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const override;
-
-    // Sendrecv operations
-
-    std::string SendRecv(
-        const std::string& rSendValues,
-        const int SendDestination,
-        const int RecvSource) const override;
-
-    void SendRecv(
-        const std::string& rSendValues, const int SendDestination, const int SendTag,
-        std::string& rRecvValues, const int RecvSource, const int RecvTag) const override;
-
-    void Send(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const override;
-
-    void Recv(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const override;
 
     ///@}
     ///@name Access
@@ -274,6 +258,30 @@ class MPIDataCommunicator: public DataCommunicator
     void PrintData(std::ostream &rOStream) const override;
 
     ///@}
+
+  protected:
+
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(double)
+
+    // Broadcast operations
+
+    void BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const override;
+
+    // Sendrecv operations
+
+    std::string SendRecvImpl(
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const override;
+
+    void SendRecvImpl(
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        std::string& rRecvValues, const int RecvSource, const int RecvTag) const override;
+
+    void SendImpl(const std::string& rSendValues, const int SendDestination, const int SendTag = 0) const override;
+
+    void RecvImpl(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const override;
 
   private:
     ///@name Member Variables
@@ -473,6 +481,7 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
 #undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
-#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
+#undef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
 
 #endif // KRATOS_MPI_DATA_COMMUNICATOR_H_INCLUDED  defined
