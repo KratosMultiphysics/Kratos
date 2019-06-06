@@ -131,6 +131,16 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const override;
 
+    Kratos::Flags AndReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const override;
+
+    Kratos::Flags OrReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const override;
+
     // Allreduce operations
 
     int SumAll(const int rLocalValue) const override;
@@ -186,6 +196,10 @@ class MPIDataCommunicator: public DataCommunicator
     void MaxAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const override;
+
+    Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
     // Scan operations
 
@@ -360,7 +374,7 @@ class MPIDataCommunicator: public DataCommunicator
     /** @note This method does not exist in the base class
      *  as it would introduce a dependency to MPI in the Kratos core.
      */
-    MPI_Comm GetMPICommunicator() const;
+    static MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
 
     ///@}
     ///@name Inquiry

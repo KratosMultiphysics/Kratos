@@ -211,7 +211,7 @@ namespace IgaIntegrationUtilities
                                 integration_point_polygon.IntegrationPoint(i).u,
                                 integration_point_polygon.IntegrationPoint(i).v);
 
-                            int number_of_non_zero_cps = integration_point_polygon.NbIntegrationPoints();
+                            int number_of_non_zero_cps = shape.NonzeroPoleIndices().size();
                             Element::GeometryType::PointsArrayType non_zero_control_points;
                             Vector shape_function(number_of_non_zero_cps);
                             Matrix shape_function_derivative(number_of_non_zero_cps, 2);
@@ -401,8 +401,6 @@ namespace IgaIntegrationUtilities
                         location += non_zero_control_points.back().Coordinates()*shape_function(n);
                     }
                     //KRATOS_WATCH(location)
-
-                    //KRATOS_WATCH(shape_function)
                     //KRATOS_WATCH(shape_function_derivative)
                     //KRATOS_WATCH(shape_function_second_derivative)
 
@@ -487,9 +485,9 @@ namespace IgaIntegrationUtilities
 
                     element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
 
-                    element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
+                    //element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
+                    //element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
+                    //element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
 
                     Vector tangents_slave(2);
                     tangents_slave[0] = derivatives_2[1][0];

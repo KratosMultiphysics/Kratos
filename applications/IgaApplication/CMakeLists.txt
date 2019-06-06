@@ -30,7 +30,8 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 
     # elements
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_truss_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_base_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_shell_3p_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
@@ -51,6 +52,8 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_trimming_curve.cpp
 
     # conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_base_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_check_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_base_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_point_discrete_condition.cpp
@@ -60,6 +63,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/coupling_base_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/coupling_penalty_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_curve_discrete_condition.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_support_condition.cpp
 	
     ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
 )

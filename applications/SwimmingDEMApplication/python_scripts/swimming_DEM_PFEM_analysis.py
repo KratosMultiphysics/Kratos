@@ -44,11 +44,9 @@ class SDEMPFEMAnalysis(BaseAnalysis):
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
         if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
-
-            for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(Kratos.VOLUME_ACCELERATION_X, 0, self.project_parameters["GravityX"].GetDouble())
-                node.SetSolutionStepValue(Kratos.VOLUME_ACCELERATION_Y, 0, self.project_parameters["GravityY"].GetDouble())
-                node.SetSolutionStepValue(Kratos.VOLUME_ACCELERATION_Z, 0, self.project_parameters["GravityZ"].GetDouble())
+            gravity = self.project_parameters["gravity_parameters"]["direction"].GetVector()
+            gravity *= self.project_parameters["gravity_parameters"]["modulus"].GetDouble()
+            Kratos.VariableUtils().SetVectorVar(Kratos.VOLUME_ACCELERATION, gravity, self.fluid_model_part.Nodes)
 
     def AssignKinematicViscosityFromDynamicViscosity(self):
         for node in self.fluid_model_part.Nodes:

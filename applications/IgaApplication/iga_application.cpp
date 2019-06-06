@@ -20,11 +20,14 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
-    , mIgaTrussElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    //, mIgaTrussElement(0, Element::GeometryType::Pointer(
+    //    new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-
+    , mIgaShell3pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mIgaCheckCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCurveDiscreteCondition(0, Condition::GeometryType::Pointer(
@@ -41,14 +44,16 @@ void KratosIgaApplication::Register() {
     KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
 
     // ELEMENTS
-    KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
+    //KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
+    KRATOS_REGISTER_ELEMENT("IgaShell3pElement", mShellKLDiscreteElement)
+
+    KRATOS_REGISTER_CONDITION("IgaCheckCondition", mIgaCheckCondition)
 
     KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
-
 
     // Variables
     KRATOS_REGISTER_VARIABLE(BREP_ID)
@@ -73,6 +78,11 @@ void KratosIgaApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
+    KRATOS_REGISTER_VARIABLE(NODAL_INERTIA)
+
+        //Postprocessing variables
+        KRATOS_REGISTER_VARIABLE(STRESS_RESULTANT_FORCE)
+        KRATOS_REGISTER_VARIABLE(STRESS_RESULTANT_MOMENT)
 
     KRATOS_REGISTER_VARIABLE(POINT_LOAD)
     KRATOS_REGISTER_VARIABLE(LINE_LOAD)

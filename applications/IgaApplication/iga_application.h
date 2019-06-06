@@ -21,8 +21,11 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "custom_elements/iga_truss_element.h"
+//#include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
+#include "custom_elements/iga_shell_3p_element.h"
+
+#include "custom_conditions/iga_check_condition.h"
 
 #include "custom_conditions/coupling_penalty_discrete_condition.h"
 #include "custom_conditions/support_penalty_curve_discrete_condition.h"
@@ -171,8 +174,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    const IgaTrussElement mIgaTrussElement;
+    //const IgaTrussElement mIgaTrussElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
+    const IgaShell3pElement mIgaShell3pElement;
+
+    const IgaCheckCondition mIgaCheckCondition;
 
     const CouplingPenaltyDiscreteCondition mCouplingPenaltyDiscreteCondition;
 

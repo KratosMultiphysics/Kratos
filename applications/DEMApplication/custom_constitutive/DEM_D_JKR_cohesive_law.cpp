@@ -13,8 +13,6 @@ namespace Kratos {
 
     DEM_D_JKR_Cohesive_Law::~DEM_D_JKR_Cohesive_Law() {}
 
-    void DEM_D_JKR_Cohesive_Law::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_JKR_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_JKR_Cohesive_Law(*this));
         return p_clone;
@@ -38,13 +36,13 @@ namespace Kratos {
         const double radius_sum_inv = 1.0 / radius_sum;
         const double equiv_radius   = my_radius * other_radius * radius_sum_inv;
         const double contact_radius = sqrt(equiv_radius * indentation);
-        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * Globals::Pi * contact_radius * contact_radius * contact_radius / equiv_young);
+        const double cohesive_force = sqrt(8.0 * equiv_cohesion * Globals::Pi * contact_radius * contact_radius * contact_radius * equiv_young);
 
         return cohesive_force;
     }
-    
+
     double DEM_D_JKR_Cohesive_Law::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) {
-        
+
         const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
         const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
         const double my_young         = element->GetYoung();
@@ -57,7 +55,7 @@ namespace Kratos {
         //const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         //const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
         const double contact_radius = sqrt(equiv_radius * indentation);
-        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * Globals::Pi * contact_radius * contact_radius * contact_radius / equiv_young);
+        const double cohesive_force = sqrt(8.0 * equiv_cohesion * Globals::Pi * contact_radius * contact_radius * contact_radius * equiv_young);
 
         return cohesive_force;
     }

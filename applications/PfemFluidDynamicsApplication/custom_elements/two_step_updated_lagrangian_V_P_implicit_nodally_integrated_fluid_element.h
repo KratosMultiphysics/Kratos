@@ -9,18 +9,18 @@
 #if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODALLY_INTEGRATED_FLUID_ELEMENT_H_INCLUDED )
 #define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODALLY_INTEGRATED_FLUID_ELEMENT_H_INCLUDED
 
-// System includes 
+// System includes
 #include <string>
 #include <iostream>
 
 // External includes
 
- 
+
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 /* #include "includes/element.h" */
-#include "includes/serializer.h" 
+#include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 
@@ -63,9 +63,9 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -157,7 +157,7 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement const& rOther):
       BaseType(rOther)
       {}
- 
+
 
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement()
@@ -203,7 +203,7 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
- 
+
       /// Returns a list of the element's Dofs
       /**
        * @param ElementalDofList the list of DOFs
@@ -290,7 +290,7 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
- 
+
 
       ///@}
       ///@name Protected  Access

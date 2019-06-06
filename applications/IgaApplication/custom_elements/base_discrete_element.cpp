@@ -252,12 +252,11 @@ namespace Kratos
             for (int i = 0; i < N.size(); i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
-                const double cp_weight = iNode.GetValue(NURBS_CONTROL_POINT_WEIGHT);
                 const array_1d<double, 3>& coords = iNode.Coordinates();
 
-                condition_coords[0] += N[i] * coords[0] * cp_weight;
-                condition_coords[1] += N[i] * coords[1] * cp_weight;
-                condition_coords[2] += N[i] * coords[2] * cp_weight;
+                condition_coords[0] += N[i] * coords[0];
+                condition_coords[1] += N[i] * coords[1];
+                condition_coords[2] += N[i] * coords[2];
             }
             rOutput = condition_coords;
         }

@@ -13,6 +13,10 @@
 
 #include "integration_utilities/iga_integration_utilities.h"
 
+#include "spatial_containers/bins_dynamic_objects.h"
+#include "custom_utilities/search_utilities/bins_iga_configure.h"
+#include "custom_utilities/search_utilities/bins_iga_object.h"
+
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -66,11 +70,22 @@ namespace Kratos
 
         void ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters);
 
-        // void PrintBrepNodes();
-        
-        // void PrintEdgePolygon();
+        void GetInterfaceConditions(
+            ModelPart& rModelPart,
+            ModelPart& rIgaModelPart,
+            ModelPart& rInterfaceConditionsModelPart,
+            const std::string& rConditionName);
 
-        // void PrintTrimmingPolygon();
+        void GetInterfaceConditionsDEM(
+            ModelPart& rExternalModelPart,
+            ModelPart& rIgaModelPart,
+            ModelPart& rInterfaceConditionsModelPart,
+            const std::string& rConditionName,
+            const double ShapeFunctionDerivativesOrder,
+            const double SearchRadius,
+            const double Accuracy,
+            const double Tolerance,
+            const double NumberOfIterations);
 
         void ExportGeometry();
 
@@ -99,6 +114,7 @@ namespace Kratos
         ///@name Private Operations
         ///@{
 
+        const BrepVertex& GetBrepVertex(int& rBrepId) const;
         const BrepEdge& GetBrepEdge(int& rBrepId) const;
         const BrepFace& GetBrepFace(int& rBrepId) const;
         ///@}

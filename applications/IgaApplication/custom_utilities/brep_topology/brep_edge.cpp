@@ -45,10 +45,7 @@ namespace Kratos
     {
         int number_of_cps = mNodeCurveGeometry3D->NbPoles();
 
-        if (number_of_cps < 3)
-        {
-            KRATOS_ERROR << "BrepEdge::GetGeometryVariationNodes: Not enough control points to get Variation Nodes." << std::endl;
-        }
+        KRATOS_ERROR_IF(number_of_cps < 3) << "BrepEdge::GetGeometryVariationNodes: Not enough control points to get Variation Nodes." << std::endl;
 
         int t_start = 1;
         int t_end = number_of_cps - 1;
@@ -180,7 +177,9 @@ namespace Kratos
                     mNodeCurveGeometry3D->Degree(),
                     rShapeFunctionDerivativesOrder);
 
-                shape.Compute(mNodeCurveGeometry3D->Knots(), mEmbeddedPoints[ep].local_parameter);
+                shape.Compute(
+                    mNodeCurveGeometry3D->Knots(),
+                    mEmbeddedPoints[ep].local_parameter);
             }
         }
     }

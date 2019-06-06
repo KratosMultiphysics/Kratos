@@ -60,9 +60,9 @@ protected:
 
             dA = 1.0;
 
-            Matrix H = ZeroMatrix(3, 3);
-            Matrix Q = ZeroMatrix(3, 3);
-            Matrix T = ZeroMatrix(3, 3);
+            H = ZeroMatrix(3, 3);
+            Q = ZeroMatrix(3, 3);
+            T = ZeroMatrix(3, 3);
         }
     };
 
@@ -127,7 +127,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of SurfaceBaseDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceBaseDiscreteElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceBaseDiscreteElement);
     ///@}
     ///@name Life Cycle
     ///@{

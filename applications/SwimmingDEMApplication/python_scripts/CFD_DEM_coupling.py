@@ -33,7 +33,7 @@ class ProjectionModule:
         self.projector_parameters = Parameters("{}")
         self.projector_parameters.AddValue("backward_coupling", project_parameters["coupling"]["backward_coupling"])
         self.projector_parameters.AddValue("coupling_type", project_parameters["coupling"]["coupling_weighing_type"])
-        self.projector_parameters.AddValue("time_averaging_type", project_parameters["coupling"]["time_averaging_type"])
+        self.projector_parameters.AddValue("forward_coupling", project_parameters["coupling"]["forward_coupling"])
         self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["coupling"]["backward_coupling"]["viscosity_modification_type"])
         self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])

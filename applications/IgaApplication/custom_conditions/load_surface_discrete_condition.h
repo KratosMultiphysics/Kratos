@@ -69,12 +69,12 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_shared<LoadSurfaceDiscreteCondition>(
+            return Kratos::make_intrusive<LoadSurfaceDiscreteCondition>(
                 NewId, pGeom, pProperties);
         };
         Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_shared< LoadSurfaceDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+            return Kratos::make_intrusive< LoadSurfaceDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
         /**

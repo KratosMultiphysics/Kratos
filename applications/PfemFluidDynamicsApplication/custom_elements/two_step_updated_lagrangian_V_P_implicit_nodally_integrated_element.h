@@ -45,7 +45,7 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
   ///@}
   ///@name  Enum's
@@ -84,7 +84,7 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement);
 
       ///base type:
       typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;

@@ -102,23 +102,23 @@ namespace Kratos
             CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
 
             // adding  non-linear-contribution to Stiffness-Matrix
-            //CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-            //    second_variations_strain,
-            //    constitutive_variables_membrane.S,
-            //    integration_weight);
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+                second_variations_strain,
+                constitutive_variables_membrane.S,
+                integration_weight);
 
-            //CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-            //    second_variations_curvature,
-            //    constitutive_variables_curvature.S,
-            //    integration_weight);
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+                second_variations_curvature,
+                constitutive_variables_curvature.S,
+                integration_weight);
         }
 
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             // operation performed: rRightHandSideVector -= Weight*IntForce
-            //noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
-            //noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
+            noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
+            noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
 
         //KRATOS_WATCH(rLeftHandSideMatrix)
@@ -342,7 +342,7 @@ namespace Kratos
         metric.dA = norm_2(metric.g3);
         //normal vector _n
         Vector n = metric.g3 / metric.dA;
-
+        metric.g3 = n;
 
         //GetCovariantMetric
         metric.gab[0] = pow(metric.g1[0], 2) + pow(metric.g1[1], 2) + pow(metric.g1[2], 2);
@@ -373,6 +373,7 @@ namespace Kratos
         array_1d<double, 3> e1 = metric.g1 / lg1;
         double lg_con2 = norm_2(g_con_2);
         array_1d<double, 3> e2 = g_con_2 / lg_con2;
+
 
         Matrix mG = ZeroMatrix(2, 2);
         mG(0, 0) = inner_prod(e1, g_con_1);
@@ -450,9 +451,9 @@ namespace Kratos
         Vector curvature_vector = ZeroVector(3);
 
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T, strain_vector);
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature, mInitialMetric.curvature);
-        rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.T, curvature_vector);
+        rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.Q, curvature_vector);
 
         //Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter

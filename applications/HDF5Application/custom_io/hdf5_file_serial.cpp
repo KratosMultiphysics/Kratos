@@ -1,9 +1,72 @@
 #include "hdf5_file_serial.h"
 
 #include <utility>
+#include <vector>
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
+
+namespace
+{
+namespace hdf5_file_serial_cpp
+{
+using namespace Kratos;
+using namespace HDF5;
+
+hid_t CreateNewDataSet(const hid_t DataTypeId,
+                       const std::vector<hsize_t>& rDims,
+                       const hid_t FileId,
+                       const std::string& rPath)
+{
+    const hid_t dspace_id = H5Screate_simple(rDims.size(), rDims.data(), nullptr);
+    const hid_t dset_id = H5Dcreate(FileId, rPath.c_str(), DataTypeId, dspace_id,
+                                    H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
+    return dset_id;
+}
+
+hid_t OpenExistingDataSet(const hid_t FileId,
+                          const std::string& rPath)
+{
+    const hid_t dset_id = H5Dopen(FileId, rPath.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
+    return dset_id;
+}
+
+bool HasMatchingScalarDataType(const HDF5::Vector<int>&, const File& rFile, const std::string& rPath)
+{
+    return rFile.HasIntDataType(rPath);
+}
+
+bool HasMatchingScalarDataType(const HDF5::Vector<double>&,
+                               const File& rFile,
+                               const std::string& rPath)
+{
+    return rFile.HasFloatDataType(rPath);
+}
+
+bool HasMatchingScalarDataType(const HDF5::Vector<array_1d<double, 3>>&,
+                               const File& rFile,
+                               const std::string& rPath)
+{
+    return rFile.HasFloatDataType(rPath);
+}
+
+bool HasMatchingScalarDataType(const HDF5::Matrix<int>&, const File& rFile, const std::string& rPath)
+{
+    return rFile.HasIntDataType(rPath);
+}
+
+bool HasMatchingScalarDataType(const HDF5::Matrix<double>&,
+                               const File& rFile,
+                               const std::string& rPath)
+{
+    return rFile.HasFloatDataType(rPath);
+}
+
+} // namespace hdf5_file_serial_cpp
+} // namespace
 
 namespace Kratos
 {
@@ -180,49 +243,37 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
 {
     KRATOS_TRY;
     BuiltinTimer timer;
-    // Expects a valid free path.
-    KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
+    using namespace hdf5_file_serial_cpp;
 
     // Create any missing subpaths.
-    auto pos = rPath.find_last_of('/');
+    const auto pos = rPath.find_last_of('/');
     if (pos != 0) // Skip if last '/' is root.
     {
-        std::string sub_path = rPath.substr(0, pos);
+        const std::string sub_path = rPath.substr(0, pos);
         AddPath(sub_path);
     }
 
-    // Initialize data space dimensions.
-    constexpr bool is_int_type = std::is_same<int, T>::value;
-    constexpr bool is_double_type = std::is_same<double, T>::value;
-    constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
-    constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
-    hsize_t dims[ndims] = {0};
-    dims[0] = rData.size(); // Set first data space dimension.
-    if (is_array_1d_type)
-        dims[1] = 3; // Set second data space dimension (array_1d<double,3>).
-
-    // Set the data type.
-    hid_t dtype_id;
-    if (is_int_type)
-        dtype_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        dtype_id = H5T_NATIVE_DOUBLE;
-    else if (is_array_1d_type)
-        dtype_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type || is_array_1d_type,
-                      "Unsupported data type.");
-
     // Create and write the data set.
-    hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
-    hid_t file_id = GetFileId();
-    hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, dspace_id,
-                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
+    const hid_t dtype_id = Internals::GetScalarDataType(rData);
+    const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
+    const hid_t file_id = GetFileId();
+    hid_t dset_id{};
+    if (!HasPath(rPath))
+    {
+        dset_id = CreateNewDataSet(dtype_id, dims, file_id, rPath);
+    }
+    else
+    {
+        KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
+            << "Wrong scalar data type: " << rPath << std::endl;
+        KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != dims)
+            << "Wrong dimensions: " << rPath << std::endl;
+        dset_id = OpenExistingDataSet(file_id, rPath);
+    }
+
     KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData[0]) < 0)
         << "H5Dwrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
 
     // Set the write info.
     rInfo.StartIndex = 0;
@@ -240,36 +291,36 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
 {
     KRATOS_TRY;
     BuiltinTimer timer;
-    // Check that full path does not exist before trying to write data.
-    KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
+    using namespace hdf5_file_serial_cpp;
 
     // Create any missing subpaths.
-    auto pos = rPath.find_last_of('/');
+    const auto pos = rPath.find_last_of('/');
     if (pos != 0) // Skip if last '/' is root.
     {
-        std::string sub_path = rPath.substr(0, pos);
+        const std::string sub_path = rPath.substr(0, pos);
         AddPath(sub_path);
     }
 
-    // Initialize data space dimensions.
-    const unsigned ndims = 2;
-    hsize_t dims[ndims];
-    dims[0] = rData.size1();
-    dims[1] = rData.size2();
-
-    // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType<T>();
-
     // Create and write the data set.
-    hid_t dspace_id = H5Screate_simple(ndims, dims, nullptr);
-    hid_t file_id = GetFileId();
-    hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, dspace_id,
-                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
+    const hid_t dtype_id = Internals::GetScalarDataType(rData);
+    const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
+    const hid_t file_id = GetFileId();
+    hid_t dset_id{};
+    if (!HasPath(rPath))
+    {
+        dset_id = CreateNewDataSet(dtype_id, dims, file_id, rPath);
+    }
+    else
+    {
+        KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
+            << "Wrong scalar data type: " << rPath << std::endl;
+        KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != dims)
+            << "Wrong dimensions: " << rPath << std::endl;
+        dset_id = OpenExistingDataSet(file_id, rPath);
+    }
     KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData(0, 0)) < 0)
         << "H5Dwrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
 
     // Set the write info.
     rInfo.StartIndex = 0;
@@ -288,12 +339,13 @@ void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
 {
     KRATOS_TRY;
     BuiltinTimer timer;
+    using namespace hdf5_file_serial_cpp;
     // Check that full path exists.
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
         << "Path is not a data set: " << rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
+        << "Wrong scalar data type: " << rPath << std::endl;
 
-    constexpr bool is_int_type = std::is_same<int, T>::value;
-    constexpr bool is_double_type = std::is_same<double, T>::value;
     constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
     constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
 
@@ -318,30 +370,6 @@ void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
     if (is_array_1d_type)
         mem_dims[1] = 3; // Set second dimension.
 
-    // Set the data type.
-    hid_t dtype_id;
-    if (is_int_type)
-    {
-        KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
-            << "Data type is not int: " << rPath << std::endl;
-        dtype_id = H5T_NATIVE_INT;
-    }
-    else if (is_double_type)
-    {
-        KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-            << "Data type is not float: " << rPath << std::endl;
-        dtype_id = H5T_NATIVE_DOUBLE;
-    }
-    else if (is_array_1d_type)
-    {
-        KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-            << "Data type is not float: " << rPath << std::endl;
-        dtype_id = H5T_NATIVE_DOUBLE;
-    }
-    else
-        static_assert(is_int_type || is_double_type || is_array_1d_type,
-                      "Unsupported data type.");
-
     hid_t file_id = GetFileId();
     hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
@@ -349,6 +377,7 @@ void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
     hid_t mem_space_id = H5Screate_simple(ndims, mem_dims, nullptr);
     KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start, nullptr, mem_dims, nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
+    hid_t dtype_id = Internals::GetScalarDataType(rData);
     KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, &rData[0]) < 0)
         << "H5Dread failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
@@ -368,10 +397,12 @@ void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
 {
     KRATOS_TRY;
     BuiltinTimer timer;
+    using namespace hdf5_file_serial_cpp;
     // Check that full path exists.
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
         << "Path is not a data set: " << rPath << std::endl;
-
+    KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
+        << "Wrong scalar data type: " << rPath << std::endl;
     const unsigned ndims = 2;
 
     // Check consistency of file's data set dimensions.
@@ -392,18 +423,6 @@ void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
     mem_dims[1] = rData.size2(); // Set second dimension.
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType<T>();
-    if (dtype_id == H5T_NATIVE_INT)
-    {
-        KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
-            << "Data type is not int: " << rPath << std::endl;
-    }
-    else if (dtype_id == H5T_NATIVE_DOUBLE)
-    {
-        KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-            << "Data type is not float: " << rPath << std::endl;
-    }
-
     hid_t file_id = GetFileId();
     hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
@@ -411,6 +430,7 @@ void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
     hid_t mem_space_id = H5Screate_simple(ndims, mem_dims, nullptr);
     KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start, nullptr, mem_dims, nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
+    hid_t dtype_id = Internals::GetScalarDataType(rData);
     KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
                             H5P_DEFAULT, &rData(0, 0)) < 0)
         << "H5Dread failed." << std::endl;

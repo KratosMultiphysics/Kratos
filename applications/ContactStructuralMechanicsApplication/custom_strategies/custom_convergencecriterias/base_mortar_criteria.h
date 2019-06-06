@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class DisplacementLagrangeMultiplierContactCriteria
+ * @class BaseMortarConvergenceCriteria
  * @ingroup ContactStructuralMechanicsApplication
  * @brief Custom convergence criteria for the mortar condition
  * @author Vicente Mataix Ferrandiz
@@ -68,6 +68,10 @@ public:
 
     /// Pointer definition of BaseMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( BaseMortarConvergenceCriteria );
+
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DYNAMIC_FACTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( IO_DEBUG );
 
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -95,17 +99,22 @@ public:
         const bool IODebug = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mComputeDynamicFactor(ComputeDynamicFactor),
-          mIODebug(IODebug),
-          mpGidIO(nullptr)
+          mpIO(nullptr)
     {
-        if (mIODebug)
-            mpGidIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+        // Set local flags
+        mOptions.Set(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR, ComputeDynamicFactor);
+        mOptions.Set(BaseMortarConvergenceCriteria::IO_DEBUG, IODebug);
+
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
+            mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+        }
     }
 
     ///Copy constructor
     BaseMortarConvergenceCriteria( BaseMortarConvergenceCriteria const& rOther )
-      :BaseType(rOther)
+      :BaseType(rOther),
+       mOptions(rOther.mOptions),
+       mpIO(rOther.mpIO)
     {
     }
 
@@ -157,7 +166,7 @@ public:
         }
 
         // In dynamic case
-        if ( dynamic_case && mComputeDynamicFactor) {
+        if ( dynamic_case && mOptions.Is(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR)) {
             ComputeDynamicFactorProcess compute_dynamic_factor_process( r_contact_model_part );
             compute_dynamic_factor_process.Execute();
         }
@@ -205,39 +214,39 @@ public:
         ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
 
         // GiD IO for debugging
-        if (mIODebug) {
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
 
             if (nl_iter == 1) {
-                mpGidIO->InitializeMesh(label);
-                mpGidIO->WriteMesh(rModelPart.GetMesh());
-                mpGidIO->FinalizeMesh();
-                mpGidIO->InitializeResults(label, rModelPart.GetMesh());
+                mpIO->InitializeMesh(label);
+                mpIO->WriteMesh(rModelPart.GetMesh());
+                mpIO->FinalizeMesh();
+                mpIO->InitializeResults(label, rModelPart.GetMesh());
             }
 
-            mpGidIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-            mpGidIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+            mpIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
+            mpIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            mpIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            mpIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+            mpIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+            mpIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
+            mpIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+            mpIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
             if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
-                mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
-                mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
             if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
-            else
-                mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
-            mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
+            else if (r_nodes_array.begin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X))
+                mpIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
+            mpIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
             if (frictional_problem) {
-                mpGidIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
-                mpGidIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
-                mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+                mpIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
+                mpIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
             }
         }
 
@@ -272,12 +281,12 @@ public:
         // Update normal of the conditions
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
 
-        // GiD IO for debugging
-        if (mIODebug) {
-            mpGidIO->CloseResultFile();
+        // IO for debugging
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
+            mpIO->CloseResultFile();
             std::ostringstream new_name ;
             new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
-            mpGidIO->ChangeOutputName(new_name.str());
+            mpIO->ChangeOutputName(new_name.str());
         }
     }
 
@@ -297,9 +306,10 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // GiD IO for debugging
-        if (mIODebug)
-            mpGidIO->FinalizeResults();
+        // IO for debugging
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
+            mpIO->FinalizeResults();
+        }
     }
 
     ///@}
@@ -326,6 +336,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    Flags mOptions; /// Local flags
 
     ///@}
     ///@name Protected Operators
@@ -366,9 +378,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mComputeDynamicFactor;     /// If we compute the dynamic factor
-    bool mIODebug;                  /// If we generate an output gid file in order to debug
-    GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO
+    GidIOBaseType::Pointer mpIO; /// The pointer to the debugging IO
 
     ///@}
     ///@name Private Operators
@@ -426,8 +436,18 @@ private:
 
 }; // Class BaseMortarConvergenceCriteria
 
-///@name Explicit Specializations
+///@name Local flags creation
 ///@{
+
+/// Local Flags
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::COMPUTE_DYNAMIC_FACTOR(Kratos::Flags::Create(0));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_COMPUTE_DYNAMIC_FACTOR(Kratos::Flags::Create(0, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::IO_DEBUG(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_IO_DEBUG(Kratos::Flags::Create(1, false));
 
 }  // namespace Kratos
 

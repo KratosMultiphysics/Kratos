@@ -45,7 +45,7 @@ Condition::Pointer ThermalFace::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<ThermalFace>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<ThermalFace>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 Condition::Pointer ThermalFace::Create(
@@ -53,7 +53,7 @@ Condition::Pointer ThermalFace::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<ThermalFace>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<ThermalFace>(NewId, pGeom, pProperties);
 }
 
 void ThermalFace::EquationIdVector(

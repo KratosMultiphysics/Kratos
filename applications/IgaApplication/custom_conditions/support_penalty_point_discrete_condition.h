@@ -61,7 +61,7 @@ namespace Kratos
 
         Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_shared< SupportPenaltyPointDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+            return Kratos::make_intrusive< SupportPenaltyPointDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
         ///@}
         ///@name Operations

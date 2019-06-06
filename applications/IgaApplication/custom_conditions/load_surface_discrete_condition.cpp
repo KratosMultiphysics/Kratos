@@ -29,16 +29,16 @@ namespace Kratos
         const bool CalculateResidualVectorFlag)
     {
         const int number_of_control_points = NumberOfNodes();
-        const int mat_size = NumberOfDofs();
-
-        Vector fLoads = ZeroVector(mat_size);
 
         const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
         const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
         array_1d<double, 3> g3 = ZeroVector(3);
-        IgaSurfaceUtilties::CalculateBaseVector(GetGeometry(), DN_De, g3);
+        IgaSurfaceUtilities::CalculateBaseVector(
+            GetGeometry(),
+            DN_De,
+            g3);
 
         const double d_area = norm_2(g3);
         const double integration_weight_area = integration_weight * d_area;
@@ -51,9 +51,9 @@ namespace Kratos
             for (int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                fLoads[index]     = - surface_load[0] * integration_weight_area * N[i];
-                fLoads[index + 1] = - surface_load[1] * integration_weight_area * N[i];
-                fLoads[index + 2] = - surface_load[2] * integration_weight_area * N[i];
+                rRightHandSideVector[index]     = - surface_load[0] * integration_weight_area * N[i];
+                rRightHandSideVector[index + 1] = - surface_load[1] * integration_weight_area * N[i];
+                rRightHandSideVector[index + 2] = - surface_load[2] * integration_weight_area * N[i];
             }
         }
 
@@ -67,13 +67,11 @@ namespace Kratos
             for (int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                fLoads[index]     = - direction[0] * pressure * integration_weight_area * N[i];
-                fLoads[index + 1] = - direction[1] * pressure * integration_weight_area * N[i];
-                fLoads[index + 2] = - direction[2] * pressure * integration_weight_area * N[i];
+                rRightHandSideVector[index]     = - direction[0] * pressure * integration_weight_area * N[i];
+                rRightHandSideVector[index + 1] = - direction[1] * pressure * integration_weight_area * N[i];
+                rRightHandSideVector[index + 2] = - direction[2] * pressure * integration_weight_area * N[i];
             }
         }
-
-        noalias(rRightHandSideVector) -= fLoads;
     }
 
     void LoadSurfaceDiscreteCondition::EquationIdVector(

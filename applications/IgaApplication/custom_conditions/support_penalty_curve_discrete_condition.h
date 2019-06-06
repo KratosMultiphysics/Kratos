@@ -72,7 +72,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_shared<SupportPenaltyCurveDiscreteCondition>(
+            return Kratos::make_intrusive<SupportPenaltyCurveDiscreteCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -82,7 +82,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_shared< SupportPenaltyCurveDiscreteCondition >(
+            return Kratos::make_intrusive< SupportPenaltyCurveDiscreteCondition >(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 

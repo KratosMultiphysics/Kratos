@@ -198,6 +198,10 @@ namespace Kratos
         if (!Master)
             shift = number_of_points - DN_De.size1();
 
+        KRATOS_WATCH(GetGeometry().size())
+            KRATOS_WATCH(DN_De.size1())
+            KRATOS_WATCH(DN_De.size2())
+
         for (unsigned int i = 0; i < DN_De.size1(); i++)
         {
             for (unsigned int k = 0; k < working_space_dimension; k++)

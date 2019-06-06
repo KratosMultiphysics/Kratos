@@ -205,6 +205,30 @@ public:
      */
     typedef GeometryData::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
 
+
+    ///**
+    //* Derivative type of any order of derivative. Also for shape functions.
+    //* The matrix is (derivative direction, corresponding)
+    //*/
+    //typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
+
+    ///**
+    //* Derivative type of any order of derivative. Also for shape functions.
+    //* DenseVector: each respective integration point is accessed.
+    //*  Matrix: (derivative direction, corresponding)
+    //*/
+    //typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
+
+    ///**
+    //* Vector of derivatives until any order of derivative, including for shape functions.
+    //* In the first DenseVector the order of derivative is adressed.
+    //* Within the second DenseVector each respective integration point is accessed.
+    //* The matrix is (derivative direction, corresponding)
+    //*/
+    //typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
+
+
+
     /** Type of the normal vector used for normal to edges in geomety.
      */
     typedef DenseVector<double> NormalType;
@@ -837,6 +861,57 @@ public:
     }
 
     /**
+    * @brief TO BE DONE
+    */
+    virtual array_1d<double, 3> Normal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex) const
+    {
+        Normal(rResult, IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /**
+    * @brief TO BE DONE
+    */
+    virtual array_1d<double, 3> Normal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        const unsigned int local_space_dimension = this->LocalSpaceDimension();
+        const unsigned int dimension = this->WorkingSpaceDimension();
+
+        KRATOS_ERROR_IF(dimension == local_space_dimension)
+            << "Remember the normal can be computed just in geometries with a local dimension: "
+            << this->LocalSpaceDimension() << "smaller than the spatial dimension: "
+            << this->WorkingSpaceDimension() << std::endl;
+
+        // We define the normal and tangents
+        array_1d<double, 3> tangent_xi(3, 0.0);
+        array_1d<double, 3> tangent_eta(3, 0.0);
+
+        Matrix j_node = ZeroMatrix(dimension, local_space_dimension);
+        this->Jacobian(j_node, IntegrationPointIndex, ThisMethod);
+
+        // Using the Jacobian tangent directions
+        if (dimension == 2) {
+            tangent_eta[2] = 1.0;
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+            }
+        }
+        else {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+                tangent_eta[i_dim] = j_node(i_dim, 1);
+            }
+        }
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal;
+    }
+
+    /**
      * @brief It computes the unit normal of the geometry in the given local point
      * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
@@ -848,6 +923,85 @@ public:
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         return normal;
+    }
+
+    /**
+    * @brief 
+    */
+    virtual array_1d<double, 3> UnitNormal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex) const
+    {
+        UnitNormal(rResult, IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /**
+    * @brief
+    */
+    virtual array_1d<double, 3> UnitNormal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        array_1d<double, 3> normal = Normal(rResult, IntegrationPointIndex);
+        const double norm_normal = norm_2(normal);
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+        else
+            KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: "
+            << norm_normal << std::endl;
+        rResult = normal;
+        return normal;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        const CoordinatesArrayType& rPointLocalCoordinates) const
+    {
+        KRATOS_ERROR 
+            << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. "
+            << *this << std::endl;
+        return ZeroMatrix(0, 0);
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex) const
+    {
+        Tangents(
+            rResult,
+            IntegrationPointIndex,
+            mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const 
+    {
+        KRATOS_ERROR << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return ZeroMatrix(0,0);
     }
 
     /** Calculates the quality of the geometry according to a given criteria.
@@ -1075,7 +1229,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        )
+        ) const
     {
         KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return false;
@@ -1123,44 +1277,99 @@ public:
     }
 
     ///@}
+    ///@name Boundaries
+    ///@{
+
+    /**
+     * @brief This method gives you all boundaries entities of this geometry.
+     * @details This method will gives you all the boundaries entities
+     * @return GeometriesArrayType containes this geometry boundaries entities.
+     * @see GeneratePoints()
+     * @see GenerateEdges()
+     * @see GenerateFaces()
+     */
+    virtual GeometriesArrayType GenerateBoundariesEntities() const
+    {
+        const SizeType dimension = this->LocalSpaceDimension();
+        if (dimension == 3) {
+            return this->GenerateFaces();
+        } else if (dimension == 2) {
+            return this->GenerateEdges();
+        } else { // Let's assume is one
+            return this->GeneratePoints();
+        }
+    }
+
+    ///@}
+    ///@name Points
+    ///@{
+
+    /**
+     * @brief This method gives you all points of this geometry.
+     * @details This method will gives you all the points
+     * @return GeometriesArrayType containes this geometry points.
+     * @see Points()
+     */
+    virtual GeometriesArrayType GeneratePoints() const
+    {
+        GeometriesArrayType points;
+
+        const auto& p_points = this->Points();
+        for (IndexType i_point = 0; i_point < p_points.size(); ++i_point) {
+            PointsArrayType point_array;
+            point_array.push_back(p_points(i_point));
+            auto p_point_geometry = Kratos::make_shared<Geometry<TPointType>>(point_array);
+            points.push_back(p_point_geometry);
+        }
+
+        return points;
+    }
+
+    ///@}
     ///@name Edge
     ///@{
 
-    /** This method gives you number of all edges of this
-     * geometry. For example, for a hexahedron, this would be
-     * 12
-     *
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
      * @return SizeType containes number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
+     * @see GenerateEdges()
      * @see FacesNumber()
      * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     virtual SizeType EdgesNumber() const
     {
         KRATOS_ERROR << "Calling base class EdgesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return SizeType();
     }
 
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @deprecated This is legacy version, move to GenerateFaces
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Edges( void )
+    {
+        return this->GenerateEdges();
+    }
 
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual GeometriesArrayType Edges( void )
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    virtual GeometriesArrayType GenerateEdges() const
     {
         KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return GeometriesArrayType();
     }
 
     /** This method gives you an edge of this geometry which holds
@@ -1173,17 +1382,20 @@ public:
     @see EdgesNumber()
     @see Edges()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual Pointer Edge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
 //
 //  }
 
+    ///@}
+    ///@name Face
+    ///@{
+
     /**
-     * Returns the number of faces of the current geometry.
-     * This is only implemented for 3D geometries, since 2D geometries
-     * only have edges but no faces
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
      * @see EdgesNumber
      * @see Edges
      * @see Faces
@@ -1191,23 +1403,38 @@ public:
     virtual SizeType FacesNumber() const
     {
         KRATOS_ERROR << "Calling base class FacesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return SizeType();
     }
 
     /**
-     * Returns all faces of the current geometry.
-     * This is only implemented for 3D geometries, since 2D geometries
-     * only have edges but no faces
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @deprecated This is legacy version, move to GenerateFaces
      * @see EdgesNumber
      * @see Edges
      * @see FacesNumber
      */
-    virtual GeometriesArrayType Faces( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Faces( void )
     {
-        KRATOS_ERROR << "Calling base class Faces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        const SizeType dimension = this->LocalSpaceDimension();
+        if (dimension == 3) {
+            return this->GenerateFaces();
+        } else {
+            return this->GenerateEdges();
+        }
+    }
 
-        return GeometriesArrayType();
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    virtual GeometriesArrayType GenerateFaces() const
+    {
+        KRATOS_ERROR << "Calling base class GenerateFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
     //Connectivities of faces required
@@ -1230,7 +1457,7 @@ public:
     @see EdgesNumber()
     @see Edges()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual Pointer Edge(IndexType EdgeIndex)
 //  {
 //    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
@@ -1243,7 +1470,7 @@ public:
     @return NormalType which is normal to this geometry specific edge.
     @see Edge()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual NormalType NormalEdge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl
@@ -1258,7 +1485,7 @@ public:
     @return NormalType which is normal to this geometry specific edge.
     @see Edge()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual NormalType NormalEdge(IndexType EdgeIndex)
 //  {
 //    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
@@ -1859,11 +2086,40 @@ public:
         return rResult;
     }
 
-
-
     ///@}
     ///@name Shape Function
     ///@{
+
+    //const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder) const
+    //{
+    //    return mpGeometryData->ShapeFunctionsDerivativesIntegrationPoints(DerivativeOrder);
+    //}
+
+    //const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder,
+    //    IndexType IntegrationPointIndex) const
+    //{
+    //    return mpGeometryData->ShapeFunctionsDerivatives(DerivativeOrder, IntegrationPointIndex);
+    //}
+
+    //virtual ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
+    //    IndexType DerivativeOrder,
+    //    Vector &rResult,
+    //    const CoordinatesArrayType& rCoordinates) const
+    //{
+    //    KRATOS_ERROR << "Calling base class ShapeFunctionsDerivative method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    //    return rResult;
+    //}
+
+    //virtual ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder,
+    //    Vector &rResult,
+    //    const CoordinatesArrayType& rCoordinates) const
+    //{
+    //    KRATOS_ERROR << "Calling base class ShapeFunctionsDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    //    return rResult;
+    //}
 
     /** This method gives all shape functions values evaluated in all
     integration points of default integration method. It just
@@ -2540,7 +2796,7 @@ protected:
 
     /** Calculates the min dihedral angle quality metric.
      * Calculates the min dihedral angle quality metric.
-     * The min dihedral angle is min angle between two faces of the element 
+     * The min dihedral angle is min angle between two faces of the element
      * In radians
      * @return [description]
      */

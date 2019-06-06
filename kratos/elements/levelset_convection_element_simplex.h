@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(LevelSetConvectionElementSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LevelSetConvectionElementSimplex);
 
     ///@}
     ///@name Life Cycle
