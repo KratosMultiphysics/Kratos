@@ -127,13 +127,13 @@ void MPIDataCommunicator::Recv(std::vector<type>& rRecvValues,                  
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type)                  \
-void MPIDataCommunicator::Broadcast(type& rBuffer, const int SourceRank) const {                \
-    BroadcastDetail(rBuffer,SourceRank);                                                        \
-}                                                                                               \
-void MPIDataCommunicator::Broadcast(std::vector<type>& rBuffer, const int SourceRank) const {   \
-    BroadcastDetail(rBuffer,SourceRank);                                                        \
-}                                                                                               \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type)                      \
+void MPIDataCommunicator::BroadcastImpl(type& rBuffer, const int SourceRank) const {                \
+    BroadcastDetail(rBuffer,SourceRank);                                                            \
+}                                                                                                   \
+void MPIDataCommunicator::BroadcastImpl(std::vector<type>& rBuffer, const int SourceRank) const {   \
+    BroadcastDetail(rBuffer,SourceRank);                                                            \
+}                                                                                                   \
 
 #endif
 
@@ -347,7 +347,7 @@ Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const
 
 // Broadcast operations
 
-void MPIDataCommunicator::Broadcast(std::string& rBroadcastValues, const int SourceRank) const
+void MPIDataCommunicator::BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const
 {
     BroadcastDetail(rBroadcastValues, SourceRank);
 }

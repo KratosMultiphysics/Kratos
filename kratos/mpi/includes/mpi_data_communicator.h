@@ -78,9 +78,9 @@ void Recv(std::vector<type>& rRecvValues,                                       
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type) \
-void Broadcast(type& rBuffer, const int SourceRank) const override;             \
-void Broadcast(std::vector<type>& rBuffer, const int SourceRank) const override;\
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type)         \
+void BroadcastImpl(type& rBuffer, const int SourceRank) const override;                 \
+void BroadcastImpl(std::vector<type>& rBuffer, const int SourceRank) const override;    \
 
 #endif
 
@@ -211,7 +211,7 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Broadcast operations
 
-    void Broadcast(std::string& rBroadcastValues, const int SourceRank) const override;
+    void BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const override;
 
     // Sendrecv operations
 

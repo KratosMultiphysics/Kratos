@@ -162,9 +162,9 @@ virtual void Recv(std::vector<type>& rRecvValues, const int RecvSource, const in
  *  @param[in] SourceRank The rank transmitting the value.
  */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
-#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type)    \
-virtual void Broadcast(type& rBuffer, const int SourceRank) const {}                \
-virtual void Broadcast(std::vector<type>& rBuffer, const int SourceRank) const {}   \
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type)        \
+virtual void BroadcastImpl(type& rBuffer, const int SourceRank) const {}                \
+virtual void BroadcastImpl(std::vector<type>& rBuffer, const int SourceRank) const {}   \
 
 #endif
 
@@ -446,10 +446,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     // Broadcast operations
 
-    virtual void Broadcast(std::string& rBuffer, const int SourceRank) const {};
+    virtual void BroadcastImpl(std::string& rBuffer, const int SourceRank) const {};
 
     template<class TObject>
-    void Broadcast(TObject& rBroadcastObject, const int SourceRank) const
+    void BroadcastImpl(TObject& rBroadcastObject, const int SourceRank) const
     {
         CheckSerializationForSimpleType(rBroadcastObject, TypeFromBool<serialization_is_required<TObject>::value>());
         if (this->IsDistributed())
@@ -482,6 +482,12 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
                 recv_serializer.load("data", rBroadcastObject);
             }
         }
+    }
+
+    template<class TObject>
+    void Broadcast(TObject& rBroadcastObject, const int SourceRank) const
+    {
+        this->BroadcastImpl(rBroadcastObject, SourceRank);
     }
 
     // Sendrecv operations
