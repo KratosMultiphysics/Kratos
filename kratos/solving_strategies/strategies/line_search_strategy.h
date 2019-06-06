@@ -404,7 +404,7 @@ protected:
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
             double rf = TSparseSpace::Dot(aux,b);
 
-            std::cout << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
+            KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
 
 
             if(std::abs(rf) < rmax*mLineSearchTolerance) {
