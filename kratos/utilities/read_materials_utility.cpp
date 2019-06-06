@@ -128,12 +128,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
         // Compute the size using the iterators
         std::size_t variables_size = 0;
-        for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
-            ++variables_size;
-
+        if (Data["Material"].Has("Variables")) {
+            for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it) {
+                ++variables_size;
+            }
+        }
         std::size_t tables_size = 0;
-        for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
-            ++tables_size;
+        if (Data["Material"].Has("Tables")) {
+            for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it) {
+                ++tables_size;
+            }
+        }
 
         KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables())
             << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
