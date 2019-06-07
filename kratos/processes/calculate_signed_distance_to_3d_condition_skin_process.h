@@ -311,6 +311,7 @@ private:
       CalculateSignedDistanceTo3DConditionSkinProcess(ModelPart& rThisModelPartStruc, ModelPart& rThisModelPartFluid)
           : mrSkinModelPart(rThisModelPartStruc), mrBodyModelPart(rThisModelPartStruc), mrFluidModelPart(rThisModelPartFluid)
 	{
+        epsilon = 1e-12;
 	}
 
       /// Destructor.
@@ -1507,9 +1508,6 @@ private:
             intersections_container_type intersections;
             ConfigurationType::data_type nodes_array;
 
-
-            const double epsilon = 1e-12;
-
             double distance = 1.0;
 
             // Creating the ray
@@ -1642,7 +1640,6 @@ private:
             intersections_container_type intersections;
 
             const int dimension = 3;
-            const double epsilon = 1e-12;
 
             double distances[3] = {1.0, 1.0, 1.0};
 
@@ -1707,7 +1704,6 @@ private:
     //ray is of dimension (3) normalized in (0,1)^3 space
     // direction can be 0,1,2 which are x,y and z respectively
 
-    const double epsilon = 1.00e-12;
 
     // first clearing the intersections points vector
     intersections.clear();
@@ -1812,8 +1808,6 @@ private:
     //ray is of dimension (3) normalized in (0,1)^3 space
     // direction can be 0,1,2 which are x,y and z respectively
 
-    const double epsilon = 1.00e-12;
-
     // first clearing the intersections points vector
     intersections.clear();
 
@@ -1901,8 +1895,6 @@ private:
   {
       // This is the adaption of the implemnetation provided in:
       // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
-
-      const double epsilon = 1.00e-12;
 
     array_1d<double,3>    u, v, n;             // triangle vectors
     array_1d<double,3>    dir, w0, w;          // ray vectors
@@ -2118,7 +2110,7 @@ private:
 
         OctreeType mOctree;
 
-        static const double epsilon;
+        double epsilon;
 
       ///@}
       ///@name Private Operators
@@ -2182,7 +2174,6 @@ private:
     }
   ///@}
 
-  const double CalculateSignedDistanceTo3DConditionSkinProcess::epsilon = 1e-12;
 
 
 }  // namespace Kratos.
