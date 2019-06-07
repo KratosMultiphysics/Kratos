@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "generic_small_strain_femdem_element.hpp"
+#include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
 #include "solid_mechanics_application_variables.h"
 
@@ -590,12 +590,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableO
     const int edge
     )
 {
-    auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    auto& neighbour = r_elem_neigb[edge];
-
-    rAverageVector += pCurrentElement->GetValue(ThisVariable);
-    rAverageVector *= 0.5;
+	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+	rAverageVector += pCurrentElement->GetValue(ThisVariable);
+	rAverageVector *= 0.5;
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
@@ -1410,7 +1408,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AssignComponentsToTangent
 	const int Component
 	)
 {
-	const int voigt_size = rDeltaStress.size();
+	const IndexType voigt_size = rDeltaStress.size();
 	for (IndexType row = 0; row < voigt_size; ++row) {
 		rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
 	}
