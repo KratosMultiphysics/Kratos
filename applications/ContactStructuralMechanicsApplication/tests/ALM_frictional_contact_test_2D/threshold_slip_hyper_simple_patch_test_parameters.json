@@ -74,7 +74,7 @@
                 "model_part_name" : "Structure.IMPOSE_DISP_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
-                "value"           : [0.0,-2.0e-1,null]
+                "value"           : [0.0,-1.25e-1,null]
             }
         }
         ],
