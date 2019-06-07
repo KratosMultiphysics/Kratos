@@ -40,6 +40,7 @@
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "elements/distance_calculation_element_simplex.h"
 //#include "utilities/parallel_levelset_distance_calculator.h"
+#include "geometries/line_2d_2.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -295,6 +296,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
     {
         //this->pDistanceCalculator = typename ParallelDistanceCalculator<2>::Pointer(new ParallelDistanceCalculator<2>());
         dist_limit = 1e-10;
+        epsilon = 1e-12;
     }
 
     /// Destructor.
@@ -1750,8 +1752,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         intersections_container_type intersections;
         DistanceSpatialContainersConditionConfigure2d::data_type nodes_array;
 
-        const double epsilon = 1e-12;
-
         double distance = 1.0;
 
         // Creating the ray
@@ -1898,7 +1898,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         intersections_container_type intersections;
 
         const int dimension = 2;
-        const double epsilon = 1e-12;
 
         double distances[2] = {10000, 10000};
 
@@ -1977,8 +1976,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //This function passes the ray through the model and gives the hit point to all objects in its way
         //ray is of dimension (3) normalized in (0,1)^3 space
         // direction can be 0,1,2 which are x,y and z respectively
-
-        const double epsilon = 1.00e-12;
 
         // first clearing the intersections points vector
         intersections.clear();
@@ -2090,9 +2087,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //This function passes the ray through the model and gives the hit point to all objects in its way
         //ray is of dimension (2) normalized in (0,1)^2 space
         // direction can be 0,1which are x,y respectively
-
-        const double epsilon = 1.00e-12;
-
         // first clearing the intersections points vector
         intersections.clear();
 
@@ -2459,7 +2453,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
     boost::shared_ptr<QuadtreeType> mpQuadtree;
 
-    static const double epsilon;
+    double epsilon;
     double dist_limit;
     //typename ParallelDistanceCalculator<2>::Pointer pDistanceCalculator;
 
@@ -2688,8 +2682,6 @@ inline std::ostream &operator<<(std::ostream &rOStream,
     return rOStream;
 }
 ///@}
-
-const double CalculateSignedDistanceTo2DConditionSkinProcess::epsilon = 1e-12;
 
 } // namespace Kratos.
 
