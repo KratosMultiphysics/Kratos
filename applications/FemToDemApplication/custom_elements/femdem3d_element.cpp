@@ -14,7 +14,6 @@
 #include "femdem3d_element.hpp"
 #include "fem_to_dem_application_variables.h"
 #include "solid_mechanics_application_variables.h"
-#include "processes/find_nodal_neighbours_process.h"
 
 
 namespace Kratos

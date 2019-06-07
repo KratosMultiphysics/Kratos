@@ -168,80 +168,88 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override the values of material parameters in the p_properties
-    Parameters variables = Data["Variables"];
-    for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
-        const Parameters value = variables.GetValue(iter.name());
+    if (Data.Has("Variables")) {
+        Parameters variables = Data["Variables"];
+        for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
+            const Parameters value = variables.GetValue(iter.name());
 
-        std::string variable_name = iter.name();
-        TrimComponentName(variable_name);
+            std::string variable_name = iter.name();
+            TrimComponentName(variable_name);
 
-        // We don't just copy the values, we do some tyransformation depending of the destination variable
-        if (KratosComponents<Variable<double> >::Has(variable_name)) {
-            const Variable<double>& variable = KratosComponents<Variable<double>>().Get(variable_name);
-            CheckIfOverwritingValue(*pNewProperty, variable, value.GetDouble());
-            pNewProperty->SetValue(variable, value.GetDouble());
-        } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
-            const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
-            CheckIfOverwritingValue(*pNewProperty, variable, value.GetBool());
-            pNewProperty->SetValue(variable, value.GetBool());
-        } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
-            const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
-            CheckIfOverwritingValue(*pNewProperty, variable, value.GetInt());
-            pNewProperty->SetValue(variable, value.GetInt());
-        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
-            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
-            array_1d<double, 3> temp = ZeroVector(3);
-            const Vector& value_variable = value.GetVector();
-            KRATOS_ERROR_IF(value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 3" << std::endl;
-            for (IndexType index = 0; index < 3; ++index)
-                temp[index] = value_variable[index];
-            CheckIfOverwritingValue(*pNewProperty, variable, temp);
-            pNewProperty->SetValue(variable, temp);
-        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
-            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
-            array_1d<double, 6> temp = ZeroVector(6);
-            const Vector& value_variable = value.GetVector();
-            KRATOS_ERROR_IF(value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 6" << std::endl;
-            for (IndexType index = 0; index < 6; ++index)
-                temp[index] = value_variable[index];
-            CheckIfOverwritingValue(*pNewProperty, variable, temp);
-            pNewProperty->SetValue(variable, temp);
-        } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
-            const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
-            CheckIfOverwritingValue(*pNewProperty, variable, value.GetVector());
-            pNewProperty->SetValue(variable, value.GetVector());
-        } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
-            const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
-            CheckIfOverwritingValue(*pNewProperty, variable, value.GetMatrix());
-            pNewProperty->SetValue(variable, value.GetMatrix());
-        } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
-            const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
-            CheckIfOverwritingValue(*pNewProperty, variable, value.GetString());
-            pNewProperty->SetValue(variable, value.GetString());
-        } else {
-            KRATOS_ERROR << "Value type for \"" << variable_name << "\" not defined";
+            // We don't just copy the values, we do some tyransformation depending of the destination variable
+            if (KratosComponents<Variable<double> >::Has(variable_name)) {
+                const Variable<double>& r_variable = KratosComponents<Variable<double>>().Get(variable_name);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetDouble());
+                pNewProperty->SetValue(r_variable, value.GetDouble());
+            } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+                const Variable<bool>& r_variable = KratosComponents<Variable<bool>>().Get(variable_name);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetBool());
+                pNewProperty->SetValue(r_variable, value.GetBool());
+            } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+                const Variable<int>& r_variable = KratosComponents<Variable<int>>().Get(variable_name);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetInt());
+                pNewProperty->SetValue(r_variable, value.GetInt());
+            } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+                const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
+                array_1d<double, 3> temp = ZeroVector(3);
+                const Vector& r_value_variable = value.GetVector();
+                KRATOS_ERROR_IF(r_value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << r_value_variable.size() << " and it is supposed to be 3" << std::endl;
+                for (IndexType index = 0; index < 3; ++index)
+                    temp[index] = r_value_variable[index];
+                CheckIfOverwritingValue(*pNewProperty, r_variable, temp);
+                pNewProperty->SetValue(r_variable, temp);
+            } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+                const Variable<array_1d<double, 6>>& r_variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
+                array_1d<double, 6> temp(6, 0.0);
+                const Vector& r_value_variable = value.GetVector();
+                KRATOS_ERROR_IF(r_value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << r_value_variable.size() << " and it is supposed to be 6" << std::endl;
+                for (IndexType index = 0; index < 6; ++index)
+                    temp[index] = r_value_variable[index];
+                CheckIfOverwritingValue(*pNewProperty, r_variable, temp);
+                pNewProperty->SetValue(r_variable, temp);
+            } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
+                const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>().Get(variable_name);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetVector());
+                pNewProperty->SetValue(r_variable, value.GetVector());
+            } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+                const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetMatrix());
+                pNewProperty->SetValue(r_variable, value.GetMatrix());
+            } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
+                const Variable<std::string>& r_variable = KratosComponents<Variable<std::string>>().Get(variable_name);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetString());
+                pNewProperty->SetValue(r_variable, value.GetString());
+            } else {
+                KRATOS_ERROR << "Value type for \"" << variable_name << "\" not defined";
+            }
         }
+    } else {
+        KRATOS_INFO("Read materials") << "No variables defined for material ID: " << pNewProperty->Id() << std::endl;
     }
 
     // Add / override tables in the p_properties
-    Parameters tables = Data["Tables"];
-    for (auto iter = tables.begin(); iter != tables.end(); ++iter) {
-        auto table_param = tables.GetValue(iter.name());
-        // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
-        Table<double> table;
+    if (Data.Has("Tables")) {
+        Parameters tables = Data["Tables"];
+        for (auto iter = tables.begin(); iter != tables.end(); ++iter) {
+            auto table_param = tables.GetValue(iter.name());
+            // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
+            Table<double> table;
 
-        std::string input_var_name = table_param["input_variable"].GetString();
-        TrimComponentName(input_var_name);
-        std::string output_var_name = table_param["output_variable"].GetString();
-        TrimComponentName(output_var_name);
+            std::string input_var_name = table_param["input_variable"].GetString();
+            TrimComponentName(input_var_name);
+            std::string output_var_name = table_param["output_variable"].GetString();
+            TrimComponentName(output_var_name);
 
-        const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
-        const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
-        for (IndexType i = 0; i < table_param["data"].size(); ++i) {
-            table.insert(table_param["data"][i][0].GetDouble(),
-                         table_param["data"][i][1].GetDouble());
+            const auto& r_input_var = KratosComponents<Variable<double>>().Get(input_var_name);
+            const auto& r_output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+            for (IndexType i = 0; i < table_param["data"].size(); ++i) {
+                table.insert(table_param["data"][i][0].GetDouble(),
+                            table_param["data"][i][1].GetDouble());
+            }
+            pNewProperty->SetTable(r_input_var, r_output_var, table);
         }
-        pNewProperty->SetTable(input_var, output_var, table);
+    } else {
+        KRATOS_INFO("Read materials") << "No tables defined for material ID: " << pNewProperty->Id() << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -317,20 +325,29 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop;
     if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
-        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id << " in mesh ID: " << mesh_id << " is already defined. " << "This will overwrite the existing values" << std::endl;
+        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id
+            << " in mesh ID: " << mesh_id << " is already defined. "
+            << "This will overwrite the existing values" << std::endl;
         p_prop = r_model_part.pGetProperties(property_id, mesh_id);
 
         // Compute the size using the iterators
         std::size_t variables_size = 0;
-        for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
-            ++variables_size;
-
+        if (Data["Material"].Has("Variables")) {
+            for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it) {
+                ++variables_size;
+            }
+        }
         std::size_t tables_size = 0;
-        for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
-            ++tables_size;
+        if (Data["Material"].Has("Tables")) {
+            for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it) {
+                ++tables_size;
+            }
+        }
 
-        KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables()) << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
-        KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables()) << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
+        KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables())
+            << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
+        KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables())
+            << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
     } else {
         p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
     }

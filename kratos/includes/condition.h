@@ -166,12 +166,6 @@ public:
     {
     }
 
-    Condition::Pointer shared_from_this()
-    {
-        return std::static_pointer_cast<Condition>(GeometricalObject::shared_from_this());
-    }
-
-
     ///@}
     ///@name Operators
     ///@{

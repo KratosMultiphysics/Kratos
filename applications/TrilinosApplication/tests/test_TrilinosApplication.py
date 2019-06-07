@@ -18,6 +18,7 @@ import test_trilinos_redistance
 import test_trilinos_levelset_convection
 import test_kratos_mpi_interface
 import test_neighbours
+import test_nodal_elemental_neighbours
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -45,6 +46,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_levelset_convection.TestTrilinosLevelSetConvectionInMemory]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_mpi_interface.TestKratosMPIInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_neighbours.TestNeighbours]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_elemental_neighbours.TestNodalElementalNeighbours]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
