@@ -66,7 +66,7 @@ namespace Kratos
 template <std::size_t TDim>
 class ApplyChimeraProcessMonolithic : public Process
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
     ///@}
@@ -82,7 +82,6 @@ class ApplyChimeraProcessMonolithic : public Process
     typedef typename ModelPart::MasterSlaveConstraintType MasterSlaveConstraintType;
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
-
 
     ///@}
     ///@name Life Cycle
@@ -120,7 +119,6 @@ class ApplyChimeraProcessMonolithic : public Process
         this->mpCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
         mNumberOfConstraintsAdded = 0;
-
     }
 
     /// Destructor.
@@ -188,75 +186,6 @@ class ApplyChimeraProcessMonolithic : public Process
 
     void ExecuteFinalize() override
     {
-    }
-
-    void GetBoundingBox(ModelPart& rModelPart, std::vector<double>& rLowPoint, std::vector<double>& rHighPoint)
-    {
-        double rLowPoint0 = 1e10;
-        double rLowPoint1 = 1e10;
-        double rLowPoint2 = 1e10;
-
-        double rHighPoint0 = -1e10;
-        double rHighPoint1 = -1e10;
-        double rHighPoint2 = -1e10;
-
-
-        const unsigned int num_nodes = rModelPart.Nodes().size();
-        #pragma omp parallel for reduction(min:rLowPoint0) reduction(min:rLowPoint1) reduction(min:rLowPoint2) reduction(max:rHighPoint0) reduction(max:rHighPoint1) reduction(max:rHighPoint2)
-        for (unsigned int i_node=0; i_node<num_nodes; ++i_node)
-        {
-            ModelPart::NodesContainerType::iterator it_node = rModelPart.NodesBegin() + i_node;
-            rLowPoint0 = std::min(it_node->X(), rLowPoint0);
-            rLowPoint1 = std::min(it_node->Y(), rLowPoint1);
-            rLowPoint2 = std::min(it_node->Z(), rLowPoint2);
-
-            rHighPoint0 = std::max(it_node->X(), rHighPoint0);
-            rHighPoint1 = std::max(it_node->Y(), rHighPoint1);
-            rHighPoint2 = std::max(it_node->Z(), rHighPoint2);
-        }
-
-        rHighPoint[0] = rHighPoint0;
-        rHighPoint[1] = rHighPoint1;
-        rHighPoint[2] = rHighPoint2;
-
-        rLowPoint[0] = rLowPoint0;
-        rLowPoint[1] = rLowPoint1;
-        rLowPoint[2] = rLowPoint2;
-    }
-
-    bool BoundingBoxTest(ModelPart &A, ModelPart &B) //background A and Patch B
-    {
-        std::vector<double> min_cornerA(3), max_cornerA(3), min_cornerB(3), max_cornerB(3);
-
-        KRATOS_INFO("Computing bounding boxes for Background and Patch ... ") << std::endl;
-
-        GetBoundingBox(A, min_cornerA, max_cornerA);
-        GetBoundingBox(B, min_cornerB, max_cornerB);
-
-        KRATOS_INFO("Bounding box of Background") << min_cornerA[0] << "::" << max_cornerA[0] << std::endl;
-        KRATOS_INFO("Bounding box of patch") << min_cornerB[0] << "::" << max_cornerB[0] << std::endl;
-
-        ProcessInfo &CurrentProcessInfo = A.GetProcessInfo();
-        int idim = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
-
-        for (int i = 0; i < idim; i++)
-        {
-            if (min_cornerA[i] > max_cornerB[i])
-                return false;
-            if (max_cornerA[i] < min_cornerB[i])
-                return false;
-        }
-        return true;
-    }
-
-    void FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart, ModelPart &rInsideBoundary, ModelPart &rExtractedBoundaryModelPart)
-    {
-        std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
-
-        if (n_nodes == 3)
-            this->mpHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
-        else if (n_nodes == 4)
-            this->mpHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
     }
 
     void DoChimeraLoop() //selecting patch and background combination for chimera method
@@ -355,17 +284,15 @@ class ApplyChimeraProcessMonolithic : public Process
             for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart.ElementsBegin(); it != pHoleModelPart.ElementsEnd(); ++it)
                 it->Set(VISITED, true);
 
-            KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ")<< pModifiedPatchBoundaryModelPart.Nodes().size() << std::endl;
-            KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ")<< pHoleBoundaryModelPart.Nodes().size() << std::endl;
+            KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ") << pModifiedPatchBoundaryModelPart.Nodes().size() << std::endl;
+            KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ") << pHoleBoundaryModelPart.Nodes().size() << std::endl;
             mNumberOfConstraintsAdded = 0;
             ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, mpBinLocatorForBackground);
             KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
 
-
             mNumberOfConstraintsAdded = 0;
             ApplyMpcConstraint(pHoleBoundaryModelPart, mpBinLocatorForPatch);
             KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
-
 
             KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
             KRATOS_INFO("Formulate Chimera: Appplied MPCs") << std::endl;
@@ -378,7 +305,7 @@ class ApplyChimeraProcessMonolithic : public Process
         KRATOS_INFO("End of Formulate Chimera") << std::endl;
     }
 
-    void CreateConstraintIds(std::vector<int>& rIdVector, const IndexType NumberOfConstraintsRequired)
+    void CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired)
     {
         IndexType max_constraint_id = 0;
         // Get current maximum constraint ID
@@ -391,8 +318,8 @@ class ApplyChimeraProcessMonolithic : public Process
         }
 
         // Now create a vector size NumberOfConstraintsRequired
-        rIdVector.resize(NumberOfConstraintsRequired*(TDim+1));
-        std::iota (std::begin(rIdVector), std::end(rIdVector), max_constraint_id); // Fill with consecutive integers
+        rIdVector.resize(NumberOfConstraintsRequired * (TDim + 1));
+        std::iota(std::begin(rIdVector), std::end(rIdVector), max_constraint_id); // Fill with consecutive integers
     }
 
     void SetOverlapDistance(double distance)
@@ -405,18 +332,18 @@ class ApplyChimeraProcessMonolithic : public Process
         //loop over nodes and find the triangle in which it falls, than do interpolation
 
         MasterSlaveContainerVectorType master_slave_container_vector;
-        #pragma omp parallel
+#pragma omp parallel
         {
-            #pragma omp single
+#pragma omp single
             {
-                master_slave_container_vector.resize( omp_get_num_threads() );
-                for (auto& container : master_slave_container_vector)
+                master_slave_container_vector.resize(omp_get_num_threads());
+                for (auto &container : master_slave_container_vector)
                     container.reserve(1000);
             }
         }
         std::vector<int> constraints_id_vector;
 
-        int num_constraints_required = (TDim+1) * (rBoundaryModelPart.Nodes().size());
+        int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
         CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
         //array_1d<double, TDim + 1> N;
@@ -424,7 +351,7 @@ class ApplyChimeraProcessMonolithic : public Process
         const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
         std::size_t counter = 0;
         std::size_t removed_counter = 0;
-        const auto& r_clone_constraint = (LinearMasterSlaveConstraint) KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+        const auto &r_clone_constraint = (LinearMasterSlaveConstraint)KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
         for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
@@ -434,18 +361,19 @@ class ApplyChimeraProcessMonolithic : public Process
             mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
         }
 
-        #pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) firstprivate(removed_counter, r_clone_constraint) reduction(+:counter)
+#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) firstprivate(removed_counter, r_clone_constraint) reduction(+ \
+                                                                                                                                                               : counter)
         for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
 
             Vector N;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-            auto& ms_container = master_slave_container_vector[ omp_get_thread_num() ];
+            auto &ms_container = master_slave_container_vector[omp_get_thread_num()];
 
             ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i_bn;
             Node<3>::Pointer p_boundary_node = *(iparticle.base());
             ConstraintIdsVectorType ConstrainIdsForTheNode;
-            unsigned int start_constraint_id = i_bn*(TDim+1)*(TDim+1);
+            unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
             bool NodeCoupled = false;
             if ((p_boundary_node)->IsDefined(VISITED))
                 NodeCoupled = (p_boundary_node)->Is(VISITED);
@@ -458,7 +386,7 @@ class ApplyChimeraProcessMonolithic : public Process
             if (NodeCoupled && is_found)
             {
                 ConstrainIdsForTheNode = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
-                for (auto const& constraint_id : ConstrainIdsForTheNode)
+                for (auto const &constraint_id : ConstrainIdsForTheNode)
                 {
                     mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
                     removed_counter++;
@@ -485,20 +413,17 @@ class ApplyChimeraProcessMonolithic : public Process
                     //Interpolation of pressure
                     p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
 
-                    //#pragma omp critical
-                    //{
-                        //Define master slave relation for velocity
-                        AddMasterSlaveRelationWithNodesAndVariableComponents(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
-                        AddMasterSlaveRelationWithNodesAndVariableComponents(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
-                        if (TDim == 3)
-                        {
-                            //Interpolation of velocity
-                            p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-                            AddMasterSlaveRelationWithNodesAndVariableComponents(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
-                        }
-                        //Defining master slave relation for pressure
-                        AddMasterSlaveRelationWithNodesAndVariable(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-                    //}
+                    //Define master slave relation for velocity
+                    AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
+                    AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
+                    if (TDim == 3)
+                    {
+                        //Interpolation of velocity
+                        p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
+                        AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
+                    }
+                    //Defining master slave relation for pressure
+                    AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
 
                     counter++;
 
@@ -514,7 +439,7 @@ class ApplyChimeraProcessMonolithic : public Process
             p_boundary_node->Set(VISITED, true);
         } // end of loop over boundary nodes
 
-        for (auto& container : master_slave_container_vector)
+        for (auto &container : master_slave_container_vector)
             mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
 
         counter /= TDim + 1;
@@ -523,44 +448,6 @@ class ApplyChimeraProcessMonolithic : public Process
         KRATOS_INFO("number of constraints removed for this combination") << removed_counter << std::endl;
     }
 
-
-
-    void AddMasterSlaveRelationWithNodesAndVariableComponents(MasterSlaveConstraintContainerType& rMasterSlaveContainer,
-                                                                const LinearMasterSlaveConstraint& rCloneConstraint,
-                                                                unsigned int ConstraintId,
-                                                                Node<3> &MasterNode,
-                                                                VariableComponentType &MasterVariable,
-                                                                Node<3> &SlaveNode,
-                                                                VariableComponentType &SlaveVariable,
-                                                                const double weight,
-                                                                const double constant = 0.0)
-    {
-        SlaveNode.Set(SLAVE);
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant);
-        p_new_constraint->Set(TO_ERASE);
-        //std::cout<<"size container vector : "<<rMasterSlaveContainer.size()<<" size first container :  "<rMasterSlaveContainer.size()<<std::endl;
-        mNodeIdToConstraintIdsMap[SlaveNode.Id()].push_back(ConstraintId);
-        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(),  p_new_constraint);
-
-    }
-
-    // Functions with use two variables
-    void AddMasterSlaveRelationWithNodesAndVariable(MasterSlaveConstraintContainerType& rMasterSlaveContainer,
-                                                        const LinearMasterSlaveConstraint& rCloneConstraint,
-                                                        unsigned int ConstraintId,
-                                                        Node<3> &MasterNode,
-                                                        VariableType &MasterVariable,
-                                                        Node<3> &SlaveNode,
-                                                        VariableType &SlaveVariable,
-                                                        const double weight,
-                                                        const double constant = 0.0)
-    {
-        SlaveNode.Set(SLAVE);
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant);
-        p_new_constraint->Set(TO_ERASE);
-        mNodeIdToConstraintIdsMap[SlaveNode.Id()].push_back(ConstraintId);
-        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(),  p_new_constraint);
-    }
     /**
 		Activates the constraint set or deactivates
 		@arg isActive true/false
@@ -573,7 +460,7 @@ class ApplyChimeraProcessMonolithic : public Process
     /// Print information about this object.
     virtual void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "ApplyChimeraProcessMonolithic";
+        rOStream << "ApplyChimeraProcessMonolithic"<< std::endl;
     }
 
     /// Print object's data.
@@ -588,7 +475,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -618,7 +505,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -658,6 +545,124 @@ class ApplyChimeraProcessMonolithic : public Process
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)
+     * @param rModelPart Modelpart for which the bounding box is to be computed.
+     * @param rLowPoint The lowest point in the modelpart (returned)
+     * @param rHighPoint The highest point in the modelpart (returned)
+     */
+    void GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint)
+    {
+        double rLowPoint0 = 1e10;
+        double rLowPoint1 = 1e10;
+        double rLowPoint2 = 1e10;
+
+        double rHighPoint0 = -1e10;
+        double rHighPoint1 = -1e10;
+        double rHighPoint2 = -1e10;
+
+        const unsigned int num_nodes = rModelPart.Nodes().size();
+#pragma omp parallel for reduction(min                                                                                                                           \
+                                   : rLowPoint0) reduction(min                                                                                                   \
+                                                           : rLowPoint1) reduction(min                                                                           \
+                                                                                   : rLowPoint2) reduction(max                                                   \
+                                                                                                           : rHighPoint0) reduction(max                          \
+                                                                                                                                    : rHighPoint1) reduction(max \
+                                                                                                                                                             : rHighPoint2)
+        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+        {
+            ModelPart::NodesContainerType::iterator it_node = rModelPart.NodesBegin() + i_node;
+            rLowPoint0 = std::min(it_node->X(), rLowPoint0);
+            rLowPoint1 = std::min(it_node->Y(), rLowPoint1);
+            rLowPoint2 = std::min(it_node->Z(), rLowPoint2);
+
+            rHighPoint0 = std::max(it_node->X(), rHighPoint0);
+            rHighPoint1 = std::max(it_node->Y(), rHighPoint1);
+            rHighPoint2 = std::max(it_node->Z(), rHighPoint2);
+        }
+
+        rHighPoint[0] = rHighPoint0;
+        rHighPoint[1] = rHighPoint1;
+        rHighPoint[2] = rHighPoint2;
+
+        rLowPoint[0] = rLowPoint0;
+        rLowPoint[1] = rLowPoint1;
+        rLowPoint[2] = rLowPoint2;
+    }
+
+    /**
+     * @brief Checks if two given modelparts (A and B) have bounding box overlaps
+     * @param rModelPartA ModelPartA
+     * @param rModelPartB ModelPartB
+     * @return bool if the bounding boxes intersect or not.
+     */
+    bool BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB) //background A and Patch B
+    {
+        std::vector<double> min_cornerA(3), max_cornerA(3), min_cornerB(3), max_cornerB(3);
+        GetBoundingBox(rModelPartA, min_cornerA, max_cornerA);
+        GetBoundingBox(rModelPartB, min_cornerB, max_cornerB);
+        KRATOS_INFO("Bounding box of Background") << min_cornerA[0] << "::" << max_cornerA[0] << std::endl;
+        KRATOS_INFO("Bounding box of patch") << min_cornerB[0] << "::" << max_cornerB[0] << std::endl;
+
+        ProcessInfo &CurrentProcessInfo = A.GetProcessInfo();
+        int dim = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
+
+        for (int i = 0; i < dim; i++)
+        {
+            if (min_cornerA[i] > max_cornerB[i])
+                return false;
+            if (max_cornerA[i] < min_cornerB[i])
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * @brief Extracts the boundary of the modelpart when there is an internal boundary (surface)
+     * @param rModelPart The modelpart for which boundary is to be extracted.
+     * @param rInsideBoundary the internal boundary of the rModelPart
+     * @param rExtractedBoundaryModelPart The result. That is the extracted boundary of the modelpart
+     */
+    void FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart, ModelPart &rInsideBoundary, ModelPart &rExtractedBoundaryModelPart)
+    {
+        std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
+
+        if (n_nodes == 3)
+            this->mpHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
+        else if (n_nodes == 4)
+            this->mpHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
+    }
+
+    /**
+     * @brief Applies the master-slave constraint between the given master and slave nodes with corresponding variable.
+     * @param rMasterSlaveContainer The container to which the constraint to be added (useful to so OpenMP loop)
+     * @param rCloneConstraint The prototype of constraint which is to be added.
+     * @param ConstraintId The ID of the constraint to be added.
+     * @param rMasterNode The Master node of the constraint.
+     * @param rMasterVariable The variable for the master node.
+     * @param rSlaveNode The Slave node of the constraint.
+     * @param rSlaveVariable The variable for the slave node.
+     * @param Weight The weight of the Master node.
+     * @param Constant The constant of the master slave relation.
+     */
+    template <typename TVariableType>
+    void AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
+                                const LinearMasterSlaveConstraint &rCloneConstraint,
+                                unsigned int ConstraintId,
+                                Node<3> &rMasterNode,
+                                TVariableType &rMasterVariable,
+                                Node<3> &rSlaveNode,
+                                TVariableType &rSlaveVariable,
+                                const double Weight,
+                                const double Constant = 0.0)
+    {
+        rSlaveNode.Set(SLAVE);
+        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        p_new_constraint->Set(TO_ERASE);
+        mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
+        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
+    }
 
     ///@}
     ///@name Private  Access
