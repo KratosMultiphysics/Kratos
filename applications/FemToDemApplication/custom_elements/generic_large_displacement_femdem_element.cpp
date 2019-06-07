@@ -375,7 +375,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
     const double characteristic_length = this->CalculateCharacteristicLength(this);
 
     // Loop over Gauss Points
-    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number ) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         //calculate the elastic matrix
 		this->CalculateMaterialResponse(variables, values, point_number);
         Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
@@ -428,10 +428,6 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
 		volume_force = this->CalculateVolumeForce(volume_force, N);
         this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
-        // KRATOS_WATCH(this->Id())
-        // KRATOS_WATCH(strain_vector)
-        // KRATOS_WATCH(r_integrated_stress_vector)
-        // KRATOS_WATCH(rRightHandSideVector)
     }
 }
 

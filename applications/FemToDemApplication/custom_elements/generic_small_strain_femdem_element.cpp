@@ -411,9 +411,6 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateRightHandSide(
 
 		// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
 		rRightHandSideVector -= variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
-		// KRATOS_WATCH(this->Id())
-		// KRATOS_WATCH(r_strain_vector)
-		// KRATOS_WATCH(r_integrated_stress_vector)
 	}
 	KRATOS_CATCH("")
 }
