@@ -59,8 +59,42 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///definition of element type
+    typedef Element ElementType;
+
+    ///base type: an GeometricalObject that automatically has a unique number
+    typedef GeometricalObject BaseType;
+
+    ///definition of node type (default is: Node<3>)
+    typedef Node < 3 > NodeType;
+
+    /**
+     * Properties are used to store any parameters
+     * related to the constitutive law
+     */
+    typedef Properties PropertiesType;
+
+    ///definition of the geometry type with given NodeType
+    typedef Geometry<NodeType> GeometryType;
+
+    ///definition of nodes container type, redefined from GeometryType
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    typedef Vector VectorType;
+
+    typedef Matrix MatrixType;
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    typedef std::vector<std::size_t> EquationIdVectorType;
+
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+
+    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+
+    typedef GeometryData GeometryDataType;
 
     /// We define the dimension
     static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
@@ -73,18 +107,6 @@ public:
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// The base element type
-    typedef SmallDisplacementElement BaseType;
-
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
 
     /// Counted pointer of GenericSmallStrainFemDemElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GenericSmallStrainFemDemElement);
@@ -296,7 +318,7 @@ public:
 	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-private:
+protected:
 
     ///@name Static Member Variables
     ///@{
@@ -331,7 +353,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-}; // Class TotalLagrangian
+}; // Class GenericSmallStrainFemDemElement
 
 ///@}
 ///@name Type Definitions
@@ -342,4 +364,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
+#endif
