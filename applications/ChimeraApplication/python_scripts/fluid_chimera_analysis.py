@@ -7,7 +7,7 @@ import KratosMultiphysics.ChimeraApplication as KratosChimera
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class FluidChimeraAnalysis(FluidDynamicsAnalysis):
-    '''Main script for fluid chimera simulations using the navier_stokes family of python solvers.'''
+    '''Main script for fluid chimera simulations using the navier stokes family of python solvers.'''
 
     def __init__(self,model,parameters):
         # Deprecation warnings
@@ -31,9 +31,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                 self.solver_settings = self.parameters["solver_settings"]
 
             chimera_params = self.project_parameters["chimera"]
-
-            print(chimera_params)
-            
             main_model_part = self.model[self.solver_settings["model_part_name"].GetString()]
             domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
             solver_type = self.parameters["solver_settings"]["solver_type"].GetString()
@@ -59,7 +56,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     '''
 
     def InitializeSolutionStep(self):
-        print(" chimera stage")
         self.ChimeraProcess.ExecuteInitializeSolutionStep()
         super(FluidChimeraAnalysis,self).InitializeSolutionStep()
 
