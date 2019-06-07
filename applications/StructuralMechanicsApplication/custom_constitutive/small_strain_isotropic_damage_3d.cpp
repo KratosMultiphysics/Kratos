@@ -59,6 +59,14 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
     return false;
 }
 
+bool SmallStrainIsotropicDamage3D::Has(const Variable<int>& rThisVariable)
+{
+    if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES){
+        return true;
+    }
+    return false;
+}
+
 //************************************************************************************
 //************************************************************************************
 
@@ -77,6 +85,20 @@ bool& SmallStrainIsotropicDamage3D::GetValue(
 {
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
+    }
+
+    return rValue;
+}
+
+
+int& SmallStrainIsotropicDamage3D::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+    if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES){
+        // StrainVariable: 1
+        rValue = 1;
     }
 
     return rValue;
