@@ -22,6 +22,7 @@
 
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_elements/solid_elements/solid_element.hpp"
 
 namespace Kratos
 {
@@ -55,6 +56,64 @@ class GenericLargeDisplacementFemDemElement
     : public GenericSmallStrainFemDemElement<TDim, TyieldSurf>
 {
 public:
+    typedef typename GenericSmallStrainFemDemElement<TDim, TyieldSurf>::ElementDataType ElementDataType;
+    ///Type for element variables
+    //typedef ElementData ElementDataType;
+
+    ///definition of element type
+    typedef Element ElementType;
+
+    ///base type: an GeometricalObject that automatically has a unique number
+    typedef GeometricalObject BaseType;
+
+    ///definition of node type (default is: Node<3>)
+    typedef Node < 3 > NodeType;
+
+    /**
+     * Properties are used to store any parameters
+     * related to the constitutive law
+     */
+    typedef Properties PropertiesType;
+
+    ///definition of the geometry type with given NodeType
+    typedef Geometry<NodeType> GeometryType;
+
+    ///definition of nodes container type, redefined from GeometryType
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    typedef Vector VectorType;
+
+    typedef Matrix MatrixType;
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    typedef std::vector<std::size_t> EquationIdVectorType;
+
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+
+    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+
+    typedef GeometryData GeometryDataType;
+
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// We define the dimension
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
+
+    /// We define the number of edges
+    static constexpr SizeType NumberOfEdges = (TDim == 3) ? 6 : 3;
+
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    /// The zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Counted pointer of GenericLargeDisplacementFemDemElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GenericLargeDisplacementFemDemElement);
@@ -76,8 +135,8 @@ public:
 
 	/// Assignment operator.
 	GenericLargeDisplacementFemDemElement &operator=(GenericLargeDisplacementFemDemElement const &rOther);
-	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const;
-	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const;
+	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
+	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
 	GenericLargeDisplacementFemDemElement()
 	{
@@ -86,7 +145,7 @@ public:
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -96,7 +155,7 @@ public:
      * @param rRightHandSideVector the elemental right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -104,7 +163,7 @@ public:
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -112,7 +171,7 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this computes the deformation matrix B
