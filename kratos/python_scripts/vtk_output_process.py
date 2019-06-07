@@ -54,39 +54,30 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         self.output_frequency = self.settings["output_frequency"].GetDouble()
         self.output_control = self.settings["output_control_type"].GetString()
         self.next_output = 0.0
-        self.step_count = 0
 
-    def ExecuteInitialize(self):
-        if self.output_control == "time":
-            self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        else:
-            self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-
-    def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
+        self.__ScheduleNextOutput() # required here esp for restart
 
     def PrintOutput(self):
         self.vtk_io.PrintOutput()
 
-        # Schedule next output
-        time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control == "time":
-                while GetPrettyTime(self.next_output) <= time:
-                    self.next_output += self.output_frequency
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+        self.__ScheduleNextOutput()
 
     def IsOutputStep(self):
         if self.output_control == "time":
-            time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            return (time >= GetPrettyTime(self.next_output))
+            return self.__GetTime() >= self.next_output
         else:
-            return ( self.step_count >= self.next_output )
+            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output
 
+    def __ScheduleNextOutput(self):
+        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+            if self.output_control == "time":
+                while self.next_output <= self.__GetTime():
+                    self.next_output += self.output_frequency
+            else:
+                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
+                    self.next_output += self.output_frequency
 
-def GetPrettyTime(time):
-    pretty_time = "{0:.12g}".format(time)
-    pretty_time = float(pretty_time)
-    return pretty_time
+    def __GetTime(self):
+        # remove rounding errors that mess with the comparison
+        # e.g. 1.99999999999999999 => 2.0
+        return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
