@@ -296,7 +296,7 @@ public:
 	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-private:
+protected:
 
     ///@name Static Member Variables
     ///@{
@@ -331,7 +331,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-}; // Class TotalLagrangian
+}; // Class GenericSmallStrainFemDemElement
 
 ///@}
 ///@name Type Definitions
@@ -342,4 +342,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
+#endif
