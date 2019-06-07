@@ -102,11 +102,18 @@ void VtkOutput::PrintOutput()
     // For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
     if (print_sub_model_parts) {
-        // TODO this should check the global numbers otherwise won't work in MPI
         for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
-            if (r_sub_model_part.NumberOfNodes() == 0 && (r_sub_model_part.NumberOfConditions() != 0 || r_sub_model_part.NumberOfElements() != 0)) {
+
+            const auto& r_local_mesh = mrModelPart.GetCommunicator().LocalMesh();
+            const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+
+            const int num_nodes = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfNodes()));
+            const int num_elements = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+            const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+
+            if (num_nodes == 0 && (num_elements != 0 || num_conditions != 0)) {
                 WriteModelPartWithoutNodesToFile(r_sub_model_part);
-            } else if (r_sub_model_part.NumberOfNodes() != 0) {
+            } else if (num_nodes != 0) {
                 WriteModelPartToFile(r_sub_model_part, true);
             }
         }
