@@ -47,9 +47,7 @@ VtkOutput::VtkOutput(
             mShouldSwap = true;
         }
     } else {
-        KRATOS_ERROR << "Option for \"file_format\": " << file_format
-            << " not recognised!\n Possible output formats "
-            << "options are: \"ascii\", \"binary\"" << std::endl;
+        KRATOS_ERROR << "Option for \"file_format\": " << file_format << " not recognised!\n Possible output formats options are: \"ascii\", \"binary\"" << std::endl;
     }
 
     // Adding GP variables to nodal data variables list
@@ -71,6 +69,13 @@ VtkOutput::VtkOutput(
         // Making the gauss point to nodes process if any gauss point result is requested for
         mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(rModelPart, gauss_intergration_param_non_hist);
     }
+
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+
+    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+
+    KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
 }
 
 /***********************************************************************************/
@@ -96,7 +101,8 @@ void VtkOutput::PrintOutput()
 
     // For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
-    if(print_sub_model_parts) {
+    if (print_sub_model_parts) {
+        // TODO this should check the global numbers otherwise won't work in MPI
         for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
             if (r_sub_model_part.NumberOfNodes() == 0 && (r_sub_model_part.NumberOfConditions() != 0 || r_sub_model_part.NumberOfElements() != 0)) {
                 WriteModelPartWithoutNodesToFile(r_sub_model_part);
@@ -235,9 +241,16 @@ void VtkOutput::WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFi
     rFileStream << "POINTS " << rModelPart.NumberOfNodes() << " float\n";
 
     // Write nodes
-    for (const auto& r_node : rModelPart.Nodes()) {
-        WriteVectorDataToFile(r_node.Coordinates(), rFileStream);
-        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+    if (mOutputSettings["write_deformed_configuration"].GetBool()) {
+        for (const auto& r_node : rModelPart.Nodes()) {
+            WriteVectorDataToFile(r_node.Coordinates(), rFileStream);
+            if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
+    } else {
+        for (const auto& r_node : rModelPart.Nodes()) {
+            WriteVectorDataToFile(r_node.GetInitialPosition(), rFileStream);
+            if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
     }
 }
 
@@ -248,15 +261,10 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
-    int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-    int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
     if (num_elements > 0) {
-        if (num_conditions > 0 && rModelPart.GetCommunicator().MyPID() == 0) {
-            KRATOS_WARNING/*_ONCE*/("VtkOutput")<<"Modelpart \"" << rModelPart.Name() // TODO
-                << "\" has both elements and conditions.\nGiving precedence to "
-                << "elements and writing only elements!" <<std::endl;
-        }
         // write cells header
         rFileStream << "\nCELLS " << r_local_mesh.NumberOfElements() << " "
             << DetermineVtkCellListSize(r_local_mesh.Elements()) << "\n";
@@ -818,6 +826,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "folder_name"                        : "VTK_Output",
         "custom_name_prefix"                 : "",
         "save_output_files_in_folder"        : true,
+        "write_deformed_configuration"       : false,
         "nodal_solution_step_data_variables" : [],
         "nodal_data_value_variables"         : [],
         "nodal_flags"                        : [],
