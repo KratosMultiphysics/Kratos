@@ -135,8 +135,8 @@ public:
 
 	/// Assignment operator.
 	GenericLargeDisplacementFemDemElement &operator=(GenericLargeDisplacementFemDemElement const &rOther);
-	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const;
-	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const;
+	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
+	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
 	GenericLargeDisplacementFemDemElement()
 	{
