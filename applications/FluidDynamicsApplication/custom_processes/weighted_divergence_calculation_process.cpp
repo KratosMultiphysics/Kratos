@@ -190,7 +190,7 @@ namespace Kratos
     // Compute local auxiliar divergence
     double WeightedDivergenceCalculationProcess::ComputeAuxiliaryElementDivergence(const Vector grad_x, const Vector grad_y, const Vector grad_z)
     {
-        const double aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
+        const double aux_current_divergence = grad_x[0] + grad_y[1]; //+ grad_z[2];
         return aux_current_divergence;
     }
 
