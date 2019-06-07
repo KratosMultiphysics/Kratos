@@ -68,7 +68,7 @@ namespace Kratos {
 
             // Set the element properties
             Newtonian2DLaw::Pointer p_cons_law(new Newtonian2DLaw());
-            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
             p_elem_prop->SetValue(DENSITY, 1.0e+00);
             p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-02);
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);

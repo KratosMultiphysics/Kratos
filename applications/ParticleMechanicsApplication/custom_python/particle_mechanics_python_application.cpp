@@ -46,39 +46,39 @@ namespace Python{
     // Triangular and Tetrahedral 2D and 3D
     Element::Pointer CreateUpdatedLagragian2D3N()
     {
-        return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
     }
 
     Element::Pointer CreateUpdatedLagragianUP2D3N()
     {
-        return Kratos::make_shared<UpdatedLagrangianUP>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianUP>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
     }
 
     Element::Pointer CreateUpdatedLagragian3D4N()
     {
-        return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
     }
 
     // Quadrilateral and Hexahedral 2D and 3D
     Element::Pointer CreateUpdatedLagragian2D4N()
     {
-        return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
 
     }
     Element::Pointer CreateUpdatedLagragian3D8N()
     {
-        return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
     }
 
     // Axis Symmetry Element 2D (Triangular and Quadrilateral)
     Element::Pointer CreateUpdatedLagragianAxis2D3N()
     {
-        return Kratos::make_shared<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
     }
 
     Element::Pointer CreateUpdatedLagragianAxis2D4N()
     {
-        return Kratos::make_shared<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
     }
 
     PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
@@ -103,7 +103,7 @@ namespace Python{
 	    m.def("CreateUpdatedLagragianAxis2D4N", &CreateUpdatedLagragianAxis2D4N);
 
         // Registering variables in python
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  MP_COORD );
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_COORD);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MASS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_DENSITY);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_VOLUME);
@@ -121,14 +121,19 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MATERIAL_ID);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_ELEMENT);
 
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_VELOCITY);
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_ACCELERATION);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_COORD);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_CONDITION_ID);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_IS_NEUMANN);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_AREA);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_NORMAL);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_DISPLACEMENT);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_VELOCITY);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_ACCELERATION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_CONDITION);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_DISPLACEMENT);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_VELOCITY);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_ACCELERATION);
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_MP_VELOCITY);
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_MP_ACCELERATION);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_VOLUME_ACCELERATION);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_INTERNAL_FORCE);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_CAUCHY_STRESS_VECTOR);
@@ -137,17 +142,14 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_INERTIA);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_MPRESSURE);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_REACTION);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_MP_PRESSURE);
+
+        // Essential Boundary variables
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR);
 
         // Nodal load variables
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  POINT_LOAD )
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  LINE_LOAD )
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  SURFACE_LOAD )
-
-        // Condition load variables
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,POINT_LOADS_VECTOR )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,LINE_LOADS_VECTOR )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SURFACE_LOADS_VECTOR )
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, POINT_LOAD )
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LINE_LOAD )
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SURFACE_LOAD )
     }
 
 }  // namespace Python.

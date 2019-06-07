@@ -66,7 +66,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pProp = modelPart.pGetProperties(0);
+			Properties::Pointer pProp = modelPart.CreateNewProperties(0);
 			pProp->SetValue(DENSITY, 1000.0);
 			pProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -176,7 +176,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pProp = modelPart.pGetProperties(0);
+			Properties::Pointer pProp = modelPart.CreateNewProperties(0);
 			pProp->SetValue(DENSITY, 1000.0);
 			pProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());

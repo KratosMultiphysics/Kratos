@@ -322,17 +322,19 @@ public:
     {
         KRATOS_TRY
 
-        MasterSlaveConstraint::Pointer p_constraint = Kratos::make_shared<LinearMasterSlaveConstraint>(*this);
-        p_constraint->SetData(this->GetData());
-        return p_constraint;
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<LinearMasterSlaveConstraint>(*this);
+        p_new_const->SetId(NewId);
+        p_new_const->SetData(this->GetData());
+        p_new_const->Set(Flags(*this));
+        return p_new_const;
 
         KRATOS_CATCH("");
     }
 
     /**
      * @brief Determines the constrant's slvae and master list of DOFs
-     * @param rSlaveDofList The list of slave DOFs
-     * @param rMasterDofList The list of slave DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
@@ -343,6 +345,22 @@ public:
     {
         rSlaveDofsVector = mSlaveDofsVector;
         rMasterDofsVector = mMasterDofsVector;
+    }
+
+    /**
+     * @brief Determines the constrant's slave and master list of DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void SetDofList(
+        const DofPointerVectorType& rSlaveDofsVector,
+        const DofPointerVectorType& rMasterDofsVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        mSlaveDofsVector = rSlaveDofsVector;
+        mMasterDofsVector = rMasterDofsVector;
     }
 
     /**
@@ -371,20 +389,120 @@ public:
     }
 
     /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    const DofPointerVectorType& GetSlaveDofsVector() const override
+    {
+        return mSlaveDofsVector;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofsVector) override
+    {
+        mSlaveDofsVector = rSlaveDofsVector;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    const DofPointerVectorType& GetMasterDofsVector() const override
+    {
+        return mMasterDofsVector;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    void SetMasterDofsVector(const DofPointerVectorType& rMasterDofsVector) override
+    {
+        mMasterDofsVector = rMasterDofsVector;
+    }
+
+    /**
+     * @brief This method resets the values of the slave dofs
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
+            #pragma omp atomic
+            mSlaveDofsVector[i]->GetSolutionStepValue() *= 0.0;
+        }
+    }
+
+    /**
+     * @brief This method directly applies the master/slave relationship
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Apply(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // Saving the master dofs values
+        Vector master_dofs_values(mMasterDofsVector.size());
+
+        for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
+            master_dofs_values[i] = mMasterDofsVector[i]->GetSolutionStepValue();
+        }
+
+        // Apply the constraint to the slave dofs
+        for (IndexType i = 0; i < mRelationMatrix.size1(); ++i) {
+            double aux = mConstantVector[i];
+            for(IndexType j = 0; j < mRelationMatrix.size2(); ++j) {
+                aux += mRelationMatrix(i,j) * master_dofs_values[j];
+            }
+
+            #pragma omp atomic
+            mSlaveDofsVector[i]->GetSolutionStepValue() += aux;
+        }
+    }
+
+    /**
+     * @brief This method allows to set the Local System in case is not computed on tunning time (internal variable)
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rConstant The constant vector (one entry for each slave)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void SetLocalSystem(
+        const MatrixType& rRelationMatrix,
+        const VectorType& rConstantVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        if (mRelationMatrix.size1() != rRelationMatrix.size1() || mRelationMatrix.size2() != rRelationMatrix.size2())
+            mRelationMatrix.resize(rRelationMatrix.size1(), rRelationMatrix.size2(), false);
+
+        noalias(mRelationMatrix) = rRelationMatrix;
+
+        if (mConstantVector.size() != rConstantVector.size())
+            mConstantVector.resize(rConstantVector.size(), false);
+        noalias(mConstantVector) = rConstantVector;
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
-     * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLocalSystem(
-        MatrixType& rTransformationMatrix,
+        MatrixType& rRelationMatrix,
         VectorType& rConstantVector,
         const ProcessInfo& rCurrentProcessInfo
-        ) override
+        ) const override
     {
-        rTransformationMatrix = mRelationMatrix;
-        rConstantVector = mConstantVector;
+        if (rRelationMatrix.size1() != mRelationMatrix.size1() || rRelationMatrix.size2() != mRelationMatrix.size2())
+            rRelationMatrix.resize(mRelationMatrix.size1(), mRelationMatrix.size2(), false);
+        noalias(rRelationMatrix) = mRelationMatrix;
+
+        if (rConstantVector.size() != mConstantVector.size())
+            rConstantVector.resize(mConstantVector.size(), false);
+        noalias(rConstantVector) = mConstantVector;
     }
 
     ///@}

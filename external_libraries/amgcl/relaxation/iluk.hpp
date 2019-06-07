@@ -246,11 +246,11 @@ struct iluk {
                 }
             }
 
-            typename std::vector<nonzero>::iterator begin() {
+            typename std::deque<nonzero>::iterator begin() {
                 return nz.begin();
             }
 
-            typename std::vector<nonzero>::iterator end() {
+            typename std::deque<nonzero>::iterator end() {
                 return nz.end();
             }
 

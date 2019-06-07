@@ -4,6 +4,9 @@ from KratosMultiphysics import *
 from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 import run_cpp_unit_tests
 
+##### SMALL TESTS #####
+from potential_flow_test_factory import PotentialFlowTests
+
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -28,7 +31,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([PotentialFlowTests]))
 
     # Create a test suite with the selected tests
     # nightSuite will contain the following tests:

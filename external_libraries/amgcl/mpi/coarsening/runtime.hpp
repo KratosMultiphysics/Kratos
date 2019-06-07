@@ -73,7 +73,7 @@ inline std::istream& operator>>(std::istream &in, type &s)
     if (val == "aggregation")
         s = aggregation;
     else if (val == "smoothed_aggregation")
-        s = aggregation;
+        s = smoothed_aggregation;
     else
         throw std::invalid_argument("Invalid coarsening value. Valid choices are: "
                 "aggregation, smoothed_aggregation.");

@@ -194,21 +194,21 @@ public:
 
                 for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
                 {
-                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
-                    if (FlagValue != 0.0)
+                    const bool is_slip = itCond->Is(SLIP);
+                    if (is_slip)
                     {
 
                         Condition::GeometryType& rGeom = itCond->GetGeometry();
                         for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
                         {
                             rGeom[i].SetLock();
-                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].Set(SLIP,is_slip);
                             rGeom[i].UnSetLock();
                         }
                     }
                 }
             }
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+            rModelPart.GetCommunicator().SynchronizeOrNodalFlags(SLIP);
         }
 
 
@@ -636,8 +636,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormV);
-
+        NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
         NormV = sqrt(NormV);
 
         if (NormV == 0.0) NormV = 1.00;
@@ -674,8 +673,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormP);
-
+        NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
         NormP = sqrt(NormP);
 
         if (NormP == 0.0) NormP = 1.00;
@@ -784,7 +782,7 @@ protected:
 
         // Force the end of step velocity to verify slip conditions in the model
         if (mUseSlipConditions)
-            this->EnforceSlipCondition(IS_STRUCTURE);
+            this->EnforceSlipCondition(SLIP);
 
         if (mDomainSize > 2)
         {
@@ -828,9 +826,9 @@ protected:
 
     /**
      * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
-     * @param rSlipWallFlag If Node.GetValue(rSlipWallFlag) != 0, the node is in the wall.
+     * @param rSlipWallFlag If Node.Is(rSlipWallFlag) == true, the node is in the wall.
      */
-    void EnforceSlipCondition(Variable<double>& rSlipWallFlag)
+    void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -842,7 +840,7 @@ protected:
             ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
             const Node<3>& r_const_node = *itNode;
 
-            if ( r_const_node.GetValue(rSlipWallFlag) != 0.0 )
+            if ( r_const_node.Is(rSlipWallFlag) )
             {
                 const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);
                 array_1d<double,3>& rDeltaVelocity = itNode->FastGetSolutionStepValue(FRACT_VEL);
@@ -870,10 +868,11 @@ protected:
      */
      void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
      {
-         if (mrPeriodicIdVar.Key() != 0)
+         Communicator& r_comm = rModelPart.GetCommunicator();
+         if (mrPeriodicIdVar.Key() != Kratos::Variable<int>::StaticObject().Key())
          {
-             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
+             int GlobalNodesNum = r_comm.LocalMesh().Nodes().size();
+             GlobalNodesNum = r_comm.GetDataCommunicator().SumAll(GlobalNodesNum);
 
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
@@ -955,10 +954,11 @@ protected:
 
      void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
      {
-         if (mrPeriodicIdVar.Key() != 0)
+         Communicator& r_comm = rModelPart.GetCommunicator();
+         if (mrPeriodicIdVar.Key() != Kratos::Variable<int>::StaticObject().Key())
          {
-             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
+             int GlobalNodesNum = r_comm.LocalMesh().Nodes().size();
+             GlobalNodesNum = r_comm.GetDataCommunicator().SumAll(GlobalNodesNum);
 
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
@@ -1148,21 +1148,21 @@ private:
                 for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
                 {
                     const Condition& rCond = *itCond;
-                    const double& FlagValue = rCond.GetValue(IS_STRUCTURE);
-                    if (FlagValue != 0.0)
+                    const bool is_slip = rCond.Is(SLIP);
+                    if (is_slip)
                     {
 
                         Condition::GeometryType& rGeom = itCond->GetGeometry();
                         for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
                         {
                             rGeom[i].SetLock();
-                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].Set(SLIP,is_slip);
                             rGeom[i].UnSetLock();
                         }
                     }
                 }
             }
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+            rModelPart.GetCommunicator().SynchronizeOrNodalFlags(SLIP);
         }
 
         // Check input parameters

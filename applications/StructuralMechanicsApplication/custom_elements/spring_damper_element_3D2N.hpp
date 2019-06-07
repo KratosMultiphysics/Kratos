@@ -6,13 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors:    Quirin Aumann
 //
 
 #if !defined(KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED
-
-// TODO: Add rotational stiffness
 
 // System includes
 
@@ -48,7 +46,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of SpringDamperElement3D2N
-    KRATOS_CLASS_POINTER_DEFINITION( SpringDamperElement3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SpringDamperElement3D2N);
     ///@}
 
 public:
@@ -144,27 +142,6 @@ public:
       */
     void Initialize() override;
 
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-
     //************* COMPUTING  METHODS
 
     /**
@@ -176,8 +153,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			      VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+			      VectorType& rRightHandSideVector, 
 			      ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -207,7 +184,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
+    void CalculateMassMatrix(MatrixType& rMassMatrix, 
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -216,7 +193,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -245,6 +222,10 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
+    static constexpr int msNumberOfNodes = 2;
+    static constexpr int msDimension = 3;
+    static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+    static constexpr unsigned int msElementSize = msLocalSize * 2;
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -259,13 +240,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -324,4 +298,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined
+#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined 

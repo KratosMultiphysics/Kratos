@@ -87,7 +87,23 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar "End Nodes"
     puts $FileVar ""
     puts $FileVar ""
-    
+
+    set ElementName ""
+    if {[lindex [lindex $Groups 0] 3] eq "ModifiedMohrCoulomb"} {
+        set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+    } elseif {[lindex [lindex $Groups 0] 3] eq "Rankine"} {
+        set ElementName "SmallStrainRankineFemDemElement3D"
+    } elseif {[lindex [lindex $Groups 0] 3] eq "SimoJu"} {
+        set ElementName "SmallStrainSimoJuFemDemElement3D"
+    } elseif {[lindex [lindex $Groups 0] 3] eq "DruckerPrager"} {
+        set ElementName "SmallStrainDruckerPragerFemDemElement3D"
+    } elseif {[lindex [lindex $Groups 0] 3] eq "VonMises"} {
+        set ElementName "SmallStrainVonMisesFemDemElement3D"
+    } elseif {[lindex [lindex $Groups 0] 3] eq "Tresca"} {
+        set ElementName "SmallStrainTrescaFemDemElement3D"
+    } else {
+        set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+    }    
     ## Elements
     set Groups [GiD_Info conditions Body_Part groups]
 
@@ -101,7 +117,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 		} elseif {[GiD_AccessValue get gendata Use_Hexahedrons] eq "true"} {
             WriteElements FileVar [lindex $Groups $i] Hexahedra FemDem3DHexahedronElement $BodyElemsProp Hexahedron3D8Connectivities
 		} else {
-			WriteElements FileVar [lindex $Groups $i] tetrahedra FemDem3DElement $BodyElemsProp Tetrahedron3D4Connectivities
+			WriteElements FileVar [lindex $Groups $i] tetrahedra $ElementName $BodyElemsProp Tetrahedron3D4Connectivities
         }
 	}
     puts $FileVar ""

@@ -350,9 +350,9 @@ private:
               //i_fluidElement->GetValue(NEIGHBOUR_CONDITIONS).resize(0);
 		( i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES)).reserve(6);
 
-		 WeakPointerVector<GeometricalObject >& rE = i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES);
-	            rE.erase(rE.begin(),rE.end() );
-          }
+		 GlobalPointersVector<GeometricalObject >& rE = i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES);
+	            rE.erase(rE.begin(),rE.end() );	
+          } 
 	*/
 
 

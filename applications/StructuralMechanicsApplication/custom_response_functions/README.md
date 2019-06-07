@@ -30,7 +30,7 @@ Provided is a **scheme** to solve the adjoint problem and a **replacement proces
 | Structural Condition | Adjoint Condition | Design Variables | Semi-analytic | Analytic | Static | Transient |
 | -------------------- | ----------------- | ------------------- |  ---------------- | -------- | ------- | ----------|
 | PointLoadCondition | PointLoadAdjointCondition¹ | POINT_LOAD |    x   |          |      x   |         |
-|                      |                             | SHAPE     |    x   |          |      x    |     |
+|                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x    |     |
 
 
 
@@ -39,13 +39,13 @@ Provided is a **scheme** to solve the adjoint problem and a **replacement proces
 | Structural Element | Adjoint Element | Design Variables | Semi-analytic | Analytic | Static | Transient |
 | -------------------- | ----------------- | ------------------- |  ---------------- | -------- | ------- | ----------|
 | ShellThinElement3D3N | AdjointFiniteDifferencingShellElement¹ | THICKNESS² |    x   |          |      x   |         |
-|                      |                             | SHAPE     |    x   |          |      x    |
+|                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x    |
 | CrBeamElementLinear3D2N | AdjointFiniteDifferenceCrBeamElement¹ | I22²|    x   |          |      x   |         |
-|                      |                             | SHAPE     |    x   |          |      x   |          |
+|                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x   |          |
 | TrussElement3D2N | AdjointFiniteDifferenceTrussElement¹ | CROSS_AREA²|    x   |   x³       |      x   |         |
-|                      |                             | SHAPE     |    x   |          |      x   |          |
+|                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x   |          |
 | TrussLinearElement3D2N | AdjointFiniteDifferenceTrussLinearElement¹ | CROSS_AREA²|    x   |         |      x   |         |
-|                      |                             | SHAPE     |    x   |          |      x   |          |
+|                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x   |          |
 
 ¹ The adjoint elements and conditions wrap elements/conditions of the Structural Mechanics Application and can call its public functions.  The main task of the adjoint elements/conditions is to derive different quantities (e.g. the right hand side or post-processing results like stresses) with respect to the design variable or state.
 
@@ -79,7 +79,7 @@ An example for a possible input file is:
 If all necessary input files are defined, the analysis can be performed with a simple python script by calling the primal and afterwards the adjoint analysis. The sensitivities are computed in a post-processing of the adjoint problem.
 
 A possible python workflow can be found in:
-*StructuralMechanicsApplication/tests/test_adjoint_sensitity_analysis_beam_3d2n_structure.py*
+*StructuralMechanicsApplication/tests/test_adjoint_sensitivity_analysis_beam_3d2n_structure.py*
 
 #### Possible ```response_function_settings```:
 
@@ -88,8 +88,8 @@ Independent from the chosen response function the following definitions are alwa
 - ```gradient_mode```: Currently there is only ```semi_analytic``` available.
 - ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic approach.
 - ```sensitivity_model_part_name```: The name of the model part for which components sensitivities have to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
-- ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
-- ```element_sensitivity_variables```: Here sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
+- ```nodal_solution_step_sensitivity_variables```: Currently only ```SHAPE_SENSITIVITY``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
+- ```element_data_value_sensitivity_variables```: Here sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
 - ```condition_sensitivity_variables```: Here sensitivities with respect to the properties of the conditions are computed. Currently there is only ```POINT_LOAD``` available.
 
 **Important, please note:**

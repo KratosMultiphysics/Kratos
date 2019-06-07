@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 
@@ -42,6 +41,7 @@ def AuxiliarContactSettings():
             "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
             "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
             "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+            "ratio_normal_tangent_threshold"                    : 1.0e-4,
             "silent_strategy"                                   : true,
             "simplified_semi_smooth_newton"                     : false,
             "rescale_linear_solver"                             : false,
@@ -84,12 +84,13 @@ def AuxiliarSetSettings(settings, contact_settings):
     if not settings["reform_dofs_at_each_step"].GetBool():
         print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["block_builder"].GetBool():
-        print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
-        settings["block_builder"].SetBool(True)
 
     return settings
 
+def AuxiliarValidateSettings(solver):
+    default_settings = solver.GetDefaultSettings()
+    default_settings.RecursivelyAddMissingParameters(solver.settings)
+    solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
 def AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":
@@ -168,6 +169,7 @@ def AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_setti
         conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", contact_settings["frictional_contact_displacement_absolute_tolerance"])
         conv_params.AddValue("frictional_contact_residual_relative_tolerance", contact_settings["frictional_contact_residual_relative_tolerance"])
         conv_params.AddValue("frictional_contact_residual_absolute_tolerance", contact_settings["frictional_contact_residual_absolute_tolerance"])
+        conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
         conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
         conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion", contact_settings["print_convergence_criterion"])

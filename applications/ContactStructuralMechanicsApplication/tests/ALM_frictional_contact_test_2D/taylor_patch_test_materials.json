@@ -9,8 +9,8 @@
                             "name": "LinearElasticPlaneStrain2DLaw"
                     },
                     "Variables": {
-                            "YOUNG_MODULUS": 1.00000E+3,
-                            "DENSITY": 7.85000E+03,
+                            "YOUNG_MODULUS": 1.00000E+8,
+                            "DENSITY": 1.0000E+03,
                             "POISSON_RATIO": 4.00000E-01,
                             "THICKNESS": 1.00000,
                             "FRICTION_COEFFICIENT": 0.5
@@ -27,8 +27,8 @@
                             "name": "LinearElasticPlaneStrain2DLaw"
                     },
                     "Variables": {
-                            "YOUNG_MODULUS": 1.00000E+3,
-                            "DENSITY": 7.85000E+03,
+                            "YOUNG_MODULUS": 1.00000E+8,
+                            "DENSITY": 1.0000E+03,
                             "POISSON_RATIO": 4.00000E-01,
                             "THICKNESS": 1.00000,
                             "FRICTION_COEFFICIENT": 0.5

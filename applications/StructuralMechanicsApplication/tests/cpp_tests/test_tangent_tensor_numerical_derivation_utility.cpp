@@ -414,11 +414,11 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStruc
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
 
     ConstitutiveLaw::Parameters cl_configuration_values;
-    Properties material_properties = r_model_part.GetProperties(1);
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
     Vector stress_vector, strain_vector;
     Matrix tangent_moduli, deformation_gradient_F;
     double det_deformation_gradient_F;
-    SettingBasicCase(r_model_part, cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
     p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy);
@@ -449,11 +449,11 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
 
     ConstitutiveLaw::Parameters cl_configuration_values;
-    Properties material_properties = r_model_part.GetProperties(1);
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
     Vector stress_vector, strain_vector;
     Matrix tangent_moduli, deformation_gradient_F;
     double det_deformation_gradient_F;
-    SettingBasicCase(r_model_part, cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("KirchhoffSaintVenant3DLaw").Clone();
     p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
@@ -484,11 +484,11 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, Kr
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
 
     ConstitutiveLaw::Parameters cl_configuration_values;
-    Properties material_properties = r_model_part.GetProperties(1);
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
     Vector stress_vector, strain_vector;
     Matrix tangent_moduli, deformation_gradient_F;
     double det_deformation_gradient_F;
-    SettingBasicCase(r_model_part, cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
     p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
@@ -505,11 +505,11 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUti
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
 
     ConstitutiveLaw::Parameters cl_configuration_values;
-    Properties material_properties = r_model_part.GetProperties(1);
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
     Vector stress_vector, strain_vector;
     Matrix tangent_moduli, deformation_gradient_F;
     double det_deformation_gradient_F;
-    SettingBasicCase(r_model_part, cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("KirchhoffSaintVenant3DLaw").Clone();
     p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
@@ -528,15 +528,15 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     ConstitutiveLaw::Parameters cl_configuration_values;
-    Properties& r_material_properties = r_model_part.GetProperties(1);
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
     Vector stress_vector, strain_vector;
     Matrix tangent_moduli, deformation_gradient_F;
     double det_deformation_gradient_F;
-    SettingBasicCase(r_model_part, cl_configuration_values, r_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
 
     // Creating constitutive law
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("SmallStrainIsotropicPlasticity3DVonMisesVonMises").Clone();
-    r_material_properties.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+    p_material_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
 
     // Creating geometry
     Create3DGeometryHexahedra(r_model_part);
@@ -564,15 +564,15 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     ConstitutiveLaw::Parameters cl_configuration_values;
-    Properties& r_material_properties = r_model_part.GetProperties(1);
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
     Vector stress_vector, strain_vector;
     Matrix tangent_moduli, deformation_gradient_F;
     double det_deformation_gradient_F;
-    SettingBasicCase(r_model_part, cl_configuration_values, r_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
 
     // Creating constitutive law
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("SmallStrainIsotropicPlasticity3DVonMisesVonMises").Clone();
-    r_material_properties.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+    p_material_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
 
     // Creating geometry
     Create3DGeometryHexahedra(r_model_part);

@@ -89,7 +89,9 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
     typedef RigidFaceGeometricalObjectConfigure<3>        RigidFaceGeometricalConfigureType;
       //Bin Types
     typedef BinsObjectDynamic<RigidFaceGeometricalConfigureType>   GeometricalBinsType;
-    typedef PointerVectorSet<GeometricalObject, IndexedObject>     GeometricalObjectType;
+    //typedef PointerVectorSet<GeometricalObject, IndexedObject>     GeometricalObjectType;
+    typedef typename RigidFaceGeometricalConfigureType::ElementsContainerType GeometricalObjectType;
+
     //typedef PointerVector<GeometricalObject>     GeometricalObjectType;
 
 
@@ -107,6 +109,7 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       /// Destructor.
       ~DEM_FEM_Search(){
       }
+
 
   void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
       ElementsContainerType   const& rElements,
@@ -140,7 +143,8 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       RadiusArrayType Radius_out;
 
       int num_of_threads = OpenMPUtils::GetNumThreads();
-      DenseVector<unsigned int> total_dem_partition_index; vector<unsigned int> total_fem_partition_index;
+      std::vector<unsigned int> total_dem_partition_index;
+      std::vector<unsigned int> total_fem_partition_index;
 
       OpenMPUtils::CreatePartition(num_of_threads, elements_sear.size(), total_dem_partition_index);
       OpenMPUtils::CreatePartition(num_of_threads, conditions_bins.size(), total_fem_partition_index);
@@ -300,6 +304,7 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       #pragma omp parallel
       {
         GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+
         DistanceType                          localResultsDistances(MaxNumberOfElements);
         std::size_t                           NumberOfResults = 0;
 
@@ -322,15 +327,17 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
 
             if(search_particle) {
 
-              GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
+              auto  ResultsPointer          = localResults.begin();
               DistanceType::iterator                           ResultsDistancesPointer = localResultsDistances.begin();
 
               NumberOfResults = (*mBins).SearchObjectsInRadiusExclusive(go_it,Rad,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
 
               rResults[p].reserve(NumberOfResults);
 
-              for(GeometricalObjectType::ContainerType::iterator c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
-                  Condition::Pointer condition = Kratos::dynamic_pointer_cast<Condition>(*c_it);
+              for(auto c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
+                  auto presult = *c_it;
+                  Condition::Pointer condition = dynamic_pointer_cast<Condition>(presult);
+                  //Condition::Pointer condition = Kratos::dynamic_pointer_cast<Condition>(*c_it);
                   rResults[p].push_back(condition);
               }
 

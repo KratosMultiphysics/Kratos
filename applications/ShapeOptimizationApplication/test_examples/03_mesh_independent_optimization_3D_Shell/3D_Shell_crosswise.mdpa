@@ -18278,7 +18278,7 @@ Begin Elements ShellThinElement3D3N// GUI group identifier: solid
      12040          1       1415       1432       1383
 End Elements
 
-Begin Conditions ShapeOptimizationCondition3D3N// GUI group identifier: solid
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: solid
          1          1       1028       1011        997
          2          1        973        963        942
          3          1        408        425        432

@@ -23,8 +23,6 @@
 
 namespace Kratos
 {
-
-
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -67,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -95,19 +93,19 @@ public:
 
         JacobianOperator();
 
-        void Calculate(const ShellQ4_LocalCoordinateSystem & CS, const Matrix & dN);
+        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
 
-        inline const Matrix & Jacobian()const
+        inline const Matrix& Jacobian()const
         {
             return mJac;
         }
 
-        inline const Matrix & Inverse()const
+        inline const Matrix& Inverse()const
         {
             return mInv;
         }
 
-        inline const Matrix & XYDerivatives()const
+        inline const Matrix& XYDerivatives()const
         {
             return mXYDeriv;
         }
@@ -140,8 +138,7 @@ public:
      *     International Journal for Numerical Methods in Eng.,
      *     vol. 21, 367-383, 1985
      */
-    struct MITC4Params
-    {
+    struct MITC4Params {
 
         double Ax;
         double Ay;
@@ -152,7 +149,7 @@ public:
         Matrix Transformation;
         Matrix ShearStrains;
 
-        MITC4Params(const ShellQ4_LocalCoordinateSystem & LCS);
+        MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS);
 
     };
 
@@ -311,7 +308,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     /**
      * @brief Creates a new element
@@ -324,7 +321,7 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     void Initialize() override;
 
@@ -340,19 +337,19 @@ public:
 
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-        3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -382,19 +379,19 @@ private:
     ///@{
 
     void CalculateStressesFromForceResultants(VectorType& rstresses,
-        const double& rthickness);
+            const double& rthickness);
 
-    void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
+    void CalculateLaminaStrains(ShellCrossSection::Pointer& section, const Vector& generalizedStrains, std::vector<VectorType>& rlaminateStrains);
 
-    void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
+    void CalculateLaminaStresses(ShellCrossSection::Pointer& section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses);
 
-    double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+    double CalculateTsaiWuPlaneStress(const std::vector<VectorType>& rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
     void CalculateVonMisesStress(const Vector& generalizedStresses,
-        const Variable<double>& rVariable, double& rVon_Mises_Result);
+                                 const Variable<double>& rVariable, double& rVon_Mises_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
-        int& iJob, bool& bGlobal);
+            int& iJob, bool& bGlobal);
 
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
@@ -408,12 +405,12 @@ private:
                           Matrix& B, Vector& Bdrill);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag) override;
+                      VectorType& rRightHandSideVector,
+                      const ProcessInfo& rCurrentProcessInfo,
+                      const bool CalculateStiffnessMatrixFlag,
+                      const bool CalculateResidualVectorFlag) override;
 
-    void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
+    void AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector);
 
     bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,

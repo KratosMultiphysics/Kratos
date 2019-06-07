@@ -61,7 +61,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianAxisymmetry );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianAxisymmetry );
     ///@}
 
     /**
@@ -144,11 +144,6 @@ public:
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

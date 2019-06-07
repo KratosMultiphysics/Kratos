@@ -59,9 +59,9 @@ class BoundaryNormalsCalculationUtilities
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
   typedef ModelPart::MeshType                               MeshType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
   ///@}
   ///@name Life Cycle
@@ -745,7 +745,7 @@ protected:
 
     if( rModelPart.NumberOfConditions() && this->CheckConditionsDimension(rModelPart, dimension-1) ){
 
-      ConditionsContainerType& rConditions = rModelPart.Conditions();
+    //   ConditionsContainerType& rConditions = rModelPart.Conditions();
 
       //adding the normals to the nodes
       for(auto& i_cond : rModelPart.Conditions())
@@ -932,7 +932,7 @@ protected:
   //**************************************************************************
 
   template<class TClassType>
-  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
+  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<GlobalPointersVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
   {
     KRATOS_TRY
 
@@ -1320,7 +1320,7 @@ protected:
 
 
   // template<class TClassType>
-  // void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rIds, const unsigned int& dimension )
+  // void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<GlobalPointersVector<TClassType> >& rNeighbours, const std::vector<int>& rIds, const unsigned int& dimension )
   // {
 
   //   KRATOS_TRY

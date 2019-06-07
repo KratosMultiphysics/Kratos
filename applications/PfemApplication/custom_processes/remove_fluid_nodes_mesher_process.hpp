@@ -52,9 +52,9 @@ class RemoveFluidNodesMesherProcess
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -921,7 +921,7 @@ class RemoveFluidNodesMesherProcess
     rNode.FastGetSolutionStepValue(DISPLACEMENT,1) *= quotient;
     //rNode.FastGetSolutionStepValue(DISPLACEMENT)   += rNode.Coordinates()-CurrentPosition;
     //rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += rNode.Coordinates()-CurrentPosition;
-    rNode.GetInitialPosition() = (rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
+    rNode.GetInitialPosition() = Point(rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
     rNode.FastGetSolutionStepValue(VELOCITY)       *= quotient;
     rNode.FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
     rNode.FastGetSolutionStepValue(ACCELERATION)   *= quotient;
