@@ -71,11 +71,12 @@ VtkOutput::VtkOutput(
     }
 
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
 
-    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+    const int num_elements = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
-    KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
+    KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << r_data_comm << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
 }
 
 /***********************************************************************************/
@@ -527,7 +528,7 @@ void VtkOutput::WriteNodalContainerResults(
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     } else {
-        KRATOS_WARNING_ONCE(rVariableName) << "Variable \"" << rVariableName << "\" is "
+        KRATOS_WARNING_ONCE(rVariableName) << mrModelPart.GetCommunicator().GetDataCommunicator() << "Variable \"" << rVariableName << "\" is "
             << "not suitable for VtkOutput, skipping it" << std::endl;
     }
 }
@@ -569,7 +570,7 @@ void VtkOutput::WriteGeometricalContainerResults(
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     } else {
-        KRATOS_WARNING_ONCE(rVariableName) << "Variable \"" << rVariableName << "\" is "
+        KRATOS_WARNING_ONCE(rVariableName) << mrModelPart.GetCommunicator().GetDataCommunicator() << "Variable \"" << rVariableName << "\" is "
             << "not suitable for VtkOutput, skipping it" << std::endl;
     }
 }
@@ -641,8 +642,8 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
-        return void();
+        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
+        return;
     }
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
@@ -706,8 +707,8 @@ void VtkOutput::WriteVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
-        return void();
+        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
+        return;
     }
 
     const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
