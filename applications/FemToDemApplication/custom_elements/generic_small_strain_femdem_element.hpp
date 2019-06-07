@@ -137,22 +137,22 @@ public:
     /**
      * this is called in the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -162,7 +162,7 @@ public:
      * @param rRightHandSideVector the elemental right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -170,7 +170,7 @@ public:
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -178,7 +178,7 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
@@ -301,9 +301,9 @@ public:
      * GetValueOnIntegrationPoints: get the values for given Variable.
      * these methods are: OPTIONAL
      */
-	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate variables on Integration points.
@@ -314,9 +314,9 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      * these methods are: OPTIONAL
      */
-	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 

@@ -511,7 +511,6 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB2D(
     )
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
-	const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     for (SizeType i = 0; i < number_of_nodes; i++) {
         unsigned int index = 2 * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
@@ -531,9 +530,8 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB3D(
     )
 {
 	const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
-	const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     for (SizeType i = 0; i < number_of_nodes; ++i) {
-        const auto index = dimension * i;
+        const auto index = 3 * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
         rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
         rB(0, index + 2) = rF(2, 0) * rDN_DX(i, 0);
