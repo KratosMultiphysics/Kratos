@@ -179,16 +179,16 @@ void ReadMaterialsUtility::CreateProperty(
             // We don't just copy the values, we do some tyransformation depending of the destination variable
             if (KratosComponents<Variable<double> >::Has(variable_name)) {
                 const Variable<double>& r_variable = KratosComponents<Variable<double>>().Get(variable_name);
-                CheckIfOverwritingValue(*p_prop, r_variable, value.GetDouble());
-                p_prop->SetValue(r_variable, value.GetDouble());
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetDouble());
+                pNewProperty->SetValue(r_variable, value.GetDouble());
             } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
                 const Variable<bool>& r_variable = KratosComponents<Variable<bool>>().Get(variable_name);
-                CheckIfOverwritingValue(*p_prop, r_variable, value.GetBool());
-                p_prop->SetValue(r_variable, value.GetBool());
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetBool());
+                pNewProperty->SetValue(r_variable, value.GetBool());
             } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
                 const Variable<int>& r_variable = KratosComponents<Variable<int>>().Get(variable_name);
-                CheckIfOverwritingValue(*p_prop, r_variable, value.GetInt());
-                p_prop->SetValue(r_variable, value.GetInt());
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetInt());
+                pNewProperty->SetValue(r_variable, value.GetInt());
             } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
                 const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
                 array_1d<double, 3> temp = ZeroVector(3);
@@ -196,8 +196,8 @@ void ReadMaterialsUtility::CreateProperty(
                 KRATOS_ERROR_IF(r_value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << r_value_variable.size() << " and it is supposed to be 3" << std::endl;
                 for (IndexType index = 0; index < 3; ++index)
                     temp[index] = r_value_variable[index];
-                CheckIfOverwritingValue(*p_prop, r_variable, temp);
-                p_prop->SetValue(r_variable, temp);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, temp);
+                pNewProperty->SetValue(r_variable, temp);
             } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
                 const Variable<array_1d<double, 6>>& r_variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
                 array_1d<double, 6> temp(6, 0.0);
@@ -205,26 +205,26 @@ void ReadMaterialsUtility::CreateProperty(
                 KRATOS_ERROR_IF(r_value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << r_value_variable.size() << " and it is supposed to be 6" << std::endl;
                 for (IndexType index = 0; index < 6; ++index)
                     temp[index] = r_value_variable[index];
-                CheckIfOverwritingValue(*p_prop, r_variable, temp);
-                p_prop->SetValue(r_variable, temp);
+                CheckIfOverwritingValue(*pNewProperty, r_variable, temp);
+                pNewProperty->SetValue(r_variable, temp);
             } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
                 const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>().Get(variable_name);
-                CheckIfOverwritingValue(*p_prop, r_variable, value.GetVector());
-                p_prop->SetValue(r_variable, value.GetVector());
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetVector());
+                pNewProperty->SetValue(r_variable, value.GetVector());
             } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
                 const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
-                CheckIfOverwritingValue(*p_prop, r_variable, value.GetMatrix());
-                p_prop->SetValue(r_variable, value.GetMatrix());
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetMatrix());
+                pNewProperty->SetValue(r_variable, value.GetMatrix());
             } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
                 const Variable<std::string>& r_variable = KratosComponents<Variable<std::string>>().Get(variable_name);
-                CheckIfOverwritingValue(*p_prop, r_variable, value.GetString());
-                p_prop->SetValue(r_variable, value.GetString());
+                CheckIfOverwritingValue(*pNewProperty, r_variable, value.GetString());
+                pNewProperty->SetValue(r_variable, value.GetString());
             } else {
                 KRATOS_ERROR << "Value type for \"" << variable_name << "\" not defined";
             }
         }
     } else {
-        KRATOS_INFO("Read materials") << "No variables defined for material ID: " << property_id << std::endl;
+        KRATOS_INFO("Read materials") << "No variables defined for material ID: " << pNewProperty->Id() << std::endl;
     }
 
     // Add / override tables in the p_properties
@@ -249,7 +249,7 @@ void ReadMaterialsUtility::CreateProperty(
             pNewProperty->SetTable(r_input_var, r_output_var, table);
         }
     } else {
-        KRATOS_INFO("Read materials") << "No tables defined for material ID: " << property_id << std::endl;
+        KRATOS_INFO("Read materials") << "No tables defined for material ID: " << pNewProperty->Id() << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -318,7 +318,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 {
     KRATOS_TRY;
-  
+
     // Get the properties for the specified model part.
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
