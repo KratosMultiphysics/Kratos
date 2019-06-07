@@ -168,8 +168,8 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override the values of material parameters in the p_properties
-    if (Data["Material"].Has("Variables")) {
-        Parameters variables = Data["Material"]["Variables"];
+    if (Data.Has("Variables")) {
+        Parameters variables = Data["Variables"];
         for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
             const Parameters value = variables.GetValue(iter.name());
 
@@ -228,8 +228,8 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override tables in the p_properties
-    if (Data["Material"].Has("Tables")) {
-        Parameters tables = Data["Material"]["Tables"];
+    if (Data.Has("Tables")) {
+        Parameters tables = Data["Tables"];
         for (auto iter = tables.begin(); iter != tables.end(); ++iter) {
             auto table_param = tables.GetValue(iter.name());
             // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
