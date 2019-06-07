@@ -227,6 +227,8 @@ public:
         (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
+
+
         if (mUpdateAcceleration)
         {
             (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
@@ -235,6 +237,13 @@ public:
         }
         AddDynamicsToLHS(rLHS_Contribution, mDampingMatrix[k], mMassMatrix[k],
                          rCurrentProcessInfo);
+
+        // Vector temp;
+        // pCurrentCondition->GetValuesVector(temp);
+        // KRATOS_WATCH(mDampingMatrix[k]);
+        // KRATOS_WATCH(rLHS_Contribution);
+        // KRATOS_WATCH(rRHS_Contribution);
+        // KRATOS_WATCH(temp);
 
         KRATOS_CATCH("")
     }

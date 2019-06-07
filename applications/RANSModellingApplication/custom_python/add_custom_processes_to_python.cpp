@@ -14,7 +14,7 @@
 
 // Application includes
 #include "custom_processes/solving_strategies/k_epsilon_co_solving_process.h"
-#include "custom_processes/solving_strategies/k_epsilon_steady_co_solving_process.h"
+// #include "custom_processes/solving_strategies/k_epsilon_steady_co_solving_process.h"
 #include "custom_processes/solving_strategies/scalar_co_solving_process.h"
 
 // RANS Y Plus models
@@ -22,7 +22,9 @@
 #include "custom_processes/y_plus_model_processes/rans_tke_y_plus_model_process.h"
 
 // RANS initialization processes
+#include "custom_processes/epsilon_turbulent_mixing_length_evaluation_process.h"
 #include "custom_processes/k_epsilon_evaluation_utau_process.h"
+#include "custom_processes/k_turbulent_intensity_evaluation_process.h"
 
 // RANS wall processes
 #include "custom_processes/wall_processes/rans_exact_wall_distance_calculation_process.h"
@@ -50,12 +52,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef KEpsilonCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonCoSolvingProcessType;
     py::class_<KEpsilonCoSolvingProcessType, KEpsilonCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
         m, "KEpsilonCoSolvingProcess")
-        .def(py::init<ModelPart&, Parameters&, Process&>());
+        .def(py::init<ModelPart&, Parameters&, Process::Pointer, Process::Pointer, Process::Pointer>());
 
-    typedef KEpsilonSteadyCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonSteadyCoSolvingProcessType;
-    py::class_<KEpsilonSteadyCoSolvingProcessType, KEpsilonSteadyCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
-        m, "KEpsilonSteadyCoSolvingProcess")
-        .def(py::init<ModelPart&, Parameters&, Process&>());
+    // typedef KEpsilonSteadyCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonSteadyCoSolvingProcessType;
+    // py::class_<KEpsilonSteadyCoSolvingProcessType, KEpsilonSteadyCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
+    //     m, "KEpsilonSteadyCoSolvingProcess")
+    //     .def(py::init<ModelPart&, Parameters&, Process&, Process&>());
 
     // Adding y_plus calculation models
     py::class_<RansLogarithmicYPlusModelProcess, RansLogarithmicYPlusModelProcess::Pointer, Process>(
@@ -69,6 +71,15 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansKEpsilonEvaluationUtauProcess, RansKEpsilonEvaluationUtauProcess::Pointer, Process>(
         m, "RansKEpsilonEvaluationUtauProcess")
         .def(py::init<Model&, Parameters&, Process&>());
+
+    py::class_<RansKTurbulentIntensityEvaluationProcess, RansKTurbulentIntensityEvaluationProcess::Pointer, Process>(
+        m, "RansKTurbulentIntensityEvaluationProcess")
+        .def(py::init<ModelPart&, Parameters&, const bool>());
+
+    py::class_<RansEpsilonTurbulentMixingLengthEvaluationProcess,
+               RansEpsilonTurbulentMixingLengthEvaluationProcess::Pointer, Process>(
+        m, "RansEpsilonTurbulentMixingLengthEvaluationProcess")
+        .def(py::init<ModelPart&, Parameters&, const bool>());
 
     // Adding wall distance calculation processes
     typedef RansExactWallDistanceCalculationProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType> RansExactWallDistanceCalculationProcessType2D;
@@ -85,7 +96,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansWallVelocityCalculationProcess RansWallVelocityCalculationProcessType;
     py::class_<RansWallVelocityCalculationProcessType, RansWallVelocityCalculationProcessType::Pointer, Process>(
         m, "RansWallVelocityCalculationProcess")
-        .def(py::init<ModelPart&>());
+        .def(py::init<ModelPart&, Parameters&>());
 }
 
 } // namespace Python.

@@ -41,13 +41,21 @@ class TurbulenceModelConfiguration(PythonSolver):
         raise Exception(msg)
 
     def Initialize(self):
-        self.GetTurbulenceSolvingProcess().ExecuteInitialize()
+        msg = "Calling the base TurbulenceModelConfiguration class Initialize method."
+        msg += " Please override it in the derrived class."
+        raise Exception(msg)
 
     def Check(self):
-        self.GetTurbulenceSolvingProcess().Check()
+        msg = "Calling the base TurbulenceModelConfiguration class Check method."
+        msg += " Please override it in the derrived class."
+        raise Exception(msg)
 
     def InitializeSolutionStep(self):
-        self.GetTurbulenceSolvingProcess().ExecuteInitializeSolutionStep()
+        msg = "Calling the base TurbulenceModelConfiguration class InitializeSolutionStep method."
+        msg += " Please override it in the derrived class."
+        raise Exception(msg)
 
     def FinalizeSolutionStep(self):
-        self.GetTurbulenceSolvingProcess().ExecuteFinalizeSolutionStep()
+        msg = "Calling the base TurbulenceModelConfiguration class FinalizeSolutionStep method."
+        msg += " Please override it in the derrived class."
+        raise Exception(msg)

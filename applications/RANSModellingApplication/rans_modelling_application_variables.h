@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "processes/process.h"
 #include "includes/kratos_application.h"
 
 namespace Kratos
@@ -44,6 +45,9 @@ KRATOS_DEFINE_VARIABLE( double, TURBULENT_VISCOSITY_MAX )
 KRATOS_DEFINE_VARIABLE( double, TURBULENT_KINETIC_ENERGY_SIGMA )
 KRATOS_DEFINE_VARIABLE( double, TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA )
 
+KRATOS_DEFINE_VARIABLE( Process::Pointer, RANS_PROCESS_Y_PLUS_MODEL )
+KRATOS_DEFINE_VARIABLE( Process::Pointer, RANS_PROCESS_WALL_DISTANCE )
+KRATOS_DEFINE_VARIABLE( Process::Pointer, RANS_PROCESS_WALL_VELOCITY )
 }
 
 #endif	/* KRATOS_RANS_MODELLING_APPLICATION_VARIABLES_H_INCLUDED */

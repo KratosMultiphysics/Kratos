@@ -26,6 +26,8 @@
 #include "includes/serializer.h"
 
 // Application includes
+#include "custom_conditions/monolithic_wall_condition.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_modelling_application_variables.h"
 
@@ -64,7 +66,7 @@ namespace Kratos
   @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
  */
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class EVMVMSMonolithicWallCondition : public Condition
+class EVMVMSMonolithicWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -72,6 +74,8 @@ public:
 
     /// Pointer definition of EVMVMSMonolithicWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EVMVMSMonolithicWallCondition);
+
+    typedef MonolithicWallCondition<TDim, TNumNodes> BaseType;
 
     typedef Node<3> NodeType;
 
@@ -103,7 +107,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    EVMVMSMonolithicWallCondition(IndexType NewId = 0) : Condition(NewId)
+    EVMVMSMonolithicWallCondition(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 
@@ -113,7 +117,7 @@ public:
      @param ThisNodes An array containing the nodes of the new condition
      */
     EVMVMSMonolithicWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Condition(NewId, ThisNodes)
+        : BaseType(NewId, ThisNodes)
     {
     }
 
@@ -123,7 +127,7 @@ public:
      @param pGeometry Pointer to a geometry object
      */
     EVMVMSMonolithicWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Condition(NewId, pGeometry)
+        : BaseType(NewId, pGeometry)
     {
     }
 
@@ -136,13 +140,13 @@ public:
     EVMVMSMonolithicWallCondition(IndexType NewId,
                                   GeometryType::Pointer pGeometry,
                                   PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
     EVMVMSMonolithicWallCondition(EVMVMSMonolithicWallCondition const& rOther)
-        : Condition(rOther)
+        : BaseType(rOther)
     {
     }
 
@@ -178,7 +182,7 @@ public:
                               PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<EVMVMSMonolithicWallCondition>(
-            NewId, GetGeometry().Create(ThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Condition::Pointer Create(IndexType NewId,
@@ -198,270 +202,14 @@ public:
 
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
-        Condition::Pointer pNewCondition =
-            Create(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+        Condition::Pointer pNewCondition = Create(
+            NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
 
         pNewCondition->SetData(this->GetData());
         pNewCondition->SetFlags(this->GetFlags());
 
         return pNewCondition;
     }
-
-    /// Return local contributions of the correct size, filled with zeros (for compatibility with time schemes).
-    /** The actual local contributions are computed in the Damping functions
-      @see CalculateLocalVelocityContribution
-      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
-    {
-        const SizeType BlockSize = TDim + 1;
-        const SizeType LocalSize = BlockSize * TNumNodes;
-
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize);
-
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
-
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-    }
-
-    /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
-    /** The actual local contributions are computed in the Damping functions
-      @see DampingMatrix
-      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
-    {
-        const SizeType BlockSize = TDim + 1;
-        const SizeType LocalSize = BlockSize * TNumNodes;
-
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize);
-
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
-    }
-
-    /// Return local right hand side of the correct size, filled with zeros (for compatibility with time schemes).
-    /** The actual local contributions are computed in the Damping functions
-      @see CalculateLocalVelocityContribution
-      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
-    {
-        const SizeType BlockSize = TDim + 1;
-        const SizeType LocalSize = BlockSize * TNumNodes;
-
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
-
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-    }
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
-    {
-        VectorType RHS;
-        this->CalculateLocalVelocityContribution(rDampingMatrix, RHS, rCurrentProcessInfo);
-    }
-
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
-    /**
-      @param rDampingMatrix Left-hand side matrix
-      @param rRightHandSideVector Right-hand side vector
-      @param rCurrentProcessInfo ProcessInfo instance (unused)
-      */
-    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
-                                            VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
-
-        if (Check != 0)
-        {
-            return Check;
-        }
-        else
-        {
-            // Check that all required variables have been registered
-            if (VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "VELOCITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "MESH_VELOCITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (ACCELERATION.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "ACCELERATION Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "PRESSURE Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (DENSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "DENSITY Key is 0. Check if the application "
-                                   "was correctly registered.",
-                                   "");
-            if (VISCOSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "VISCOSITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (Y_WALL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "Y_WALL Key is 0. Check if the application "
-                                   "was correctly registered.",
-                                   "");
-            if (EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "EXTERNAL_PRESSURE Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-
-            // Checks on nodes
-
-            // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-            for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-            {
-                if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,
-                                       "missing VELOCITY variable on solution "
-                                       "step data for node ",
-                                       this->GetGeometry()[i].Id());
-                if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,
-                                       "missing PRESSURE variable on solution "
-                                       "step data for node ",
-                                       this->GetGeometry()[i].Id());
-                if (this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,
-                                       "missing MESH_VELOCITY variable on "
-                                       "solution step data for node ",
-                                       this->GetGeometry()[i].Id());
-                if (this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,
-                                       "missing ACCELERATION variable on "
-                                       "solution step data for node ",
-                                       this->GetGeometry()[i].Id());
-                if (this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,
-                                       "missing EXTERNAL_PRESSURE variable on "
-                                       "solution step data for node ",
-                                       this->GetGeometry()[i].Id());
-                if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-                    this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-                    this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                    KRATOS_THROW_ERROR(
-                        std::invalid_argument,
-                        "missing VELOCITY component degree of freedom on node ",
-                        this->GetGeometry()[i].Id());
-                if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                    KRATOS_THROW_ERROR(
-                        std::invalid_argument,
-                        "missing PRESSURE component degree of freedom on node ",
-                        this->GetGeometry()[i].Id());
-            }
-
-            return Check;
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    /// Provides the global indices for each one of this element's local rows.
-    /** This determines the elemental equation ID vector for all elemental DOFs
-     * @param rResult A vector containing the global Id of each row
-     * @param rCurrentProcessInfo the current process info object (unused)
-     */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Returns a list of the element's Dofs
-    /**
-     * @param ElementalDofList the list of DOFs
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
-    /**
-     * @param Values Vector of nodal unknowns
-     * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
-     */
-    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override
-    {
-        const SizeType LocalSize = (TDim + 1) * TNumNodes;
-        unsigned int LocalIndex = 0;
-
-        if (Values.size() != LocalSize)
-            Values.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            array_1d<double, 3>& rVelocity =
-                this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
-            for (unsigned int d = 0; d < TDim; ++d)
-                Values[LocalIndex++] = rVelocity[d];
-            Values[LocalIndex++] =
-                this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
-        }
-    }
-
-    /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
-    /**
-     * @param Values Vector of nodal second derivatives
-     * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
-     */
-    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override
-    {
-        const SizeType LocalSize = (TDim + 1) * TNumNodes;
-        unsigned int LocalIndex = 0;
-
-        if (Values.size() != LocalSize)
-            Values.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            array_1d<double, 3>& rVelocity =
-                this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
-            for (unsigned int d = 0; d < TDim; ++d)
-                Values[LocalIndex++] = rVelocity[d];
-            Values[LocalIndex++] = 0.0; // No value on pressure positions
-        }
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6>>& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -521,51 +269,76 @@ protected:
       @param rLocalMatrix Local system matrix
       @param rLocalVector Local right hand side
       */
-    virtual void ApplyWallLaw(MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
+    void ApplyWallLaw(MatrixType& rLocalMatrix,
+                      VectorType& rLocalVector,
+                      ProcessInfo& rCurrentProcessInfo) override
     {
-        GeometryType& rGeometry = this->GetGeometry();
-        const size_t BlockSize = TDim + 1;
-        const double NodalFactor = 1.0 / double(TDim);
+        BaseType::ApplyWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+        // if (!rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
+        // {
+        //     BaseType::ApplyWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+        //     return;
+        // }
 
-        double area = NodalFactor * rGeometry.DomainSize();
+        // RansCalculationUtilities rans_calculation_utilities;
 
-        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+        // GeometryType& r_geometry = this->GetGeometry();
 
-        // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
+        // for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+        //     if (!r_geometry[i_node].Is(STRUCTURE))
+        //         return;
 
-        for (size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-        {
-            const NodeType& rConstNode = rGeometry[itNode];
+        // Vector gauss_weights;
+        // Matrix shape_functions;
+        // GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+        // rans_calculation_utilities.CalculateGeometryData(
+        //     r_geometry, GeometryData::GI_GAUSS_1, gauss_weights,
+        //     shape_functions, shape_derivatives);
 
-            if (rConstNode.Is(STRUCTURE))
-            {
-                const array_1d<double, 3>& wall_vel =
-                    rGeometry[itNode].FastGetSolutionStepValue(WALL_VELOCITY);
-                const double wall_vel_magnitude = norm_2(wall_vel);
-                const double tke =
-                    rGeometry[itNode].FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+        // const size_t block_size = TDim + 1;
 
-                const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
+        // const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
 
-                if (wall_vel_magnitude > 1e-12) // do not bother if velocity is zero
-                {
-                    double utau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+        // for (size_t g = 0; g < gauss_weights.size(); ++g)
+        // {
+        //     const Vector& gauss_shape_functions = row(shape_functions, g);
 
-                    const double Tmp = area * utau * utau * rho / wall_vel_magnitude;
-                    for (size_t d = 0; d < TDim; d++)
-                    {
-                        size_t k = itNode * BlockSize + d;
-                        rLocalVector[k] -= wall_vel[d] * Tmp;
-                        rLocalMatrix(k, k) += Tmp;
-                    }
-                }
-            }
-        }
+        //     const array_1d<double, 3>& r_wall_velocity =
+        //         rans_calculation_utilities.EvaluateInPoint(
+        //             r_geometry, WALL_VELOCITY, gauss_shape_functions);
+
+        //     if (norm_2(r_wall_velocity) > std::numeric_limits<double>::epsilon())
+        //     {
+        //         const double density = rans_calculation_utilities.EvaluateInPoint(
+        //             r_geometry, DENSITY, gauss_shape_functions);
+        //         const double tke = rans_calculation_utilities.EvaluateInPoint(
+        //             r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+        //         const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+        //             r_geometry, RANS_Y_PLUS, gauss_shape_functions);
+
+        //         const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+
+        //         const double coeff = gauss_weights[g] * density * u_tau /
+        //                              (y_plus + std::numeric_limits<double>::epsilon());
+
+        //         for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+        //         {
+        //             for (size_t dim = 0; dim < TDim; ++dim)
+        //             {
+        //                 rLocalVector[i_node * block_size + dim] -=
+        //                     coeff * gauss_shape_functions[i_node] * r_wall_velocity[dim];
+        //             }
+        //         }
+
+        //     KRATOS_WATCH(u_tau);
+        //     KRATOS_WATCH(y_plus);
+        //     KRATOS_WATCH(density);
+        //     KRATOS_WATCH(u_tau);
+        //     KRATOS_WATCH(r_wall_velocity);
+        //     KRATOS_WATCH(tke);
+        //     }
+        // }
     }
-
-    void CalculateNormal(array_1d<double, 3>& An);
-
-    void ApplyNeumannCondition(MatrixType& rLocalMatrix, VectorType& rLocalVector);
 
     ///@}
     ///@name Protected  Access

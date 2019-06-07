@@ -158,8 +158,8 @@ public:
 
         const int number_of_nodes = r_nodes.size();
 
-        const double c_mu_25 =
-            std::pow(mrModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.25);
+        // const double c_mu_25 =
+        //     std::pow(mrModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.25);
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
@@ -169,12 +169,22 @@ public:
                 r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
             const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE, mStep);
 
-            if (r_node.Is(STRUCTURE) && !r_node.Is(INLET))
+            if (r_node.Is(STRUCTURE))
             {
-                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-                const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) =
-                    u_tau * wall_distance / kinematic_viscosity;
+                // const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+                // const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+                // r_node.FastGetSolutionStepValue(RANS_Y_PLUS) =
+                //     u_tau * wall_distance / kinematic_viscosity;
+
+                const array_1d<double, 3>& velocity =
+                    r_node.FastGetSolutionStepValue(WALL_VELOCITY, mStep);
+                const double velocity_norm = norm_2(velocity);
+
+                const double yplus = CalculateLogarithmicWallLawYplus(
+                    velocity_norm, mVonKarman, mBeta, kinematic_viscosity,
+                    wall_distance, mMaxIterations, mTolerance);
+
+                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
             }
             else
             {

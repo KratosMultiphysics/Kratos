@@ -96,14 +96,17 @@ public:
 
         Parameters default_parameters = Parameters(R"(
         {
-            "max_iterations"            : 5,
+            "max_iterations"             : 10,
             "average_neighbour_elements" : 10,
             "average_neighbour_nodes"    : 10,
             "weight"                     : 1.0,
-            "linear_solver_settings"    : {}
+            "echo_level"                 : 0,
+            "linear_solver_settings"     : {
+                "solver_type"     : "amgcl"
+            }
         })");
 
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
+        mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
         mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
             mrParameters["linear_solver_settings"]);
@@ -112,6 +115,7 @@ public:
         mAverageNeighbourElements = mrParameters["average_neighbour_elements"].GetInt();
         mAverageNeighbourNodes = mrParameters["average_neighbour_nodes"].GetInt();
         mWeight = mrParameters["weight"].GetDouble();
+        mEchoLevel = mrParameters["echo_level"].GetInt();
 
         KRATOS_CATCH("");
     }
@@ -234,6 +238,7 @@ private:
     int mMaxIterations;
     int mAverageNeighbourElements;
     int mAverageNeighbourNodes;
+    int mEchoLevel;
 
     double mWeight;
 
@@ -265,6 +270,7 @@ private:
         FindNodalNeighbours();
 
         const int number_of_nodes = mrModelPart.NumberOfNodes();
+        int number_of_model_based_node_calculations = 0;
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
@@ -288,15 +294,21 @@ private:
         }
 
 // TODO: Remove this, after migrating all the calculations in the elements from DISTANCE to Y_WALL
-#pragma omp parallel for
+#pragma omp parallel for reduction(+ : number_of_model_based_node_calculations)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(mrModelPart.NodesBegin() + i_node);
             if (r_node.Is(STRUCTURE))
             {
                 r_node.FastGetSolutionStepValue(DISTANCE) = r_node.GetValue(Y_WALL);
+                number_of_model_based_node_calculations++;
             }
         }
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Wall distances calculated in " << mrModelPart.Name() << " using DISTANCE / MODEL [ "
+            << number_of_nodes - number_of_model_based_node_calculations
+            << " / " << number_of_model_based_node_calculations << " ] nodes.\n";
 
         KRATOS_CATCH("");
     }

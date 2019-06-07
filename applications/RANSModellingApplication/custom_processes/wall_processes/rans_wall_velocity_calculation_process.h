@@ -88,38 +88,30 @@ public:
     ///@{
 
     /// Constructor
-    RansWallVelocityCalculationProcess(ModelPart& rModelPart)
-        : mrModelPart(rModelPart)
+
+    RansWallVelocityCalculationProcess(ModelPart& rModelPart, Parameters& rParameters)
+        : mrModelPart(rModelPart), mrParameters(rParameters)
     {
         KRATOS_TRY
 
-        mAverageNeighbourElements = 10;
-        mAverageNeighbourNodes = 10;
-        mWeight = 1;
+        Parameters default_parameters = Parameters(R"(
+        {
+            "average_neighbour_elements" : 10,
+            "average_neighbour_nodes"    : 10,
+            "weight"                     : 1.0,
+            "echo_level"                 : 0
+        })");
+
+        mrParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mAverageNeighbourElements = mrParameters["average_neighbour_elements"].GetInt();
+        mAverageNeighbourNodes = mrParameters["average_neighbour_nodes"].GetInt();
+        mEchoLevel = mrParameters["echo_level"].GetInt();
+        mWeight = mrParameters["weight"].GetDouble();
 
         KRATOS_CATCH("");
     }
 
-    // RansWallVelocityCalculationProcess(ModelPart& rModelPart, Parameters& rParameters)
-    //     : mrModelPart(rModelPart), mrParameters(rParameters)
-    // {
-    //     KRATOS_TRY
-
-    //     Parameters default_parameters = Parameters(R"(
-    //     {
-    //         "average_neighbour_elements" : 10,
-    //         "average_neighbour_nodes"    : 10,
-    //         "weight"                     : 1.0,
-    //     })");
-
-    //     mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-    //     mAverageNeighbourElements = mrParameters["average_neighbour_elements"].GetInt();
-    //     mAverageNeighbourNodes = mrParameters["average_neighbour_nodes"].GetInt();
-    //     mWeight = mrParameters["weight"].GetDouble();
-
-    //     KRATOS_CATCH("");
-    // }
     /// Destructor.
     ~RansWallVelocityCalculationProcess() override
     {
@@ -233,10 +225,11 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    // Parameters& mrParameters;
+    Parameters& mrParameters;
 
     int mAverageNeighbourElements;
     int mAverageNeighbourNodes;
+    int mEchoLevel;
 
     double mWeight;
 
@@ -252,62 +245,117 @@ private:
     {
         NormalCalculationUtils().CalculateOnSimplex(
             mrModelPart, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+
+        // Check for corner nodes where INLET/OUTLET and STRUCTURE is true
+        const int number_of_nodes = mrModelPart.NumberOfNodes();
+#pragma omp parallel for
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+        {
+            NodeType& r_node = *(mrModelPart.NodesBegin() + i_node);
+
+            if (r_node.Is(STRUCTURE) && (r_node.Is(INLET) || r_node.Is(OUTLET)))
+            {
+                const GlobalPointersVector<NodeType>& r_neighbour_nodes =
+                    r_node.GetValue(NEIGHBOUR_NODES);
+                const int number_of_neighbour_nodes = r_neighbour_nodes.size();
+
+                double number_of_aggregation_nodes = 0.0;
+                array_1d<double, 3> averaged_normal;
+                averaged_normal.clear();
+                for (int j_node = 0; j_node < number_of_neighbour_nodes; ++j_node)
+                {
+                    const NodeType& r_neighbour_node = r_neighbour_nodes[j_node];
+                    if (r_neighbour_node.Is(STRUCTURE) &&
+                        (!r_neighbour_node.Is(INLET) && !r_neighbour_node.Is(OUTLET)))
+                    {
+                        averaged_normal +=
+                            r_neighbour_node.FastGetSolutionStepValue(NORMAL);
+                        number_of_aggregation_nodes += 1.0;
+                    }
+                }
+
+                if (number_of_aggregation_nodes > 0.0)
+                {
+                    r_node.FastGetSolutionStepValue(NORMAL) =
+                        averaged_normal * (1.0 / number_of_aggregation_nodes);
+                }
+            }
+        }
     }
 
     void CalculateWallVelocities()
     {
         KRATOS_TRY
 
-        CalculateNormals();
         FindNodalNeighbours();
+        CalculateNormals();
 
         const int number_of_nodes = mrModelPart.NumberOfNodes();
 
-#pragma omp parallel for
+        unsigned int number_of_velocity_based_node_calculations = 0;
+        unsigned int number_of_model_based_node_calculations = 0;
+
+#pragma omp parallel for reduction(+: number_of_velocity_based_node_calculations, number_of_model_based_node_calculations)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(mrModelPart.NodesBegin() + i_node);
+
             if (r_node.Is(STRUCTURE))
             {
                 const array_1d<double, 3>& r_normal =
                     r_node.FastGetSolutionStepValue(NORMAL);
+                const double normal_magnitude = norm_2(r_normal);
+
+                KRATOS_ERROR_IF(normal_magnitude < std::numeric_limits<double>::epsilon())
+                    << "NORMAL magnitude is zero in node " << r_node.Id() << " at "
+                    << r_node.Coordinates() << " in " << mrModelPart.Name()
+                    << " [ NORMAL = " << r_normal << " ].\n";
+
                 const array_1d<double, 3> r_unit_normal = r_normal / norm_2(r_normal);
-                if (r_node.Is(INLET) || r_node.Is(SLIP))
+
+                if (r_node.Is(SLIP))
                 {
                     const array_1d<double, 3>& r_velocity =
                         r_node.FastGetSolutionStepValue(VELOCITY);
                     r_node.FastGetSolutionStepValue(WALL_VELOCITY) =
                         r_velocity - r_unit_normal * inner_prod(r_velocity, r_unit_normal);
+                    number_of_velocity_based_node_calculations++;
                 }
                 else
                 {
-
                     const GlobalPointersVector<NodeType>& r_neighbour_nodes =
                         r_node.GetValue(NEIGHBOUR_NODES);
                     const int number_of_neighbour_nodes = r_neighbour_nodes.size();
                     array_1d<double, 3> wall_velocity;
                     wall_velocity.clear();
+                    double number_of_aggregation_nodes = 0.0;
                     for (int j_node = 0; j_node < number_of_neighbour_nodes; ++j_node)
                     {
                         const NodeType& r_neighbour_node = r_neighbour_nodes[j_node];
-                        const array_1d<double, 3>& r_velocity =
-                            r_neighbour_node.FastGetSolutionStepValue(VELOCITY);
-                        wall_velocity +=
-                            (r_velocity - r_unit_normal * inner_prod(r_velocity, r_unit_normal));
+                        if (!r_neighbour_node.Is(STRUCTURE))
+                        {
+                            const array_1d<double, 3>& r_velocity =
+                                r_neighbour_node.FastGetSolutionStepValue(VELOCITY);
+                            wall_velocity +=
+                                (r_velocity - r_unit_normal * inner_prod(r_velocity, r_unit_normal));
+                            number_of_aggregation_nodes += 1.0;
+                        }
                     }
 
-                    // if (r_node.Id() == 8822)
-                    // {
-                    //     KRATOS_WATCH(r_node.Coordinates());
-                    //     KRATOS_WATCH(wall_velocity);
-                    // }
-
-                    wall_velocity *=
-                        (mWeight / static_cast<double>(number_of_neighbour_nodes));
-                    r_node.FastGetSolutionStepValue(WALL_VELOCITY) = wall_velocity;
+                    if (number_of_aggregation_nodes > 0.0)
+                    {
+                        wall_velocity *= (mWeight / number_of_aggregation_nodes);
+                        r_node.FastGetSolutionStepValue(WALL_VELOCITY) = wall_velocity;
+                        number_of_model_based_node_calculations++;
+                    }
                 }
             }
         }
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Wall velocities calculated in " << mrModelPart.Name()
+            << " using VELOCITY / MODEL [ " << number_of_velocity_based_node_calculations
+            << " / " << number_of_model_based_node_calculations << " ] nodes.\n";
 
         KRATOS_CATCH("");
     }
@@ -317,13 +365,6 @@ private:
         FindNodalNeighboursProcess find_nodal_neighbours_process(
             mrModelPart, mAverageNeighbourElements, mAverageNeighbourNodes);
         find_nodal_neighbours_process.Execute();
-    }
-
-    double CalculateWallVelocity(const array_1d<double, 3>& rVelocity,
-                                 const array_1d<double, 3>& rUnitNormal)
-    {
-        return std::sqrt(std::pow(norm_2(rVelocity), 2) -
-                         std::pow(inner_prod(rVelocity, rUnitNormal), 2));
     }
 
     ///@}

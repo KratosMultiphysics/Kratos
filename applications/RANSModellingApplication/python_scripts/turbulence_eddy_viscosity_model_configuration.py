@@ -23,6 +23,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         # self.mesh_moving = self.settings["mesh_moving"].GetBool()
         self.distance_calculation_process = None
         self.y_plus_model_process = None
+        self.wall_velocity_model_process = None
         self.turbulence_model_process = None
         self.strategies_list = []
         self.nu_t_min = self.settings["turbulent_viscosity_min"].GetDouble()
@@ -36,16 +37,21 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         self.model_conditions_list = []
         self.model_parts_list = []
 
+
     def GetDefaultSettings(self):
         return Kratos.Parameters(r'''{
             "model_type"            : "",
             "velocity_pressure_relaxation_factor": 0.2,
             "model_settings"        : {},
-            "distance_calculation"  : {
-                "max_iterations"         : 5,
-                "linear_solver_settings" : {}
+            "wall_distance_calculation"  : {
+                "model_type"     : "",
+                "model_settings" : {}
             },
             "y_plus_model"      : {
+                "model_type"     : "",
+                "model_settings" : {}
+            },
+            "wall_velocity_calculation":{
                 "model_type"     : "",
                 "model_settings" : {}
             },
@@ -54,27 +60,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             "turbulent_viscosity_min" : 1e-12,
             "turbulent_viscosity_max" : 1e+2
         }''')
-
-    def Initialize(self):
-        self.__InitializeModelPart()
-
-        super(TurbulenceEddyViscosityModelConfiguration, self).Initialize()
-
-        rans_variable_utils = KratosRANS.RansVariableUtils()
-        rans_variable_utils.CopyScalarVar(Kratos.VISCOSITY,
-                                          Kratos.KINEMATIC_VISCOSITY,
-                                          self.fluid_model_part.Nodes)
-        rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
-                                         self.nu_t_min,
-                                         self.fluid_model_part.Nodes)
-
-        self.PrepareSolvingStrategy()
-
-        for strategy in self.strategies_list:
-            strategy.Initialize()
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                "Initialization successfull.")
 
     def AddVariables(self):
         # adding variables required by rans eddy viscosity models
@@ -91,10 +76,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                 "Successfully added solution step variables.")
-
-    def Check(self):
-        self.GetYPlusModel().Check()
-        self.GetTurbulenceSolvingProcess().Check()
 
     def PrepareModelPart(self):
         self.domain_size = self.fluid_model_part.ProcessInfo[Kratos.
@@ -122,9 +103,42 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                 y_plus_model_settings, self.model)
             Kratos.Logger.PrintInfo(
                 self.__class__.__name__,
-                "Initialized " + self.y_plus_model_process.__str__())
+                "Initialized " + self.y_plus_model_process.__str__()[:-1])
 
         return self.y_plus_model_process
+
+    def GetWallVelocityModel(self):
+        if self.wall_velocity_model_process is None:
+            wall_velocity_model_settings = self.settings["wall_velocity_calculation"]
+            import rans_wall_velocity_model_factory
+            rans_wall_velocity_model_factory.InitializeModelPartName(
+                wall_velocity_model_settings, self.model,
+                self.fluid_model_part)
+            self.wall_velocity_model_process = rans_wall_velocity_model_factory.Factory(
+                wall_velocity_model_settings, self.model)
+            Kratos.Logger.PrintInfo(
+                self.__class__.__name__,
+                "Initialized " + self.wall_velocity_model_process.__str__()[:-1])
+
+        return self.wall_velocity_model_process
+
+    def GetWallDistanceModel(self):
+        if (self.distance_calculation_process is None):
+            wall_distance_model_settings = self.settings[
+                "wall_distance_calculation"]
+            import rans_wall_distance_model_factory
+            rans_wall_distance_model_factory.InitializeModelPartName(
+                wall_distance_model_settings, self.model,
+                self.fluid_model_part)
+            self.distance_calculation_process = rans_wall_distance_model_factory.Factory(
+                wall_distance_model_settings, self.model)
+
+            self.distance_calculation_process.Check()
+            Kratos.Logger.PrintInfo(
+                self.__class__.__name__,
+                "Initialized " + self.distance_calculation_process.__str__()[:-1])
+
+        return self.distance_calculation_process
 
     def CreateStrategy(self, solver_settings, scheme_settings, model_part,
                        scalar_variable, scalar_variable_rate,
@@ -196,29 +210,49 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
         return strategy, linear_solver, convergence_criteria, builder_and_solver, time_scheme
 
+    def Initialize(self):
+        self.__InitializeModelPart()
+
+        rans_variable_utils = KratosRANS.RansVariableUtils()
+        rans_variable_utils.CopyScalarVar(Kratos.VISCOSITY,
+                                          Kratos.KINEMATIC_VISCOSITY,
+                                          self.fluid_model_part.Nodes)
+        rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
+                                         self.nu_t_min,
+                                         self.fluid_model_part.Nodes)
+
+        self.PrepareSolvingStrategy()
+
+        self.GetYPlusModel().ExecuteInitialize()
+        self.GetWallVelocityModel().ExecuteInitialize()
+        self.GetTurbulenceSolvingProcess().ExecuteInitialize()
+
+        for strategy in self.strategies_list:
+            strategy.Initialize()
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__,
+                                "Initialization successfull.")
+
+    def Check(self):
+        self.GetYPlusModel().Check()
+        self.GetWallVelocityModel().Check()
+        self.GetTurbulenceSolvingProcess().Check()
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__,
+                                "Check successfull.")
+
+    def InitializeSolutionStep(self):
+        self.GetYPlusModel().ExecuteInitializeSolutionStep()
+        self.GetWallVelocityModel().ExecuteInitializeSolutionStep()
+        self.GetTurbulenceSolvingProcess().ExecuteInitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self.GetYPlusModel().ExecuteFinalizeSolutionStep()
+        self.GetWallVelocityModel().ExecuteFinalizeSolutionStep()
+        self.GetTurbulenceSolvingProcess().ExecuteFinalizeSolutionStep()
+
     def __InitializeModelPart(self):
-        self.__CalculateWallDistances()
+        self.GetWallDistanceModel().Execute()
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                 "Model part initialized.")
 
-    def __CalculateWallDistances(self):
-        if (self.distance_calculation_process is None):
-            if (self.domain_size == 2):
-                self.distance_calculation_process = KratosRANS.RansExactWallDistanceCalculationProcess2D(
-                    self.fluid_model_part,
-                    self.settings["distance_calculation"])
-            elif (self.domain_size == 3):
-                self.distance_calculation_process = KratosRANS.RansExactWallDistanceCalculationProcess3D(
-                    self.fluid_model_part,
-                    self.settings["distance_calculation"])
-            else:
-                raise Exception("Unsupported domain size")
-
-            self.distance_calculation_process.Check()
-            Kratos.Logger.PrintInfo(
-                self.__class__.__name__,
-                "RansExactWallDistanceCalculationProcess initialized.")
-
-        self.distance_calculation_process.Execute()
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                "Wall distances calculated.")

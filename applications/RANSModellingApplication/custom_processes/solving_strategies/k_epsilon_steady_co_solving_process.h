@@ -73,8 +73,8 @@ public:
     ///@{
 
     /// Constructor.
-    KEpsilonSteadyCoSolvingProcess(ModelPart& rModelPart, Parameters& rParameters, Process& rYPlusModelProcess)
-        : BaseType(rModelPart, rParameters, rYPlusModelProcess)
+    KEpsilonSteadyCoSolvingProcess(ModelPart& rModelPart, Parameters& rParameters, Process& rYPlusModelProcess, Process& rWallVelocityModelProcess)
+        : BaseType(rModelPart, rParameters, rYPlusModelProcess, rWallVelocityModelProcess)
     {
     }
 

@@ -6,6 +6,7 @@ message("**** configuring KratosRANSModellingApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 # generate variables with the sources
 set( KRATOS_RANS_MODELLING_APPLICATION_SOURCES
@@ -22,12 +23,11 @@ set( KRATOS_RANS_MODELLING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_low_re_k_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_epsilon_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/evm_vms_monolithic_wall_condition.cpp
 )
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosRANSModellingApplication MODULE THIN_LTO ${KRATOS_RANS_MODELLING_APPLICATION_SOURCES})
-target_link_libraries(KratosRANSModellingApplication PRIVATE KratosCore )
+target_link_libraries(KratosRANSModellingApplication PRIVATE KratosCore KratosFluidDynamicsCore )
 set_target_properties(KratosRANSModellingApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)

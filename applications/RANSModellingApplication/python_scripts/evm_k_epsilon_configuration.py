@@ -54,7 +54,10 @@ class TurbulenceKEpsilonConfiguration(
 
         if (self.model_settings["use_high_re_elements"].GetBool()):
             self.model_elements_list = ["RANSEVMK", "RANSEVMEpsilon"]
-            self.model_conditions_list = ["Condition", "RANSEVMEpsilonWallCondition"]
+            # self.model_conditions_list = [
+            #     "Condition", "RANSEVMEpsilonWallCondition"
+            # ]
+            self.model_conditions_list = ["Condition", "Condition"]
         else:
             self.model_elements_list = ["RANSEVMLowReK", "RANSEVMLowReEpsilon"]
             self.model_conditions_list = ["Condition", "Condition"]
@@ -175,7 +178,10 @@ class TurbulenceKEpsilonConfiguration(
                   self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(TurbulenceKEpsilonConfiguration, self).FinalizeSolutionStep()
+        if (self.fluid_model_part.ProcessInfo[KratosRANS.
+                                              IS_CO_SOLVING_PROCESS_ACTIVE]):
+            super(TurbulenceKEpsilonConfiguration, self).FinalizeSolutionStep()
+
         time = self.fluid_model_part.ProcessInfo[Kratos.TIME]
         if (time >= self.ramp_up_time):
             self.fluid_model_part.ProcessInfo[
@@ -185,7 +191,8 @@ class TurbulenceKEpsilonConfiguration(
         if self.turbulence_model_process is None:
             self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
                 self.fluid_model_part,
-                self.model_settings["coupling_settings"], self.GetYPlusModel())
+                self.model_settings["coupling_settings"], self.GetYPlusModel(),
+                self.GetWallVelocityModel(), self.GetWallDistanceModel())
 
             Kratos.Logger.PrintInfo(self.__class__.__name__,
                                     "Created turbulence solving process.")
