@@ -232,8 +232,17 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
+            Parameters settings(R"({
+                "max_iterations"             : 10,
+                "max_line_search_iterations" : 5,
+                "first_alpha_value"          : 0.5,
+                "second_alpha_value"         : 1.0,
+                "min_alpha"                  : 0.1,
+                "max_alpha"                  : 2.0,
+                "line_search_tolerance"      : 0.5
+            })");
             
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, 10, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, settings, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
             

@@ -131,9 +131,13 @@ class ResidualBasedNewtonRaphsonStrategy
           mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mSettings(Parameters(R"({})"))
     {
         KRATOS_TRY;
+
+        mSettings.AddEmptyValue("max_iterations");
+        mSettings["max_iterations"].SetInt(MaxIterations);
     
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
@@ -191,9 +195,13 @@ class ResidualBasedNewtonRaphsonStrategy
           mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
-          mKeepSystemConstantDuringIterations(false)
+          mKeepSystemConstantDuringIterations(false),
+          mSettings(Parameters(R"({})"))
     {
         KRATOS_TRY
+
+        mSettings.AddEmptyValue("max_iterations");
+        mSettings["max_iterations"].SetInt(MaxIterations);
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
