@@ -22,6 +22,7 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "geometries/geometry.h"
 #include "fluid_dynamics_application_variables.h"
 
 // Application includes
