@@ -95,6 +95,29 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumInt, KratosMPICoreFa
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    constexpr int root = 0;
+
+    unsigned int local = 1;
+    unsigned int result = mpi_world_communicator.Sum(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(result, (unsigned int)world_size);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Sum(local, world_size),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Sum(local, -1),"is not a valid rank.");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -193,6 +216,53 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumIntVector, KratosMPI
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    constexpr int root = 0;
+
+    std::vector<unsigned int> local{1, 1};
+    std::vector<unsigned int> output{999, 999};
+
+    // two-buffer version
+    mpi_world_communicator.Sum(local, output, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            KRATOS_CHECK_EQUAL(output[i], (unsigned int)world_size);
+        }
+    }
+
+    // return buffer version
+    std::vector<unsigned int> returned_result = mpi_world_communicator.Sum(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        for (int i = 0; i < 2; i++)
+        {
+            KRATOS_CHECK_EQUAL(returned_result[i], (unsigned int)world_size);
+        }
+    }
+
+    #ifdef KRATOS_DEBUG
+    // One of the inputs has a different size
+    if (world_size > 1)
+    {
+        if (world_rank == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local, output, root),"Input error in call to MPI_Reduce");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_vector_wrong_size, output, root),"Error:");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -250,6 +320,29 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinInt, KratosMPICoreFa
 
     int local = world_rank;
     int result = mpi_world_communicator.Min(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(result, 0);
+    }
+
+    #ifdef KRATOS_DEBUG
+    const int world_size = mpi_world_communicator.Size();
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Min(local, world_size),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Min(local, -1),"is not a valid rank.");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    constexpr int root = 0;
+
+    unsigned int local = world_rank;
+    unsigned int result = mpi_world_communicator.Min(local, root);
     if (world_rank == root)
     {
         KRATOS_CHECK_EQUAL(result, 0);
@@ -359,6 +452,49 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinIntVector, KratosMPI
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    constexpr int root = 0;
+
+    std::vector<unsigned int> local{(unsigned int)world_rank, 0};
+    std::vector<unsigned int> output{999, 999};
+
+    // two-buffer version
+    mpi_world_communicator.Min(local, output, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(output[0], 0);
+        KRATOS_CHECK_EQUAL(output[1], 0);
+    }
+
+    // return buffer version
+    std::vector<unsigned int> returned_result = mpi_world_communicator.Min(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_CHECK_EQUAL(returned_result[0], 0);
+        KRATOS_CHECK_EQUAL(returned_result[1], 0);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // One of the inputs has a different size
+    if (world_size > 1)
+    {
+        if (world_rank == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local, output, root),"Input error in call to MPI_Reduce");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_vector_wrong_size, output, root),"Error:");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -417,6 +553,29 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxInt, KratosMPICoreFa
     if (world_rank == root)
     {
         KRATOS_CHECK_EQUAL(result, world_size-1);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Max(local, world_size),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Max(local, -1),"is not a valid rank.");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    constexpr int root = 0;
+
+    unsigned int local = world_rank;
+    unsigned int result = mpi_world_communicator.Max(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(result, (unsigned int)(world_size-1));
     }
 
     #ifdef KRATOS_DEBUG
@@ -522,6 +681,49 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxIntVector, KratosMPI
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    constexpr int root = 0;
+
+    std::vector<unsigned int> local{(unsigned int)world_rank, 0};
+    std::vector<unsigned int> output{999, 999};
+
+    // two-buffer version
+    mpi_world_communicator.Max(local, output, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(output[0], (unsigned int)(world_size-1));
+        KRATOS_CHECK_EQUAL(output[1], 0);
+    }
+
+    // return buffer version
+    std::vector<unsigned int> returned_result = mpi_world_communicator.Max(local, root);
+    if (world_rank == root)
+    {
+        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_CHECK_EQUAL(returned_result[0], (unsigned int)(world_size-1));
+        KRATOS_CHECK_EQUAL(returned_result[1], 0);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // One of the inputs has a different size
+    if (world_size > 1)
+    {
+        if (world_rank == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local, output, root),"Input error in call to MPI_Reduce");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_vector_wrong_size, output, root),"Error:");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -575,6 +777,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumAllInt, KratosMPICor
     int local = 1;
     int result = mpi_world_communicator.SumAll(local);
     KRATOS_CHECK_EQUAL(result, world_size);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumAllUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+
+    unsigned int local = 1;
+    unsigned int result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result, (unsigned int)world_size);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumAllDouble, KratosMPICoreFastSuite)
@@ -641,6 +853,47 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllIntVector, Kratos
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<unsigned int> local{1, 1};
+    std::vector<unsigned int> output{0, 0};
+
+    const unsigned int expected = world_size;
+
+    // two-buffer version
+    mpi_world_communicator.SumAll(local, output);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(output[i], expected);
+    }
+
+    // return buffer version
+    std::vector<unsigned int> returned_result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(returned_result[i], expected);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -689,6 +942,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinAllInt, KratosMPICor
 
     int local = world_rank;
     int result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(result, 0);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinAllUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+
+    unsigned int local = world_rank;
+    unsigned int result = mpi_world_communicator.MinAll(local);
     KRATOS_CHECK_EQUAL(result, 0);
 }
 
@@ -754,6 +1017,42 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllIntVector, Kratos
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<unsigned int> local{(unsigned int)world_rank, 0};
+    std::vector<unsigned int> output{999, 999};
+
+    // two-buffer version
+    mpi_world_communicator.MinAll(local, output);
+    KRATOS_CHECK_EQUAL(output[0], 0);
+    KRATOS_CHECK_EQUAL(output[1], 0);
+
+    // return buffer version
+    std::vector<unsigned int> returned_result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_CHECK_EQUAL(returned_result[0], 0);
+    KRATOS_CHECK_EQUAL(returned_result[1], 0);
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -801,6 +1100,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxAllInt, KratosMPICor
     int local = world_rank;
     int result = mpi_world_communicator.MaxAll(local);
     KRATOS_CHECK_EQUAL(result, world_size-1);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxAllUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    unsigned int local = world_rank;
+    unsigned int result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result, (unsigned int)(world_size-1));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxAllDouble, KratosMPICoreFastSuite)
@@ -866,6 +1176,44 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllIntVector, Kratos
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<unsigned int> local{(unsigned)world_rank, 0};
+    std::vector<unsigned int> output{999, 999};
+
+    const unsigned int expected = world_size - 1;
+
+    // two-buffer version
+    mpi_world_communicator.MaxAll(local, output);
+    KRATOS_CHECK_EQUAL(output[0], expected);
+    KRATOS_CHECK_EQUAL(output[1], 0);
+
+    // return buffer version
+    std::vector<unsigned int> returned_result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_CHECK_EQUAL(returned_result[0], expected);
+    KRATOS_CHECK_EQUAL(returned_result[1], 0);
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDoubleVector, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -914,6 +1262,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumInt, KratosMPICo
     KRATOS_CHECK_EQUAL(partial_sum, rank + 1);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    unsigned int local_total = 1;
+    unsigned int partial_sum = mpi_world_communicator.ScanSum(local_total);
+    KRATOS_CHECK_EQUAL(partial_sum, (unsigned int)(rank + 1));
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -957,6 +1315,45 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorInt, Krato
     }
     // Input size != output size
     std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    std::vector<unsigned int> local_total{1,1};
+    std::vector<unsigned int> output{0, 0};
+
+    const unsigned int expected = rank + 1;
+
+    // two-buffer version
+    mpi_world_communicator.ScanSum(local_total, output);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(output[i], expected);
+    }
+
+    // return buffer version
+    std::vector<unsigned int> partial_sum = mpi_world_communicator.ScanSum(local_total);
+    KRATOS_CHECK_EQUAL(partial_sum.size(), 2);
+    KRATOS_CHECK_EQUAL(partial_sum[0], expected);
+    KRATOS_CHECK_EQUAL(partial_sum[1], expected);
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the inputs has a different size
+        if (rank == 0) {
+            local_total.resize(3);
+            local_total = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
+    }
+    // Input size != output size
+    std::vector<unsigned int> local_vector_wrong_size{1,2,3};
     KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
     #endif
 }
@@ -1020,6 +1417,36 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvInt, KratosMPIC
         std::vector<int> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
 
         const int expected_recv = world_rank > 0 ? world_rank - 1 : world_size - 1;
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        for (int i = 0; i < 2; i++)
+        {
+            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+            KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
+        }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    std::vector<unsigned int> send_buffer{(unsigned int)world_rank, (unsigned int)world_rank};
+    std::vector<unsigned int> recv_buffer{999, 999};
+
+    if (world_size > 1)
+    {
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
+
+        // return version
+        std::vector<unsigned int> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+        const unsigned int expected_recv = world_rank > 0 ? world_rank - 1 : world_size - 1;
 
         KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)
@@ -1101,6 +1528,19 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastInt, KratosMPI
     KRATOS_CHECK_EQUAL(send, 1);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    unsigned int send = world_rank == send_rank ? 1 : 0;
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send, 1);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -1122,6 +1562,35 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastIntVector, Kra
     const int send_rank = world_size-1;
 
     std::vector<int> send = world_rank == send_rank ? std::vector<int>{1, 1} : std::vector<int>{0, 0};
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(send[i], 1);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        if (world_rank == 0)
+        {
+            send.resize(3);
+            send = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+    }
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<unsigned int> send = world_rank == send_rank ? std::vector<unsigned int>{1, 1} : std::vector<unsigned int>{0, 0};
 
     mpi_world_communicator.Broadcast(send,send_rank);
     for (unsigned int i = 0; i < 2; i++)
@@ -1223,6 +1692,63 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterIntVector, Krato
     }
     // send rank has wrong size
     std::vector<int> wrong_send(0);
+    if (world_rank == send_rank)
+    {
+        wrong_send = {1};
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterUnsignedIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = 0;
+
+    std::vector<unsigned int> send_buffer(0);
+    std::vector<unsigned int> recv_buffer{0, 0};
+
+    if (world_rank == send_rank)
+    {
+        send_buffer.resize(2*world_size);
+        for (int i = 0; i < 2*world_size; i++)
+        {
+            send_buffer[i] = 1;
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], 1);
+    }
+
+    // return version
+    std::vector<unsigned int> return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer[i], 1);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        std::vector<unsigned int> wrong_recv = {999, 999};
+        if (world_rank == 0)
+        {
+            recv_buffer.resize(3);
+            recv_buffer = {999, 999, 999};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    }
+    // send rank has wrong size
+    std::vector<unsigned int> wrong_send(0);
     if (world_rank == send_rank)
     {
         wrong_send = {1};
@@ -1400,6 +1926,58 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervInt, KratosMPIC
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervUnsignedInt, KratosMPICoreFastSuite)
+{
+    /* send message for ints is {0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, ...} (max 6 values per rank)
+     * read only first <rank> values of the message per rank (up to 5 values per rank)
+     * message containing doubles is double of message containing ints
+     */
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<unsigned int> send_buffer(0);
+    std::vector<int> send_sizes(0);
+    std::vector<int> send_offsets(0);
+
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+    auto make_message_distance = [](int rank, int padding) {
+        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
+    };
+
+    const int recv_size = make_message_size(world_rank);
+    std::vector<unsigned int> recv_buffer(recv_size, 999);
+
+    const int message_padding = 1;
+    if (world_rank == send_rank)
+    {
+        const int send_size = make_message_distance(world_size, message_padding);
+        send_buffer.resize(send_size);
+        send_sizes.resize(world_size);
+        send_offsets.resize(world_size);
+        int counter = 0;
+        for (int rank = 0; rank < world_size; rank++)
+        {
+            send_sizes[rank] = make_message_size(rank);
+            send_offsets[rank] = make_message_distance(rank, message_padding);
+            for (int i = 0; i < send_sizes[rank] + message_padding; i++, counter++)
+            {
+                send_buffer[counter] = rank;
+            }
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, recv_buffer, send_rank);
+
+    for (int i = 0; i < recv_size; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], (unsigned int)world_rank);
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosMPICoreFastSuite)
 {
     /* send message for ints is {0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, ...} (max 6 values per rank)
@@ -1561,6 +2139,67 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherInt, KratosMPICor
     {
         // One of the ranks has a different size
         std::vector<int> wrong_buffer{world_rank, world_rank};
+        if (world_rank == 0)
+        {
+            wrong_buffer.push_back(world_rank);
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(wrong_buffer, recv_buffer, recv_rank),"Error");
+    }
+    // recv rank has wrong size
+    recv_buffer.push_back(0);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer, recv_buffer, recv_rank),"Error");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const unsigned int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int recv_rank = 0;
+
+    std::vector<unsigned int> send_buffer{(unsigned int)world_rank, (unsigned int)world_rank};
+    std::vector<unsigned int> recv_buffer;
+
+    if (world_rank == recv_rank)
+    {
+        recv_buffer = std::vector<unsigned int>(2*world_size, 999);
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Gather(send_buffer, recv_buffer, recv_rank);
+
+    if (world_rank == recv_rank)
+    {
+        for (unsigned int rank = 0; rank < world_size; rank++)
+        {
+            for (unsigned int j = 2*rank; j < 2*rank+2; j++)
+            {
+                KRATOS_CHECK_EQUAL(recv_buffer[j], rank);
+            }
+        }
+    }
+
+    // return buffer version
+    std::vector<unsigned int> return_buffer = mpi_world_communicator.Gather(send_buffer, recv_rank);
+    if (world_rank == recv_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2*world_size);
+        for (unsigned int rank = 0; rank < world_size; rank++)
+        {
+            for (unsigned int j = 2*rank; j < 2*rank+2; j++)
+            {
+                KRATOS_CHECK_EQUAL(return_buffer[j], rank);
+            }
+        }
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        std::vector<unsigned int> wrong_buffer{(unsigned int)world_rank, (unsigned int)world_rank};
         if (world_rank == 0)
         {
             wrong_buffer.push_back(world_rank);
@@ -1749,6 +2388,38 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervInt, KratosMPICo
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int recv_rank = world_size-1;
+
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+
+    const int send_size = make_message_size(world_rank);
+    std::vector<unsigned int> send_buffer(send_size, (unsigned int)world_rank);
+
+    // return buffer version
+    std::vector<std::vector<unsigned int>> return_buffer = mpi_world_communicator.Gatherv(send_buffer, recv_rank);
+
+    if (world_rank == recv_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
+        for (int rank = 0; rank < world_size; rank++)
+        {
+            unsigned int expected_size = make_message_size(rank);
+            KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
+            for (unsigned int i = 0; i < expected_size; i++)
+            {
+                KRATOS_CHECK_EQUAL(return_buffer[rank][i], (unsigned int)rank);
+            }
+            // no padding in return version
+        }
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -1917,6 +2588,28 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherInt, KratosMPI
         mpi_world_communicator.AllGather(send_buffer, recv_buffer),
         "Input error in call to MPI_Allgather");
     #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherUnsignedInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const unsigned int world_size = mpi_world_communicator.Size();
+    const unsigned int world_rank = mpi_world_communicator.Rank();
+
+    std::vector<unsigned int> send_buffer{world_rank, world_rank};
+
+    // return buffer version
+    std::vector<unsigned int> return_buffer = mpi_world_communicator.AllGather(send_buffer);
+
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2*world_size);
+    for (unsigned int rank = 0; rank < world_size; rank++)
+    {
+        for (unsigned int j = 2*rank; j < 2*rank+2; j++)
+        {
+            KRATOS_CHECK_EQUAL(return_buffer[j], rank);
+        }
+    }
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherDouble, KratosMPICoreFastSuite)

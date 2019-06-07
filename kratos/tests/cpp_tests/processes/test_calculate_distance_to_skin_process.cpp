@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//					 Ruben Zorrilla
+//                   Ruben Zorrilla
 //
 
 // Project includes
@@ -228,12 +228,13 @@ namespace Kratos {
 		// Compute distance
 		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
 
-		for (auto& node : volume_part.Nodes())
-			if (std::abs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
-				auto distance = std::abs(node.Z() - 5.00);
-				KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
+		for (auto& node : volume_part.Nodes()) {
+			if (node.Id() < 10) {
+				KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), 17.3205, 1e-4);
+			} else {
+				KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), std::abs(node.Z() - 5.00), 1e-6);
 			}
-
+		}
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeDistanceProcess, KratosCoreFastSuite)
