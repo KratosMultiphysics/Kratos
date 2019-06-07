@@ -22,7 +22,7 @@
 
 //#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_processes/custom_hole_cutting_process.h"
-#include "custom_processes/apply_chimera_process_Monolithic.h"
+#include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_FractionalStep.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
