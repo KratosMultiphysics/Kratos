@@ -57,7 +57,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
             "target_refinement_coefficient"       : 0.9,
             "refinement_bound"                    : 2.0,
             "reference_variable_name"             : "DIVERGENCE",
-            "reference_norm_name"                 : "VELOCITY_H1SEMINORM"
+            "reference_norm_name"                 : "VELOCITY_H1_SEMINORM"
         },
         "maximum_strategy":
         {
