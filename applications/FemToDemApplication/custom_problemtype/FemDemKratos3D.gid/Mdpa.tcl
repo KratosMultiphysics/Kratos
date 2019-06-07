@@ -124,7 +124,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
                 set ElementName "LargeDisplacementTrescaFemDemElement3D"
             } else {
-                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+                set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement3D"
             }  
         }  
          # Elements Property
