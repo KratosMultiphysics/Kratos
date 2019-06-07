@@ -137,7 +137,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::InitializeNonLinear
 	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//create and initialize element variables:
-	ElementData variables;
+	ElementDataType variables;
 	this->InitializeElementData(variables, rCurrentProcessInfo);
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& r_integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
@@ -195,7 +195,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
 	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//create and initialize element variables:
-	ElementData variables;
+	ElementDataType variables;
 	this->InitializeElementData(variables, rCurrentProcessInfo);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
@@ -302,7 +302,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
 	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//create and initialize element variables:
-	ElementData variables;
+	ElementDataType variables;
 	this->InitializeElementData(variables, rCurrentProcessInfo);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
@@ -366,7 +366,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
 	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//create and initialize element variables:
-	ElementData variables;
+	ElementDataType variables;
 	this->InitializeElementData(variables, rCurrentProcessInfo);
 
     // Resizing as needed the RHS
