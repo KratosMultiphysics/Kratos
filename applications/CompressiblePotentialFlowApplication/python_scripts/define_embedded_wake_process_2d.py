@@ -24,6 +24,7 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
         KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Creating Inactive Element Ball time: ',time.time()-ini_time)
 
         self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
+
     def __FindMaximumInactiveNode(self):
         '''
         This function finds the maximum-x node that is contained in the negative part of the embedded body
@@ -82,6 +83,7 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
     def __DeactivateBoundary(self,elem):
         elem.Set(KratosMultiphysics.TO_SPLIT,False)
+
     def __DeactivateActive(self,elem):
         elem.Set(KratosMultiphysics.ACTIVE,False)
         elem.Set(KratosMultiphysics.TO_SPLIT,False)
