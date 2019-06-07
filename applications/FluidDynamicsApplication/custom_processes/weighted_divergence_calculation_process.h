@@ -147,9 +147,9 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        double ComputeAuxiliaryElementDivergence(const Vector grad_x, const Vector grad_y, const Vector grad_z);
-        double ComputeAuxiliaryElementVelocitySeminorm(const Vector grad_x, const Vector grad_y, const Vector grad_z);
-        double ComputeWeightedTimeAverage(const double old_average, const double current_value);
+        double ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z);
+        double ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z);
+        double ComputeWeightedTimeAverage(const double& old_average, const double& current_value);
 
         ///@}
         ///@name Protected  Access
