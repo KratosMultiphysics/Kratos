@@ -59,42 +59,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///definition of element type
-    typedef Element ElementType;
-
-    ///base type: an GeometricalObject that automatically has a unique number
-    typedef GeometricalObject BaseType;
-
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
-
-    /**
-     * Properties are used to store any parameters
-     * related to the constitutive law
-     */
-    typedef Properties PropertiesType;
-
-    ///definition of the geometry type with given NodeType
-    typedef Geometry<NodeType> GeometryType;
-
-    ///definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    typedef Vector VectorType;
-
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef GeometryData GeometryDataType;
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
 
     /// We define the dimension
     static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
@@ -107,6 +73,18 @@ public:
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The base element type
+    typedef SmallDisplacementElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of GenericSmallStrainFemDemElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GenericSmallStrainFemDemElement);
@@ -127,8 +105,8 @@ public:
 
 	/// Assignment operator.
 	GenericSmallStrainFemDemElement &operator=(GenericSmallStrainFemDemElement const &rOther);
-	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
-	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
+	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const;
+	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const;
 
 	GenericSmallStrainFemDemElement()
 	{
@@ -137,22 +115,22 @@ public:
     /**
      * this is called in the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -162,7 +140,7 @@ public:
      * @param rRightHandSideVector the elemental right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -170,7 +148,7 @@ public:
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -178,7 +156,7 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
@@ -301,9 +279,9 @@ public:
      * GetValueOnIntegrationPoints: get the values for given Variable.
      * these methods are: OPTIONAL
      */
-	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate variables on Integration points.
@@ -314,9 +292,9 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      * these methods are: OPTIONAL
      */
-	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
 protected:
 

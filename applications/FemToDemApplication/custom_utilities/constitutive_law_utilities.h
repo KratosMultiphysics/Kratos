@@ -23,7 +23,6 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "includes/constitutive_law.h"
-#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {

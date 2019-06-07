@@ -52,7 +52,7 @@ public:
 	/// Destructor.
 	virtual ~KratosFemToDemApplication(){}
 
-	virtual void Register() override; 
+	virtual void Register(); 
 
 
 
@@ -71,18 +71,18 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const override {
+	virtual std::string Info() const {
 		return "KratosFemToDemApplication";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const override {
+	virtual void PrintInfo(std::ostream& rOStream) const {
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const override {
+	virtual void PrintData(std::ostream& rOStream) const {
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
