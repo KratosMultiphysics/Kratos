@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
-import math
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -13,7 +12,9 @@ def Factory(settings, Model):
 class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
     def _SaveTrailingEdgeNode(self):
-        # This function finds and saves the trailing edge for further computations
+        '''
+        This function finds and saves the trailing edge for further computations and deactivates the neighbour elements
+        '''
         import time
         ini_time=time.time()
         self.__FindMaximumInactiveNode()
@@ -24,6 +25,9 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
         self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
     def __FindMaximumInactiveNode(self):
+        '''
+        This function finds the maximum-x node that is contained in the negative part of the embedded body
+        '''
         self.boundary_sub_model_part=self.fluid_model_part.CreateSubModelPart("boundary")
         max_x=-1e10
         boundary_element_id_list=[]
@@ -38,13 +42,18 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
         self.boundary_sub_model_part.AddElements(boundary_element_id_list)
 
     def __CreateInactiveTrailingEdgeElementBall(self):
+        '''
+        This function deactivates all the elements near the trailing edge node to consistenly attach the wake.
+        '''
         deactivated_model_part=self.fluid_model_part.CreateSubModelPart("deactivated")
+        deactivated_element_id_list=[]
         max_x_node=-1e10
         for element in self.boundary_sub_model_part.Elements:
             for elnode in element.GetNodes():
                 if elnode.Id == self.max_inactive_node.Id:
                     self.__DeactivateActive(element)
-                    deactivated_model_part.Elements.append(element)
+                    deactivated_element_id_list.append(element.Id)
+        deactivated_model_part.AddElements(deactivated_element_id_list)
         max_x_center=-1e10
         for element in deactivated_model_part.Elements:
             n_center = 0
