@@ -156,7 +156,9 @@ def AssembleTestSuites():
     smallSuite = suites['small']
 
     # Create a test suit with the selected tests plus all small tests
-    nightSuite = suites['nightly']
+    nightlySuite = suites['nightly']
+
+    ### BEGIN SMALL SUITE ###
 
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
@@ -224,43 +226,50 @@ def AssembleTestSuites():
     smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalSlipTestContact('test_execution'))
     smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
 
+    ### END SMALL SUITE ###
+
+    ### BEGIN NIGHTLY SUITE ###
+
     # Fill with all small tests
-    nightSuite.addTests(smallSuite)
+    nightlySuite.addTests(smallSuite)
 
     # Exact integration tests
-    nightSuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
+    nightlySuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
 
     # Mortar mapping
-    nightSuite.addTest(TTestMortarMapperCore('test_less_basic_mortar_mapping_triangle'))
-    nightSuite.addTest(TTestMortarMapperCore('test_simple_curvature_mortar_mapping_triangle'))
+    nightlySuite.addTest(TTestMortarMapperCore('test_less_basic_mortar_mapping_triangle'))
+    nightlySuite.addTest(TTestMortarMapperCore('test_simple_curvature_mortar_mapping_triangle'))
 
     # ALM frictionless tests
-    nightSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
-    nightSuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
-    nightSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
-    nightSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
+    nightlySuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TALMTaylorPatchTestContact('test_execution'))
+    nightlySuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
 
     # Components ALM frictionless tests
-    nightSuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
-    nightSuite.addTest(TComponentsALMThreeDPatchNotMatchingTestContact('test_execution'))
-    nightSuite.addTest(TComponentsALMTaylorPatchTestContact('test_execution'))
-    nightSuite.addTest(TComponentsALMHertzSimpleSphereTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMThreeDPatchNotMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMTaylorPatchTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMHertzSimpleSphereTestContact('test_execution'))
 
     # ALM frictional tests
-    #nightSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))                   # FIXME
-    #nightSuite.addTest(TALMPureFrictionalTestContact('test_execution'))                          # FIXME
+    #nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))                          # FIXME
+
+    ### END VALIDATION SUITE ###
+
+    ### BEGIN VALIDATION SUITE ###
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(nightSuite)
+    validationSuite.addTests(nightlySuite)
 
     # ALM frictionless tests
-    #nightSuite.addTest(TALMHertzSphereTestContact('test_execution'))
+    #nightlySuite.addTest(TALMHertzSphereTestContact('test_execution'))
     validationSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
     validationSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
 
     # Components ALM frictionless tests
-    #nightSuite.addTest(TComponentsALMHertzSphereTestContact('test_execution'))
+    #nightlySuite.addTest(TComponentsALMHertzSphereTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMHertzSimpleTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMHertzCompleteTestContact('test_execution'))
 
@@ -300,9 +309,14 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TComponentsALMMultiLayerContactTest('test_execution'))
 
+    # ALM frictional tests
+    validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
+
+    ### END VALIDATION ###
+
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # Already contains the smallSuite
+    allSuite.addTests(nightlySuite) # Already contains the smallSuite
     validationSuite.addTests(allSuite) # Validation contains all
     
     # Manual list for debugging
@@ -380,12 +394,12 @@ def AssembleTestSuites():
             #TComponentsALMHertzSimpleSphereTestContact,
             ######TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             #TComponentsALMHertzCompleteTestContact,
-            ##TALMTaylorPatchFrictionalTestContact,                   # FIXME
             ##TALMPureFrictionalTestContact,                          # FIXME
             ##### VALIDATION
             #TALMTaylorPatchDynamicTestContact,
             #TALMMeshMovingMatchingTestContact,
             #TALMMeshMovingNotMatchingTestContact,
+            #TALMTaylorPatchFrictionalTestContact,
             ###TALMIroningTestContact,
             ###TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
