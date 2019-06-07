@@ -823,6 +823,7 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
 
 Parameters VtkOutput::GetDefaultParameters()
 {
+    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
     Parameters default_parameters = Parameters(R"(
     {
         "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
