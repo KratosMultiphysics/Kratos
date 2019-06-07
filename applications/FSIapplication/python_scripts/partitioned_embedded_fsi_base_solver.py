@@ -182,6 +182,9 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
+        # Restore the fluid node fixity to its original status
+        self._get_distance_modification_process().ExecuteFinalizeSolutionStep()
+
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
         err_msg += 'Specify the domain of interest by calling:\n'
@@ -324,14 +327,17 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def _create_distance_to_skin_process(self):
         # Set the distance computation process
+        raycasting_relative_tolerance = 1.0e-8
         if self.domain_size == 2:
             return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
                 self.GetFluidComputingModelPart(),
-                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
+                raycasting_relative_tolerance)
         elif self.domain_size == 3:
             return KratosMultiphysics.CalculateDistanceToSkinProcess3D(
                 self.GetFluidComputingModelPart(),
-                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
+                raycasting_relative_tolerance)
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
@@ -344,7 +350,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         distance_modification_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "distance_factor": 2.0,
-            "distance_threshold": 1e-5,
+            "distance_threshold": 1e-3,
             "continuous_distance": true,
             "check_at_each_time_step": true,
             "avoid_almost_empty_elements": true,
