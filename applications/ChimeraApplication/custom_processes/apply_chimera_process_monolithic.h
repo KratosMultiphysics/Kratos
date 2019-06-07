@@ -21,8 +21,6 @@
 #include "omp.h"
 
 // External includes
-#include "includes/kratos_flags.h"
-#include "utilities/binbased_fast_point_locator.h"
 
 // Project includes
 #include "includes/define.h"
@@ -38,6 +36,7 @@
 #include "chimera_application_variables.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_hole_cutting_process.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 namespace Kratos
 {
@@ -61,18 +60,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-
-template <std::size_t TDim>
+template <int TDim>
 class ApplyChimeraProcessMonolithic : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of ApplyChimeraProcessMonolithic
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessMonolithic);
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
     typedef typename BinBasedFastPointLocator<TDim>::Pointer BinBasedPointLocatorPointerType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
@@ -82,22 +78,20 @@ public:
     typedef typename ModelPart::MasterSlaveConstraintType MasterSlaveConstraintType;
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessMonolithic);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ApplyChimeraProcessMonolithic(ModelPart &MainModelPart, Parameters rParameters);
+    ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters);
 
     /// Destructor.
-    virtual ~ApplyChimeraProcessMonolithic()
-    {
-    }
+    virtual ~ApplyChimeraProcessMonolithic() override;
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -115,7 +109,7 @@ public:
     /// Print information about this object.
     virtual void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "ApplyChimeraProcessMonolithic"<< std::endl;
+        rOStream << "ApplyChimeraProcessMonolithic" << std::endl;
     }
 
     /// Print object's data.
@@ -187,8 +181,6 @@ private:
     IndexType mNumberOfConstraintsAdded;
 
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
-    // epsilon
-    //static const double epsilon;
 
     ///@}
     ///@name Private Operators
@@ -207,7 +199,6 @@ private:
     void SetOverlapDistance(double distance);
 
     void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator);
-
 
     /**
      * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)
@@ -247,15 +238,22 @@ private:
      * @param Constant The constant of the master slave relation.
      */
     template <typename TVariableType>
-    void AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
-                                const LinearMasterSlaveConstraint &rCloneConstraint,
+    inline void AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
+                                const LinearMasterSlaveConstraint& rCloneConstraint,
                                 unsigned int ConstraintId,
                                 Node<3> &rMasterNode,
                                 TVariableType &rMasterVariable,
                                 Node<3> &rSlaveNode,
                                 TVariableType &rSlaveVariable,
                                 const double Weight,
-                                const double Constant = 0.0);
+                                const double Constant = 0.0)
+    {
+        rSlaveNode.Set(SLAVE);
+        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        p_new_constraint->Set(TO_ERASE);
+        mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
+        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
+    }
 
     ///@}
     ///@name Private  Access
