@@ -76,6 +76,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_check_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/weighted_divergence_calculation_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_divergencefree_process.cpp
 )
 
 ## define python interface sources

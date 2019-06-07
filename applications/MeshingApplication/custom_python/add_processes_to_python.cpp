@@ -107,17 +107,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     ;
 
-    // DIVERGENCEFREE
-    py::class_<MetricDivergenceFreeProcess<2>, MetricDivergenceFreeProcess<2>::Pointer, Process>(m, "MetricDivergenceFreeProcess2D")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    ;
-
-    py::class_<MetricDivergenceFreeProcess<3>, MetricDivergenceFreeProcess<3>::Pointer, Process>(m, "MetricDivergenceFreeProcess3D")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    ;
-
     /* MULTI SCALE PROCESS */
     py::class_<MultiscaleRefiningProcess, MultiscaleRefiningProcess::Pointer, Process>(m, "MultiscaleRefiningProcess")
     .def(py::init<ModelPart&, ModelPart&, ModelPart&>())
