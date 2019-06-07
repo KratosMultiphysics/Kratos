@@ -247,7 +247,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
                 mNonConvergedDamages[edge] = damage_edge;
                 mNonConvergedThresholds[edge] = threshold;
             } // Loop over edges
-        }
+        }  else {
+			noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges);
+		}
 
         const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
@@ -413,7 +415,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
 
                 damages[edge] = damage_edge;
             } // Loop over edges
-        }
+        }  else {
+			noalias(damages) = ZeroVector(NumberOfEdges);
+		}
         const double damage_element = this->CalculateElementalDamage(damages);
 
 		Vector stress_vector = ZeroVector(VoigtSize);
