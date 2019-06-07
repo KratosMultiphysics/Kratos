@@ -4,6 +4,9 @@
 # Compiled python
 *.pyc
 
+# vs code files
+.vscode/*
+
 # Common build directory
 cmake_build/*
 !cmake_build/example_configure.bat.do_not_touch
