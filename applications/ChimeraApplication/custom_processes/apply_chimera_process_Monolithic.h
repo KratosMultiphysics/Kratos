@@ -27,26 +27,17 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "containers/model.h"
 #include "geometries/geometry_data.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
-#include "includes/kratos_parameters.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "elements/distance_calculation_element_simplex.h"
 #include "includes/linear_master_slave_constraint.h"
 
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_hole_cutting_process.h"
-#include "custom_utilities/vtk_output.hpp"
 
 namespace Kratos
 {
@@ -97,7 +88,7 @@ class ApplyChimeraProcessMonolithic : public Process
     ///@name Life Cycle
     ///@{
 
-    ApplyChimeraProcessMonolithic(ModelPart &MainModelPart, Parameters rParameters) : Process(Flags()), mrMainModelPart(MainModelPart), m_parameters(rParameters)
+    ApplyChimeraProcessMonolithic(ModelPart &MainModelPart, Parameters rParameters) : Process(Flags()), mrMainModelPart(MainModelPart), mParameters(rParameters)
     {
         Parameters default_parameters(R"(
             {
@@ -120,13 +111,13 @@ class ApplyChimeraProcessMonolithic : public Process
 								]
             })");
 
-        NumberOfLevels = m_parameters.size();
-        for (int i = 0; i < NumberOfLevels; i++)
-            LevelTable.push_back(m_parameters[i].size());
+        mNumberOfLevels = mParameters.size();
+        for (int i = 0; i < mNumberOfLevels; i++)
+            mLevelTable.push_back(mParameters[i].size());
 
         ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-        this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
-        this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+        this->mpHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
+        this->mpCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
         mNumberOfConstraintsAdded = 0;
 
@@ -263,9 +254,9 @@ class ApplyChimeraProcessMonolithic : public Process
         std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
 
         if (n_nodes == 3)
-            this->pHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
+            this->mpHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
         else if (n_nodes == 4)
-            this->pHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
+            this->mpHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
     }
 
     void DoChimeraLoop() //selecting patch and background combination for chimera method
@@ -281,26 +272,26 @@ class ApplyChimeraProcessMonolithic : public Process
 
         int MainDomainOrNot = 1;
 
-        for (int BG_i = 0; BG_i < NumberOfLevels; BG_i++) // Iteration for selecting background
+        for (int BG_i = 0; BG_i < mNumberOfLevels; BG_i++) // Iteration for selecting background
         {
-            for (int BG_j = 0; BG_j < LevelTable[BG_i]; BG_j++) //TODO change the names
+            for (int BG_j = 0; BG_j < mLevelTable[BG_i]; BG_j++) //TODO change the names
             {
-                for (int patch_i = BG_i + 1; patch_i < NumberOfLevels; patch_i++) // Iteration for selecting patch
+                for (int patch_i = BG_i + 1; patch_i < mNumberOfLevels; patch_i++) // Iteration for selecting patch
                 {
-                    for (int patch_j = 0; patch_j < LevelTable[patch_i]; patch_j++)
+                    for (int patch_j = 0; patch_j < mLevelTable[patch_i]; patch_j++)
                     {
-                        m_background_model_part_name = m_parameters[BG_i][BG_j]["model_part_name"].GetString();
-                        m_domain_boundary_model_part_name = m_parameters[BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
-                        m_patch_model_part_name = m_parameters[patch_i][patch_j]["model_part_name"].GetString();
-                        m_patch_inside_boundary_model_part_name = m_parameters[patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
+                        m_background_model_part_name = mParameters[BG_i][BG_j]["model_part_name"].GetString();
+                        m_domain_boundary_model_part_name = mParameters[BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
+                        m_patch_model_part_name = mParameters[patch_i][patch_j]["model_part_name"].GetString();
+                        m_patch_inside_boundary_model_part_name = mParameters[patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
 
-                        double mesh_size_1 = m_parameters[BG_i][BG_j]["overlap_distance"].GetDouble();
-                        double mesh_size_2 = m_parameters[patch_i][patch_j]["overlap_distance"].GetDouble();
+                        double mesh_size_1 = mParameters[BG_i][BG_j]["overlap_distance"].GetDouble();
+                        double mesh_size_2 = mParameters[patch_i][patch_j]["overlap_distance"].GetDouble();
 
                         if (mesh_size_1 > mesh_size_2)
-                            m_overlap_distance = mesh_size_1;
+                            mOverlapDistance = mesh_size_1;
                         else
-                            m_overlap_distance = mesh_size_2;
+                            mOverlapDistance = mesh_size_2;
 
                         KRATOS_INFO("Formulating Chimera for the combination \n background::") << m_background_model_part_name << "  \t Patch::" << m_patch_model_part_name << std::endl;
 
@@ -327,16 +318,16 @@ class ApplyChimeraProcessMonolithic : public Process
         ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
         ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
-        this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
-        this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
-        this->pBinLocatorForBackground->UpdateSearchDatabase();
-        this->pBinLocatorForPatch->UpdateSearchDatabase();
+        this->mpBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
+        this->mpBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
+        this->mpBinLocatorForBackground->UpdateSearchDatabase();
+        this->mpBinLocatorForPatch->UpdateSearchDatabase();
 
         const double epsilon = 1e-12;
-        if (m_overlap_distance < epsilon)
+        if (mOverlapDistance < epsilon)
             KRATOS_THROW_ERROR("", "Overlap distance should be a positive number \n", "");
 
-        if (m_overlap_distance > epsilon)
+        if (mOverlapDistance > epsilon)
         {
             Model &current_model = mrMainModelPart.GetModel();
             ModelPart &pHoleModelPart = current_model.CreateModelPart("HoleModelpart");
@@ -348,8 +339,8 @@ class ApplyChimeraProcessMonolithic : public Process
             if (BBoxOverlapTest)
             {
                 KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-                this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-                this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart, rPatchInsideBoundaryModelPart, pModifiedPatchModelPart, pModifiedPatchBoundaryModelPart, MainDomainOrNot);
+                this->mpCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
+                this->mpHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart, rPatchInsideBoundaryModelPart, pModifiedPatchModelPart, pModifiedPatchBoundaryModelPart, MainDomainOrNot);
             }
             else
             {
@@ -357,8 +348,8 @@ class ApplyChimeraProcessMonolithic : public Process
                 FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart, rPatchInsideBoundaryModelPart, pModifiedPatchBoundaryModelPart);
             }
 
-            this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, pModifiedPatchBoundaryModelPart);
-            this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, pHoleModelPart, pHoleBoundaryModelPart, m_overlap_distance);
+            this->mpCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, pModifiedPatchBoundaryModelPart);
+            this->mpHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, pHoleModelPart, pHoleBoundaryModelPart, mOverlapDistance);
 
             //for multipatch
             for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart.ElementsBegin(); it != pHoleModelPart.ElementsEnd(); ++it)
@@ -367,12 +358,12 @@ class ApplyChimeraProcessMonolithic : public Process
             KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ")<< pModifiedPatchBoundaryModelPart.Nodes().size() << std::endl;
             KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ")<< pHoleBoundaryModelPart.Nodes().size() << std::endl;
             mNumberOfConstraintsAdded = 0;
-            ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground);
+            ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, mpBinLocatorForBackground);
             KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
 
 
             mNumberOfConstraintsAdded = 0;
-            ApplyMpcConstraint(pHoleBoundaryModelPart, pBinLocatorForPatch);
+            ApplyMpcConstraint(pHoleBoundaryModelPart, mpBinLocatorForPatch);
             KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
 
 
@@ -406,7 +397,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
     void SetOverlapDistance(double distance)
     {
-        this->m_overlap_distance = distance;
+        this->mOverlapDistance = distance;
     }
 
     void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
@@ -637,17 +628,17 @@ class ApplyChimeraProcessMonolithic : public Process
 
     //ModelPart &mrBackGroundModelPart;
     //ModelPart &mrPatchSurfaceModelPart;
-    BinBasedPointLocatorPointerType pBinLocatorForBackground; // Template argument 3 stands for 3D case
-    BinBasedPointLocatorPointerType pBinLocatorForPatch;
+    BinBasedPointLocatorPointerType mpBinLocatorForBackground; // Template argument 3 stands for 3D case
+    BinBasedPointLocatorPointerType mpBinLocatorForPatch;
 
     //for monolithic
-    CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
-    typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
+    CustomHoleCuttingProcess::Pointer mpHoleCuttingProcess;
+    typename CustomCalculateSignedDistanceProcess<TDim>::Pointer mpCalculateDistanceProcess;
     ModelPart &mrMainModelPart;
-    double m_overlap_distance;
-    int NumberOfLevels;
-    std::vector<int> LevelTable;
-    Parameters m_parameters;
+    double mOverlapDistance;
+    int mNumberOfLevels;
+    std::vector<int> mLevelTable;
+    Parameters mParameters;
     std::string m_background_model_part_name;
     std::string m_patch_boundary_model_part_name;
     std::string m_domain_boundary_model_part_name;

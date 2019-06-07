@@ -28,7 +28,6 @@
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "custom_processes/rotate_region_process.h"
-//#include "custom_processes/apply_multi_point_constraints_process.h"
 namespace Kratos
 {
 
@@ -67,14 +66,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessFractionalStep<3>::CalculateNodalAreaAndNodalMass)
 		;
 
-	/* class_<ApplyChimeraProcess<3>,bases<Process> >("ApplyChimeraProcess3d", init< ModelPart&, Parameters >())
-			.def("ApplyMpcConstraint", &ApplyChimeraProcess<3>::ApplyMpcConstraint)
-			.def("FormulateChimera3D", &ApplyChimeraProcess<3>::FormulateChimera)
-			.def("SetOverlapDistance",&ApplyChimeraProcess<3>::SetOverlapDistance)
-			.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<3>::CalculateNodalAreaAndNodalMass)
-
-			.def("SetType",&ApplyChimeraProcess<3>::SetType);
- */
 
     class_< RotateRegionProcess,RotateRegionProcess::Pointer, Process >(m, "RotateRegionProcess")
 		.def(init< ModelPart&, Parameters >())
@@ -91,17 +82,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def(init<>())
 		.def("CalculateSignedDistance", &CustomCalculateSignedDistanceProcess<3>::CalculateSignedDistance)
 		;
-
-	/* typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-
-   class_< SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
-    ("SpalartAllmarasTurbulenceModelForChimera", init < ModelPart&, LinearSolverType::Pointer, std::size_t, double, std::size_t, bool, std::size_t>())
-    .def("ActivateDES", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
-    .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModelForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
-    ; */
 
 }
 
