@@ -27,7 +27,7 @@ namespace Kratos
 //************************************************************************************
 
 MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
-    : MPMBaseLoadCondition( NewId, pGeometry )
+    : MPMGridBaseLoadCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -36,7 +36,7 @@ MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryT
 //************************************************************************************
 
 MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-    : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
+    : MPMGridBaseLoadCondition( NewId, pGeometry, pProperties )
 {
 }
 
@@ -45,7 +45,7 @@ MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryT
 
 Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<MPMGridPointLoadCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridPointLoadCondition>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************
@@ -53,7 +53,7 @@ Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryTyp
 
 Condition::Pointer MPMGridPointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<MPMGridPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMGridPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************

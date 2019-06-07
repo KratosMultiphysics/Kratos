@@ -23,7 +23,6 @@
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
 #include "custom_processes/morton_divide_input_to_partitions_process.h"
-#include "custom_processes/set_mpi_communicator_process.h"
 
 #ifndef KRATOS_USE_METIS_5
 #include "custom_processes/metis_partitioning_process.h"
@@ -91,9 +90,6 @@ void AddProcessesToPython(pybind11::module& m)
         .def(py::init<IO&, std::size_t>())
         ;
 
-    py::class_<SetMPICommunicatorProcess, SetMPICommunicatorProcess::Pointer, Process>(m,"SetMPICommunicatorProcess")
-        .def(py::init<ModelPart&>())
-        ;
 }
 
 } // namespace Python.

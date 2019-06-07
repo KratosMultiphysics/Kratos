@@ -16,7 +16,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -32,7 +32,7 @@ namespace Kratos {
 
     public:
         /// Pointer definition of RigidBodyElement3D
-        KRATOS_CLASS_POINTER_DEFINITION(RigidBodyElement3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RigidBodyElement3D);
 
         RigidBodyElement3D();
         RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry);

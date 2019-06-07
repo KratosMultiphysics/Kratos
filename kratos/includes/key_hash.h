@@ -15,7 +15,8 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/node.h"
+//#include "includes/node.h"
+#include "includes/dof.h"
 
 #ifndef KRATOS_KEY_HASH_H_INCLUDED
 #define KRATOS_KEY_HASH_H_INCLUDED
@@ -39,7 +40,7 @@ namespace Kratos
     typedef std::size_t HashType;
 
     // The node definition
-    typedef Node<3> NodeType;
+    //typedef Node<3> NodeType;
 
 ///@}
 ///@name  Enum's
@@ -314,7 +315,7 @@ namespace Kratos
          * @brief The () operator
          * @param pDoF The DoF pointer
          */
-        HashType operator()(const NodeType::DofType::Pointer& pDoF) const
+        HashType operator()(const Dof<double>::Pointer& pDoF) const
         {
             HashType seed = 0;
             HashCombine(seed, pDoF->Id());
@@ -334,7 +335,7 @@ namespace Kratos
          * @param pDoF1 The first DoF pointer
          * @param pDoF2 The second DoF pointer
          */
-        bool operator()(const NodeType::DofType::Pointer& pDoF1, const NodeType::DofType::Pointer& pDoF2) const
+        bool operator()(const Dof<double>::Pointer& pDoF1, const Dof<double>::Pointer& pDoF2) const
         {
             return (((pDoF1->Id() == pDoF2->Id() && (pDoF1->GetVariable()).Key()) == (pDoF2->GetVariable()).Key()));
         }

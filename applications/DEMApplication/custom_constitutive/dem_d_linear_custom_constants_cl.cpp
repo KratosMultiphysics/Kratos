@@ -6,8 +6,6 @@
 
 namespace Kratos {
 
-    void DEM_D_Linear_Custom_Constants::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_Custom_Constants::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_Custom_Constants(*this));
         return p_clone;
@@ -26,7 +24,7 @@ namespace Kratos {
     }
 
     void DEM_D_Linear_Custom_Constants::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
-                
+
         //Normal and Tangent elastic constants
         mKn = element->GetParticleKNormal();
         mKt = element->GetParticleKTangential();

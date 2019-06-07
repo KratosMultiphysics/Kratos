@@ -15,8 +15,14 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_cons_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/initial_perturbation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shallow_water_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/replicate_model_part_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/id_renumbering_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_perturbation_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rough_porous_layer_wetting_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/negative_height_wetting_model.cpp
 )
 
 ## define python interface sources
@@ -24,9 +30,10 @@ set(KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shallow_water_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 )
 
-## define fluid dynamics test sources
+## define shallow water test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)

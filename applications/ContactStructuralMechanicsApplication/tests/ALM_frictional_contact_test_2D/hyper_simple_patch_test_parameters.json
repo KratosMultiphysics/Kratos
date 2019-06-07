@@ -7,8 +7,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",

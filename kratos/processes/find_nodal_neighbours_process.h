@@ -30,6 +30,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -115,11 +116,11 @@ public:
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
             (in->GetValue(NEIGHBOUR_NODES)).reserve(mavg_nodes);
-            WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+            auto& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
 
             (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mavg_elems);
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
             rE.erase(rE.begin(),rE.end() );
         }
 
@@ -138,7 +139,7 @@ public:
         //adding the neighbouring nodes
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 
             for(unsigned int ie = 0; ie < rE.size(); ie++)
             {
@@ -147,7 +148,7 @@ public:
                 {
                     if(pGeom[i].Id() != in->Id() )
                     {
-                        Element::NodeType::WeakPointer temp = pGeom(i);
+                        GlobalPointer<Node<3>> temp(pGeom(i));
                         AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
                     }
                 }
@@ -160,10 +161,10 @@ public:
         NodesContainerType& rNodes = mr_model_part.Nodes();
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
             rE.erase(rE.begin(),rE.end());
 
-            WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+            auto& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
         }
     }
@@ -264,11 +265,11 @@ private:
     //******************************************************************************************
     //******************************************************************************************
     template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType> candidate)
     {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+        auto i = v.begin();
+        auto endit = v.end();
+        while ( i != endit && (i)->Id() != (candidate)->Id())
         {
             i++;
         }

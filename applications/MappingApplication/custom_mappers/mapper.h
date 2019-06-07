@@ -177,6 +177,12 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        rOStream << "Mapper working in: ";
+        if (TSparseSpace::IsDistributed()){
+            rOStream << "MPI";
+        } else {
+            rOStream << "OpenMP";
+        }
     }
 
 }; // Class Mapper
@@ -188,7 +194,7 @@ inline std::ostream & operator << (
     const Mapper<TSparseSpace, TDenseSpace>& rThis)
 {
     rThis.PrintInfo(rOStream);
-    rOStream << " : " << std::endl;
+    rOStream << ":" << std::endl;
     rThis.PrintData(rOStream);
     return rOStream;
 }

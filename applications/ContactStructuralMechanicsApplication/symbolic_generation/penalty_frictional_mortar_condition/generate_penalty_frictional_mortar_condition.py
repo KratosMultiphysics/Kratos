@@ -53,7 +53,7 @@ rhs_template_end_string = "}\n"
 output_count = 0
 total_combs = normal_combs * len(nnodes_combinations)
 
-for normalvar in range(2):
+for normalvar in range(normal_combs):
 
     if normalvar == 0:
         normalvarstring = "false"
@@ -132,16 +132,9 @@ for normalvar in range(2):
         for node in range(nnodes):
             NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
             gap_time_derivative = - DeltaDx1DeltaMx2.row(node)/delta_time
-            #gap_time_derivative = (Dx1oldMx2old.row(node) - Dx1Mx2.row(node))/delta_time - DeltaDx1DeltaMx2.row(node)/delta_time
-            #auxTangentSlip = delta_time * gap_time_derivative.dot(TangentSlave.row(node))
             auxTangentSlip = delta_time * (gap_time_derivative - gap_time_derivative.dot(NormalSlave.row(node)) * NormalSlave.row(node))
             for idim in range(dim):
                 TangentSlip[node, idim] = - auxTangentSlip[idim]
-
-            ## Add implicit definition
-            #aux_tangent_slave = TangentSlip.row(node)/real_norm(TangentSlip.row(node))
-            #for idim in range(dim):
-                #TangentSlave[node,idim] = aux_tangent_slave[idim]
 
         # Define dofs & test function vector
         dofs = Matrix( zeros(number_dof, 1) )

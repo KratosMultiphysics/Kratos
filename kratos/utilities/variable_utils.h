@@ -269,6 +269,36 @@ public:
     }
 
     /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TType , class TContainerType>
+    void SetNonHistoricalVariableToZero(
+        const Variable< TType >& rVariable,
+        TContainerType& rContainer)
+    {
+        KRATOS_TRY
+        this->SetNonHistoricalVariable(rVariable, rVariable.Zero(), rContainer);
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TType >
+    void SetHistoricalVariableToZero(
+        const Variable< TType >& rVariable,
+        NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+        this->SetVariable(rVariable, rVariable.Zero(), rNodes);
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Sets the nodal value of a scalar variable (considering flag)
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
@@ -537,26 +567,6 @@ public:
         );
 
     /**
-     * @brief In a node set, sets a vector variable to zero
-     * @param Variable reference to the vector variable to be set to 0
-     * @param rNodes reference to the objective node set
-     */
-    void SetToZero_VectorVar(
-        const ArrayVarType& Variable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief In a node set, sets a double variable to zero
-     * @param Variable reference to the double variable to be set to 0
-     * @param rNodes reference to the objective node set
-     */
-    void SetToZero_ScalarVar(
-        const DoubleVarType& Variable,
-        NodesContainerType& rNodes
-        );
-
-    /**
      * @brief Returns a list of nodes filtered using the given double variable and value
      * @param Variable reference to the double variable to be filtered
      * @param Value Filtering Value
@@ -700,9 +710,7 @@ public:
             sum_value += it_node->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -748,9 +756,7 @@ public:
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -794,9 +800,7 @@ public:
             sum_value += it_cond->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -840,9 +844,7 @@ public:
             sum_value += it_elem->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -932,10 +934,21 @@ public:
     void UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
 
     /**
-     * @brief This method updates the initial nodal coordinates to the current coordinates
      * @param rNodes the nodes to be updated
+     * @brief This method updates the initial nodal coordinates to the current coordinates
      */
     void UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+    /**
+     * @brief This method updates the current coordinates
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * @param rNodes
+     * @param rUpdateVariable variable to retrieve the updating values from
+     */
+    void UpdateCurrentPosition(
+        const ModelPart::NodesContainerType &rNodes,
+        const ArrayVarType &rUpdateVariable = DISPLACEMENT);
 
     ///@}
     ///@name Acces
