@@ -253,7 +253,7 @@ def AssembleTestSuites():
     nightlySuite.addTest(TComponentsALMHertzSimpleSphereTestContact('test_execution'))
 
     # ALM frictional tests
-    #nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))                          # FIXME
+    nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))
 
     ### END VALIDATION SUITE ###
 
@@ -394,7 +394,7 @@ def AssembleTestSuites():
             #TComponentsALMHertzSimpleSphereTestContact,
             ######TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             #TComponentsALMHertzCompleteTestContact,
-            ##TALMPureFrictionalTestContact,                          # FIXME
+            #TALMPureFrictionalTestContact,
             ##### VALIDATION
             #TALMTaylorPatchDynamicTestContact,
             #TALMMeshMovingMatchingTestContact,
