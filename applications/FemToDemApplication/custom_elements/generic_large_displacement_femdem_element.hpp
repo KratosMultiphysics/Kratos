@@ -56,7 +56,7 @@ class GenericLargeDisplacementFemDemElement
     : public GenericSmallStrainFemDemElement<TDim, TyieldSurf>
 {
 public:
-
+    typedef typename GenericSmallStrainFemDemElement<TDim, TyieldSurf>::ElementDataType ElementDataType;
     ///Type for element variables
     //typedef ElementData ElementDataType;
 
@@ -234,17 +234,6 @@ private:
     ///@name Member Variables
     ///@{
 
-	Vector mNonConvergedThresholds;     // Equivalent stress
-	Vector mThresholds;                 // Stress mThreshold on edge
-	Vector mDamages;                    // Converged Damage on each edge
-	Vector mNonConvergedDamages;        // Damages at edges of "i" iteration
-	double mThreshold = 0.0;            // Converged Threshold
-	double mDamage = 0.0;               // Converged Damage
-
-    // Vector to storage the neigh elements sharing a certain edge
-    std::vector<std::vector<Element*>> mEdgeNeighboursContainer;
-
-    IntegrationMethod mThisIntegrationMethod;
     ///@}
     ///@name Private Operators
     ///@{
