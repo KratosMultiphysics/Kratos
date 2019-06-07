@@ -79,34 +79,34 @@ public:
 
     double& CalculateValue(Parameters& rParameterValues,
                                             const Variable<double>& rThisVariable,
-                                            double& rValue) override;
+                                            double& rValue);
 
 
     double& GetValue(const Variable<double>& rThisVariable,
-                                    double& rValue) override;
+                                    double& rValue);
 
 
     Vector& GetValue(const Variable<Vector>& rThisVariable,
-                                    Vector& rValue) override;
+                                    Vector& rValue);
 
 
     Matrix& GetValue(const Variable<Matrix>& rThisVariable,
-                                    Matrix& rValue) override;
+                                    Matrix& rValue);
 
 
     void SetValue(const Variable<double>& rThisVariable,
                                     const double& rValue,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 
     void SetValue(const Variable<Vector>& rThisVariable,
                                     const Vector& rValue,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 
     void SetValue(const Variable<Matrix>& rThisVariable,
                                     const Matrix& rValue,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 private:
 
@@ -145,7 +145,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) 
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }

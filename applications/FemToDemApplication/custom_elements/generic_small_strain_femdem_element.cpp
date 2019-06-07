@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/generic_small_strain_femdem_element.hpp"
+#include "generic_small_strain_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
 #include "solid_mechanics_application_variables.h"
 
@@ -48,8 +48,8 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
     	mThresholds.resize(NumberOfEdges);
 	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
-	if (mDamages.size() != NumberOfEdges)
-    	mDamages.resize(NumberOfEdges);
+	if (mNonConvergedDamages.size() != NumberOfEdges)
+    	mNonConvergedDamages.resize(NumberOfEdges);
 	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 
 	if (mNonConvergedDamages.size() != NumberOfEdges)
@@ -217,29 +217,27 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 
         bool is_damaging = false;
         if (yield_surface != "Elastic") {
-			// Loop over edges of the element...
-			Vector average_stress_edge(VoigtSize);
-			Vector average_strain_edge(VoigtSize);
-			noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-			noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+    		// Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
-			for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
 
-				this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-				this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
-				double damage_edge = mDamages[edge];
-				double threshold = mThresholds[edge];
-				
-				this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-					average_stress_edge, edge, characteristic_length, values, is_damaging);
+                double damage_edge = mDamages[edge];
+                double threshold = mThresholds[edge];
+                
+                this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+                    average_stress_edge, edge, characteristic_length, values, is_damaging);
 
-				mNonConvergedDamages[edge] = damage_edge;
-				mNonConvergedThresholds[edge] = threshold;
-			} // Loop over edges
-		} else {
-			noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges);
-		}
+                mNonConvergedDamages[edge] = damage_edge;
+                mNonConvergedThresholds[edge] = threshold;
+            } // Loop over edges
+        }
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
@@ -372,30 +370,28 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateRightHandSide(
 		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight);
 
-		bool is_damaging = false;
-		Vector damages(NumberOfEdges);
-		if (yield_surface != "Elastic") {
-			// Loop over edges of the element...
-			Vector average_stress_edge(VoigtSize);
-			Vector average_strain_edge(VoigtSize);
-			noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-			noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+        bool is_damaging = false;
+        Vector damages(NumberOfEdges);
+        if (yield_surface != "Elastic") {
+    		// Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
-			for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-				this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-				this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
-				double damage_edge = mDamages[edge];
-				double threshold = mThresholds[edge];
-				
-				this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-					average_stress_edge, edge, characteristic_length, values, is_damaging);
+                double damage_edge = mDamages[edge];
+                double threshold = mThresholds[edge];
+                
+                this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+                    average_stress_edge, edge, characteristic_length, values, is_damaging);
 
-				damages[edge] = damage_edge;
-			} // Loop over edges
-		} else {
-			noalias(damages) = ZeroVector(NumberOfEdges);
-		}
+                damages[edge] = damage_edge;
+            } // Loop over edges
+        }
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(damages);
@@ -590,10 +586,12 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableO
     const int edge
     )
 {
-	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-	rAverageVector += pCurrentElement->GetValue(ThisVariable);
-	rAverageVector *= 0.5;
+    auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+    KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+    auto& neighbour = r_elem_neigb[edge];
+
+    rAverageVector += pCurrentElement->GetValue(ThisVariable);
+    rAverageVector *= 0.5;
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
@@ -1408,7 +1406,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AssignComponentsToTangent
 	const int Component
 	)
 {
-	const IndexType voigt_size = rDeltaStress.size();
+	const int voigt_size = rDeltaStress.size();
 	for (IndexType row = 0; row < voigt_size; ++row) {
 		rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
 	}
