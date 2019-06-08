@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "rans_modelling_application_variables.h"
 #include "utilities/openmp_utils.h"
@@ -165,6 +166,59 @@ public:
             {
                 const double value = itNode->FastGetSolutionStepValue(rVariable);
                 min_values[k] = std::min(min_values[k], value);
+            }
+
+#pragma omp critical
+            {
+                for (int i = 0; i < number_of_threads; ++i)
+                {
+                    min_value = std::min(min_value, min_values[i]);
+                }
+            }
+        }
+
+        return min_value;
+
+        KRATOS_CATCH("");
+    }
+
+    double GetFlaggedMinimumScalarValue(const ModelPart::NodesContainerType& rNodes,
+                                        const Variable<double>& rVariable,
+                                        const Flags& rCheckFlag,
+                                        const bool CheckFlagValue)
+    {
+        KRATOS_TRY
+
+        CheckVariableExists(rVariable, rNodes);
+
+        const int number_of_nodes = rNodes.size();
+
+        if (number_of_nodes == 0)
+            return 0.0;
+
+        double min_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
+
+        int number_of_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector node_partition;
+        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+        Vector min_values(number_of_threads);
+
+#pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+
+            auto NodesBegin = rNodes.begin() + node_partition[k];
+            auto NodesEnd = rNodes.begin() + node_partition[k + 1];
+            min_values[k] = NodesBegin->FastGetSolutionStepValue(rVariable);
+
+            for (auto itNode = NodesBegin; itNode != NodesEnd; itNode++)
+            {
+                if ((itNode->Is(rCheckFlag) && CheckFlagValue) ||
+                    (!itNode->Is(rCheckFlag) && !CheckFlagValue))
+                {
+                    const double value = itNode->FastGetSolutionStepValue(rVariable);
+                    min_values[k] = std::min(min_values[k], value);
+                }
             }
 
 #pragma omp critical

@@ -98,7 +98,9 @@ public:
             "constants": {
                 "von_karman"  : 0.41,
                 "beta"        : 5.2
-            }
+            },
+            "use_constant_wall_y_plus" : true,
+            "wall_y_plus"              : 11.06
         })");
 
         mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -108,6 +110,9 @@ public:
 
         mMaxIterations = mrParameters["max_iterations"].GetInt();
         mTolerance = mrParameters["tolerance"].GetDouble();
+
+        mUseConstantWallYPlus = mrParameters["use_constant_wall_y_plus"].GetBool();
+        mWallYPlus = mrParameters["wall_y_plus"].GetDouble();
 
         mVonKarman = mrParameters["constants"]["von_karman"].GetDouble();
         mBeta = mrParameters["constants"]["beta"].GetDouble();
@@ -158,49 +163,45 @@ public:
 
         const int number_of_nodes = r_nodes.size();
 
-        // const double c_mu_25 =
-        //     std::pow(mrModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.25);
-
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
-            const double kinematic_viscosity =
-                r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
-            const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE, mStep);
-
-            if (r_node.Is(STRUCTURE))
-            {
-                // const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-                // const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-                // r_node.FastGetSolutionStepValue(RANS_Y_PLUS) =
-                //     u_tau * wall_distance / kinematic_viscosity;
-
-                const array_1d<double, 3>& velocity =
-                    r_node.FastGetSolutionStepValue(WALL_VELOCITY, mStep);
-                const double velocity_norm = norm_2(velocity);
-
-                const double yplus = CalculateLogarithmicWallLawYplus(
-                    velocity_norm, mVonKarman, mBeta, kinematic_viscosity,
-                    wall_distance, mMaxIterations, mTolerance);
-
-                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
-            }
-            else
-            {
-                const array_1d<double, 3>& velocity =
-                    r_node.FastGetSolutionStepValue(VELOCITY, mStep);
-                const double velocity_norm = norm_2(velocity);
-
-                const double yplus = CalculateLogarithmicWallLawYplus(
-                    velocity_norm, mVonKarman, mBeta, kinematic_viscosity,
-                    wall_distance, mMaxIterations, mTolerance);
-
-                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
-            }
+            if (!r_node.Is(STRUCTURE))
+                CalculateLogarithmicWallLawYplus(r_node, VELOCITY);
         }
 
         RansVariableUtils rans_variable_utils;
+
+        if (mUseConstantWallYPlus)
+        {
+            const double min_y_plus = rans_variable_utils.GetFlaggedMinimumScalarValue(
+                r_nodes, RANS_Y_PLUS, STRUCTURE, false);
+
+            KRATOS_WARNING_IF(this->Info(), mEchoLevel > 0 && min_y_plus < mWallYPlus)
+                << "Inner " << mrModelPart.Name() << " domain minimum y_plus is less than user defined wall_y_plus. [ "
+                << min_y_plus << " < " << mWallYPlus << " ].\n";
+
+#pragma omp parallel for
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                NodeType& r_node = *(r_nodes.begin() + i_node);
+                if (r_node.Is(STRUCTURE) && r_node.Is(SLIP))
+                {
+                    r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = mWallYPlus;
+                }
+            }
+        }
+        else
+        {
+#pragma omp parallel for
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                NodeType& r_node = *(r_nodes.begin() + i_node);
+                if (r_node.Is(STRUCTURE) && r_node.Is(SLIP))
+                    CalculateLogarithmicWallLawYplus(r_node, VELOCITY);
+            }
+        }
 
         if (mEchoLevel > 0)
         {
@@ -310,6 +311,9 @@ private:
     double mVonKarman;
     double mBeta;
 
+    double mWallYPlus;
+    bool mUseConstantWallYPlus;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -318,51 +322,53 @@ private:
     ///@name Private Operations
     ///@{
 
-    double CalculateLogarithmicWallLawYplus(const double VelocityMagnitude,
-                                            const double VonKarman,
-                                            const double Beta,
-                                            const double KinematicViscosity,
-                                            const double WallDistance,
-                                            const unsigned int MaxIterations = 200,
-                                            const double Tolerance = 1e-6)
+    void CalculateLogarithmicWallLawYplus(NodeType& rNode,
+                                          const Variable<array_1d<double, 3>>& rVelocityVariable)
     {
+        const double kinematic_viscosity =
+            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
+        const double wall_distance = rNode.FastGetSolutionStepValue(DISTANCE, mStep);
+        const array_1d<double, 3>& velocity =
+            rNode.FastGetSolutionStepValue(rVelocityVariable, mStep);
+        const double velocity_magnitude = norm_2(velocity);
+
         // linear region
-        double utau = sqrt(VelocityMagnitude * KinematicViscosity / WallDistance);
-        double yplus = WallDistance * utau / KinematicViscosity;
+        double utau = sqrt(velocity_magnitude * kinematic_viscosity / wall_distance);
+        double yplus = wall_distance * utau / kinematic_viscosity;
 
         const double limit_yplus = 11.06;
-        const double inv_von_karman = 1.0 / VonKarman;
+        const double inv_von_karman = 1.0 / mVonKarman;
 
         // log region
         if (yplus > limit_yplus)
         {
             unsigned int iter = 0;
             double dx = 1e10;
-            const double tol = Tolerance;
-            double uplus = inv_von_karman * log(yplus) + Beta;
+            const double tol = mTolerance;
+            double uplus = inv_von_karman * log(yplus) + mBeta;
 
-            while (iter < MaxIterations && fabs(dx) > tol * utau)
+            while (iter < mMaxIterations && fabs(dx) > tol * utau)
             {
                 // Newton-Raphson iteration
-                double f = utau * uplus - VelocityMagnitude;
+                double f = utau * uplus - velocity_magnitude;
                 double df = uplus + inv_von_karman;
                 dx = f / df;
 
                 // Update variables
                 utau -= dx;
-                yplus = WallDistance * utau / KinematicViscosity;
-                uplus = inv_von_karman * log(yplus) + Beta;
+                yplus = wall_distance * utau / kinematic_viscosity;
+                uplus = inv_von_karman * log(yplus) + mBeta;
                 ++iter;
             }
 
-            KRATOS_WARNING_IF("RansLogarithmicYPlusModelProcess", iter == MaxIterations && mEchoLevel > 0)
+            KRATOS_WARNING_IF("RansLogarithmicYPlusModelProcess", iter == mMaxIterations && mEchoLevel > 0)
                 << "Y plus calculation in Wall (logarithmic region) "
                    "Newton-Raphson did not converge. "
                    "residual > tolerance [ "
                 << std::scientific << dx << " > " << std::scientific << tol << " ]\n";
         }
 
-        return yplus;
+        rNode.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
     }
 
     ///@}

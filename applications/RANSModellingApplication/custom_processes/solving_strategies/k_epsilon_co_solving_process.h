@@ -216,6 +216,7 @@ private:
     void UpdateBeforeSolveSolutionStep() override
     {
         mpWallVelocityModelProcess->Execute();
+        UpdateWallVelocity();
         mpYPlusModelProcess->Execute();
     }
 
@@ -226,116 +227,24 @@ private:
 
     void UpdateConvergenceVariable() override
     {
-        // FindNodalNeighbours();
-        // UpdateTurbulentKineticEnergy();
-        // UpdateTurbulentEnergyDissipationRate();
-
         UpdateTurbulentViscosity();
-        UpdateBoundaryConditions();
     }
 
-    void FindNodalNeighbours()
+    void UpdateWallVelocity()
     {
-        FindNodalNeighboursProcess find_nodal_neighbours_process(this->mrModelPart, 10, 10);
-        find_nodal_neighbours_process.Execute();
-    }
-
-    void UpdateTurbulentKineticEnergy()
-    {
-        const int number_of_nodes = this->mrModelPart.NumberOfNodes();
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(this->mrModelPart.NodesBegin() + i_node);
-
-            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            if (tke < std::numeric_limits<double>::epsilon())
-            {
-                if (!AverageNodalValue(r_node, TURBULENT_KINETIC_ENERGY))
-                {
-                    r_node.SetValue(
-                        TURBULENT_KINETIC_ENERGY,
-                        1.5 * std::pow(0.05 * norm_2(r_node.FastGetSolutionStepValue(VELOCITY)),
-                                       2));
-                }
-            }
-            else
-            {
-                r_node.SetValue(TURBULENT_KINETIC_ENERGY, tke);
-            }
-        }
-        CopyFromNonHistoricalValues(this->mrModelPart, TURBULENT_KINETIC_ENERGY);
-    }
-
-    bool AverageNodalValue(NodeType& rNode, const Variable<double>& rVariable)
-    {
-        const GlobalPointersVector<NodeType>& r_neighbour_nodes =
-            rNode.GetValue(NEIGHBOUR_NODES);
-        const int number_of_neighbour_nodes = r_neighbour_nodes.size();
-        double average_value = 0.0;
-        double average_count = 0.0;
-        for (int j_node = 0; j_node < number_of_neighbour_nodes; ++j_node)
-        {
-            const NodeType& r_neighbour_node = r_neighbour_nodes[j_node];
-            const double neighbour_value =
-                r_neighbour_node.FastGetSolutionStepValue(rVariable);
-
-            if (neighbour_value > std::numeric_limits<double>::epsilon())
-            {
-                average_value += neighbour_value;
-                average_count += 1.0;
-            }
-        }
-
-        if (average_count > 0.0)
-        {
-            rNode.SetValue(rVariable, average_value / average_count);
-            return true;
-        }
-
-        return false;
-    }
-
-    void CopyFromNonHistoricalValues(ModelPart& rModelPart, const Variable<double>& rVariable)
-    {
-        const int number_of_nodes = rModelPart.NumberOfNodes();
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
-            r_node.FastGetSolutionStepValue(rVariable) = r_node.GetValue(rVariable);
-        }
-    }
-
-    void UpdateTurbulentEnergyDissipationRate()
-    {
-        const int number_of_nodes = this->mrModelPart.NumberOfNodes();
-        const double c_mu_75 =
-            std::pow(this->mrModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.75);
+        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
+        int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
-            NodeType& r_node = *(this->mrModelPart.NodesBegin() + i_node);
-
-            const double epsilon =
-                r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            if (epsilon < std::numeric_limits<double>::epsilon())
+            NodeType& r_node = *(r_nodes.begin() + i_node);
+            if (r_node.Is(STRUCTURE) && r_node.Is(SLIP))
             {
-                if (!AverageNodalValue(r_node, TURBULENT_ENERGY_DISSIPATION_RATE))
-                {
-                    r_node.SetValue(TURBULENT_ENERGY_DISSIPATION_RATE,
-                                    c_mu_75 * std::pow(tke, 1.5) / 0.005);
-                }
-            }
-            else
-            {
-                r_node.SetValue(TURBULENT_ENERGY_DISSIPATION_RATE, epsilon);
+                r_node.FastGetSolutionStepValue(VELOCITY) =
+                    r_node.FastGetSolutionStepValue(WALL_VELOCITY);
             }
         }
-
-        CopyFromNonHistoricalValues(this->mrModelPart, TURBULENT_ENERGY_DISSIPATION_RATE);
     }
 
     void UpdateEffectiveViscosity()
@@ -360,6 +269,7 @@ private:
         const double nu_t_min = r_process_info[TURBULENT_VISCOSITY_MIN];
         const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
         const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
+        const double von_karman = r_process_info[WALL_VON_KARMAN];
 
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
@@ -373,17 +283,17 @@ private:
                 const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
                 const double epsilon =
                     r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-                // const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
-                // const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
                 const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
                     c_mu, tke, epsilon, 1.0);
 
-                // const double l_max = 0.05; // hard coded domain maximum width
-                // const double check_value = c_mu * std::pow(tke, 1.5)/epsilon;
-                // const double l_star = std::min(check_value, l_max);
-                // const double nu_t = std::max(nu_t_min, l_star * std::pow(tke, 0.5));
-
                 r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
+            }
+            else if (r_node.Is(SLIP))
+            {
+                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+                const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
+                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
+                    von_karman * nu * y_plus;
             }
         }
 
@@ -407,45 +317,6 @@ private:
         KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 1)
             << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
             << ", " << current_nu_t_max << " ].\n";
-    }
-
-    void UpdateBoundaryConditions()
-    {
-        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        const int number_of_nodes = r_nodes.size();
-
-        const ProcessInfo& r_current_process_info = this->mrModelPart.GetProcessInfo();
-
-        // const double c_mu_25 =
-        //     std::pow(r_current_process_info[TURBULENCE_RANS_C_MU], 0.25);
-        const double c_mu = r_current_process_info[TURBULENCE_RANS_C_MU];
-        const double von_karman = r_current_process_info[WALL_VON_KARMAN];
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            if (r_node.Is(STRUCTURE))
-            {
-                // calculate u_tau
-                const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE);
-                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-                // const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-
-                double& epsilon =
-                    r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-                epsilon = std::pow(c_mu, 0.75) * std::pow(std::max(tke, 0.0), 1.5) /
-                          (von_karman * wall_distance);
-                r_node.Fix(TURBULENT_ENERGY_DISSIPATION_RATE);
-
-                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
-                    EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-                        c_mu, tke, epsilon, 1.0);
-                // update the nu_t value
-                // double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-                // nu_t = von_karman * u_tau * wall_distance;
-            }
-        }
     }
 
     ///@}

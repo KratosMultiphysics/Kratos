@@ -241,77 +241,74 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 ProcessInfo& rCurrentProcessInfo) override
     {
+        KRATOS_TRY
+
         if (rRightHandSideVector.size() != TNumNodes)
             rRightHandSideVector.resize(TNumNodes);
 
         rRightHandSideVector.clear();
+
+        // TODO: improve this check
+        bool is_structure = true;
+        for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i)
+            if (!this->GetGeometry()[i].Is(STRUCTURE))
+                is_structure = false;
+
+        if (is_structure)
+        {
+            RansCalculationUtilities rans_calculation_utilities;
+
+            const GeometryType& r_geometry = this->GetGeometry();
+
+            // Get Shape function data
+            Vector gauss_weights;
+            Matrix shape_functions;
+            ShapeFunctionDerivativesArrayType shape_derivatives;
+            rans_calculation_utilities.CalculateGeometryData(
+                r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2,
+                gauss_weights, shape_functions, shape_derivatives);
+
+            const unsigned int num_gauss_points = gauss_weights.size();
+
+            const double epsilon_sigma =
+                rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
+            const double c_mu_25 =
+                std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+
+            for (unsigned int g = 0; g < num_gauss_points; g++)
+            {
+                const Vector& gauss_shape_functions = row(shape_functions, g);
+
+                const double nu = rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+                const double nu_t = rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+                const double tke = rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+                const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, RANS_Y_PLUS, gauss_shape_functions);
+
+                const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+
+                const double value = (nu + nu_t / epsilon_sigma) * std::pow(u_tau, 5) /
+                                     (nu_t * y_plus * nu) * gauss_weights[g];
+
+                for (unsigned int a = 0; a < TNumNodes; ++a)
+                {
+                    rRightHandSideVector[a] += value * gauss_shape_functions[a];
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
     }
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
-
         if (rDampingMatrix.size1() != TNumNodes)
             rDampingMatrix.resize(TNumNodes, TNumNodes);
 
         rDampingMatrix.clear();
-
-        // // TODO: improve this check
-        // bool is_structure = true;
-        // for (unsigned int i = 0; i < TNumNodes; ++i)
-        //     if (!this->GetGeometry()[i].Is(STRUCTURE))
-        //         is_structure = false;
-
-        // if (is_structure)
-        // {
-        //     RansCalculationUtilities rans_calculation_utilities;
-
-        //     const GeometryType& r_geometry = this->GetGeometry();
-
-        //     // Get Shape function data
-        //     Vector gauss_weights;
-        //     Matrix shape_functions;
-        //     ShapeFunctionDerivativesArrayType shape_derivatives;
-        //     rans_calculation_utilities.CalculateGeometryData(
-        //         r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2,
-        //         gauss_weights, shape_functions, shape_derivatives);
-
-        //     const unsigned int num_gauss_points = gauss_weights.size();
-
-        //     const double epsilon_sigma =
-        //         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-        //     const double c_mu_25 =
-        //         std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-        //     const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
-
-        //     for (unsigned int g = 0; g < num_gauss_points; g++)
-        //     {
-        //         const Vector& gauss_shape_functions = row(shape_functions, g);
-
-        //         const double nu = rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-        //         const double nu_t = rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-        //         const double tke = rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-
-        //         const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-
-        //         const double value = gauss_weights[g] * von_karman *
-        //                              (nu + nu_t / epsilon_sigma) * u_tau / nu_t;
-
-        //         for (unsigned int a = 0; a < TNumNodes; ++a)
-        //         {
-        //             for (unsigned int b = 0; b < TNumNodes; ++b)
-        //             {
-        //                 rDampingMatrix(a, b) -= value * gauss_shape_functions[a] *
-        //                                         gauss_shape_functions[b];
-        //             }
-        //         }
-        //     }
-        // }
-
-        KRATOS_CATCH("");
     }
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
@@ -325,11 +322,6 @@ public:
                                             ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
-
-        // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
-        VectorType U;
-        this->GetValuesVector(U);
-        noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
     /// Check that all data required by this condition is available and reasonable

@@ -273,71 +273,71 @@ protected:
                       VectorType& rLocalVector,
                       ProcessInfo& rCurrentProcessInfo) override
     {
-        BaseType::ApplyWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
-        // if (!rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
-        // {
-        //     BaseType::ApplyWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
-        //     return;
-        // }
+        if (!rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
+        {
+            BaseType::ApplyWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+            return;
+        }
 
-        // RansCalculationUtilities rans_calculation_utilities;
+        RansCalculationUtilities rans_calculation_utilities;
 
-        // GeometryType& r_geometry = this->GetGeometry();
+        GeometryType& r_geometry = this->GetGeometry();
 
-        // for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        //     if (!r_geometry[i_node].Is(STRUCTURE))
-        //         return;
+        // Check whether this is a STRUCTURE condition
+        for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+            if (!r_geometry[i_node].Is(STRUCTURE))
+                return;
 
-        // Vector gauss_weights;
-        // Matrix shape_functions;
-        // GeometryType::ShapeFunctionsGradientsType shape_derivatives;
-        // rans_calculation_utilities.CalculateGeometryData(
-        //     r_geometry, GeometryData::GI_GAUSS_1, gauss_weights,
-        //     shape_functions, shape_derivatives);
+        // Check whether this is a SLIP condition
+        for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+            if (!r_geometry[i_node].Is(SLIP))
+                return;
 
-        // const size_t block_size = TDim + 1;
+        Vector gauss_weights;
+        Matrix shape_functions;
+        GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+        rans_calculation_utilities.CalculateGeometryData(
+            r_geometry, GeometryData::GI_GAUSS_1, gauss_weights,
+            shape_functions, shape_derivatives);
 
-        // const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+        const size_t block_size = TDim + 1;
 
-        // for (size_t g = 0; g < gauss_weights.size(); ++g)
-        // {
-        //     const Vector& gauss_shape_functions = row(shape_functions, g);
+        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
 
-        //     const array_1d<double, 3>& r_wall_velocity =
-        //         rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, WALL_VELOCITY, gauss_shape_functions);
+        for (size_t g = 0; g < gauss_weights.size(); ++g)
+        {
+            const Vector& gauss_shape_functions = row(shape_functions, g);
 
-        //     if (norm_2(r_wall_velocity) > std::numeric_limits<double>::epsilon())
-        //     {
-        //         const double density = rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, DENSITY, gauss_shape_functions);
-        //         const double tke = rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-        //         const double y_plus = rans_calculation_utilities.EvaluateInPoint(
-        //             r_geometry, RANS_Y_PLUS, gauss_shape_functions);
+            const array_1d<double, 3>& r_wall_velocity =
+                rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, VELOCITY, gauss_shape_functions);
+            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
-        //         const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+            if (wall_velocity_magnitude > std::numeric_limits<double>::epsilon())
+            {
+                const double tke = rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+                const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+                    r_geometry, RANS_Y_PLUS, gauss_shape_functions);
 
-        //         const double coeff = gauss_weights[g] * density * u_tau /
-        //                              (y_plus + std::numeric_limits<double>::epsilon());
+                const double u_tau = std::max(c_mu_25 * std::sqrt(std::max(tke, 0.0)),
+                                              wall_velocity_magnitude / y_plus);
 
-        //         for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        //         {
-        //             for (size_t dim = 0; dim < TDim; ++dim)
-        //             {
-        //                 rLocalVector[i_node * block_size + dim] -=
-        //                     coeff * gauss_shape_functions[i_node] * r_wall_velocity[dim];
-        //             }
-        //         }
+                const double value = u_tau * gauss_weights[g] / y_plus;
 
-        //     KRATOS_WATCH(u_tau);
-        //     KRATOS_WATCH(y_plus);
-        //     KRATOS_WATCH(density);
-        //     KRATOS_WATCH(u_tau);
-        //     KRATOS_WATCH(r_wall_velocity);
-        //     KRATOS_WATCH(tke);
-        //     }
-        // }
+                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
+                {
+                    for (size_t b = 0; b < r_geometry.PointsNumber(); ++b)
+                    {
+                        for (size_t dim = 0; dim < TDim; ++dim)
+                        {
+                            rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
+                                gauss_shape_functions[a] * gauss_shape_functions[b] * value;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     ///@}
