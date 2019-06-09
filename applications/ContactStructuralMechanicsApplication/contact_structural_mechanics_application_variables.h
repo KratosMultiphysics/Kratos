@@ -21,6 +21,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/mapping_variables.h"
+#include "custom_frictional_laws/frictional_law.h"
 
 namespace Kratos
 {
@@ -87,6 +88,10 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, st
 
 /* Explicit simulation */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, MAX_GAP_THRESHOLD )                            // The gap considered as threshold to rescale penalty
+
+/* Frictional laws */
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, FrictionalLaw::Pointer, FRICTIONAL_LAW )               // The frictional law considered                   // The threshold value for Tresca frictional contact
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, TRESCA_FRICTION_THRESHOLD )                    // The threshold value for Tresca frictional contact
 }
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

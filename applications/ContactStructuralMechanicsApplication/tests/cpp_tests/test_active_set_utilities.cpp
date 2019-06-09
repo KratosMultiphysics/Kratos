@@ -115,9 +115,9 @@ namespace Kratos
 
             // Check flags
             KRATOS_CHECK_EQUAL(is_converged[0], 2);
-            KRATOS_CHECK_EQUAL(is_converged[1], 0);
+            KRATOS_CHECK_EQUAL(is_converged[1], 1);
             KRATOS_CHECK(p_node1->Is(ACTIVE));
-            KRATOS_CHECK(p_node1->Is(SLIP));
+            KRATOS_CHECK(p_node1->IsNot(SLIP));
             KRATOS_CHECK(p_node2->IsNot(ACTIVE));
             KRATOS_CHECK(p_node2->IsNot(SLIP));
             KRATOS_CHECK(p_node3->IsNot(ACTIVE));

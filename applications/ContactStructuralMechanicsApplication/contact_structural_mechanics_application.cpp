@@ -160,6 +160,10 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
 
+    /* Frictional laws */
+    KRATOS_REGISTER_VARIABLE( FRICTIONAL_LAW )                                        // The frictional law considered
+    KRATOS_REGISTER_VARIABLE( TRESCA_FRICTION_THRESHOLD )                             // The threshold value for Tresca frictional contact
+
     // CONDITIONS
     // Mesh tying mortar condition
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangle", mMeshTyingMortarCondition2D2NTriangle );
