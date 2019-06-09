@@ -12,7 +12,7 @@ class FSICouplingInterface():
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name": "",
-            "father_model_part_name": "",
+            "parent_model_part_name": "",
             "input_variable_name": "",
             "output_variable_name": ""
         }""")
