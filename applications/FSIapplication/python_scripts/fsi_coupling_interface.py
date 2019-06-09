@@ -21,8 +21,8 @@ class FSICouplingInterface():
 
         if settings["model_part_name"].GetString() == "":
             raise Exception("Provided \'model_part_name\' is empty.")
-        if settings["father_model_part_name"].GetString() == "":
-            raise Exception("Provided \'father_model_part_name\' is empty.")
+        if settings["parent_model_part_name"].GetString() == "":
+            raise Exception("Provided \'parent_model_part_name\' is empty.")
         if settings["input_variable_name"].GetString() == "":
             raise Exception("Provided \'input_variable_name\' is empty.")
         if settings["output_variable_name"].GetString() == "":
@@ -38,7 +38,7 @@ class FSICouplingInterface():
         self.model = model
         self.convergence_accelerator = convergence_accelerator
         self.model_part_name = settings["model_part_name"].GetString()
-        self.father_model_part_name = settings["father_model_part_name"].GetString()
+        self.parent_model_part_name = settings["parent_model_part_name"].GetString()
         self.input_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["input_variable_name"].GetString())
         self.output_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["output_variable_name"].GetString())
 
@@ -48,7 +48,7 @@ class FSICouplingInterface():
         return self._fsi_interface_model_part
 
     def GetFatherModelPart(self):
-        return self.model.GetModelPart(self.father_model_part_name)
+        return self.model.GetModelPart(self.parent_model_part_name)
 
     def Update(self):
         # Get the output variable from the father model part
