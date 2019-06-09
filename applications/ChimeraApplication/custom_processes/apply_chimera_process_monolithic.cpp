@@ -169,7 +169,7 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
             this->mpHoleCuttingProcess->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot);
         }
 
-        FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
+        mpHoleCuttingProcess->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
         this->mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
         this->mpHoleCuttingProcess->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
 
@@ -402,19 +402,6 @@ bool ApplyChimeraProcessMonolithic<TDim>::BoundingBoxTest(ModelPart &rModelPartA
             return false;
     }
     return true;
-}
-
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart, ModelPart &rInsideBoundary, ModelPart &rExtractedBoundaryModelPart)
-{
-    std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
-
-    if (n_nodes == 3)
-        this->mpHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
-    else if (n_nodes == 4)
-        this->mpHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
-    else
-        KRATOS_ERROR<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
 }
 
 template class ApplyChimeraProcessMonolithic<2>;
