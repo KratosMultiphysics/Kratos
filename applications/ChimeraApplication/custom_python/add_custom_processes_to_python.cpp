@@ -21,7 +21,7 @@
 //#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_processes/custom_hole_cutting_process.h"
 #include "custom_processes/apply_chimera_process_monolithic.h"
-#include "custom_processes/apply_chimera_process_FractionalStep.h"
+//#include "custom_processes/apply_chimera_process_FractionalStep.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
@@ -42,11 +42,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<ApplyChimeraProcessMonolithic<3>, ApplyChimeraProcessMonolithic<3>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep2d")
+    /*py::class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep2d")
         .def(py::init<ModelPart &, Parameters>());
 
     py::class_<ApplyChimeraProcessFractionalStep<3>, ApplyChimeraProcessFractionalStep<3>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep3d")
-        .def(py::init<ModelPart &, Parameters>());
+        .def(py::init<ModelPart &, Parameters>());*/
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
         .def(py::init<ModelPart &, Parameters>())
