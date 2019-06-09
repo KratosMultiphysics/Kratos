@@ -161,8 +161,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    BinBasedPointLocatorPointerType mpBinLocatorForBackground; // Template argument 3 stands for 3D case
-    BinBasedPointLocatorPointerType mpBinLocatorForPatch;
+    BinBasedPointLocatorPointerType mpBinLocatorOnBackground; // Template argument 3 stands for 3D case
+    BinBasedPointLocatorPointerType mpBinLocatorOnPatch;
 
     //for monolithic
     CustomHoleCuttingProcess::Pointer mpHoleCuttingProcess;
@@ -198,7 +198,7 @@ private:
 
     void SetOverlapDistance(double distance);
 
-    void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator);
+    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator);
 
     /**
      * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)

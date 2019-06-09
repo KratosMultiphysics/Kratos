@@ -143,10 +143,10 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
     ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
     ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
-    this->mpBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_background_model_part));
-    this->mpBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_patch_model_part));
-    this->mpBinLocatorForBackground->UpdateSearchDatabase();
-    this->mpBinLocatorForPatch->UpdateSearchDatabase();
+    this->mpBinLocatorOnBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_background_model_part));
+    this->mpBinLocatorOnBackground->UpdateSearchDatabase();
+    this->mpBinLocatorOnPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_patch_model_part));
+    this->mpBinLocatorOnPatch->UpdateSearchDatabase();
 
     const double eps = 1e-12;
     if (mOverlapDistance < eps)
@@ -165,33 +165,31 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
         {
             KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
             this->mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
-            this->mpHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(r_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_model_part, r_modified_patch_boundary_model_part, MainDomainOrNot);
-        }
-        else
-        {
-            KRATOS_INFO("Bounding boxes does NOT overlap , So finding outside boundary of patch using the inside boundary") << std::endl;
-            FindOutsideBoundaryOfModelPartGivenInside(r_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
+            //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
+            this->mpHoleCuttingProcess->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot);
         }
 
+        FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
         this->mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
         this->mpHoleCuttingProcess->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
 
         //for multipatch
-        for (ModelPart::ElementsContainerType::iterator it = r_hole_model_part.ElementsBegin(); it != r_hole_model_part.ElementsEnd(); ++it)
-            it->Set(VISITED, true);
+        const unsigned int n_elements = r_hole_model_part.NumberOfElements();
+        for (unsigned int i_elem = 0; i_elem < n_elements; ++i_elem)
+        {
+            ModelPart::ElementsContainerType::iterator it_elem = r_hole_model_part.ElementsBegin() + i_elem;
+            it_elem->Set(VISITED, true);
+        }
 
         KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ") << r_modified_patch_boundary_model_part.Nodes().size() << std::endl;
         KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ") << r_hole_boundary_model_part.Nodes().size() << std::endl;
         mNumberOfConstraintsAdded = 0;
-        ApplyMpcConstraint(r_modified_patch_boundary_model_part, mpBinLocatorForBackground);
+        ApplyContinuityWithMpcs(r_modified_patch_boundary_model_part, mpBinLocatorOnBackground);
         KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
 
         mNumberOfConstraintsAdded = 0;
-        ApplyMpcConstraint(r_hole_boundary_model_part, mpBinLocatorForPatch);
+        ApplyContinuityWithMpcs(r_hole_boundary_model_part, mpBinLocatorOnPatch);
         KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
-
-        KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
-        KRATOS_INFO("Formulate Chimera: Appplied MPCs") << std::endl;
 
         current_model.DeleteModelPart("HoleModelpart");
         current_model.DeleteModelPart("HoleBoundaryModelPart");
@@ -226,7 +224,7 @@ void ApplyChimeraProcessMonolithic<TDim>::SetOverlapDistance(double distance)
 }
 
 template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
+void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
 {
     //loop over nodes and find the triangle in which it falls, then do interpolation
     MasterSlaveContainerVectorType master_slave_container_vector;
@@ -265,11 +263,11 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyMpcConstraint(ModelPart &rBoundar
 
         Vector N;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-        auto &ms_container = master_slave_container_vector[omp_get_thread_num()];
+        auto &ms_container = master_slave_container_vector[omp_get_thread_num()]; //TODO: change this to out of loop.
 
         ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
         Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-        ConstraintIdsVectorType ConstrainIdsForTheNode;
+        ConstraintIdsVectorType constrainIds_for_the_node;
         unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
         bool NodeCoupled = false;
         if ((p_boundary_node)->IsDefined(VISITED))
@@ -282,8 +280,8 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyMpcConstraint(ModelPart &rBoundar
 
         if (NodeCoupled && is_found)
         {
-            ConstrainIdsForTheNode = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
-            for (auto const &constraint_id : ConstrainIdsForTheNode)
+            constrainIds_for_the_node = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
+            for (auto const &constraint_id : constrainIds_for_the_node)
             {
                 mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
                 removed_counter++;
@@ -415,6 +413,8 @@ void ApplyChimeraProcessMonolithic<TDim>::FindOutsideBoundaryOfModelPartGivenIns
         this->mpHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
     else if (n_nodes == 4)
         this->mpHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary, rModelPart, rExtractedBoundaryModelPart);
+    else
+        KRATOS_ERROR<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
 }
 
 template class ApplyChimeraProcessMonolithic<2>;

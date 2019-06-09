@@ -75,7 +75,7 @@ class CustomHoleCuttingProcess
 {
 public:
     // Needed structures for the ExtractSurfaceMesh operation
-    struct KeyComparor
+    struct KeyComparator
     {
         bool operator()(const vector<std::size_t> &lhs, const vector<std::size_t> &rhs) const
         {
@@ -137,25 +137,23 @@ public:
     ///@name Operations
     ///@{
 
-    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, double distance)
+    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, const double Distance)
     {
         KRATOS_TRY;
         KRATOS_INFO("\n::[Creating Hole]::") << std::endl;
         std::vector<std::size_t> vector_of_node_ids;
-        //For signed distance
-        distance *= -1;
 
         for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
         {
-            double elementDistance = 0.0;
+            double element_distance = 0.0;
             std::size_t numPointsOutside = 0;
             std::size_t j = 0;
             Geometry<Node<3>> &geom = it->GetGeometry();
 
             for (j = 0; j < geom.size(); j++)
             {
-                elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
-                if (elementDistance < distance)
+                element_distance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+                if (element_distance < Distance*-1) // -1 for signed distance
                 {
                     numPointsOutside++;
                 }
@@ -164,23 +162,23 @@ public:
             if (numPointsOutside == geom.size())
             {
                 it->Set(ACTIVE, false);
-                Element::Pointer pElem = *(it.base());
-                std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
-                rExtractedModelPart.Elements().push_back(pElem);
+                Element::Pointer p_elem = *(it.base());
+                std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber();
+                rExtractedModelPart.Elements().push_back(p_elem);
                 //Adding node all the node Ids of the elements satisfying the condition
-                for (j = 0; j < numNodesPerElem; j++)
+                for (j = 0; j < num_nodes_per_elem; j++)
                 {
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-                    if (numNodesPerElem - 1 > 2)
-                        pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
-                    if (numNodesPerElem - 1 > 2)
-                        pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-                    vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+                    if (num_nodes_per_elem - 1 > 2)
+                        p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
+                    if (num_nodes_per_elem - 1 > 2)
+                        p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+                    vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
                 }
             }
         }
@@ -215,7 +213,9 @@ public:
         KRATOS_CATCH("");
     }
 
-    void RemoveOutOfDomainPatchAndReturnModifiedPatch(ModelPart &rModelPart, ModelPart &rInsideBoundary, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, int MainDomainOrNot)
+    void RemoveOutOfDomainElements(ModelPart &rModelPart,
+                                   ModelPart &rModifiedModelPart,
+                                   const int MainDomainOrNot)
     {
         KRATOS_TRY;
         KRATOS_INFO("\n:: Removing Out Of Domain Patch with Inside boundary Given ::") << std::endl;
@@ -223,19 +223,19 @@ public:
 
         int count = 0;
 
-        for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
+        for (ModelPart::ElementsContainerType::iterator i_element = rModelPart.ElementsBegin(); i_element != rModelPart.ElementsEnd(); ++i_element)
         {
-            double elementDistance = 0.0;
+            double element_distance = 0.0;
             std::size_t numPointsOutside = 0;
             std::size_t j = 0;
-            Geometry<Node<3>> &geom = it->GetGeometry();
+            Geometry<Node<3>> &geom = i_element->GetGeometry();
 
             for (j = 0; j < geom.size(); j++)
             {
-                elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+                element_distance = i_element->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
-                elementDistance = elementDistance * MainDomainOrNot;
-                if (elementDistance < 0)
+                element_distance = element_distance * MainDomainOrNot;
+                if (element_distance < 0)
                 {
                     numPointsOutside++;
                 }
@@ -245,35 +245,35 @@ public:
 			 wont find any nodes on background */
             if (numPointsOutside > 0)
             {
-                it->Set(ACTIVE, false);
-                Element::Pointer pElem = *(it.base());
-                std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
-                for (j = 0; j < numNodesPerElem; j++)
+                i_element->Set(ACTIVE, false);
+                Element::Pointer p_elem = *(i_element.base());
+                std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber();
+                for (j = 0; j < num_nodes_per_elem; j++)
                 {
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-                    if (numNodesPerElem - 1 > 2)
-                        pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
-                    if (numNodesPerElem - 1 > 2)
-                        pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
-                    pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+                    if (num_nodes_per_elem - 1 > 2)
+                        p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
+                    if (num_nodes_per_elem - 1 > 2)
+                        p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
+                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
                 }
             }
             else
             {
                 count++;
-                Element::Pointer pElem = *(it.base());
-                std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber(); // Size()
-                rExtractedModelPart.Elements().push_back(pElem);                   //AddElement()
-                for (j = 0; j < numNodesPerElem; j++)
-                    vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
+                Element::Pointer p_elem = *(i_element.base());
+                std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber(); // Size()
+                rModifiedModelPart.Elements().push_back(p_elem);                   //AddElement()
+                for (j = 0; j < num_nodes_per_elem; j++)
+                    vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
             }
         }
 
-        rExtractedModelPart.Nodes() = rModelPart.Nodes();
+        rModifiedModelPart.Nodes() = rModelPart.Nodes();
 
         KRATOS_INFO("Number of elements added to the modified patch") << count << std::endl;
         //sorting and making unique list of node ids
@@ -281,47 +281,30 @@ public:
         vector_of_node_ids.assign(s.begin(), s.end());
 
         // Add unique nodes in the ModelPart
-        for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
+        for (auto i_node_id = vector_of_node_ids.begin(); i_node_id != vector_of_node_ids.end(); i_node_id++)
         {
-            Node<3>::Pointer pnode = rModelPart.Nodes()(*it);
-            rExtractedModelPart.AddNode(pnode);
+            Node<3>::Pointer pnode = rModelPart.Nodes()(*i_node_id);
+            rModifiedModelPart.AddNode(pnode);
         }
-
-        std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
-
-        if (n_nodes == 3)
-        {
-            KRATOS_INFO("::[Boundary line extraction of modified patch]::") << std::endl;
-            ExtractOutsideBoundaryMesh(rInsideBoundary, rExtractedModelPart, rExtractedBoundaryModelPart);
-        }
-
-        else if (n_nodes == 4)
-        {
-            KRATOS_INFO("::[3D surface extraction of the modified patch]::") << std::endl;
-            ExtractOutsideSurfaceMesh(rInsideBoundary, rExtractedModelPart, rExtractedBoundaryModelPart);
-        }
-
-        else
-            KRATOS_INFO("Hole cutting process is only supported for tetrahedral and triangular elements") << std::endl;
 
         KRATOS_CATCH("");
     }
 
     /// Extracts a surface mesh from a provided volume mesh
-    void ExtractSurfaceMesh(ModelPart &rExtractedVolumeModelPart, ModelPart &rExtractedSurfaceModelPart)
+    void ExtractSurfaceMesh(ModelPart &rVolumeModelPart, ModelPart &rExtractedSurfaceModelPart)
     {
         KRATOS_TRY;
         KRATOS_INFO("::[Surface Mesh Extraction]::") << std::endl;
 
         // Some type-definitions
-        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
-        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparator> hashmap;
+        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparator> hashmap_vec;
 
         // Create map to ask for number of faces for the given set of node ids representing on face in the model part
         hashmap n_faces_map;
 
         // Fill map that counts number of faces for given set of nodes
-        for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+        for (ModelPart::ElementIterator itElem = rVolumeModelPart.ElementsBegin(); itElem != rVolumeModelPart.ElementsEnd(); itElem++)
         {
             Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
@@ -347,7 +330,7 @@ public:
         hashmap_vec ordered_skin_face_nodes_map;
 
         // Fill map that gives original node order for set of nodes
-        for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+        for (ModelPart::ElementIterator itElem = rVolumeModelPart.ElementsBegin(); itElem != rVolumeModelPart.ElementsEnd(); itElem++)
         {
             Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
@@ -373,7 +356,7 @@ public:
         }
         // First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
         std::size_t id_condition = 1;
-        //rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
+        //rExtractedSurfaceModelPart.Nodes() = rVolumeModelPart.Nodes();
 
         // Add skin faces as triangles to skin-model-part (loop over all node sets)
         KRATOS_INFO("  Extracting surface mesh and computing normals") << std::endl;
@@ -388,9 +371,9 @@ public:
                 {
                     // Getting original order is important to properly reproduce skin face including its normal orientation
                     vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
-                    Node<3>::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
-                    Node<3>::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
-                    Node<3>::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
+                    Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
+                    Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
+                    Node<3>::Pointer pnode3 = rVolumeModelPart.Nodes()(original_nodes_order[2]);
 
                     //Storing the node ids list
                     vector_of_node_ids.push_back(original_nodes_order[0]);
@@ -410,10 +393,10 @@ public:
                     // Getting original order is important to properly reproduce skin including its normal orientation
                     vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
-                    Node<3>::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
-                    Node<3>::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
-                    Node<3>::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
-                    Node<3>::Pointer pnode4 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[3]);
+                    Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
+                    Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
+                    Node<3>::Pointer pnode3 = rVolumeModelPart.Nodes()(original_nodes_order[2]);
+                    Node<3>::Pointer pnode4 = rVolumeModelPart.Nodes()(original_nodes_order[3]);
                     //Storing the node ids list
                     vector_of_node_ids.push_back(original_nodes_order[0]);
                     vector_of_node_ids.push_back(original_nodes_order[1]);
@@ -453,44 +436,21 @@ public:
     }
 
     //give the outside surface of a model part given inside boundary
-    void ExtractOutsideSurfaceMesh(ModelPart &rInsideBoundaryModelPart, ModelPart &rExtractedVolumeModelPart, ModelPart &rExtractedSurfaceModelPart)
+    void ExtractOutsideSurfaceMesh(ModelPart &rInsideBoundaryModelPart, ModelPart &rVolumeModelPart, ModelPart &rExtractedSurfaceModelPart)
     {
         KRATOS_TRY;
 
         KRATOS_INFO(":: [Surface Mesh Extraction]::") << std::endl;
 
-        Parameters parameters = Parameters(R"({
-						"result_file_configuration" : {
-							"gidpost_flags"       : {
-								"GiDPostMode"           : "GiD_PostAscii",
-								"WriteDeformedMeshFlag" : "WriteDeformed",
-								"WriteConditionsFlag"   : "WriteConditions",
-								"MultiFileFlag"         : "SingleFile"
-							},
-							"file_label"          : "time",
-							"output_control_type" : "time",
-							"output_frequency"    : 1.0,
-							"body_output"         : true,
-							"node_output"         : false,
-							"skin_output"         : false,
-							"plane_output"        : [],
-							"nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE"],
-							"gauss_point_results" : []
-						},
-						"point_data_configuration"  : []})");
-
-        VtkOutput VtkOutput_InsideBoundary = VtkOutput(rInsideBoundaryModelPart, "nnn", parameters);
-        VtkOutput_InsideBoundary.PrintOutput();
-
         // Some type-definitions
-        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
-        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparator> hashmap;
+        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparator> hashmap_vec;
 
         // Create map to ask for number of faces for the given set of node ids representing on face in the model part
         hashmap n_faces_map;
 
         // Fill map that counts number of faces for given set of nodes
-        for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+        for (ModelPart::ElementIterator itElem = rVolumeModelPart.ElementsBegin(); itElem != rVolumeModelPart.ElementsEnd(); itElem++)
         {
             Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
@@ -511,13 +471,12 @@ public:
             }
         }
 
-        KRATOS_INFO(":: comparing with inside boundary ") << rInsideBoundaryModelPart << std::endl;
-
-        for (ModelPart::ConditionIterator itCond = rInsideBoundaryModelPart.ConditionsBegin(); itCond != rInsideBoundaryModelPart.ConditionsEnd(); ++itCond)
+        KRATOS_INFO("Comparing with inside boundary ") << rInsideBoundaryModelPart << std::endl;
+        for (ModelPart::ConditionIterator it_cond = rInsideBoundaryModelPart.ConditionsBegin(); it_cond != rInsideBoundaryModelPart.ConditionsEnd(); ++it_cond)
         {
-            vector<std::size_t> ids(itCond->GetGeometry().size());
-            for (std::size_t i = 0; i < itCond->GetGeometry().size(); i++)
-                ids[i] = itCond->GetGeometry()[i].Id();
+            vector<std::size_t> ids(it_cond->GetGeometry().size());
+            for (std::size_t i = 0; i < it_cond->GetGeometry().size(); i++)
+                ids[i] = it_cond->GetGeometry()[i].Id();
 
             std::sort(ids.begin(), ids.end());
             if (n_faces_map[ids] == 1)
@@ -529,7 +488,7 @@ public:
         hashmap_vec ordered_skin_face_nodes_map;
 
         // Fill map that gives original node order for set of nodes
-        for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+        for (ModelPart::ElementIterator itElem = rVolumeModelPart.ElementsBegin(); itElem != rVolumeModelPart.ElementsEnd(); itElem++)
         {
             Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
@@ -554,7 +513,6 @@ public:
         }
         // First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
         std::size_t id_condition = 1;
-        //rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
         // Add skin faces as triangles to skin-model-part (loop over all node sets)
         std::vector<std::size_t> vector_of_node_ids;
@@ -568,9 +526,9 @@ public:
                 {
                     // Getting original order is important to properly reproduce skin face including its normal orientation
                     vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
-                    Node<3>::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
-                    Node<3>::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
-                    Node<3>::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
+                    Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
+                    Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
+                    Node<3>::Pointer pnode3 = rVolumeModelPart.Nodes()(original_nodes_order[2]);
 
                     //Storing the node ids list
                     vector_of_node_ids.push_back(original_nodes_order[0]);
@@ -590,10 +548,10 @@ public:
                     // Getting original order is important to properly reproduce skin including its normal orientation
                     vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
-                    Node<3>::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
-                    Node<3>::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
-                    Node<3>::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
-                    Node<3>::Pointer pnode4 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[3]);
+                    Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
+                    Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
+                    Node<3>::Pointer pnode3 = rVolumeModelPart.Nodes()(original_nodes_order[2]);
+                    Node<3>::Pointer pnode4 = rVolumeModelPart.Nodes()(original_nodes_order[3]);
                     //Storing the node ids list
                     vector_of_node_ids.push_back(original_nodes_order[0]);
                     vector_of_node_ids.push_back(original_nodes_order[1]);
@@ -614,23 +572,19 @@ public:
                 }
             }
         }
-        //sorting and making unique list of node ids
 
-        std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
-        vector_of_node_ids.assign(s.begin(), s.end());
+        //sorting and making unique list of node ids
+        std::set<std::size_t> sort_set(vector_of_node_ids.begin(), vector_of_node_ids.end());
+        vector_of_node_ids.assign(sort_set.begin(), sort_set.end());
 
         for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
-
         {
             //Adding the nodes to the rExtractedSurfaceModelPart
-            Node<3>::Pointer pnode = rExtractedVolumeModelPart.Nodes()(*it);
+            Node<3>::Pointer pnode = rVolumeModelPart.Nodes()(*it);
             rExtractedSurfaceModelPart.AddNode(pnode);
         }
 
         KRATOS_INFO("Successful extraction of the Surface") << rExtractedSurfaceModelPart.GetMesh() << std::endl;
-
-        VtkOutput VtkOutput_Extracted_Surface = VtkOutput(rExtractedSurfaceModelPart, "ExtracetedModelPart", parameters);
-        VtkOutput_Extracted_Surface.PrintOutput();
 
         KRATOS_CATCH("");
     }
@@ -642,8 +596,8 @@ public:
         KRATOS_INFO("::[Boundary Mesh Extraction]::") << std::endl;
 
         // Some type-definitions
-        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
-        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparator> hashmap;
+        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparator> hashmap_vec;
 
         // Create map to ask for number of edges for the given set of node ids representing on edge in the model part
         hashmap n_edges_map;
@@ -704,7 +658,7 @@ public:
         //rExtractedBoundaryModelPart.Nodes() = rSurfaceModelPart.Nodes();
 
         // Add skin edges as triangles to skin-model-part (loop over all node sets)
-        KRATOS_INFO("  Extracting boundary mesh and computing normals") << std::endl;
+        KRATOS_INFO("Extracting boundary mesh and computing normals") << std::endl;
         std::vector<std::size_t> vector_of_node_ids;
         for (typename hashmap::const_iterator it = n_edges_map.begin(); it != n_edges_map.end(); it++)
         {
@@ -762,8 +716,8 @@ public:
         KRATOS_TRY;
 
         // Some type-definitions
-        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
-        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparator> hashmap;
+        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparator> hashmap_vec;
 
         // Create map to ask for number of edges for the given set of node ids representing on edge in the model part
         hashmap n_edges_map;
@@ -790,11 +744,11 @@ public:
             }
         }
 
-        for (ModelPart::ConditionIterator itCond = rInsideBoundaryModelPart.ConditionsBegin(); itCond != rInsideBoundaryModelPart.ConditionsEnd(); ++itCond)
+        for (ModelPart::ConditionIterator it_cond = rInsideBoundaryModelPart.ConditionsBegin(); it_cond != rInsideBoundaryModelPart.ConditionsEnd(); ++it_cond)
         {
-            vector<std::size_t> ids(itCond->GetGeometry().size());
-            for (std::size_t i = 0; i < itCond->GetGeometry().size(); i++)
-                ids[i] = itCond->GetGeometry()[i].Id();
+            vector<std::size_t> ids(it_cond->GetGeometry().size());
+            for (std::size_t i = 0; i < it_cond->GetGeometry().size(); i++)
+                ids[i] = it_cond->GetGeometry()[i].Id();
 
             std::sort(ids.begin(), ids.end());
             n_edges_map[ids] += 1;
@@ -831,7 +785,6 @@ public:
         }
         // First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
         std::size_t id_condition = 1;
-        //rExtractedBoundaryModelPart.Nodes() = rSurfaceModelPart.Nodes();
 
         // Add skin edges as triangles to skin-model-part (loop over all node sets)
         KRATOS_INFO("  Extracting boundary mesh and computing normals") << std::endl;
