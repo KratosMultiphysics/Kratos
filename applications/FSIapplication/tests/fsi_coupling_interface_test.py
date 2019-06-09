@@ -6,7 +6,7 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 import os
 import sys
-import fsi_coupling_interface
+from KratosMultiphysics.FSIApplication import fsi_coupling_interface
 import convergence_accelerator_factory
 
 class FSICouplingInterfaceTest(UnitTest.TestCase):
