@@ -135,17 +135,16 @@ void ApplyChimeraProcessMonolithic<TDim>::DoChimeraLoop() //selecting patch and 
 }
 
 //Apply Chimera with or without overlap
-
 template <int TDim>
 void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
 {
-    ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
-    ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
-    ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
-    ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
+    ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
+    ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
+    ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
+    ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
-    this->mpBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
-    this->mpBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
+    this->mpBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_background_model_part));
+    this->mpBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_patch_model_part));
     this->mpBinLocatorForBackground->UpdateSearchDatabase();
     this->mpBinLocatorForPatch->UpdateSearchDatabase();
 
@@ -156,39 +155,39 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
     if (mOverlapDistance > eps)
     {
         Model &current_model = mrMainModelPart.GetModel();
-        ModelPart &pHoleModelPart = current_model.CreateModelPart("HoleModelpart");
-        ModelPart &pHoleBoundaryModelPart = current_model.CreateModelPart("HoleBoundaryModelPart");
-        ModelPart &pModifiedPatchBoundaryModelPart = current_model.CreateModelPart("ModifiedPatchBoundary");
-        ModelPart &pModifiedPatchModelPart = current_model.CreateModelPart("ModifiedPatch");
-        bool has_overlap = BoundingBoxTest(rBackgroundModelPart, rPatchModelPart); // true if they dont overlap
+        ModelPart &r_hole_model_part = current_model.CreateModelPart("HoleModelpart");
+        ModelPart &r_hole_boundary_model_part = current_model.CreateModelPart("HoleBoundaryModelPart");
+        ModelPart &r_modified_patch_boundary_model_part = current_model.CreateModelPart("ModifiedPatchBoundary");
+        ModelPart &r_modified_patch_model_part = current_model.CreateModelPart("ModifiedPatch");
+        bool has_overlap = BoundingBoxTest(r_background_model_part, r_patch_model_part); // true if they dont overlap
 
         if (has_overlap)
         {
             KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-            this->mpCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-            this->mpHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart, rPatchInsideBoundaryModelPart, pModifiedPatchModelPart, pModifiedPatchBoundaryModelPart, MainDomainOrNot);
+            this->mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
+            this->mpHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(r_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_model_part, r_modified_patch_boundary_model_part, MainDomainOrNot);
         }
         else
         {
             KRATOS_INFO("Bounding boxes does NOT overlap , So finding outside boundary of patch using the inside boundary") << std::endl;
-            FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart, rPatchInsideBoundaryModelPart, pModifiedPatchBoundaryModelPart);
+            FindOutsideBoundaryOfModelPartGivenInside(r_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
         }
 
-        this->mpCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, pModifiedPatchBoundaryModelPart);
-        this->mpHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, pHoleModelPart, pHoleBoundaryModelPart, mOverlapDistance);
+        this->mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
+        this->mpHoleCuttingProcess->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
 
         //for multipatch
-        for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart.ElementsBegin(); it != pHoleModelPart.ElementsEnd(); ++it)
+        for (ModelPart::ElementsContainerType::iterator it = r_hole_model_part.ElementsBegin(); it != r_hole_model_part.ElementsEnd(); ++it)
             it->Set(VISITED, true);
 
-        KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ") << pModifiedPatchBoundaryModelPart.Nodes().size() << std::endl;
-        KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ") << pHoleBoundaryModelPart.Nodes().size() << std::endl;
+        KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ") << r_modified_patch_boundary_model_part.Nodes().size() << std::endl;
+        KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ") << r_hole_boundary_model_part.Nodes().size() << std::endl;
         mNumberOfConstraintsAdded = 0;
-        ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, mpBinLocatorForBackground);
+        ApplyMpcConstraint(r_modified_patch_boundary_model_part, mpBinLocatorForBackground);
         KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
 
         mNumberOfConstraintsAdded = 0;
-        ApplyMpcConstraint(pHoleBoundaryModelPart, mpBinLocatorForPatch);
+        ApplyMpcConstraint(r_hole_boundary_model_part, mpBinLocatorForPatch);
         KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
 
         KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
