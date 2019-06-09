@@ -45,7 +45,7 @@ class FSICouplingInterfaceTest(UnitTest.TestCase):
         fsi_coupling_int_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name": "FSICouplingInterfaceStructure",
-            "parent_model_part_name": "StructureInterface2D_Solid_interface",
+            "parent_model_part_name": "MainModelPart.StructureInterface2D_Solid_interface",
             "input_variable_name": "POSITIVE_FACE_PRESSURE",
             "output_variable_name": "DISPLACEMENT"
         }""")
