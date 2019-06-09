@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -18,8 +19,8 @@
 // Project includes
 #include "includes/define_python.h"
 #include "python/add_factories_to_python.h"
-#include "includes/linear_solver_factory.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos
 {

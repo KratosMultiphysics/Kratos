@@ -94,7 +94,7 @@ public:
      * @brief This method assigns a property according to the flag. Gid will print the dry domain in another layer with an specific color.
      * @param The flag which means dry state
      */
-    void AssignDryWetProperties(Flags DryStateFlag);
+    void AssignDryWetProperties(Flags WetStateFlag);
 
     /**
      * @brief Restore the properties to the original state (wet state)

@@ -8,6 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import from Test Factories (with general analysis flows)
 from particle_mechanics_test_factory import AxisSymmetricCircularPlate2DTriTest as TAxisSymmetricCircularPlate2DTriTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticPointLoad2DTriTest as TBeamCantileverStaticLinearElasticPointLoad2DTriTest
+from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticParticlePointLoad2DTriTest as TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticLineLoad2DQuadTest as TBeamCantileverStaticLinearElasticLineLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest as TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest
 from particle_mechanics_test_factory import BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
@@ -74,6 +75,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
 
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
+    nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticLineLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))

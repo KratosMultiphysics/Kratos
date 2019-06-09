@@ -11,15 +11,11 @@
 //
 //
 
-// System includes
-#include <set>
-
-// External includes
-#include "containers/model.h"
-
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
+#include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
 
@@ -182,7 +178,7 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->Set(BOUNDARY);
+      pElement->Set(TO_SPLIT);
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -263,5 +259,33 @@ namespace Kratos {
         KRATOS_CHECK(EquationIdVector[i] == i);
       }
     }
+
+    // Checks the function GetPotentialOnNormalElement
+    KRATOS_TEST_CASE_IN_SUITE(GetPotentialOnNormalElement, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 0.0;
+      potential(1) = 1.0;
+      potential(2) = 2.0;
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+
+      auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
+
+      std::vector<double> reference({0.0, 1.0, 2.0});
+
+      for (unsigned int i = 0; i < potentials.size(); i++) {
+        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+      }
+    }
+
   } // namespace Testing
 }  // namespace Kratos.
