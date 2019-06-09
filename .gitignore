@@ -63,6 +63,8 @@ script.py
 *.o.sol
 *.o.mesh
 
+# Backup files
 *.bak
 
+# Auxiliar file (deprecated?)
 applications/python_scripts/beam_profiles\.csv

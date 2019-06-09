@@ -3,9 +3,21 @@ import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
 
 class ControlModuleFemDemUtility(object):
-    def __init__(self, Model, spheres_model_part):
+    def __init__(self, Model, spheres_model_part, test_number):
+
+        if not test_number:
+            return
 
         self.components_utility_list = []
+
+        compression_length = 0.00381
+        if test_number == 1: # CTW16
+            face_area = 0.008062
+        elif test_number == 2: # CTW10
+            face_area = 0.007601
+        else: # Blind test
+            compression_length = 0.009144
+            face_area = 0.088343
 
         self.top_fem_model_part = Model["Structure.SurfacePressure3D_top_pressure"]
         self.top_dem_model_part = spheres_model_part.GetSubModelPart("topdem")
@@ -22,13 +34,15 @@ class ControlModuleFemDemUtility(object):
             "initial_velocity" : 0.0,
             "limit_velocity" : -0.1,
             "velocity_factor" : 0.5,
-            "compression_length" : 0.00381,
             "young_modulus" : 7.0e9,
-            "start_time" : 0.0,
-            "face_area": 0.00806
+            "start_time" : 0.0
         }  """ )
 
-        self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.top_fem_model_part,self.top_dem_model_part,top_settings))
+        top_settings.AddEmptyValue("compression_length")
+        top_settings["compression_length"].SetDouble(compression_length)
+        top_settings.AddEmptyValue("face_area")
+        top_settings["face_area"].SetDouble(face_area)
+        self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.top_fem_model_part, self.top_dem_model_part, top_settings))
 
         self.bot_fem_model_part = Model["Structure.SurfacePressure3D_bottom_pressure"]
         self.bot_dem_model_part = spheres_model_part.GetSubModelPart("botdem")
@@ -45,13 +59,15 @@ class ControlModuleFemDemUtility(object):
             "initial_velocity" : 0.0,
             "limit_velocity" : 0.1,
             "velocity_factor" : 0.5,
-            "compression_length" : 0.00381,
             "young_modulus" : 7.0e9,
-            "start_time" : 0.0,
-            "face_area": 0.00806
+            "start_time" : 0.0
         }  """ )
 
-        self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.bot_fem_model_part,self.bot_dem_model_part,bot_settings))
+        bot_settings.AddEmptyValue("compression_length")
+        bot_settings["compression_length"].SetDouble(compression_length)
+        bot_settings.AddEmptyValue("face_area")
+        bot_settings["face_area"].SetDouble(face_area)
+        self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.bot_fem_model_part, self.bot_dem_model_part, bot_settings))
 
     def ExecuteInitialize(self):
 

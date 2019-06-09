@@ -27,7 +27,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
-                "free_stream_velocity": [1.0,0.0,0],
                 "initialize_flow_field": true
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)

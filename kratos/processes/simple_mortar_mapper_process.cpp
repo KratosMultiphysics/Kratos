@@ -60,8 +60,8 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     LinearSolverType::Pointer pThisLinearSolver
     ):  mOriginModelPart(rOriginModelPart),
         mDestinationModelPart(rDestinationModelPart),
-        mOriginVariable(KratosComponents<TVarType>::Get(ThisParameters["origin_variable"].GetString())),
-        mDestinationVariable((ThisParameters["destination_variable"].GetString() == "") ? mOriginVariable : KratosComponents<TVarType>::Get(ThisParameters["destination_variable"].GetString())),
+        mpOriginVariable(&(KratosComponents<TVarType>::Get(ThisParameters["origin_variable"].GetString()))),
+        mpDestinationVariable((ThisParameters["destination_variable"].GetString() == "") ? mpOriginVariable : &(KratosComponents<TVarType>::Get(ThisParameters["destination_variable"].GetString()))),
         mThisParameters(ThisParameters),
         mpThisLinearSolver(pThisLinearSolver)
 {
@@ -94,8 +94,8 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     LinearSolverType::Pointer pThisLinearSolver
     ):  mOriginModelPart(rOriginModelPart),
         mDestinationModelPart(rDestinationModelPart),
-        mOriginVariable(rThisVariable),
-        mDestinationVariable(rThisVariable),
+        mpOriginVariable(&rThisVariable),
+        mpDestinationVariable(&rThisVariable),
         mThisParameters(ThisParameters),
         mpThisLinearSolver(pThisLinearSolver)
 {
@@ -129,8 +129,8 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     LinearSolverType::Pointer pThisLinearSolver
     ): mOriginModelPart(rOriginModelPart),
        mDestinationModelPart(rDestinationModelPart),
-       mOriginVariable(rOriginVariable),
-       mDestinationVariable(rDestinationVariable),
+       mpOriginVariable(&rOriginVariable),
+       mpDestinationVariable(&rDestinationVariable),
        mThisParameters(ThisParameters),
        mpThisLinearSolver(pThisLinearSolver)
 {
@@ -180,13 +180,13 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
             #pragma omp parallel for
             for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
                 auto it_node = it_node_begin + k;
-                it_node->FastGetSolutionStepValue(mDestinationVariable) *= mMappingCoefficient;
+                it_node->FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
             }
         } else {
             #pragma omp parallel for
             for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
                 auto it_node = it_node_begin + k;
-                it_node->GetValue(mDestinationVariable) *= mMappingCoefficient;
+                it_node->GetValue(*mpDestinationVariable) *= mMappingCoefficient;
             }
         }
     }
@@ -444,10 +444,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
             const GeometryType::IntegrationPointsArrayType& r_integration_points_slave = decomp_geom.IntegrationPoints( rThisIntegrationMethod );
 
             // Integrating the mortar operators
+            PointType local_point_parent, gp_global, projected_gp_global;
+            array_1d<double,3> gp_normal;
+            GeometryType::CoordinatesArrayType projected_gp_local;
             for ( IndexType point_number = 0; point_number < r_integration_points_slave.size(); ++point_number ) {
                 const PointType local_point_decomp{r_integration_points_slave[point_number].Coordinates()};
-                PointType local_point_parent;
-                PointType gp_global;
+
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                 rSlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
 
@@ -458,8 +460,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
                 rThisKinematicVariables.DetjSlave = decomp_geom.DeterminantOfJacobian( local_point_decomp );
 
                 /// MASTER CONDITION ///
-                PointType projected_gp_global;
-                array_1d<double,3> gp_normal;
                 if (mOptions.Is(AVERAGE_NORMAL)) {
                     noalias(gp_normal) = MortarUtilities::GaussPointUnitNormal(rThisKinematicVariables.NSlave, rSlaveGeometry);
                 } else {
@@ -469,8 +469,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
                 GeometryType::CoordinatesArrayType slave_gp_global;
                 rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
                 GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, gp_global, projected_gp_global, rMasterNormal, -gp_normal ); // The opposite direction
-
-                GeometryType::CoordinatesArrayType projected_gp_local;
 
                 rMasterGeometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
@@ -503,9 +501,9 @@ inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDi
     // Initialize general variables for the current master element
     rThisKinematicVariables.Initialize();
 
+    PointType global_point;
     for (IndexType i_geom = 0; i_geom < rGeometricalObjectsPointSlave.size(); ++i_geom) {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-        PointType global_point;
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             rSlaveGeometry.GlobalCoordinates(global_point, rGeometricalObjectsPointSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
@@ -683,15 +681,15 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Comp
     const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
     Matrix var_origin_matrix(TNumNodesMaster, size_to_compute);
     if (mOptions.Is(ORIGIN_IS_HISTORICAL)) {
-        MortarUtilities::MatrixValue<TVarType, Historical>(rMasterGeometry, mOriginVariable, var_origin_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rMasterGeometry, *mpOriginVariable, var_origin_matrix);
     } else {
-        MortarUtilities::MatrixValue<TVarType, NonHistorical>(rMasterGeometry, mOriginVariable, var_origin_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(rMasterGeometry, *mpOriginVariable, var_origin_matrix);
     }
     Matrix var_destination_matrix(TNumNodes, size_to_compute);
     if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-        MortarUtilities::MatrixValue<TVarType, Historical>(rSlaveGeometry, mDestinationVariable, var_destination_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rSlaveGeometry, *mpDestinationVariable, var_destination_matrix);
     } else {
-        MortarUtilities::MatrixValue<TVarType, NonHistorical>(rSlaveGeometry, mDestinationVariable, var_destination_matrix);
+        MortarUtilities::MatrixValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(rSlaveGeometry, *mpDestinationVariable, var_destination_matrix);
     }
 
     const SizeType size_1 = var_destination_matrix.size1();
@@ -717,6 +715,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     const MortarOperatorType& rThisMortarOperators
     )
 {
+    double* values_vector = rA.value_data().begin();
+    SizeType* index1_vector = rA.index1_data().begin();
+    SizeType* index2_vector = rA.index2_data().begin();
+
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const SizeType node_i_id = rSlaveGeometry[i_node].Id();
         const SizeType pos_i_id = static_cast<SizeType>(rInverseConectivityDatabase[node_i_id]);
@@ -728,9 +730,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
             aux_b += rResidualMatrix(i_node, i_var);
         }
 
-        double* values_vector = rA.value_data().begin();
-        SizeType* index1_vector = rA.index1_data().begin();
-        SizeType* index2_vector = rA.index2_data().begin();
         SizeType left_limit = index1_vector[pos_i_id];
         SizeType last_pos = left_limit;
         while(pos_i_id != index2_vector[last_pos]) last_pos++;
@@ -787,9 +786,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // We set to zero the variables
     if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-        MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart, mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(mDestinationModelPart, *mpDestinationVariable);
     } else {
-        MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, *mpDestinationVariable);
     }
 
     // Declaring auxiliar values
@@ -901,9 +900,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             auto it_node = it_node_begin + i;
             NodeType::Pointer pnode = *(it_node.base());
             if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, Historical>(pnode, mDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(pnode, *mpDestinationVariable, ref_area);
             } else {
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, NonHistorical>(pnode, mDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(pnode, *mpDestinationVariable, ref_area);
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
                 const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
@@ -954,9 +953,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // We set to zero the variables
     if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-        MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart,  mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(mDestinationModelPart,  *mpDestinationVariable);
     } else {
-        MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
+        MortarUtilities::ResetValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, *mpDestinationVariable);
     }
 
     // Creating the assemble database
@@ -1054,9 +1053,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
             if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-                MortarUtilities::UpdateDatabase<TVarType, Historical>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+                MortarUtilities::UpdateDatabase<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(mDestinationModelPart, *mpDestinationVariable, Dx, i_size, conectivity_database);
             } else {
-                MortarUtilities::UpdateDatabase<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+                MortarUtilities::UpdateDatabase<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(mDestinationModelPart, *mpDestinationVariable, Dx, i_size, conectivity_database);
             }
             const double residual_norm = norm_2(b[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm;
