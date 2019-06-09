@@ -218,14 +218,6 @@ private:
     bool BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB);
 
     /**
-     * @brief Extracts the boundary of the modelpart when there is an internal boundary (surface)
-     * @param rModelPart The modelpart for which boundary is to be extracted.
-     * @param rInsideBoundary the internal boundary of the rModelPart
-     * @param rExtractedBoundaryModelPart The result. That is the extracted boundary of the modelpart
-     */
-    void FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart, ModelPart &rInsideBoundary, ModelPart &rExtractedBoundaryModelPart);
-
-    /**
      * @brief Applies the master-slave constraint between the given master and slave nodes with corresponding variable.
      * @param rMasterSlaveContainer The container to which the constraint to be added (useful to so OpenMP loop)
      * @param rCloneConstraint The prototype of constraint which is to be added.
