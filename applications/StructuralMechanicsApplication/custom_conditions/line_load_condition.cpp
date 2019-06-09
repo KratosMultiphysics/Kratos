@@ -138,28 +138,16 @@ void LineLoadCondition<TDim>::CalculateOnIntegrationPoints(
         Matrix J(TDim, 1);
 
         // Getting LOCAL_AXIS_2
-        if (TDim == 3) {
-            KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
-            noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
-        } else {
-            tangent_eta[0] = 0.0;
-            tangent_eta[1] = 0.0;
-            tangent_eta[2] = 1.0;
-        }
+        GetLocalAxis2(tangent_eta);
 
         // Iterate over the Gauss points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             r_geometry.Jacobian(J, point_number, integration_method);
 
             // Definition of the tangent
-            tangent_xi[0] = J(0, 0);
-            tangent_xi[1] = J(1, 0);
-            if (TDim == 3) {
-                tangent_xi[2] = J(2, 0);
-            } else {
-                tangent_xi[2] = 0.0;
-            }
+            GetLocalAxis1(tangent_xi, J);
 
+            // Computing normal
             MathUtils<double>::UnitCrossProduct(rOutput[point_number], tangent_xi, tangent_eta);
         }
     } else {
@@ -262,14 +250,9 @@ void LineLoadCondition<TDim>::CalculateAll(
 
         // Definition of the tangent
         if ( gauss_pressure != 0.0 ) {
+            // Definition of the tangent
             r_geometry.Jacobian(J, point_number, integration_method);
-            tangent_xi[0] = J(0, 0);
-            tangent_xi[1] = J(1, 0);
-            if (TDim == 3) {
-                tangent_xi[2] = J(2, 0);
-            } else {
-                tangent_xi[2] = 0.0;
-            }
+            GetLocalAxis1(tangent_xi, J);
         }
 
         // Adding contributions to the LHS matrix
@@ -284,14 +267,9 @@ void LineLoadCondition<TDim>::CalculateAll(
                 array_1d<double, 3> normal;
 
                 // Getting LOCAL_AXIS_2
-                if (TDim == 3) {
-                    KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
-                    noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
-                } else {
-                    tangent_eta[0] = 0.0;
-                    tangent_eta[1] = 0.0;
-                    tangent_eta[2] = 1.0;
-                }
+                GetLocalAxis2(tangent_eta);
+
+                // Computing normal
                 MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
                 CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
@@ -334,19 +312,15 @@ void LineLoadCondition<TDim>::CalculateAndSubKp(
 {
     KRATOS_TRY
 
-    Matrix Kij( TDim, TDim );
-    BoundedMatrix<double, TDim, TDim> cross_tangent_xi;
+    // Getting geometry
     const auto& r_geometry = GetGeometry();
-    if (TDim == 2) {
-        const auto& r_properties = GetProperties();
-        const double h0 = (r_properties.Has(THICKNESS) && r_geometry.WorkingSpaceDimension() == 2) ? r_properties.GetValue(THICKNESS): 1.0;
-        cross_tangent_xi( 0, 0 ) =  0.0;
-        cross_tangent_xi( 0, 1 ) =  h0;
-        cross_tangent_xi( 1, 0 ) = -h0;
-        cross_tangent_xi( 1, 1 ) =  0.0;
-    } else {
-        BeamMathUtils<double>::VectorToSkewSymmetricTensor(rTangentXi, cross_tangent_xi);
-    }
+
+    // Local stiffness
+    Matrix Kij( TDim, TDim );
+
+    // Getting cross tangent matrix
+    BoundedMatrix<double, TDim, TDim> cross_tangent_xi;
+    GetCrossTangentMatrix(cross_tangent_xi, rTangentXi);
 
     // Getting geometry
     const SizeType number_of_nodes = r_geometry.size();
@@ -379,7 +353,7 @@ void LineLoadCondition<TDim>::CalculateAndAddPressureForce(
     double IntegrationWeight
     ) const
 {
-    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType block_size = this->GetBlockSize();
 
     for ( IndexType i = 0; i < number_of_nodes; ++i ) {
@@ -392,6 +366,85 @@ void LineLoadCondition<TDim>::CalculateAndAddPressureForce(
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void LineLoadCondition<2>::GetLocalAxis1(
+    array_1d<double, 3>& rLocalAxis,
+    const Matrix& rJacobian
+    ) const
+{
+    rLocalAxis[0] = rJacobian(0, 0);
+    rLocalAxis[1] = rJacobian(1, 0);
+    rLocalAxis[2] = 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void LineLoadCondition<3>::GetLocalAxis1(
+    array_1d<double, 3>& rLocalAxis,
+    const Matrix& rJacobian
+    ) const
+{
+    rLocalAxis[0] = rJacobian(0, 0);
+    rLocalAxis[1] = rJacobian(1, 0);
+    rLocalAxis[2] = rJacobian(2, 0);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void LineLoadCondition<2>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const
+{
+    rLocalAxis[0] = 0.0;
+    rLocalAxis[1] = 0.0;
+    rLocalAxis[2] = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void LineLoadCondition<3>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const
+{
+    KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
+    noalias(rLocalAxis) = this->GetValue(LOCAL_AXIS_2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void LineLoadCondition<2>::GetCrossTangentMatrix(
+    BoundedMatrix<double, 2, 2>& rCrossTangentMatrix,
+    const array_1d<double, 3>& rTangentXi
+    ) const
+{
+    const auto& r_properties = GetProperties();
+    const double h0 = r_properties.Has(THICKNESS) ? r_properties.GetValue(THICKNESS): 1.0;
+    rCrossTangentMatrix( 0, 0 ) =  0.0;
+    rCrossTangentMatrix( 0, 1 ) =  h0;
+    rCrossTangentMatrix( 1, 0 ) = -h0;
+    rCrossTangentMatrix( 1, 1 ) =  0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void LineLoadCondition<3>::GetCrossTangentMatrix(
+    BoundedMatrix<double, 3, 3>& rCrossTangentMatrix,
+    const array_1d<double, 3>& rTangentXi
+    ) const
+{
+    BeamMathUtils<double>::VectorToSkewSymmetricTensor(rTangentXi, rCrossTangentMatrix);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

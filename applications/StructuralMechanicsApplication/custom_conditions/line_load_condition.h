@@ -284,6 +284,32 @@ protected:
         const double IntegrationWeight
         ) const;
 
+    /**
+     * @brief This method provides the local axis
+     * @param rLocalAxis The local axis
+     * @param rJacobian The jacobian matrix
+     */
+    void GetLocalAxis1(
+        array_1d<double, 3>& rLocalAxis,
+        const Matrix& rJacobian
+        ) const;
+
+    /**
+     * @brief This method provides the local axis
+     * @param rLocalAxis The local axis
+     */
+    void GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const;
+
+    /**
+     * @brief This method provides the cross tangent matrix
+     * @param rCrossTangentMatrix The cross tangent matrix
+     * @param rTangentXi The axis direction
+     */
+    void GetCrossTangentMatrix(
+        BoundedMatrix<double, TDim, TDim>& rCrossTangentMatrix,
+        const array_1d<double, 3>& rTangentXi
+        ) const;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -319,11 +345,9 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
@@ -344,7 +368,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
-
 
     ///@}
     ///@name Un accessible methods
