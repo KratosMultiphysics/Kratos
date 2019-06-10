@@ -55,4 +55,8 @@ KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                           
 
 /* Explicit simulation */
 KRATOS_CREATE_VARIABLE( double, MAX_GAP_THRESHOLD )                             // The gap considered as threshold to rescale penalty
+
+/* Frictional laws */
+KRATOS_CREATE_VARIABLE( FrictionalLaw::Pointer, FRICTIONAL_LAW )                // The frictional law considered
+KRATOS_CREATE_VARIABLE( double, TRESCA_FRICTION_THRESHOLD )                     // The threshold value for Tresca frictional contact
 }

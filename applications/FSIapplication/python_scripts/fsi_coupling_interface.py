@@ -8,11 +8,11 @@ import KratosMultiphysics.FSIApplication as KratosFSI
 
 class FSICouplingInterface():
 
-    def _ValidateSettings(self, settings):
+    def __ValidateSettings(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name": "",
-            "father_model_part_name": "",
+            "parent_model_part_name": "",
             "input_variable_name": "",
             "output_variable_name": ""
         }""")
@@ -21,8 +21,8 @@ class FSICouplingInterface():
 
         if settings["model_part_name"].GetString() == "":
             raise Exception("Provided \'model_part_name\' is empty.")
-        if settings["father_model_part_name"].GetString() == "":
-            raise Exception("Provided \'father_model_part_name\' is empty.")
+        if settings["parent_model_part_name"].GetString() == "":
+            raise Exception("Provided \'parent_model_part_name\' is empty.")
         if settings["input_variable_name"].GetString() == "":
             raise Exception("Provided \'input_variable_name\' is empty.")
         if settings["output_variable_name"].GetString() == "":
@@ -32,13 +32,13 @@ class FSICouplingInterface():
 
     def __init__(self, model, settings, convergence_accelerator = None):
         # Validate settings
-        settings = self._ValidateSettings(settings)
+        settings = self.__ValidateSettings(settings)
 
         # Set required member variables
         self.model = model
         self.convergence_accelerator = convergence_accelerator
         self.model_part_name = settings["model_part_name"].GetString()
-        self.father_model_part_name = settings["father_model_part_name"].GetString()
+        self.parent_model_part_name = settings["parent_model_part_name"].GetString()
         self.input_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["input_variable_name"].GetString())
         self.output_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["output_variable_name"].GetString())
 
@@ -48,7 +48,7 @@ class FSICouplingInterface():
         return self._fsi_interface_model_part
 
     def GetFatherModelPart(self):
-        return self.model.GetModelPart(self.father_model_part_name)
+        return self.model.GetModelPart(self.parent_model_part_name)
 
     def Update(self):
         # Get the output variable from the father model part
@@ -93,31 +93,6 @@ class FSICouplingInterface():
 
         # Return the current interface residual norm
         return self.GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
-
-        # # Get the unrelaxed displacement from the structure father model part
-        # self.GetValuesFromFatherModelPart(KratosMultiphysics.DISPLACEMENT)
-
-        # # Set the existent relaxed displacement as old relaxed displacement before doing the update
-        # for node in self.GetInterfaceModelPart().Nodes:
-        #     old_relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT)
-        #     node.SetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT, old_relaxed_disp)
-
-        # w = 0.01
-        # # w = 0.414388
-        # res_norm = 0.0
-        # for node in self.GetInterfaceModelPart().Nodes:
-        #     # Get the nodal displacements
-        #     unrelaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) # this is u_k_1_hat (what we get from structure before correcting)
-        #     old_relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT) # this is u_k (what we use to solve the fluid)
-        #     # Relax the provided displacement
-        #     relaxed_disp = w * unrelaxed_disp + (1.0 - w) * old_relaxed_disp
-        #     node.SetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT, relaxed_disp)
-        #     # Add the current node residual norm to the total residual
-        #     node_res = unrelaxed_disp - old_relaxed_disp
-        #     res_norm += node_res[0]**2 + node_res[1]**2
-
-        # res_norm = res_norm ** 0.5
-        # return res_norm
 
     def UpdatePosition(self):
         KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self.GetInterfaceModelPart().Nodes)

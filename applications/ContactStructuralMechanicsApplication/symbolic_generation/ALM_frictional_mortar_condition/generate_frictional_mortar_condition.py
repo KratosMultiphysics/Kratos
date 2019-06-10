@@ -127,9 +127,9 @@ for normalvar in range(normal_combs):
         x2old = X2 + u2old
 
         # Define other symbols
-        mu  = custom_sympy_fe_utilities.DefineVector('mu',nnodes, "Symbol")
-        DynamicFactor  = custom_sympy_fe_utilities.DefineVector('DynamicFactor',nnodes, "Symbol")
-        PenaltyParameter  = custom_sympy_fe_utilities.DefineVector('PenaltyParameter',nnodes, "Symbol")
+        mu = custom_sympy_fe_utilities.DefineVector('mu',nnodes, "Symbol")
+        DynamicFactor = custom_sympy_fe_utilities.DefineVector('DynamicFactor',nnodes, "Symbol")
+        PenaltyParameter = custom_sympy_fe_utilities.DefineVector('PenaltyParameter',nnodes, "Symbol")
         delta_time = sympy.Symbol('delta_time', positive=True)
         ScaleFactor = sympy.Symbol('ScaleFactor', positive=True)
         TangentFactor = sympy.Symbol('TangentFactor', positive=True)

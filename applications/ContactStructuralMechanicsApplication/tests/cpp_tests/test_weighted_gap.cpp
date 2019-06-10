@@ -1350,7 +1350,8 @@ namespace Kratos
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
-                        const auto weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+                        const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+
                         KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
@@ -1405,7 +1406,8 @@ namespace Kratos
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
-                        const auto weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+                        const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+
                         KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
