@@ -18,8 +18,9 @@
 
 // Project includes
 #include "includes/node.h"
-#include "includes/condition.h"
+#include "custom_conditions/paired_condition.h"
 #include "includes/process_info.h"
+#include "includes/mortar_classes.h"
 
 namespace Kratos
 {
@@ -108,7 +109,7 @@ public:
      */
     virtual double GetFrictionCoefficient(
         const NodeType& rNode,
-        const Condition& rCondition,
+        const PairedCondition& rCondition,
         const ProcessInfo& rCurrentProcessInfo
         );
 
@@ -120,11 +121,9 @@ public:
      */
     virtual double GetThresholdValue(
         const NodeType& rNode,
-        const Condition& rCondition,
+        const PairedCondition& rCondition,
         const ProcessInfo& rCurrentProcessInfo
         );
-
-    // TODO: Add derivatives
 
     ///@}
     ///@name Access

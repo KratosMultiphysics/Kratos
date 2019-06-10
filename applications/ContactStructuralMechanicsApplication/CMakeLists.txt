@@ -23,6 +23,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
     ## FRICTIONAL LAWS
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/frictional_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/frictional_law_with_derivative.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/tresca_frictional_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/coulomb_frictional_law.cpp
 

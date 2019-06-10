@@ -23,7 +23,7 @@ class ALMLargeDisplacementPatchTestTetra(TestFactory):
 
 class ALMLargeDisplacementPatchTestHexa(TestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_hexa"
-    
+
 class ALMMultiLayerContactTest(TestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_multi_contact_test"
 
@@ -50,3 +50,6 @@ class ComponentsALMLargeDisplacementPatchTestHexa(TestFactory):
 class ComponentsALMMultiLayerContactTest(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_3D/3D_multi_contact_test"
+
+class ALMTaylorPatchFrictionalTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/taylor_patch_test"

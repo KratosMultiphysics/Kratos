@@ -161,7 +161,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                     noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array;
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
-                        it_node->Set(SLIP, PureSlip);
+                        it_node->Reset(SLIP);
                         #pragma omp atomic
                         is_converged_0 += 1;
                     }
@@ -367,7 +367,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
                     noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array;
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
-                        it_node->Set(SLIP, PureSlip);
+                        it_node->Reset(SLIP);
                         #pragma omp atomic
                         is_converged_0 += 1;
                     }
