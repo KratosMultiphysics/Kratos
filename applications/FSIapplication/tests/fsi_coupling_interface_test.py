@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-import os
 from KratosMultiphysics.FSIApplication import fsi_coupling_interface
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
