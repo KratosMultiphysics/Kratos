@@ -35,7 +35,7 @@
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
-#include "custom_hole_cutting_process.h"
+#include "custom_utilities/hole_cutting_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
 
 namespace Kratos
@@ -161,27 +161,21 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    BinBasedPointLocatorPointerType mpBinLocatorOnBackground; // Template argument 3 stands for 3D case
-    BinBasedPointLocatorPointerType mpBinLocatorOnPatch;
 
-    //for monolithic
-    CustomHoleCuttingProcess::Pointer mpHoleCuttingProcess;
+    ChimeraHoleCuttingUtility::Pointer mpHoleCuttingUtility;
     typename CustomCalculateSignedDistanceProcess<TDim>::Pointer mpCalculateDistanceProcess;
     ModelPart &mrMainModelPart;
     double mOverlapDistance;
     int mNumberOfLevels;
     std::vector<int> mLevelTable;
     Parameters mParameters;
+    std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
+
     std::string m_background_model_part_name;
     std::string m_patch_boundary_model_part_name;
     std::string m_domain_boundary_model_part_name;
     std::string m_patch_inside_boundary_model_part_name;
     std::string m_patch_model_part_name;
-
-    IndexType mNumberOfConstraintsAdded;
-
-    std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -190,14 +184,29 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Does a loop on the background and patch combinations possible and uses FormulateChimera method.
+     */
     void DoChimeraLoop();
 
+    /**
+     * @brief Formulates the Chimera conditions with a given set of background and patch combination.
+     * @param MainDomainOrNot Flag specifying if the background is the main bg or not
+     */
     void FormulateChimera(int MainDomainOrNot);
 
+    /**
+     * @brief Creates a vector of unique constraint ids based on how many required and how many are already present in the mrModelPart.
+     * @param rIdVector The vector which is populated with unique constraint ids.
+     * @param NumberOfConstraintsRequired The number of further constraints required. used for calculation of unique ids.
+     */
     void CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired);
 
-    void SetOverlapDistance(double distance);
-
+    /**
+     * @brief Applies the continuity between the boundary modelpart and the background.
+     * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
+     * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes on rBoundaryModelPart.
+     */
     void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator);
 
     /**
@@ -231,14 +240,14 @@ private:
      */
     template <typename TVariableType>
     inline void AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
-                                const LinearMasterSlaveConstraint& rCloneConstraint,
-                                unsigned int ConstraintId,
-                                Node<3> &rMasterNode,
-                                TVariableType &rMasterVariable,
-                                Node<3> &rSlaveNode,
-                                TVariableType &rSlaveVariable,
-                                const double Weight,
-                                const double Constant = 0.0)
+                                       const LinearMasterSlaveConstraint &rCloneConstraint,
+                                       unsigned int ConstraintId,
+                                       Node<3> &rMasterNode,
+                                       TVariableType &rMasterVariable,
+                                       Node<3> &rSlaveNode,
+                                       TVariableType &rSlaveVariable,
+                                       const double Weight,
+                                       const double Constant = 0.0)
     {
         rSlaveNode.Set(SLAVE);
         ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
@@ -246,6 +255,23 @@ private:
         mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
         rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
     }
+
+
+    /**
+     * @brief Applies the master-slave constraint to enforce the continuity between a given geometry/element and a boundary node
+     * @param rGeometry The geometry of the element
+     * @param rBoundaryNode The boundary node for which the connections are to be made.
+     * @param rShapeFuncWeights The shape function weights for the node in the rGeometry.
+     * @param StartIndex The start Index of the constraints which are to be added.
+     * @param rConstraintIdVector The vector of the constraints Ids which is accessed with StartIndex.
+     * @param rMsContainer The Constraint container to which the contraints are added.
+     */
+    void ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
+                                    Node<3> &rBoundaryNode,
+                                    Vector &rShapeFuncWeights,
+                                    unsigned int StartIndex,
+                                    std::vector<int> &rConstraintIdVector,
+                                    MasterSlaveConstraintContainerType &rMsContainer);
 
     ///@}
     ///@name Private  Access

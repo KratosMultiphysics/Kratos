@@ -47,10 +47,8 @@ ApplyChimeraProcessMonolithic<TDim>::ApplyChimeraProcessMonolithic(ModelPart &rM
         mLevelTable.push_back(mParameters[i].size());
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-    this->mpHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
+    this->mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
     this->mpCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
-
-    mNumberOfConstraintsAdded = 0;
 }
 
 template <int TDim>
@@ -143,10 +141,10 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
     ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
     ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
-    this->mpBinLocatorOnBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_background_model_part));
-    this->mpBinLocatorOnBackground->UpdateSearchDatabase();
-    this->mpBinLocatorOnPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_patch_model_part));
-    this->mpBinLocatorOnPatch->UpdateSearchDatabase();
+    BinBasedPointLocatorPointerType p_point_locator_on_background = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_background_model_part));
+    p_point_locator_on_background->UpdateSearchDatabase();
+    BinBasedPointLocatorPointerType p_pointer_locator_on_patch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_patch_model_part));
+    p_pointer_locator_on_patch->UpdateSearchDatabase();
 
     const double eps = 1e-12;
     if (mOverlapDistance < eps)
@@ -166,12 +164,12 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
             KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
             this->mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
-            this->mpHoleCuttingProcess->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot);
+            this->mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot);
         }
 
-        mpHoleCuttingProcess->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
+        mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
         this->mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
-        this->mpHoleCuttingProcess->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
+        this->mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
 
         //for multipatch
         const unsigned int n_elements = r_hole_model_part.NumberOfElements();
@@ -183,12 +181,10 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
 
         KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ") << r_modified_patch_boundary_model_part.Nodes().size() << std::endl;
         KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ") << r_hole_boundary_model_part.Nodes().size() << std::endl;
-        mNumberOfConstraintsAdded = 0;
-        ApplyContinuityWithMpcs(r_modified_patch_boundary_model_part, mpBinLocatorOnBackground);
+        ApplyContinuityWithMpcs(r_modified_patch_boundary_model_part, p_point_locator_on_background);
         KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
 
-        mNumberOfConstraintsAdded = 0;
-        ApplyContinuityWithMpcs(r_hole_boundary_model_part, mpBinLocatorOnPatch);
+        ApplyContinuityWithMpcs(r_hole_boundary_model_part, p_pointer_locator_on_patch);
         KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
 
         current_model.DeleteModelPart("HoleModelpart");
@@ -218,12 +214,6 @@ void ApplyChimeraProcessMonolithic<TDim>::CreateConstraintIds(std::vector<int> &
 }
 
 template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::SetOverlapDistance(double distance)
-{
-    this->mOverlapDistance = distance;
-}
-
-template <int TDim>
 void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
 {
     //loop over nodes and find the triangle in which it falls, then do interpolation
@@ -246,7 +236,6 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
     const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
     std::size_t counter = 0;
     std::size_t removed_counter = 0;
-    const auto &r_clone_constraint = (LinearMasterSlaveConstraint)KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
     for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
@@ -256,12 +245,12 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
         mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
     }
 
-#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) firstprivate(removed_counter, r_clone_constraint) reduction(+ \
-                                                                                                                                                               : counter)
+#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) firstprivate(removed_counter) reduction(+ \
+                                                                                                                                           : counter)
     for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
 
-        Vector N;
+        Vector shape_fun_weights;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         auto &ms_container = master_slave_container_vector[omp_get_thread_num()]; //TODO: change this to out of loop.
 
@@ -269,16 +258,16 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
         Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
         ConstraintIdsVectorType constrainIds_for_the_node;
         unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
-        bool NodeCoupled = false;
+        bool node_coupled = false;
         if ((p_boundary_node)->IsDefined(VISITED))
-            NodeCoupled = (p_boundary_node)->Is(VISITED);
+            node_coupled = (p_boundary_node)->Is(VISITED);
 
         typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-        Element::Pointer pElement;
+        Element::Pointer p_element;
         bool is_found = false;
-        is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+        is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
 
-        if (NodeCoupled && is_found)
+        if (node_coupled && is_found)
         {
             constrainIds_for_the_node = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
             for (auto const &constraint_id : constrainIds_for_the_node)
@@ -289,47 +278,11 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
             p_boundary_node->Set(VISITED, false);
         }
 
-        // Initialise the boundary nodes dofs to 0 at ever time steps
-        p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-        p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-        if (TDim == 3)
-            p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-        p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-
         if (is_found == true)
         {
-            Geometry<Node<3>> &geom = pElement->GetGeometry();
-            for (std::size_t i = 0; i < geom.size(); i++)
-            {
-
-                //Interpolation of velocity
-                p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
-                p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
-                //Interpolation of pressure
-                p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
-                //Define master slave relation for velocity X and Y
-                AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
-                AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
-                if (TDim == 3)
-                {
-                    //Interpolation of velocity Z
-                    p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-                    AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
-                }
-                //Defining master slave relation for pressure
-                AddMasterSlaveRelation(ms_container, r_clone_constraint, constraints_id_vector[start_constraint_id++], geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-
-                counter++;
-
-            } // end of loop over host element nodes
-
-            // Setting the buffer 1 same buffer 0
-            p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_X, 0);
-            p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_Y, 0);
-            if (TDim == 3)
-                p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 1) = p_boundary_node->FastGetSolutionStepValue(VELOCITY_Z, 0);
-            p_boundary_node->FastGetSolutionStepValue(PRESSURE, 1) = p_boundary_node->FastGetSolutionStepValue(PRESSURE, 0);
+            Geometry<Node<3>> &r_geom = p_element->GetGeometry();
+            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, start_constraint_id, constraints_id_vector, ms_container);
+            counter += r_geom.size();
         }
         p_boundary_node->Set(VISITED, true);
     } // end of loop over boundary nodes
@@ -402,6 +355,50 @@ bool ApplyChimeraProcessMonolithic<TDim>::BoundingBoxTest(ModelPart &rModelPartA
             return false;
     }
     return true;
+}
+
+template <int TDim>
+void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
+                                                                     Node<3> &rBoundaryNode,
+                                                                     Vector &rShapeFuncWeights,
+                                                                     unsigned int StartId,
+                                                                     std::vector<int> &ConstraintIdVector,
+                                                                     MasterSlaveConstraintContainerType &rMsContainer)
+{
+    const auto &r_clone_constraint = (LinearMasterSlaveConstraint)KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    // Initialise the boundary nodes dofs to 0 at ever time steps
+    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+    if (TDim == 3)
+        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+    rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+    for (std::size_t i = 0; i < rGeometry.size(); i++)
+    {
+        //Interpolation of velocity
+        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 0) += rGeometry[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * rShapeFuncWeights[i];
+        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 0) += rGeometry[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * rShapeFuncWeights[i];
+        //Interpolation of pressure
+        rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0) += rGeometry[i].GetDof(PRESSURE).GetSolutionStepValue(0) * rShapeFuncWeights[i];
+
+        //Define master slave relation for velocity X and Y
+        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], VELOCITY_X, rBoundaryNode, VELOCITY_X, rShapeFuncWeights[i]);
+        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], VELOCITY_Y, rBoundaryNode, VELOCITY_Y, rShapeFuncWeights[i]);
+        if (TDim == 3)
+        {
+            //Interpolation of velocity Z
+            rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0) += rGeometry[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * rShapeFuncWeights[i];
+            AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], VELOCITY_Z, rBoundaryNode, VELOCITY_Z, rShapeFuncWeights[i]);
+        }
+        //Defining master slave relation for pressure
+        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], PRESSURE, rBoundaryNode, PRESSURE, rShapeFuncWeights[i]);
+    } // end of loop over host element nodes
+
+    // Setting the buffer 1 same buffer 0
+    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 1) = rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 0);
+    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 1) = rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 0);
+    if (TDim == 3)
+        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 1) = rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0);
+    rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 1) = rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0);
 }
 
 template class ApplyChimeraProcessMonolithic<2>;
