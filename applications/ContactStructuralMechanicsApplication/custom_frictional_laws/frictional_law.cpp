@@ -19,10 +19,9 @@
 
 namespace Kratos
 {
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
-double FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetFrictionCoefficient(
+double FrictionalLaw::GetFrictionCoefficient(
     const NodeType& rNode,
-    const Condition& rCondition,
+    const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -41,10 +40,9 @@ double FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetFrict
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
-double FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetThresholdValue(
+double FrictionalLaw::GetThresholdValue(
     const NodeType& rNode,
-    const Condition& rCondition,
+    const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -52,37 +50,6 @@ double FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetThres
 
     return 0.0;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
-double FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDerivativeThresholdValue(
-    const NodeType& rNode,
-    const Condition& rCondition,
-    const ProcessInfo& rCurrentProcessInfo,
-    const DerivativeDataType& pDerivativeDatabase,
-    const IndexType IndexDerivative
-    )
-{
-    KRATOS_ERROR << "You are calling to the base class method GetDerivativeThresholdValue, check your frictional law declaration" << std::endl;
-
-    return 0.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template class FrictionalLaw<2, 2, false, 2>;
-template class FrictionalLaw<3, 3, false, 3>;
-template class FrictionalLaw<3, 4, false, 4>;
-template class FrictionalLaw<3, 3, false, 4>;
-template class FrictionalLaw<3, 4, false, 3>;
-template class FrictionalLaw<2, 2, true,  2>;
-template class FrictionalLaw<3, 3, true,  3>;
-template class FrictionalLaw<3, 4, true,  4>;
-template class FrictionalLaw<3, 3, true,  4>;
-template class FrictionalLaw<3, 4, true,  3>;
 
 }  // namespace Kratos.
 

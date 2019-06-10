@@ -9,18 +9,15 @@
 //  Main authors:  Vicente Mataix Ferrandiz
 //
 
-#if !defined(FRICTIONAL_LAW_H_DEFINED )
-#define  FRICTIONAL_LAW_H_DEFINED
+#if !defined(FRICTIONAL_LAW_WITH_DERIVATIVE_H_DEFINED )
+#define  FRICTIONAL_LAW_WITH_DERIVATIVE_H_DEFINED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/node.h"
-#include "custom_conditions/paired_condition.h"
-#include "includes/process_info.h"
-#include "includes/mortar_classes.h"
+#include "custom_frictional_laws/frictional_law.h"
 
 namespace Kratos
 {
@@ -44,18 +41,28 @@ namespace Kratos
 ///@{
 
 /**
- * @class FrictionalLaw
+ * @class FrictionalLawWithDerivative
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This class defines the base class for frictional laws
+ * @brief This class defines the base class for frictional laws with derivative
  * @details This class does nothing, define derived frictional laws in order to make use of it
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TFrictional If we are solving a frictional or frictionless problem
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FrictionalLaw
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FrictionalLawWithDerivative
+    : public FrictionalLaw
 {
 public:
 
     ///@name Type Definitions
     ///@{
+
+    /// Define the base class
+    typedef FrictionalLaw BaseType;
 
     /// Node definition
     typedef Node<3> NodeType;
@@ -66,11 +73,17 @@ public:
     /// Size type definition
     typedef std::size_t SizeType;
 
+    /// Definition of the derivative data
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
+
+    /// The definition of the mortar operators
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, true, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+
     /// Zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
-    /// Counted pointer of FrictionalLaw
-    KRATOS_CLASS_POINTER_DEFINITION( FrictionalLaw );
+    /// Counted pointer of FrictionalLawWithDerivative
+    KRATOS_CLASS_POINTER_DEFINITION( FrictionalLawWithDerivative );
 
     ///@}
     ///@name Life Cycle
@@ -79,17 +92,17 @@ public:
     /**
      * @brief Default constructor
      */
-    FrictionalLaw()
+    FrictionalLawWithDerivative()
     {
     }
 
     ///Copy constructor  (not really required)
-    FrictionalLaw(const FrictionalLaw& rhs)
+    FrictionalLawWithDerivative(const FrictionalLawWithDerivative& rhs)
     {
     }
 
     /// Destructor.
-    ~FrictionalLaw()
+    ~FrictionalLawWithDerivative()
     {
     }
 
@@ -102,27 +115,22 @@ public:
     ///@{
 
     /**
-     * @brief This method returns the friction coefficient
-     * @param rNode The node where the friction coefficient is obtained
+     * @brief This method computes the threshold derivative value considered for computing friction
+     * @param rNode The node where the threshold derivative value is obtained
      * @param rCondition The condition where the friction is computed
      * @param rCurrentProcessInfo The current instance of the process info
+     * @param rDerivativeData The reference to the derivative database
+     * @param IndexDerivative The derivative index
+     * @param IndexNode The corresponding node index on the condition geometry
      */
-    virtual double GetFrictionCoefficient(
+    virtual double GetDerivativeThresholdValue(
         const NodeType& rNode,
         const PairedCondition& rCondition,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /**
-     * @brief This method computes the threshold value considered for computing friction
-     * @param rNode The node where the threshold value is obtained
-     * @param rCondition The condition where the friction is computed
-     * @param rCurrentProcessInfo The current instance of the process info
-     */
-    virtual double GetThresholdValue(
-        const NodeType& rNode,
-        const PairedCondition& rCondition,
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        const DerivativeDataType& rDerivativeData,
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const IndexType IndexDerivative,
+        const IndexType IndexNode
         );
 
     ///@}
@@ -138,19 +146,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
-        return "FrictionalLaw";
+        return "FrictionalLawWithDerivative";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << std::endl;
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << Info() << std::endl;
     }
@@ -216,12 +224,14 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }
 
     ///@}
@@ -232,7 +242,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-}; // Class FrictionalLaw
+}; // Class FrictionalLawWithDerivative
 
 ///@}
 
@@ -248,4 +258,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // FRICTIONAL_LAW_H_DEFINED  defined
+#endif // FRICTIONAL_LAW_WITH_DERIVATIVE_H_DEFINED  defined

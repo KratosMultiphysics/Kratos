@@ -19,6 +19,7 @@
 
 // Utilities
 #include "custom_frictional_laws/frictional_law.h"
+#include "custom_frictional_laws/frictional_law_with_derivative.h"
 #include "custom_frictional_laws/tresca_frictional_law.h"
 #include "custom_frictional_laws/coulomb_frictional_law.h"
 
@@ -32,16 +33,16 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 {
     /// Frictional laws
     /* Base class */
-    typedef FrictionalLaw<2,2,false,2> FrictionalLaw2D2N;
-    typedef FrictionalLaw<3,3,false,3> FrictionalLaw3D3N;
-    typedef FrictionalLaw<3,4,false,4> FrictionalLaw3D4N;
-    typedef FrictionalLaw<3,3,false,4> FrictionalLaw3D3N4N;
-    typedef FrictionalLaw<3,4,false,3> FrictionalLaw3D4N3N;
-    typedef FrictionalLaw<2,2,true,2> FrictionalLaw2D2NNV;
-    typedef FrictionalLaw<3,3,true,3> FrictionalLaw3D3NNV;
-    typedef FrictionalLaw<3,4,true,4> FrictionalLaw3D4NNV;
-    typedef FrictionalLaw<3,3,true,4> FrictionalLaw3D3N4NNV;
-    typedef FrictionalLaw<3,4,true,3> FrictionalLaw3D4N3NNV;
+    typedef FrictionalLawWithDerivative<2,2,false,2> FrictionalLaw2D2N;
+    typedef FrictionalLawWithDerivative<3,3,false,3> FrictionalLaw3D3N;
+    typedef FrictionalLawWithDerivative<3,4,false,4> FrictionalLaw3D4N;
+    typedef FrictionalLawWithDerivative<3,3,false,4> FrictionalLaw3D3N4N;
+    typedef FrictionalLawWithDerivative<3,4,false,3> FrictionalLaw3D4N3N;
+    typedef FrictionalLawWithDerivative<2,2,true,2> FrictionalLaw2D2NNV;
+    typedef FrictionalLawWithDerivative<3,3,true,3> FrictionalLaw3D3NNV;
+    typedef FrictionalLawWithDerivative<3,4,true,4> FrictionalLaw3D4NNV;
+    typedef FrictionalLawWithDerivative<3,3,true,4> FrictionalLaw3D3N4NNV;
+    typedef FrictionalLawWithDerivative<3,4,true,3> FrictionalLaw3D4N3NNV;
 
     /* Tresca */
     typedef TrescaFrictionalLaw<2,2,false,2> TrescaFrictionalLaw2D2N;
@@ -67,12 +68,17 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
     typedef CoulombFrictionalLaw<3,3,true,4> CoulombFrictionalLaw3D3N4NNV;
     typedef CoulombFrictionalLaw<3,4,true,3> CoulombFrictionalLaw3D4N3NNV;
 
+    // Base class
+    py::class_<FrictionalLaw, typename FrictionalLaw::Pointer>(m, "FrictionalLaw")
+    .def(py::init<>())
+    .def("GetFrictionCoefficient",&FrictionalLaw::GetFrictionCoefficient)
+    .def("GetThresholdValue",&FrictionalLaw::GetThresholdValue)
+    ;
+
     /* 2D 2N */
     // Base class
-    py::class_<FrictionalLaw2D2N, typename FrictionalLaw2D2N::Pointer>(m, "FrictionalLaw2D2N")
+    py::class_<FrictionalLaw2D2N, typename FrictionalLaw2D2N::Pointer,FrictionalLaw>(m, "FrictionalLaw2D2N")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw2D2N::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw2D2N::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -87,10 +93,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 3N */
     // Base class
-    py::class_<FrictionalLaw3D3N, typename FrictionalLaw3D3N::Pointer>(m, "FrictionalLaw3D3N")
+    py::class_<FrictionalLaw3D3N, typename FrictionalLaw3D3N::Pointer, FrictionalLaw>(m, "FrictionalLaw3D3N")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D3N::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D3N::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -105,10 +109,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 4N */
     // Base class
-    py::class_<FrictionalLaw3D4N, typename FrictionalLaw3D4N::Pointer>(m, "FrictionalLaw3D4N")
+    py::class_<FrictionalLaw3D4N, typename FrictionalLaw3D4N::Pointer, FrictionalLaw>(m, "FrictionalLaw3D4N")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D4N::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D4N::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -123,10 +125,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 3N-4N */
     // Base class
-    py::class_<FrictionalLaw3D3N4N, typename FrictionalLaw3D3N4N::Pointer>(m, "FrictionalLaw3D3N4N")
+    py::class_<FrictionalLaw3D3N4N, typename FrictionalLaw3D3N4N::Pointer,FrictionalLaw>(m, "FrictionalLaw3D3N4N")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D3N4N::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D3N4N::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -141,10 +141,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 4N-3N */
     // Base class
-    py::class_<FrictionalLaw3D4N3N, typename FrictionalLaw3D4N3N::Pointer>(m, "FrictionalLaw3D4N3N")
+    py::class_<FrictionalLaw3D4N3N, typename FrictionalLaw3D4N3N::Pointer, FrictionalLaw>(m, "FrictionalLaw3D4N3N")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D4N3N::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D4N3N::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -159,10 +157,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 2D 2N NV */
     // Base class
-    py::class_<FrictionalLaw2D2NNV, typename FrictionalLaw2D2NNV::Pointer>(m, "FrictionalLaw2D2NNV")
+    py::class_<FrictionalLaw2D2NNV, typename FrictionalLaw2D2NNV::Pointer, FrictionalLaw>(m, "FrictionalLaw2D2NNV")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw2D2NNV::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw2D2NNV::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -177,10 +173,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 3N NV */
     // Base class
-    py::class_<FrictionalLaw3D3NNV, typename FrictionalLaw3D3NNV::Pointer>(m, "FrictionalLaw3D3NNV")
+    py::class_<FrictionalLaw3D3NNV, typename FrictionalLaw3D3NNV::Pointer, FrictionalLaw>(m, "FrictionalLaw3D3NNV")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D3NNV::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D3NNV::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -195,10 +189,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 4N NV */
     // Base class
-    py::class_<FrictionalLaw3D4NNV, typename FrictionalLaw3D4NNV::Pointer>(m, "FrictionalLaw3D4NNV")
+    py::class_<FrictionalLaw3D4NNV, typename FrictionalLaw3D4NNV::Pointer, FrictionalLaw>(m, "FrictionalLaw3D4NNV")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D4NNV::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D4NNV::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -213,10 +205,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 3N-4N NV */
     // Base class
-    py::class_<FrictionalLaw3D3N4NNV, typename FrictionalLaw3D3N4NNV::Pointer>(m, "FrictionalLaw3D3N4NNV")
+    py::class_<FrictionalLaw3D3N4NNV, typename FrictionalLaw3D3N4NNV::Pointer, FrictionalLaw>(m, "FrictionalLaw3D3N4NNV")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D3N4NNV::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D3N4NNV::GetThresholdValue)
     ;
 
     // Tresca frictional law
@@ -231,10 +221,8 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 
     /* 3D 4N-3N NV */
     // Base class
-    py::class_<FrictionalLaw3D4N3NNV, typename FrictionalLaw3D4N3NNV::Pointer>(m, "FrictionalLaw3D4N3NNV")
+    py::class_<FrictionalLaw3D4N3NNV, typename FrictionalLaw3D4N3NNV::Pointer, FrictionalLaw>(m, "FrictionalLaw3D4N3NNV")
     .def(py::init<>())
-    .def("GetFrictionCoefficient",&FrictionalLaw3D4N3NNV::GetFrictionCoefficient)
-    .def("GetThresholdValue",&FrictionalLaw3D4N3NNV::GetThresholdValue)
     ;
 
     // Tresca frictional law

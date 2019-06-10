@@ -161,16 +161,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
 
     /* Frictional laws */
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_2D2N )                                  // The frictional law considered (2D2N)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D3N )                                  // The frictional law considered (3D3N)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D4N )                                  // The frictional law considered (3D4N)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D3N4N)                                 // The frictional law considered (3D3N4N)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D4N3N )                                // The frictional law considered (3D4N3N)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_2D2NNV )                                // The frictional law considered (2D2NNV)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D3NNV )                                // The frictional law considered (3D3NNV)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D4NNV )                                // The frictional law considered (3D4NNV)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D3N4NNV )                              // The frictional law considered (3D3N4NNV)
-    KRATOS_REGISTER_VARIABLE(  FRICTIONAL_LAW_3D4N3NNV )                              // The frictional law considered (3D4N3NNV)
+    KRATOS_REGISTER_VARIABLE( FRICTIONAL_LAW )                                        // The frictional law considered
     KRATOS_REGISTER_VARIABLE( TRESCA_FRICTION_THRESHOLD )                             // The threshold value for Tresca frictional contact
 
     // CONDITIONS

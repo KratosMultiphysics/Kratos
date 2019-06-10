@@ -21,18 +21,6 @@ namespace Kratos
 typedef array_1d<double,3> Vector3;
 typedef Geometry<Node<3>> GeometryType;
 
-/// Frictional laws
-typedef FrictionalLaw<2,2,false,2> FrictionalLaw2D2N;
-typedef FrictionalLaw<3,3,false,3> FrictionalLaw3D3N;
-typedef FrictionalLaw<3,4,false,4> FrictionalLaw3D4N;
-typedef FrictionalLaw<3,3,false,4> FrictionalLaw3D3N4N;
-typedef FrictionalLaw<3,4,false,3> FrictionalLaw3D4N3N;
-typedef FrictionalLaw<2,2,true,2> FrictionalLaw2D2NNV;
-typedef FrictionalLaw<3,3,true,3> FrictionalLaw3D3NNV;
-typedef FrictionalLaw<3,4,true,4> FrictionalLaw3D4NNV;
-typedef FrictionalLaw<3,3,true,4> FrictionalLaw3D3N4NNV;
-typedef FrictionalLaw<3,4,true,3> FrictionalLaw3D4N3NNV;
-
 // VARIABLES
 /* Mortar method general variables */
 KRATOS_CREATE_VARIABLE( int , INNER_LOOP_ITERATION )                              // The number of loops in the simplified semi-smooth inner iteration
@@ -69,15 +57,6 @@ KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                           
 KRATOS_CREATE_VARIABLE( double, MAX_GAP_THRESHOLD )                               // The gap considered as threshold to rescale penalty
 
 /* Frictional laws */
-KRATOS_CREATE_VARIABLE( FrictionalLaw2D2N::Pointer, FRICTIONAL_LAW_2D2N )         // The frictional law considered (2D2N)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D3N::Pointer, FRICTIONAL_LAW_3D3N )         // The frictional law considered (3D3N)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D4N::Pointer, FRICTIONAL_LAW_3D4N )         // The frictional law considered (3D4N)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D3N::Pointer, FRICTIONAL_LAW_3D3N4N)        // The frictional law considered (3D3N4N)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D4N::Pointer, FRICTIONAL_LAW_3D4N3N )       // The frictional law considered (3D4N3N)
-KRATOS_CREATE_VARIABLE( FrictionalLaw2D2NNV::Pointer, FRICTIONAL_LAW_2D2NNV )     // The frictional law considered (2D2NNV)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D3NNV::Pointer, FRICTIONAL_LAW_3D3NNV )     // The frictional law considered (3D3NNV)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D4NNV::Pointer, FRICTIONAL_LAW_3D4NNV )     // The frictional law considered (3D4NNV)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D3N4NNV::Pointer, FRICTIONAL_LAW_3D3N4NNV ) // The frictional law considered (3D3N4NNV)
-KRATOS_CREATE_VARIABLE( FrictionalLaw3D4N3NNV::Pointer, FRICTIONAL_LAW_3D4N3NNV ) // The frictional law considered (3D4N3NNV)
+KRATOS_CREATE_VARIABLE( FrictionalLaw::Pointer, FRICTIONAL_LAW )                  // The frictional law considered
 KRATOS_CREATE_VARIABLE( double, TRESCA_FRICTION_THRESHOLD )                       // The threshold value for Tresca frictional contact
 }
