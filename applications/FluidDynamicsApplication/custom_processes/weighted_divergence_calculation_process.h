@@ -22,6 +22,7 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "geometries/geometry.h"
 #include "fluid_dynamics_application_variables.h"
 
 // Application includes
@@ -147,9 +148,9 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        double ComputeAuxiliaryElementDivergence(const Vector grad_x, const Vector grad_y, const Vector grad_z);
-        double ComputeAuxiliaryElementVelocitySeminorm(const Vector grad_x, const Vector grad_y, const Vector grad_z);
-        double ComputeWeightedTimeAverage(const double old_average, const double current_value);
+        double ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z);
+        double ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z);
+        double ComputeWeightedTimeAverage(const double& old_average, const double& current_value);
 
         ///@}
         ///@name Protected  Access
