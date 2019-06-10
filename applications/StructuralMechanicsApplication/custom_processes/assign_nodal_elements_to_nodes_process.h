@@ -42,21 +42,21 @@ namespace Kratos
 ///@{
 
 /**
- * @class AssignNodalElementsToNodes
+ * @class AssignNodalElementsToNodesProcess
  * @ingroup StructuralMechanicsApplication
  * @brief This process assign nodal elements to a submodelpart of nodes
  * @details The nodal elements assigned can be of constant properties or dependent of a CL
  * @author Vicente Mataix Ferrandiz
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AssignNodalElementsToNodes
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AssignNodalElementsToNodesProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of AssignNodalElementsToNodes
-    KRATOS_CLASS_POINTER_DEFINITION(AssignNodalElementsToNodes);
+    /// Pointer definition of AssignNodalElementsToNodesProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AssignNodalElementsToNodesProcess);
 
     /// The index definition
     typedef std::size_t                                     IndexType;
@@ -79,13 +79,13 @@ public:
      * @param rThisModelPart The model part to compute
      * @param ThisParameters The parameters of configuration
      */
-    AssignNodalElementsToNodes(
+    AssignNodalElementsToNodesProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
-    ~AssignNodalElementsToNodes() override
+    ~AssignNodalElementsToNodesProcess() override
     = default;
 
     ///@}
@@ -150,13 +150,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "AssignNodalElementsToNodes";
+        return "AssignNodalElementsToNodesProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AssignNodalElementsToNodes";
+        rOStream << "AssignNodalElementsToNodesProcess";
     }
 
     /// Print object's data.
@@ -259,15 +259,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignNodalElementsToNodes& operator=(AssignNodalElementsToNodes const& rOther) = delete;
+    AssignNodalElementsToNodesProcess& operator=(AssignNodalElementsToNodesProcess const& rOther) = delete;
 
     /// Copy constructor.
-    //AssignNodalElementsToNodes(AssignNodalElementsToNodes const& rOther);
+    //AssignNodalElementsToNodesProcess(AssignNodalElementsToNodesProcess const& rOther);
 
 
     ///@}
 
-}; // Class AssignNodalElementsToNodes
+}; // Class AssignNodalElementsToNodesProcess
 
 ///@}
 
@@ -280,19 +280,19 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   AssignNodalElementsToNodes& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const AssignNodalElementsToNodes& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+inline std::istream& operator >> (std::istream& rIStream,
+                                  AssignNodalElementsToNodesProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const AssignNodalElementsToNodesProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }
 #endif /* KRATOS_ASSIGN_NODAL_ELEMENTS_TO_NODES_PROCESS defined */

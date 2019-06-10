@@ -19,7 +19,6 @@
 #include "includes/kratos_flags.h"
 #include "custom_elements/nodal_concentrated_element.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
-
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -34,39 +33,35 @@ KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_NODAL_INERTIA,      
 KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_DAMPING_RATIO,            4 );
 KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_ROTATIONAL_DAMPING_RATIO, 5 );
 KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_RAYLEIGH_DAMPING,         6 );
-KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_ACTIVE_NODE_FLAG,         7 );
 
 //***********************DEFAULT CONSTRUCTOR******************************************
 /***********************************************************************************/
 
 NodalConcentratedElement::NodalConcentratedElement(
     IndexType NewId,
-    GeometryType::Pointer pGeometry,
-    const bool UseRayleighDamping,
-    const bool ComputeActiveNodeFlag
+    GeometryType::Pointer pGeometry
     )
     : Element( NewId, pGeometry )
 {
     // If we compute the Rayleigh damping or we use the damping ratio instead
-    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, UseRayleighDamping);
-    // If the node is inactive/active the element will be set in correspondance
-    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG, ComputeActiveNodeFlag);
+    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, true);
 }
-
 
 //******************************CONSTRUCTOR*******************************************
 /***********************************************************************************/
 
 NodalConcentratedElement::NodalConcentratedElement(
-    IndexType NewId, GeometryType::Pointer pGeometry,
-    PropertiesType::Pointer pProperties,
-    const bool UseRayleighDamping,
-    const bool ComputeActiveNodeFlag
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties
     )
     : Element( NewId, pGeometry, pProperties )
 {
-    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, UseRayleighDamping);
-    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG, ComputeActiveNodeFlag);
+    if (pProperties->Has(CONSIDER_RAYLEIGH_DAMPING)) {
+        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, pProperties->GetValue(CONSIDER_RAYLEIGH_DAMPING));
+    } else {
+        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, true);
+    }
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -102,7 +97,7 @@ Element::Pointer NodalConcentratedElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) );
+    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -115,7 +110,7 @@ Element::Pointer NodalConcentratedElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, pGeom, pProperties, mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) );
+    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, pGeom, pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -129,11 +124,11 @@ Element::Pointer NodalConcentratedElement::Clone(
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
 
-    NodalConcentratedElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) );
-
-    return Kratos::make_intrusive<NodalConcentratedElement>(new_element);
+    Element::Pointer p_new_elem = Kratos::make_intrusive<NodalConcentratedElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+    return p_new_elem;
 }
-
 
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
@@ -480,12 +475,6 @@ void NodalConcentratedElement::InitializeNonLinearIteration( ProcessInfo& rCurre
 
     BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 
-    // Setting flag according node
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) ) {
-        const bool is_active = GetGeometry()[0].IsDefined(ACTIVE) ? GetGeometry()[0].Is(ACTIVE) : true;
-        this->Set(ACTIVE, is_active);
-    }
-
     KRATOS_CATCH( "" );
 }
 
@@ -497,12 +486,6 @@ void NodalConcentratedElement::FinalizeNonLinearIteration( ProcessInfo& rCurrent
     KRATOS_TRY;
 
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
-
-    // Setting flag according node
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) ) {
-        const bool is_active = GetGeometry()[0].IsDefined(ACTIVE) ? GetGeometry()[0].Is(ACTIVE) : true;
-        this->Set(ACTIVE, is_active);
-    }
 
     KRATOS_CATCH( "" );
 }

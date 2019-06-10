@@ -44,7 +44,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/prism_neighbours_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shell_to_solid_shell_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_nodal_elements_to_nodes.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_nodal_elements_to_nodes_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spr_error_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/impose_rigid_movement_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.cpp

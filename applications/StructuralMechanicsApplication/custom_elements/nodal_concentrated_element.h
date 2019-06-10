@@ -80,16 +80,15 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DAMPING_RATIO );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ROTATIONAL_DAMPING_RATIO );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RAYLEIGH_DAMPING );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ACTIVE_NODE_FLAG );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, const bool UseRayleighDamping = false, const bool ComputeActiveNodeFlag = true);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const bool UseRayleighDamping = false, const bool ComputeActiveNodeFlag = true);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
     NodalConcentratedElement(NodalConcentratedElement const& rOther);

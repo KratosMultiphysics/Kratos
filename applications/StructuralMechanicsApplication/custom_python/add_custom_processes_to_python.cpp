@@ -27,7 +27,7 @@
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
-#include "custom_processes/assign_nodal_elements_to_nodes.h"
+#include "custom_processes/assign_nodal_elements_to_nodes_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 
 namespace Kratos {
@@ -73,7 +73,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         ;
 
-    py::class_<AssignNodalElementsToNodes, AssignNodalElementsToNodes::Pointer, Process>(m, "AssignNodalElementsToNodes")
+    py::class_<AssignNodalElementsToNodesProcess, AssignNodalElementsToNodesProcess::Pointer, Process>(m, "AssignNodalElementsToNodesProcess")
     .def(py::init<ModelPart&>())
     .def(py::init< ModelPart&, Parameters >())
     ;

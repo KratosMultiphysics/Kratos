@@ -65,32 +65,36 @@ class NodalDampingTests(KratosUnittest.TestCase):
     def test_nodal_damping(self):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("sdof")
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         self._add_variables(mp)
 
-        #create node
+        # Create node
         node = mp.CreateNewNode(1,0.0,0.0,0.0)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
 
-        #add bcs and initial values
+        # Add bcs and initial values
         init_displacement = 0.1
         init_velocity = 0.0
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,init_displacement)
 
-        #create element
-        element = mp.CreateNewElement("NodalConcentratedDampedElement3D1N", 1, [1], None)
+        # Create element
+        prop_id = 0
+        properties = mp.Properties[prop_id]
         mass = 1.0
         stiffness = 10.0
         damping = 1.0
-        element.SetValue(KratosMultiphysics.NODAL_MASS,mass)
-        element.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[0,stiffness,0])
-        element.SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0,damping,0])
+        properties.SetValue(StructuralMechanicsApplication.CONSIDER_RAYLEIGH_DAMPING, False)
+        properties.SetValue(KratosMultiphysics.NODAL_MASS,mass)
+        properties.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[0,stiffness,0])
+        properties.SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0,damping,0])
+        element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], properties)
 
-        #time integration parameters
+        # Time integration parameters
         dt = 0.005
         time = 0.0
         end_time = 5.0

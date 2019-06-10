@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/assign_nodal_elements_to_nodes.h"
+#include "custom_processes/assign_nodal_elements_to_nodes_process.h"
 #include "custom_elements/nodal_concentrated_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "geometries/point_2d.h"
@@ -23,11 +23,11 @@
 
 namespace Kratos
 {
-AssignNodalElementsToNodes::AssignNodalElementsToNodes(
-        ModelPart& rThisModelPart,
-        Parameters ThisParameters
-        ):mrThisModelPart(rThisModelPart),
-          mThisParameters(ThisParameters)
+AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
+    ModelPart& rThisModelPart,
+    Parameters ThisParameters
+    ):mrThisModelPart(rThisModelPart),
+        mThisParameters(ThisParameters)
 {
     KRATOS_TRY
 
@@ -37,8 +37,6 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
         to_validate_parameters.AddValue("model_part_name", mThisParameters["model_part_name"]);
     if (mThisParameters.Has("rayleigh_damping"))
         to_validate_parameters.AddValue("rayleigh_damping", mThisParameters["rayleigh_damping"]);
-    if (mThisParameters.Has("assign_active_flag_node"))
-        to_validate_parameters.AddValue("assign_active_flag_node", mThisParameters["assign_active_flag_node"]);
     if (mThisParameters.Has("interval"))
         to_validate_parameters.AddValue("interval", mThisParameters["interval"]);
 
@@ -46,7 +44,6 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
     {
         "model_part_name"                : "",
         "rayleigh_damping"               : false,
-        "assign_active_flag_node"        : true,
         "interval"                       : [0.0, 1e30]
     })" );
 
@@ -59,10 +56,6 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
         mThisParameters.SetValue("rayleigh_damping", to_validate_parameters["rayleigh_damping"]);
     else
         mThisParameters.AddValue("rayleigh_damping", to_validate_parameters["rayleigh_damping"]);
-    if (mThisParameters.Has("assign_active_flag_node"))
-        mThisParameters.SetValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"]);
-    else
-        mThisParameters.AddValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"]);
     if (mThisParameters.Has("interval"))
         mThisParameters.SetValue("interval", to_validate_parameters["interval"]);
     else
@@ -92,7 +85,7 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignNodalElementsToNodes::Execute()
+void AssignNodalElementsToNodesProcess::Execute()
 {
     // We execute the different steps of the process
     ExecuteInitialize();
@@ -102,7 +95,7 @@ void AssignNodalElementsToNodes::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignNodalElementsToNodes::ExecuteInitialize()
+void AssignNodalElementsToNodesProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
@@ -191,7 +184,9 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
 
     // We get the reference element
     const bool rayleigh_damping = mThisParameters["rayleigh_damping"].GetBool();
-    const bool assign_active_flag_node = mThisParameters["assign_active_flag_node"].GetBool();
+    if (rayleigh_damping) {
+        p_properties->SetValue(CONSIDER_RAYLEIGH_DAMPING, true);
+    }
     PointerVector<NodeType> aux_node_array(1);
     const auto it_node_begin = r_model_part.NodesBegin();
     aux_node_array(0) = *(it_node_begin).base();
@@ -200,7 +195,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
     std::vector<Element::Pointer> auxiliar_elements_vector;
 
     GeometryType::Pointer p_dummy_geom = GetPointGeometryFromNode(aux_node_array, domain_size);
-    const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node);
+    const Element& r_reference_element = NodalConcentratedElement(0, p_dummy_geom);
 
     #pragma omp parallel
     {
@@ -214,7 +209,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
             PointerVector<NodeType> this_node_array(1);
             this_node_array(0) = *(it_node).base();
 
-            auto p_element = rReferenceElement.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
+            auto p_element = r_reference_element.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
             auxiliar_elements_vector_buffer.push_back(p_element);
 
             // Deep copy elemental data and flags
@@ -246,7 +241,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignNodalElementsToNodes::ExecuteInitializeSolutionStep()
+void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
@@ -287,7 +282,7 @@ void AssignNodalElementsToNodes::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignNodalElementsToNodes::InitializeElements(ModelPart& rModelPart)
+void AssignNodalElementsToNodesProcess::InitializeElements(ModelPart& rModelPart)
 {
     ElementsArrayType& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
@@ -302,7 +297,7 @@ void AssignNodalElementsToNodes::InitializeElements(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-AssignNodalElementsToNodes::GeometryType::Pointer AssignNodalElementsToNodes::GetPointGeometryFromNode(
+AssignNodalElementsToNodesProcess::GeometryType::Pointer AssignNodalElementsToNodesProcess::GetPointGeometryFromNode(
     PointerVector<NodeType>& rArrayNodes,
     const SizeType Dimension
     )
@@ -316,5 +311,5 @@ AssignNodalElementsToNodes::GeometryType::Pointer AssignNodalElementsToNodes::Ge
     return nullptr;
 }
 
-// class AssignNodalElementsToNodes
+// class AssignNodalElementsToNodesProcess
 } // namespace Kratos
