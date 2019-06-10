@@ -23,8 +23,6 @@
 #include "linear_solvers/linear_solver.h"
 
 //Processes
-
-#include "custom_utilities/vtk_output.hpp"
 #include "custom_utilities/quadtree_binary_cell.h"
 #include "custom_utilities/quadtree_binary.h"
 //#include "custom_utilities/multipoint_constraint_data.hpp"
@@ -32,6 +30,7 @@
 #include "custom_utilities/interpolation_utility.h"
 #include "custom_utilities/fractional_step_settings_for_chimera.h"
 #include "custom_utilities/periodic_condition_utilities_for_chimera.h"
+#include "custom_utilities/hole_cutting_utility.h"
 
 
 namespace Kratos
