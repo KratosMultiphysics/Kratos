@@ -19,7 +19,8 @@
 
 namespace Kratos
 {
-double TrescaFrictionalLaw::GetThresholdValue(
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+double TrescaFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetThresholdValue(
     const NodeType& rNode,
     const Condition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
@@ -36,6 +37,35 @@ double TrescaFrictionalLaw::GetThresholdValue(
 
     return 0.0;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+double TrescaFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDerivativeThresholdValue(
+    const NodeType& rNode,
+    const Condition& rCondition,
+    const ProcessInfo& rCurrentProcessInfo,
+    const DerivativeDataType& pDerivativeDatabase,
+    const IndexType IndexDerivative
+    )
+{
+    return 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class TrescaFrictionalLaw<2, 2, false, 2>;
+template class TrescaFrictionalLaw<3, 3, false, 3>;
+template class TrescaFrictionalLaw<3, 4, false, 4>;
+template class TrescaFrictionalLaw<3, 3, false, 4>;
+template class TrescaFrictionalLaw<3, 4, false, 3>;
+template class TrescaFrictionalLaw<2, 2, true,  2>;
+template class TrescaFrictionalLaw<3, 3, true,  3>;
+template class TrescaFrictionalLaw<3, 4, true,  4>;
+template class TrescaFrictionalLaw<3, 3, true,  4>;
+template class TrescaFrictionalLaw<3, 4, true,  3>;
 
 }  // namespace Kratos.
 

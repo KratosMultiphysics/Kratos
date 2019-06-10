@@ -46,9 +46,15 @@ namespace Kratos
  * @brief This class defines the Coulomb frictional laws
  * @details This class defines the most typical friction model
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TFrictional If we are solving a frictional or frictionless problem
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CoulombFrictionalLaw
-    : public FrictionalLaw
+    : public FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>
 {
 public:
 
@@ -56,7 +62,10 @@ public:
     ///@{
 
     /// Base class definition
-    typedef FrictionalLaw BaseType;
+    typedef FrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster> BaseType;
+
+    /// Definition of the derivative data
+    typedef typename BaseType::DerivativeDataType DerivativeDataType;
 
     /// Node definition
     typedef Node<3> NodeType;
@@ -113,7 +122,21 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    // TODO: Add derivatives
+    /**
+     * @brief This method computes the threshold derivative value considered for computing friction
+     * @param rNode The node where the threshold derivative value is obtained
+     * @param rCondition The condition where the friction is computed
+     * @param rCurrentProcessInfo The current instance of the process info
+     * @param pDerivativeDatabase The pointer derivative database
+     * @param IndexDerivative The derivative index
+     */
+    double GetDerivativeThresholdValue(
+        const NodeType& rNode,
+        const Condition& rCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const DerivativeDataType& pDerivativeDatabase,
+        const IndexType IndexDerivative
+        ) override;
 
     ///@}
     ///@name Access

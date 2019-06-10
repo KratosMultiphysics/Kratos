@@ -20,6 +20,7 @@
 #include "includes/node.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/mortar_classes.h"
 
 namespace Kratos
 {
@@ -48,7 +49,13 @@ namespace Kratos
  * @brief This class defines the base class for frictional laws
  * @details This class does nothing, define derived frictional laws in order to make use of it
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TFrictional If we are solving a frictional or frictionless problem
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FrictionalLaw
 {
 public:
@@ -64,6 +71,9 @@ public:
 
     /// Size type definition
     typedef std::size_t SizeType;
+
+    /// Definition of the derivative data
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
 
     /// Zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -124,7 +134,21 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         );
 
-    // TODO: Add derivatives
+    /**
+     * @brief This method computes the threshold derivative value considered for computing friction
+     * @param rNode The node where the threshold derivative value is obtained
+     * @param rCondition The condition where the friction is computed
+     * @param rCurrentProcessInfo The current instance of the process info
+     * @param pDerivativeDatabase The pointer derivative database
+     * @param IndexDerivative The derivative index
+     */
+    virtual double GetDerivativeThresholdValue(
+        const NodeType& rNode,
+        const Condition& rCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const DerivativeDataType& pDerivativeDatabase,
+        const IndexType IndexDerivative
+        );
 
     ///@}
     ///@name Access
