@@ -120,6 +120,7 @@ public:
      * @param rCondition The condition where the friction is computed
      * @param rCurrentProcessInfo The current instance of the process info
      * @param rDerivativeData The reference to the derivative database
+     * @param rMortarConditionMatrices The container of the mortar operators
      * @param IndexDerivative The derivative index
      * @param IndexNode The corresponding node index on the condition geometry
      */
