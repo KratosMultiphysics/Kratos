@@ -14,8 +14,6 @@
 #define KRATOS_CUSTOM_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 #include <algorithm>
 #include <unordered_map>
 #include "omp.h"
@@ -27,9 +25,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "containers/model.h"
-#include "geometries/geometry_data.h"
 #include "includes/variables.h"
-#include "utilities/math_utils.h"
 #include "includes/linear_master_slave_constraint.h"
 
 // Application includes
@@ -70,7 +66,6 @@ public:
     ///@}
     ///@name Pointer Definitions
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
-    typedef typename BinBasedFastPointLocator<TDim>::Pointer BinBasedPointLocatorPointerType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef std::size_t IndexType;
     typedef Kratos::Variable<double> VariableType;
@@ -78,6 +73,13 @@ public:
     typedef typename ModelPart::MasterSlaveConstraintType MasterSlaveConstraintType;
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
+
+    typedef BinBasedFastPointLocator<TDim> PointLocatorType;
+    typedef CustomCalculateSignedDistanceProcess<TDim> DistanceCalculatorType;
+    typedef ChimeraHoleCuttingUtility HoleCuttingUtilityType;
+
+    typedef typename PointLocatorType::Pointer PointLocatorPointerType;
+
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessMonolithic);
 
     ///@}
@@ -132,36 +134,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     ChimeraHoleCuttingUtility::Pointer mpHoleCuttingUtility;
     typename CustomCalculateSignedDistanceProcess<TDim>::Pointer mpCalculateDistanceProcess;
     ModelPart &mrMainModelPart;
@@ -176,12 +148,13 @@ private:
     std::string m_domain_boundary_model_part_name;
     std::string m_patch_inside_boundary_model_part_name;
     std::string m_patch_model_part_name;
+
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
 
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
 
     /**
@@ -207,7 +180,7 @@ private:
      * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
      * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes on rBoundaryModelPart.
      */
-    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator);
+    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator);
 
     /**
      * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)
@@ -266,12 +239,43 @@ private:
      * @param rConstraintIdVector The vector of the constraints Ids which is accessed with StartIndex.
      * @param rMsContainer The Constraint container to which the contraints are added.
      */
-    void ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
+    virtual void ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
                                     Node<3> &rBoundaryNode,
                                     Vector &rShapeFuncWeights,
                                     unsigned int StartIndex,
                                     std::vector<int> &rConstraintIdVector,
                                     MasterSlaveConstraintContainerType &rMsContainer);
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     ///@}
     ///@name Private  Access

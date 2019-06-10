@@ -141,9 +141,9 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
     ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
     ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
-    BinBasedPointLocatorPointerType p_point_locator_on_background = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_background_model_part));
+    PointLocatorPointerType p_point_locator_on_background = PointLocatorPointerType(new PointLocatorType(r_background_model_part));
     p_point_locator_on_background->UpdateSearchDatabase();
-    BinBasedPointLocatorPointerType p_pointer_locator_on_patch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(r_patch_model_part));
+    PointLocatorPointerType p_pointer_locator_on_patch = PointLocatorPointerType(new PointLocatorType(r_patch_model_part));
     p_pointer_locator_on_patch->UpdateSearchDatabase();
 
     const double eps = 1e-12;
@@ -214,7 +214,7 @@ void ApplyChimeraProcessMonolithic<TDim>::CreateConstraintIds(std::vector<int> &
 }
 
 template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator)
+void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator)
 {
     //loop over nodes and find the triangle in which it falls, then do interpolation
     MasterSlaveContainerVectorType master_slave_container_vector;
@@ -251,7 +251,7 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
     {
 
         Vector shape_fun_weights;
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+        typename PointLocatorType::ResultContainerType results(max_results);
         auto &ms_container = master_slave_container_vector[omp_get_thread_num()]; //TODO: change this to out of loop.
 
         ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
@@ -262,7 +262,7 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
         if ((p_boundary_node)->IsDefined(VISITED))
             node_coupled = (p_boundary_node)->Is(VISITED);
 
-        typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+        typename PointLocatorType::ResultIteratorType result_begin = results.begin();
         Element::Pointer p_element;
         bool is_found = false;
         is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
@@ -405,3 +405,4 @@ template class ApplyChimeraProcessMonolithic<2>;
 template class ApplyChimeraProcessMonolithic<3>;
 
 } // namespace Kratos.
+
