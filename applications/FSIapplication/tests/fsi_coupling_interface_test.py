@@ -1,11 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 import os
-import sys
 from KratosMultiphysics.FSIApplication import fsi_coupling_interface
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
@@ -29,7 +26,6 @@ class FSICouplingInterfaceTest(UnitTest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         # Import model part from mdpa file.
-        problem_path = os.getcwd()
         input_filename = 'FSIProblemEmulatorTest/test_FSI_emulator_Structural'
         KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
 
