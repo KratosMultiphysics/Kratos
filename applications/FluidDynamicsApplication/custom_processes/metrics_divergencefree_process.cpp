@@ -80,7 +80,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     mMeanStrategyReferenceNorm = ThisParameters["mean_distribution_strategy"]["reference_norm_name"].GetString();
     mMeanStrategyTargetRefinementCoefficient = ThisParameters["mean_distribution_strategy"]["target_refinement_coefficient"].GetDouble();
     mMeanStrategyRefinementBound = ThisParameters["mean_distribution_strategy"]["refinement_bound"].GetDouble();
-    mMeanStrategyDivergenceFreeInterpolationValue = -1;
+    mMeanStrategyDivergenceFreeOverAllDomain = 0;
 
     // Maximum strategy
     mMaxStrategyReferenceVariable = ThisParameters["maximum_strategy"]["reference_variable_name"].GetString();
@@ -149,41 +149,10 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
 
     // Mean distribution strategy
     else if (mRefinementStrategy == "mean_distribution_strategy") {
-        // // Find of neighbours
-        // {
-        //     FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
-        //     if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-        //     find_neighbours.Execute();
-        // }
-
-        // // Iteration over nodes
-        // const int number_nodes = static_cast<int>(nodes_array.size());
-
-        // mMeanStrategyDivergenceFreeInterpolationValue = -1;
-        // const auto& r_reference_var  = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
-        // for(int i_node = 0; i_node < number_nodes; ++i_node) {
-        //     auto it_node = nodes_array.begin() + i_node;
-
-        //     // Initialize Divergence
-        //     double divergencefree_interp_value = 0;
-        //     double local_volume = 0;
-
-        //     // Get divergence value on the node: cycle the neigh elements and take sum of DIVERGENCE value
-        //     auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-        //     for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
-        //         divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetGeometry().Area();
-        //         local_volume += i_neighbour_elements->GetGeometry().Area();
-        //     }
-        //     divergencefree_interp_value /= local_volume;
-        //     if (divergencefree_interp_value > mMeanStrategyDivergenceFreeInterpolationValue) {
-        //         mMeanStrategyDivergenceFreeInterpolationValue = divergencefree_interp_value;
-        //     }
-        // }
 
         // Reference variable
         const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
-        // Divergence over full domain
-        double mMeanStrategyDivergenceFreeOverAllDomain = 0;
+        
         // Loop over elements for computing divergence value over the whole domain
         const int number_elements = static_cast<int>(elements_array.size());
         for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
@@ -300,8 +269,8 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
 
             // Set element size
             double element_size;
-            double factor = mMeanStrategyTargetRefinementCoefficient*mMeanStrategyDivergenceFreeOverAllDomain/sqrt(number_elements)/divergencefree_interp_value;
-
+            double factor = mMeanStrategyTargetRefinementCoefficient*mMeanStrategyDivergenceFreeOverAllDomain/std::sqrt(number_elements)/divergencefree_interp_value;
+    
             if (factor < 1.0/mMeanStrategyRefinementBound) factor = 1.0/mMeanStrategyRefinementBound;
             if (factor > mMeanStrategyRefinementBound) factor = mMeanStrategyRefinementBound;
             element_size = factor*nodal_h;

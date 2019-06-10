@@ -210,7 +210,6 @@ private:
     std::string mMeanStrategyReferenceNorm;
     double mMeanStrategyTargetRefinementCoefficient;
     double mMeanStrategyRefinementBound;
-    double mMeanStrategyDivergenceFreeInterpolationValue;
     double mMeanStrategyDivergenceFreeOverAllDomain;
 
     // Maximum strategy
