@@ -101,7 +101,7 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
         BoundedMatrix<double, TNumNodesMaster, TDim> Deltax2 = ZeroMatrix(TNumNodesMaster, TDim);
 
         // Update matrix delta coordinates
-        if (derivative_node_index > (TNumNodes - 1)) {
+        if (derivative_node_index < TNumNodes) {
             Deltax1(derivative_node_index, derivative_dimension_index) = 1.0;
         } else {
             Deltax2(derivative_node_index - TNumNodes, derivative_dimension_index) = 1.0;
@@ -122,7 +122,7 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
         delta_weighted_gap += inner_prod(aux_array, - aux_normal);
 
         // Delta normal contribution
-        if (TNormalVariation && (derivative_node_index > (TNumNodes - 1))) {
+        if (TNormalVariation && (derivative_node_index < TNumNodes)) {
             const auto& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave[IndexDerivative];
             noalias(aux_normal) = row(DeltaNormalSlave, IndexNode);
             const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(MOperator, x1) - prod(DOperator, x2);
