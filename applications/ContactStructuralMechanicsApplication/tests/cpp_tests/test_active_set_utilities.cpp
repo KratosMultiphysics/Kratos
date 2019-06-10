@@ -138,9 +138,9 @@ namespace Kratos
             KRATOS_CHECK(p_node1->Is(ACTIVE));
             KRATOS_CHECK(p_node1->Is(SLIP));
             KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-            KRATOS_CHECK(p_node2->Is(SLIP));
+            KRATOS_CHECK(!p_node2->IsDefined(SLIP));
             KRATOS_CHECK(p_node3->IsNot(ACTIVE));
-            KRATOS_CHECK(p_node3->Is(SLIP));
+            KRATOS_CHECK(!p_node3->IsDefined(SLIP));
         }
 
         /**
@@ -327,7 +327,7 @@ namespace Kratos
             KRATOS_CHECK(p_node1->Is(ACTIVE));
             KRATOS_CHECK(p_node1->Is(SLIP));
             KRATOS_CHECK(p_node2->IsNot(ACTIVE));
-            KRATOS_CHECK(p_node2->Is(SLIP));
+            KRATOS_CHECK(!p_node2->IsDefined(SLIP));
             KRATOS_CHECK(p_node3->Is(ACTIVE));
             KRATOS_CHECK(p_node3->Is(SLIP));
         }
