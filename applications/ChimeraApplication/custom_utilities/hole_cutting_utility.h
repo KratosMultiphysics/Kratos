@@ -13,10 +13,8 @@
 #define KRATOS_CUSTOM_HOLE_CUTTING_PROCESS_H_INCLUDED
 
 // System includes
-// Please put system includes in custom_hole_cutting_process.h
 
 // External includes
-// Please put external includes in custom_hole_cutting_process.h
 
 // Project includes
 
@@ -24,29 +22,17 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include "math.h"
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
-#include "includes/node.h"
-#include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "containers/model.h"
 // Application includes
-#include "processes/process.h"
-#include "processes/find_nodal_neighbours_process.h"      // To find node neighbours using elements
-#include "processes/find_conditions_neighbours_process.h" // To find node neighbours using conditions
 #include "processes/node_erase_process.h"                 // To delete empty nodes
-#include "utilities/normal_calculation_utils.h"           // To calculate element's normal
 #include "geometries/triangle_3d_3.h"                     // Skin face geometry template
 #include "geometries/line_2d_2.h"
-
-#include "custom_utilities/vtk_output.hpp"
 
 namespace Kratos
 {
@@ -72,7 +58,7 @@ namespace Kratos
 
 /// Short class definition.
 
-class CustomHoleCuttingProcess
+class ChimeraHoleCuttingUtility
 {
 public:
     // Needed structures for the ExtractSurfaceMesh operation
@@ -114,19 +100,19 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of CustomHoleCuttingProcess
-    KRATOS_CLASS_POINTER_DEFINITION(CustomHoleCuttingProcess);
+    /// Pointer definition of ChimeraHoleCuttingUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ChimeraHoleCuttingUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    CustomHoleCuttingProcess()
+    ChimeraHoleCuttingUtility()
     {
     }
 
     /// Destructor.
-    virtual ~CustomHoleCuttingProcess()
+    virtual ~ChimeraHoleCuttingUtility()
     {
     }
 
@@ -424,13 +410,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "CustomHoleCuttingProcess";
+        return "ChimeraHoleCuttingUtility";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << "CustomHoleCuttingProcess";
+        rOStream << "ChimeraHoleCuttingUtility";
     }
 
     /// Print object's data.
@@ -503,14 +489,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    CustomHoleCuttingProcess &operator=(CustomHoleCuttingProcess const &rOther);
+    ChimeraHoleCuttingUtility &operator=(ChimeraHoleCuttingUtility const &rOther);
 
     /// Copy constructor.
-    CustomHoleCuttingProcess(CustomHoleCuttingProcess const& rOther);
+    ChimeraHoleCuttingUtility(ChimeraHoleCuttingUtility const& rOther);
 
     ///@}
 
-}; // Class CustomHoleCuttingProcess
+}; // Class ChimeraHoleCuttingUtility
 
 } // namespace Kratos.
 

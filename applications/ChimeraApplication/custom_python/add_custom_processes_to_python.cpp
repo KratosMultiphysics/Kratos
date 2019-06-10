@@ -19,7 +19,6 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
-#include "custom_processes/custom_hole_cutting_process.h"
 #include "custom_processes/apply_chimera_process_monolithic.h"
 //#include "custom_processes/apply_chimera_process_FractionalStep.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
