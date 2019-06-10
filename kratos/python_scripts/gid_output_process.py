@@ -141,7 +141,8 @@ class GiDOutputProcess(KM.Process):
 
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
-            self.cut_model_part = ModelPart("CutPart")
+            model = self.model_part.GetModel()
+            self.cut_model_part = model.CreateModelPart("CutPart")
             self.cut_manager = self._CreateCuttingUtility()
             self._initialize_cut_output(plane_output_configuration)
 

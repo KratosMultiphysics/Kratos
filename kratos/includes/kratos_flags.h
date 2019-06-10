@@ -110,13 +110,8 @@ KRATOS_CREATE_FLAG(PERIODIC,        34);
 //          KRATOS_DEFINE_FLAG(,31);
 //          KRATOS_DEFINE_FLAG(,30);
 
-
-
-
-
-
-
-
+const Flags ALL_DEFINED(Flags::AllDefined());
+const Flags ALL_TRUE(Flags::AllTrue());
 
   ///@}
   ///@name Type Definitions

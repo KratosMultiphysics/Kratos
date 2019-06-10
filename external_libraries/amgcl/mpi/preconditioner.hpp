@@ -236,7 +236,6 @@ class preconditioner {
 
                         return os << *static_cast<Precond*>(p.handle);
                     }
-                    break;
                 case precond_class::relaxation:
                     {
                         typedef
@@ -247,7 +246,6 @@ class preconditioner {
 
                         return os << *static_cast<Precond*>(p.handle);
                     }
-                    break;
                 default:
                     throw std::invalid_argument("Unsupported preconditioner class");
             }

@@ -99,10 +99,10 @@ public:
     typedef std::size_t SizeType;
 
     // The vector containing the weak pointers to the nodes
-    typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
+    typedef GlobalPointersVector<NodeType> WeakPointerVectorNodesType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
-    KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidShellElementSprism3D6N);
 
     ///@}
     ///@name Enums
@@ -290,23 +290,6 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-     /**
-      * @brief This function provides a more general interface to the element.
-      * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-      * thus telling what is the desired output
-      * @param rLHSVariables paramter describing the expected LHSs
-      * @param rRightHandSideVectors container for the desired RHS output
-      * @param rRHSVariables parameter describing the expected RHSs
-      */
-
-     void CalculateLocalSystem(
-        std::vector< MatrixType >& rLeftHandSideMatrices,
-        const std::vector< Variable< MatrixType > >& rLHSVariables,
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -967,14 +950,14 @@ protected:
      * @param pNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(const WeakPointerVector< NodeType >& pNeighbourNodes) const;
+    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector< NodeType >& pNeighbourNodes) const;
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(
         BoundedMatrix<double, 12, 3 >& NodesCoord,
-        const WeakPointerVector< NodeType >& pNeighbourNodes,
+        const GlobalPointersVector< NodeType >& pNeighbourNodes,
         const Configuration ThisConfiguration
         ) const;
 

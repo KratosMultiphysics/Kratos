@@ -20,6 +20,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -111,7 +112,7 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -122,7 +123,7 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
 }
 
 /*********************************** CLONE ******************************************/
@@ -152,7 +153,7 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
     for(IndexType i = 0; i < mAuxContainer.size(); ++i)
         new_element.mAuxContainer[i] = mAuxContainer[i];
 
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(new_element);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(new_element);
 }
 
 //******************************* GETTING METHODS *********************************//
@@ -464,62 +465,6 @@ void SolidShellElementSprism3D6N::CalculateLocalSystem(
     /* Set general_variables to Local system components */
     local_system.SetLeftHandSideMatrix(rLeftHandSideMatrix);
     local_system.SetRightHandSideVector(rRightHandSideVector);
-
-    /* Calculate elemental system */
-    CalculateElementalSystem( local_system, rCurrentProcessInfo );
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::CalculateLocalSystem(
-    std::vector< MatrixType >& rLeftHandSideMatrices,
-    const std::vector< Variable< MatrixType > >& rLHSVariables,
-    std::vector< VectorType >& rRightHandSideVectors,
-    const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    /* Create local system components */
-    LocalSystemComponents local_system;
-
-    /* Calculation flags*/
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    /* Initialize sizes for the system components: */
-    if( rLHSVariables.size() != rLeftHandSideMatrices.size() ) {
-        rLeftHandSideMatrices.resize(rLHSVariables.size());
-    }
-
-    if( rRHSVariables.size() != rRightHandSideVectors.size() ) {
-        rRightHandSideVectors.resize(rRHSVariables.size());
-    }
-
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX);
-    for( IndexType i = 0; i < rLeftHandSideMatrices.size(); ++i ) {
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], local_system.CalculationFlags );
-    }
-
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR, true);
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX, false);
-
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], local_system.CalculationFlags );
-    }
-
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX, true);
-
-    /* Set general_variables to Local system components */
-    local_system.SetLeftHandSideMatrices(rLeftHandSideMatrices);
-    local_system.SetRightHandSideVectors(rRightHandSideVectors);
-
-    local_system.SetLeftHandSideVariables(rLHSVariables);
-    local_system.SetRightHandSideVariables(rRHSVariables);
 
     /* Calculate elemental system */
     CalculateElementalSystem( local_system, rCurrentProcessInfo );
@@ -1478,7 +1423,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     /* Check the neighbours have been calculated */
     // Neighbour elements
-    const WeakPointerVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const GlobalPointersVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
 
     // Neighbour nodes
@@ -2601,7 +2546,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 
     /* Compute inverse of the Jaccobian */
     double detJ;
-    Jinv = MathUtils<double>::InvertMatrix<3>(J, detJ);
+    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 }
 
 /***********************************************************************************/
@@ -2623,7 +2568,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 
     /* Compute inverse of the Jaccobian */
     double detJ;
-    Jinv = MathUtils<double>::InvertMatrix<3>(J, detJ);
+    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 }
 
 /***********************************************************************************/
@@ -2740,7 +2685,8 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
 
     /* Compute the inverse of the Jacobian */
     double aux_det;
-    const BoundedMatrix<double, 2, 2 > JinvPlane = MathUtils<double>::InvertMatrix<2>(jac, aux_det);
+    BoundedMatrix<double, 2, 2 > JinvPlane;
+    MathUtils<double>::InvertMatrix(jac, JinvPlane, aux_det);
 
     /* Compute the Cartesian derivatives */
     noalias(InPlaneCartesianDerivativesGauss) = prod(JinvPlane, trans(local_derivative_patch));
@@ -3993,12 +3939,12 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
 
     // Decompose matrix C_bar
-    MathUtils<double>::EigenSystem<3>(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+    MathUtils<double>::GaussSeidelEigenSystem(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
 
     for (IndexType i = 0; i < 3; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
 
-    const Matrix U_bar = prod( eigen_values_matrix, eigen_vector_matrix );
+    const Matrix U_bar = prod( eigen_values_matrix, trans(eigen_vector_matrix));
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);

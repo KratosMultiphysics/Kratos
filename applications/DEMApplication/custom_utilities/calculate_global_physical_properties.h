@@ -93,7 +93,7 @@ class SphericElementGlobalPhysicsCalculator
             KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
           }
 
-        Vector max_values;
+        std::vector<double> max_values;
         double max_val = - std::numeric_limits<double>::max();
         max_values.resize(OpenMPUtils::GetNumThreads());
 
@@ -143,7 +143,7 @@ class SphericElementGlobalPhysicsCalculator
             KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", r_variable);
           }
 
-        Vector min_values;
+        std::vector<double> min_values;
         double min_val = std::numeric_limits<double>::max();
         min_values.resize(OpenMPUtils::GetNumThreads());
 
@@ -184,7 +184,7 @@ class SphericElementGlobalPhysicsCalculator
           const unsigned int size = r_model_part.GetCommunicator().LocalMesh().Elements().size();
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), size, mElementsPartition);
 
-          Vector radii;
+          std::vector<double> radii;
           radii.resize(size);
           unsigned int particle_counter = 0;
 
@@ -566,7 +566,7 @@ class SphericElementGlobalPhysicsCalculator
         ///@name Friends
         ///@{
 
-        DenseVector<unsigned int>& GetElementPartition()
+        std::vector<unsigned int>& GetElementPartition()
         {
           return (mElementsPartition);
         }
@@ -608,7 +608,7 @@ class SphericElementGlobalPhysicsCalculator
         ///@}
         ///@name Protected  Access
         ///@{
-        DenseVector<unsigned int> mElementsPartition;
+        std::vector<unsigned int> mElementsPartition;
 
         ///@}
         ///@name Protected Inquiry

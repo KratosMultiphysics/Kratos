@@ -33,6 +33,8 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <array>
 #include <string>
 #include <set>
 #include <complex>
@@ -58,10 +60,12 @@ THE SOFTWARE.
  * If AMGCL_PROFILING is undefined, then AMGCL_TIC and AMGCL_TOC are noop macros.
  */
 #ifdef AMGCL_PROFILING
-#  include <amgcl/profiler.hpp>
-#  define AMGCL_TIC(name) amgcl::prof.tic(name);
-#  define AMGCL_TOC(name) amgcl::prof.toc(name);
+#  if !defined(AMGCL_TIC) || !defined(AMGCL_TOC)
+#    include <amgcl/profiler.hpp>
+#    define AMGCL_TIC(name) amgcl::prof.tic(name);
+#    define AMGCL_TOC(name) amgcl::prof.toc(name);
 namespace amgcl { extern profiler<> prof; }
+#  endif
 #else
 #  ifndef AMGCL_TIC
 #    define AMGCL_TIC(name)

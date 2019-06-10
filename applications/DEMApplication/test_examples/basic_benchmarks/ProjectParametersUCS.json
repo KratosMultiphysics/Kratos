@@ -19,6 +19,11 @@
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : false,
+"solver_settings" :{
+    "strategy"                 : "continuum_sphere_strategy",
+    "RemoveBallsInitiallyTouchingWalls": false
+},
+
 "DeltaOption"                      : "Absolute",
 "SearchTolerance"                  : 0.01,
 "CoordinationNumber"               : 10,

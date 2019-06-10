@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","FluidTransportApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
@@ -78,7 +75,10 @@ class FluidTransportSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.PHI_THETA) # Phi variable refering to the n+theta step
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.NODAL_PHI_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.NODAL_ANALYTIC_SOLUTION)
 
         print("Variables correctly added")
 
@@ -165,6 +165,10 @@ class FluidTransportSolver(PythonSolver):
 
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
+        # Calculate Nodal Area
+        self.nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size)
+        self.nodal_area_process.Execute()
+        
         # KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
         # Check if everything is assigned correctly
@@ -260,12 +264,12 @@ class FluidTransportSolver(PythonSolver):
             "residual_absolute_tolerance":        1.0E-9,
             "max_iteration":                      15,
             "linear_solver_settings":             {
-                "solver_type":   "SuperLUSolver",
+                "solver_type":   "ExternalSolversApplication.super_lu",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "ilu0",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"

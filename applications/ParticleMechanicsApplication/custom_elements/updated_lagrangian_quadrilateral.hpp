@@ -66,7 +66,7 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianQuadrilateral );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianQuadrilateral );
     ///@}
 
 protected:
@@ -118,7 +118,6 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
-        Matrix PreviousDisp;
 
         /**
          * sets the value of a specified pointer variable

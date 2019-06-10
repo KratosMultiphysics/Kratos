@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -212,10 +213,26 @@ class GenericConstitutiveLawIntegratorDamage
     static int Check(const Properties& rMaterialProperties)
     {
         KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
-
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
-
         return TYieldSurfaceType::Check(rMaterialProperties);
+    }
+
+    /**
+     * @brief This method returns the derivative of the yield surface
+     * @param rStressVector The stress vector
+     * @param rFlux The derivative of the yield surface
+     */
+    static void CalculateYieldSurfaceDerivative(
+        const array_1d<double, VoigtSize>& rStressVector,
+        array_1d<double, VoigtSize>& rFlux,
+        ConstitutiveLaw::Parameters& rValues
+    )
+    {
+        array_1d<double, VoigtSize> deviator = ZeroVector(6);
+        double J2;
+        const double I1 = rStressVector[0] + rStressVector[1] + rStressVector[2];
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+        YieldSurfaceType::CalculateYieldSurfaceDerivative(rStressVector, deviator, J2, rFlux, rValues);
     }
 
     ///@}

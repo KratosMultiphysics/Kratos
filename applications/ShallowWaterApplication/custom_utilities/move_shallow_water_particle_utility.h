@@ -11,8 +11,8 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
-#define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#ifndef KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#define KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
 ///@defgroup MoveShallowWaterParticleUtility
 ///@brief Utility to move particles on the eulerian mesh with an
@@ -38,6 +38,7 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
+#include "includes/global_pointer_variables.h"
 #include "processes/node_erase_process.h"
 
 #include "utilities/geometry_utilities.h"
@@ -56,7 +57,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"
@@ -122,7 +123,7 @@ public:
         int node_id=0;
         // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -139,10 +140,10 @@ public:
                 array_1d<double,3> position_node;
                 double distance=0.0;
                 position_node = pnode->Coordinates();
-                WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
                 const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
@@ -159,7 +160,7 @@ public:
 
         //we also calculate the element mean size in the same way, for the courant number
         //also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
 
         //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
@@ -324,7 +325,7 @@ public:
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -369,7 +370,7 @@ public:
         component_type vector_var_z = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Z"));
 
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -417,7 +418,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -447,7 +448,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -476,7 +477,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -531,7 +532,7 @@ public:
         mMaxSubSteps = 10;
         mMaxSubStepDt = delta_t / static_cast<double>(mMaxSubSteps);
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -567,7 +568,7 @@ public:
         {
             ResultContainerType results(max_results);
 
-            WeakPointerVector< Element > elements_in_trajectory;
+            GlobalPointersVector< Element > elements_in_trajectory;
             elements_in_trajectory.resize(20);
 
             for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -575,14 +576,14 @@ public:
                 ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
                 const int old_element_id = old_element->Id();
 
-                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors(old_element_id-1);
+                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
 
                 if ( (results.size()) != max_results )
                     results.resize(max_results);
 
                 unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
 
-                for(int ii=0; ii<(mNumOfParticlesInElemsAux(ielem)); ii++)
+                for (int ii = 0; ii < mNumOfParticlesInElemsAux[ielem]; ii++)
                 {
                     ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
 
@@ -594,11 +595,11 @@ public:
 
                         const int current_element_id = pcurrent_element->Id();
 
-                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems(current_element_id-1);
+                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems[current_element_id-1];
 
                         if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false)
                         {
-                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors(current_element_id-1);
+                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors[current_element_id-1];
 
                             #pragma omp critical
                             {
@@ -663,7 +664,7 @@ public:
         // after having saved data, we reset them to zero, this way it's easier to add the contribution
         // of the surrounding particles.
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -684,7 +685,7 @@ public:
         }
 
         // Adding contribution, loop on elements, since each element has stored the particles found inside of it
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
@@ -814,7 +815,7 @@ public:
                                     //(flag managed only by MoveParticles)
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -856,25 +857,6 @@ public:
     }
 
 
-    /// AddUniqueWeakPointer
-    template< class TDataType >
-    void AddUniqueWeakPointer
-        (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
-    {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-            i++;
-        }
-        if( i == endit )
-        {
-            v.push_back(candidate);
-        }
-
-    }
-
-
     /// Fill an element with particles
     /** This function is to be executed after moving particles and
      * before tranferring data from lagrangian particles to eulerian mesh
@@ -898,7 +880,7 @@ public:
 
         //tools for the paralelization
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> elem_partition;
+        std::vector<unsigned int> elem_partition;
         int number_of_rows = mrModelPart.Elements().size();
         elem_partition.resize(number_of_threads + 1);
         int elem_partition_size = number_of_rows / number_of_threads;
@@ -1010,9 +992,8 @@ public:
         const int offset = mOffset;
 
         //TOOLS FOR THE PARALELIZATION
-        //int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> elem_partition;
+        std::vector<unsigned int> elem_partition;
         int number_of_rows=mrModelPart.Elements().size();
         //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
         elem_partition.resize(number_of_threads + 1);
@@ -1022,12 +1003,7 @@ public:
 
         for (unsigned int i = 1; i < number_of_threads; i++)
         elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
-        //typedef Node < 3 > PointType;
-        //std::vector<ModelPart::NodesContainerType> aux;// aux;
-        //aux.resize(number_of_threads);
 
-        //ModelPart::NodesContainerType::iterator it_begin_particle_model_part = mr_linea_model_part.NodesBegin();
-        //ModelPart::NodesContainerType::iterator it_end_particle_model_part = mr_linea_model_part.NodesEnd();
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
 
         #pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemple everything toghether, remaming particles ids to get consecutive ids
@@ -1210,7 +1186,7 @@ private:
      */
     void MoveParticle(ShallowParticle & pParticle,
                       Element::Pointer & pElement,
-                      WeakPointerVector< Element >& rElementsInTrajectory,
+                      GlobalPointersVector< Element >& rElementsInTrajectory,
                       unsigned int & rNumberOfElementsInTrajectory,
                       ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
@@ -1473,35 +1449,35 @@ private:
         }
 
         // To begin with we check the neighbour elements; it is a bit more expensive
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 return true;
             }
         }
 
         // If checking all the neighbour elements did not work, we have to use the bins
         // ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{rPosition}, ResultBegin, MaxNumberOfResults );
 
         if (results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found_3)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     return true;
                 }
             }
@@ -1536,7 +1512,7 @@ private:
     bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
                          array_1d<double,TDim+1>& N,
                          Element::Pointer & pElement,
-                         WeakPointerVector< Element >& rElementsInTrajectory,
+                         GlobalPointersVector< Element >& rElementsInTrajectory,
                          unsigned int & rNumberOfElementsInTrajectory,
                          unsigned int & rCheckFromElementNumber,
                          ResultIteratorType ResultBegin,
@@ -1561,7 +1537,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
-                pElement = Element::Pointer(((rElementsInTrajectory(i))));
+                pElement = rElementsInTrajectory[i].shared_from_this();
                 N = aux_N;
                 rCheckFromElementNumber = i+1 ; //now i element matches pElement, so to avoid cheching twice the same element we send the counter to the following element.
                 return true;
@@ -1569,14 +1545,14 @@ private:
         }
 
         // Now we check the neighbour elements:
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 if (rNumberOfElementsInTrajectory<20)
                 {
                     rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -1589,21 +1565,21 @@ private:
 
         // If checking all the neighbour elements did not work, we have to use the bins
         // ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{rPosition}, ResultBegin, MaxNumberOfResults );
 
         if(results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     if (rNumberOfElementsInTrajectory<20)
                     {
                         rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -2245,9 +2221,9 @@ private:
     bool mParticlePrintingToolInitialized;
     unsigned int mLastNodeId;
 
-    vector<int> mNumOfParticlesInElems;
-    vector<int> mNumOfParticlesInElemsAux;
-    vector<ParticlePointerVector> mVectorOfParticlePointersVectors;
+    DenseVector<int> mNumOfParticlesInElems;
+    DenseVector<int> mNumOfParticlesInElemsAux;
+    DenseVector<ParticlePointerVector> mVectorOfParticlePointersVectors;
 
     typename BinsObjectDynamic<Configure>::Pointer mpBinsObjectDynamic;
 

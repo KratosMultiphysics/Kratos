@@ -90,7 +90,7 @@ Begin Nodes
    82              40               0               0
 End Nodes
 
-Begin Conditions ShapeOptimizationCondition3D3N
+Begin Conditions SurfaceCondition3D3N
     1       1       2 4 1
     2       1       66 68 67
     3       1       35 33 34
@@ -256,7 +256,7 @@ Begin SubModelPart design_surface
         79
         80
         81
-        82    
+        82
     End SubModelPartNodes
     Begin SubModelPartConditions
          1
@@ -338,6 +338,6 @@ Begin SubModelPart design_surface
         77
         78
         79
-        80    
+        80
     End SubModelPartConditions
 End SubModelPart

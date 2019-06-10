@@ -391,11 +391,11 @@ public:
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
         {
             int index_i = i->Id() - 1;
-            WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
             Coord.push_back(index_i, index_i, -1);        //only modification added, now the diagonal is filled with -1 too.
 
             unsigned int active = 0;
-            for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
+            for (GlobalPointersVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
             {
                 int index_j = inode->Id() - 1;
                 if (index_j > index_i)

@@ -68,7 +68,7 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(TranslatoryRigidBodyEle
 
 Element::Pointer TranslatoryRigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<TranslatoryRigidBodyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<TranslatoryRigidBodyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -84,7 +84,7 @@ Element::Pointer TranslatoryRigidBodyElement::Clone(IndexType NewId, NodesArrayT
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared<TranslatoryRigidBodyElement>(NewElement);
+  return Kratos::make_intrusive<TranslatoryRigidBodyElement>(NewElement);
 
 }
 

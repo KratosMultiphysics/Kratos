@@ -23,7 +23,7 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
-
+#include "includes/global_pointer_variables.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
@@ -70,7 +70,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -164,7 +164,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
@@ -268,7 +268,7 @@ namespace Kratos {
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
             // Set the element properties
-            Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+            Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
             pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
             NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
@@ -372,7 +372,7 @@ namespace Kratos {
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
             // Set the element properties
-            Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+            Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
             pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
             NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
@@ -479,7 +479,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-03);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -608,7 +608,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -639,12 +639,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1).get()));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2).get()));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -785,7 +785,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 0.0001);
 			NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
@@ -830,16 +830,16 @@ namespace Kratos {
 			pCondition3->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
-			WeakPointerVector<Element> wpParent3;
-			wpParent3.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent3;
+			wpParent3.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);
@@ -1036,7 +1036,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -1068,12 +1068,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1191,7 +1191,7 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
         }
 
-        
+
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesDarcy3D4N, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
@@ -1219,7 +1219,7 @@ namespace Kratos {
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
             // Set the element properties
-            Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+            Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
             pElemProp->SetValue(LIN_DARCY_COEF, 1.0 / 4.339E-08);
             pElemProp->SetValue(NONLIN_DARCY_COEF, 1.0 / 5.086E-04);
@@ -1326,7 +1326,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -1362,12 +1362,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1509,7 +1509,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
 			NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
@@ -1554,16 +1554,16 @@ namespace Kratos {
 			pCondition3->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
-			WeakPointerVector<Element> wpParent3;
-			wpParent3.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent3;
+			wpParent3.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);

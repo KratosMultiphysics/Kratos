@@ -18,9 +18,6 @@
 
 
 // Project includes
-#include "geometries/triangle_2d_3.h"
-#include "geometries/line_2d.h"
-#include "geometries/point_2d.h"
 #include "multilevel_monte_carlo_application.h"
 #include "multilevel_monte_carlo_application_variables.h"
 

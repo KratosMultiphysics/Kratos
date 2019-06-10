@@ -6,11 +6,6 @@ from KratosMultiphysics import *
 import sys
 
 class TestModelPart(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def test_model_part_sub_model_parts(self):
         current_model = Model()
 
@@ -737,7 +732,6 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
 
-    @KratosUnittest.expectedFailure
     def test_no_constructor(self):
         with self.assertRaisesRegex(TypeError, "Kratos.ModelPart: No constructor defined!"):
             ModelPart()

@@ -43,9 +43,6 @@ PYBIND11_MODULE(KratosChimeraApplication, m)
 	AddCustomUtilitiesToPython(m);
 	AddCustomStrategiesToPython(m);
 
-	//registering variables in python
-	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CHIM_NEUMANN_COND )
-
 	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_WEAK )
 
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BOUNDARY_NODE);

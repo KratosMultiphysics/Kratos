@@ -147,6 +147,8 @@ void (GidIO<>::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& r
 	= &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag)
         = &GidIO<>::WriteNodalResultsNonHistorical;
+void (GidIO<>::*pointer_to_int_write_nodal_results_NH)( Variable<int> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag)
+        = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_array1d_write_nodal_results_NH)(Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_vector_write_nodal_results_NH)(Variable<Vector > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag)
         = &GidIO<>::WriteNodalResultsNonHistorical;
@@ -255,6 +257,7 @@ void  AddIOToPython(pybind11::module& m)
     .def("WriteNodalFlags",pointer_to_flags_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_bool_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_double_write_nodal_results_NH)
+    .def("WriteNodalResultsNonHistorical",pointer_to_int_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_array1d_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_vector_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_matrix_write_nodal_results_NH)
