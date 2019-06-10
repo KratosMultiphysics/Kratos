@@ -56,7 +56,7 @@ for normalvar in range(normal_combs):
         normalvarstring = "true"
 
     if normalvar == 1:
-        lhs_template_begin_string += "   const array_1d<BoundedMatrix<double, TNumNodes, TDim>,  (TNumNodes * TDim)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;\n\n"
+        lhs_template_begin_string += "    const array_1d<BoundedMatrix<double, TNumNodes, TDim>, SIZEDERIVATIVES1>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;\n\n"
 
     for dim, nnodes, nnodes_master in zip(dim_combinations, nnodes_combinations, nnodes_master_combinations):
 
@@ -207,6 +207,7 @@ for normalvar in range(normal_combs):
         lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
         lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
         lhs_string = lhs_string.replace("TNormalVariation", normalvarstring)
+        lhs_string = lhs_string.replace("SIZEDERIVATIVES1", str(((nnodes) * dim)))
         lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(((nnodes + nnodes_master) * dim)))
 
         rhs_string = rhs_string.replace("TDim", str(dim))
