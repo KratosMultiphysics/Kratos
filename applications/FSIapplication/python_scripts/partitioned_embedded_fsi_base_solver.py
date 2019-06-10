@@ -437,11 +437,11 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         aux_settings = KratosMultiphysics.Parameters(
         """{
             "model_part_name": "FSICouplingInterfaceStructure",
-            "father_model_part_name": "",
+            "parent_model_part_name": "",
             "input_variable_name": "POSITIVE_FACE_PRESSURE",
             "output_variable_name": "DISPLACEMENT"
         }""")
-        aux_settings["father_model_part_name"].SetString(self.structure_interface_submodelpart_name)
+        aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
 
         # Construct the FSI coupling interface
         fsi_coupling_interface_structure = fsi_coupling_interface.FSICouplingInterface(
@@ -465,11 +465,11 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         aux_settings = KratosMultiphysics.Parameters(
         """{
             "model_part_name": "FSICouplingInterfaceFluid",
-            "father_model_part_name": "",
+            "parent_model_part_name": "",
             "input_variable_name": "DISPLACEMENT",
             "output_variable_name": "PRESSURE"
         }""")
-        aux_settings["father_model_part_name"].SetString(self.structure_interface_submodelpart_name)
+        aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
 
         # Construct the FSI coupling interface
         fsi_coupling_interface_fluid = fsi_coupling_interface.FSICouplingInterface(
