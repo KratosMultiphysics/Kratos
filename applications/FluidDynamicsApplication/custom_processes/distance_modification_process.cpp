@@ -110,7 +110,6 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
     mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
     mDoubleVariablesList = rParameters["double_variables_list"].GetStringArray();
     mComponentVariablesList = rParameters["component_variables_list"].GetStringArray();
-
 }
 
 void DistanceModificationProcess::Execute()
@@ -475,7 +474,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
                 }
             }
         }
-    }   
+    }
 }
 
 void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
