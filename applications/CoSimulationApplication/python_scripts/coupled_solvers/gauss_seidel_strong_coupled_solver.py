@@ -27,48 +27,15 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             self.participating_solvers,
             self.echo_level)
 
+        self.coupling_operations_list.extend(self.convergence_accelerators_list)
+        self.coupling_operations_list.extend(self.convergence_criteria_list)
+
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
-
-    def Initialize(self):
-        super(GaussSeidelStrongCouplingSolver, self).Initialize()
-        for conv_acc in self.convergence_accelerators_list:
-            conv_acc.Initialize()
-        for conv_crit in self.convergence_criteria_list:
-            conv_crit.Initialize()
-
-    def Finalize(self):
-        super(GaussSeidelStrongCouplingSolver, self).Finalize()
-        for conv_acc in self.convergence_accelerators_list:
-            conv_acc.Finalize()
-        for conv_crit in self.convergence_criteria_list:
-            conv_crit.Finalize()
-
-    def InitializeSolutionStep(self):
-        super(GaussSeidelStrongCouplingSolver, self).InitializeSolutionStep()
-        for conv_acc in self.convergence_accelerators_list:
-            conv_acc.InitializeSolutionStep()
-        for conv_crit in self.convergence_criteria_list:
-            conv_crit.InitializeSolutionStep()
-
-    def FinalizeSolutionStep(self):
-        super(GaussSeidelStrongCouplingSolver, self).FinalizeSolutionStep()
-        for conv_acc in self.convergence_accelerators_list:
-            conv_acc.FinalizeSolutionStep()
-        for conv_crit in self.convergence_criteria_list:
-            conv_crit.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:
-                couplingsolverprint(self._Name(),
-                                    cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
-
-            for conv_acc in self.convergence_accelerators_list:
-                conv_acc.InitializeNonLinearIteration()
-            for conv_crit in self.convergence_criteria_list:
-                conv_crit.InitializeNonLinearIteration()
-
-
+                couplingsolverprint(self._Name(), cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
             for coupling_op in self.coupling_operations_list:
                 coupling_op.InitializeNonLinearIteration()
@@ -77,11 +44,6 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
                 self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver_name)
-
-            for conv_acc in self.convergence_accelerators_list:
-                conv_acc.FinalizeNonLinearIteration()
-            for conv_crit in self.convergence_criteria_list:
-                conv_crit.FinalizeNonLinearIteration()
 
             for coupling_op in self.coupling_operations_list:
                 coupling_op.FinalizeNonLinearIteration()
