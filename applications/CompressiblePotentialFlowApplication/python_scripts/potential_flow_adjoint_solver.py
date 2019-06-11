@@ -12,9 +12,17 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "AdjointPotentialFlowElement"
+        self.element_name = "AdjointIncompressiblePotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
 
+    def _SetUpCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointCompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         raise RuntimeError("Adjoint embedded element currently not implemented")
 
@@ -80,30 +88,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
 
-<<<<<<< HEAD
-    def PrepareModelPart(self):
-        super(PotentialFlowAdjointSolver, self).PrepareModelPart()
-        # defines how the primal elements should be replaced with their adjoint counterparts
-        replacement_settings = KratosMultiphysics.Parameters("""
-        {
-            "element_name_table" :
-            {
-                "IncompressiblePotentialFlowElement2D3N" : "AdjointIncompressiblePotentialFlowElement2D3N",
-                "CompressiblePotentialFlowElement2D3N" : "AdjointCompressiblePotentialFlowElement2D3N"
-            },
-            "condition_name_table" :
-            {
-                "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
-            }
-        }
-        """)
-
-        ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-
-        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
-
-=======
->>>>>>> origin/master
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
         self.response_function.InitializeSolutionStep()
