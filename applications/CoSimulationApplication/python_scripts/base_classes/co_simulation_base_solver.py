@@ -26,7 +26,7 @@ class CoSimulationBaseSolver(object):
         self.name = solver_name
         self.echo_level = self.settings["echo_level"].GetInt()
         self.io_is_initialized = False
-        self.data_map = self.__CreateInterfaceDataMap()
+        self.data_dict = self.__CreateInterfaceDataDict()
 
     def Initialize(self):
         pass
@@ -82,7 +82,7 @@ class CoSimulationBaseSolver(object):
 
     def GetInterfaceData(self, data_name):
         try:
-            return self.data_map[data_name]
+            return self.data_dict[data_name]
         except KeyError:
             raise Exception("Requested data field " + data_name + " does not exist in the solver ")
 
@@ -111,15 +111,15 @@ class CoSimulationBaseSolver(object):
     def _GetIOName(self):
         raise Exception('"_GetIOName" function must be implemented in derived class!')
 
-    ## __CreateInterfaceDataMap : Private Function to obtain the map of data objects
+    ## __CreateInterfaceDataDict : Private Function to obtain the map of data objects
     #
     #  @param self            The object pointer.
-    def __CreateInterfaceDataMap(self):
-        data_map = dict()
+    def __CreateInterfaceDataDict(self):
+        data_dict = dict()
         for data_name, data_config in self.settings["data"].items():
-            data_map[data_name] = CouplingInterfaceData(data_config, self.model)
+            data_dict[data_name] = CouplingInterfaceData(data_config, self.model)
 
-        return data_map
+        return data_dict
 
     @classmethod
     def _GetDefaultSettings(cls):
