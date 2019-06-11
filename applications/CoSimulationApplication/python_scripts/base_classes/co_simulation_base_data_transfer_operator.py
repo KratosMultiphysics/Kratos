@@ -9,13 +9,7 @@ class CoSimulationBaseDataTransferOperator(object):
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
         self.echo_level = self.settings["echo_level"].GetInt()
 
-    def Initialize(self):
-        pass
-
-    def Finalize(self):
-        pass
-
-    def Transfer(self, solver, data):
+    def TransferData(self, solver, data):
         pass
 
     def PrintInfo(self):

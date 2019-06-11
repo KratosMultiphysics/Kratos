@@ -63,6 +63,16 @@ def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_
 
     return coupling_operations
 
+def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_solver_echo_level):
+    from KratosMultiphysics.CoSimulationApplication.data_transfer_operators.co_simulation_data_transfer_operator_factory import CreateDataTransferOperator
+    data_transfer_operators = {}
+    for data_transfer_operators_name, data_transfer_operators_setting in data_transfer_operators_settings_dict.items():
+        data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_setting)
+        if not data_transfer_operators_setting.Has("echo_level"):
+            data_transfer_operators[-1].SetEchoLevel(parent_solver_echo_level)
+
+    return data_transfer_operators
+
 
 
 
