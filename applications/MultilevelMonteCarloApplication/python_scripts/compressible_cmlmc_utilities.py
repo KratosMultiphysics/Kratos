@@ -8,6 +8,7 @@ import numpy as np
 from scipy.stats import norm
 import copy
 import time
+import sys
 
 # Importing the analysis stage classes of the different problems
 from simulation_definition import SimulationScenario
@@ -59,6 +60,8 @@ output: difference_QoI_value:              difference QoIvalue to be added
 @ExaquteTask(returns=2,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
     aux = simulation_results[0]
+    def computePowers(value):
+        return value, value**2, value**3, value**4
     if (level == 0):
         # each value is inside the relative level list, and only one value per level is computed
         # i.e. results = [[value_level_0],[value_level_1],...]
@@ -66,7 +69,9 @@ def AddResultsAux_Task(level,*simulation_results):
     else:
         difference_QoI_values = list(map(lambda x: x.QoI[level][0] - x.QoI[level-1][0], simulation_results))
     time_ML_list = list(map(lambda x: x.time_ML[level][0], simulation_results))
-    return difference_QoI_values,time_ML_list
+    new_difference_QoI_power_sum_batches = np.sum(np.array(list(map(computePowers, difference_QoI_values))), axis=0)
+    new_time_ML_power_sum_batches = np.sum(np.array(list(map(computePowers, time_ML_list))), axis=0)
+    return new_difference_QoI_power_sum_batches,new_time_ML_power_sum_batches
 
 
 """
@@ -198,6 +203,9 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
         time_5 = time.time()
     time_6 = time.time()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
+    # print("Sample value:")
+    # print(sample)
+    # sys.stdout.flush()
     simulation.Run()
     QoI = simulation.EvaluateQuantityOfInterest()
     time_7 = time.time()
@@ -468,8 +476,10 @@ class MultilevelMonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
-                if self.iteration_counter >= 0:
-                    self.convergence = True
+                if self.iteration_counter <3:
+                    self.convergence = False
+                if (self.iteration_counter >= 2):
+                   self.convergence = True
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
             pass
@@ -819,8 +829,8 @@ class MultilevelMonteCarlo(object):
                 # if not update current_iteration
                 if (self.total_error < self.settings["tolerance"].GetDouble()):
                     self.convergence = True
-                else:
-                    self.iteration_counter = self.iteration_counter + 1
+                # update iteration counter
+                self.iteration_counter = self.iteration_counter + 1
                 break
 
     """
@@ -862,6 +872,7 @@ class MultilevelMonteCarlo(object):
         # print("values computed time_ML",self.time_ML.values)
         print("current convergence batch =",self.current_convergence_batch)
         print("current batches",self.batches_number_samples)
+        print("check number samples of batch statistical variable class",self.difference_QoI.batches_number_samples)
         print("current number of samples",self.number_samples)
         print("mean and variance difference_QoI = ",self.difference_QoI.h_statistics_1,self.difference_QoI.h_statistics_2)
         print("mean time_ML",self.time_ML.h_statistics_1)
@@ -869,6 +880,8 @@ class MultilevelMonteCarlo(object):
         print("estimated Bayesian variance = ",self.bayesian_variance)
         print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
         print("total_error = bias + statistical error = ",self.total_error)
+        import sys
+        sys.stdout.flush()
 
     """
     function adding QoI and MLMC time values to the corresponding level
@@ -892,11 +905,14 @@ class MultilevelMonteCarlo(object):
             start_level = 0
         else:
             start_level = np.maximum(0,current_level)
+        number_samples_batches_level = [0 for _ in range (current_level+1)]
         while (len(simulation_results) >= 1):
             new_simulations_results = simulation_results[mini_batch_size:]
             current_simulations = simulation_results[:mini_batch_size]
             for lev in range (start_level,current_level+1):
+                number_samples_batches_level[lev] += len(current_simulations)
                 # call to add results task
+                # TODO: temporarily use this name, but it is already the power sum!!
                 difference_QoI_list,time_ML_list = AddResultsAux_Task(lev,*current_simulations)
                 self.difference_QoI.values[batch_number][lev].append(difference_QoI_list)
                 self.time_ML.values[batch_number][lev].append(time_ML_list)
@@ -905,6 +921,9 @@ class MultilevelMonteCarlo(object):
                     self.batches_number_samples[batch_number][lev] = self.batches_number_samples[batch_number][lev] + len(current_simulations)
             # prepare new list
             simulation_results = new_simulations_results
+        for lev in range (start_level,current_level+1):
+            self.difference_QoI.batches_number_samples[batch_number][lev] = number_samples_batches_level[lev]
+            self.time_ML.batches_number_samples[batch_number][lev] = number_samples_batches_level[lev]
 
     """
     function giving as output the mesh discretization parameter

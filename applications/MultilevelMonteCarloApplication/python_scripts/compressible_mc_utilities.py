@@ -61,7 +61,10 @@ def AddResultsAux_Task(level,*simulation_results):
     # each value is inside the relative level list, and only one value per level is computed
     # i.e. results = [[value_level_0],[value_level_1],...]
     values = list(map(lambda x: x.QoI[level][0], simulation_results))
-    return values
+    def computePowers(value):
+        return value, value**2, value**3, value**4
+    new_values = np.sum(np.array(list(map(computePowers, values))), axis=0)
+    return new_values
 
 
 """
@@ -281,6 +284,7 @@ class MonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMCPhase()
                 self.ScreeningInfoFinalizeMCPhase()
+                #self.convergence = True
         else:
             print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
             pass
@@ -367,7 +371,7 @@ class MonteCarlo(object):
     """
     def UpdateBatches(self):
         # set here number of batches to append
-        new_number_batches = 1
+        new_number_batches = 2
         # update batch size
         self.UpdateBatchSize()
         for new_batch in range (new_number_batches):
@@ -434,11 +438,14 @@ class MonteCarlo(object):
         if (current_level != 0):
             raise Exception("current work level must be = 0 in the Monte Carlo algorithm")
         simulation_results = list(map(lambda x: x[0], simulation_results))
+        number_samples_batches_level = 0
         while (len(simulation_results) >= 1):
             new_simulations = simulation_results[mini_batch_size:]
             current_simulations = simulation_results[:mini_batch_size]
+            number_samples_batches_level += len(current_simulations)
             self.QoI.values[batch_number][current_level].append(AddResultsAux_Task(current_level,*current_simulations))
             simulation_results = new_simulations
+        self.QoI.batches_number_samples[batch_number][current_level] = number_samples_batches_level
 
     """
     function serializing and pickling the model and the project parameters of the problem
@@ -536,6 +543,7 @@ class MonteCarlo(object):
         print("current convergence batch =",self.current_convergence_batch)
         # print("values computed of QoI = ",self.QoI.values)
         print("current batches",self.batches_number_samples)
+        print("check number samples of batch statistical variable class",self.QoI.batches_number_samples)
         print("current number of samples = ",self.number_samples)
         print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
         print("convergence = ",self.convergence)

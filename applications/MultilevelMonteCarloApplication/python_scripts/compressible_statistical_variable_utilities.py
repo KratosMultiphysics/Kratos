@@ -128,9 +128,15 @@ def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_lev
     number_samples_level = number_samples_level + add_number_samples_level
     return new_S1,new_S2,new_S3,new_S4,number_samples_level
 
+@ExaquteTask(returns=4, priority=True)
+def UnfoldValuesAux_Task(sample):
+    return sample[0], sample[1], sample[2], sample[3]
 
-@ExaquteTask(returns=5,priority=True)
-def UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,samples):
+@ExaquteTask(returns=1,priority=True)
+def UpdateBatchesPassPowerSumsAux_Task(*samples):
+    samples_list = np.array(list(samples))
+    return np.sum(samples_list, axis = 0)
+    """
     if nsamples == 0:
         new_S1 = samples[0]
         new_S2 = samples[0]**2
@@ -153,7 +159,7 @@ def UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,samp
         old_S3 = new_S3
         old_S4 = new_S4
     return new_S1,new_S2,new_S3,new_S4,nsamples
-
+    """
 
 """
 auxiliary function of UpdateHStatistics of the StatisticalVariable class
@@ -418,23 +424,31 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
-    def UpdateBatchesPassPowerSum(self,level,batch_counter):
+    def UpdateBatchesPassPowerSum(self,level,batch_counter,mini_batch=50):
         samples = self.values[batch_counter][level]
-        for mini_batch in range (0,len(samples)):
-            old_S1 = self.power_sum_batches_1[batch_counter][level]
-            old_S2 = self.power_sum_batches_2[batch_counter][level]
-            old_S3 = self.power_sum_batches_3[batch_counter][level]
-            old_S4 = self.power_sum_batches_4[batch_counter][level]
-            number_samples_batches_level = self.batches_number_samples[batch_counter][level]
+        #for mini_batch in range (0,len(samples)):
+        while len(samples) > 1:
+            #old_S1 = self.power_sum_batches_1[batch_counter][level]
+            #old_S2 = self.power_sum_batches_2[batch_counter][level]
+            #old_S3 = self.power_sum_batches_3[batch_counter][level]
+            #old_S4 = self.power_sum_batches_4[batch_counter][level]
+            #number_samples_batches_level = self.batches_number_samples[batch_counter][level]
 
-            mini_batches_samples = samples[mini_batch]
-            new_S1,new_S2,new_S3,new_S4,number_samples_batches_level = UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_batches_level,mini_batches_samples)
-
-            self.power_sum_batches_1[batch_counter][level] = new_S1
-            self.power_sum_batches_2[batch_counter][level] = new_S2
-            self.power_sum_batches_3[batch_counter][level] = new_S3
-            self.power_sum_batches_4[batch_counter][level] = new_S4
-            self.batches_number_samples[batch_counter][level] = number_samples_batches_level
+            mini_batches_samples = samples[:mini_batch]
+            samples = samples[mini_batch:]
+            new_power_sums = UpdateBatchesPassPowerSumsAux_Task(*mini_batches_samples)
+            samples.append(new_power_sums)
+            #self.power_sum_batches_1[batch_counter][level] = new_S1
+            #self.power_sum_batches_2[batch_counter][level] = new_S2
+            #self.power_sum_batches_3[batch_counter][level] = new_S3
+            #self.power_sum_batches_4[batch_counter][level] = new_S4
+            #self.batches_number_samples[batch_counter][level] = number_samples_batches_level
+        new_S1, new_S2, new_S3, new_S4 = UnfoldValuesAux_Task(samples[0])
+        self.power_sum_batches_1[batch_counter][level] = new_S1
+        self.power_sum_batches_2[batch_counter][level] = new_S2
+        self.power_sum_batches_3[batch_counter][level] = new_S3
+        self.power_sum_batches_4[batch_counter][level] = new_S4
+        
 
     """
     function computing the h statistics h_p from the power sums
