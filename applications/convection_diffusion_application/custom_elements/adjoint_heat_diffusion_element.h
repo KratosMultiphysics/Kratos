@@ -95,17 +95,17 @@ public:
     ///@name Inquiry
     ///@{
 
-    //int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    //std::string Info() const override;
+    std::string Info() const override;
 
     /// Print information about this object.
-    //void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     ///@}
 

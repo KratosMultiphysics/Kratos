@@ -14,6 +14,8 @@
 
 #include "convection_diffusion_application_variables.h"
 
+#include "includes/checks.h"
+
 namespace Kratos
 {
 
@@ -113,6 +115,40 @@ void AdjointHeatDiffusionElement<PrimalElement>::GetDofList(
     {
         rElementalDofList.push_back(r_geom[i].pGetDof(ADJOINT_HEAT_TRANSFER));
     }
+}
+
+template<class PrimalElement>
+int AdjointHeatDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInfo)
+{
+    KRATOS_TRY
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    for (unsigned int i = 0; i < num_nodes; i++)
+    {
+        const Node<3>& r_node = r_geom[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_HEAT_TRANSFER, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_HEAT_TRANSFER, r_node);
+    }
+
+    return PrimalElement::Check(rProcessInfo);
+    KRATOS_CATCH("")
+}
+
+template<class PrimalElement>
+std::string AdjointHeatDiffusionElement<PrimalElement>::Info() const
+{
+    std::stringstream buffer;
+    buffer << "AdjointHeatDiffusionElement #" << this->Id();
+    return buffer.str();
+}
+
+template<class PrimalElement>
+void AdjointHeatDiffusionElement<PrimalElement>::PrintInfo(std::ostream& rOStream) const
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    rOStream << "AdjointHeatDiffusionElement" << dimension << "D" << num_nodes << "N";
 }
 
 template class AdjointHeatDiffusionElement<LaplacianElement>;
