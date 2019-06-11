@@ -118,7 +118,7 @@ class CoSimulationBaseSolver(object):
         data_map = dict()
         for i in range(self.settings["data"].size()):
             data_conf = self.settings["data"][i]
-            data_name = data_conf["name"].GetString()
+            data_name = data_conf["variable_name"].GetString()
             data_obj = CouplingInterfaceData(data_conf, self) # TODO pass only the model?
             data_map[data_name] = data_obj
 
