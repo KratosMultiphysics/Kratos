@@ -135,9 +135,8 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        Parameters default_settings = GetDefaultSettings();
-        this->mSettings.AddMissingParameters(default_settings);
-        AssignSettings();
+        Parameters default_settings = this->GetDefaultSettings();
+        this->AssignSettings(default_settings);
     }
 
     LineSearchStrategy(
@@ -152,9 +151,8 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        Parameters default_settings = GetDefaultSettings();
-        this->mSettings.AddMissingParameters(default_settings);
-        AssignSettings();
+        Parameters default_settings = this->GetDefaultSettings();
+        this->AssignSettings(default_settings);
     }
 
     LineSearchStrategy(
@@ -168,9 +166,9 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,Settings,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        Parameters default_settings = GetDefaultSettings();
-        this->mSettings.AddMissingParameters(default_settings);
-        AssignSettings();
+        Parameters default_settings = this->GetDefaultSettings();
+        Settings.ValidateAndAssignDefaults(default_settings);
+        this->AssignSettings(Settings);
     }
 
     LineSearchStrategy(
@@ -185,9 +183,9 @@ public:
         bool MoveMeshFlag = false
     ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,Settings,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        Parameters default_settings = GetDefaultSettings();
-        this->mSettings.AddMissingParameters(default_settings);
-        AssignSettings();
+        Parameters default_settings = this->GetDefaultSettings();
+        Settings.ValidateAndAssignDefaults(default_settings);
+        this->AssignSettings(Settings);
     }
 
     /**
@@ -433,15 +431,15 @@ protected:
     /**
      * @brief This method assigns settings to member variables
      */
-    void AssignSettings() override
+    void AssignSettings(Parameters Settings) override
     {
-        BaseType::AssignSettings();
-        mMaxLineSearchIterations = this->mSettings["max_line_search_iterations"].GetInt();
-        mFirstAlphaValue = this->mSettings["first_alpha_value"].GetDouble();
-        mSecondAlphaValue = this->mSettings["second_alpha_value"].GetDouble();
-        mMinAlpha = this->mSettings["min_alpha"].GetDouble();
-        mMaxAlpha = this->mSettings["max_alpha"].GetDouble();
-        mLineSearchTolerance = this->mSettings["line_search_tolerance"].GetDouble();
+        BaseType::AssignSettings(Settings);
+        mMaxLineSearchIterations = Settings["max_line_search_iterations"].GetInt();
+        mFirstAlphaValue = Settings["first_alpha_value"].GetDouble();
+        mSecondAlphaValue = Settings["second_alpha_value"].GetDouble();
+        mMinAlpha = Settings["min_alpha"].GetDouble();
+        mMaxAlpha = Settings["max_alpha"].GetDouble();
+        mLineSearchTolerance = Settings["line_search_tolerance"].GetDouble();
     }
 
 
