@@ -60,6 +60,8 @@ public:
     using NodesArrayType = typename PrimalElement::NodesArrayType;
     using MatrixType = typename PrimalElement::MatrixType;
     using VectorType = typename PrimalElement::VectorType;
+    using EquationIdVectorType = typename PrimalElement::EquationIdVectorType;
+    using DofsVectorType = typename PrimalElement::DofsVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -80,11 +82,14 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    /*void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    /*void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;*/
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;*/
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry

@@ -12,6 +12,8 @@
 #include "adjoint_heat_diffusion_element.h"
 #include "laplacian_element.h"
 
+#include "convection_diffusion_application_variables.h"
+
 namespace Kratos
 {
 
@@ -57,6 +59,60 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateLocalSystem(
     }
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes,num_nodes);
+}
+
+template<class PrimalElement>
+void AdjointHeatDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step)
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+
+    if (rValues.size() != num_nodes)
+    {
+        rValues.resize(num_nodes,false);
+    }
+
+    for (unsigned int i = 0; i < num_nodes; i++)
+    {
+        rValues[i] = r_geom[i].FastGetSolutionStepValue(ADJOINT_HEAT_TRANSFER, Step);
+    }
+}
+
+template<class PrimalElement>
+void AdjointHeatDiffusionElement<PrimalElement>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+
+    if (rResult.size() != num_nodes)
+    {
+        rResult.resize(num_nodes,false);
+    }
+
+    for (unsigned int i = 0; i < num_nodes; i++)
+    {
+        rResult[i] = r_geom[i].GetDof(ADJOINT_HEAT_TRANSFER).EquationId();
+    }
+}
+
+template<class PrimalElement>
+void AdjointHeatDiffusionElement<PrimalElement>::GetDofList(
+    DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+
+    if (rElementalDofList.size() != num_nodes)
+    {
+        rElementalDofList.resize(num_nodes);
+    }
+
+    for (unsigned int i = 0; i < num_nodes; i++)
+    {
+        rElementalDofList.push_back(r_geom[i].pGetDof(ADJOINT_HEAT_TRANSFER));
+    }
 }
 
 template class AdjointHeatDiffusionElement<LaplacianElement>;
