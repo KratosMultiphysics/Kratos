@@ -59,7 +59,6 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TFrictional If we are solving a frictional or frictionless problem
  * @tparam TNormalVariation If we are consider normal variation
  * @tparam TNumNodesMaster The number of nodes of the master
  */

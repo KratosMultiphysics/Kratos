@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_frictional_laws/frictional_law.h"
+#include "custom_frictional_laws/frictional_law_with_derivative.h"
 
 namespace Kratos
 {
@@ -46,9 +46,15 @@ namespace Kratos
  * @brief This class defines the Tresca frictional laws
  * @details This class defines the most basic friction model
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TFrictional If we are solving a frictional or frictionless problem
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) TrescaFrictionalLaw
-    : public FrictionalLaw
+    : public FrictionalLawWithDerivative<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>
 {
 public:
 
@@ -56,7 +62,13 @@ public:
     ///@{
 
     /// Base class definition
-    typedef FrictionalLaw BaseType;
+    typedef FrictionalLawWithDerivative<TDim,TNumNodes,TNormalVariation, TNumNodesMaster> BaseType;
+
+    /// Definition of the derivative data
+    typedef typename BaseType::DerivativeDataType DerivativeDataType;
+
+    /// The definition of the mortar operators
+    typedef typename BaseType::MortarConditionMatrices MortarConditionMatrices;
 
     /// Node definition
     typedef Node<3> NodeType;
@@ -109,11 +121,29 @@ public:
      */
     double GetThresholdValue(
         const NodeType& rNode,
-        const Condition& rCondition,
+        const PairedCondition& rCondition,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    // TODO: Add derivatives
+    /**
+     * @brief This method computes the threshold derivative value considered for computing friction
+     * @param rNode The node where the threshold derivative value is obtained
+     * @param rCondition The condition where the friction is computed
+     * @param rCurrentProcessInfo The current instance of the process info
+     * @param rDerivativeData The reference to the derivative database
+     * @param rMortarConditionMatrices The container of the mortar operators
+     * @param IndexDerivative The derivative index
+     * @param IndexNode The corresponding node index on the condition geometry
+     */
+    double GetDerivativeThresholdValue(
+        const NodeType& rNode,
+        const PairedCondition& rCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const DerivativeDataType& rDerivativeData,
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const IndexType IndexDerivative,
+        const IndexType IndexNode
+        ) override;
 
     ///@}
     ///@name Access
