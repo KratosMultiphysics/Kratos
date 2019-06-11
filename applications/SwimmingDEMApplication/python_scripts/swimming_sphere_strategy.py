@@ -10,7 +10,7 @@ class SwimmingStrategy(BaseStrategy):
 
     @staticmethod
     def SDEMEvaluateString(name):
-        return eval('SDEM.' + name)
+        return getattr(SDEM, name)
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
         self.project_parameters = parameters

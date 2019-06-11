@@ -147,6 +147,7 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
             // Modify the discontinuous distance field
             this->ModifyDiscontinuousDistance();
         }
+        mIsModified = true;
 
         // If proceeds (depending on the formulation), perform the deactivation
         // Deactivates the full negative elements and sets the inner values to 0
