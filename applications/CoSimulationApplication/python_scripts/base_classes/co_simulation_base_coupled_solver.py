@@ -21,10 +21,12 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.echo_level)
 
         ### Creating the coupling operations
-        self.coupling_operations_list = cs_tools.CreateCouplingOperations(
+        self.coupling_operations_dict = cs_tools.CreateCouplingOperations(
             self.settings["coupling_operations"],
             self.participating_solvers,
             self.echo_level)
+
+        self.coupling_operations_list = [d for d in self.coupling_operations_dict.values()]
 
     def Initialize(self):
         for solver in self.participating_solvers.values():
@@ -207,8 +209,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             "coupling_sequence"        : [],
             "solvers"                  : {},
             "predictors"               : [],
-            "coupling_operations"      : [],
-            "data_transfer_operators" : []
+            "coupling_operations"      : {},
+            "data_transfer_operators"  : {}
         }""")
         this_defaults.AddMissingParameters(super(CoSimulationBaseCouplingSolver, cls)._GetDefaultSettings())
 

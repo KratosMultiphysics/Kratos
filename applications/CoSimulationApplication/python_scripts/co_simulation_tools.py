@@ -53,11 +53,11 @@ def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, paren
 
     return convergence_criteria
 
-def CreateCouplingOperations(coupling_operations_settings_list, solvers, parent_solver_echo_level):
+def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_solver_echo_level):
     from KratosMultiphysics.CoSimulationApplication.coupling_operations.co_simulation_coupling_operation_factory import CreateCouplingOperation
-    coupling_operations = []
-    for coupling_operation_setting in coupling_operations_settings_list:
-        coupling_operations.append(CreateCouplingOperation(coupling_operation_setting, solvers))
+    coupling_operations = {}
+    for coupling_operation_name, coupling_operation_setting in coupling_operations_settings_dict.items():
+        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_setting, solvers)
         if not coupling_operation_setting.Has("echo_level"):
             coupling_operations[-1].SetEchoLevel(parent_solver_echo_level)
 
