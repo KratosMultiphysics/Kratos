@@ -59,7 +59,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : publi
 public:
     ///@name Type Definitions
     ///@{
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>> > ComponentType;       
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>> > ComponentType;
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
@@ -160,8 +160,8 @@ private:
     std::vector<unsigned int>              mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
-    std::vector<std::string>                mDoubleVariablesList;
-    std::vector<std::string>             mComponentVariablesList;
+    std::vector<Variable<double>>    mDoubleVariablesList;
+    std::vector<ComponentType>    mComponentVariablesList;
 
     ///@}
     ///@name Protected Operators
@@ -217,6 +217,8 @@ private:
     void SetContinuousDistanceToSplitFlag();
 
     void SetDiscontinuousDistanceToSplitFlag();
+
+    void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
 
     ///@}
     ///@name Private  Access
