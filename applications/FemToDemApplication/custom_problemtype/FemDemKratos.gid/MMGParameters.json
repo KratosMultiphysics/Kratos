@@ -1,7 +1,7 @@
 {
             "mesh_id"                          : 0,
             "filename"                         : "Voladizo",
-            "model_part_name"                  : "MainModelPart",
+            "model_part_name"                  : "Structure",
             "strategy"                         : "Hessian",
             "level_set_strategy_parameters"              :{
                 "scalar_variable"                  : "DISTANCE",
@@ -57,6 +57,6 @@
             },
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
-            "debug_mode"                       : false,
+            "debug_mode"                       : "",
             "echo_level"                       : 0
         }
