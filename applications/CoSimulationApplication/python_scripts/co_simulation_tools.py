@@ -21,37 +21,50 @@ def ImportDataStructure(parameters_file_name):
 
     return cs_data_structure
 
-def CreatePredictors(predictor_settings_list, solvers, solver_echo_level):
+def CreatePredictors(predictor_settings_list, solvers, parent_solver_echo_level):
     from KratosMultiphysics.CoSimulationApplication.predictors.co_simulation_predictor_factory import CreatePredictor
     predictors = []
     for predictor_settings in predictor_settings_list:
         solver = solvers[predictor_settings["solver"].GetString()]
         predictors.append(CreatePredictor(predictor_settings, solver))
         if not predictor_settings.Has("echo_level"):
-            predictors[-1].SetEchoLevel(solver_echo_level)
+            predictors[-1].SetEchoLevel(parent_solver_echo_level)
     return predictors
 
-def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, solver_echo_level):
+def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_solver_echo_level):
     from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
     convergence_accelerators = []
     for conv_acc_setting in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_setting["solver"].GetString()]
         convergence_accelerators.append(CreateConvergenceAccelerator(conv_acc_setting, solver))
         if not conv_acc_setting.Has("echo_level"):
-            convergence_accelerators[-1].SetEchoLevel(solver_echo_level)
+            convergence_accelerators[-1].SetEchoLevel(parent_solver_echo_level)
 
     return convergence_accelerators
 
-def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, solver_echo_level):
+def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, parent_solver_echo_level):
     from KratosMultiphysics.CoSimulationApplication.convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
     convergence_criteria = []
     for conv_crit_setting in convergence_criteria_settings_list:
         solver = solvers[conv_crit_setting["solver"].GetString()]
         convergence_criteria.append(CreateConvergenceCriteria(conv_crit_setting, solver))
         if not conv_crit_setting.Has("echo_level"):
-            convergence_criteria[-1].SetEchoLevel(solver_echo_level)
+            convergence_criteria[-1].SetEchoLevel(parent_solver_echo_level)
 
     return convergence_criteria
+
+def CreateCouplingOperations(coupling_operations_settings_list, solvers, parent_solver_echo_level):
+    from KratosMultiphysics.CoSimulationApplication.coupling_operations.co_simulation_coupling_operation_factory import CreateCouplingOperation
+    coupling_operations = []
+    for coupling_operation_setting in coupling_operations_settings_list:
+        coupling_operations.append(CreateCouplingOperation(coupling_operation_setting, solvers))
+        if not coupling_operation_setting.Has("echo_level"):
+            coupling_operations[-1].SetEchoLevel(parent_solver_echo_level)
+
+    return coupling_operations
+
+
+
 
 
 def SettingsTypeCheck(settings):

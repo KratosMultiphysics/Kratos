@@ -20,6 +20,12 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.participating_solvers,
             self.echo_level)
 
+        ### Creating the coupling operations
+        self.coupling_operations_list = cs_tools.CreateCouplingOperations(
+            self.settings["coupling_operations"],
+            self.participating_solvers,
+            self.echo_level)
+
     def Initialize(self):
         for solver in self.participating_solvers.values():
             solver.Initialize()
@@ -31,12 +37,18 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         for predictor in self.predictors_list:
             predictor.Initialize()
 
+        for coupling_op in self.coupling_operations_list:
+            coupling_op.Initialize()
+
     def Finalize(self):
         for solver in self.participating_solvers.values():
             solver.Finalize()
 
         for predictor in self.predictors_list:
             predictor.Finalize()
+
+        for coupling_op in self.coupling_operations_list:
+            coupling_op.Finalize()
 
     def AdvanceInTime(self, current_time):
         self.time = 0.0
@@ -59,11 +71,18 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         for predictor in self.predictors_list:
             predictor.InitializeSolutionStep()
 
+        for coupling_op in self.coupling_operations_list:
+            coupling_op.InitializeSolutionStep()
+
     def FinalizeSolutionStep(self):
         for solver in self.participating_solvers.values():
             solver.FinalizeSolutionStep()
+
         for predictor in self.predictors_list:
             predictor.FinalizeSolutionStep()
+
+        for coupling_op in self.coupling_operations_list:
+            coupling_op.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         for solver in self.participating_solvers.values():
@@ -79,6 +98,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
 
         for i in range(input_data_list.size()):
+            # TODO check if in interval
             input_data = input_data_list[i]
             from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
             data_name = input_data["data_name"].GetString()
@@ -166,20 +186,54 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         return solvers_map
 
     def __GetSolverCoSimulationDetails(self):
+        def ValidateAndAssignDefaultsDataList(data_list, defaults):
+            for i_data_list in range(data_list.size()):
+                data_list[i_data_list].ValidateAndAssignDefaults(defaults)
+
         solver_cosim_details = {}
         for i_solver_settings in range(self.settings["coupling_sequence"].size()):
             solver_settings = self.settings["coupling_sequence"][i_solver_settings]
             solver_name = solver_settings["name"].GetString()
             solver_cosim_details[solver_name] = solver_settings
+
+            # ValidateAndAssignDefaultsDataList(solver_settings["input_data_list"], GetInputDataDefaults())
+            # ValidateAndAssignDefaultsDataList(solver_settings["output_data_list"], GetOutputDataDefaults())
+
         return solver_cosim_details
 
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = cs_tools.cs_data_structure.Parameters("""{
-            "coupling_sequence" : [],
-            "solvers"           : {},
-            "predictors"        : []
+            "coupling_sequence"        : [],
+            "solvers"                  : {},
+            "predictors"               : [],
+            "coupling_operations"      : [],
+            "data_transfer_operators" : []
         }""")
         this_defaults.AddMissingParameters(super(CoSimulationBaseCouplingSolver, cls)._GetDefaultSettings())
 
         return this_defaults
+
+def GetInputDataDefaults():
+    return cs_tools.cs_data_structure.Parameters("""{
+        "data"                      : "UNSPECIFIED",
+        "from_solver"               : "UNSPECIFIED",
+        "from_solver_data"          : "UNSPECIFIED",
+        "transfer_operator"         : "UNSPECIFIED",
+        "transfer_operator_options" : [],
+        "pre_transfer_operations"   : [],
+        "post_transfer_operations"  : [],
+        "interval"                  : []
+    }""")
+
+def GetOutputDataDefaults():
+    return cs_tools.cs_data_structure.Parameters("""{
+        "data"                      : "UNSPECIFIED",
+        "to_solver"                 : "UNSPECIFIED",
+        "to_solver_data"            : "UNSPECIFIED",
+        "transfer_operator"         : "UNSPECIFIED",
+        "transfer_operator_options" : [],
+        "pre_transfer_operations"   : [],
+        "post_transfer_operations"  : [],
+        "interval"                  : []
+    }""")

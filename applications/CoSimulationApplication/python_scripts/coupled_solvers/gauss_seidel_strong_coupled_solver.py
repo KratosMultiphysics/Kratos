@@ -68,6 +68,11 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.InitializeNonLinearIteration()
 
+
+
+            for coupling_op in self.coupling_operations_list:
+                coupling_op.InitializeNonLinearIteration()
+
             for solver_name, solver in self.participating_solvers.items():
                 self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
@@ -77,6 +82,9 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
                 conv_acc.FinalizeNonLinearIteration()
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.FinalizeNonLinearIteration()
+
+            for coupling_op in self.coupling_operations_list:
+                coupling_op.FinalizeNonLinearIteration()
 
             is_converged = True
             for conv_crit in self.convergence_criteria_list:
