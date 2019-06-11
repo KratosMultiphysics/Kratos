@@ -71,8 +71,7 @@ public:
                             const double MinimumValue,
                             const double MaximumValue,
                             const Variable<double>& rVariable,
-                            ModelPart::NodesContainerType& rNodes,
-                            const Flags& rNodeFlag)
+                            ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
 
@@ -90,20 +89,17 @@ public:
             ModelPart::NodeType& r_node = *(rNodes.begin() + i);
             double& r_value = r_node.FastGetSolutionStepValue(rVariable);
 
-            if (r_node.Is(rNodeFlag))
+            if (r_value < MinimumValue)
             {
-                if (r_value < MinimumValue)
-                {
-                    number_of_nodes_below_minimum++;
-                    r_value = MinimumValue;
-                }
-                else if (r_value > MaximumValue)
-                {
-                    number_of_nodes_above_maximum++;
-                    r_value = MaximumValue;
-                }
-                number_of_nodes_selected++;
+                number_of_nodes_below_minimum++;
+                r_value = MinimumValue;
             }
+            else if (r_value > MaximumValue)
+            {
+                number_of_nodes_above_maximum++;
+                r_value = MaximumValue;
+            }
+            number_of_nodes_selected++;
         }
 
         rNumberOfNodesBelowMinimum = number_of_nodes_below_minimum;

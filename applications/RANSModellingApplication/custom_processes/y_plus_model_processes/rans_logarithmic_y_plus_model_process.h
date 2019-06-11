@@ -99,8 +99,8 @@ public:
                 "von_karman"  : 0.41,
                 "beta"        : 5.2
             },
-            "use_constant_wall_y_plus" : true,
-            "wall_y_plus"              : 11.06
+            "flag_variable"   : "STRUCTURE",
+            "flag_value"      : false
         })");
 
         mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -111,8 +111,8 @@ public:
         mMaxIterations = mrParameters["max_iterations"].GetInt();
         mTolerance = mrParameters["tolerance"].GetDouble();
 
-        mUseConstantWallYPlus = mrParameters["use_constant_wall_y_plus"].GetBool();
-        mWallYPlus = mrParameters["wall_y_plus"].GetDouble();
+        mFlag = KratosComponents<Flags>::Get(mrParameters["flag_variable"].GetString());
+        mFlagValue = mrParameters["flag_value"].GetBool();
 
         mVonKarman = mrParameters["constants"]["von_karman"].GetDouble();
         mBeta = mrParameters["constants"]["beta"].GetDouble();
@@ -163,67 +163,37 @@ public:
 
         const int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+        int number_of_calculated_nodes = 0;
+        if (mFlagValue)
         {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            if (!r_node.Is(STRUCTURE))
-                CalculateLogarithmicWallLawYplus(r_node, VELOCITY);
-        }
-
-        RansVariableUtils rans_variable_utils;
-
-        if (mUseConstantWallYPlus)
-        {
-            const double min_y_plus = rans_variable_utils.GetFlaggedMinimumScalarValue(
-                r_nodes, RANS_Y_PLUS, STRUCTURE, false);
-
-            KRATOS_WARNING_IF(this->Info(), mEchoLevel > 0 && min_y_plus < mWallYPlus)
-                << "Inner " << mrModelPart.Name() << " domain minimum y_plus is less than user defined wall_y_plus. [ "
-                << min_y_plus << " < " << mWallYPlus << " ].\n";
-
-#pragma omp parallel for
+#pragma omp parallel for reduction(+ : number_of_calculated_nodes)
             for (int i_node = 0; i_node < number_of_nodes; ++i_node)
             {
                 NodeType& r_node = *(r_nodes.begin() + i_node);
-                if (r_node.Is(STRUCTURE) && r_node.Is(SLIP))
+                if (r_node.Is(mFlag))
                 {
-                    r_node.FastGetSolutionStepValue(RANS_Y_PLUS) = mWallYPlus;
+                    CalculateLogarithmicWallLawYplus(r_node, VELOCITY);
+                    number_of_calculated_nodes++;
                 }
             }
         }
         else
         {
-#pragma omp parallel for
+#pragma omp parallel for reduction(+ : number_of_calculated_nodes)
             for (int i_node = 0; i_node < number_of_nodes; ++i_node)
             {
                 NodeType& r_node = *(r_nodes.begin() + i_node);
-                if (r_node.Is(STRUCTURE) && r_node.Is(SLIP))
+                if (!r_node.Is(mFlag))
+                {
                     CalculateLogarithmicWallLawYplus(r_node, VELOCITY);
+                    number_of_calculated_nodes++;
+                }
             }
         }
 
-        if (mEchoLevel > 0)
-        {
-            const unsigned int number_of_negative_y_plus_nodes =
-                rans_variable_utils.GetNumberOfNegativeScalarValueNodes(r_nodes, RANS_Y_PLUS);
-            KRATOS_INFO_IF("RansLogarithmicYPlusModelProcess", number_of_negative_y_plus_nodes > 0)
-                << "RANS_Y_PLUS is negative in "
-                << number_of_negative_y_plus_nodes << " out of "
-                << number_of_nodes << " nodes in " << mrModelPart.Name() << ".\n";
-        }
-
-        if (mEchoLevel > 1)
-        {
-            const double min_value =
-                rans_variable_utils.GetMinimumScalarValue(r_nodes, RANS_Y_PLUS);
-            const double max_value =
-                rans_variable_utils.GetMaximumScalarValue(r_nodes, RANS_Y_PLUS);
-            KRATOS_INFO("RansLogarithmicYPlusModelProcess")
-                << "RANS_Y_PLUS is bounded between [ " << std::scientific
-                << min_value << ", " << std::scientific << max_value << " ] in "
-                << mrModelPart.Name() << ".\n";
-        }
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "RANS_Y_PLUS calculated for " << number_of_calculated_nodes
+            << " nodes in " << mrModelPart.Name() << ".\n";
     }
 
     ///@}
@@ -311,8 +281,8 @@ private:
     double mVonKarman;
     double mBeta;
 
-    double mWallYPlus;
-    bool mUseConstantWallYPlus;
+    Flags mFlag;
+    bool mFlagValue;
 
     ///@}
     ///@name Private Operators
@@ -331,6 +301,9 @@ private:
         const array_1d<double, 3>& velocity =
             rNode.FastGetSolutionStepValue(rVelocityVariable, mStep);
         const double velocity_magnitude = norm_2(velocity);
+
+        if (velocity_magnitude < std::numeric_limits<double>::epsilon())
+            return;
 
         // linear region
         double utau = sqrt(velocity_magnitude * kinematic_viscosity / wall_distance);
@@ -367,7 +340,6 @@ private:
                    "residual > tolerance [ "
                 << std::scientific << dx << " > " << std::scientific << tol << " ]\n";
         }
-
         rNode.FastGetSolutionStepValue(RANS_Y_PLUS) = yplus;
     }
 
@@ -391,7 +363,7 @@ private:
 
     ///@}
 
-}; // Class RansLogarithmicYPlusModelProcess
+}; // namespace Kratos
 
 ///@}
 

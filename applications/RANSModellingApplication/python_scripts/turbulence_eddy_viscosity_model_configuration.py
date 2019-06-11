@@ -55,6 +55,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                 "model_type"     : "",
                 "model_settings" : {}
             },
+            "auxiliar_process_list"   : [],
             "mesh_moving"             : false,
             "echo_level"              : 0,
             "turbulent_viscosity_min" : 1e-12,
@@ -222,6 +223,10 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                                          self.fluid_model_part.Nodes)
 
         self.PrepareSolvingStrategy()
+
+        import rans_auxiliary_process_factory
+        for process in self.settings["auxiliar_process_list"]:
+            self.GetTurbulenceSolvingProcess().AddAuxiliaryProcess(rans_auxiliary_process_factory.Factory(process, self.model))
 
         self.GetYPlusModel().ExecuteInitialize()
         self.GetWallVelocityModel().ExecuteInitialize()

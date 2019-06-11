@@ -248,55 +248,55 @@ public:
 
         rRightHandSideVector.clear();
 
-        // TODO: improve this check
-        bool is_structure = true;
-        for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i)
-            if (!this->GetGeometry()[i].Is(STRUCTURE))
-                is_structure = false;
+        const GeometryType& r_geometry = this->GetGeometry();
 
-        if (is_structure)
+        for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i)
+            if (!r_geometry[i].Is(STRUCTURE))
+                return;
+
+        for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+            if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
+                return;
+
+        RansCalculationUtilities rans_calculation_utilities;
+
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        rans_calculation_utilities.CalculateGeometryData(
+            r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2,
+            gauss_weights, shape_functions, shape_derivatives);
+
+        const unsigned int num_gauss_points = gauss_weights.size();
+
+        const double epsilon_sigma =
+            rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
+        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+        const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
+
+        for (unsigned int g = 0; g < num_gauss_points; g++)
         {
-            RansCalculationUtilities rans_calculation_utilities;
+            const Vector& gauss_shape_functions = row(shape_functions, g);
 
-            const GeometryType& r_geometry = this->GetGeometry();
+            const double nu = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double nu_t = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+            const double tke = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double wall_distance = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, DISTANCE, gauss_shape_functions);
 
-            // Get Shape function data
-            Vector gauss_weights;
-            Matrix shape_functions;
-            ShapeFunctionDerivativesArrayType shape_derivatives;
-            rans_calculation_utilities.CalculateGeometryData(
-                r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2,
-                gauss_weights, shape_functions, shape_derivatives);
+            const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
 
-            const unsigned int num_gauss_points = gauss_weights.size();
+            const double value = (nu + nu_t / epsilon_sigma) *
+                                 gauss_weights[g] * std::pow(u_tau, 3) /
+                                 (von_karman * std::pow(wall_distance, 2));
 
-            const double epsilon_sigma =
-                rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-            const double c_mu_25 =
-                std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-
-            for (unsigned int g = 0; g < num_gauss_points; g++)
+            for (unsigned int a = 0; a < TNumNodes; ++a)
             {
-                const Vector& gauss_shape_functions = row(shape_functions, g);
-
-                const double nu = rans_calculation_utilities.EvaluateInPoint(
-                    r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-                const double nu_t = rans_calculation_utilities.EvaluateInPoint(
-                    r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-                const double tke = rans_calculation_utilities.EvaluateInPoint(
-                    r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-                const double y_plus = rans_calculation_utilities.EvaluateInPoint(
-                    r_geometry, RANS_Y_PLUS, gauss_shape_functions);
-
-                const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-
-                const double value = (nu + nu_t / epsilon_sigma) * std::pow(u_tau, 5) /
-                                     (nu_t * y_plus * nu) * gauss_weights[g];
-
-                for (unsigned int a = 0; a < TNumNodes; ++a)
-                {
-                    rRightHandSideVector[a] += value * gauss_shape_functions[a];
-                }
+                rRightHandSideVector[a] += value * gauss_shape_functions[a];
             }
         }
 

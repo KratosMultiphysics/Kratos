@@ -17,8 +17,7 @@ class StabilizedFormulation(object):
     def __init__(self,settings):
         self.element_name = None
         if CheckIfApplicationsAvailable("RANSModellingApplication"):
-            # self.condition_name = "RANSEVMVMSMonolithicWallCondition"
-            self.condition_name = "MonolithicWallCondition"
+            self.condition_name = "RANSEVMVMSMonolithicWallCondition"
         else:
             self.condition_name = "MonolithicWallCondition"
         self.element_integrates_in_time = False

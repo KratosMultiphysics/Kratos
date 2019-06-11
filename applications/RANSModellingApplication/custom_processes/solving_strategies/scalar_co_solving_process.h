@@ -108,6 +108,11 @@ public:
         mrSolvingVariablesList.push_back(pScalarVariable);
     }
 
+    void AddAuxiliaryProcess(Process::Pointer pAuxiliaryProcess)
+    {
+        mAuxiliaryProcessList.push_back(pAuxiliaryProcess);
+    }
+
     /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
     void Execute() override
     {
@@ -128,10 +133,19 @@ public:
         for (SolvingStrategyType* strategy : mrSolvingStrategiesList)
             strategy->Check();
 
+        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+            auxiliary_process->Check();
+
         KRATOS_ERROR_IF(mrSolvingStrategiesList.size() == 0)
             << "No strategies are found for ScalarCoSolvingProcess.";
 
         return 0;
+    }
+
+    virtual void ExecuteInitialize() override
+    {
+        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+            auxiliary_process->ExecuteInitialize();
     }
 
     ///@}
@@ -202,10 +216,15 @@ protected:
                         "Please override it in derrived class.";
     }
 
+    void ExecuteAuxiliaryProcesses()
+    {
+        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+            auxiliary_process->Execute();
+    }
+
     void SolveSolutionStep()
     {
         this->UpdateBeforeSolveSolutionStep();
-        this->UpdateConvergenceVariable();
 
         for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
         {
@@ -247,6 +266,7 @@ protected:
             }
 
             this->UpdateConvergenceVariable();
+
             rans_variable_utils.GetNodalVariablesVector(
                 new_values, r_nodes, this->mrConvergenceVariable);
             noalias(delta_values) = new_values - old_values;
@@ -319,6 +339,7 @@ private:
 
     std::vector<SolvingStrategyType*> mrSolvingStrategiesList;
     std::vector<Variable<double>*> mrSolvingVariablesList;
+    std::vector<Process::Pointer> mAuxiliaryProcessList;
     Variable<double>& mrConvergenceVariable;
 
     int mMaxIterations;

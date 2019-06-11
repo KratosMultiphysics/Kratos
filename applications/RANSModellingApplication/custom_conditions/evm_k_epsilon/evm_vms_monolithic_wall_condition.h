@@ -211,6 +211,25 @@ public:
         return pNewCondition;
     }
 
+    // /// Provides the global indices for each one of this element's local rows.
+    // /** This determines the elemental equation ID vector for all elemental DOFs
+    //  * @param rResult A vector containing the global Id of each row
+    //  * @param rCurrentProcessInfo the current process info object (unused)
+    //  */
+    // void EquationIdVector(EquationIdVectorType& rResult,
+    //                       ProcessInfo& rCurrentProcessInfo) override;
+
+    // /// Returns a list of the element's Dofs
+    // /**
+    //  * @param ElementalDofList the list of DOFs
+    //  * @param rCurrentProcessInfo the current process info instance
+    //  */
+    // void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+
+    // void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    //                                         VectorType& rRightHandSideVector,
+    //                                         ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -269,6 +288,94 @@ protected:
       @param rLocalMatrix Local system matrix
       @param rLocalVector Local right hand side
       */
+
+    // void ApplyWallLawVMS(MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
+    // {
+    //     std::cout << "Old apply wall low\n";
+    //     GeometryType& rGeometry = this->GetGeometry();
+    //     const size_t BlockSize = TDim + 1;
+    //     const double NodalFactor = 1.0 / double(TDim);
+
+    //     double area = NodalFactor * rGeometry.DomainSize();
+    //     // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
+
+    //     for (size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+    //     {
+    //         const NodeType& rConstNode = rGeometry[itNode];
+    //         const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
+    //         if (y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0)
+    //         {
+    //             array_1d<double, 3> Vel =
+    //                 rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+    //             const array_1d<double, 3>& VelMesh =
+    //                 rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+    //             Vel -= VelMesh;
+    //             const double Ikappa = 1.0 / 0.41; // inverse of Von Karman's kappa
+    //             const double B = 5.2;
+    //             const double limit_yplus = 10.9931899; // limit between linear and log regions
+
+    //             const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
+    //             const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
+
+    //             double wall_vel = 0.0;
+    //             for (size_t d = 0; d < TDim; d++)
+    //             {
+    //                 wall_vel += Vel[d] * Vel[d];
+    //             }
+    //             wall_vel = sqrt(wall_vel);
+
+    //             if (wall_vel > 1e-12) // do not bother if velocity is zero
+    //             {
+    //                 // linear region
+    //                 double utau = sqrt(wall_vel * nu / y);
+    //                 double yplus = y * utau / nu;
+
+    //                 // log region
+    //                 if (yplus > limit_yplus)
+    //                 {
+    //                     // wall_vel / utau = 1/kappa * log(yplus) + B
+    //                     // this requires solving a nonlinear problem:
+    //                     // f(utau) = utau*(1/kappa * log(y*utau/nu) + B) - wall_vel = 0
+    //                     // note that f'(utau) = 1/kappa * log(y*utau/nu) + B + 1/kappa
+
+    //                     unsigned int iter = 0;
+    //                     double dx = 1e10;
+    //                     const double tol = 1e-6;
+    //                     double uplus = Ikappa * log(yplus) + B;
+
+    //                     while (iter < 100 && fabs(dx) > tol * utau)
+    //                     {
+    //                         // Newton-Raphson iteration
+    //                         double f = utau * uplus - wall_vel;
+    //                         double df = uplus + Ikappa;
+    //                         dx = f / df;
+
+    //                         // Update variables
+    //                         utau -= dx;
+    //                         yplus = y * utau / nu;
+    //                         uplus = Ikappa * log(yplus) + B;
+    //                         ++iter;
+    //                     }
+    //                     if (iter == 100)
+    //                     {
+    //                         std::cout
+    //                             << "Warning: wall condition Newton-Raphson did "
+    //                                "not converge. Residual is "
+    //                             << dx << std::endl;
+    //                     }
+    //                 }
+    //                 const double Tmp = area * utau * utau * rho / wall_vel;
+    //                 for (size_t d = 0; d < TDim; d++)
+    //                 {
+    //                     size_t k = itNode * BlockSize + d;
+    //                     rLocalVector[k] -= Vel[d] * Tmp;
+    //                     rLocalMatrix(k, k) += Tmp;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
     void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector,
                       ProcessInfo& rCurrentProcessInfo) override
@@ -313,13 +420,13 @@ protected:
                     r_geometry, VELOCITY, gauss_shape_functions);
             const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
-            if (wall_velocity_magnitude > std::numeric_limits<double>::epsilon())
-            {
-                const double tke = rans_calculation_utilities.EvaluateInPoint(
-                    r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-                const double y_plus = rans_calculation_utilities.EvaluateInPoint(
-                    r_geometry, RANS_Y_PLUS, gauss_shape_functions);
+            const double tke = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, RANS_Y_PLUS, gauss_shape_functions);
 
+            if (y_plus > std::numeric_limits<double>::epsilon())
+            {
                 const double u_tau = std::max(c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                                               wall_velocity_magnitude / y_plus);
 

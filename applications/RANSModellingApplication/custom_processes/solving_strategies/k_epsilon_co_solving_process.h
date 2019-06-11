@@ -99,6 +99,8 @@ public:
     /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
     void ExecuteInitialize() override
     {
+        BaseType::ExecuteInitialize();
+
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
 
@@ -218,6 +220,7 @@ private:
         mpWallVelocityModelProcess->Execute();
         UpdateWallVelocity();
         mpYPlusModelProcess->Execute();
+        this->UpdateConvergenceVariable();
     }
 
     void UpdateAfterSolveSolutionStep() override
@@ -228,6 +231,32 @@ private:
     void UpdateConvergenceVariable() override
     {
         UpdateTurbulentViscosity();
+        this->ExecuteAuxiliaryProcesses();
+
+        const ProcessInfo& r_process_info = this->mrModelPart.GetProcessInfo();
+        const double nu_t_min = r_process_info[TURBULENT_VISCOSITY_MIN];
+        const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
+
+        unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
+        RansVariableUtils().ClipScalarVariable(
+            lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes, nu_t_min,
+            nu_t_max, TURBULENT_VISCOSITY, this->mrModelPart.Nodes());
+
+        KRATOS_WARNING_IF(this->Info(),
+                          (lower_number_of_nodes > 0 || higher_number_of_nodes > 0) &&
+                              this->mEchoLevel > 0)
+            << "TURBULENT_VISCOSITY out of bounds. [ " << lower_number_of_nodes
+            << " nodes < " << std::scientific << nu_t_min << ", "
+            << higher_number_of_nodes << " nodes > " << std::scientific << nu_t_max
+            << "  out of total number of " << total_selected_nodes << " nodes. ]\n";
+
+        const double current_nu_t_min = RansVariableUtils().GetMinimumScalarValue(
+            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
+        const double current_nu_t_max = RansVariableUtils().GetMaximumScalarValue(
+            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
+        KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 1)
+            << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
+            << ", " << current_nu_t_max << " ].\n";
     }
 
     void UpdateWallVelocity()
@@ -239,7 +268,7 @@ private:
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
-            if (r_node.Is(STRUCTURE) && r_node.Is(SLIP))
+            if (r_node.Is(STRUCTURE))
             {
                 r_node.FastGetSolutionStepValue(VELOCITY) =
                     r_node.FastGetSolutionStepValue(WALL_VELOCITY);
@@ -266,10 +295,7 @@ private:
     void UpdateTurbulentViscosity()
     {
         const ProcessInfo& r_process_info = this->mrModelPart.GetProcessInfo();
-        const double nu_t_min = r_process_info[TURBULENT_VISCOSITY_MIN];
-        const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
         const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
-        const double von_karman = r_process_info[WALL_VON_KARMAN];
 
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
@@ -278,45 +304,14 @@ private:
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
-            if (!r_node.Is(STRUCTURE))
-            {
-                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-                const double epsilon =
-                    r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-                const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-                    c_mu, tke, epsilon, 1.0);
+            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            const double epsilon =
+                r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
+            const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
+                c_mu, tke, epsilon, 1.0);
 
-                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
-            }
-            else if (r_node.Is(SLIP))
-            {
-                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
-                const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
-                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
-                    von_karman * nu * y_plus;
-            }
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
         }
-
-        unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
-        RansVariableUtils().ClipScalarVariable(
-            lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes, nu_t_min,
-            nu_t_max, TURBULENT_VISCOSITY, this->mrModelPart.Nodes(), SELECTED);
-
-        KRATOS_WARNING_IF(this->Info(),
-                          (lower_number_of_nodes > 0 || higher_number_of_nodes > 0) &&
-                              this->mEchoLevel > 0)
-            << "TURBULENT_VISCOSITY out of bounds. [ " << lower_number_of_nodes
-            << " nodes < " << std::scientific << nu_t_min << ", "
-            << higher_number_of_nodes << " nodes > " << std::scientific << nu_t_max
-            << "  out of total number of " << total_selected_nodes << " nodes. ]\n";
-
-        const double current_nu_t_min = RansVariableUtils().GetMinimumScalarValue(
-            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
-        const double current_nu_t_max = RansVariableUtils().GetMaximumScalarValue(
-            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
-        KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 1)
-            << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
-            << ", " << current_nu_t_max << " ].\n";
     }
 
     ///@}
