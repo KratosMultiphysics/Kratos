@@ -8,7 +8,7 @@ import numpy as np
 #                           CoSimulation.
 #
 class CouplingInterfaceData(object):
-    def __init__(self, custom_config, solver):
+    def __init__(self, custom_config, model):
 
         default_config = cs_data_structure.Parameters("""{
             "variable_name" : "UNSPECIFIED",
@@ -21,8 +21,8 @@ class CouplingInterfaceData(object):
         self.name = custom_config["variable_name"].GetString() # TO BE REMOVED
         self.variable = cs_data_structure.KratosGlobals.GetVariable(custom_config["variable_name"].GetString())
         self.filters = []
-        self.solver = solver
-        self.dimension = custom_config["dimension"].GetInt()
+        self.model = model
+        self.dimension = custom_config["dimension"].GetInt() # TODO check that sth was assigned
         self.location = custom_config["location"].GetString()
         self.geometry_name = custom_config["geometry_name"].GetString()
         # TODO remove the following
@@ -36,7 +36,7 @@ class CouplingInterfaceData(object):
             filter.Apply()
 
     def GetPythonList(self, solution_step_index=0):
-        data_mesh = self.solver.model[self.geometry_name]
+        data_mesh = self.model[self.geometry_name]
         data = [0]*len(data_mesh.Nodes)*self.dimension
         # data_variable = cs_data_structure.KratosGlobals.GetVariable(self.variable_name)
         node_index = 0
@@ -51,7 +51,7 @@ class CouplingInterfaceData(object):
         return np.asarray(self.GetPythonList(solution_step_index), dtype=np.float64)
 
     def ApplyUpdateToData(self, update):
-        data_mesh = self.solver.model[self.geometry_name]
+        data_mesh = self.model[self.geometry_name]
         # data_variable = cs_data_structure.KratosGlobals.GetVariable(self.variable_name)
         node_index = 0
         updated_value = [0]*3 # TODO this is a hack, find better solution! => check var_type

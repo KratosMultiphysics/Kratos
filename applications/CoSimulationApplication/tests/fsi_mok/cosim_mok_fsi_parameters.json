@@ -15,21 +15,21 @@
             {
                 "type"                 : "linear_derivative_based",
                 "solver"               : "fluid",
-                "data_name"            : "MESH_DISPLACEMENT",
-                "derivative_data_name" : "VELOCITY"
+                "data_name"            : "disp",
+                "derivative_data_name" : "velocity"
             }
         ],
         "convergence_accelerators" : [
             {
                 "type"      : "mvqn",
                 "solver"    : "fluid",
-                "data_name" : "MESH_DISPLACEMENT"
+                "data_name" : "disp"
             }
         ],
         "convergence_criteria" : [
             {
                 "solver"        : "fluid",
-                "data_name"     : "MESH_DISPLACEMENT",
+                "data_name"     : "disp",
                 "abs_tolerance" : 1e-5,
                 "rel_tolerance" : 1e-5
             }
@@ -46,8 +46,8 @@
                 "input_data_list": [
                     {
                         "from_solver"       : "fluid",
-                        "data_name"         : "REACTION",
-                        "destination_data"  : "POINT_LOAD",
+                        "data_name"         : "load",
+                        "destination_data"  : "load",
                         "mapper_settings"   : {
                             "type" : "nearest_neighbor",
                             "flags" : ["swap_sign"]
@@ -59,8 +59,8 @@
                 "output_data_list": [
                     {
                         "to_solver"   : "fluid",
-                        "data_name"   : "MESH_DISPLACEMENT",
-                        "origin_data" : "DISPLACEMENT",
+                        "data_name"   : "disp",
+                        "origin_data" : "disp",
                         "mapper_settings"   : {
                             "type" : "nearest_neighbor",
                             "flags":[]
@@ -78,20 +78,23 @@
                 "settings" : {
                     "input_file"  : "fsi_mok/ProjectParametersCFD"
                 },
-                "data" : [{
+                "data" : {
+                    "disp" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "MESH_DISPLACEMENT"
-                    },{
+                    },
+                    "load" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "REACTION"
-                    },{
+                    },
+                    "velocity" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "VELOCITY"
                     }
-                ]
+                }
             },
             "structure" :
             {
@@ -99,20 +102,23 @@
                 "settings" : {
                     "input_file"  : "fsi_mok/ProjectParametersCSM"
                 },
-                "data" : [{
+                "data" : {
+                    "disp" : {
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
-                    },{
+                    },
+                    "load" : {
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    }, {
+                    },
+                    "velocity" : {
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "VELOCITY"
                     }
-                ]
+                }
             }
         }
     }

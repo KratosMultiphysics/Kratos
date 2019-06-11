@@ -14,7 +14,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "fluid",
-                "data_name"      : "REACTION"
+                "data_name"      : "load"
             }
         ],
         "coupling_sequence":
@@ -24,8 +24,8 @@
             "input_data_list": [
                 {
                     "from_solver"       : "fluid",
-                    "data_name"         : "REACTION",
-                    "destination_data"  :"POINT_LOAD",
+                    "data_name"         : "load",
+                    "destination_data"  : "load",
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor",
                         "flags" : ["swap_sign"]
@@ -36,8 +36,8 @@
             "output_data_list": [
                 {
                     "to_solver"   : "fluid",
-                    "data_name"   : "MESH_DISPLACEMENT",
-                    "origin_data" : "DISPLACEMENT",
+                    "data_name"   : "disp",
+                    "origin_data" : "disp",
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor",
                         "flags":[]
@@ -60,20 +60,23 @@
                 "settings" : {
                     "input_file"  : "fsi_wall/ProjectParametersCFD"
                 },
-                "data" : [{
+                "data" : {
+                    "disp" : {
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "MESH_DISPLACEMENT",
                         "dimension" : 2
-                    },{
+                    },
+                    "load" : {
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "REACTION",
                         "dimension" : 2
-                    },{
+                    },
+                    "velocity" : {
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "VELOCITY",
                         "dimension" : 2
                     }
-                ]
+                }
             },
             "structure" :
             {
@@ -81,20 +84,23 @@
                 "settings" : {
                     "input_file"  : "fsi_wall/ProjectParametersCSM"
                 },
-                "data" : [{
+                "data" : {
+                    "disp" : {
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "variable_name" : "DISPLACEMENT",
                         "dimension" : 2
-                    },{
+                    },
+                    "load" : {
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
                         "dimension" : 2
-                    },{
+                    },
+                    "velocity" : {
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "variable_name" : "VELOCITY",
                         "dimension" : 2
                     }
-                ]
+                }
             }
         }
     }

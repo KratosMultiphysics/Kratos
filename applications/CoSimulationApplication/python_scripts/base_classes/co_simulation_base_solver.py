@@ -116,11 +116,8 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def __CreateInterfaceDataMap(self):
         data_map = dict()
-        for i in range(self.settings["data"].size()):
-            data_conf = self.settings["data"][i]
-            data_name = data_conf["variable_name"].GetString()
-            data_obj = CouplingInterfaceData(data_conf, self) # TODO pass only the model?
-            data_map[data_name] = data_obj
+        for data_name, data_config in self.settings["data"].items():
+            data_map[data_name] = CouplingInterfaceData(data_config, self.model)
 
         return data_map
 
@@ -130,6 +127,6 @@ class CoSimulationBaseSolver(object):
             "type"        : "",
             "io_settings" : {},
             "settings"    : {},
-            "data"        : [],
+            "data"        : {},
             "echo_level"  : 0
         }""")
