@@ -110,15 +110,19 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             # to solver
             to_solver_data = to_solver.GetInterfaceData(i_input_data["data"].GetString())
 
+            # perform the data transfer
+            self.__ExecuteCouplingOperations(i_input_data["before_transfer_operations"])
+
+            transfer_operator_name = i_input_data["transfer_operator"].GetString()
+            # TODO check the order of solvers!
+            # self.transfer_operators[transfer_operator_name].Transfer(from_solver, to_solver, i_input_data["transfer_operator_options"])
+
+            self.__ExecuteCouplingOperations(i_input_data["after_transfer_operations"])
             if i_input_data.Has("mapper_settings"):
                 to_solver_data.origin_data = from_solver_data
                 to_solver_data.mapper_settings = i_input_data["mapper_settings"]
 
             to_solver.ImportCouplingInterfaceData(to_solver_data, from_solver)
-
-            # pre
-            # data_transfer_op()
-            # post
 
 
     def _SynchronizeOutputData(self, solver_name):
@@ -135,15 +139,27 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             to_solver = self.participating_solvers[i_output_data["to_solver"].GetString()]
             to_solver_data = to_solver.GetInterfaceData(i_output_data["to_solver_data"].GetString())
 
-            # pre
-            # data_transfer_op()
-            # post
+            # perform the data transfer
+            self.__ExecuteCouplingOperations(i_output_data["before_transfer_operations"])
+
+            transfer_operator_name = i_output_data["transfer_operator"].GetString()
+            # TODO check the order of solvers!
+            # self.transfer_operators[transfer_operator_name].Transfer(from_solver, to_solver, i_output_data["transfer_operator_options"])
+
+            self.__ExecuteCouplingOperations(i_output_data["after_transfer_operations"])
 
             if i_output_data.Has("mapper_settings"):
                 from_solver_data.destination_data = to_solver_data
                 from_solver_data.mapper_settings = i_output_data["mapper_settings"]
 
-            from_solver.ExportCouplingInterfaceData(from_solver_data, to_solver)
+            # export the data
+            from_solver.ExportCouplingInterfaceData(from_solver_data, to_solver) # TODO I am quite sure that the args have to be changed
+
+
+    def __ExecuteCouplingOperations(self, settings):
+        for i in range(settings.size()):
+            name = settings[i].GetString()
+            self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()
@@ -204,8 +220,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             solver_name = solver_settings["name"].GetString()
             solver_cosim_details[solver_name] = solver_settings
 
-            # ValidateAndAssignDefaultsDataList(solver_settings["input_data_list"], GetInputDataDefaults())
-            # ValidateAndAssignDefaultsDataList(solver_settings["output_data_list"], GetOutputDataDefaults())
+            ValidateAndAssignDefaultsDataList(solver_settings["input_data_list"], GetInputDataDefaults())
+            ValidateAndAssignDefaultsDataList(solver_settings["output_data_list"], GetOutputDataDefaults())
 
         return solver_cosim_details
 
@@ -224,24 +240,26 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
 def GetInputDataDefaults():
     return cs_tools.cs_data_structure.Parameters("""{
-        "data"                      : "UNSPECIFIED",
-        "from_solver"               : "UNSPECIFIED",
-        "from_solver_data"          : "UNSPECIFIED",
-        "transfer_operator"         : "UNSPECIFIED",
-        "transfer_operator_options" : [],
-        "pre_transfer_operations"   : [],
-        "post_transfer_operations"  : [],
-        "interval"                  : []
+        "data"                       : "UNSPECIFIED",
+        "from_solver"                : "UNSPECIFIED",
+        "from_solver_data"           : "UNSPECIFIED",
+        "transfer_operator"          : "UNSPECIFIED",
+        "transfer_operator_options"  : [],
+        "before_transfer_operations" : [],
+        "after_transfer_operations"  : [],
+        "interval"                   : [],
+        "mapper_settings" : {}
     }""")
 
 def GetOutputDataDefaults():
     return cs_tools.cs_data_structure.Parameters("""{
-        "data"                      : "UNSPECIFIED",
-        "to_solver"                 : "UNSPECIFIED",
-        "to_solver_data"            : "UNSPECIFIED",
-        "transfer_operator"         : "UNSPECIFIED",
-        "transfer_operator_options" : [],
-        "pre_transfer_operations"   : [],
-        "post_transfer_operations"  : [],
-        "interval"                  : []
+        "data"                       : "UNSPECIFIED",
+        "to_solver"                  : "UNSPECIFIED",
+        "to_solver_data"             : "UNSPECIFIED",
+        "transfer_operator"          : "UNSPECIFIED",
+        "transfer_operator_options"  : [],
+        "before_transfer_operations" : [],
+        "after_transfer_operations"  : [],
+        "interval"                   : [],
+        "mapper_settings" : {}
     }""")
