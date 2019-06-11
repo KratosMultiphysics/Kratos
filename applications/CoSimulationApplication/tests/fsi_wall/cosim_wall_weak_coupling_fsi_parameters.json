@@ -17,6 +17,11 @@
                 "data_name"      : "load"
             }
         ],
+        "data_transfer_operators" : {
+            "dummy" : {
+                "type" : "dummy"
+            }
+        },
         "coupling_sequence":
         [
         {
@@ -26,6 +31,7 @@
                     "data"              : "load",
                     "from_solver"       : "fluid",
                     "from_solver_data"  : "load",
+                    "data_transfer_operator" : "dummy",
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor",
                         "flags" : ["swap_sign"]
@@ -37,6 +43,7 @@
                     "data"           : "disp",
                     "to_solver"      : "fluid",
                     "to_solver_data" : "disp",
+                    "data_transfer_operator" : "dummy",
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor"
                     }

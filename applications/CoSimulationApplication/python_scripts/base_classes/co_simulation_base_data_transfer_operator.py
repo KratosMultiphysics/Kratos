@@ -9,7 +9,7 @@ class CoSimulationBaseDataTransferOperator(object):
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
         self.echo_level = self.settings["echo_level"].GetInt()
 
-    def TransferData(self, solver, data):
+    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         pass
 
     def PrintInfo(self):
@@ -27,5 +27,6 @@ class CoSimulationBaseDataTransferOperator(object):
     @classmethod
     def _GetDefaultSettings(cls):
         return cs_tools.cs_data_structure.Parameters("""{
+            "type"       : "UNSPECIFIED",
             "echo_level" : 0
         }""")
