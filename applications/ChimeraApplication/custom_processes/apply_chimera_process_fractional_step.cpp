@@ -24,19 +24,12 @@ namespace Kratos
 
 
 template <int TDim>
-void ApplyChimeraProcessFractionalStep<TDim>::ApplyChimeraProcessFractionalStep(ModelPart &rMainModelPart, Parameters iParameters) : BaseType(rMainModelPart, iParameters)
-{
-
-}
-
-
-template <int TDim>
 void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
                                                                      Node<3> &rBoundaryNode,
                                                                      Vector &rShapeFuncWeights,
                                                                      unsigned int StartId,
                                                                      std::vector<int> &ConstraintIdVector,
-                                                                     typename BaseType::MasterSlaveConstraintContainerType &rMsContainer)
+                                                                     MasterSlaveConstraintContainerType &rMsContainer)
 {
     const auto &r_clone_constraint = (LinearMasterSlaveConstraint)KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
     // Initialise the boundary nodes dofs to 0 at ever time steps
@@ -75,5 +68,7 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithElement(Geometr
     rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 1) = rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0);
 }
 
+template class ApplyChimeraProcessFractionalStep<2>;
+template class ApplyChimeraProcessFractionalStep<3>;
 
 } // namespace Kratos.

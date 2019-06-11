@@ -43,8 +43,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep2d")
         .def(py::init<ModelPart &, Parameters>());
 
-    /*py::class_<ApplyChimeraProcessFractionalStep<3>, ApplyChimeraProcessFractionalStep<3>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep3d")
-        .def(py::init<ModelPart &, Parameters>());*/
+    py::class_<ApplyChimeraProcessFractionalStep<3>, ApplyChimeraProcessFractionalStep<3>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep3d")
+        .def(py::init<ModelPart &, Parameters>());
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
         .def(py::init<ModelPart &, Parameters>())

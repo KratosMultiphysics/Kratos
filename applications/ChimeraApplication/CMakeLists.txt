@@ -19,6 +19,7 @@ set( KRATOS_CHIMERA_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/chimera_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/chimera_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_chimera_process_monolithic.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_chimera_process_fractional_step.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/chimera_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp

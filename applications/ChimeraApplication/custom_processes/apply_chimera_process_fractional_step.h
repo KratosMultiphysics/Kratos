@@ -55,12 +55,16 @@ public:
     /// Pointer definition of ApplyChimeraProcessFractionalStep
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessFractionalStep);
     typedef ApplyChimeraProcessMonolithic<TDim> BaseType;
+    typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+    ApplyChimeraProcessFractionalStep(ModelPart &rMainModelPart, Parameters iParameters)
+        : BaseType(rMainModelPart, iParameters)
+    {
+    }
 
-    ApplyChimeraProcessFractionalStep(ModelPart &rMainModelPart, Parameters iParameters);
 
     /// Destructor.
     virtual ~ApplyChimeraProcessFractionalStep();
