@@ -55,12 +55,16 @@ public:
     /// Pointer definition of ApplyChimeraProcessFractionalStep
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessFractionalStep);
     typedef ApplyChimeraProcessMonolithic<TDim> BaseType;
+    typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+    ApplyChimeraProcessFractionalStep(ModelPart &rMainModelPart, Parameters iParameters)
+        : BaseType(rMainModelPart, iParameters)
+    {
+    }
 
-    ApplyChimeraProcessFractionalStep(ModelPart &rMainModelPart, Parameters iParameters);
 
     /// Destructor.
     virtual ~ApplyChimeraProcessFractionalStep();
@@ -168,7 +172,9 @@ private:
         p_new_constraint->Set(TO_ERASE);
         BaseType::mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
         rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
+
         // TODO: Set the FS_CHIMERA_VEL_CONSTRAINT variable to true
+        p_new_constraint->Set(FS_CHIMERA_VEL_CONSTRAINT);
     }
 
     /**
@@ -202,6 +208,7 @@ private:
         rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 
         // TODO: Set the FS_CHIMERA_PRE_CONSTRAINT variable to true
+        p_new_constraint->Set(FS_CHIMERA_PRE_CONSTRAINT);
     }
 
     ///@}

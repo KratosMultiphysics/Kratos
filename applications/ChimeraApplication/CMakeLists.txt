@@ -1,11 +1,16 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosChimeraApplication ****")
+message("**** Configuring KratosChimeraApplication ****")
+
+if(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
+    MESSAGE( FATAL_ERROR "ChimeraApplication needs FluidDynamicsApplicaiton to work. Please set FLUID_DYNAMICS_APPLICATION=ON in configuration file." )
+endif(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF)
 
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #dependecies on other applications
+include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ChimeraApplication )
 
 
@@ -13,8 +18,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/ChimeraApplication )
 set( KRATOS_CHIMERA_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/chimera_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/chimera_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interpolation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_chimera_process_monolithic.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_chimera_process_fractional_step.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/chimera_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
@@ -30,7 +35,7 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosChimeraApplication MODULE THIN_LTO ${KRATOS_CHIMERA_APPLICATION_SOURCES})
-target_link_libraries(KratosChimeraApplication PRIVATE KratosCore ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS})
+target_link_libraries(KratosChimeraApplication PRIVATE KratosCore KratosFluidDynamicsCore ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
 install(TARGETS KratosChimeraApplication DESTINATION libs )
 

@@ -173,7 +173,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart)
+    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart) override
     {
         BaseType::ConstructMasterSlaveConstraintsStructure(rModelPart);
         if (rModelPart.MasterSlaveConstraints().size() > 0)
@@ -182,7 +182,7 @@ protected:
         }
     }
 
-    virtual void BuildMasterSlaveConstraints(ModelPart &rModelPart)
+    virtual void BuildMasterSlaveConstraints(ModelPart &rModelPart) override
     {
         KRATOS_TRY
 
@@ -208,7 +208,7 @@ protected:
         TSystemMatrixType &rA,
         TSystemVectorType &rDx,
         TSystemVectorType &rb,
-        ModelPart &rModelPart)
+        ModelPart &rModelPart) override
     {
         KRATOS_TRY
 
