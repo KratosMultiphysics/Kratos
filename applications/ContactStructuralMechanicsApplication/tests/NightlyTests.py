@@ -38,8 +38,8 @@ class ComponentsALMHertzCompleteTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"
 
-class ALMTaylorPatchFrictionalTestContact(TestFactory):
-    file_name = "ALM_frictional_contact_test_2D/taylor_patch_test"
-
 class ALMPureFrictionalTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/pure_friction_test"
+
+class ALMBasicFrictionTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/basic_friction_test"

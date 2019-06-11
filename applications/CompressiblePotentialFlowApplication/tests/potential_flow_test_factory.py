@@ -16,7 +16,6 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
-structural_mechanics_is_available = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -38,8 +37,6 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_Naca0012SmallAdjoint(self):
         if not hdf5_is_available:
             self.skipTest("Missing required application: HDF5Application")
-        if not structural_mechanics_is_available:
-            self.skipTest("Missing required application: StructuralMechanicsApplication")
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
         settings_file_name_adjoint = file_name + "_adjoint_parameters.json"

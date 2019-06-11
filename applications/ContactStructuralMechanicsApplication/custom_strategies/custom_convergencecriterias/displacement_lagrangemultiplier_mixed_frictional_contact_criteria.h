@@ -70,6 +70,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ENSURE_CONTACT );
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
     /// The base class definition (and it subclasses)
@@ -115,6 +116,7 @@ public:
         const TDataType LMTangentAbsTolerance,
         const TDataType NormalTangentRatio,
         const bool EnsureContact = false,
+        const bool PureSlip = false,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -123,6 +125,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP, PureSlip);
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
 
         // The displacement residual
@@ -152,6 +155,7 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "ensure_contact"                                     : false,
+            "pure_slip"                                          : false,
             "print_convergence_criterion"                        : false,
             "residual_relative_tolerance"                        : 1.0e-4,
             "residual_absolute_tolerance"                        : 1.0e-9,
@@ -183,6 +187,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
     }
 
@@ -262,7 +267,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -284,7 +289,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -306,7 +311,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -366,20 +371,24 @@ public:
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                     auto& r_table = p_table->GetTable();
-                    r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_stick_ratio  << mLMTangentRatioTolerance  << tangent_lm_stick_abs  << mLMTangentAbsTolerance << tangent_lm_slip_ratio  << mLMTangentRatioTolerance  << tangent_lm_slip_abs  << mLMTangentAbsTolerance;
+                    if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_stick_ratio  << mLMTangentRatioTolerance  << tangent_lm_stick_abs  << mLMTangentAbsTolerance << tangent_lm_slip_ratio  << mLMTangentRatioTolerance  << tangent_lm_slip_abs  << mLMTangentAbsTolerance;
+                    } else {
+                        r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << normal_lm_ratio  << mLMNormalRatioTolerance  << normal_lm_abs  << mLMNormalAbsTolerance << tangent_lm_slip_ratio  << mLMTangentRatioTolerance  << tangent_lm_slip_abs  << mLMTangentAbsTolerance;
+                    }
                 } else {
                     std::cout.precision(4);
                     if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT("\tNORMAL LAGRANGE MUL: RATIO = ") << normal_lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMNormalRatioTolerance << BOLDFONT(" ABS = ") << normal_lm_abs << BOLDFONT(" EXP.ABS = ") << mLMNormalAbsTolerance << std::endl;
-                        KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT(" STICK LAGRANGE MUL:\tRATIO = ") << tangent_lm_stick_ratio << BOLDFONT(" EXP.RATIO = ") << mLMTangentRatioTolerance << BOLDFONT(" ABS = ") << tangent_lm_stick_abs << BOLDFONT(" EXP.ABS = ") << mLMTangentAbsTolerance << std::endl;
+                        KRATOS_INFO_IF("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria", mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) << BOLDFONT(" STICK LAGRANGE MUL:\tRATIO = ") << tangent_lm_stick_ratio << BOLDFONT(" EXP.RATIO = ") << mLMTangentRatioTolerance << BOLDFONT(" ABS = ") << tangent_lm_stick_abs << BOLDFONT(" EXP.ABS = ") << mLMTangentAbsTolerance << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << BOLDFONT(" SLIP LAGRANGE MUL:\tRATIO = ") << tangent_lm_slip_ratio << BOLDFONT(" EXP.RATIO = ") << mLMTangentRatioTolerance << BOLDFONT(" ABS = ") << tangent_lm_slip_abs << BOLDFONT(" EXP.ABS = ") << mLMTangentAbsTolerance << std::endl;
                     } else {
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << "\tNORMAL LAGRANGE MUL: RATIO = " << normal_lm_ratio << " EXP.RATIO = " << mLMNormalRatioTolerance << " ABS = " << normal_lm_abs << " EXP.ABS = " << mLMNormalAbsTolerance << std::endl;
-                        KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << " STICK LAGRANGE MUL:\tRATIO = " << tangent_lm_stick_ratio << " EXP.RATIO = " << mLMTangentRatioTolerance << " ABS = " << tangent_lm_stick_abs << " EXP.ABS = " << mLMTangentAbsTolerance << std::endl;
+                        KRATOS_INFO_IF("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria", mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) << " STICK LAGRANGE MUL:\tRATIO = " << tangent_lm_stick_ratio << " EXP.RATIO = " << mLMTangentRatioTolerance << " ABS = " << tangent_lm_stick_abs << " EXP.ABS = " << mLMTangentAbsTolerance << std::endl;
                         KRATOS_INFO("DisplacementLagrangeMultiplierMixedFrictionalContactCriteria") << " SLIP LAGRANGE MUL:\tRATIO = " << tangent_lm_slip_ratio << " EXP.RATIO = " << mLMTangentRatioTolerance << " ABS = " << tangent_lm_slip_abs << " EXP.ABS = " << mLMTangentAbsTolerance << std::endl;
                     }
                 }
@@ -452,10 +461,12 @@ public:
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
             r_table.AddColumn("EXP. ABS", 10);
-            r_table.AddColumn("STI. RATIO", 10);
-            r_table.AddColumn("EXP. RAT", 10);
-            r_table.AddColumn("ABS", 10);
-            r_table.AddColumn("EXP. ABS", 10);
+            if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                r_table.AddColumn("STI. RATIO", 10);
+                r_table.AddColumn("EXP. RAT", 10);
+                r_table.AddColumn("ABS", 10);
+                r_table.AddColumn("EXP. ABS", 10);
+            }
             r_table.AddColumn("SLIP RATIO", 10);
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
@@ -596,9 +607,13 @@ const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3));
+const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3, false));
+const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(3, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(4));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(4, false));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_FRICTIONAL_CONTACT_CRITERIA_H */
