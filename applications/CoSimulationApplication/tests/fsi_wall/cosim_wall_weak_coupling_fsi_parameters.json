@@ -70,17 +70,17 @@
                 },
                 "data" : {
                     "disp" : {
-                        "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "MESH_DISPLACEMENT",
                         "dimension" : 2
                     },
                     "load" : {
-                        "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "REACTION",
                         "dimension" : 2
                     },
                     "velocity" : {
-                        "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "VELOCITY",
                         "dimension" : 2
                     }
@@ -94,17 +94,17 @@
                 },
                 "data" : {
                     "disp" : {
-                        "geometry_name" : "GENERIC_FSI_Interface",
+                        "model_part_name" : "GENERIC_FSI_Interface",
                         "variable_name" : "DISPLACEMENT",
                         "dimension" : 2
                     },
                     "load" : {
-                        "geometry_name" : "GENERIC_FSI_Interface",
+                        "model_part_name" : "GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
                         "dimension" : 2
                     },
                     "velocity" : {
-                        "geometry_name" : "GENERIC_FSI_Interface",
+                        "model_part_name" : "GENERIC_FSI_Interface",
                         "variable_name" : "VELOCITY",
                         "dimension" : 2
                     }

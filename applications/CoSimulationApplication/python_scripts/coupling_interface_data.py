@@ -13,7 +13,7 @@ class CouplingInterfaceData(object):
         default_config = cs_data_structure.Parameters("""{
             "variable_name" : "UNSPECIFIED",
             "dimension"     : -1,
-            "geometry_name" : "UNSPECIFIED",
+            "model_part_name" : "UNSPECIFIED",
             "location"      : "node_historical"
         }""")
         custom_config.ValidateAndAssignDefaults(default_config)
@@ -24,7 +24,7 @@ class CouplingInterfaceData(object):
         self.model = model
         self.dimension = custom_config["dimension"].GetInt() # TODO check that sth was assigned
         self.location = custom_config["location"].GetString()
-        self.geometry_name = custom_config["geometry_name"].GetString()
+        self.model_part_name = custom_config["model_part_name"].GetString()
         # TODO remove the following
         self.origin_data      = None
         self.destination_data = None
@@ -36,7 +36,7 @@ class CouplingInterfaceData(object):
             filter.Apply()
 
     def GetPythonList(self, solution_step_index=0):
-        data_mesh = self.model[self.geometry_name]
+        data_mesh = self.model[self.model_part_name]
         data = [0]*len(data_mesh.Nodes)*self.dimension
         # data_variable = cs_data_structure.KratosGlobals.GetVariable(self.variable_name)
         node_index = 0
@@ -51,7 +51,7 @@ class CouplingInterfaceData(object):
         return np.asarray(self.GetPythonList(solution_step_index), dtype=np.float64)
 
     def ApplyUpdateToData(self, update):
-        data_mesh = self.model[self.geometry_name]
+        data_mesh = self.model[self.model_part_name]
         # data_variable = cs_data_structure.KratosGlobals.GetVariable(self.variable_name)
         node_index = 0
         updated_value = [0]*3 # TODO this is a hack, find better solution! => check var_type
