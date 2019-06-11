@@ -438,8 +438,8 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         """{
             "model_part_name": "FSICouplingInterfaceStructure",
             "parent_model_part_name": "",
-            "input_variable_name": "POSITIVE_FACE_PRESSURE",
-            "output_variable_name": "DISPLACEMENT"
+            "input_variable_list": ["POSITIVE_FACE_PRESSURE"],
+            "output_variable_list": ["DISPLACEMENT"]
         }""")
         aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
 
@@ -466,8 +466,8 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         """{
             "model_part_name": "FSICouplingInterfaceFluid",
             "parent_model_part_name": "",
-            "input_variable_name": "DISPLACEMENT",
-            "output_variable_name": "PRESSURE"
+            "input_variable_list": ["DISPLACEMENT"],
+            "output_variable_list": ["PRESSURE"]
         }""")
         aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
 
