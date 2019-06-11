@@ -160,11 +160,8 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        Parameters Settings,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,Settings,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
+        Parameters Settings
+    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,Settings)
     {
         Parameters default_settings = this->GetDefaultSettings();
         Settings.ValidateAndAssignDefaults(default_settings);
@@ -177,11 +174,8 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters Settings,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,Settings,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
+        Parameters Settings
+    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,Settings)
     {
         Parameters default_settings = this->GetDefaultSettings();
         Settings.ValidateAndAssignDefaults(default_settings);

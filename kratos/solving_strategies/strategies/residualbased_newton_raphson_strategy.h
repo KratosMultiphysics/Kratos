@@ -232,16 +232,11 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        Parameters Settings,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        Parameters Settings)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
           mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
-          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
-          mCalculateReactionsFlag(CalculateReactions),
           mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -294,17 +289,12 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters Settings,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        Parameters Settings)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
           mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
-          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
-          mCalculateReactionsFlag(CalculateReactions),
           mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -1176,7 +1166,9 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual Parameters GetDefaultSettings()
     {
         Parameters default_settings(R"({
-            "max_iterations" : 30
+            "max_iterations"           : 30,
+            "reform_dofs_at_each_step" : false,
+            "calculate_reactions"      : false
         })");
         return default_settings;
     }
@@ -1187,6 +1179,8 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual void AssignSettings(Parameters Settings)
     {
         mMaxIterationNumber = Settings["max_iterations"].GetInt();
+        mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
     }
 
     ///@}
