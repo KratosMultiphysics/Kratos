@@ -18,8 +18,11 @@
             }
         ],
         "data_transfer_operators" : {
-            "dummy" : {
-                "type" : "dummy"
+            "mapper" : {
+                "type" : "mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
             }
         },
         "coupling_sequence":
@@ -31,7 +34,8 @@
                     "data"              : "load",
                     "from_solver"       : "fluid",
                     "from_solver_data"  : "load",
-                    "data_transfer_operator" : "dummy",
+                    "data_transfer_operator" : "mapper",
+                    "data_transfer_operator_options" : ["swap_sign"],
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor",
                         "flags" : ["swap_sign"]
@@ -43,7 +47,7 @@
                     "data"           : "disp",
                     "to_solver"      : "fluid",
                     "to_solver_data" : "disp",
-                    "data_transfer_operator" : "dummy",
+                    "data_transfer_operator" : "mapper",
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor"
                     }
