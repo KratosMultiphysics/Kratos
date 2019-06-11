@@ -13,8 +13,8 @@ class FSICouplingInterface():
         {
             "model_part_name": "",
             "parent_model_part_name": "",
-            "input_variable_name": "",
-            "output_variable_name": ""
+            "input_variable_list": [],
+            "output_variable_list": []
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -23,10 +23,10 @@ class FSICouplingInterface():
             raise Exception("Provided \'model_part_name\' is empty.")
         if settings["parent_model_part_name"].GetString() == "":
             raise Exception("Provided \'parent_model_part_name\' is empty.")
-        if settings["input_variable_name"].GetString() == "":
-            raise Exception("Provided \'input_variable_name\' is empty.")
-        if settings["output_variable_name"].GetString() == "":
-            raise Exception("Provided \'output_variable_name\' is empty.")
+        if settings["input_variable_list"].size() == 0:
+            raise Exception("Provided \'input_variable_list\' is empty.")
+        if settings["output_variable_list"].size() == 0:
+            raise Exception("Provided \'output_variable_list\' is empty.")
 
         return settings
 
@@ -39,8 +39,8 @@ class FSICouplingInterface():
         self.convergence_accelerator = convergence_accelerator
         self.model_part_name = settings["model_part_name"].GetString()
         self.parent_model_part_name = settings["parent_model_part_name"].GetString()
-        self.input_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["input_variable_name"].GetString())
-        self.output_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["output_variable_name"].GetString())
+        self.input_variable_list = settings["input_variable_list"]
+        self.output_variable_list = settings["output_variable_list"]
 
     def GetInterfaceModelPart(self):
         if not hasattr(self, '_fsi_interface_model_part'):
@@ -51,9 +51,18 @@ class FSICouplingInterface():
         return self.model.GetModelPart(self.parent_model_part_name)
 
     def Update(self):
+        # Check that the output variable that defines the residual is unique and get it
+        if (self.output_variable_list.size() == 1):
+            output_variable_name = self.output_variable_list[0].GetString()
+            output_variable = KratosMultiphysics.KratosGlobals.GetVariable(output_variable_name)
+        else:
+            err_msg = "Update() can only be performed with a unique output variable.\n"
+            err_msg = "Number of variables in \'output_variable_list\' is " + int(self.output_variable_list.size())
+            raise Exception(err_msg)
+
         # Get the output variable from the father model part
         # Note that this are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
-        self.GetValuesFromFatherModelPart(self.output_variable)
+        self.GetValuesFromFatherModelPart(output_variable)
 
         # Save the previously existent RELAXED_DISPLACEMENT in OLD_RELAXED_DISPLACEMENT before doing the update
         for node in self.GetInterfaceModelPart().Nodes:
@@ -75,7 +84,7 @@ class FSICouplingInterface():
         output_variable_residual_vector = KratosMultiphysics.Vector(residual_size)
         self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
             self.GetInterfaceModelPart(),
-            self.output_variable,
+            output_variable,
             KratosMultiphysics.OLD_RELAXED_DISPLACEMENT,
             KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
             output_variable_residual_vector,
@@ -118,8 +127,12 @@ class FSICouplingInterface():
         self._fsi_interface_model_part = self.model.CreateModelPart(self.model_part_name)
 
         # Add the required variables to the FSI coupling interface model part
-        self._fsi_interface_model_part.AddNodalSolutionStepVariable(self.input_variable)
-        self._fsi_interface_model_part.AddNodalSolutionStepVariable(self.output_variable)
+        for variable_name in self.input_variable_list:
+            input_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
+            self._fsi_interface_model_part.AddNodalSolutionStepVariable(input_variable)
+        for variable_name in self.output_variable_list:
+            output_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
+            self._fsi_interface_model_part.AddNodalSolutionStepVariable(output_variable)
         self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RELAXED_DISPLACEMENT)
         self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT)
         self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
