@@ -9,9 +9,10 @@
         "external_load": 10000.0
      },
      "solver_parameters": {
-         "buffer_size": 3
+         "buffer_size": 1
      },
      "output_parameters":{
-        "file_name": "sdof_static_solver/results_sdof_static.dat"
+        "file_name": "results_sdof.dat"
      }
-}
+
+} 

@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 # Importing the base class
+import KratosMultiphysics
 from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 from co_simulation_tools import RecursivelyValidateAndAssignDefaults
 
@@ -52,19 +53,13 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
 
     def Initialize(self):
         initial_values = self.initial_displacement
-        self.dx = 0.0
-
-        self.x = initial_values
-        self.x_old = 0.0
-        self.b = 0.0
-
-        #x contain: displacement and dx is not used here
+        self.dx = initial_values
 
         if os.path.isfile(self.output_file_name):
             os.remove(self.output_file_name)
-    
-    # def OutputSolutionStep(self):
-        # with open(self.output_file_name, "a") as results_sdof_static:
+
+    def OutputSolutionStep(self):
+        with open(self.output_file_name, "a") as results_sdof_static:
             #outputs displacements
             # results_sdof_static.write("displacement values are \t" + str(self.x + "\n")
             return
@@ -72,15 +67,11 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         pass
 
     def SolveSolutionStep(self):
-        self.b = self.force + self.stiffness*self.x_old
         self.dx = self.force/self.stiffness
 
-        self.x = self.dx + self.x_old
-        self.x_old = self.x
-
-        print('Force Imported = ', self.force)
-        print('Structure Stiffness = ', self.stiffness)
-        print('New Displacement = ', self.dx)
+        KratosMultiphysics.Logger.PrintInfo('SDoFStaticSolver', 'Force Imported = ', self.force)
+        KratosMultiphysics.Logger.PrintInfo('SDoFStaticSolver', 'Structure Stiffness = ', self.stiffness)
+        KratosMultiphysics.Logger.PrintInfo('SDoFStaticSolver', 'New Displacement = ', self.dx)
 
     def GetBufferSize(self):
         return self.buffer_size
@@ -123,4 +114,4 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         return "sdof"
 
     def _Name(self):
-        return self.__class__.__name__ 
+        return self.__class__.__name__

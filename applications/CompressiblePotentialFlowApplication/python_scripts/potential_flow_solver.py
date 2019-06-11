@@ -119,6 +119,10 @@ class PotentialFlowSolver(FluidSolver):
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("PotentialFlowSolver", "Fluid solver DOFs added correctly.")
 

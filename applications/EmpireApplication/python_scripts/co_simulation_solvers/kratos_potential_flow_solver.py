@@ -23,7 +23,6 @@ def CreateSolver(cosim_solver_settings, level):
 
 class KratosPotentialFlowSolver(KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
-        #print('debug: project_param. from KratosPotentialFlowSolver:\n',  self.project_parameters)
         return PotentialFlowAnalysis(self.model, self.project_parameters)
 
     def Initialize(self):
@@ -44,20 +43,17 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
     def SolveSolutionStep(self):
-        self.wake_process.CleanMarking()
+        self.wake_process._CleanMarking()
 
-        self.wake_process.SolveSolutionStep()
-        #super(KratosPotentialFlowSolver, self).InitializeSolutionStep()
+        self.wake_process.ExecuteBeforeSolutionLoop()
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
-        # self.wake_process.CleanMarking()
 
     def FinalizeSolutionStep(self):
         super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
-        # self.wake_process.CleanMarking()
 
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()

@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from co_simulation_analysis import CoSimulationAnalysis
+from co_simulation_steady_analysis import CoSimulationSteadyAnalysis
 
 import os, json
 
@@ -37,7 +38,9 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
     def runTest(self):
-        CoSimulationAnalysis(self.cosim_parameters).Run()
+        if self.problem_dir_name == 'sdof_static_solver':
+            CoSimulationSteadyAnalysis(self.cosim_parameters).Run()
+        else: CoSimulationAnalysis(self.cosim_parameters).Run()
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
 
     # called only once for this class, opposed of tearDown()

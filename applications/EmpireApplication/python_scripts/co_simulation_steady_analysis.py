@@ -8,7 +8,6 @@ import sys
 class CoSimulationSteadyAnalysis(CoSimulationAnalysis):
 
     def RunSolutionLoop(self):
-        print("")
         self.InitializeSolutionStep()
         self._GetSolver().Predict()
         self._GetSolver().SolveSolutionStep()

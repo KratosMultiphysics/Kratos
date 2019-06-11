@@ -26,8 +26,3 @@ class AlePotentialFlowSolver(AleFluidSolver):
         is_converged = self.fluid_solver.SolveSolutionStep()
 
         return is_converged
-
-    # def FinalizeSolutionStep(self):
-    #     for mesh_solver in self.mesh_motion_solvers:
-    #         mesh_solver.FinalizeSolutionStep()
-    #     self.fluid_solver.FinalizeSolutionStep()

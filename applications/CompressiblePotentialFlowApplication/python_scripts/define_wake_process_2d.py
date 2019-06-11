@@ -37,10 +37,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
 
         if not self.fluid_model_part.HasSubModelPart("wake__elements"):
-            self.wake_elements_sub_modelpart = self.fluid_model_part.CreateSubModelPart("wake__elements")
-        else: self.wake_elements_sub_modelpart = self.fluid_model_part.GetSubModelPart("wake__elements")
-        #List to store trailing edge elements id
+            self.wake_modelpart = self.fluid_model_part.CreateSubModelPart("wake__elements")
+        else: self.wake_modelpart = self.fluid_model_part.GetSubModelPart("wake__elements")
+        #List to store trailing edge elements id and wake elements id
         self.trailing_edge_element_id_list = []
+        self.wake_element_id_list = []
 
         # Find nodal neigbours util call
         avg_elem_num = 10
@@ -52,10 +53,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
 
-    def SolveSolutionStep(self):
-        self.FindWakeElements()
+    def ExecuteBeforeSolutionLoop(self):
+        self._FindWakeElements()
 
-    def FindWakeElements(self):
+    def _FindWakeElements(self):
         self.__SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
         self.__SaveTrailingEdgeNode()
@@ -115,10 +116,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
                     counter=0
-                    self.wake_elements_sub_modelpart.Elements.append(elem)
+                    self.wake_element_id_list.append(elem.Id)
                     for node in elem.GetNodes():
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
+        self.wake_modelpart.AddElements(self.wake_element_id_list)
         self.__SaveTrailingEdgeElements()
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
@@ -239,18 +241,19 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
 
-    def CleanMarking(self):
-        # This function removes all the markers set by FindWakeElements()
+    def _CleanMarking(self):
+        # This function removes all the markers set by _FindWakeElements()
         for elem in self.trailing_edge_model_part.Elements:
             elem.SetValue(CPFApp.TRAILING_EDGE, False)
+            elem.Reset(KratosMultiphysics.STRUCTURE)
             elem.SetValue(CPFApp.KUTTA, False)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
 
-        for elem in self.wake_elements_sub_modelpart.Elements:
+        for elem in self.wake_modelpart.Elements:
             elem.SetValue(CPFApp.WAKE, False)
-            elem.Reset(KratosMultiphysics.STRUCTURE)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
             elem.Set(KratosMultiphysics.TO_ERASE, True)
-        self.wake_elements_sub_modelpart.RemoveElements(KratosMultiphysics.TO_ERASE)
+        self.wake_modelpart.RemoveElements(KratosMultiphysics.TO_ERASE)
 
         self.trailing_edge_element_id_list = []
+        self.wake_element_id_list = []
