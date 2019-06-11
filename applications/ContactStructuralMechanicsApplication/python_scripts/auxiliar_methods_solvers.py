@@ -84,6 +84,11 @@ def AuxiliarSetSettings(settings, contact_settings):
     if not settings["reform_dofs_at_each_step"].GetBool():
         print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
+    mortar_type = contact_settings["mortar_type"].GetString()
+    if mortar_type == "PenaltyContactFrictional" or mortar_type == "ALMContactFrictional":
+        if not settings["buffer_size"].GetInt() < 3:
+            print_on_rank_zero("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
+            settings["buffer_size"].SetInt(3)
 
     return settings
 
