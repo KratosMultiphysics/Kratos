@@ -120,7 +120,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             data_transfer_operator_name = i_input_data["data_transfer_operator"].GetString()
             # TODO check the order of solvers!
-            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver, to_solver, i_input_data["data_transfer_operator_options"])
+            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_input_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
             if i_input_data.Has("mapper_settings"):
@@ -149,7 +149,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             data_transfer_operator_name = i_output_data["data_transfer_operator"].GetString()
             # TODO check the order of solvers!
-            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver, to_solver, i_output_data["data_transfer_operator_options"])
+            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_output_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_output_data["after_data_transfer_operations"])
 
