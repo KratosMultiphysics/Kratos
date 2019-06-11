@@ -23,26 +23,23 @@
             "name": "structure",
             "input_data_list": [
                 {
+                    "data"              : "load",
                     "from_solver"       : "fluid",
-                    "data_name"         : "load",
-                    "destination_data"  : "load",
+                    "from_solver_data"  : "load",
                     "mapper_settings"   : {
                         "type" : "nearest_neighbor",
                         "flags" : ["swap_sign"]
-                    },
-                    "filters":[]
+                    }
                 }
             ],
             "output_data_list": [
                 {
-                    "to_solver"   : "fluid",
-                    "data_name"   : "disp",
-                    "origin_data" : "disp",
+                    "data"           : "disp",
+                    "to_solver"      : "fluid",
+                    "to_solver_data" : "disp",
                     "mapper_settings"   : {
-                        "type" : "nearest_neighbor",
-                        "flags":[]
-                    },
-                    "filters":[]
+                        "type" : "nearest_neighbor"
+                    }
                 }
             ]
         },

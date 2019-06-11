@@ -96,22 +96,25 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         raise Exception(err_msg)
 
     def _SynchronizeInputData(self, solver_name):
-        solver = self.participating_solvers[solver_name]
+        to_solver = self.participating_solvers[solver_name]
         input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
 
+        # TODO check if in interval
         for i in range(input_data_list.size()):
-            # TODO check if in interval
-            input_data = input_data_list[i]
-            from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
-            data_name = input_data["data_name"].GetString()
-            from_solver_data = from_solver.GetInterfaceData(data_name)
-            solver_data = solver.GetInterfaceData(input_data["destination_data"].GetString())
+            i_input_data = input_data_list[i]
 
-            if input_data.Has("mapper_settings"):
-                solver_data.origin_data = from_solver_data
-                solver_data.mapper_settings = input_data["mapper_settings"]
+            # from solver
+            from_solver = self.participating_solvers[i_input_data["from_solver"].GetString()]
+            from_solver_data = from_solver.GetInterfaceData(i_input_data["from_solver_data"].GetString())
 
-            solver.ImportCouplingInterfaceData(solver_data, from_solver)
+            # to solver
+            to_solver_data = to_solver.GetInterfaceData(i_input_data["data"].GetString())
+
+            if i_input_data.Has("mapper_settings"):
+                to_solver_data.origin_data = from_solver_data
+                to_solver_data.mapper_settings = i_input_data["mapper_settings"]
+
+            to_solver.ImportCouplingInterfaceData(to_solver_data, from_solver)
 
             # pre
             # data_transfer_op()
@@ -119,25 +122,28 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
 
     def _SynchronizeOutputData(self, solver_name):
-        solver = self.participating_solvers[solver_name]
+        from_solver = self.participating_solvers[solver_name]
         output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
 
         for i in range(output_data_list.size()):
+            i_output_data = output_data_list[i]
+
+            # from solver
+            from_solver_data = from_solver.GetInterfaceData(i_output_data["data"].GetString())
+
+            # to solver
+            to_solver = self.participating_solvers[i_output_data["to_solver"].GetString()]
+            to_solver_data = to_solver.GetInterfaceData(i_output_data["to_solver_data"].GetString())
+
             # pre
             # data_transfer_op()
             # post
 
-            output_data = output_data_list[i]
-            to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
-            data_name = output_data["data_name"].GetString()
-            to_solver_data = to_solver.GetInterfaceData(data_name)
-            solver_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
+            if i_output_data.Has("mapper_settings"):
+                from_solver_data.destination_data = to_solver_data
+                from_solver_data.mapper_settings = i_output_data["mapper_settings"]
 
-            if output_data.Has("mapper_settings"):
-                solver_data.destination_data = to_solver_data
-                solver_data.mapper_settings = output_data["mapper_settings"]
-
-            solver.ExportCouplingInterfaceData(solver_data, to_solver)
+            from_solver.ExportCouplingInterfaceData(from_solver_data, to_solver)
 
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()
