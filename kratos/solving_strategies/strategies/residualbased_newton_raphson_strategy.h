@@ -558,6 +558,10 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_TRY;
 
         if (!mSolutionStepIsInitialized) {
+            // Move the mesh if needed before computing anything to properly compute initial residuals in case of imposed displacements
+            if (this->MoveMeshFlag())
+                BaseType::MoveMesh();
+
             // Pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
