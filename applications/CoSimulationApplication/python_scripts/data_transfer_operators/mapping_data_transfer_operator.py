@@ -13,7 +13,7 @@ def Create(settings):
 
 class MappingDataTransferOperator(CoSimulationBaseDataTransferOperator):
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
-        pass
+        mapper_flags = GetMapperFlags(transfer_options)
 
     def PrintInfo(self):
         pass
