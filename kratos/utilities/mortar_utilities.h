@@ -239,26 +239,50 @@ namespace MortarUtilities
     template< SizeType TNumNodes, SizeType TDim>
     BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(
         const GeometryType& rGeometry,
-        const std::size_t StepLM = 0
+        const std::size_t StepLM = 0,
+        const Variable<array_1d<double, 3>>& rSlipVariable = DISPLACEMENT
         )
     {
         /* DEFINITIONS */
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+        // Geometry length
+        const double length = rGeometry.Length();
+
         // Tangent matrix
         BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& r_lm = rGeometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
-            if (norm_2(r_lm) > zero_tolerance) { // Non zero LM
-                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL, StepLM);
-                const array_1d<double, 3> tangent_lm = r_lm - inner_prod(r_lm, r_normal) * r_normal;
-                if (norm_2(tangent_lm) > zero_tolerance) {
-                    const array_1d<double, 3> tangent = tangent_lm/norm_2(tangent_lm);
-                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = tangent[i_dof];
-                } else {
-                    const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL, StepLM);
+            const auto& r_node = rGeometry[i_node];
+            const array_1d<double, 3>& r_lm = r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
+            if (r_node.IsNot(SLIP)) { // STICK
+                if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
+                    const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                    const array_1d<double, 3> tangent_component = r_lm - inner_prod(r_lm, r_normal) * r_normal;
+                    if (norm_2(tangent_component) > zero_tolerance) {
+                        const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
+                        for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent[i_dof];
+                    } else {
+                        const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                        array_1d<double, 3> tangent_xi, tangent_eta;
+                        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                        if (TDim == 3) {
+                            for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
+                                tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                        } else  {
+                            if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+                                for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                    tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+                            } else {
+                                for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                            }
+                        }
+                    }
+                } else { // In case of zero LM
+                    const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
                     array_1d<double, 3> tangent_xi, tangent_eta;
                     MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
                     if (TDim == 3) {
@@ -274,20 +298,71 @@ namespace MortarUtilities
                         }
                     }
                 }
-            } else { // In case of zero LM
-                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL, StepLM);
-                array_1d<double, 3> tangent_xi, tangent_eta;
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (TDim == 3) {
-                    for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                } else  {
-                    if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+            } else { // SLIP
+                const array_1d<double, 3>& r_slip = r_node.FastGetSolutionStepValue(rSlipVariable, StepLM)/r_node.GetValue(NODAL_AREA);
+                if (norm_2(r_slip) > 1.0e-5 * length) { // Non zero slip vector
+                    const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                    const array_1d<double, 3> tangent_component = r_slip - inner_prod(r_slip, r_normal) * r_normal;
+                    if (norm_2(tangent_component) > zero_tolerance) {
+                        const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
+                        for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent[i_dof];
                     } else {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                        const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                        array_1d<double, 3> tangent_xi, tangent_eta;
+                        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                        if (TDim == 3) {
+                            for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
+                                tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                        } else  {
+                            if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+                                for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                    tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+                            } else {
+                                for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                            }
+                        }
+                    }
+                } else if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
+                    const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                    const array_1d<double, 3> tangent_component = r_lm - inner_prod(r_lm, r_normal) * r_normal;
+                    if (norm_2(tangent_component) > zero_tolerance) {
+                        const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
+                        for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent[i_dof];
+                    } else {
+                        const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                        array_1d<double, 3> tangent_xi, tangent_eta;
+                        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                        if (TDim == 3) {
+                            for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
+                                tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                        } else  {
+                            if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+                                for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                    tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+                            } else {
+                                for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                            }
+                        }
+                    }
+                } else { // In case of zero LM or zero weighted slip
+                    const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL, StepLM);
+                    array_1d<double, 3> tangent_xi, tangent_eta;
+                    MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                    if (TDim == 3) {
+                        for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
                             tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                    } else  {
+                        if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+                            for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+                        } else {
+                            for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                                tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                        }
                     }
                 }
             }
