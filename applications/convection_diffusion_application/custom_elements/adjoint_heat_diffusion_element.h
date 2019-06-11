@@ -160,7 +160,7 @@ private:
     ///@name Serialization
     ///@{
 
-    /*friend class Serializer;
+    friend class Serializer;
 
     // A private default constructor necessary for serialization
     AdjointHeatDiffusionElement() : PrimalElement()
@@ -177,7 +177,7 @@ private:
     {
         using BaseType = PrimalElement;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
-    }*/
+    }
 
     ///@}
     ///@name Private Operators
