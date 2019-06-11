@@ -353,21 +353,22 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState(){
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         it_elem->Set(ACTIVE,true);
     }
-
-    // Free the negative DOFs that were fixed
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
-        auto it_node = mrModelPart.NodesBegin() + i_node;
-        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-            for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                Variable<double> double_var = KratosComponents< Variable<double> >::Get(mDoubleVariablesList[i_var]);
-                // Free the nodal DOFs  that were fixed
-                it_node->Free(double_var);
-            }
-            for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                ComponentType component_var = KratosComponents< ComponentType >::Get(mComponentVariablesList[i_comp]);
-                // Free the nodal DOFs that were fixed
-                it_node->Free(component_var);
+    if ((mDoubleVariablesList.size() > 0.0) || (mComponentVariablesList.size() > 0.0)){
+        // Free the negative DOFs that were fixed
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+            auto it_node = mrModelPart.NodesBegin() + i_node;
+            if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+                for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
+                    Variable<double> double_var = KratosComponents< Variable<double> >::Get(mDoubleVariablesList[i_var]);
+                    // Free the nodal DOFs  that were fixed
+                    it_node->Free(double_var);
+                }
+                for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
+                    ComponentType component_var = KratosComponents< ComponentType >::Get(mComponentVariablesList[i_comp]);
+                    // Free the nodal DOFs that were fixed
+                    it_node->Free(component_var);
+                }
             }
         }
     }
