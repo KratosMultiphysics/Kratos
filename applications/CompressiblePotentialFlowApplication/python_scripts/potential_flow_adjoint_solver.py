@@ -23,6 +23,7 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
 
         self.element_name = "AdjointCompressiblePotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
+
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         raise RuntimeError("Adjoint embedded element currently not implemented")
 
