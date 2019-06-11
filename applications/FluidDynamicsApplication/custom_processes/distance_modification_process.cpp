@@ -94,7 +94,9 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
         "check_at_each_time_step"                : true,
         "avoid_almost_empty_elements"            : true,
         "deactivate_full_negative_elements"      : true,
-        "recover_original_distance_at_each_step" : false
+        "recover_original_distance_at_each_step" : false,
+        "double_variables_list"                  : ["PRESSURE"],
+        "component_variables_list"               : ["VELOCITY_X","VELOCITY_Y","VELOCITY_Z"]
     }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -106,6 +108,9 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
     mAvoidAlmostEmptyElements = rParameters["avoid_almost_empty_elements"].GetBool();
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
     mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
+    mDoubleVariablesList = rParameters["double_variables_list"].GetStringArray();
+    mComponentVariablesList = rParameters["component_variables_list"].GetStringArray();
+
 }
 
 void DistanceModificationProcess::Execute()
@@ -443,20 +448,28 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
 
     // Set to zero and fix the DOFs in the remaining inactive nodes
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
-        ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
-        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-            // Fix the nodal DOFs
-            it_node->Fix(PRESSURE);
-            it_node->Fix(VELOCITY_X);
-            it_node->Fix(VELOCITY_Y);
-            it_node->Fix(VELOCITY_Z);
-            // Set to zero the nodal DOFs
-            it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
-            it_node->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+    if ((mDoubleVariablesList.size() > 0.0) || (mComponentVariablesList.size() > 0.0)){
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
+            ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+            if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+                for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
+                    Variable<double> double_var = KratosComponents< Variable<double> >::Get(mDoubleVariablesList[i_var]);
+                    // Fix the nodal DOFs
+                    it_node->Fix(double_var);
+                    // Set to zero the nodal DOFs
+                    it_node->FastGetSolutionStepValue(double_var) = 0.0;
+                }
+                for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
+                    ComponentType component_var = KratosComponents< ComponentType >::Get(mComponentVariablesList[i_comp]);
+                    // Fix the nodal DOFs   
+                    it_node->Fix(component_var);
+                    // Set to zero the nodal DOFs
+                    it_node->FastGetSolutionStepValue(component_var) = 0.0;
+                }
+            }
         }
-    }
+    }   
 }
 
 void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
