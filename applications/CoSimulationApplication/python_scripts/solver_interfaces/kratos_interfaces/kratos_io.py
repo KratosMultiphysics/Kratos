@@ -35,11 +35,11 @@ class KratosIo(CoSimulationBaseIO):
             # exchange data from python cosim solver
             #if(data_object.Has("mapper_settings")):
             if data_object.mapper_settings is not None:
-                origin_geo_name = data_object.origin_data.geometry_name
+                origin_geo_name = data_object.origin_data.model_part_name
                 origin_geo      = from_solver.model[origin_geo_name]
                 origin_var_name = data_object.origin_data.name
 
-                dest_geo_name = data_object.geometry_name
+                dest_geo_name = data_object.model_part_name
                 dest_geo      = self.model[dest_geo_name]
                 dest_var_name = data_object.name
 
@@ -61,11 +61,11 @@ class KratosIo(CoSimulationBaseIO):
         if(to_solver):
             # exchange data from python cosim solver
             if data_object.mapper_settings is not None:
-                dest_geo_name = data_object.destination_data.geometry_name
+                dest_geo_name = data_object.destination_data.model_part_name
                 dest_geo      = to_solver.model[dest_geo_name]
                 dest_var_name = data_object.destination_data.name
 
-                origin_geo_name = data_object.geometry_name
+                origin_geo_name = data_object.model_part_name
                 origin_geo      = self.model[origin_geo_name]
                 origin_var_name = data_object.name
 
