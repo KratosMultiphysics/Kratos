@@ -35,11 +35,11 @@ class CoSimulationConvergenceCriteria(object):
     def FinalizeSolutionStep(self):
         pass
 
-    def InitializeNonLinearIteration(self):
+    def InitializeCouplingIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
         self.old_data = self.interface_data.GetNumpyArray()
 
-    def FinalizeNonLinearIteration(self):
+    def FinalizeCouplingIteration(self):
         pass
 
     def IsConverged(self):
