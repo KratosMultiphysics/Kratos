@@ -105,4 +105,5 @@ namespace ActiveSetUtilities
 };// namespace ActiveSetUtilities
 
 } // namespace Kratos
+
 #endif /* KRATOS_ACTIVE_SET_UTILITIES defined */

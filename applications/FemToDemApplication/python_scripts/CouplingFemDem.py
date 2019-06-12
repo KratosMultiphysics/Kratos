@@ -46,12 +46,13 @@ class FEMDEM_Solution:
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
 
+        nodes = self.FEM_Solution.main_model_part.Nodes
         # Initialize the "flag" IS_DEM in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, nodes)
         # Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, nodes)
         # Initialize the "flag" RADIUS in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, 0.0, nodes)
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -209,14 +210,6 @@ class FEMDEM_Solution:
 
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
-
-        # Remove the submodel to be recomputed at each dt
-        if self.FEM_Solution.main_model_part.HasSubModelPart("SkinDEMModelPart"):
-            for cond in self.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart").Conditions:
-                cond.Set(KratosMultiphysics.TO_ERASE)
-
-        self.FEM_Solution.main_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
-        self.FEM_Solution.main_model_part.RemoveSubModelPart("SkinDEMModelPart")
 
 
 #============================================================================================================================
@@ -578,16 +571,16 @@ class FEMDEM_Solution:
 #============================================================================================================================
 
     def InitializeIntegrationPointsVariables(self):
-
+        elements = self.FEM_Solution.main_model_part.Elements
         utils = KratosMultiphysics.VariableUtils()
-        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
-        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], elements)
 
 #============================================================================================================================
 
@@ -601,6 +594,7 @@ class FEMDEM_Solution:
 #============================================================================================================================
 
     def InitializeDummyNodalForces(self):
+
         # we fill the submodel part with the nodes and dummy conditions
         max_id = self.GetMaximumConditionId()
         props = self.FEM_Solution.main_model_part.Properties[0]
@@ -727,12 +721,20 @@ class FEMDEM_Solution:
 #============================================================================================================================
 
     def PerformRemeshingIfNecessary(self):
+
+        debug_metric = False
+        if debug_metric:
+            params = KratosMultiphysics.Parameters("""{}""")
+            KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]).Execute()
+            MeshingApplication.ComputeHessianSolMetricProcess(self.FEM_Solution.main_model_part, KratosFemDem.EQUIVALENT_NODAL_STRESS, params).Execute()
+
         if self.DoRemeshing:
             is_remeshing = self.CheckIfHasRemeshed()
 
             if is_remeshing:
                 # Extrapolate the free energy as a remeshing criterion
-                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+                parameters = self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]
+                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, parameters).Execute()
 
                 # we eliminate the nodal DEM forces
                 self.RemoveDummyNodalForces()

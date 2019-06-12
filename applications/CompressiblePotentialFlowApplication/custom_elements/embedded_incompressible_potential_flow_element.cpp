@@ -56,7 +56,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     const int kutta = r_this.GetValue(KUTTA);
 
 
-    if (this->Is(BOUNDARY) && wake == 0 && kutta == 0)
+    if (this->Is(TO_SPLIT) && wake == 0 && kutta == 0)
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     else
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -88,16 +88,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::GI_GAUSS_1);
 
-        BoundedMatrix<double,NumNodes,NumNodes> aux_matrix;
-        BoundedMatrix<double,NumNodes,Dim> DN_DX;
-        for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-            DN_DX=positive_side_sh_func_gradients(i_gauss);
-            aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);
-
-            noalias(rLeftHandSideMatrix) += aux_matrix;
-        }
+    BoundedMatrix<double,NumNodes,Dim> DN_DX;
+    for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+        DN_DX=positive_side_sh_func_gradients(i_gauss);
+        noalias(rLeftHandSideMatrix) += prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
+    }
 
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
 }

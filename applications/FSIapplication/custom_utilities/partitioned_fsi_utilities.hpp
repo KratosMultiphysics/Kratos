@@ -29,6 +29,7 @@
 #include "includes/model_part.h"
 #include "includes/communicator.h"
 #include "includes/ublas_interface.h"
+#include "utilities/binbased_fast_point_locator.h"
 #include "utilities/math_utils.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
@@ -90,19 +91,53 @@ public:
 
     /** Copy constructor.
     */
-
-    /*@{ */
-    PartitionedFSIUtilities(const PartitionedFSIUtilities& Other);
-    /*@{ */
+    PartitionedFSIUtilities(const PartitionedFSIUtilities& Other) = delete;
 
     /** Destructor.
      */
-
-    virtual ~PartitionedFSIUtilities(){}
+    virtual ~PartitionedFSIUtilities() = default;
 
     /*@} */
     /**@name Public Operators*/
     /*@{ */
+
+    /**
+     * @brief Create a coupling element based skin object
+     * This method creates an element based skin model part by
+     * copying the conditions of a given skin model part
+     * @param rOriginInterfaceModelPart Origin skin model part to copy the conditions from
+     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin elements
+     */
+    void CreateCouplingElementBasedSkin(
+        const ModelPart &rOriginInterfaceModelPart,
+        ModelPart &rDestinationInterfaceModelPart)
+    {
+        // Check the origin interface model part
+        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
+
+        // Check the destination interface model part
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.IsSubModelPart()) << "Destination model part must be a root model part." << std::endl;
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfNodes() != 0) << "Destination interface model part should be empty. Current number of nodes: " << rDestinationInterfaceModelPart.NumberOfNodes() << std::endl;
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfElements() != 0) << "Destination interface model part should be empty. Current number of elements: " << rDestinationInterfaceModelPart.NumberOfElements() << std::endl;
+
+        // Emulate the origin interface nodes in the coupling skin
+        for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
+            rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+        }
+
+        // Create the new element based skin
+        for (const auto &r_cond: rOriginInterfaceModelPart.Conditions()) {
+            // Set the element nodes vector
+            std::vector<ModelPart::IndexType> nodes_vect;
+            for (const auto &r_node : r_cond.GetGeometry()) {
+                nodes_vect.push_back(r_node.Id());
+            }
+
+            // Create the new skin element
+            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
+        }
+    }
 
     /**
      * @brief Creates an element based skin
@@ -180,6 +215,27 @@ public:
         }
         TSpace::SetToZero(*p_int_vector);
         return p_int_vector;
+    }
+
+    /**
+     * This function fills the interface vector (length equal to the residual size).
+     * @param rInterfaceModelPart interface modelpart from where the interface vector is filled
+     * @param rOriginVariable variable to retrieve the values from
+     * @param rInterfaceVector reference to the itnerface vector to be filled
+     */
+    void InitializeInterfaceVector(
+        const ModelPart& rInterfaceModelPart,
+        const Variable<TValueType> &rOriginVariable,
+        VectorType &rInterfaceVector)
+    {
+        auto &r_local_mesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        auto nodes_begin = r_local_mesh.NodesBegin();
+        #pragma omp parallel for firstprivate(nodes_begin)
+        for (int i_node = 0; i_node < static_cast<int>(r_local_mesh.NumberOfNodes()); ++i_node) {
+            auto it_node = nodes_begin + i_node;
+            const auto &r_value = it_node->FastGetSolutionStepValue(rOriginVariable);
+            this->AuxSetLocalValue(rInterfaceVector, r_value, i_node);
+        }
     }
 
     /**
@@ -539,6 +595,78 @@ public:
     }
 
     /**
+     * @brief Pressure to positive face pressure interpolator
+     * This method interpolates the pressure in the embedded fluid
+     * background mesh to the positive face pressure of all nodes
+     * in the provided structure interface model part.
+     * @param rFluidModelPart embedded fluid background mesh model part
+     * @param rStructureSkinModelPart structure interface model part
+     */
+    void EmbeddedPressureToPositiveFacePressureInterpolator(
+        ModelPart &rFluidModelPart,
+        ModelPart &rStructureSkinModelPart)
+    {
+        // Create the bin-based point locator
+        BinBasedFastPointLocator<2> bin_based_locator(rFluidModelPart);
+
+        // Update the search database
+        bin_based_locator.UpdateSearchDatabase();
+
+        // For each structure skin node interpolate the pressure value from the fluid background mesh
+        Vector N;
+        Element::Pointer p_elem = nullptr;
+        #pragma omp parallel for firstprivate(N, p_elem)
+        for (int i_node = 0; i_node < rStructureSkinModelPart.NumberOfNodes(); ++i_node) {
+            auto it_node = rStructureSkinModelPart.NodesBegin() + i_node;
+            const bool found = bin_based_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_elem);
+            // If the structure skin is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
+            if (found) {
+                const auto &r_geom = p_elem->GetGeometry();
+                double &r_pres = it_node->FastGetSolutionStepValue(PRESSURE);
+                r_pres = 0.0;
+                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                    r_pres += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                }
+            }
+        }
+    }
+
+    /*@} */
+protected:
+    /**@name Protected static Member Variables */
+    /*@{ */
+
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
+
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
+
+    /**
+     * @brief Get the skin element name
+     * Auxiliary method that returns the auxiliary embedded skin element type name
+     * @return std::string Element type registering name
+     */
+    std::string GetSkinElementName()
+    {
+        std::string element_name;
+        if (TDim == 2) {
+            element_name = "Element2D2N";
+        } else {
+            element_name = "Element3D3N";
+        }
+
+        return element_name;
+    }
+
+    /**
      * This function computes the nodal error of a vector magnitude in a consistent manner.
      * The error is defined as the integral over the interface of a tests function times
      * the difference between rOriginalVariable and rModifiedVariable.
@@ -562,11 +690,7 @@ public:
             auto it_cond = rInterfaceModelPart.ConditionsBegin() + i_cond;
 
             auto& rGeom = it_cond->GetGeometry();
-            // const unsigned int BlockSize = typeid(TValueType).name() == "double" ? 1 : TDim;
             const unsigned int n_nodes = rGeom.PointsNumber();
-
-            // Auxiliar array to save the computed consisted residual
-            // Vector cons_res_vect = ZeroVector(BlockSize*n_nodes);
 
             // Initialize auxiliar array to save the condition nodes consistent residual
             std::vector<TValueType> cons_res_vect(n_nodes);
@@ -607,24 +731,6 @@ public:
             rInterfaceModelPart.GetCommunicator().AssembleCurrentData(rErrorStorageVariable);
         }
     }
-
-    /*@} */
-protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
 
     /**
      * This function computes the nodal error of a vector magnitude. The error is defined
