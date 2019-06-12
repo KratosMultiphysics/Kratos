@@ -141,12 +141,12 @@ namespace Kratos
                 }
 
                 // Retrieve divergence from previous time step
-                const double divergence_old = it_elem->GetValue(DIVERGENCE);
+                const double divergence_old = it_elem->GetValue(DIVERGENCE_WEIGHTED);
                 const double velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
 
                 // Compute divergence weighted time average
                 auto divergence_current_avg = ComputeWeightedTimeAverage(divergence_old, divergence_current);
-                it_elem->SetValue(DIVERGENCE,divergence_current_avg);
+                it_elem->SetValue(DIVERGENCE_WEIGHTED,divergence_current_avg);
 
                 // Compute divergence_norm weighted time average
                 auto velocity_seminorm_current_avg = ComputeWeightedTimeAverage(velocity_seminorm_old, velocity_seminorm_current);
