@@ -345,14 +345,14 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.step += 1
                 if self.step_frequency > 0:
                     if not self.initial_step_done:
-                        if self.step > self.step_frequency or self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] > self.initial_step:
+                        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
                             if self.settings["blocking_threshold_size"].GetBool():
                                 MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
                             self._ExecuteRefinement()
                             self.initial_step_done = True
                             self.step = 0  # Reset
                     else:
-                        if self.step > self.step_frequency:
+                        if self.step >= self.step_frequency:
                             if self.settings["blocking_threshold_size"].GetBool():
                                 MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
                             self._ExecuteRefinement()
