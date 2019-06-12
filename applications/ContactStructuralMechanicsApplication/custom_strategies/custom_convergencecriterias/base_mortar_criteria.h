@@ -279,7 +279,12 @@ public:
         ) override
     {
         // Update normal of the conditions
-        MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
+        if (frictional_problem) {
+            MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP);
+        }
 
         // IO for debugging
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
@@ -392,11 +397,19 @@ private:
      * @brief It computes the mean of the normal in the condition in all the nodes
      * @param rModelPart The model part to compute
      */
-    static inline void ComputeNodesMeanNormalModelPartWithPairedNormal(ModelPart& rModelPart) {
-        MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
+    static inline void ComputeNodesMeanNormalModelPartWithPairedNormal(ModelPart& rModelPart)
+    {
+        // Compute normal and tangent
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
+        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
+        if (frictional_problem) {
+            MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP);
+        }
 
         // Iterate over the computing conditions
-        ConditionsArrayType& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
+        ConditionsArrayType& r_conditions_array = r_computing_contact_model_part.Conditions();
         const auto it_cond_begin = r_conditions_array.begin();
 
         #pragma omp parallel for
