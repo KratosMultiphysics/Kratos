@@ -15,6 +15,8 @@
 #include "convection_diffusion_application_variables.h"
 
 #include "includes/checks.h"
+#include "utilities/geometrical_sensitivity_utility.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -149,6 +151,72 @@ void AdjointHeatDiffusionElement<PrimalElement>::PrintInfo(std::ostream& rOStrea
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
     const unsigned int num_nodes = r_geom.PointsNumber();
     rOStream << "AdjointHeatDiffusionElement" << dimension << "D" << num_nodes << "N";
+}
+
+template<class PrimalElement>
+void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
+    const Variable<array_1d<double, 3>>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    const unsigned int sensitivity_size = dimension * num_nodes;
+
+    if (rOutput.size1() != sensitivity_size || rOutput.size2() != num_nodes)
+    {
+        rOutput.resize(sensitivity_size,num_nodes,false);
+    }
+    noalias(rOutput) = ZeroMatrix(sensitivity_size,num_nodes);
+
+    const auto integration_method = this->GetIntegrationMethod();
+    const auto integration_points = r_geom.IntegrationPoints(integration_method);
+    const unsigned int num_integration_points = integration_points.size();
+    Vector primal_values = ZeroVector(num_nodes);
+    PrimalElement::GetValuesVector(primal_values);
+
+    if (rDesignVariable == SHAPE_SENSITIVITY)
+    {
+        Matrix shape_function_local_gradients(num_nodes,dimension);
+        Matrix shape_function_global_gradients(num_nodes,dimension);
+        Matrix jacobian(num_nodes,num_nodes);
+        Matrix jacobian_inv(num_nodes,num_nodes);
+
+        for (unsigned int g = 0; g < num_integration_points; g++)
+        {
+            noalias(shape_function_local_gradients) = r_geom.ShapeFunctionLocalGradient(g, integration_method);
+            r_geom.Jacobian(jacobian, g, integration_method);
+            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
+
+            double det_j;
+            MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
+            noalias(shape_function_global_gradients) = prod(shape_function_local_gradients, jacobian_inv);
+            const double weight = integration_points[g].Weight();
+
+            Vector primal_gradient = prod(trans(shape_function_global_gradients),primal_values);
+
+            for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
+            {
+                const auto& deriv = s.CurrentValue();
+                double det_j_deriv;
+                GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
+                geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
+
+                for (unsigned int j = 0; j < num_nodes; j++)
+                {
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, j) += 0.0; // write to the matrix!
+                }
+            }
+        }
+    }
+    else
+    {
+        KRATOS_ERROR << "Unsupported design variable " << rDesignVariable << std::endl;
+    }
+
+    KRATOS_CATCH("")
 }
 
 template class AdjointHeatDiffusionElement<LaplacianElement>;
