@@ -123,6 +123,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_input_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
+
+            # TODO remove the following!
             if i_input_data.Has("mapper_settings"):
                 to_solver_data.origin_data = from_solver_data
                 to_solver_data.mapper_settings = i_input_data["mapper_settings"]
@@ -153,13 +155,13 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             self.__ExecuteCouplingOperations(i_output_data["after_data_transfer_operations"])
 
+            # TODO remove the following!
             if i_output_data.Has("mapper_settings"):
                 from_solver_data.destination_data = to_solver_data
                 from_solver_data.mapper_settings = i_output_data["mapper_settings"]
 
             # export the data
             from_solver.ExportCouplingInterfaceData(from_solver_data, to_solver) # TODO I am quite sure that the args have to be changed
-
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
