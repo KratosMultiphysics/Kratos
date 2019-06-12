@@ -456,7 +456,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     if ((mDoubleVariablesList.size() > 0.0) || (mComponentVariablesList.size() > 0.0)){
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
-            ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+            auto it_node = rNodes.begin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
                     const auto& r_double_var = *mDoubleVariablesList[i_var];

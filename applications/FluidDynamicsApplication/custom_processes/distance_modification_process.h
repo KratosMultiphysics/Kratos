@@ -218,6 +218,12 @@ private:
 
     void SetDiscontinuousDistanceToSplitFlag();
 
+    /**
+     * @brief Reads the variables list specified in the Parameters to be fixed in the elements
+     * that are fully negative, storing them in mDoubleVariablesList and mComponentVariablesList.
+     * It also checks that the variables and the DOFs are defined in the rmModelPart.
+     * @param rVariableStringArray Array containing the variables to be fixed in the full negative elements
+    */
     void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
 
     ///@}
