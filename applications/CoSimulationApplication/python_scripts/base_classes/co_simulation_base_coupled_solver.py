@@ -104,9 +104,13 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         to_solver = self.participating_solvers[solver_name]
         input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
 
-        # TODO check if in interval
         for i in range(input_data_list.size()):
             i_input_data = input_data_list[i]
+
+            # interval_util = cs_tools.cs_data_structure.IntervalUtility(i_input_data)
+            # current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            # if not interval_util.IsInInterval(current_time):
+            #     continue
 
             # from solver
             from_solver = self.participating_solvers[i_input_data["from_solver"].GetString()]
