@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import CouplingFemDem
 import math
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 def Wait():
 	input("Press Something")
