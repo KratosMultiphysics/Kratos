@@ -107,7 +107,9 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
     mAvoidAlmostEmptyElements = rParameters["avoid_almost_empty_elements"].GetBool();
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
     mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
-    this->CheckAndStoreVariablesList(rParameters["full_negative_elements_fixed_variables_list"].GetStringArray());
+    if (mNegElemDeactivation) {
+        this->CheckAndStoreVariablesList(rParameters["full_negative_elements_fixed_variables_list"].GetStringArray());
+    }
 }
 
 void DistanceModificationProcess::Execute()
