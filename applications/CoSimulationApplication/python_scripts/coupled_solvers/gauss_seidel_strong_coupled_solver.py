@@ -66,9 +66,9 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
                 return False
 
     def Check(self):
+        super(GaussSeidelStrongCouplingSolver, self).Check()
         # TODO check if at least one conv-crit was specified?
         # TODO check if an accelerator was specified for a field that is manipulated in the input!
-        pass
 
     @classmethod
     def _GetDefaultSettings(cls):
