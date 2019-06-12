@@ -18,7 +18,7 @@ class CoSimulationConvergenceCriteria(object):
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
 
-        self.echo_level = self.settings["abs_tolerance"].GetInt()
+        self.echo_level = self.settings["echo_level"].GetInt()
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
@@ -54,7 +54,7 @@ class CoSimulationConvergenceCriteria(object):
         rel_norm = res_norm / norm_new_data
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
         if self.echo_level > 1:
-            info_msg  = 'Convergence for "'+bold(data_name)+'": '
+            info_msg  = 'Convergence for "'+bold(self.interface_data.variable.Name())+'": '
             if is_converged:
                 info_msg += green("ACHIEVED")
             else:
