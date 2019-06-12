@@ -41,8 +41,8 @@ namespace Kratos {
                     mOldVelocity[k] = vel[k];
 
                     delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
+                    // displ[k] += delta_displ[k];
+                    // coor[k] = initial_coor[k] + displ[k];
                     vel[k] += force_reduction_factor * force[k] * mass_inv * delta_t ;
 
                 } else {
@@ -54,7 +54,7 @@ namespace Kratos {
         }
         else if(StepFlag == 2) //CORRECTOR
         {
-            KRATOS_WATCH(mOldVelocity)
+            // KRATOS_WATCH(mOldVelocity)
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
                     vel[k] = mOldVelocity[k] + (1.0 - alpha_coeff)*(mOldAcceleration[k]* delta_t) +
@@ -62,6 +62,9 @@ namespace Kratos {
 
                     delta_displ[k] = beta_coeff*(vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t) +
                     (1-beta_coeff)*(mOldVelocity[k] * delta_t + 0.5 * mOldAcceleration[k] * delta_t * delta_t);
+
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
                 }
             }
         } // dimensions
