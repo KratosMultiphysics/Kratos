@@ -55,7 +55,7 @@ void Serializer::load(std::string const & rTag, ModelPart*& pValue)
                 KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
             }
 
-            // Load the pointer adress before loading the content
+            // Load the pointer address before loading the content
             mLoadedPointers[p_pointer]=&pValue;
             load(rTag, *pValue);
         }
@@ -87,7 +87,7 @@ void Serializer::load(std::string const & rTag, Kratos::unique_ptr<ModelPart>& p
                 KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
             }
 
-            // Load the pointer adress before loading the content
+            // Load the pointer address before loading the content
             mLoadedPointers[p_pointer]=&pValue;
             load(rTag, *pValue);
         }
@@ -119,7 +119,7 @@ void Serializer::load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& p
                 KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
             }
 
-            // Load the pointer adress before loading the content
+            // Load the pointer address before loading the content
             mLoadedPointers[p_pointer]=&pValue;
             load(rTag, *pValue);
         }

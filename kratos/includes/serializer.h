@@ -246,7 +246,7 @@ public:
                     }
                 }
 
-                // Load the pointer adress before loading the content
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
                 load(rTag, *pValue);
             }
@@ -291,7 +291,7 @@ public:
                     }
                 }
 
-                // Load the pointer adress before loading the content
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
                 load(rTag, *pValue);
             }
@@ -337,7 +337,7 @@ public:
                     }
                 }
                     
-                // Load the pointer adress before loading the content
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
                 load(rTag, *pValue);
             }
@@ -384,7 +384,7 @@ public:
 
                 }
 
-                // Load the pointer adress before loading the content
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
                 load(rTag, *pValue);
             }
