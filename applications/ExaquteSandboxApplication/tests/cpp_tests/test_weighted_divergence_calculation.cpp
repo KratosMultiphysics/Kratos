@@ -19,10 +19,9 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "includes/variables.h"
 
 // Application includes
-// #include "custom_elements/navier_stokes.h"
-#include "includes/variables.h"
 #include "custom_processes/weighted_divergence_calculation_process.h"
 #include "exaqute_sandbox_application_variables.h"
 
@@ -89,7 +88,7 @@ namespace Kratos {
             GenerateModelPartToTest(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
-            // Initialize the fluid element
+            // Initialize the element
             p_element->Initialize();
 
             // Call the body fitted drag utility

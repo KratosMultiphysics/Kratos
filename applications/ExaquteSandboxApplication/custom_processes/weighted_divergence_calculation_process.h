@@ -29,7 +29,7 @@
 
 namespace Kratos
 {
-    ///@addtogroup FluidDynamicsApplication
+    ///@addtogroup ExaquteSandboxApplication
     ///@{
 
     ///@name Kratos Globals
@@ -59,7 +59,7 @@ namespace Kratos
      * where u is the velocity field and K an element of the domain \Omega.
      * The time average does not consider the transient 20% first part of the simulation.
      */
-    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) WeightedDivergenceCalculationProcess : public Process
+    class KRATOS_API(EXAQUTE_SANDBOX_APPLICATION) WeightedDivergenceCalculationProcess : public Process
     {
     public:
         ///@name Type Definitions
