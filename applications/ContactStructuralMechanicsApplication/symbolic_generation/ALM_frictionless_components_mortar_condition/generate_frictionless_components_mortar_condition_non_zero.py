@@ -131,7 +131,7 @@ for normalvar in range(normal_combs):
         Dw1Mw2 = DOperator * w1 - MOperator * w2
 
         for node in range(nnodes):
-            NormalGap[node] = Dx1Mx2.row(node).dot(NormalSlave.row(node))
+            NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
 
         # Define dofs & test function vector
         dofs = sympy.Matrix( sympy.zeros(number_dof, 1) )
@@ -171,7 +171,7 @@ for normalvar in range(normal_combs):
                     if active == 1: # Active
                         augmented_lm = (ScaleFactor * LM.row(node) + PenaltyParameter[node] * NormalGap[node] * NormalSlave.row(node))
                         rv_galerkin += DynamicFactor[node] * (augmented_lm).dot(Dw1Mw2.row(node))
-                        rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
+                        rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
                         rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
                     else: # Inactive
                         rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
