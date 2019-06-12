@@ -227,7 +227,7 @@ private:
 
     void CheckWakeCondition() const;
 
-    void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
+    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
 
