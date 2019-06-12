@@ -31,12 +31,22 @@
 #include "custom_processes/wall_processes/rans_wall_velocity_calculation_process.h"
 
 // RANS auxiliary processes
+#include "custom_processes/auxiliary_processes/rans_check_scalar_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_epsilon_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_scalar_neighbour_averaging_process.h"
-#include "custom_processes/auxiliary_processes/rans_check_scalar_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_y_plus_wall_distance_calculation_process.h"
+
+#include "custom_processes/auxiliary_processes/rans_apply_flag_process.h"
+#include "custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
+#include "custom_processes/auxiliary_processes/rans_find_condition_parent_process.h"
+#include "custom_processes/auxiliary_processes/rans_k_turbulent_intensity_inlet_process.h"
+#include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_high_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.h"
+#include "custom_processes/auxiliary_processes/rans_vector_align_process.h"
+#include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
+#include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
 
 namespace Kratos
 {
@@ -61,7 +71,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef KEpsilonCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonCoSolvingProcessType;
     py::class_<KEpsilonCoSolvingProcessType, KEpsilonCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
         m, "KEpsilonCoSolvingProcess")
-        .def(py::init<ModelPart&, Parameters&, Process::Pointer, Process::Pointer, Process::Pointer>());
+        .def(py::init<ModelPart&, Parameters&>());
 
     // typedef KEpsilonSteadyCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonSteadyCoSolvingProcessType;
     // py::class_<KEpsilonSteadyCoSolvingProcessType, KEpsilonSteadyCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
@@ -111,12 +121,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansNutKWallFunctionProcess RansNutKWallFunctionProcessType;
     py::class_<RansNutKWallFunctionProcessType, RansNutKWallFunctionProcessType::Pointer, Process>(
         m, "RansNutKWallFunctionProcess")
-        .def(py::init<ModelPart&, Parameters&>());
+        .def(py::init<Model&, Parameters&>());
 
     typedef RansEpsilonWallFunctionProcess RansEpsilonWallFunctionProcessType;
     py::class_<RansEpsilonWallFunctionProcessType, RansEpsilonWallFunctionProcessType::Pointer, Process>(
         m, "RansEpsilonWallFunctionProcess")
-        .def(py::init<ModelPart&, Parameters&>());
+        .def(py::init<Model&, Parameters&>());
 
     typedef RansScalarNeighbourAveragingProcess RansScalarNeighbourAveragingProcessType;
     py::class_<RansScalarNeighbourAveragingProcessType, RansScalarNeighbourAveragingProcessType::Pointer, Process>(
@@ -126,7 +136,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansCheckScalarBoundsProcess RansCheckScalarBoundsProcessType;
     py::class_<RansCheckScalarBoundsProcessType, RansCheckScalarBoundsProcessType::Pointer, Process>(
         m, "RansCheckScalarBoundsProcess")
-        .def(py::init<ModelPart&, Parameters&>());
+        .def(py::init<Model&, Parameters&>());
 
     typedef RansYPlusWallDistanceCalculationProcess RansYPlusWallDistanceCalculationProcessType;
     py::class_<RansYPlusWallDistanceCalculationProcessType, RansYPlusWallDistanceCalculationProcessType::Pointer, Process>(
@@ -136,7 +146,53 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansScalarCellCenterAveragingProcess RansScalarCellCenterAveragingProcessType;
     py::class_<RansScalarCellCenterAveragingProcessType, RansScalarCellCenterAveragingProcessType::Pointer, Process>(
         m, "RansScalarCellCenterAveragingProcess")
-        .def(py::init<ModelPart&, Parameters&>());
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansVectorCellCenterAveragingProcess RansVectorCellCenterAveragingProcessType;
+    py::class_<RansVectorCellCenterAveragingProcessType, RansVectorCellCenterAveragingProcessType::Pointer, Process>(
+        m, "RansVectorCellCenterAveragingProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansApplyFlagProcess RansApplyFlagProcessType;
+    py::class_<RansApplyFlagProcessType, RansApplyFlagProcessType::Pointer, Process>(
+        m, "RansApplyFlagProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansFindConditionParentProcess RansFindConditionParentProcessType;
+    py::class_<RansFindConditionParentProcessType, RansFindConditionParentProcessType::Pointer, Process>(
+        m, "RansFindConditionParentProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansVectorAlignProcess RansVectorAlignProcessType;
+    py::class_<RansVectorAlignProcessType, RansVectorAlignProcessType::Pointer, Process>(
+        m, "RansVectorAlignProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansWallDistanceCalculationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> RansWallDistanceCalculationProcessType;
+    py::class_<RansWallDistanceCalculationProcessType, RansWallDistanceCalculationProcessType::Pointer, Process>(
+        m, "RansWallDistanceCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansLogarithmicYPlusCalculationProcess RansLogarithmicYPlusCalculationProcessType;
+    py::class_<RansLogarithmicYPlusCalculationProcessType, RansLogarithmicYPlusCalculationProcessType::Pointer, Process>(
+        m, "RansLogarithmicYPlusCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansNutHighReCalculationProcess RansNutHighReCalculationProcessType;
+    py::class_<RansNutHighReCalculationProcessType, RansNutHighReCalculationProcessType::Pointer, Process>(
+        m, "RansNutHighReCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansKTurbulentIntensityInletProcess RansKTurbulentIntensityInletProcessType;
+    py::class_<RansKTurbulentIntensityInletProcessType, RansKTurbulentIntensityInletProcessType::Pointer, Process>(
+        m, "RansKTurbulentIntensityInletProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansEpsilonTurbulentMixingLengthInletProcess RansEpsilonTurbulentMixingLengthInletProcessType;
+    py::class_<RansEpsilonTurbulentMixingLengthInletProcessType,
+               RansEpsilonTurbulentMixingLengthInletProcessType::Pointer, Process>(
+        m, "RansEpsilonTurbulentMixingLengthInletProcess")
+        .def(py::init<Model&, Parameters&>());
 }
 
 } // namespace Python.
