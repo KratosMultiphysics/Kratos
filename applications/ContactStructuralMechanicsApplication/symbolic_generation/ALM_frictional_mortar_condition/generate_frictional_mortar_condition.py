@@ -23,10 +23,9 @@ def convert_chain_int_int(list_slip_stick):
     return value
 
 # Debug
-#dim_combinations = [2]
-#nnodes_combinations = [2]
-#nnodes_master_combinations = [2]
-#normal_combs = 1
+debug = False
+#debug = True # NOTE: COMMENT FOR NOT DEBUG
+debug_counter = 0
 
 dim_combinations = [2,3,3,3,3]
 nnodes_combinations = [2,3,4,3,4]
@@ -226,102 +225,105 @@ for normalvar in range(normal_combs):
         # Compute galerkin functional # NOTE: Maybe you can define a different penalty and scale factor in the tangent direction NOTE: This is for Galerkin functional
         lhs_string += lhs_template_begin_string
         rhs_string += rhs_template_begin_string
-        for node in range(nnodes):
-            for slip in range(5):
-                rv_galerkin = 0
-                if slip == 0: # Inactive
-                    rv_galerkin -= ScaleFactor**2.0 / PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
-                    rv_galerkin -= ScaleFactor**2.0 / (PenaltyParameter[node] * TangentFactor) * (LMTangent.row(node)).dot(wLMTangent.row(node))
-                else:
-                    augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
-                    rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
+        if debug_counter == 0:
+            for node in range(nnodes):
+                for slip in range(5):
+                    rv_galerkin = 0
+                    if slip == 0: # Inactive
+                        rv_galerkin -= ScaleFactor**2.0 / PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
+                        rv_galerkin -= ScaleFactor**2.0 / (PenaltyParameter[node] * TangentFactor) * (LMTangent.row(node)).dot(wLMTangent.row(node))
+                    else:
+                        augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
+                        rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
 
-                    normal_augmented_contact_pressure = augmented_normal_contact_pressure * NormalSlave.row(node)
-                    rv_galerkin -= DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
+                        normal_augmented_contact_pressure = augmented_normal_contact_pressure * NormalSlave.row(node)
+                        rv_galerkin -= DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
 
-                    if slip == 1 or slip == 2: # Slip
-                        augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
-                        modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
-                        rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
-                        if slip == 1: # Objective
-                            rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                        if slip == 1 or slip == 2: # Slip
+                            augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
+                            modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
+                            rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
+                            if slip == 1: # Objective
+                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                            else:
+                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+                        else: # Stick
+                            if slip == 3: # Objective
+                                augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipObjective.row(node)
+
+                                rv_galerkin += ScaleFactor * (TangentSlipObjective.row(node)).dot(wLMTangent.row(node))
+                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                            else: # Non-Objective
+                                augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipNonObjective.row(node)
+
+                                rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
+                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+
+                    if do_simplifications:
+                        rv_galerkin = sympy.simplify(rv_galerkin)
+
+                    #############################################################################
+                    # Complete functional
+                    rv = sympy.Matrix(sympy.zeros(1, 1))
+                    rv[0,0] = rv_galerkin
+
+                    rhs,lhs = custom_sympy_fe_utilities.Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
+                    print("LHS= ", lhs.shape)
+                    print("RHS= ", rhs.shape)
+                    print("LHS and RHS have been created!")
+
+                    lhs_out = custom_sympy_fe_utilities.OutputMatrix_CollectingFactorsNonZero(lhs, "lhs", mode, 1, number_dof)
+                    rhs_out = custom_sympy_fe_utilities.OutputVector_CollectingFactorsNonZero(rhs, "rhs", mode, 1, number_dof)
+                    print("Substitution strings are ready....")
+
+                    if slip == 0:
+                        lhs_string += "    \n    // NODE " + str(node) + "\n"
+                        lhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
+                        lhs_string += lhs_out.replace("\n","\n    ")
+                    elif slip == 1 or slip == 2:
+                        if slip == 1:
+                            lhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n        if (is_objetive) { // OBJECTIVE-SLIP\n        "
+                            lhs_string += lhs_out.replace("\n","\n        ")
                         else:
-                            rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
-                    else: # Stick
-                        if slip == 3: # Objective
-                            augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipObjective.row(node)
-
-                            rv_galerkin += ScaleFactor * (TangentSlipObjective.row(node)).dot(wLMTangent.row(node))
-                            rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
-                        else: # Non-Objective
-                            augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipNonObjective.row(node)
-
-                            rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
-                            rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
-
-                if do_simplifications:
-                    rv_galerkin = sympy.simplify(rv_galerkin)
-
-                #############################################################################
-                # Complete functional
-                rv = sympy.Matrix(sympy.zeros(1, 1))
-                rv[0,0] = rv_galerkin
-
-                rhs,lhs = custom_sympy_fe_utilities.Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
-                print("LHS= ", lhs.shape)
-                print("RHS= ", rhs.shape)
-                print("LHS and RHS have been created!")
-
-                lhs_out = custom_sympy_fe_utilities.OutputMatrix_CollectingFactorsNonZero(lhs, "lhs", mode, 1, number_dof)
-                rhs_out = custom_sympy_fe_utilities.OutputVector_CollectingFactorsNonZero(rhs, "rhs", mode, 1, number_dof)
-                print("Substitution strings are ready....")
-
-                if slip == 0:
-                    lhs_string += "    \n    // NODE " + str(node) + "\n"
-                    lhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
-                    lhs_string += lhs_out.replace("\n","\n    ")
-                elif slip == 1 or slip == 2:
-                    if slip == 1:
-                        lhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n        if (is_objetive) { // OBJECTIVE-SLIP\n        "
-                        lhs_string += lhs_out.replace("\n","\n        ")
+                            lhs_string += "} else { // NONOBJECTIVE-SLIP\n        "
+                            lhs_string += lhs_out.replace("\n","\n        ")
+                            lhs_string += "}\n    "
                     else:
-                        lhs_string += "} else { // NONOBJECTIVE-SLIP\n        "
-                        lhs_string += lhs_out.replace("\n","\n        ")
-                        lhs_string += "}\n    "
-                else:
-                    if slip == 3:
-                        lhs_string += "} else { // ACTIVE-STICK\n        if (is_objetive) { // OBJECTIVE-STICK\n        "
-                        lhs_string += lhs_out.replace("\n","\n        ")
-                    else:
-                        lhs_string += "} else { // NONOBJECTIVE-STICK\n        "
-                        lhs_string += lhs_out.replace("\n","\n        ")
-                if slip == 4:
-                    lhs_string += "}\n    }\n"
+                        if slip == 3:
+                            lhs_string += "} else { // ACTIVE-STICK\n        if (is_objetive) { // OBJECTIVE-STICK\n        "
+                            lhs_string += lhs_out.replace("\n","\n        ")
+                        else:
+                            lhs_string += "} else { // NONOBJECTIVE-STICK\n        "
+                            lhs_string += lhs_out.replace("\n","\n        ")
+                    if slip == 4:
+                        lhs_string += "}\n    }\n"
 
-                if slip == 0:
-                    rhs_string += "    \n    // NODE " + str(node) + "\n"
-                    rhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
-                    rhs_string += rhs_out.replace("\n","\n    ")
-                elif slip == 1 or slip == 2:
-                    if slip == 1:
-                        rhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n        if (is_objetive) { // OBJECTIVE-SLIP\n        "
-                        rhs_string += rhs_out.replace("\n","\n        ")
+                    if slip == 0:
+                        rhs_string += "    \n    // NODE " + str(node) + "\n"
+                        rhs_string += "    if (r_geometry["+str(node)+"].IsNot(ACTIVE)) { // INACTIVE\n    "
+                        rhs_string += rhs_out.replace("\n","\n    ")
+                    elif slip == 1 or slip == 2:
+                        if slip == 1:
+                            rhs_string += "} else if (r_geometry["+str(node)+"].Is(SLIP)) { // ACTIVE-SLIP\n        if (is_objetive) { // OBJECTIVE-SLIP\n        "
+                            rhs_string += rhs_out.replace("\n","\n        ")
+                        else:
+                            rhs_string += "} else { // NONOBJECTIVE-SLIP\n        "
+                            rhs_string += rhs_out.replace("\n","\n        ")
+                            rhs_string += "}\n    "
                     else:
-                        rhs_string += "} else { // NONOBJECTIVE-SLIP\n        "
-                        rhs_string += rhs_out.replace("\n","\n        ")
-                        rhs_string += "}\n    "
-                else:
-                    if slip == 3:
-                        rhs_string += "} else { // ACTIVE-STICK\n        if (is_objetive) { // OBJECTIVE-STICK\n        "
-                        rhs_string += rhs_out.replace("\n","\n        ")
-                    else:
-                        rhs_string += "} else { // NONOBJECTIVE-STICK\n        "
-                        rhs_string += rhs_out.replace("\n","\n        ")
-                if slip == 4:
-                    rhs_string += "}\n    }\n"
+                        if slip == 3:
+                            rhs_string += "} else { // ACTIVE-STICK\n        if (is_objetive) { // OBJECTIVE-STICK\n        "
+                            rhs_string += rhs_out.replace("\n","\n        ")
+                        else:
+                            rhs_string += "} else { // NONOBJECTIVE-STICK\n        "
+                            rhs_string += rhs_out.replace("\n","\n        ")
+                    if slip == 4:
+                        rhs_string += "}\n    }\n"
 
         lhs_string += lhs_template_end_string
         rhs_string += rhs_template_end_string
+        if debug:
+            debug_counter += 1
 
         lhs_string = lhs_string.replace("TDim", str(dim))
         lhs_string = lhs_string.replace("TNumNodesMaster", str(nnodes_master))
