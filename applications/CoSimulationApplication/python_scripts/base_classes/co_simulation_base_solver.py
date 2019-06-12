@@ -100,6 +100,9 @@ class CoSimulationBaseSolver(object):
     def SetEchoLevel(self, level):
         self.echo_level = level
 
+    def _Name(self):
+        return self.__class__.__name__
+
     def Check(self):
         print("!!!WARNING!!! your solver does not implement Check!!!")
 
