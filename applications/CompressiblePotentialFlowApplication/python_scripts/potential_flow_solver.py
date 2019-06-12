@@ -16,6 +16,8 @@ class PotentialFlowFormulation(object):
             element_type = formulation_settings["element_type"].GetString()
             if element_type == "incompressible":
                 self._SetUpIncompressibleElement(formulation_settings)
+            elif element_type == "compressible":
+                self._SetUpCompressibleElement(formulation_settings)
             elif element_type == "embedded_incompressible":
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
         else:
@@ -29,6 +31,15 @@ class PotentialFlowFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "IncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "CompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
@@ -59,12 +70,12 @@ class PotentialFlowSolver(FluidSolver):
                 "materials_filename": "unknown_materials.json"
             },
             "formulation": {
-                "element_type": "imcompressible_potential"
+                "element_type": "incompressible"
             },
             "maximum_iterations": 10,
             "echo_level": 0,
-            "relative_tolerance": 1e-5,
-            "absolute_tolerance": 1e-9,
+            "relative_tolerance": 1e-12,
+            "absolute_tolerance": 1e-12,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "calculate_solution_norm": false,
@@ -95,8 +106,9 @@ class PotentialFlowSolver(FluidSolver):
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
         self.min_buffer_size = 1
+        self.domain_size = custom_settings["domain_size"].GetInt()
 
-        # Construct the linear solvers
+        #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -114,24 +126,44 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) # Required for modify_distance_process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Required for modify_distance_process
 
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowSolver]:: ", "Variables ADDED")
+
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.GetComputingModelPart(),
-            time_scheme,
-            self.linear_solver,
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            self.settings["calculate_solution_norm"].GetBool(),
-            self.settings["move_mesh_flag"].GetBool())
+        if "incompressible" in self.settings["formulation"]["element_type"].GetString():
+            # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
+            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+                self.GetComputingModelPart(),
+                time_scheme,
+                self.linear_solver,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["calculate_solution_norm"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        elif "compressible" in self.settings["formulation"]["element_type"].GetString():
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
+
+            self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                self.GetComputingModelPart(),
+                time_scheme,
+                self.linear_solver,
+                conv_criteria,
+                max_iterations,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        else:
+            raise Exception("Element not implemented")
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        (self.solver).Initialize()
+        self.solver.Initialize()
 
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
