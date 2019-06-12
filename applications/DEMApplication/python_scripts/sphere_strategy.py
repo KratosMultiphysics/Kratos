@@ -293,6 +293,11 @@ class ExplicitStrategy(object):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.search_strategy, self.solver_settings)
+
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Cimne_Scheme'):
+            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.search_strategy, self.solver_settings)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
@@ -503,6 +508,8 @@ class ExplicitStrategy(object):
             class_name = 'TaylorScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
+        elif name == 'Cimne_Scheme':
+            class_name = 'CimneScheme'
 
         return class_name
 
@@ -519,6 +526,8 @@ class ExplicitStrategy(object):
             class_name = 'TaylorScheme'
         elif name_rotational == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
+        elif name_rotational == 'Cimne_Scheme':
+            class_name = 'CimneScheme'
         elif name_rotational == 'Runge_Kutta':
             class_name = 'RungeKuttaScheme'
         elif name_rotational == 'Quaternion_Integration':

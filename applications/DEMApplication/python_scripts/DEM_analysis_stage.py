@@ -199,6 +199,8 @@ class DEMAnalysisStage(AnalysisStage):
             return TaylorScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             return VelocityVerletScheme()
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Cimne_Scheme':
+            return CimneScheme()
 
         return None
 

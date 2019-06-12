@@ -25,6 +25,7 @@
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
+#include "custom_strategies/schemes/cimne_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
 
@@ -75,6 +76,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<VelocityVerletScheme, VelocityVerletScheme::Pointer, DEMIntegrationScheme>(m, "VelocityVerletScheme")
+        .def(py::init<>())
+        ;
+
+    py::class_<CimneScheme, CimneScheme::Pointer, DEMIntegrationScheme>(m, "CimneScheme")
         .def(py::init<>())
         ;
 
