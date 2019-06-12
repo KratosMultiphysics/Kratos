@@ -115,6 +115,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             # to solver
             to_solver_data = to_solver.GetInterfaceData(i_input_data["data"].GetString())
 
+            # Importing data from external solvers
+            # to_solver.ImportCouplingInterfaceData(to_solver_data)
+
             # perform the data transfer
             self.__ExecuteCouplingOperations(i_input_data["before_data_transfer_operations"])
 
@@ -124,12 +127,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
 
-            # TODO remove the following!
-            if i_input_data.Has("mapper_settings"):
-                to_solver_data.origin_data = from_solver_data
-                to_solver_data.mapper_settings = i_input_data["mapper_settings"]
-
-            to_solver.ImportCouplingInterfaceData(to_solver_data, from_solver)
 
 
     def _SynchronizeOutputData(self, solver_name):
@@ -155,13 +152,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             self.__ExecuteCouplingOperations(i_output_data["after_data_transfer_operations"])
 
-            # TODO remove the following!
-            if i_output_data.Has("mapper_settings"):
-                from_solver_data.destination_data = to_solver_data
-                from_solver_data.mapper_settings = i_output_data["mapper_settings"]
-
-            # export the data
-            from_solver.ExportCouplingInterfaceData(from_solver_data, to_solver) # TODO I am quite sure that the args have to be changed
+            # Importing data from external solvers
+            # from_solver.ExportCouplingInterfaceData(from_solver_data)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
@@ -262,8 +254,7 @@ def GetInputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [],
-        "mapper_settings" : {}
+        "interval"                        : []
     }""")
 
 def GetOutputDataDefaults():
@@ -275,6 +266,5 @@ def GetOutputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [],
-        "mapper_settings" : {}
+        "interval"                        : []
     }""")
