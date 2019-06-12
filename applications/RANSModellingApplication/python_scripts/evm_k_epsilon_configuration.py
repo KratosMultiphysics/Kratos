@@ -190,8 +190,7 @@ class TurbulenceKEpsilonConfiguration(
         if self.turbulence_model_process is None:
             self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
                 self.fluid_model_part,
-                self.model_settings["coupling_settings"], self.GetYPlusModel(),
-                self.GetWallVelocityModel(), self.GetWallDistanceModel())
+                self.model_settings["coupling_settings"])
 
             Kratos.Logger.PrintInfo(self.__class__.__name__,
                                     "Created turbulence solving process.")

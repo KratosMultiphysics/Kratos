@@ -77,18 +77,9 @@ public:
 
     /// Constructor.
     KEpsilonCoSolvingProcess(ModelPart& rModelPart,
-                             Parameters& rParameters,
-                             Process::Pointer pYPlusModelProcess,
-                             Process::Pointer pWallVelocityModelProcess,
-                             Process::Pointer pWallDistanceModelProcess)
-        : BaseType(rModelPart, rParameters, TURBULENT_VISCOSITY),
-          mpYPlusModelProcess(pYPlusModelProcess),
-          mpWallVelocityModelProcess(pWallVelocityModelProcess),
-          mpWallDistanceModelProcess(pWallDistanceModelProcess)
+                             Parameters& rParameters)
+        : BaseType(rModelPart, rParameters, TURBULENT_VISCOSITY)
     {
-        rModelPart.GetProcessInfo()[RANS_PROCESS_WALL_DISTANCE] = pWallDistanceModelProcess;
-        rModelPart.GetProcessInfo()[RANS_PROCESS_WALL_VELOCITY] = pWallVelocityModelProcess;
-        rModelPart.GetProcessInfo()[RANS_PROCESS_Y_PLUS_MODEL] = pYPlusModelProcess;
     }
 
     /// Destructor.
@@ -207,19 +198,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    Process::Pointer mpYPlusModelProcess;
-    Process::Pointer mpWallVelocityModelProcess;
-    Process::Pointer mpWallDistanceModelProcess;
-
     ///@}
     ///@name Operations
     ///@{
 
     void UpdateBeforeSolveSolutionStep() override
     {
-        mpWallVelocityModelProcess->Execute();
-        UpdateWallVelocity();
-        mpYPlusModelProcess->Execute();
+        this->ExecuteAuxiliaryProcessesInitializeSolutionStep();
         this->UpdateConvergenceVariable();
     }
 
@@ -230,50 +215,7 @@ private:
 
     void UpdateConvergenceVariable() override
     {
-        UpdateTurbulentViscosity();
         this->ExecuteAuxiliaryProcesses();
-
-        const ProcessInfo& r_process_info = this->mrModelPart.GetProcessInfo();
-        const double nu_t_min = r_process_info[TURBULENT_VISCOSITY_MIN];
-        const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
-
-        unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
-        RansVariableUtils().ClipScalarVariable(
-            lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes, nu_t_min,
-            nu_t_max, TURBULENT_VISCOSITY, this->mrModelPart.Nodes());
-
-        KRATOS_WARNING_IF(this->Info(),
-                          (lower_number_of_nodes > 0 || higher_number_of_nodes > 0) &&
-                              this->mEchoLevel > 0)
-            << "TURBULENT_VISCOSITY out of bounds. [ " << lower_number_of_nodes
-            << " nodes < " << std::scientific << nu_t_min << ", "
-            << higher_number_of_nodes << " nodes > " << std::scientific << nu_t_max
-            << "  out of total number of " << total_selected_nodes << " nodes. ]\n";
-
-        const double current_nu_t_min = RansVariableUtils().GetMinimumScalarValue(
-            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
-        const double current_nu_t_max = RansVariableUtils().GetMaximumScalarValue(
-            this->mrModelPart.Nodes(), TURBULENT_VISCOSITY);
-        KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 1)
-            << "TURBULENT_VISCOSITY is bounded between [ " << current_nu_t_min
-            << ", " << current_nu_t_max << " ].\n";
-    }
-
-    void UpdateWallVelocity()
-    {
-        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            if (r_node.Is(STRUCTURE))
-            {
-                r_node.FastGetSolutionStepValue(VELOCITY) =
-                    r_node.FastGetSolutionStepValue(WALL_VELOCITY);
-            }
-        }
     }
 
     void UpdateEffectiveViscosity()
@@ -289,28 +231,6 @@ private:
             const double nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
 
             r_node.FastGetSolutionStepValue(VISCOSITY) = nu_t + nu;
-        }
-    }
-
-    void UpdateTurbulentViscosity()
-    {
-        const ProcessInfo& r_process_info = this->mrModelPart.GetProcessInfo();
-        const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
-
-        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            const double epsilon =
-                r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-            const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-                c_mu, tke, epsilon, 1.0);
-
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
         }
     }
 

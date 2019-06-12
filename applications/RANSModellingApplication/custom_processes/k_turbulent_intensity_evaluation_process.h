@@ -128,8 +128,6 @@ public:
     {
         KRATOS_TRY
 
-        mrModelPart.GetProcessInfo()[RANS_PROCESS_WALL_VELOCITY]->Execute();
-
         KRATOS_INFO(this->Info()) << "Applying k values to " << mrModelPart.Name() << ".\n";
         ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
@@ -262,7 +260,7 @@ private:
         if (velocity_magnitude < std::numeric_limits<double>::epsilon())
         {
             const array_1d<double, 3>& r_wall_velocity =
-                rNode.FastGetSolutionStepValue(WALL_VELOCITY);
+                rNode.FastGetSolutionStepValue(VELOCITY);
             velocity_magnitude = norm_2(r_wall_velocity);
         }
 

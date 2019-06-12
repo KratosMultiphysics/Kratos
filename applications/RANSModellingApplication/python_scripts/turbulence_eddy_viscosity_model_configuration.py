@@ -37,24 +37,11 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         self.model_conditions_list = []
         self.model_parts_list = []
 
-
     def GetDefaultSettings(self):
         return Kratos.Parameters(r'''{
             "model_type"            : "",
             "velocity_pressure_relaxation_factor": 0.2,
             "model_settings"        : {},
-            "wall_distance_calculation"  : {
-                "model_type"     : "",
-                "model_settings" : {}
-            },
-            "y_plus_model"      : {
-                "model_type"     : "",
-                "model_settings" : {}
-            },
-            "wall_velocity_calculation":{
-                "model_type"     : "",
-                "model_settings" : {}
-            },
             "auxiliar_process_list"   : [],
             "mesh_moving"             : false,
             "echo_level"              : 0,
@@ -74,6 +61,8 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             Kratos.TURBULENT_VISCOSITY)
         self.fluid_model_part.AddNodalSolutionStepVariable(
             KratosRANS.RANS_Y_PLUS)
+        self.fluid_model_part.AddNodalSolutionStepVariable(
+            Kratos.RELAXED_ACCELERATION)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                 "Successfully added solution step variables.")
@@ -93,53 +82,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                 self.fluid_model_part, "TurbulenceModelPart_" + element,
                 element_name, condition_name)
             self.model_parts_list.append(model_part)
-
-    def GetYPlusModel(self):
-        if self.y_plus_model_process is None:
-            y_plus_model_settings = self.settings["y_plus_model"]
-            import rans_y_plus_model_factory
-            rans_y_plus_model_factory.InitializeModelPartName(
-                y_plus_model_settings, self.model, self.fluid_model_part)
-            self.y_plus_model_process = rans_y_plus_model_factory.Factory(
-                y_plus_model_settings, self.model)
-            Kratos.Logger.PrintInfo(
-                self.__class__.__name__,
-                "Initialized " + self.y_plus_model_process.__str__()[:-1])
-
-        return self.y_plus_model_process
-
-    def GetWallVelocityModel(self):
-        if self.wall_velocity_model_process is None:
-            wall_velocity_model_settings = self.settings["wall_velocity_calculation"]
-            import rans_wall_velocity_model_factory
-            rans_wall_velocity_model_factory.InitializeModelPartName(
-                wall_velocity_model_settings, self.model,
-                self.fluid_model_part)
-            self.wall_velocity_model_process = rans_wall_velocity_model_factory.Factory(
-                wall_velocity_model_settings, self.model)
-            Kratos.Logger.PrintInfo(
-                self.__class__.__name__,
-                "Initialized " + self.wall_velocity_model_process.__str__()[:-1])
-
-        return self.wall_velocity_model_process
-
-    def GetWallDistanceModel(self):
-        if (self.distance_calculation_process is None):
-            wall_distance_model_settings = self.settings[
-                "wall_distance_calculation"]
-            import rans_wall_distance_model_factory
-            rans_wall_distance_model_factory.InitializeModelPartName(
-                wall_distance_model_settings, self.model,
-                self.fluid_model_part)
-            self.distance_calculation_process = rans_wall_distance_model_factory.Factory(
-                wall_distance_model_settings, self.model)
-
-            self.distance_calculation_process.Check()
-            Kratos.Logger.PrintInfo(
-                self.__class__.__name__,
-                "Initialized " + self.distance_calculation_process.__str__()[:-1])
-
-        return self.distance_calculation_process
 
     def CreateStrategy(self, solver_settings, scheme_settings, model_part,
                        scalar_variable, scalar_variable_rate,
@@ -212,8 +154,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         return strategy, linear_solver, convergence_criteria, builder_and_solver, time_scheme
 
     def Initialize(self):
-        self.__InitializeModelPart()
-
         rans_variable_utils = KratosRANS.RansVariableUtils()
         rans_variable_utils.CopyScalarVar(Kratos.VISCOSITY,
                                           Kratos.KINEMATIC_VISCOSITY,
@@ -224,12 +164,14 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
         self.PrepareSolvingStrategy()
 
-        import rans_auxiliary_process_factory
-        for process in self.settings["auxiliar_process_list"]:
-            self.GetTurbulenceSolvingProcess().AddAuxiliaryProcess(rans_auxiliary_process_factory.Factory(process, self.model))
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(
+            self.settings["auxiliar_process_list"])
+        for process in self.auxiliar_process_list:
+            self.GetTurbulenceSolvingProcess().AddAuxiliaryProcess(process)
+            process.ExecuteInitialize()
 
-        self.GetYPlusModel().ExecuteInitialize()
-        self.GetWallVelocityModel().ExecuteInitialize()
         self.GetTurbulenceSolvingProcess().ExecuteInitialize()
 
         for strategy in self.strategies_list:
@@ -239,25 +181,21 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                                 "Initialization successfull.")
 
     def Check(self):
-        self.GetYPlusModel().Check()
-        self.GetWallVelocityModel().Check()
         self.GetTurbulenceSolvingProcess().Check()
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                "Check successfull.")
+        for process in self.auxiliar_process_list:
+            process.Check()
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Check successfull.")
 
     def InitializeSolutionStep(self):
-        self.GetYPlusModel().ExecuteInitializeSolutionStep()
-        self.GetWallVelocityModel().ExecuteInitializeSolutionStep()
+        for process in self.auxiliar_process_list:
+            process.ExecuteInitializeSolutionStep()
+
         self.GetTurbulenceSolvingProcess().ExecuteInitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.GetYPlusModel().ExecuteFinalizeSolutionStep()
-        self.GetWallVelocityModel().ExecuteFinalizeSolutionStep()
+        for process in self.auxiliar_process_list:
+            process.ExecuteFinalizeSolutionStep()
+
         self.GetTurbulenceSolvingProcess().ExecuteFinalizeSolutionStep()
-
-    def __InitializeModelPart(self):
-        self.GetWallDistanceModel().Execute()
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                "Model part initialized.")
-
