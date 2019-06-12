@@ -87,15 +87,15 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
 {
     Parameters default_parameters( R"(
     {
-        "model_part_name"                        : "",
-        "distance_factor"                        : 2.0,
-        "distance_threshold"                     : 0.001,
-        "continuous_distance"                    : true,
-        "check_at_each_time_step"                : true,
-        "avoid_almost_empty_elements"            : true,
-        "deactivate_full_negative_elements"      : true,
-        "recover_original_distance_at_each_step" : false,
-        "variables_list"                  : ["PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"]
+        "model_part_name"                             : "",
+        "distance_factor"                             : 2.0,
+        "distance_threshold"                          : 0.001,
+        "continuous_distance"                         : true,
+        "check_at_each_time_step"                     : true,
+        "avoid_almost_empty_elements"                 : true,
+        "deactivate_full_negative_elements"           : true,
+        "recover_original_distance_at_each_step"      : false,
+        "full_negative_elements_fixed_variables_list" : ["PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"]
     }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -107,7 +107,7 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
     mAvoidAlmostEmptyElements = rParameters["avoid_almost_empty_elements"].GetBool();
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
     mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
-    this->CheckAndStoreVariablesList(rParameters["variables_list"].GetStringArray());
+    this->CheckAndStoreVariablesList(rParameters["full_negative_elements_fixed_variables_list"].GetStringArray());
 }
 
 void DistanceModificationProcess::Execute()
@@ -356,13 +356,13 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState(){
         for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
             auto it_node = mrModelPart.NodesBegin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-                for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                    const Variable<double>& r_double_var = *mDoubleVariablesList[i_var];
+                for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
+                    const auto& r_double_var = *mDoubleVariablesList[i_var];
                     // Free the nodal DOFs  that were fixed
                     it_node->Free(r_double_var);
                 }
-                for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                    const ComponentType& r_component_var = *mComponentVariablesList[i_comp];
+                for (std::size_t i_comp = 0; i_comp < mComponentVariablesList.size(); i_comp++){
+                    const auto& r_component_var = *mComponentVariablesList[i_comp];
                     // Free the nodal DOFs that were fixed
                     it_node->Free(r_component_var);
                 }
@@ -456,15 +456,15 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
         for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
             ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-                for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                    const Variable<double>& r_double_var = *mDoubleVariablesList[i_var];
+                for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
+                    const auto& r_double_var = *mDoubleVariablesList[i_var];
                     // Fix the nodal DOFs
                     it_node->Fix(r_double_var);
                     // Set to zero the nodal DOFs
                     it_node->FastGetSolutionStepValue(r_double_var) = 0.0;
                 }
-                for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                    const ComponentType& r_component_var = *mComponentVariablesList[i_comp];
+                for (std::size_t i_comp = 0; i_comp < mComponentVariablesList.size(); i_comp++){
+                    const auto& r_component_var = *mComponentVariablesList[i_comp];
                     // Fix the nodal DOFs
                     it_node->Fix(r_component_var);
                     // Set to zero the nodal DOFs
@@ -505,14 +505,14 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
     if (rVariableStringArray.size()>0){
         for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
             if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
-                const Variable<double>& r_double_var  = KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
+                const auto& r_double_var  = KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
                 KRATOS_CHECK_DOF_IN_NODE(r_double_var, r_node);
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_double_var, r_node)
 
                 mDoubleVariablesList.push_back(&r_double_var);               
             }
             else if (KratosComponents<ComponentType>::Has(rVariableStringArray[i_variable])){
-                const ComponentType& r_component_var  = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
+                const auto& r_component_var  = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
                 KRATOS_CHECK_DOF_IN_NODE(r_component_var, r_node);
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var, r_node)
                
