@@ -34,6 +34,7 @@ namespace Kratos {
       // Set the element properties
       rModelPart.CreateNewProperties(0);
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+      pElemProp->SetValue(FREE_STREAM_DENSITY,1.0);
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
