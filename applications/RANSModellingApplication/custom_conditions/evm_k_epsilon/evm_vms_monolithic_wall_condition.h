@@ -390,15 +390,8 @@ protected:
 
         GeometryType& r_geometry = this->GetGeometry();
 
-        // Check whether this is a STRUCTURE condition
-        for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            if (!r_geometry[i_node].Is(STRUCTURE))
-                return;
-
-        // Check whether this is a SLIP condition
-        for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            if (!r_geometry[i_node].Is(SLIP))
-                return;
+        if (!this->Is(SLIP))
+            return;
 
         Vector gauss_weights;
         Matrix shape_functions;
