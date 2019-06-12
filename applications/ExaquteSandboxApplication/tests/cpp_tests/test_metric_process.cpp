@@ -23,12 +23,10 @@
 // #include "includes/gid_io.h"
 #include "containers/model.h"
 
-#include "meshing_application_variables.h"
-// #include "../../../MeshingApplication/meshing_application_variables.h"
-
 /* Processes */
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_processes/metrics_divergencefree_process.h"
+#include "meshing_application_variables.h"
 
 namespace Kratos
 {

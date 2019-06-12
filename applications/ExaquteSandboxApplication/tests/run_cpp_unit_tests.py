@@ -1,5 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ExaquteSandboxApplication import *
+from KratosMultiphysics.MeshingApplication import *
 
 def run():
     Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
