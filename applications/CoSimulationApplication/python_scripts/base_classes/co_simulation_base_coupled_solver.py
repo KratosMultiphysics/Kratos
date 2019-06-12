@@ -33,6 +33,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.settings["data_transfer_operators"],
             self.echo_level)
 
+        # creating list of components involved in the CoSimulation that require common operations
+        # list of lists because this way more objects can be added to the individual lists in derived
+        # classes and they will automatically also be called
         self.components_lists = [list(self.participating_solvers.values()), self.coupling_operations_list, self.predictors_list]
 
     def Initialize(self):
