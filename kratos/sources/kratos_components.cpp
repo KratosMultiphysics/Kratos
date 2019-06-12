@@ -20,9 +20,13 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/linear_solver_factory.h"
-#include "includes/preconditioner_factory.h"
+
+/* Utilities */
 #include "utilities/quaternion.h"
+
+/* Factories */
+#include "factories/linear_solver_factory.h"
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos {
 

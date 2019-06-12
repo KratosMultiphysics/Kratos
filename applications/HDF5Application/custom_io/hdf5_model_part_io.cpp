@@ -8,6 +8,7 @@
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -34,22 +35,19 @@ void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& 
 int GlobalNumberOfNodes(ModelPart const& rModelPart)
 {
     int number_of_nodes = rModelPart.NumberOfNodes();
-    rModelPart.GetCommunicator().SumAll(number_of_nodes);
-    return number_of_nodes;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_nodes);
 }
 
 int GlobalNumberOfElements(ModelPart const& rModelPart)
 {
     int number_of_elems = rModelPart.NumberOfElements();
-    rModelPart.GetCommunicator().SumAll(number_of_elems);
-    return number_of_elems;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_elems);
 }
 
 int GlobalNumberOfConditions(ModelPart const& rModelPart)
 {
     int number_of_conds = rModelPart.NumberOfConditions();
-    rModelPart.GetCommunicator().SumAll(number_of_conds);
-    return number_of_conds;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_conds);
 }
 }
 
@@ -206,8 +204,9 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteConditions(rModelPart.Conditions());
     WriteSubModelParts(rModelPart);
 
-    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
-        std::cout << "Time to write model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
+        << "Time to write model part \"" << rModelPart.Name()
+        << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -226,8 +225,9 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
     ReadSubModelParts(rModelPart);
 
-    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
-        std::cout << "Time to read model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
+        << "Time to read model part \"" << rModelPart.Name()
+        << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }

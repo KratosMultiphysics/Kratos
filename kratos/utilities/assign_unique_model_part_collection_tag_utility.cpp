@@ -27,10 +27,14 @@ namespace Kratos
 AssignUniqueModelPartCollectionTagUtility::AssignUniqueModelPartCollectionTagUtility(ModelPart& rModelPart)
     : mrModelPart(rModelPart) {};
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Destructor
 AssignUniqueModelPartCollectionTagUtility::~AssignUniqueModelPartCollectionTagUtility() {};
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Copmutes the collections and assign the tags
 void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
@@ -38,7 +42,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
     IndexIndexMapType& rCondTags,
     IndexIndexMapType& rElemTags,
     IndexStringMapType& rCollections
-)
+    )
 {
     // Initialize and create the auxiliary maps
     IndexIndexSetMapType aux_node_tags, aux_cond_tags, aux_elem_tags;
@@ -157,6 +161,60 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// This functions gets the "colors" from an existing json file
+Parameters AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(
+    const std::string& rFilename,
+    IndexStringMapType& rCollections
+    )
+{
+    std::ifstream infile(rFilename + ".json");
+    KRATOS_ERROR_IF_NOT(infile.good()) << "Tags file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    Parameters color_json(buffer.str());
+    for (auto it_param = color_json.begin(); it_param != color_json.end(); ++it_param) {
+        const std::vector<std::string>& r_sub_model_part_names = it_param->GetStringArray();
+        rCollections.insert(std::pair<IndexType,std::vector<std::string>>({std::stoi(it_param.name()), r_sub_model_part_names}));
+    }
+
+    return color_json;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/// This functions writes the "colors" to a new json file
+Parameters AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(
+    const std::string& rFilename,
+    const IndexStringMapType& rCollections
+    )
+{
+    Parameters color_json;
+    for (auto& r_color : rCollections) {
+        Parameters names_array;
+        names_array.AddEmptyArray("model_part_names");
+        for (auto& r_model_part_name : r_color.second) {
+            names_array["model_part_names"].Append(r_model_part_name);
+        }
+        color_json.AddValue(std::to_string(r_color.first), names_array["model_part_names"]);
+    }
+
+    const std::string& r_json_text = color_json.PrettyPrintJsonString();
+
+    std::filebuf buffer;
+    buffer.open(rFilename + ".json",std::ios::out);
+    std::ostream os(&buffer);
+    os << r_json_text;
+    buffer.close();
+
+    return color_json;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Get the full names of all the submodelparts
 std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(
@@ -170,7 +228,7 @@ std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursive
         sub_model_parts_names.push_back(rThisModelPart.Name());
     else
         Prefix += ".";
-    
+
     StringVectorType names = rThisModelPart.GetSubModelPartNames();
     for (auto& name : names)
     {
@@ -185,6 +243,8 @@ std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursive
     return sub_model_parts_names;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Get a submodelpart given its full name
 ModelPart& AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(
@@ -196,6 +256,8 @@ ModelPart& AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(
     return AuxGetSubModelPart(rThisModelPart, full_name);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Private function for GetRecursiveSubModelPart
 ModelPart& AssignUniqueModelPartCollectionTagUtility::AuxGetSubModelPart(
@@ -215,6 +277,8 @@ ModelPart& AssignUniqueModelPartCollectionTagUtility::AuxGetSubModelPart(
         return rThisModelPart;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 /// Debugging purpose
 void AssignUniqueModelPartCollectionTagUtility::DebugAssignUniqueModelPartCollectionTag()

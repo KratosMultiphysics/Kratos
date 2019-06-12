@@ -11,8 +11,8 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
-#define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#ifndef KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#define KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
 ///@defgroup MoveShallowWaterParticleUtility
 ///@brief Utility to move particles on the eulerian mesh with an
@@ -38,6 +38,7 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
+#include "includes/global_pointer_variables.h"
 #include "processes/node_erase_process.h"
 
 #include "utilities/geometry_utilities.h"
@@ -46,7 +47,6 @@
 #include "includes/kratos_parameters.h"
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "utilities/spatial_containers_configure.h"
@@ -56,7 +56,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"
@@ -139,10 +139,10 @@ public:
                 array_1d<double,3> position_node;
                 double distance=0.0;
                 position_node = pnode->Coordinates();
-                WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
                 const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
@@ -567,7 +567,7 @@ public:
         {
             ResultContainerType results(max_results);
 
-            WeakPointerVector< Element > elements_in_trajectory;
+            GlobalPointersVector< Element > elements_in_trajectory;
             elements_in_trajectory.resize(20);
 
             for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -853,25 +853,6 @@ public:
             }
         }
         KRATOS_CATCH("")
-    }
-
-
-    /// AddUniqueWeakPointer
-    template< class TDataType >
-    void AddUniqueWeakPointer
-        (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
-    {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-            i++;
-        }
-        if( i == endit )
-        {
-            v.push_back(candidate);
-        }
-
     }
 
 
@@ -1204,7 +1185,7 @@ private:
      */
     void MoveParticle(ShallowParticle & pParticle,
                       Element::Pointer & pElement,
-                      WeakPointerVector< Element >& rElementsInTrajectory,
+                      GlobalPointersVector< Element >& rElementsInTrajectory,
                       unsigned int & rNumberOfElementsInTrajectory,
                       ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
@@ -1467,14 +1448,14 @@ private:
         }
 
         // To begin with we check the neighbour elements; it is a bit more expensive
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 return true;
             }
         }
@@ -1488,14 +1469,14 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found_3)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     return true;
                 }
             }
@@ -1530,7 +1511,7 @@ private:
     bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
                          array_1d<double,TDim+1>& N,
                          Element::Pointer & pElement,
-                         WeakPointerVector< Element >& rElementsInTrajectory,
+                         GlobalPointersVector< Element >& rElementsInTrajectory,
                          unsigned int & rNumberOfElementsInTrajectory,
                          unsigned int & rCheckFromElementNumber,
                          ResultIteratorType ResultBegin,
@@ -1555,7 +1536,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
-                pElement = Element::Pointer(((rElementsInTrajectory(i))));
+                pElement = rElementsInTrajectory[i].shared_from_this();
                 N = aux_N;
                 rCheckFromElementNumber = i+1 ; //now i element matches pElement, so to avoid cheching twice the same element we send the counter to the following element.
                 return true;
@@ -1563,14 +1544,14 @@ private:
         }
 
         // Now we check the neighbour elements:
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 if (rNumberOfElementsInTrajectory<20)
                 {
                     rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -1590,14 +1571,14 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     if (rNumberOfElementsInTrajectory<20)
                     {
                         rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;

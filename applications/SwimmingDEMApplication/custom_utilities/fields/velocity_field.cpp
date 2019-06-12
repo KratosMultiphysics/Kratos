@@ -294,8 +294,8 @@ void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variabl
         const array_1d<double, 3>& coor = p_node->Coordinates();
         array_1d<double, 3> fluid_vel;
         Evaluate(time, coor, fluid_vel, thread_number);
-        array_1d<double, 3>& slip_vel = p_node->FastGetSolutionStepValue(container_variable);
-        noalias(slip_vel) = fluid_vel;
+        array_1d<double, 3>& nodal_fluid_vel = p_node->FastGetSolutionStepValue(container_variable);
+        noalias(nodal_fluid_vel) = fluid_vel;
     }
 }
 

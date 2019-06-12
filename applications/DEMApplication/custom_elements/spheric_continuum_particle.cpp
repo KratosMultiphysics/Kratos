@@ -103,7 +103,7 @@ namespace Kratos {
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
-            mContinuumConstitutiveLawArray[i]->Initialize();
+            mContinuumConstitutiveLawArray[i]->Initialize(this);
         }
     }
 
@@ -398,7 +398,7 @@ namespace Kratos {
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
-            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
@@ -627,40 +627,6 @@ namespace Kratos {
                 }
             }
         }
-
-        KRATOS_CATCH("")
-    }
-
-
-    void SphericContinuumParticle::ReorderFEMneighbours() {
-
-        KRATOS_TRY
-
-        unsigned int current_neighbors_size = mNeighbourRigidFaces.size();
-        unsigned int initial_neighbors_size = mFemIniNeighbourIds.size();
-
-        std::vector<DEMWall*> temp_neighbour_elements;
-        temp_neighbour_elements.resize(initial_neighbors_size);
-
-        for (unsigned int i = 0; i < initial_neighbors_size; i++) { temp_neighbour_elements[i] = NULL; }
-
-        // Loop over current neighbors
-        for (unsigned int i = 0; i < current_neighbors_size; i++) {
-            DEMWall* i_neighbour = mNeighbourRigidFaces[i];
-            bool found = false;
-            // Loop over initial neighbors
-            for (unsigned int k = 0; k < initial_neighbors_size; k++) {
-                if (static_cast<int>(i_neighbour->Id()) == mFemIniNeighbourIds[k]) {
-                    temp_neighbour_elements[k] = i_neighbour;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) { temp_neighbour_elements.push_back(i_neighbour); }
-        }
-
-        mNeighbourRigidFaces.swap(temp_neighbour_elements);
 
         KRATOS_CATCH("")
     }

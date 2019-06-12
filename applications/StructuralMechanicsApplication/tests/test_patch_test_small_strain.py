@@ -322,6 +322,85 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+    def test_SmallDisplacementElement_2D_quadratic_quadrilateral(self):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        # Create nodes
+        mp.CreateNewNode(1, 2.0000000000, 1.0000000000, 0.0000000000)
+        mp.CreateNewNode(2, 1.8333333333, 0.8333333333, 0.0000000000)
+        mp.CreateNewNode(3, 1.7500000000, 0.9166666667, 0.0000000000)
+        mp.CreateNewNode(4, 1.6501412600, 0.7903466431, 0.0000000000)
+        mp.CreateNewNode(5, 1.6666666667, 0.6666666667, 0.0000000000)
+        mp.CreateNewNode(6, 1.5000000000, 0.8333333333, 0.0000000000)
+        mp.CreateNewNode(7, 1.5502825201, 0.6640266196, 0.0000000000)
+        mp.CreateNewNode(8, 1.4669491867, 0.7473599529, 0.0000000000)
+        mp.CreateNewNode(9, 1.4338983735, 0.6613865725, 0.0000000000)
+        mp.CreateNewNode(10, 1.5000000000, 0.5000000000, 0.0000000000)
+        mp.CreateNewNode(11, 1.3930628337, 0.5373333663, 0.0000000000)
+        mp.CreateNewNode(12, 1.2500000000, 0.7500000000, 0.0000000000)
+        mp.CreateNewNode(13, 1.2680628337, 0.6623333663, 0.0000000000)
+        mp.CreateNewNode(14, 1.2861256675, 0.5746667326, 0.0000000000)
+        mp.CreateNewNode(15, 1.3333333333, 0.3333333333, 0.0000000000)
+        mp.CreateNewNode(16, 1.2358431474, 0.4106401130, 0.0000000000)
+        mp.CreateNewNode(17, 1.1383529614, 0.4879468926, 0.0000000000)
+        mp.CreateNewNode(18, 1.0691764807, 0.5773067797, 0.0000000000)
+        mp.CreateNewNode(19, 1.0000000000, 0.6666666667, 0.0000000000)
+        mp.CreateNewNode(20, 1.1666666667, 0.1666666667, 0.0000000000)
+        mp.CreateNewNode(21, 1.0644666084, 0.2779203060, 0.0000000000)
+        mp.CreateNewNode(22, 0.9622665502, 0.3891739453, 0.0000000000)
+        mp.CreateNewNode(23, 0.8561332751, 0.4862536393, 0.0000000000)
+        mp.CreateNewNode(24, 0.7500000000, 0.5833333333, 0.0000000000)
+        mp.CreateNewNode(25, 0.8930900695, 0.1452004990, 0.0000000000)
+        mp.CreateNewNode(26, 0.7861801389, 0.2904009980, 0.0000000000)
+        mp.CreateNewNode(27, 1.0000000000, 0.0000000000, 0.0000000000)
+        mp.CreateNewNode(28, 0.6430900695, 0.3952004990, 0.0000000000)
+        mp.CreateNewNode(29, 0.6479361204, 0.2339226363, 0.0000000000)
+        mp.CreateNewNode(30, 0.6989680602, 0.1169613182, 0.0000000000)
+        mp.CreateNewNode(31, 0.5000000000, 0.5000000000, 0.0000000000)
+        mp.CreateNewNode(32, 0.7500000000, 0.0000000000, 0.0000000000)
+        mp.CreateNewNode(33, 0.5114680602, 0.3044613182, 0.0000000000)
+        mp.CreateNewNode(34, 0.5096921019, 0.1774442747, 0.0000000000)
+        mp.CreateNewNode(35, 0.3750000000, 0.3750000000, 0.0000000000)
+        mp.CreateNewNode(36, 0.5048460509, 0.0887221373, 0.0000000000)
+        mp.CreateNewNode(37, 0.3798460509, 0.2137221373, 0.0000000000)
+        mp.CreateNewNode(38, 0.5000000000, 0.0000000000, 0.0000000000)
+        mp.CreateNewNode(39, 0.2500000000, 0.2500000000, 0.0000000000)
+        mp.CreateNewNode(40, 0.3149230255, 0.1068610687, 0.0000000000)
+        mp.CreateNewNode(41, 0.2500000000, 0.0000000000, 0.0000000000)
+        mp.CreateNewNode(42, 0.1250000000, 0.1250000000, 0.0000000000)
+        mp.CreateNewNode(43, 0.0000000000, 0.0000000000, 0.0000000000)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1, 2, 3, 5, 6, 10, 12, 15, 19, 20, 24, 27, 31, 32, 35, 38, 39, 41, 42, 43])
+
+        # Create Element
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 1, [ 39, 43, 38, 34, 42, 41, 36, 37, 40 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 2, [ 31, 39, 34, 26, 35, 37, 29, 28, 33 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 3, [ 34, 38, 27, 26, 36, 32, 25, 29, 30 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 4, [  5,  1,  6,  9,  2,  3,  8,  7,  4 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 5, [ 27, 15, 17, 26, 20, 16, 22, 25, 21 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 6, [ 31, 26, 17, 19, 28, 22, 18, 24, 23 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 7, [ 15,  5,  9, 17, 10,  7, 14, 16, 11 ], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D9N", 8, [ 19, 17,  9,  6, 18, 14,  8, 12, 13 ], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        #self.__post_process(mp)
+
     def test_SmallDisplacementElement_3D_tetra(self):
         dim = 3
         current_model = KratosMultiphysics.Model()

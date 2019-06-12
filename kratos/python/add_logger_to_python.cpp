@@ -26,8 +26,8 @@ namespace py = pybind11;
 
 const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
     if (kwargs.contains("data_communicator")) {
-        DataCommunicator::Pointer p_data_communicator = py::cast<DataCommunicator::Pointer>(kwargs("data_communicator"));
-        return *p_data_communicator;
+        const DataCommunicator& r_data_communicator = py::cast<DataCommunicator&>(kwargs["data_communicator"]);
+        return r_data_communicator;
     }
     else {
         return DataCommunicator::GetDefault();

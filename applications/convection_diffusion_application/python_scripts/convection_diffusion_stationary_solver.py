@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return ConvectionDiffusionStationarySolver(main_model_part, custom_settings)
@@ -24,7 +24,6 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
     def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
         self.stationary_settings = KratosMultiphysics.Parameters(r"""{}""")
-        self.validate_and_transfer_matching_settings(custom_settings, self.stationary_settings)
 
         # Construct the base solver and validate the remaining settings in the base class
         super(ConvectionDiffusionStationarySolver, self).__init__(main_model_part, custom_settings)
@@ -35,7 +34,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
         else:
             self.min_buffer_size = 1
 
-        self.print_on_rank_zero("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
 
     #### Private functions ####
     def _create_solution_scheme(self):

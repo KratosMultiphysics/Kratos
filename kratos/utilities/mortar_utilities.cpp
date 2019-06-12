@@ -126,7 +126,10 @@ array_1d<double,3> GaussPointUnitNormal(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart)
+void ComputeNodesMeanNormalModelPart(
+    ModelPart& rModelPart,
+    const bool ComputeConditions
+    )
 {
     // Check NORMAL is available
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(NORMAL)) << "NORMAL is not available on the solution step data variable database" << std::endl;
@@ -142,31 +145,57 @@ void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart)
     // Reset NORMAL
     VariableUtils().SetVectorVar(NORMAL, zero_array, r_nodes_array);
 
-    // Sum all the nodes normals
-    auto& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-
     // Declare auxiliar coordinates
     CoordinatesArrayType aux_coords;
 
-    #pragma omp parallel for firstprivate(aux_coords)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        const GeometryType& r_geometry = it_cond->GetGeometry();
+    if (ComputeConditions) {
+        // Sum all the nodes normals
+        auto& r_conditions_array = rModelPart.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
 
-        // Set condition normal
-        r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
-        it_cond->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
-    }
+        #pragma omp parallel for firstprivate(aux_coords)
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            const GeometryType& r_geometry = it_cond->GetGeometry();
 
-    // Adding the normal contribution of each node
-    for(Condition& r_cond : r_conditions_array) {
-        GeometryType& r_geometry = r_cond.GetGeometry();
+            // Set condition normal
+            r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
+            it_cond->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
+        }
 
-        // Iterate over nodes
-        for (NodeType& r_node : r_geometry) {
-            r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
-            noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+        // Adding the normal contribution of each node
+        for(Condition& r_cond : r_conditions_array) {
+            GeometryType& r_geometry = r_cond.GetGeometry();
+
+            // Iterate over nodes
+            for (NodeType& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+            }
+        }
+    } else {
+        auto& r_elements_array = rModelPart.Elements();
+        const auto it_elem_begin = r_elements_array.begin();
+
+        #pragma omp parallel for firstprivate(aux_coords)
+        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = it_elem_begin + i;
+            const GeometryType& r_geometry = it_elem->GetGeometry();
+
+            // Set elemition normal
+            r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
+            it_elem->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
+        }
+
+        // Adding the normal contribution of each node
+        for(Element& r_elem : r_elements_array) {
+            GeometryType& r_geometry = r_elem.GetGeometry();
+
+            // Iterate over nodes
+            for (NodeType& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+            }
         }
     }
 
@@ -186,10 +215,10 @@ void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<double>, Historical>(
-        ModelPart& rThisModelPart,
-        Variable<double>& rThisVariable
-        )
+void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<double>& rThisVariable
+    )
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetScalarVar(rThisVariable, 0.0, r_nodes_array);
@@ -199,10 +228,11 @@ void ResetValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<array_1d<double, 3>>, Historical>(
-        ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& rThisVariable
-        ) {
+void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<array_1d<double, 3>>& rThisVariable
+    )
+{
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetVectorVar(rThisVariable, ZeroVector(3), r_nodes_array);
 }
@@ -211,10 +241,11 @@ void ResetValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<double>, NonHistorical>(
-        ModelPart& rThisModelPart,
-        Variable<double>& rThisVariable
-        ) {
+void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<double>& rThisVariable
+    )
+{
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(rThisVariable, 0.0, r_nodes_array);
 }
@@ -223,10 +254,11 @@ void ResetValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void ResetValue<Variable<array_1d<double, 3>>, NonHistorical>(
-        ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& rThisVariable
-        ) {
+void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<array_1d<double, 3>>& rThisVariable
+    )
+{
     const array_1d<double, 3> zero_array = ZeroVector(3);
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(rThisVariable, zero_array, r_nodes_array);
@@ -236,7 +268,8 @@ void ResetValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart) {
+void ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart)
+{
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(NODAL_MAUX, 0.0, r_nodes_array);
 }
@@ -245,7 +278,8 @@ void ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart) {
 /***********************************************************************************/
 
 template<>
-void ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart) {
+void ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart)
+{
     const array_1d<double, 3> zero_array = ZeroVector(3);
     auto& r_nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(NODAL_VAUX, zero_array, r_nodes_array);
@@ -255,16 +289,18 @@ void ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart
 /***********************************************************************************/
 
 template< >
-Variable<double> GetAuxiliarVariable<Variable<double>>() {
-    return NODAL_MAUX;
+const std::string GetAuxiliarVariable<Variable<double>>()
+{
+    return "NODAL_MAUX";
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< >
-Variable<array_1d<double, 3>> GetAuxiliarVariable<Variable<array_1d<double, 3>>>() {
-    return NODAL_VAUX;
+const std::string GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
+{
+    return "NODAL_VAUX";
 }
 
 /***********************************************************************************/
@@ -272,9 +308,10 @@ Variable<array_1d<double, 3>> GetAuxiliarVariable<Variable<array_1d<double, 3>>>
 
 template< >
 double GetAuxiliarValue<Variable<double>>(
-    Node<3>::Pointer pThisNode,
-    unsigned int iSize
-    ) {
+    NodeType::Pointer pThisNode,
+    const std::size_t iSize
+    )
+{
     return pThisNode->GetValue(NODAL_MAUX);
 }
 
@@ -283,9 +320,10 @@ double GetAuxiliarValue<Variable<double>>(
 
 template< >
 double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
-    Node<3>::Pointer pThisNode,
-    unsigned int iSize
-    ) {
+    NodeType::Pointer pThisNode,
+    const std::size_t iSize
+    )
+{
     switch ( iSize ) {
         case 0:
             return pThisNode->GetValue(NODAL_VAUX_X);
@@ -304,11 +342,12 @@ double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<double>, Historical>(
-        GeometryType& rThisGeometry,
-        Variable<double>& rThisVariable,
-        Matrix& rThisValue
-        ) {
+void MatrixValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    const GeometryType& rThisGeometry,
+    const Variable<double>& rThisVariable,
+    Matrix& rThisValue
+    )
+{
     if (rThisValue.size1() != rThisGeometry.size() || rThisValue.size2() != 1)
         rThisValue.resize(rThisGeometry.size(), 1, false);
 
@@ -320,20 +359,21 @@ void MatrixValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
-        GeometryType& rThisGeometry,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        Matrix& rThisValue
-        ) {
+void MatrixValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    const GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    Matrix& rThisValue
+    )
+{
     const std::size_t num_nodes = rThisGeometry.size();
     const std::size_t dimension = rThisGeometry.WorkingSpaceDimension();
     if (rThisValue.size1() != num_nodes || rThisValue.size2() != dimension)
         rThisValue.resize(num_nodes, dimension, false);
 
     for (IndexType i_node = 0; i_node < num_nodes; ++i_node) {
-        const auto& rvalue = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
+        const auto& r_value = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
         for (IndexType i_dim = 0; i_dim < dimension; ++i_dim)
-            rThisValue(i_node, i_dim) = rvalue[i_dim];
+            rThisValue(i_node, i_dim) = r_value[i_dim];
     }
 }
 
@@ -341,11 +381,12 @@ void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<double>, NonHistorical>(
-        GeometryType& rThisGeometry,
-        Variable<double>& rThisVariable,
-        Matrix& rThisValue
-        ) {
+void MatrixValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    const GeometryType& rThisGeometry,
+    const Variable<double>& rThisVariable,
+    Matrix& rThisValue
+    )
+{
     if (rThisValue.size1() != rThisGeometry.size() || rThisValue.size2() != 1)
         rThisValue.resize(rThisGeometry.size(), 1, false);
 
@@ -357,20 +398,21 @@ void MatrixValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
-        GeometryType& rThisGeometry,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        Matrix& rThisValue
-        ) {
+void MatrixValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    const GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    Matrix& rThisValue
+    )
+{
     const std::size_t num_nodes = rThisGeometry.size();
     const std::size_t dimension = rThisGeometry.WorkingSpaceDimension();
     if (rThisValue.size1() != num_nodes || rThisValue.size2() != dimension)
         rThisValue.resize(num_nodes, dimension, false);
 
     for (IndexType i_node = 0; i_node < num_nodes; ++i_node) {
-        const auto& rvalue = rThisGeometry[i_node].GetValue(rThisVariable);
+        const auto& r_value = rThisGeometry[i_node].GetValue(rThisVariable);
         for (IndexType i_dim = 0; i_dim < dimension; ++i_dim)
-            rThisValue(i_node, i_dim) = rvalue[i_dim];
+            rThisValue(i_node, i_dim) = r_value[i_dim];
     }
 }
 
@@ -378,15 +420,16 @@ void MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<double>, Historical>(
-        GeometryType& rThisGeometry,
-        Variable<double>& rThisVariable,
-        const Matrix& rThisValue
-        ) {
+void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVariable,
+    const Matrix& rThisValue
+    )
+{
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
-        double& aux_value = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
+        double& r_aux_value = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
         #pragma omp atomic
-        aux_value += rThisValue(i_node, 0);
+        r_aux_value += rThisValue(i_node, 0);
     }
 }
 
@@ -394,17 +437,18 @@ void AddValue<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<array_1d<double, 3>>, Historical>(
-        GeometryType& rThisGeometry,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        const Matrix& rThisValue
-        ) {
+void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    const Matrix& rThisValue
+    )
+{
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
-        auto& aux_vector = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
-        for (unsigned int i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
-            double& aux_value = aux_vector[i_dim];
+        auto& r_aux_vector = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
+        for (IndexType i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
+            double& r_aux_value = r_aux_vector[i_dim];
             #pragma omp atomic
-            aux_value += rThisValue(i_node, i_dim);
+            r_aux_value += rThisValue(i_node, i_dim);
         }
     }
 }
@@ -413,15 +457,16 @@ void AddValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<double>, NonHistorical>(
-        GeometryType& rThisGeometry,
-        Variable<double>& rThisVariable,
-        const Matrix& rThisValue
-        ) {
+void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVariable,
+    const Matrix& rThisValue
+    )
+{
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
-        double& aux_value = rThisGeometry[i_node].GetValue(rThisVariable);
+        double& r_aux_value = rThisGeometry[i_node].GetValue(rThisVariable);
         #pragma omp atomic
-        aux_value += rThisValue(i_node, 0);
+        r_aux_value += rThisValue(i_node, 0);
     }
 }
 
@@ -429,17 +474,18 @@ void AddValue<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddValue<Variable<array_1d<double, 3>>, NonHistorical>(
-        GeometryType& rThisGeometry,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        const Matrix& rThisValue
-        ) {
+void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    const Matrix& rThisValue
+    )
+{
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
         auto& aux_vector = rThisGeometry[i_node].GetValue(rThisVariable);
-        for (unsigned int i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
-            double& aux_value = aux_vector[i_dim];
+        for (IndexType i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
+            double& r_aux_value = aux_vector[i_dim];
             #pragma omp atomic
-            aux_value += rThisValue(i_node, i_dim);
+            r_aux_value += rThisValue(i_node, i_dim);
         }
     }
 }
@@ -448,45 +494,41 @@ void AddValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<double>, Historical>(
-        Node<3>::Pointer pThisNode,
-        Variable<double>& rThisVariable,
-        const double RefArea,
-        const double Tolerance
-        ) {
+void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    NodeType::Pointer pThisNode,
+    const Variable<double>& rThisVariable,
+    const double RefArea,
+    const double Tolerance
+    )
+{
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    double& aux_value = pThisNode->FastGetSolutionStepValue(rThisVariable);
+    double& r_aux_value = pThisNode->FastGetSolutionStepValue(rThisVariable);
     #pragma omp atomic
-    aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    r_aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
-        Node<3>::Pointer pThisNode,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        const double RefArea,
-        const double Tolerance
-        ) {
+void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    NodeType::Pointer pThisNode,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    const double RefArea,
+    const double Tolerance
+    )
+{
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->FastGetSolutionStepValue(rThisVariable);
     const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
     for (IndexType i = 0; i < 3; ++i) {
-        double& aux_value = aux_vector[i];
+        double& r_aux_value = aux_vector[i];
         #pragma omp atomic
-        aux_value += area_coeff * nodal_vaux[i];
+        r_aux_value += area_coeff * nodal_vaux[i];
     }
 }
 
@@ -494,45 +536,41 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<double>, NonHistorical>(
-        Node<3>::Pointer pThisNode,
-        Variable<double>& rThisVariable,
-        const double RefArea,
-        const double Tolerance
-        ) {
+void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    NodeType::Pointer pThisNode,
+    const Variable<double>& rThisVariable,
+    const double RefArea,
+    const double Tolerance
+    )
+{
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    double& aux_value = pThisNode->GetValue(rThisVariable);
+    double& r_aux_value = pThisNode->GetValue(rThisVariable);
     #pragma omp atomic
-    aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    r_aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, NonHistorical>(
-        Node<3>::Pointer pThisNode,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        const double RefArea,
-        const double Tolerance
-        ) {
+void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    NodeType::Pointer pThisNode,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    const double RefArea,
+    const double Tolerance
+    )
+{
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->GetValue(rThisVariable);
     const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
     for (IndexType i = 0; i < 3; ++i) {
-        double& aux_value = aux_vector[i];
+        double& r_aux_value = aux_vector[i];
         #pragma omp atomic
-        aux_value += area_coeff * nodal_vaux[i];
+        r_aux_value += area_coeff * nodal_vaux[i];
     }
 }
 
@@ -540,17 +578,18 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<double>, Historical>(
-        ModelPart& rThisModelPart,
-        Variable<double>& rThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
-        ) {
+void UpdateDatabase<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<double>& rThisVariable,
+    Vector& rDx,
+    const std::size_t Index,
+    IntMap& rConectivityDatabase
+    )
+{
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(Dx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(ConectivityDatabase[i]);
-        p_node->FastGetSolutionStepValue(rThisVariable) += Dx[i];
+    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
+        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
+        p_node->FastGetSolutionStepValue(rThisVariable) += rDx[i];
     }
 }
 
@@ -558,18 +597,19 @@ void UpdateDatabase<Variable<double>, Historical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<array_1d<double, 3>>, Historical>(
-        ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
-        ) {
+void UpdateDatabase<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    Vector& rDx,
+    const std::size_t Index,
+    IntMap& rConectivityDatabase
+    )
+{
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(Dx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(ConectivityDatabase[i]);
-        auto& value = p_node->FastGetSolutionStepValue(rThisVariable);
-        value[Index] += Dx[i];
+    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
+        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
+        auto& r_value = p_node->FastGetSolutionStepValue(rThisVariable);
+        r_value[Index] += rDx[i];
     }
 }
 
@@ -577,17 +617,18 @@ void UpdateDatabase<Variable<array_1d<double, 3>>, Historical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<double>, NonHistorical>(
-        ModelPart& rThisModelPart,
-        Variable<double>& rThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
-        ) {
+void UpdateDatabase<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<double>& rThisVariable,
+    Vector& rDx,
+    const std::size_t Index,
+    IntMap& rConectivityDatabase
+    )
+{
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(Dx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(ConectivityDatabase[i]);
-        p_node->GetValue(rThisVariable) += Dx[i];
+    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
+        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
+        p_node->GetValue(rThisVariable) += rDx[i];
     }
 }
 
@@ -595,18 +636,19 @@ void UpdateDatabase<Variable<double>, NonHistorical>(
 /***********************************************************************************/
 
 template<>
-void UpdateDatabase<Variable<array_1d<double, 3>>, NonHistorical>(
-        ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& rThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
-        ) {
+void UpdateDatabase<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
+    ModelPart& rThisModelPart,
+    const Variable<array_1d<double, 3>>& rThisVariable,
+    Vector& rDx,
+    const std::size_t Index,
+    IntMap& rConectivityDatabase
+    )
+{
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(Dx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(ConectivityDatabase[i]);
+    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
+        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
         auto& value = p_node->GetValue(rThisVariable);
-        value[Index] += Dx[i];
+        value[Index] += rDx[i];
     }
 }
 } // namespace MortarUtilities

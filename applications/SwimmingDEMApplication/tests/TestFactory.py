@@ -5,7 +5,8 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from candelier_scripts.candelier_analysis import CandelierBenchmarkAnalysis
+
+from tests_python_scripts.candelier_scripts.candelier_analysis import CandelierBenchmarkAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

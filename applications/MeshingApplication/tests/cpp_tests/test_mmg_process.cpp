@@ -17,9 +17,9 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "containers/model.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 /* Processes */
 #include "custom_processes/mmg_process.h"
@@ -31,19 +31,19 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
 
-        void GiDIODebugMMG(ModelPart& ThisModelPart)
-        {
-            GidIO<> gid_io("TEST_MMG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-            const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-            const double label = static_cast<double>(nl_iter);
-
-            gid_io.InitializeMesh(label);
-            gid_io.WriteMesh(ThisModelPart.GetMesh());
-            gid_io.FinalizeMesh();
-            gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-            gid_io.WriteNodalResultsNonHistorical(NODAL_H, ThisModelPart.Nodes(), label);
-            gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
-        }
+//         void GiDIODebugMMG(ModelPart& ThisModelPart)
+//         {
+//             GidIO<> gid_io("TEST_MMG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+//             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//             const double label = static_cast<double>(nl_iter);
+//
+//             gid_io.InitializeMesh(label);
+//             gid_io.WriteMesh(ThisModelPart.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
+//             gid_io.WriteNodalResultsNonHistorical(NODAL_H, ThisModelPart.Nodes(), label);
+//             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
+//         }
 
         /**
         * Checks the correct work of the level set MMG process
@@ -91,7 +91,7 @@ namespace Kratos
 
             // Compute remesh
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
             // Compute NodalH
@@ -173,7 +173,7 @@ namespace Kratos
 
             // Compute remesh
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
             // Compute NodalH
