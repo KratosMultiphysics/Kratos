@@ -343,12 +343,11 @@ class MmgProcess(KratosMultiphysics.Process):
             else:
                 self.step += 1
                 if self.step_frequency > 0:
-                    if self.step >= self.step_frequency:
-                        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
-                            if self.settings["blocking_threshold_size"].GetBool():
-                                MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
-                            self._ExecuteRefinement()
-                            self.step = 0  # Reset
+                    if self.step >= self.step_frequency or self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] > self.initial_step:
+                        if self.settings["blocking_threshold_size"].GetBool():
+                            MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
+                        self._ExecuteRefinement()
+                        self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
