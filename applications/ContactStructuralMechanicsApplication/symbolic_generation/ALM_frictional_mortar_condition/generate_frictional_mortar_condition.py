@@ -182,12 +182,18 @@ for normalvar in range(normal_combs):
             gap_time_derivative_non_objective_w = Dw1Mw2.row(node)/delta_time
             gap_time_derivative_objective = - DeltaDx1DeltaMx2.row(node)/delta_time
             gap_time_derivative_objective_w = - DeltaDw1DeltaMw2.row(node)/delta_time
+
+            # Direct computation
             auxTangentSlipNonObjective = delta_time * (gap_time_derivative_non_objective - gap_time_derivative_non_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
             auxTangentwSlipNonObjective = delta_time * (gap_time_derivative_non_objective_w - gap_time_derivative_non_objective_w.dot(NormalSlave.row(node)) * NormalSlave.row(node))
             auxTangentSlipObjective = delta_time * (gap_time_derivative_objective - gap_time_derivative_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
             auxTangentwSlipObjective = delta_time * (gap_time_derivative_objective_w - gap_time_derivative_objective_w.dot(NormalSlave.row(node)) * NormalSlave.row(node))
+
+            ## Enforced
             #auxTangentSlipNonObjective = delta_time * gap_time_derivative_non_objective.dot(TangentSlave.row(node)) * TangentSlave.row(node)
+            #auxTangentwSlipNonObjective = delta_time * gap_time_derivative_non_objective_w.dot(TangentSlave.row(node)) * TangentSlave.row(node)
             #auxTangentSlipObjective = delta_time * gap_time_derivative_objective.dot(TangentSlave.row(node)) * TangentSlave.row(node)
+            #auxTangentwSlipObjective = delta_time * gap_time_derivative_objective_w.dot(TangentSlave.row(node)) * TangentSlave.row(node)
             for idim in range(dim):
                 TangentSlipNonObjective[node, idim] = auxTangentSlipNonObjective[idim]
                 TangentwSlipNonObjective[node, idim] = auxTangentwSlipNonObjective[idim]
