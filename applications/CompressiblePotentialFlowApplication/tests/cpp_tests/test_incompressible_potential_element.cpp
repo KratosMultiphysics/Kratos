@@ -451,8 +451,8 @@ namespace Kratos {
       }
     }
 
-    // Checks the function ComputePressureCoefficient
-    KRATOS_TEST_CASE_IN_SUITE(ComputePressureCoefficient, CompressiblePotentialApplicationFastSuite)
+    // Checks the function ComputeIncompressiblePressureCoefficient
+    KRATOS_TEST_CASE_IN_SUITE(ComputeIncompressiblePressureCoefficient, CompressiblePotentialApplicationFastSuite)
     {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -462,7 +462,7 @@ namespace Kratos {
 
       AssignPotentialsToNormalElement(pElement);
 
-      double pressure_coefficient = PotentialFlowUtilities::ComputePressureCoefficient<2,3>(*pElement, model_part.GetProcessInfo());
+      double pressure_coefficient = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<2,3>(*pElement, model_part.GetProcessInfo());
 
       KRATOS_CHECK_NEAR(pressure_coefficient, 0.98, 1e-7);
     }

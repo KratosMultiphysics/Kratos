@@ -153,7 +153,7 @@ array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
-double ComputePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double free_stream_velocity_norm = inner_prod(free_stream_velocity, free_stream_velocity);
@@ -183,6 +183,6 @@ template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& r
 template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
-template double ComputePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 } // namespace PotentialFlow
 } // namespace Kratos

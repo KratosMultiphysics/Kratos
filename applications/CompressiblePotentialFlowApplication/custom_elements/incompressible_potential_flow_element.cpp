@@ -193,7 +193,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = PotentialFlowUtilities::ComputePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
     }
     else if (rVariable == WAKE)
     {
