@@ -250,9 +250,8 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i)
-            if (!r_geometry[i].Is(STRUCTURE))
-                return;
+        if (!this->Is(STRUCTURE))
+            return;
 
         for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
             if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
