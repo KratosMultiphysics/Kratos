@@ -56,14 +56,14 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
         {
             "target_refinement_coefficient"       : 0.9,
             "refinement_bound"                    : 2.0,
-            "reference_variable_name"             : "DIVERGENCE",
+            "reference_variable_name"             : "DIVERGENCE_WEIGHTED",
             "reference_norm_name"                 : "VELOCITY_H1_SEMINORM"
         },
         "maximum_strategy":
         {
             "target_refinement_coefficient"       : 0.1,
             "refinement_coefficient"              : 2.0,
-            "reference_variable_name"             : "DIVERGENCE"
+            "reference_variable_name"             : "DIVERGENCE_WEIGHTED"
         },
         "echo_level"                          : 0
     })"
@@ -152,7 +152,7 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
 
         // Reference variable
         const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceVariable);
-        
+
         // Loop over elements for computing divergence value over the whole domain
         const int number_elements = static_cast<int>(elements_array.size());
         for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
@@ -270,7 +270,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             // Set element size
             double element_size;
             double factor = mMeanStrategyTargetRefinementCoefficient*mMeanStrategyDivergenceFreeOverAllDomain/std::sqrt(number_elements)/divergencefree_interp_value;
-    
+
             if (factor < 1.0/mMeanStrategyRefinementBound) factor = 1.0/mMeanStrategyRefinementBound;
             if (factor > mMeanStrategyRefinementBound) factor = mMeanStrategyRefinementBound;
             element_size = factor*nodal_h;
