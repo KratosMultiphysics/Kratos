@@ -43,12 +43,6 @@ class MappingDataTransferOperator(CoSimulationBaseDataTransferOperator):
             self.mappers[name_tuple] = mapper_create_fct(model_part_origin, model_part_destinatinon, self.settings["mapper_settings"])
             self.mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
-    def PrintInfo(self):
-        pass
-
-    def Check(self):
-        pass
-
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = cs_tools.cs_data_structure.Parameters("""{
