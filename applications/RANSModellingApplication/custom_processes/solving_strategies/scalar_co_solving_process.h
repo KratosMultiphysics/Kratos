@@ -222,6 +222,12 @@ protected:
             auxiliary_process->Execute();
     }
 
+    void ExecuteAuxiliaryProcessesInitializeSolutionStep()
+    {
+        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+            auxiliary_process->ExecuteInitializeSolutionStep();
+    }
+
     void SolveSolutionStep()
     {
         this->UpdateBeforeSolveSolutionStep();
