@@ -8,7 +8,6 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 class PotentialFlowFormulation(object):
-    """Helper class to define embedded-dependent parameters."""
     def __init__(self, formulation_settings):
         self.element_name = None
         self.condition_name = None
@@ -20,7 +19,7 @@ class PotentialFlowFormulation(object):
             elif element_type == "embedded_incompressible":
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
         else:
-            raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
+            raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
 
     def _SetUpIncompressibleElement(self, formulation_settings):
