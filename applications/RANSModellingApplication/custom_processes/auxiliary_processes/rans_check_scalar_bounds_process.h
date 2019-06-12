@@ -20,6 +20,7 @@
 
 // Project includes
 #include "containers/global_pointers_vector.h"
+#include "containers/model.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
@@ -89,22 +90,23 @@ public:
 
     /// Constructor
 
-    RansCheckScalarBoundsProcess(ModelPart& rModelPart, Parameters& rParameters)
-        : mrModelPart(rModelPart), mrParameters(rParameters)
+    RansCheckScalarBoundsProcess(Model& rModel, Parameters& rParameters)
+        : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
         Parameters default_parameters = Parameters(R"(
         {
-            "echo_level"    : 0,
-            "variable_name" : "PLEASE_SPECIFY_SCALAR_VARIABLE"
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE",
+            "echo_level"      : 0
         })");
 
         mrParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-
         mVariableName = mrParameters["variable_name"].GetString();
+        mModelPartName = mrParameters["model_part_name"].GetString();
+        mEchoLevel = mrParameters["echo_level"].GetInt();
 
         KRATOS_CATCH("");
     }
@@ -132,7 +134,8 @@ public:
 
         KRATOS_CHECK_VARIABLE_KEY(scalar_variable);
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        ModelPart::NodesContainerType& r_nodes =
+            mrModel.GetModelPart(mModelPartName).Nodes();
         int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
@@ -141,6 +144,10 @@ public:
             NodeType& r_node = *(r_nodes.begin() + i_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(scalar_variable, r_node);
         }
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Check passed for " << mModelPartName << " with variable "
+            << scalar_variable.Name() << ".\n";
 
         return 0;
 
@@ -154,15 +161,18 @@ public:
         const Variable<double> scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
 
+        const ModelPart::NodesContainerType& r_nodes =
+            mrModel.GetModelPart(mModelPartName).Nodes();
+
         RansVariableUtils rans_variable_utils;
-        const double min_value = rans_variable_utils.GetMinimumScalarValue(
-            mrModelPart.Nodes(), scalar_variable);
-        const double max_value = rans_variable_utils.GetMaximumScalarValue(
-            mrModelPart.Nodes(), scalar_variable);
+        const double min_value =
+            rans_variable_utils.GetMinimumScalarValue(r_nodes, scalar_variable);
+        const double max_value =
+            rans_variable_utils.GetMaximumScalarValue(r_nodes, scalar_variable);
 
         KRATOS_INFO(this->Info())
             << scalar_variable.Name() << " is bounded between [ " << min_value
-            << ", " << max_value << " ] in " << mrModelPart.Name() << ".\n";
+            << ", " << max_value << " ] in " << mModelPartName << ".\n";
 
         KRATOS_CATCH("");
     }
@@ -240,13 +250,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
     Parameters& mrParameters;
-
-    int mEchoLevel;
-
-    double mWeight;
+    std::string mModelPartName;
     std::string mVariableName;
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators

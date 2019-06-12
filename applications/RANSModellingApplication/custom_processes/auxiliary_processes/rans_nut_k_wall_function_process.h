@@ -20,6 +20,7 @@
 
 // Project includes
 #include "containers/global_pointers_vector.h"
+#include "containers/model.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
@@ -89,26 +90,26 @@ public:
 
     /// Constructor
 
-    RansNutKWallFunctionProcess(ModelPart& rModelPart, Parameters& rParameters)
-        : mrModelPart(rModelPart), mrParameters(rParameters)
+    RansNutKWallFunctionProcess(Model& rModel, Parameters& rParameters)
+        : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
         Parameters default_parameters = Parameters(R"(
         {
-            "echo_level"   : 0,
-            "c_mu"         : 0.09,
-            "von_karman"   : 0.41,
-            "beta"         : 5.2,
-            "limit_y_plus" : 11.06
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level"      : 0,
+            "c_mu"            : 0.09,
+            "von_karman"      : 0.41,
+            "beta"            : 5.2,
+            "limit_y_plus"    : 11.06
         })");
 
         mrParameters.ValidateAndAssignDefaults(default_parameters);
 
         mEchoLevel = mrParameters["echo_level"].GetInt();
-
+        mModelPartName = mrParameters["model_part_name"].GetString();
         mLimitYPlus = mrParameters["limit_y_plus"].GetDouble();
-
         mCmu = mrParameters["c_mu"].GetDouble();
         mVonKarman = mrParameters["von_karman"].GetDouble();
         mBeta = mrParameters["beta"].GetDouble();
@@ -139,7 +140,8 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const ModelPart::NodesContainerType& r_nodes =
+            mrModel.GetModelPart(mModelPartName).Nodes();
         int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
@@ -161,43 +163,42 @@ public:
     {
         KRATOS_TRY
 
-        const int number_of_nodes = mrModelPart.NumberOfNodes();
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+        const int number_of_nodes = r_model_part.NumberOfNodes();
 
         const double c_mu_25 = std::pow(mCmu, 0.25);
         const double inv_von_karman = 1.0 / mVonKarman;
-        const double nu_t_min = mrModelPart.GetProcessInfo()[TURBULENT_VISCOSITY_MIN];
+        const double nu_t_min = r_model_part.GetProcessInfo()[TURBULENT_VISCOSITY_MIN];
 
         unsigned int number_of_modified_nu_t_nodes = 0;
 
 #pragma omp parallel for reduction(+ : number_of_modified_nu_t_nodes)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
-            NodeType& r_node = *(mrModelPart.NodesBegin() + i_node);
-            if (!r_node.Is(INLET))
-            {
-                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
-                const double y = r_node.FastGetSolutionStepValue(DISTANCE);
-                const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-                const double y_plus = y * u_tau / nu;
+            NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+            const double y = r_node.FastGetSolutionStepValue(DISTANCE);
+            const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+            const double y_plus = y * u_tau / nu;
 
-                if (y_plus > mLimitYPlus)
-                {
-                    r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
-                        nu * (y_plus / (inv_von_karman * std::log(y_plus) + mBeta) - 1);
-                    number_of_modified_nu_t_nodes++;
-                }
-                else
-                {
-                    r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t_min;
-                }
+            if (y_plus > mLimitYPlus)
+            {
+                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
+                    nu * (y_plus / (inv_von_karman * std::log(y_plus) + mBeta) - 1);
+                number_of_modified_nu_t_nodes++;
+            }
+            else
+            {
+                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t_min;
             }
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Applied nu_t k wall function to " << number_of_modified_nu_t_nodes
-            << " of total " << mrModelPart.NumberOfNodes() << " nodes in "
-            << mrModelPart.Name() << "\n";
+            << " of total " << r_model_part.NumberOfNodes() << " nodes in "
+            << mModelPartName << "\n";
 
         KRATOS_CATCH("");
     }
@@ -275,8 +276,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
     Parameters& mrParameters;
+    std::string mModelPartName;
 
     int mEchoLevel;
 

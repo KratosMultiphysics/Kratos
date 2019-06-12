@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -84,24 +85,27 @@ public:
 
     /// Constructor
 
-    RansEpsilonWallFunctionProcess(ModelPart& rModelPart, Parameters& rParameters)
-        : mrModelPart(rModelPart), mrParameters(rParameters)
+    RansEpsilonWallFunctionProcess(Model& rModel, Parameters& rParameters)
+        : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
         Parameters default_parameters = Parameters(R"(
         {
-            "echo_level"   : 0,
-            "c_mu"         : 0.09,
-            "von_karman"   : 0.41
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level"      : 0,
+            "c_mu"            : 0.09,
+            "von_karman"      : 0.41,
+            "is_fixed"        : true
         })");
 
         mrParameters.ValidateAndAssignDefaults(default_parameters);
 
         mEchoLevel = mrParameters["echo_level"].GetInt();
-
+        mModelPartName = mrParameters["model_part_name"].GetString();
         mCmu = mrParameters["c_mu"].GetDouble();
         mVonKarman = mrParameters["von_karman"].GetDouble();
+        mIsConstrained = mrParameters["is_fixed"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -128,7 +132,8 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const ModelPart::NodesContainerType& r_nodes =
+            mrModel.GetModelPart(mModelPartName).Nodes();
         int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
@@ -145,11 +150,33 @@ public:
         KRATOS_CATCH("");
     }
 
+    void ExecuteInitialize() override
+    {
+        if (mIsConstrained)
+        {
+            ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+            const int number_of_nodes = r_model_part.NumberOfNodes();
+#pragma omp parallel for
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+                r_node.Fix(TURBULENT_ENERGY_DISSIPATION_RATE);
+            }
+
+            KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+                << "Fixed TURBULENT_ENERGY_DISSIPATION_RATE dofs in "
+                << mModelPartName << ".\n";
+        }
+    }
+
     void Execute() override
     {
         KRATOS_TRY
 
-        const int number_of_nodes = mrModelPart.NumberOfNodes();
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+        const int number_of_nodes = r_model_part.NumberOfNodes();
 
         const double c_mu_75 = std::pow(mCmu, 0.75);
         const double inv_von_karman = 1.0 / mVonKarman;
@@ -157,18 +184,15 @@ public:
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
-            NodeType& r_node = *(mrModelPart.NodesBegin() + i_node);
-            if (!r_node.Is(INLET))
-            {
-                const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-                const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE);
-                r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) =
-                    c_mu_75 * inv_von_karman * std::pow(std::max(tke, 0.0), 1.5) / wall_distance;
-            }
+            NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            const double wall_distance = r_node.FastGetSolutionStepValue(DISTANCE);
+            r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) =
+                c_mu_75 * inv_von_karman * std::pow(std::max(tke, 0.0), 1.5) / wall_distance;
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Applied epsilon wall function to " << mrModelPart.Name() << "\n";
+            << "Applied epsilon wall function to " << mModelPartName << "\n";
 
         KRATOS_CATCH("");
     }
@@ -246,8 +270,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
     Parameters& mrParameters;
+    std::string mModelPartName;
 
     int mEchoLevel;
 
@@ -256,6 +281,7 @@ private:
     double mCmu;
     double mVonKarman;
     double mBeta;
+    bool mIsConstrained;
 
     ///@}
     ///@name Private Operators

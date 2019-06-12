@@ -20,13 +20,12 @@
 
 // Project includes
 #include "containers/global_pointers_vector.h"
+#include "containers/model.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
-#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "processes/find_nodal_neighbours_process.h"
 #include "processes/process.h"
 #include "rans_modelling_application_variables.h"
 
@@ -87,34 +86,24 @@ public:
     ///@{
 
     /// Constructor
-    RansScalarCellCenterAveragingProcess(ModelPart& rModelPart, Parameters& rParameters)
-        : mrModelPart(rModelPart), mrParameters(rParameters)
+    RansScalarCellCenterAveragingProcess(Model& rModel, Parameters& rParameters)
+        : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
         Parameters default_parameters = Parameters(R"(
         {
-            "average_neighbour_elements"      : 10,
-            "average_neighbour_nodes"         : 10,
-            "echo_level"                 : 0,
-            "flag_variable_name"         : "PLEASE_SPECIFY_FLAG_VARIABLE_NAME",
-            "flag_variable_value"        : true,
-            "averaging_variables" : {
-                "input_variable_name"  : "PLEASE_SPECIFY_AVERAGING_VARIABLE",
-                "output_variable_name" : "PLEASE_SPECIFY_OUTPUT_VARIABLE"
-            }
+            "echo_level"           : 0,
+            "model_part_name"      : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "input_variable_name"  : "PLEASE_SPECIFY_AVERAGING_VARIABLE",
+            "output_variable_name" : "PLEASE_SPECIFY_OUTPUT_VARIABLE"
         })");
 
         mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-        mFlagVariableName = mrParameters["flag_variable_name"].GetString();
-        mAveragingInputVariableName =
-            mrParameters["averaging_variables"]["input_variable_name"].GetString();
-        mAveragingOutputVariableName =
-            mrParameters["averaging_variables"]["output_variable_name"].GetString();
-        mFlagVariableValue = mrParameters["flag_variable_value"].GetBool();
-        mAverageNeighbourElements = mrParameters["average_neighbour_elements"].GetInt();
-        mAverageNeighbourNodes = mrParameters["average_neighbour_nodes"].GetInt();
+        mModelPartName = mrParameters["model_part_name"].GetString();
+        mAveragingInputVariableName = mrParameters["input_variable_name"].GetString();
+        mAveragingOutputVariableName = mrParameters["output_variable_name"].GetString();
         mEchoLevel = mrParameters["echo_level"].GetInt();
 
         KRATOS_CATCH("");
@@ -137,41 +126,19 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double>& r_input_variable =
-            KratosComponents<Variable<double>>::Get(mAveragingInputVariableName);
-        const Variable<double>& r_output_variable =
-            KratosComponents<Variable<double>>::Get(mAveragingOutputVariableName);
-
-        KRATOS_CHECK_VARIABLE_KEY(NEIGHBOUR_ELEMENTS);
-        KRATOS_CHECK_VARIABLE_KEY(PARENT_ELEMENT);
-        KRATOS_CHECK_VARIABLE_KEY(NUMBER_OF_NEIGHBOUR_CONDITIONS);
-        KRATOS_CHECK_VARIABLE_KEY(r_input_variable);
-        KRATOS_CHECK_VARIABLE_KEY(r_output_variable);
-
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_input_variable, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_output_variable, r_node);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Check passed for " << mrModelPart.Name() << ".\n";
-
         return 0;
 
         KRATOS_CATCH("");
     }
 
+    void ExecuteInitialize() override
+    {
+        FindNodalConditionNeighbourCount();
+        CalculateCellCenterAverage();
+    }
+
     void Execute() override
     {
-        SetConditionsFlag();
-        FindNodalNeighbours();
-        ClearExistingData();
         CalculateCellCenterAverage();
     }
 
@@ -248,15 +215,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
     Parameters& mrParameters;
+    std::string mModelPartName;
 
-    int mAverageNeighbourElements;
-    int mAverageNeighbourNodes;
     int mEchoLevel;
-
-    std::string mFlagVariableName;
-    bool mFlagVariableValue;
     std::string mAveragingInputVariableName;
     std::string mAveragingOutputVariableName;
 
@@ -268,22 +231,36 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ClearExistingData()
+    void FindNodalConditionNeighbourCount()
     {
         KRATOS_TRY
 
-        RansVariableUtils rans_variable_utilities;
-        const Variable<double>& r_variable =
-            KratosComponents<Variable<double>>::Get(mAveragingOutputVariableName);
-        const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
-        rans_variable_utilities.SetScalarVarForFlag(
-            r_variable, 0.0, mrModelPart.Nodes(), r_flag, mFlagVariableValue);
-        rans_variable_utilities.SetNonHistoricalVariable(r_variable, 0.0,
-                                                          mrModelPart.Nodes());
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+        RansVariableUtils().SetNonHistoricalVariableToZero(
+            NUMBER_OF_NEIGHBOUR_CONDITIONS, r_model_part.Nodes());
+
+        const int number_of_conditions = r_model_part.NumberOfConditions();
+#pragma omp parallel for
+        for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
+        {
+            Condition& r_condition = *(r_model_part.ConditionsBegin() + i_condition);
+            Condition::GeometryType& r_geometry = r_condition.GetGeometry();
+            const int number_of_nodes = r_geometry.PointsNumber();
+
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                NodeType& r_node = r_geometry[i_node];
+                const int current_value = r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
+                r_node.SetLock();
+                r_node.SetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS, current_value + 1);
+                r_node.UnSetLock();
+            }
+        }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Existing variable " << r_variable.Name()
-            << " is cleared for selected flags in " << mrModelPart.Name() << ".\n";
+            << "Calculated nodal neighbour conditions count for nodes in "
+            << mModelPartName << ".\n";
 
         KRATOS_CATCH("");
     }
@@ -292,29 +269,38 @@ private:
     {
         KRATOS_TRY
 
-        const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
         const Variable<double>& r_input_variable =
             KratosComponents<Variable<double>>::Get(mAveragingInputVariableName);
         const Variable<double>& r_output_variable =
             KratosComponents<Variable<double>>::Get(mAveragingOutputVariableName);
 
         RansCalculationUtilities rans_calculation_utilities;
+        RansVariableUtils rans_variable_utilities;
 
-        const int number_of_conditions = mrModelPart.NumberOfConditions();
+        rans_variable_utilities.SetHistoricalVariableToZero(
+            r_output_variable, r_model_part.Nodes());
+        rans_variable_utilities.SetNonHistoricalVariableToZero(
+            r_output_variable, r_model_part.Nodes());
+
+        const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
         for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
         {
-            Condition& r_condition = *(mrModelPart.ConditionsBegin() + i_condition);
+            Condition& r_condition = *(r_model_part.ConditionsBegin() + i_condition);
             Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
             const int number_of_nodes = r_condition_geometry.PointsNumber();
 
-            if (r_condition.Is(r_flag) != mFlagVariableValue)
-                continue;
+            KRATOS_ERROR_IF(!r_condition.Has(PARENT_ELEMENT))
+                << "Parent element not found for condition id=" << r_condition.Id()
+                << ". Please run \"FindConditionParentProcess\" for "
+                << mModelPartName << ".\n";
 
-            SetConditionParent(r_condition);
-            const Element& r_parent_element = *r_condition.GetValue(PARENT_ELEMENT);
+            const Element::WeakPointer& p_parent_element =
+                r_condition.GetValue(PARENT_ELEMENT);
             const Element::GeometryType& r_parent_element_geometry =
-                r_parent_element.GetGeometry();
+                p_parent_element->GetGeometry();
 
             Vector gauss_weights;
             Matrix shape_functions;
@@ -324,7 +310,6 @@ private:
                 r_parent_element_geometry, GeometryData::GI_GAUSS_1,
                 gauss_weights, shape_functions, shape_function_derivatives);
 
-            const double gauss_weight = gauss_weights[0];
             const Vector& gauss_shape_functions = row(shape_functions, 0);
             const double value = rans_calculation_utilities.EvaluateInPoint(
                 r_parent_element_geometry, r_input_variable, gauss_shape_functions);
@@ -340,156 +325,24 @@ private:
             }
         }
 
-        const int number_of_nodes = mrModelPart.NumberOfNodes();
+        const int number_of_nodes = r_model_part.NumberOfNodes();
         unsigned int number_of_calculated_nodes = 0;
 #pragma omp parallel for reduction(+ : number_of_calculated_nodes)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
-            NodeType& r_node = *(mrModelPart.NodesBegin() + i_node);
-            if (r_node.Is(r_flag) == mFlagVariableValue)
-            {
-                const double number_of_neighbouring_conditions =
-                    static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
-                r_node.FastGetSolutionStepValue(r_output_variable) =
-                    r_node.GetValue(r_output_variable) / number_of_neighbouring_conditions;
-                number_of_calculated_nodes++;
-            }
+            NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+            const double number_of_neighbouring_conditions =
+                static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
+            r_node.FastGetSolutionStepValue(r_output_variable) =
+                r_node.GetValue(r_output_variable) / number_of_neighbouring_conditions;
+            number_of_calculated_nodes++;
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Cell centered averaging is done for " << number_of_calculated_nodes
-            << " nodes in " << mrModelPart.Name() << ".\n";
+            << "Cell centered averaging is stored at " << r_output_variable.Name()
+            << " using " << r_input_variable.Name() << " for "
+            << number_of_calculated_nodes << " nodes in " << mModelPartName << ".\n";
 
-        KRATOS_CATCH("");
-    }
-
-    void FindNodalNeighbours()
-    {
-        KRATOS_TRY
-
-        FindNodalNeighboursProcess find_nodal_neighbours_process(
-            mrModelPart, mAverageNeighbourElements, mAverageNeighbourNodes);
-        find_nodal_neighbours_process.Execute();
-
-        const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
-
-        RansVariableUtils().SetNonHistoricalScalarVar(
-            NUMBER_OF_NEIGHBOUR_CONDITIONS, 0, mrModelPart.Nodes());
-
-        const int number_of_conditions = mrModelPart.NumberOfConditions();
-#pragma omp parallel for
-        for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
-        {
-            Condition& r_condition = *(mrModelPart.ConditionsBegin() + i_condition);
-
-            if (r_condition.Is(r_flag) != mFlagVariableValue)
-                continue;
-
-            Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
-            const int number_of_nodes = r_condition_geometry.PointsNumber();
-
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                NodeType& r_node = r_condition_geometry[i_node];
-                r_node.SetLock();
-                const int current_number_of_neighbour_condtions =
-                    r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
-                r_node.SetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS,
-                                current_number_of_neighbour_condtions + 1);
-                r_node.UnSetLock();
-            }
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Nodal neighbours found in " << mrModelPart.Name() << ".\n";
-
-        KRATOS_CATCH("");
-    }
-
-    void SetConditionsFlag()
-    {
-        KRATOS_TRY
-
-        const int number_of_conditions = mrModelPart.NumberOfConditions();
-
-        const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
-
-        RansCalculationUtilities rans_calculation_utilities;
-
-#pragma omp parallel for
-        for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
-        {
-            Condition& r_condition = *(mrModelPart.ConditionsBegin() + i_condition);
-            Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
-            const int number_of_nodes = r_condition_geometry.PointsNumber();
-
-            bool condition_flag = true;
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                if (!r_condition_geometry[i_node].Is(r_flag))
-                {
-                    condition_flag = false;
-                    break;
-                }
-            }
-            r_condition.Set(r_flag, condition_flag);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Condition flags set in " << mrModelPart.Name() << ".\n";
-
-        KRATOS_CATCH("");
-    }
-
-    void SetConditionParent(Condition& rCondition)
-    {
-        KRATOS_TRY
-
-        GlobalPointersVector<Element> element_candidates;
-        const Condition::GeometryType& r_condition_geometry = rCondition.GetGeometry();
-        const int number_of_condition_nodes = r_condition_geometry.PointsNumber();
-
-        std::vector<int> node_ids(number_of_condition_nodes), element_node_ids;
-
-        for (int i_node = 0; i_node < number_of_condition_nodes; ++i_node)
-        {
-            const NodeType& r_node = r_condition_geometry[i_node];
-            const GlobalPointersVector<Element>& r_node_element_candidates =
-                r_node.GetValue(NEIGHBOUR_ELEMENTS);
-            for (int j_element = 0;
-                 j_element < static_cast<int>(r_node_element_candidates.size()); ++j_element)
-            {
-                element_candidates.push_back(r_node_element_candidates(j_element));
-            }
-            node_ids[i_node] = r_node.Id();
-        }
-
-        std::sort(node_ids.begin(), node_ids.end());
-
-        for (int i_element = 0;
-             i_element < static_cast<int>(element_candidates.size()); ++i_element)
-        {
-            const Element::GeometryType& r_geometry =
-                element_candidates[i_element].GetGeometry();
-            const int number_of_element_candidate_nodes = r_geometry.PointsNumber();
-            if (element_node_ids.size() != number_of_element_candidate_nodes)
-                element_node_ids.resize(number_of_element_candidate_nodes);
-
-            for (int i_node = 0; i_node < number_of_element_candidate_nodes; ++i_node)
-            {
-                element_node_ids[i_node] = r_geometry[i_node].Id();
-            }
-
-            std::sort(element_node_ids.begin(), element_node_ids.end());
-            if (std::includes(element_node_ids.begin(), element_node_ids.end(),
-                              node_ids.begin(), node_ids.end()))
-            {
-                rCondition.SetValue(PARENT_ELEMENT, element_candidates(i_element));
-                return;
-            }
-        }
-
-        KRATOS_ERROR << "Parent element for condition id=" << rCondition.Id() << " not found.\n";
         KRATOS_CATCH("");
     }
 
