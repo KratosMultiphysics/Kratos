@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Riccardo Tosi
 //
 
 #if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
