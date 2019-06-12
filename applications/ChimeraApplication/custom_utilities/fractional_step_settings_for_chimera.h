@@ -23,7 +23,9 @@
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
-#include "custom_strategies/custom_builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_for_chimera.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_constraints_for_chimera.h"
+
 
 namespace Kratos
 {
@@ -54,7 +56,7 @@ template< class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
           >
-class FractionalStepSettingsForChimera: public SolverSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver>
+class FractionalStepSettingsForChimera: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -63,16 +65,14 @@ public:
     /// Pointer definition of FractionalStepSettingsForChimera
     KRATOS_CLASS_POINTER_DEFINITION(FractionalStepSettingsForChimera);
 
-    typedef SolverSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
     typedef typename BaseType::StrategyType StrategyType;
     typedef typename BaseType::StrategyPointerType StrategyPointerType;
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
     typedef typename BaseType::StrategyLabel StrategyLabel;
-    //typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ResidualBasedBlockBuilderAndSolverType;
+    typedef typename ResidualBasedBlockBuilderAndSolverType::Pointer ResidualBasedBlockBuilderAndSolverPointerType;
 
-
-    //typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
 
     ///@}
     ///@name Life Cycle
@@ -107,15 +107,13 @@ public:
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const std::size_t MaxIter,
-                             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver) override
+                             const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
         // pointer types for solution strategy construcion
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
-        //typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
-        //typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+        typedef ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType;
 
         // Default, fixed flags
         bool CalculateReactions = false;
@@ -131,8 +129,8 @@ public:
         if ( rStrategyLabel == BaseType::Velocity )
         {
             // Velocity Builder and Solver
-            //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                                //(pLinearSolver));
+            //ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver = new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver >(pLinearSolver);
+            ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
 
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
@@ -150,18 +148,18 @@ public:
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pNewBuilderAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
             // Pressure Builder and Solver
-            //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
+            ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pNewBuilderAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
         else
         {

@@ -166,14 +166,14 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
         else:
             if (self.settings["implementation"].GetString() == "MPC"):
                 print("fractional step chimera : MPC ")
-                self.solver_settings = KratosCFD.FractionalStepSettings(self.computing_model_part,
+                self.solver_settings = KratosChimera.FractionalStepSettings(self.computing_model_part,
                                                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                         self.settings["time_order"].GetInt(),
                                                                         self.settings["use_slip_conditions"].GetBool(),
                                                                         self.settings["move_mesh_flag"].GetBool(),
                                                                         self.settings["reform_dofs_at_each_step"].GetBool())
             else:
-                self.solver_settings = KratosCFD.FractionalStepSettings(self.computing_model_part,
+                self.solver_settings = KratosChimera.FractionalStepSettings(self.computing_model_part,
                                                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                         self.settings["time_order"].GetInt(),
                                                                         self.settings["use_slip_conditions"].GetBool(),
@@ -182,20 +182,20 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
         
-        builder_and_solver_velocity = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.velocity_linear_solver)
-        builder_and_solver_pressure = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.pressure_linear_solver)
+        #builder_and_solver_velocity = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.velocity_linear_solver)
+        #builder_and_solver_pressure = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.pressure_linear_solver)
        
         self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
                                          self.velocity_linear_solver,
                                          self.settings["velocity_tolerance"].GetDouble(),
-                                         self.settings["maximum_velocity_iterations"].GetInt(),
-                                         builder_and_solver_velocity)
+                                         self.settings["maximum_velocity_iterations"].GetInt())
+                                         #builder_and_solver_velocity)
 
         self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
                                          self.pressure_linear_solver,
                                          self.settings["pressure_tolerance"].GetDouble(),
-                                         self.settings["maximum_pressure_iterations"].GetInt(),
-                                         builder_and_solver_pressure)
+                                         self.settings["maximum_pressure_iterations"].GetInt())
+                                         #builder_and_solver_pressure)
 
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:

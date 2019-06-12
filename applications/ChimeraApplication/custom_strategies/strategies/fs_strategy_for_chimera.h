@@ -343,7 +343,7 @@ protected:
             }
         }
 
-
+        KRATOS_INFO("Before conrrections !!!.")<< std::endl;
         const auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -353,6 +353,7 @@ protected:
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
                 ModelPart::MatrixType r_relation_matrix;
                 ModelPart::VectorType r_constant_vector;
+                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,r_model_part.GetProcessInfo());
 
                 IndexType slave_i = 0;
                 for(const auto& slave_dof : slave_dofs)
@@ -381,6 +382,7 @@ protected:
                 }
             }
         }
+        KRATOS_INFO("After conrrections !!!.")<< std::endl;
     }
 
 
@@ -475,6 +477,7 @@ protected:
                     const auto& slave_dofs = constraint.GetSlaveDofsVector();
                     ModelPart::MatrixType r_relation_matrix;
                     ModelPart::VectorType r_constant_vector;
+                    constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,r_model_part.GetProcessInfo());
 
                     IndexType slave_i = 0;
                     for(const auto& slave_dof : slave_dofs)
@@ -515,6 +518,7 @@ protected:
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
                 ModelPart::MatrixType r_relation_matrix;
                 ModelPart::VectorType r_constant_vector;
+                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,r_model_part.GetProcessInfo());
 
                 IndexType slave_i = 0;
                 for(const auto& slave_dof : slave_dofs)
@@ -577,6 +581,7 @@ protected:
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
                 ModelPart::MatrixType r_relation_matrix;
                 ModelPart::VectorType r_constant_vector;
+                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,r_model_part.GetProcessInfo());
 
                 IndexType slave_i = 0;
                 for(const auto& slave_dof : slave_dofs)

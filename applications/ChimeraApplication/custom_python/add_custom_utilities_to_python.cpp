@@ -13,6 +13,8 @@
 
 // External includes
 
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -29,39 +31,29 @@ namespace Python
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
 
- // Base settings
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+    // Base settings
     typedef SolverSettings<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;
+    typedef FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType> FractionalStepSettingsForChimeraType;
 
-    class_ < BaseSettingsType >(m, "BaseSettingsType");
+    typedef void (FractionalStepSettingsForChimeraType::*SetStrategyByParamsWithBSType)(SolverSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,
+                                                                                    LinearSolverType::Pointer,
+                                                                                    const double,
+                                                                                    const unsigned int);
+    SetStrategyByParamsWithBSType ThisSetStrategyOverload = &FractionalStepSettingsForChimeraType::SetStrategy;
 
-    // Fractional step settings
-    enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>(m,"ChimeraStrategyLabel")
-        .value("Velocity",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Velocity)
-        .value("Pressure",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pressure)
-        //.value("EddyViscosity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
-        ;
-    ;
-
-    /* enum_<FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>("TurbulenceModelLabel")
-        .value("SpalartAllmaras",FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SpalartAllmaras)
-    ;
- */
-    typedef void (FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,LinearSolverType::Pointer,const double,const std::size_t);
-    SetStrategyByParamsType ThisSetStrategyOverload = &FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy;
-
-    class_< FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>, BaseSettingsType>
-        (m, "FractionalStepSettingsForChimera")
+    class_< FractionalStepSettingsForChimeraType, BaseSettingsType>
+        (m, "FractionalStepSettings")
         .def(init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
-        //.def("SetTurbulenceModel",SetTurbModel_Build)
-        //.def("SetTurbulenceModel",SetTurbModel_Pass)
-        .def("GetStrategy",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
-        .def("SetEchoLevel",&FractionalStepSettingsForChimera<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
-    ;
+        .def("GetStrategy",&FractionalStepSettingsForChimeraType::pGetStrategy)
+        .def("SetEchoLevel",&FractionalStepSettingsForChimeraType::SetEchoLevel)
+        ;
   }
 
-
-    }
 }  // namespace Python.
 
 } // Namespace Kratos

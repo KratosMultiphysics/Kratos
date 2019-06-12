@@ -173,7 +173,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart) override
+    void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart) override
     {
         BaseType::ConstructMasterSlaveConstraintsStructure(rModelPart);
         if (rModelPart.MasterSlaveConstraints().size() > 0)
@@ -182,8 +182,9 @@ protected:
         }
     }
 
-    virtual void BuildMasterSlaveConstraints(ModelPart &rModelPart) override
+    void BuildMasterSlaveConstraints(ModelPart &rModelPart) override
     {
+
         KRATOS_TRY
 
         BaseType::BuildMasterSlaveConstraints(rModelPart);
@@ -203,7 +204,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    virtual void ApplyConstraints(
+    void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &rA,
         TSystemVectorType &rDx,
@@ -237,14 +238,16 @@ protected:
             {
                 max_diag = std::max(std::abs(rA(i, i)), max_diag);
             }
-
-// Apply diagonal values on slaves
+            std::cout<<"A.size1 :: "<<rA.size1()<<"  A.size2 :: "<<rA.size2()<<"   rModelPart.MasterSlaveConstraints().size()  : "<<rModelPart.MasterSlaveConstraints().size()<<std::endl;
+            std::cout<<"BaseType::mDofSet.size() : "<<BaseType::mDofSet.size()<<std::endl;
+// Apply diagonal values on slaves  BaseType::mDofSet.size()
 #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i)
             {
                 const IndexType slave_equation_id = BaseType::mSlaveIds[i];
                 if (BaseType::mInactiveSlaveDofs.find(slave_equation_id) == BaseType::mInactiveSlaveDofs.end())
                 {
+                    //std::cout<<"slave_equation_id : "<<slave_equation_id<<std::endl;
                     rA(slave_equation_id, slave_equation_id) = max_diag;
                     rb[slave_equation_id] = 0.0;
                 }

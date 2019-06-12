@@ -61,6 +61,7 @@ public:
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> StrategyType;
     typedef typename StrategyType::Pointer StrategyPointerType;
     typedef typename Process::Pointer ProcessPointerType;
+    typedef BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> TBuilderAndSolverType;
 
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
@@ -118,12 +119,18 @@ public:
     virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) = 0;
+                             const unsigned int MaxIter) {}
+
+    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
+                             typename TLinearSolver::Pointer pLinearSolver,
+                             const double Tolerance,
+                             const std::size_t MaxIter,
+                             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver){}
 
     virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter) = 0;
+                                    const unsigned int MaxIter) {}
 
     virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
     {
