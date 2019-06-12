@@ -54,7 +54,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
     # @param x solution x_k
     # Computes the approximated update in each iteration.
 
-    def _ComputeUpdate(self, r, x):
+    def ComputeUpdate(self, r, x):
 
         self.V.appendleft( deepcopy(r) )
         self.W.appendleft( deepcopy(x) )

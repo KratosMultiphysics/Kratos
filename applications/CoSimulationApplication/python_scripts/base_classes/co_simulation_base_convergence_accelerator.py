@@ -19,7 +19,7 @@ class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operati
     def ComputeAndApplyUpdate(self):
         current_data = self.interface_data.GetNumpyArray()
         residual = current_data - self.input_data
-        updated_data = self.input_data + self._ComputeUpdate(residual, self.input_data)
+        updated_data = self.input_data + self.ComputeUpdate(residual, self.input_data)
         self.interface_data.ApplyUpdateToData(updated_data)
 
     def PrintInfo(self):
@@ -34,8 +34,8 @@ class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operati
     def Execute(self):
         raise Exception("This is not supposed to be used for ConvergenceAccelerators!")
 
-    def _ComputeUpdate( self, residual, previous_data ):
-        raise Exception('"_ComputeUpdate" has to be implemented in the derived class!')
+    def ComputeUpdate( self, residual, previous_data ):
+        raise Exception('"ComputeUpdate" has to be implemented in the derived class!')
 
     @classmethod
     def _GetDefaultSettings(cls):
