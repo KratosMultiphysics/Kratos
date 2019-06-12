@@ -26,9 +26,9 @@ def CreatePredictors(predictor_settings_list, solvers, parent_solver_echo_level)
     predictors = []
     for predictor_settings in predictor_settings_list:
         solver = solvers[predictor_settings["solver"].GetString()]
-        predictors.append(CreatePredictor(predictor_settings, solver))
         if not predictor_settings.Has("echo_level"):
-            predictors[-1].SetEchoLevel(parent_solver_echo_level)
+            predictor_settings.AddEmptyValue("echo_level").SetInt(parent_solver_echo_level)
+        predictors.append(CreatePredictor(predictor_settings, solver))
     return predictors
 
 def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_solver_echo_level):
@@ -36,9 +36,9 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
     convergence_accelerators = []
     for conv_acc_setting in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_setting["solver"].GetString()]
-        convergence_accelerators.append(CreateConvergenceAccelerator(conv_acc_setting, solver))
         if not conv_acc_setting.Has("echo_level"):
-            convergence_accelerators[-1].SetEchoLevel(parent_solver_echo_level)
+            conv_acc_setting.AddEmptyValue("echo_level").SetInt(parent_solver_echo_level)
+        convergence_accelerators.append(CreateConvergenceAccelerator(conv_acc_setting, solver))
 
     return convergence_accelerators
 
@@ -47,9 +47,9 @@ def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, paren
     convergence_criteria = []
     for conv_crit_setting in convergence_criteria_settings_list:
         solver = solvers[conv_crit_setting["solver"].GetString()]
-        convergence_criteria.append(CreateConvergenceCriteria(conv_crit_setting, solver))
         if not conv_crit_setting.Has("echo_level"):
-            convergence_criteria[-1].SetEchoLevel(parent_solver_echo_level)
+            conv_crit_setting.AddEmptyValue("echo_level").SetInt(parent_solver_echo_level)
+        convergence_criteria.append(CreateConvergenceCriteria(conv_crit_setting, solver))
 
     return convergence_criteria
 
