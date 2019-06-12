@@ -272,6 +272,28 @@ namespace Kratos {
       }
     }
 
+    // Checks the function GetWakeDistances
+    KRATOS_TEST_CASE_IN_SUITE(GetWakeDistances, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+      pElement->SetValue(WAKE, true);
+
+      BoundedVector<double,3> distances = AssignDistances();
+      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+
+      const auto returned_distances = PotentialFlowUtilities::GetWakeDistances<2, 3>(*pElement);
+
+      std::vector<double> reference({1.0, -1.0, -1.0});
+
+      for (unsigned int i = 0; i < returned_distances.size(); i++) {
+        KRATOS_CHECK_NEAR(returned_distances(i), reference[i], 1e-7);
+      }
+    }
+
     // Checks the function GetPotentialOnNormalElement
     KRATOS_TEST_CASE_IN_SUITE(GetPotentialOnNormalElement, CompressiblePotentialApplicationFastSuite)
     {
