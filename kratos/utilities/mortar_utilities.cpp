@@ -238,10 +238,13 @@ void ComputeNodesTangentModelPart(
     for(int i = 0; i < num_nodes; ++i) {
         auto it_node = it_node_begin + i;
 
-        if (has_lm) {
-            ComputeTangentNodeWithLMAndSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
-        } else {
-            ComputeTangentNodeWithSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
+        // Computing only slave nodes
+        if (it_node->Is(SLAVE)) {
+            if (has_lm) {
+                ComputeTangentNodeWithLMAndSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
+            } else {
+                ComputeTangentNodeWithSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
+            }
         }
     }
 }
