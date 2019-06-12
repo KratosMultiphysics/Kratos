@@ -30,11 +30,14 @@ class CouplingInterfaceData(object):
         self.mapper_settings  = None
         # TODO check DOMAIN_SIZE against the dimension
 
+    def GetModelPart(self):
+        return self.model[self.model_part_name]
+
     def GetPythonList(self, solution_step_index=0):
-        data_mesh = self.model[self.model_part_name]
-        data = [0]*len(data_mesh.Nodes)*self.dimension
+        model_part = self.GetModelPart()
+        data = [0]*len(model_part.Nodes)*self.dimension
         node_index = 0
-        for node in data_mesh.Nodes:
+        for node in model_part.Nodes:
             data_value = node.GetSolutionStepValue(self.variable,solution_step_index) #TODO what if non-historical?
             for i in range(self.dimension):
                 data[node_index*self.dimension + i] = data_value[i]
@@ -45,10 +48,10 @@ class CouplingInterfaceData(object):
         return np.asarray(self.GetPythonList(solution_step_index), dtype=np.float64)
 
     def ApplyUpdateToData(self, update):
-        data_mesh = self.model[self.model_part_name]
+        model_part = self.GetModelPart()
         node_index = 0
         updated_value = [0]*3 # TODO this is a hack, find better solution! => check var_type
-        for node in data_mesh.Nodes: # #TODO: local nodes to also work in MPI?
+        for node in model_part.Nodes: # #TODO: local nodes to also work in MPI?
             # TODO: aditya the data might also be non-historical => GetValue
             for i in range(self.dimension):
                 updated_value[i] = update[node_index*self.dimension + i]
