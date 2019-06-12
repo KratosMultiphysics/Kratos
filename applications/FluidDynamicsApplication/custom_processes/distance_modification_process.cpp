@@ -357,14 +357,14 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState(){
             auto it_node = mrModelPart.NodesBegin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                    Variable<double>& double_var = mDoubleVariablesList[i_var];
+                    const Variable<double>& r_double_var = *mDoubleVariablesList[i_var];
                     // Free the nodal DOFs  that were fixed
-                    it_node->Free(double_var);
+                    it_node->Free(r_double_var);
                 }
                 for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                    ComponentType& component_var = mComponentVariablesList[i_comp];
+                    const ComponentType& r_component_var = *mComponentVariablesList[i_comp];
                     // Free the nodal DOFs that were fixed
-                    it_node->Free(component_var);
+                    it_node->Free(r_component_var);
                 }
             }
         }
@@ -457,18 +457,18 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
             ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                    Variable<double>& double_var = mDoubleVariablesList[i_var];
+                    const Variable<double>& r_double_var = *mDoubleVariablesList[i_var];
                     // Fix the nodal DOFs
-                    it_node->Fix(double_var);
+                    it_node->Fix(r_double_var);
                     // Set to zero the nodal DOFs
-                    it_node->FastGetSolutionStepValue(double_var) = 0.0;
+                    it_node->FastGetSolutionStepValue(r_double_var) = 0.0;
                 }
                 for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                    ComponentType& component_var = mComponentVariablesList[i_comp];
+                    const ComponentType& r_component_var = *mComponentVariablesList[i_comp];
                     // Fix the nodal DOFs
-                    it_node->Fix(component_var);
+                    it_node->Fix(r_component_var);
                     // Set to zero the nodal DOFs
-                    it_node->FastGetSolutionStepValue(component_var) = 0.0;
+                    it_node->FastGetSolutionStepValue(r_component_var) = 0.0;
                 }
             }
         }
@@ -499,14 +499,22 @@ void DistanceModificationProcess::SetDiscontinuousDistanceToSplitFlag()
     }
 }
 
-void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray) {
+void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray) 
+{
+    const auto& r_node = *mrModelPart.NodesBegin(); 
     if (rVariableStringArray.size()>0){
-        for (std::size_t i_variable; i_variable < rVariableStringArray.size(); i_variable++){
+        for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
             if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
-                mDoubleVariablesList.push_back(KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]));
+                KRATOS_CHECK_DOF_IN_NODE(KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]),r_node);
+               
+                const Variable<double>* p_double_var  = &KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
+                mDoubleVariablesList.push_back(p_double_var);
             }
             else if (KratosComponents<ComponentType>::Has(rVariableStringArray[i_variable])){
-                mComponentVariablesList.push_back(KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]));
+                KRATOS_CHECK_DOF_IN_NODE(KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]),r_node);                
+               
+                const ComponentType* p_component_var  = &KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
+                mComponentVariablesList.push_back(p_component_var);
             }
             else {
                 KRATOS_ERROR << "The variable defined in the list is not a double variable nor a component variable. Given variable: " << rVariableStringArray[i_variable] << std::endl;

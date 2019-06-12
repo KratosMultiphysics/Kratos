@@ -160,8 +160,8 @@ private:
     std::vector<unsigned int>              mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
-    std::vector<Variable<double>>    mDoubleVariablesList;
-    std::vector<ComponentType>    mComponentVariablesList;
+    std::vector<const Variable<double>*>    mDoubleVariablesList;
+    std::vector<const ComponentType*>    mComponentVariablesList;
 
     ///@}
     ///@name Protected Operators
