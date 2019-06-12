@@ -45,11 +45,11 @@ template <int Dim, int NumNodes>
 BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances)
 {
-    array_1d<double, NumNodes> upper_potentials;
-    upper_potentials = GetPotentialOnUpperWakeElement<Dim, NumNodes>(rElement, rDistances);
+    const auto upper_potentials =
+        GetPotentialOnUpperWakeElement<Dim, NumNodes>(rElement, rDistances);
 
-    array_1d<double, NumNodes> lower_potentials;
-    lower_potentials = GetPotentialOnLowerWakeElement<Dim, NumNodes>(rElement, rDistances);
+    const auto lower_potentials =
+        GetPotentialOnLowerWakeElement<Dim, NumNodes>(rElement, rDistances);
 
     BoundedVector<double, 2 * NumNodes> split_element_values;
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -68,7 +68,7 @@ BoundedVector<double, NumNodes> GetPotentialOnUpperWakeElement(
     const auto r_geometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < NumNodes; i++){
-        if (rDistances[i] > 0){
+        if (rDistances[i] > 0.0){
             upper_potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }
         else{
@@ -87,7 +87,7 @@ BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
     const auto r_geometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < NumNodes; i++){
-        if (rDistances[i] < 0){
+        if (rDistances[i] < 0.0){
             lower_potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }
         else{
@@ -104,9 +104,9 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
     const int wake = rElement.GetValue(WAKE);
 
     if (wake == 0)
-        return PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(rElement);
+        return ComputeVelocityNormalElement<Dim,NumNodes>(rElement);
     else
-        return PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+        return ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
 }
 
 template <int Dim, int NumNodes>
@@ -130,9 +130,9 @@ array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    array_1d<double, NumNodes> distances = rElement.GetValue(ELEMENTAL_DISTANCES);
+    const array_1d<double, NumNodes>& r_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
 
-    data.potentials = GetPotentialOnUpperWakeElement<Dim,NumNodes>(rElement, distances);
+    data.potentials = GetPotentialOnUpperWakeElement<Dim,NumNodes>(rElement, r_distances);
 
     return prod(trans(data.DN_DX), data.potentials);
 }
