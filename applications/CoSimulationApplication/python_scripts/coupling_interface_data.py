@@ -13,8 +13,8 @@ class CouplingInterfaceData(object):
         default_config = cs_data_structure.Parameters("""{
             "model_part_name" : "UNSPECIFIED",
             "variable_name"   : "UNSPECIFIED",
-            "location"        : "node_historical"
-            "dimension"       : -1,
+            "location"        : "node_historical",
+            "dimension"       : -1
         }""")
         custom_config.ValidateAndAssignDefaults(default_config)
 
