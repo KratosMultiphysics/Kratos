@@ -40,7 +40,7 @@ def real_norm(input):
     for i in range(input.shape[1]):
         output += input[i]**2
 
-    output = real_root(output, 2)
+    output = sympy.real_root(output, 2)
 
     return output
 
