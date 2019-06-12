@@ -12,8 +12,36 @@ def Create(settings):
     return MappingDataTransferOperator(settings)
 
 class MappingDataTransferOperator(CoSimulationBaseDataTransferOperator):
+    def __init__(self, settings):
+        super(MappingDataTransferOperator, self).__init__(settings)
+        self.mappers = {}
+
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+        model_part_origin      = from_solver_data.GetModelPart()
+        model_part_origin_name = from_solver_data.model_part_name
+        variable_origin        = from_solver_data.variable
+
+        model_part_destinatinon      = to_solver_data.GetModelPart()
+        model_part_destinatinon_name = to_solver_data.model_part_name
+        variable_destination         = to_solver_data.variable
+
         mapper_flags = GetMapperFlags(transfer_options)
+
+        name_tuple         = (model_part_origin_name, model_part_destinatinon_name)
+        inverse_name_tuple = (model_part_destinatinon_name, model_part_origin_name)
+
+        if name_tuple in self.mappers:
+            self.mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
+        elif inverse_name_tuple in self.mappers:
+            self.mappers[inverse_name_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
+        else:
+            if model_part_origin.GetCommunicator().GetDataCommunicator().IsDistributed() or model_part_destinatinon.GetCommunicator().GetDataCommunicator().IsDistributed():
+                mapper_create_fct = KratosMapping.MapperFactory.CreateMPIMapper
+            else:
+                mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
+
+            self.mappers[name_tuple] = mapper_create_fct(model_part_origin, model_part_destinatinon, self.settings["mapper_settings"])
+            self.mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
     def PrintInfo(self):
         pass
