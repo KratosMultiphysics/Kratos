@@ -11,16 +11,15 @@ class CouplingInterfaceData(object):
     def __init__(self, custom_config, model):
 
         default_config = cs_data_structure.Parameters("""{
-            "variable_name" : "UNSPECIFIED",
-            "dimension"     : -1,
             "model_part_name" : "UNSPECIFIED",
-            "location"      : "node_historical"
+            "variable_name"   : "UNSPECIFIED",
+            "location"        : "node_historical"
+            "dimension"       : -1,
         }""")
         custom_config.ValidateAndAssignDefaults(default_config)
 
         self.name = custom_config["variable_name"].GetString() # TO BE REMOVED
         self.variable = cs_data_structure.KratosGlobals.GetVariable(custom_config["variable_name"].GetString())
-        self.filters = []
         self.model = model
         self.dimension = custom_config["dimension"].GetInt() # TODO check that sth was assigned
         self.location = custom_config["location"].GetString()
@@ -31,14 +30,9 @@ class CouplingInterfaceData(object):
         self.mapper_settings  = None
         # TODO check DOMAIN_SIZE against the dimension
 
-    def ApplyFilters(self):
-        for filter in self.filters:
-            filter.Apply()
-
     def GetPythonList(self, solution_step_index=0):
         data_mesh = self.model[self.model_part_name]
         data = [0]*len(data_mesh.Nodes)*self.dimension
-        # data_variable = cs_data_structure.KratosGlobals.GetVariable(self.variable_name)
         node_index = 0
         for node in data_mesh.Nodes:
             data_value = node.GetSolutionStepValue(self.variable,solution_step_index) #TODO what if non-historical?
@@ -52,7 +46,6 @@ class CouplingInterfaceData(object):
 
     def ApplyUpdateToData(self, update):
         data_mesh = self.model[self.model_part_name]
-        # data_variable = cs_data_structure.KratosGlobals.GetVariable(self.variable_name)
         node_index = 0
         updated_value = [0]*3 # TODO this is a hack, find better solution! => check var_type
         for node in data_mesh.Nodes: # #TODO: local nodes to also work in MPI?
