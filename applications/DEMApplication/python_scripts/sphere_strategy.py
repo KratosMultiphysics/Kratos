@@ -294,7 +294,7 @@ class ExplicitStrategy(object):
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.search_strategy, self.solver_settings)
 
-        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Cimne_Scheme'):
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Cimne_Scheme'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.search_strategy, self.solver_settings)
