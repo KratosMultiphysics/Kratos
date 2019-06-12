@@ -26,36 +26,25 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.participating_solvers,
             self.echo_level)
 
-        self.coupling_operations_list = [d for d in self.coupling_operations_dict.values()]
+        self.coupling_operations_list = list(self.coupling_operations_dict.values())
 
         ### Creating the data transfer operators
         self.data_transfer_operators_dict = cs_tools.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
             self.echo_level)
 
+        self.components_lists = [list(self.participating_solvers.values()), self.coupling_operations_list, self.predictors_list]
+
     def Initialize(self):
-        for solver in self.participating_solvers.values():
-            solver.Initialize()
+        [[comp.Initialize() for comp in comp_list] for comp_list in self.components_lists]
+
         for solver in self.participating_solvers.values():
             solver.InitializeIO(self.participating_solvers, self.echo_level)
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
-        for predictor in self.predictors_list:
-            predictor.Initialize()
-
-        for coupling_op in self.coupling_operations_list:
-            coupling_op.Initialize()
-
     def Finalize(self):
-        for solver in self.participating_solvers.values():
-            solver.Finalize()
-
-        for predictor in self.predictors_list:
-            predictor.Finalize()
-
-        for coupling_op in self.coupling_operations_list:
-            coupling_op.Finalize()
+        [[comp.Finalize() for comp in comp_list] for comp_list in self.components_lists]
 
     def AdvanceInTime(self, current_time):
         self.time = 0.0
@@ -72,24 +61,10 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             solver.Predict()
 
     def InitializeSolutionStep(self):
-        for solver in self.participating_solvers.values():
-            solver.InitializeSolutionStep()
-
-        for predictor in self.predictors_list:
-            predictor.InitializeSolutionStep()
-
-        for coupling_op in self.coupling_operations_list:
-            coupling_op.InitializeSolutionStep()
+        [[comp.InitializeSolutionStep() for comp in comp_list] for comp_list in self.components_lists]
 
     def FinalizeSolutionStep(self):
-        for solver in self.participating_solvers.values():
-            solver.FinalizeSolutionStep()
-
-        for predictor in self.predictors_list:
-            predictor.FinalizeSolutionStep()
-
-        for coupling_op in self.coupling_operations_list:
-            coupling_op.FinalizeSolutionStep()
+        [[comp.FinalizeSolutionStep() for comp in comp_list] for comp_list in self.components_lists]
 
     def OutputSolutionStep(self):
         for solver in self.participating_solvers.values():
@@ -173,23 +148,12 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()
 
-        couplingsolverprint(self._Name(), "Has the following participants:")
-
-        for solver in self.participating_solvers.values():
-            solver.PrintInfo()
-
-        # if self.predictor is not None:
-        #     couplingsolverprint(self._Name(), "Uses a Predictor:")
-        #     self.predictor.PrintInfo()
+        couplingsolverprint(self._Name(), "Has the following components:")
+        [[comp.PrintInfo() for comp in comp_list] for comp_list in self.components_lists]
 
     def Check(self):
         super(CoSimulationBaseCouplingSolver, self).Check()
-
-        for solver in self.participating_solvers.values():
-            solver.Check()
-
-        # if self.predictor is not None:
-        #     self.predictor.Check()
+        [[comp.Check() for comp in comp_list] for comp_list in self.components_lists]
 
     def IsDistributed(self):
         return True
