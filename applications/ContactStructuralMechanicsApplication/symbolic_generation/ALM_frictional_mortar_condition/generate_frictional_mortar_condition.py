@@ -39,7 +39,7 @@ def real_norm(input):
     for i in range(input.shape[1]):
         output += input[i]**2
 
-    output = real_root(output, 2)
+    output = sympy.real_root(output, 2)
 
     return output
 
@@ -164,6 +164,12 @@ for normalvar in range(normal_combs):
                 LMTangent[node,idim] = LM[node,idim] - LMNormal[node] * NormalSlave[node, idim]
                 #wLMTangent[node,idim] = aux[idim]
                 wLMTangent[node,idim] = wLM[node,idim] - wLMNormal[node] * NormalSlave[node, idim]
+
+        ## Explicit definition tangent
+        #for node in range(nnodes):
+            #aux = LMTangent.row(node)/real_norm(LMTangent.row(node))
+            #for idim in range(dim):
+                #TangentSlave[node,idim] = aux[idim]
 
         # Defining the normal NormalGap and tangent slip
         Dx1Mx2 = DOperator * x1 - MOperator * x2
