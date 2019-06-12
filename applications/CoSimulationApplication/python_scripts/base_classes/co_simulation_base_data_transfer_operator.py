@@ -10,7 +10,7 @@ class CoSimulationBaseDataTransferOperator(object):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
-        pass
+        raise NotImplementedError("This function has to be implemented in the derived class!")
 
     def PrintInfo(self):
         pass
