@@ -36,6 +36,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+    py::class_<WeightedDivergenceCalculationProcess, WeightedDivergenceCalculationProcess::Pointer, Process >
+        (m, "WeightedDivergenceCalculationProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
+    ;
+
 }
 
 } // namespace Python.
