@@ -505,16 +505,18 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
     if (rVariableStringArray.size()>0){
         for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
             if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
-                KRATOS_CHECK_DOF_IN_NODE(KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]),r_node);
-               
-                const Variable<double>* p_double_var  = &KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
-                mDoubleVariablesList.push_back(p_double_var);
+                const Variable<double>& r_double_var  = KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
+                KRATOS_CHECK_DOF_IN_NODE(r_double_var, r_node);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_double_var, r_node)
+
+                mDoubleVariablesList.push_back(&r_double_var);               
             }
             else if (KratosComponents<ComponentType>::Has(rVariableStringArray[i_variable])){
-                KRATOS_CHECK_DOF_IN_NODE(KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]),r_node);                
+                const ComponentType& r_component_var  = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var, r_node);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var, r_node)
                
-                const ComponentType* p_component_var  = &KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
-                mComponentVariablesList.push_back(p_component_var);
+                mComponentVariablesList.push_back(&r_component_var);
             }
             else {
                 KRATOS_ERROR << "The variable defined in the list is not a double variable nor a component variable. Given variable: " << rVariableStringArray[i_variable] << std::endl;
