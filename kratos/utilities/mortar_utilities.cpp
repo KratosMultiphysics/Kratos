@@ -274,7 +274,7 @@ void ComputeTangentNodeWithLMAndSlip(
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
                 } else {
-                    if (tangent_xi[2] > zero_tolerance) {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
                         rNode.SetValue(TANGENT_XI, tangent_eta);
                     } else {
                         rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -286,7 +286,7 @@ void ComputeTangentNodeWithLMAndSlip(
             if (Dimension == 3) {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
             } else {
-                if (tangent_xi[2] > zero_tolerance) {
+                if (std::abs(tangent_xi[2]) > zero_tolerance) {
                     rNode.SetValue(TANGENT_XI, tangent_eta);
                 } else {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -308,7 +308,7 @@ void ComputeTangentNodeWithLMAndSlip(
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
                 } else {
-                    if (tangent_xi[2] > zero_tolerance) {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
                         rNode.SetValue(TANGENT_XI, tangent_eta);
                     } else {
                         rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -325,7 +325,7 @@ void ComputeTangentNodeWithLMAndSlip(
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
                 } else {
-                    if (tangent_xi[2] > zero_tolerance) {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
                         rNode.SetValue(TANGENT_XI, tangent_eta);
                     } else {
                         rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -337,7 +337,7 @@ void ComputeTangentNodeWithLMAndSlip(
             if (Dimension == 3) {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
             } else {
-                if (tangent_xi[2] > zero_tolerance) {
+                if (std::abs(tangent_xi[2]) > zero_tolerance) {
                     rNode.SetValue(TANGENT_XI, tangent_eta);
                 } else {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -349,7 +349,7 @@ void ComputeTangentNodeWithLMAndSlip(
         if (Dimension == 3) {
             rNode.SetValue(TANGENT_XI, tangent_xi);
         } else {
-            if (tangent_xi[2] > zero_tolerance) {
+            if (std::abs(tangent_xi[2]) > zero_tolerance) {
                 rNode.SetValue(TANGENT_XI, tangent_eta);
             } else {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -388,7 +388,7 @@ void ComputeTangentNodeWithSlip(
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
                 } else {
-                    if (tangent_xi[2] > zero_tolerance) {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
                         rNode.SetValue(TANGENT_XI, tangent_eta);
                     } else {
                         rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -402,7 +402,7 @@ void ComputeTangentNodeWithSlip(
             if (Dimension == 3) {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
             } else {
-                if (tangent_xi[2] > zero_tolerance) {
+                if (std::abs(tangent_xi[2]) > zero_tolerance) {
                     rNode.SetValue(TANGENT_XI, tangent_eta);
                 } else {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -416,7 +416,7 @@ void ComputeTangentNodeWithSlip(
         if (Dimension == 3) {
             rNode.SetValue(TANGENT_XI, tangent_xi);
         } else {
-            if (tangent_xi[2] > zero_tolerance) {
+            if (std::abs(tangent_xi[2]) > zero_tolerance) {
                 rNode.SetValue(TANGENT_XI, tangent_eta);
             } else {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
