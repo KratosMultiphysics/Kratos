@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Tosi
 //
 
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED
 
 
 
@@ -28,9 +28,9 @@
 namespace Kratos {
 namespace Python {
 
-void  AddCustomUtilitiesToPython(pybind11::module& m);
+void  AddCustomProcessesToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED  defined

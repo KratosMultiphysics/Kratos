@@ -21,9 +21,10 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_elements/navier_stokes.h"
+// #include "custom_elements/navier_stokes.h"
+#include "includes/variables.h"
 #include "custom_processes/weighted_divergence_calculation_process.h"
-#include "fluid_dynamics_application_variables.h"
+#include "exaqute_sandbox_application_variables.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -80,7 +81,7 @@ namespace Kratos {
 	    /**
 	     * Checks the body fitted drag computation utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedDivergence, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedDivergence, ExaquteSandboxApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;

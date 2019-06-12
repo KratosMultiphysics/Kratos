@@ -11,23 +11,36 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 set( KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/exaqute_sandbox_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/exaqute_sandbox_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/exaqute_sandbox_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 
     # processes
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/weighted_divergence_calculation_process.cpp
+)
 
+## define python interface sources
+set( KRATOS_EXAQUTE_SANDBOX_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/exaqute_sandbox_python_application.cpp
+)
+
+# define exaqute sandbox application test sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ 	file(GLOB_RECURSE KRATOS_EXAQUTE_SANDBOX_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+add_library(KratosExaquteSandboxCore SHARED ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES} ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_CORE} ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosExaquteSandboxCore PRIVATE KratosCore )
 
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosExaquteSandboxApplication MODULE THIN_LTO ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES})
-target_link_libraries(KratosExaquteSandboxApplication PRIVATE KratosCore )
+pybind11_add_module(KratosExaquteSandboxApplication MODULE THIN_LTO ${KRATOS_EXAQUTE_SANDBOX_PYTHON_INTERFACE_SOURCES})
+target_link_libraries(KratosExaquteSandboxApplication PRIVATE KratosExaquteSandboxCore )
 set_target_properties(KratosExaquteSandboxApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
     cotire(KratosExaquteSandboxApplication)
 endif(USE_COTIRE MATCHES ON)
 
+install(TARGETS KratosExaquteSandboxCore DESTINATION libs )
 install(TARGETS KratosExaquteSandboxApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
