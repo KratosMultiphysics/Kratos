@@ -9,7 +9,7 @@ def Create(model, cosim_solver_settings, solver_name):
 class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
     def SolveSolutionStep(self):
         for coupling_op in self.coupling_operations_list:
-            coupling_op.InitializeNonLinearIteration()
+            coupling_op.InitializeCouplingIteration()
 
         for solver_name, solver in self.participating_solvers.items():
             self._SynchronizeInputData(solver_name)
@@ -17,6 +17,6 @@ class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
             self._SynchronizeOutputData(solver_name)
 
         for coupling_op in self.coupling_operations_list:
-            coupling_op.FinalizeNonLinearIteration()
+            coupling_op.FinalizeCouplingIteration()
 
         return True
