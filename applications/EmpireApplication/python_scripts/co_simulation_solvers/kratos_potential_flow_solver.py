@@ -28,6 +28,35 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
     def Initialize(self):
 
         super(KratosPotentialFlowSolver, self).Initialize()
+        model_part = self.model["Body2D_Body"]
+
+        project_parameters = KratosMultiphysics.Parameters("""{
+            "model_part_name"                    : "FluidModelPart.Body2D_Body",
+            "file_format"                        : "ascii",
+            "output_precision"                   : 7,
+            "output_control_type"                : "step",
+            "output_frequency"                   : 1.0,
+            "output_sub_model_parts"             : false,
+            "folder_name"                        : "VTK_Output",
+            "custom_name_prefix"                 : "",
+            "save_output_files_in_folder"        : true,
+            "nodal_solution_step_data_variables" : ["MESH_DISPLACEMENT_Y"],
+            "nodal_data_value_variables"         : [],
+            "nodal_flags"                        : [],
+            "element_data_value_variables"       : [],
+            "element_flags"                      : [],
+            "condition_data_value_variables"     : [],
+            "condition_flags"                    : [],
+            "gauss_point_variables"              : []
+        }""")
+        print("LLLLLLLLLL", project_parameters)
+
+        self.vtk_io = KratosMultiphysics.VtkOutput(model_part, project_parameters)
+        self.output_frequency = project_parameters["output_frequency"].GetDouble()
+        self.output_control = project_parameters["output_control_type"].GetString()
+        self.step_count = 0
+        self.next_output = model_part.ProcessInfo[KratosMultiphysics.STEP]
+        print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY", self.next_output)
 
         sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
@@ -42,7 +71,12 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
             if sub_project_parameters[i]["python_module"].GetString() == "compute_lift_process":
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
+        # self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+
     def SolveSolutionStep(self):
+        self.step_count += 1
+        print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY", self.next_output)
+        # self.step_count += 1
         self.wake_process._CleanMarking()
 
         self.wake_process.ExecuteBeforeSolutionLoop()
@@ -52,6 +86,8 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
 
+        self.PrintOutput()
+
     def FinalizeSolutionStep(self):
         super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
 
@@ -60,3 +96,12 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
     def _Name(self):
         return self.__class__.__name__
+
+    def PrintOutput(self):
+        self.vtk_io.PrintOutput()
+
+        # Schedule next output
+        # time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+            while self.next_output <= self.step_count:
+                self.next_output += self.output_frequency
