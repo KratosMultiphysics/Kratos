@@ -16,7 +16,7 @@ class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operati
         # and the computation of the solution update
         self.input_data = self.interface_data.GetNumpyArray()
 
-    def ComputeUpdate(self):
+    def ComputeAndApplyUpdate(self):
         current_data = self.interface_data.GetNumpyArray()
         residual = current_data - self.input_data
         updated_data = self.input_data + self._ComputeUpdate(residual, self.input_data)
