@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerInVariableWithRecursion, Kratos
 
     KRATOS_CHECK_EQUAL(current_model.GetModelPart("test").NumberOfNodes(), loaded_model.GetModelPart("test").NumberOfNodes());
 
-    for(std::size_t i = 0; i < loaded_model.GetModelPart("test").NumberOfNodes(); i++) {
+    for(std::size_t i = 1; i <= loaded_model.GetModelPart("test").NumberOfNodes(); i++) {
         auto& old_global_pointers = current_model.GetModelPart("test").pGetNode(i)->GetValue(NEIGHBOUR_NODES);
         auto& new_global_pointers = loaded_model.GetModelPart("test").pGetNode(i)->GetValue(NEIGHBOUR_NODES);
 
