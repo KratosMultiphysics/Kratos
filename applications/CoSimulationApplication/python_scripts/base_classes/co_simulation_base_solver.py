@@ -86,9 +86,6 @@ class CoSimulationBaseSolver(object):
         except KeyError:
             raise Exception("Requested data field " + data_name + " does not exist in the solver ")
 
-    def GetBufferSize(self):
-        raise Exception('"GetBufferSize" function must be implemented in derived class!')
-
     def GetDeltaTime(self):
         raise Exception('"GetDeltaTime" function must be implemented in derived class!')
 

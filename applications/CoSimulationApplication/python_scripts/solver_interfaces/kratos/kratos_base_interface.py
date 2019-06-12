@@ -47,10 +47,6 @@ class KratosBaseInterface(CoSimulationBaseSolver):
     def SolveSolutionStep(self):
         self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
-    def GetBufferSize(self):
-        model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
-        return self.model[model_part_name].GetBufferSize()
-
     def GetDeltaTime(self):
         if not hasattr(self, 'delta_time'):
             raise Exception("DeltaTime can only be querried after it has been computed at least once")
