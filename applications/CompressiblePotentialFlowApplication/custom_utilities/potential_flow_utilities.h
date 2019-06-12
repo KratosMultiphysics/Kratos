@@ -18,6 +18,9 @@ namespace Kratos
 namespace PotentialFlowUtilities
 {
 template <int Dim, int NumNodes>
+array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
+
+template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
 
 template <int Dim, int NumNodes>

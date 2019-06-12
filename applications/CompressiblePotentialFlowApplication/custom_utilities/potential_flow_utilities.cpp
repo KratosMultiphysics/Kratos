@@ -15,6 +15,12 @@
 namespace Kratos {
 namespace PotentialFlowUtilities {
 template <int Dim, int NumNodes>
+array_1d<double, NumNodes> GetWakeDistances(const Element& rElement)
+{
+    return rElement.GetValue(ELEMENTAL_DISTANCES);
+}
+
+template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 {
     const int kutta = rElement.GetValue(KUTTA);
@@ -130,7 +136,7 @@ array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const array_1d<double, NumNodes>& r_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
+    const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
     data.potentials = GetPotentialOnUpperWakeElement<Dim,NumNodes>(rElement, r_distances);
 
@@ -145,9 +151,9 @@ array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement)
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    array_1d<double, NumNodes> distances = rElement.GetValue(ELEMENTAL_DISTANCES);
+    const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
-    data.potentials = GetPotentialOnLowerWakeElement<Dim,NumNodes>(rElement, distances);
+    data.potentials = GetPotentialOnLowerWakeElement<Dim,NumNodes>(rElement, r_distances);
 
     return prod(trans(data.DN_DX), data.potentials);
 }
@@ -172,6 +178,7 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
+template array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
 template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
 template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
