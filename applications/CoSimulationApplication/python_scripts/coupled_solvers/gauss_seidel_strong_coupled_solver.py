@@ -32,6 +32,8 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
+        # TODO check if an accelerator was specified for a field that is manipulated in the input!
+
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:
@@ -56,6 +58,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
                     couplingsolverprint(self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
                 break
             else:
+                # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
                 for conv_acc in self.convergence_accelerators_list:
                     conv_acc.Execute()
 
