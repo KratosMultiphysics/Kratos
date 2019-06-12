@@ -18,3 +18,5 @@ class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
 
         for coupling_op in self.coupling_operations_list:
             coupling_op.FinalizeNonLinearIteration()
+
+        return True

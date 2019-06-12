@@ -56,7 +56,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             if is_converged:
                 if self.echo_level > 0:
                     couplingsolverprint(self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
-                break
+                return True
             else:
                 # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
                 for conv_acc in self.convergence_accelerators_list:
@@ -64,6 +64,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
                 couplingsolverprint(self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                return False
 
     def PrintInfo(self):
         super(GaussSeidelStrongCouplingSolver, self).PrintInfo()
