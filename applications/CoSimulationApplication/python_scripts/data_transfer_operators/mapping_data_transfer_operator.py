@@ -17,6 +17,9 @@ class MappingDataTransferOperator(CoSimulationBaseDataTransferOperator):
         self.mappers = {}
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+        # TODO check location of data => should coincide with the one for the mapper
+        # or throw if it is not in a suitable location (e.g. on the ProcessInfo)
+
         model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
