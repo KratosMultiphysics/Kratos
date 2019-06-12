@@ -260,17 +260,16 @@ void ComputeTangentNodeWithLMAndSlip(
     // Zero tolerance
     const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
+    array_1d<double, 3> tangent_xi, tangent_eta;
     const array_1d<double, 3>& r_lm = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
-    if (rNode.IsNot(SLIP)) { // STICK
+    const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
+    if (rNode.Is(ACTIVE) && rNode.IsNot(SLIP)) { // STICK
         if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
-            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-            const array_1d<double, 3> tangent_component = r_lm - inner_prod(r_lm, r_normal) * r_normal;
-            if (norm_2(tangent_component) > zero_tolerance) {
-                const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
+            noalias(tangent_xi) = r_lm - inner_prod(r_lm, r_normal) * r_normal;
+            if (norm_2(tangent_xi) > zero_tolerance) {
+                const array_1d<double, 3> tangent = tangent_xi/norm_2(tangent_xi);
                 rNode.SetValue(TANGENT_XI, tangent);
             } else {
-                const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-                array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -283,8 +282,6 @@ void ComputeTangentNodeWithLMAndSlip(
                 }
             }
         } else { // In case of zero LM
-            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-            array_1d<double, 3> tangent_xi, tangent_eta;
             MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
             if (Dimension == 3) {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -296,20 +293,17 @@ void ComputeTangentNodeWithLMAndSlip(
                 }
             }
         }
-    } else if (pSlipVariable != NULL) { // SLIP
+    } else if (rNode.Is(ACTIVE) && pSlipVariable != NULL) { // SLIP
         // Nodal length
         const double length = rNode.FastGetSolutionStepValue(NODAL_H);
         // Slip value
         const array_1d<double, 3>& r_slip = rNode.FastGetSolutionStepValue(*pSlipVariable, StepLM)/rNode.GetValue(NODAL_AREA);
         if (norm_2(r_slip) > 1.0e-5 * length) { // Non zero slip vector
-            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-            const array_1d<double, 3> tangent_component = r_slip - inner_prod(r_slip, r_normal) * r_normal;
-            if (norm_2(tangent_component) > zero_tolerance) {
-                const array_1d<double, 3> tangent = SlipCoefficient * tangent_component/norm_2(tangent_component);
+            noalias(tangent_xi) = r_slip - inner_prod(r_slip, r_normal) * r_normal;
+            if (norm_2(tangent_xi) > zero_tolerance) {
+                const array_1d<double, 3> tangent = SlipCoefficient * tangent_xi/norm_2(tangent_xi);
                 rNode.SetValue(TANGENT_XI, tangent);
             } else {
-                const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-                array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -322,14 +316,11 @@ void ComputeTangentNodeWithLMAndSlip(
                 }
             }
         } else if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
-            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
             const array_1d<double, 3> tangent_component = r_lm - inner_prod(r_lm, r_normal) * r_normal;
             if (norm_2(tangent_component) > zero_tolerance) {
                 const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
                 rNode.SetValue(TANGENT_XI, tangent);
             } else {
-                const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-                array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -342,8 +333,6 @@ void ComputeTangentNodeWithLMAndSlip(
                 }
             }
         } else { // In case of zero LM or zero weighted slip
-            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-            array_1d<double, 3> tangent_xi, tangent_eta;
             MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
             if (Dimension == 3) {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
@@ -356,8 +345,6 @@ void ComputeTangentNodeWithLMAndSlip(
             }
         }
     } else { // Default
-        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-        array_1d<double, 3> tangent_xi, tangent_eta;
         MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
         if (Dimension == 3) {
             rNode.SetValue(TANGENT_XI, tangent_xi);
