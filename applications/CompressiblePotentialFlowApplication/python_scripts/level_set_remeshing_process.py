@@ -46,7 +46,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                     "distance_threshold"                     : 0.001,
                     "check_at_each_time_step"                : true,
                     "avoid_almost_empty_elements"            : true,
-                    "deactivate_full_negative_elements"      : true
+                    "deactivate_full_negative_elements"      : true,
+                    "variables_list"                         : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"]
                 }
             }  """ );
         settings.ValidateAndAssignDefaults(default_parameters)
