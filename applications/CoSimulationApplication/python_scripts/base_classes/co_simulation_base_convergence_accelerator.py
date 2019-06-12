@@ -11,13 +11,12 @@ class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operati
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
 
-
     def InitializeCouplingIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
         self.input_data = self.interface_data.GetNumpyArray()
 
-    def Execute(self):
+    def ComputeUpdate(self):
         current_data = self.interface_data.GetNumpyArray()
         residual = current_data - self.input_data
         updated_data = self.input_data + self._ComputeUpdate(residual, self.input_data)
@@ -31,6 +30,9 @@ class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operati
 
     def Check(self):
         print("ConvAcc does not yet implement Check")
+
+    def Execute(self):
+        raise Exception("This is not supposed to be used for ConvergenceAccelerators!")
 
     def _ComputeUpdate( self, residual, previous_data ):
         raise Exception('"_ComputeUpdate" has to be implemented in the derived class!')
