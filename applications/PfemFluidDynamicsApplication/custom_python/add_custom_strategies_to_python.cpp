@@ -24,6 +24,7 @@
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 #include "custom_strategies/strategies/explicit_two_step_v_p_strategy.hpp"
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy.h"
+#include "custom_strategies/strategies/nodal_two_step_v_p_strategy_for_FSI.h"
 #include "custom_strategies/strategies/two_step_v_p_DEM_coupling_strategy.h"
 
 //schemes
@@ -65,6 +66,7 @@ namespace Kratos
       typedef TwoStepVPDEMcouplingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPDEMcouplingStrategyType;
       typedef ExplicitTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
       typedef NodalTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > NodalTwoStepVPStrategyType;
+      typedef NodalTwoStepVPStrategyForFSI< SparseSpaceType, LocalSpaceType, LinearSolverType > NodalTwoStepVPStrategyForFSIType;
       typedef GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GaussSeidelLinearStrategyType;
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
@@ -93,6 +95,10 @@ namespace Kratos
       	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
         .def("CalculateAccelerations",&NodalTwoStepVPStrategyType::CalculateAccelerations)
         .def("CalculateDisplacements",&NodalTwoStepVPStrategyType::CalculateDisplacements)
+	;
+
+      py::class_< NodalTwoStepVPStrategyForFSIType, NodalTwoStepVPStrategyForFSIType::Pointer, BaseSolvingStrategyType >(m,"NodalTwoStepVPStrategyForFSI")
+      	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
 	;
 
       py::class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")

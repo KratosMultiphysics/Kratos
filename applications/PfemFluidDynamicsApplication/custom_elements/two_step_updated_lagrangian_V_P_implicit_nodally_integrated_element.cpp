@@ -44,8 +44,8 @@ namespace Kratos {
       Matrix NContainer;
       VectorType GaussWeights;
       this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-      ElementalVariables rElementalVariables;
-      this->InitializeElementalVariables(rElementalVariables);
+      // ElementalVariables rElementalVariables;
+      // this->InitializeElementalVariables(rElementalVariables);
       // Loop on integration points
       const ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 
@@ -63,61 +63,391 @@ namespace Kratos {
       }else if(TDim==2){
 	      elementVolume=rGeom.Area()/3.0;
       }
-      for (unsigned int i = 0; i < NumNodes; i++)
-    	{
-	      VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-	      unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
 
-	      if(nodalSFDneighboursSize>1)
+      if(this->Is(SOLID))
+      {
+        for (unsigned int i = 0; i < NumNodes; i++)
         {
-	        double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
-	        ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-	        double numberOfNeighElems=double(neighb_elems.size());
-	        meshSize+=meanElementEdgesLength/numberOfNeighElems;
+            // if(rGeom[i].FastGetSolutionStepValue(INTERFACE_NODE)==false){
+            //   VectorType solidNodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+            //   unsigned int solidNodalSFDneighboursSize=solidNodalSFDneighbours.size();
+            //   // std::cout<<"SOLID_NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
 
-	        if(rGeom[i].Is(FREE_SURFACE)){
-	          this->NodalFreeSurfaceLength(i);
-	        }
+            //   if(solidNodalSFDneighboursSize>1)
+            //   {
+            //     double& solidMeshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+            //     ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+            //     double numberOfNeighElems=double(neighb_elems.size());
+            //     solidMeshSize+=meanElementEdgesLength/numberOfNeighElems;
 
-	        const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+            //     double solidNodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
 
-	        // the nodal strain measure could be also be computed as follows (now they are computed in the strategy)
-	        // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
-	        // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
-	        // rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
+            //     for (unsigned int j = 0; j< NumNodes; j++)
+            //     {
+            //         unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+            //         unsigned int solidSFDposition=0;
+            //         for (unsigned int k = 0; k< solidNodalSFDneighboursSize; k++)
+            //         {
+            //           if(idNodeOfConsideredElement==solidNodalSFDneighbours[k])
+            //           {
+            //             rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
+            //             rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
+            //             if(TDim==3){
+            //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
+            //             }
+            //             break;
+            //           }
+            //           solidSFDposition+=TDim;
+            //         }
+            //     }
+            //   }
+            //   else
+            //   {
+            //       std::cout<<rGeom[i].Id()<<"  this solid node is isolated!!! "<<std::endl;
+            //       for (unsigned int k = 0; k< TDim; k++)
+            //       {
+            //         rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+            //       }
+            //   }
+            // }
+            // else
+            // {
+              VectorType solidNodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
+              unsigned int solidNodalSFDneighboursSize=solidNodalSFDneighbours.size();
+              // std::cout<<"SOLID_NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
 
-	       for (unsigned int j = 0; j< NumNodes; j++)
-	       {
-	 	        unsigned int idNodeOfConsideredElement=rGeom[j].Id();
-		        unsigned int SFDposition=0;
-		        for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
-		        {
-		          if(idNodeOfConsideredElement==nodalSFDneighbours[k])
+              if(solidNodalSFDneighboursSize>1)
               {
-		          	rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
-			          rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
-			          if(TDim==3){
-			            rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
-			          }
-		            break;
-		          }
-		          SFDposition+=TDim;
-		        }
-      		}
-	      }
-	      else
+                double& solidMeshSize = rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_MEAN_MESH_SIZE);
+                ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+                double numberOfNeighElems=double(neighb_elems.size());
+                solidMeshSize+=meanElementEdgesLength/numberOfNeighElems;
+
+                double solidNodalVolume=rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
+
+                for (unsigned int j = 0; j< NumNodes; j++)
+                {
+                    unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+                    unsigned int solidSFDposition=0;
+                    for (unsigned int k = 0; k< solidNodalSFDneighboursSize; k++)
+                    {
+                      if(idNodeOfConsideredElement==solidNodalSFDneighbours[k])
+                      {
+                        rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
+                        rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
+                        if(TDim==3){
+                          rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
+                        }
+                        break;
+                      }
+                      solidSFDposition+=TDim;
+                    }
+                }
+              }
+              else
+              {
+                  std::cout<<rGeom[i].Id()<<"  this solid node is isolated!!! "<<std::endl;
+                  for (unsigned int k = 0; k< TDim; k++)
+                  {
+                    rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+                  }
+              }
+          //}
+        }
+      }else
+    //  if(this->Is(FLUID) && this->IsNot(SOLID))
+      {
+        for (unsigned int i = 0; i < NumNodes; i++)
         {
-	        std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
-	        for (unsigned int k = 0; k< TDim; k++)
-	        {
-	        	rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
-	        }
-	      }
-    	}
+            VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+            // std::cout<<"rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+            unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
+
+            if(nodalSFDneighboursSize>1)
+            {
+              double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+              ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+              double numberOfNeighElems=double(neighb_elems.size());
+              meshSize+=meanElementEdgesLength/numberOfNeighElems;
+
+              if(rGeom[i].Is(FREE_SURFACE)){
+                this->NodalFreeSurfaceLength(i);
+              }
+
+            double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+
+            for (unsigned int j = 0; j< NumNodes; j++)
+            {
+                unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+                unsigned int SFDposition=0;
+                for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
+                {
+                  if(idNodeOfConsideredElement==nodalSFDneighbours[k])
+                  {
+                    rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
+                    rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
+                    if(TDim==3){
+                      rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
+                    }
+                    break;
+                  }
+                  SFDposition+=TDim;
+              }
+            }
+          }
+          else
+          {
+              std::cout<<rGeom[i].Id()<<"  this fluid node is isolated!!! "<<std::endl;
+              for (unsigned int k = 0; k< TDim; k++)
+              {
+                rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+              }
+          }
+        }
+      }
+
+
+
+    // for (unsigned int i = 0; i < NumNodes; i++)
+    // 	{
+        
+
+    //     if(rGeom[i].FastGetSolutionStepValue(INTERFACE_NODE)==true && this->Is(SOLID))
+    //     // if(this->Is(SOLID))
+    //     {
+    //       VectorType solidNodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
+	  //       unsigned int solidNodalSFDneighboursSize=solidNodalSFDneighbours.size();
+    //       // std::cout<<"SOLID_NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+
+    //       if(solidNodalSFDneighboursSize>1)
+    //       {
+    //         double& solidMeshSize = rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_MEAN_MESH_SIZE);
+    //         ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+    //         double numberOfNeighElems=double(neighb_elems.size());
+    //         solidMeshSize+=meanElementEdgesLength/numberOfNeighElems;
+
+    //         double solidNodalVolume=rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
+
+    //         for (unsigned int j = 0; j< NumNodes; j++)
+    //         {
+    //             unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+    //             unsigned int solidSFDposition=0;
+    //             for (unsigned int k = 0; k< solidNodalSFDneighboursSize; k++)
+    //             {
+    //               if(idNodeOfConsideredElement==solidNodalSFDneighbours[k])
+    //               {
+    //                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
+    //                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
+    //                 if(TDim==3){
+    //                   rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
+    //                 }
+    //                 break;
+    //               }
+    //               solidSFDposition+=TDim;
+    //           }
+    //         }
+    //       }
+    //       else
+    //       {
+    //           std::cout<<rGeom[i].Id()<<"  this solid node is isolated!!! "<<std::endl;
+    //           for (unsigned int k = 0; k< TDim; k++)
+    //           {
+    //             rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+    //           }
+    //       }
+    //     }
+    //     else if(this->Is(FLUID)){
+
+    //       VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+    //       // std::cout<<"rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER) "<<rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+    //       unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
+
+    //       if(nodalSFDneighboursSize>1)
+    //       {
+    //         double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+    //         ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+    //         double numberOfNeighElems=double(neighb_elems.size());
+    //         meshSize+=meanElementEdgesLength/numberOfNeighElems;
+
+    //         if(rGeom[i].Is(FREE_SURFACE)){
+    //           this->NodalFreeSurfaceLength(i);
+    //         }
+
+
+
+	  //       double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+
+    //       for (unsigned int j = 0; j< NumNodes; j++)
+    //       {
+    //           unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+    //           unsigned int SFDposition=0;
+    //           for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
+    //           {
+    //             if(idNodeOfConsideredElement==nodalSFDneighbours[k])
+    //             {
+    //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
+    //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
+    //               if(TDim==3){
+    //                 rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
+    //               }
+    //               break;
+    //             }
+    //             SFDposition+=TDim;
+    //         }
+    //       }
+    //     }
+    //     else
+    //     {
+    //         std::cout<<rGeom[i].Id()<<"  this fluid node is isolated!!! "<<std::endl;
+    //         for (unsigned int k = 0; k< TDim; k++)
+    //         {
+    //           rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+    //         }
+    //     }
+    //     // if(rGeom[i].FastGetSolutionStepValue(INTERFACE_NODE)==true)
+    //     // {
+          
+    //     //   if(this->Is(SOLID)){
+    //     //     std::cout<<"        SOLID_NODAL_SFD_NEIGHBOURS_ORDER "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+    //     //     std::cout<<"        SOLID_NODAL_SFD_NEIGHBOURS "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)<<std::endl;
+    //     //   }else{
+    //     //     std::cout<<"NODAL_SFD_NEIGHBOURS_ORDER "<<rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+    //     //     std::cout<<"NODAL_SFD_NEIGHBOURS "<<rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)<<std::endl;
+    //     //   }
+
+    //     // }
+	  //   }
+
+    // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      // for (unsigned int i = 0; i < NumNodes; i++)
+    // 	{
+        
+	  //     VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+	  //     unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
+
+	  //     if(nodalSFDneighboursSize>1)
+    //     {
+	  //       double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+	  //       ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	  //       double numberOfNeighElems=double(neighb_elems.size());
+	  //       meshSize+=meanElementEdgesLength/numberOfNeighElems;
+
+	  //       if(rGeom[i].Is(FREE_SURFACE)){
+	  //         this->NodalFreeSurfaceLength(i);
+	  //       }
+
+    //     if(rGeom[i].FastGetSolutionStepValue(INTERFACE_NODE)==true && this->Is(SOLID))
+    //     {
+    //       VectorType solidNodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
+	  //       unsigned int solidNodalSFDneighboursSize=solidNodalSFDneighbours.size();
+    //       double& solidMeshSize = rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_MEAN_MESH_SIZE);
+	  //       solidMeshSize=meshSize;
+
+    //       double solidNodalVolume=rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
+
+    //       for (unsigned int j = 0; j< NumNodes; j++)
+    //       {
+    //           unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+    //           unsigned int solidSFDposition=0;
+    //           for (unsigned int k = 0; k< solidNodalSFDneighboursSize; k++)
+    //           {
+    //             if(idNodeOfConsideredElement==solidNodalSFDneighbours[k])
+    //             {
+    //               rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition]   += rDN_DX(j,0)*elementVolume/solidNodalVolume;
+    //               rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+1] += rDN_DX(j,1)*elementVolume/solidNodalVolume;
+    //               if(TDim==3){
+    //                 rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[solidSFDposition+2] += rDN_DX(j,2)*elementVolume/solidNodalVolume;
+    //               }
+    //               break;
+    //             }
+    //             solidSFDposition+=TDim;
+    //          }
+    //       }
+    //     }else{
+
+	  //       double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+
+    //       for (unsigned int j = 0; j< NumNodes; j++)
+    //       {
+    //           unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+    //           unsigned int SFDposition=0;
+    //           for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
+    //           {
+    //             if(idNodeOfConsideredElement==nodalSFDneighbours[k])
+    //             {
+    //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
+    //               rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
+    //               if(TDim==3){
+    //                 rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
+    //               }
+    //               break;
+    //             }
+    //             SFDposition+=TDim;
+    //         }
+    //       }
+    //     }
+    //     // if(rGeom[i].FastGetSolutionStepValue(INTERFACE_NODE)==true)
+    //     // {
+          
+    //     //   if(this->Is(SOLID)){
+    //     //     std::cout<<"        SOLID_NODAL_SFD_NEIGHBOURS_ORDER "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+    //     //     std::cout<<"        SOLID_NODAL_SFD_NEIGHBOURS "<<rGeom[i].FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)<<std::endl;
+    //     //   }else{
+    //     //     std::cout<<"NODAL_SFD_NEIGHBOURS_ORDER "<<rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
+    //     //     std::cout<<"NODAL_SFD_NEIGHBOURS "<<rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)<<std::endl;
+    //     //   }
+
+    //     // }
+	  //   }
+	  //   else
+    //   {
+	  //       std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
+	  //       for (unsigned int k = 0; k< TDim; k++)
+	  //       {
+	  //       	rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+	  //       }
+	  //   }
+    // }
 
       KRATOS_CATCH( "" );
 
-    }
+  }
 
 
 
@@ -127,7 +457,7 @@ namespace Kratos {
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    array_1d<double,2> Edge(2,0.0);
+    array_1d<double,3> Edge(3,0.0);
     // unsigned int countFreeSurface=1;
     for (SizeType i = 0; i < NumNodes; i++){
 
@@ -155,7 +485,7 @@ namespace Kratos {
 
     GeometryType& rGeom = this->GetGeometry();
     // const SizeType NumNodes = rGeom.PointsNumber();
-    array_1d<double,2> Edge(3,0.0);
+    array_1d<double,3> Edge(3,0.0);
 
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
@@ -597,13 +927,13 @@ namespace Kratos {
     double factor=1.0/double(NumNodes);
     double ElemSize                   = rGeom[0].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
     double Density                    = rGeom[0].FastGetSolutionStepValue(DENSITY);
-   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
     for (unsigned int i = 1; i < NumNodes; i++)
       {
 	      ElemSize                     += rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
         Density                      += rGeom[i].FastGetSolutionStepValue(DENSITY);
-   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
         // Tau += rGeom[i].FastGetSolutionStepValue(NODAL_TAU);
       }
 
@@ -663,13 +993,13 @@ namespace Kratos {
     double factor=1.0/double(NumNodes);
     double ElemSize                   = rGeom[0].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
     double Density                    = rGeom[0].FastGetSolutionStepValue(DENSITY);
-   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
     for (unsigned int i = 1; i < NumNodes; i++)
       {
 	      ElemSize                     += rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
         Density                      += rGeom[i].FastGetSolutionStepValue(DENSITY);
-   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
         // Tau += rGeom[i].FastGetSolutionStepValue(NODAL_TAU);
       }
 
@@ -741,7 +1071,7 @@ namespace Kratos {
 
     double ElemSize                   = rGeom[0].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
     double Density                    = rGeom[0].FastGetSolutionStepValue(DENSITY);
-   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 		double VolumetricCoeff            = TimeStep*rGeom[0].FastGetSolutionStepValue(BULK_MODULUS);
     double volumetricDefRate          = rGeom[0].GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
     double elementalNormalProjDefRate = 0;
@@ -759,7 +1089,7 @@ namespace Kratos {
 
 	      ElemSize                     += rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
         Density                      += rGeom[i].FastGetSolutionStepValue(DENSITY);
-   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 	     	VolumetricCoeff              += TimeStep*rGeom[i].FastGetSolutionStepValue(BULK_MODULUS);
         volumetricDefRate            += rGeom[i].GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
   		
@@ -882,12 +1212,12 @@ namespace Kratos {
     double factor=1.0/double(NumNodes);
     double ElemSize                   = rGeom[0].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
     double Density                    = rGeom[0].FastGetSolutionStepValue(DENSITY);
-   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	double DeviatoricCoeff            = rGeom[0].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
     for (unsigned int i = 1; i < NumNodes; i++)
       {
 	      ElemSize                     += rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
         Density                      += rGeom[i].FastGetSolutionStepValue(DENSITY);
-   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+   	    DeviatoricCoeff              += rGeom[i].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
       }
 
     ElemSize                   *= factor*0.5;  

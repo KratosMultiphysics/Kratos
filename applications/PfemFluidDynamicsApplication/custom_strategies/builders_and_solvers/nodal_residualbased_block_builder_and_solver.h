@@ -305,8 +305,8 @@ namespace Kratos
 		if (EquationId.size() != neighSize)
 		  EquationId.resize(neighSize, false);
 
-	  double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
-	  double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
+	  double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+	  double volumetricCoeff=itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
 
 		const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
 

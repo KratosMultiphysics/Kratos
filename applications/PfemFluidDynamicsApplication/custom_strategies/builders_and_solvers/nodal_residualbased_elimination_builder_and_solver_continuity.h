@@ -174,7 +174,6 @@ void BuildNodally(
 			double dNdXj=0;
 			double dNdYj=0;
 			double dNdZj=0;
-			bool stabilizationNeeded=false;
 			unsigned int firstRow=0;
 			unsigned int firstCol=0;
 
@@ -201,7 +200,7 @@ void BuildNodally(
 							if (EquationId.size() != neighSize)
 								EquationId.resize(neighSize, false);
 
-							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
 							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 							if(yieldShear>0){
@@ -217,15 +216,12 @@ void BuildNodally(
 									}
 							}
 														
-							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+							if(deviatoricCoeff>0.1){
 								deviatoricCoeff=0.1;
 							}
 
-							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-							if(itNode->IsNot(SOLID))
-				     	{
-            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-						  }
+							double volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+						
 
               deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -237,18 +233,11 @@ void BuildNodally(
 							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
 							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
-              stabilizationNeeded=false;
-							if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
-								stabilizationNeeded=true;
-							}else{
 
-								for (unsigned int i = 0; i< neighb_nodes.size(); i++)
-									{
-										EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
-									}
-
+							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+							{
+								EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
 							}
-							if(stabilizationNeeded==true){
 
 								firstRow=0;
 								firstCol=0;
@@ -447,9 +436,6 @@ void BuildNodally(
 
 									}
 
-
-							}
-
 					#ifdef _OPENMP
 							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
 					#else
@@ -496,7 +482,6 @@ void BuildNodallyUnlessLaplacian(
 			double dNdXi=0;
 			double dNdYi=0;
 			double dNdZi=0;
-			bool stabilizationNeeded=false;
 			unsigned int firstCol=0;
 
 			/* #pragma omp parallel */
@@ -522,7 +507,7 @@ void BuildNodallyUnlessLaplacian(
 							if (EquationId.size() != neighSize)
 								EquationId.resize(neighSize, false);
 
-							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
 							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
               if(yieldShear>0){
@@ -538,17 +523,12 @@ void BuildNodallyUnlessLaplacian(
 								}
          		 	}
 							
-							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+							if(deviatoricCoeff>0.1){
 								deviatoricCoeff=0.1;
 							}
 
 
-							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-
-							if(itNode->IsNot(SOLID))
-				     	{
-            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-						  }
+							double volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 
               deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -562,18 +542,10 @@ void BuildNodallyUnlessLaplacian(
 
 							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
-              stabilizationNeeded=false;
-							if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
-								stabilizationNeeded=true;
-							}else{
-
-								for (unsigned int i = 0; i< neighb_nodes.size(); i++)
-									{
+							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+							{
 										EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
-									}
-
 							}
-							if(stabilizationNeeded==true){
 
 								firstCol=0;
 								meanMeshSize=itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
@@ -712,7 +684,6 @@ void BuildNodallyUnlessLaplacian(
 									}
 
 
-							}
 
 					#ifdef _OPENMP
 							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
@@ -757,7 +728,6 @@ void BuildNodallyNoVolumetricStabilizedTerms(
 			double density=0;
 			double nodalVelocityNorm=0;
 			double tauStab=0;
-			bool stabilizationNeeded=false;
 
 			/* #pragma omp parallel */
 			{
@@ -782,7 +752,7 @@ void BuildNodallyNoVolumetricStabilizedTerms(
 							if (EquationId.size() != neighSize)
 								EquationId.resize(neighSize, false);
 
-							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
 							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
               if(yieldShear>0){
@@ -798,17 +768,13 @@ void BuildNodallyNoVolumetricStabilizedTerms(
 								}
          		 	}
 							
-							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+							if(deviatoricCoeff>0.1){
 								deviatoricCoeff=0.1;
 							}
 
 
-							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-
-							if(itNode->IsNot(SOLID))
-				     	{
-            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-						  }
+							double volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+		
 
               deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -822,18 +788,10 @@ void BuildNodallyNoVolumetricStabilizedTerms(
 
 							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
-              stabilizationNeeded=false;
-							if((itNode->IsNot(SOLID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
-								stabilizationNeeded=true;
-							}else{
-
-								for (unsigned int i = 0; i< neighb_nodes.size(); i++)
-									{
+							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+								{
 										EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
-									}
-
-							}
-							if(stabilizationNeeded==true){
+								}
 
 								meanMeshSize=itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
 								characteristicLength=1.0*meanMeshSize;
@@ -895,8 +853,6 @@ void BuildNodallyNoVolumetricStabilizedTerms(
 									RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
 
 								}
-
-							}
 
 					#ifdef _OPENMP
 							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
@@ -960,7 +916,7 @@ void BuildNodallyNotStabilized(
 							if (EquationId.size() != neighSize)
 								EquationId.resize(neighSize, false);
 
-							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+							double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
 							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
               if(yieldShear>0){
@@ -976,16 +932,12 @@ void BuildNodallyNotStabilized(
 								}
          		 	}
 							
-							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
+							if(deviatoricCoeff>0.1){
 								deviatoricCoeff=0.1;
 							}
 
-							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-							if(itNode->IsNot(SOLID))
-				     	{
-            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-						  }
-
+							double volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+		
               deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
 							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
@@ -1038,6 +990,7 @@ void BuildAll(
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
 			Element::EquationIdVectorType EquationId;
+
 			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
@@ -1051,64 +1004,77 @@ void BuildAll(
 
 				for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 					{
-
+					
 						NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 						const unsigned int neighSize = neighb_nodes.size() +1 ;
 
 						if(neighSize>1)
 						{
 
-							const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-							LHS_Contribution= ZeroMatrix(neighSize,neighSize);
-							RHS_Contribution= ZeroVector(neighSize);
+							// if (LHS_Contribution.size1() != neighSize)
+              				// 	LHS_Contribution.resize(neighSize, neighSize, false); //false says not to preserve existing storage!!
 
-							if (EquationId.size() != neighSize)
-								EquationId.resize(neighSize, false);
+         					// if (RHS_Contribution.size() != neighSize)
+             				// 	RHS_Contribution.resize(neighSize, false); //false says not to preserve existing storage!!
 
-							double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+							// LHS_Contribution= ZeroMatrix(neighSize,neighSize);
+							// RHS_Contribution= ZeroVector(neighSize);
 
-							double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-              if(yieldShear>0){
-								double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-								double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-								double exponent=-adaptiveExponent*equivalentStrainRate;
-								if(equivalentStrainRate!=0){
-									deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+							// if (EquationId.size() != neighSize)
+							// 	EquationId.resize(neighSize, false);
+
+							if (LHS_Contribution.size1() != 1)
+              					LHS_Contribution.resize(1, 1, false); //false says not to preserve existing storage!!
+
+         					if (RHS_Contribution.size() != 1)
+             					RHS_Contribution.resize(1, false); //false says not to preserve existing storage!!
+
+							LHS_Contribution= ZeroMatrix(1,1);
+							RHS_Contribution= ZeroVector(1);
+
+							if (EquationId.size() != 1)
+								EquationId.resize(1, false);
+
+							double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+
+							if(nodalVolume>0){ // in interface nodes not in contact with fluid elements the nodal volume is zero
+						
+									double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+
+									double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+									if(yieldShear>0){
+										double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+										double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+										double exponent=-adaptiveExponent*equivalentStrainRate;
+										if(equivalentStrainRate!=0){
+											deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+										}
+										if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+											// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+											deviatoricCoeff=adaptiveExponent*yieldShear;
+										}
+									}
+									
+									if(deviatoricCoeff>0.1){
+										deviatoricCoeff=0.1;
+									}
+
+									double volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+			
+									deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
+
+									LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
+
+									RHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff; 
+
+									RHS_Contribution[0]  += itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
 								}
-								if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
-									// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-									deviatoricCoeff=adaptiveExponent*yieldShear;
-								}
-         		 	}
-							
-							if(deviatoricCoeff>0.1 && itNode->IsNot(SOLID)){
-								deviatoricCoeff=0.1;
-							}
 
-							double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-							if(itNode->IsNot(SOLID))
-				     	{
-            		volumetricCoeff=timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-						  }
-
-              deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
-
-							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
-
-							RHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff; 
-
-              RHS_Contribution[0]  += itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
 
 							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
 
 							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
-
-							for (unsigned int i = 0; i< neighb_nodes.size(); i++)
-								{
-									EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
-								}
-
 
 					#ifdef _OPENMP
 							Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
@@ -1117,6 +1083,7 @@ void BuildAll(
 					#endif
 
 						}
+					//}
 
 					}
 
@@ -1148,12 +1115,12 @@ void BuildAll(
         for(int k=0; k<number_of_threads; k++)
         {
             //contributions to the system
-            LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+            LocalSystemMatrixType elementalLHS_Contribution = LocalSystemMatrixType(0,0);
+            LocalSystemVectorType elementalRHS_Contribution = LocalSystemVectorType(0);
 
             //vector containing the localization in the system of the different
             //terms
-            Element::EquationIdVectorType EquationId;
+            Element::EquationIdVectorType elementalEquationId;
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
             typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
             typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
@@ -1164,24 +1131,24 @@ void BuildAll(
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
             {
+					//calculate elemental contribution
+					//(*it)->InitializeNonLinearIteration(CurrentProcessInfo);
+				(*it)->CalculateLocalSystem(elementalLHS_Contribution,elementalRHS_Contribution,CurrentProcessInfo);
 
-                //calculate elemental contribution
-                //(*it)->InitializeNonLinearIteration(CurrentProcessInfo);
-                (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+				Geometry< Node<3> >& geom = (*it)->GetGeometry();
+				if(elementalEquationId.size() != geom.size()) elementalEquationId.resize(geom.size(),false);
 
-                Geometry< Node<3> >& geom = (*it)->GetGeometry();
-                if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
-
-                for(unsigned int i=0; i<geom.size(); i++)
-                    EquationId[i] = geom[i].GetDof(PRESSURE,pos).EquationId();
+				for(unsigned int i=0; i<geom.size(); i++)
+					elementalEquationId[i] = geom[i].GetDof(PRESSURE,pos).EquationId();
 
                 //assemble the elemental contribution
 #ifdef _OPENMP
-                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+                this->Assemble(A,b,elementalLHS_Contribution,elementalRHS_Contribution,elementalEquationId,lock_array);
 #else
-                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
+                this->Assemble(A,b,elementalLHS_Contribution,elementalRHS_Contribution,elementalEquationId);
 #endif
-            }
+          
+			}
         }
 
 
@@ -1842,165 +1809,129 @@ void Build(
       //**************************************************************************
 
 
-      virtual void ConstructMatrixStructure(
-					    typename TSchemeType::Pointer pScheme,
-					    TSystemMatrixType& A,
-					    ModelPart& rModelPart)
-      {
-	//filling with zero the matrix (creating the structure)
-	Timer::Start("MatrixStructure");
 
-	ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+   virtual void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixType& A,
+        ModelPart& rModelPart)
+    {
+        //filling with zero the matrix (creating the structure)
+        Timer::Start("MatrixStructure");
 
-	// Getting the array of the conditions
-	const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-	ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
-	const std::size_t equation_size = BaseType::mEquationSystemSize;
+        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
 
-#ifdef USE_GOOGLE_HASH
-	std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
-	const std::size_t empty_key = 2 * equation_size + 10;
-#else
-	std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-#endif
+        #pragma omp parallel for firstprivate(equation_size)
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
+            indices[iii].reserve(40);
+        }
 
-#pragma omp parallel for firstprivate(equation_size)
-	for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
-	  {
-#ifdef USE_GOOGLE_HASH
-	    indices[iii].set_empty_key(empty_key);
-#else
-	    indices[iii].reserve(40);
-#endif
-	  }
+        Element::EquationIdVectorType ids(3, 0);
 
+        #pragma omp parallel firstprivate(ids)
+        {
+            // The process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-	Element::EquationIdVectorType EquationId;
+            // We repeat the same declaration for each thead
+            std::vector<std::unordered_set<std::size_t> > temp_indexes(equation_size);
 
-	ModelPart::NodeIterator NodesBegin;
-	ModelPart::NodeIterator NodesEnd;
-	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            #pragma omp for
+            for (int index = 0; index < static_cast<int>(equation_size); ++index)
+                temp_indexes[index].reserve(30);
 
-	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-	  {
-	    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-	    const unsigned int neighSize =itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER).size();
-	    if (EquationId.size() != neighSize)
-	      EquationId.resize(neighSize, false);
+            // Getting the size of the array of elements from the model
+            const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
-	    /* const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X); */
-	    const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
-	    EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
+            // Element initial iterator
+            const auto el_begin = rModelPart.ElementsBegin();
 
-	    /* Vector& rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID); */
+            // We iterate over the elements
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
+                auto it_elem = el_begin + i_elem;
+                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
+                    }
+                }
+            }
 
-	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
-	      {
-		EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
-		/* unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i]; */
-		/* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xDofPos).EquationId(); */
-		/* rNodeOrderedNeighboursPressureId[i]=EquationId[i]; */
-	      }
+            // Getting the size of the array of the conditions
+            const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
+            // Condition initial iterator
+            const auto cond_begin = rModelPart.ConditionsBegin();
 
+            // We iterate over the conditions
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
+                auto it_cond = cond_begin + i_cond;
+                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
+                    }
+                }
+            }
 
+            // Merging all the temporal indexes
+            #pragma omp critical
+            {
+                for (int i = 0; i < static_cast<int>(temp_indexes.size()); ++i) {
+                    indices[i].insert(temp_indexes[i].begin(), temp_indexes[i].end());
+                }
+            }
+        }
 
-	    for (std::size_t i = 0; i < EquationId.size(); i++)
-	      {
-		if (EquationId[i] < BaseType::mEquationSystemSize)
-		  {
-#ifdef _OPENMP
-		    omp_set_lock(&mlock_array[EquationId[i]]);
-#endif
-		    auto& row_indices = indices[EquationId[i]];
-		    for (auto it = EquationId.begin(); it != EquationId.end(); it++)
-		      {
-			if (*it < BaseType::mEquationSystemSize)
-			  row_indices.insert(*it);
-		      }
-#ifdef _OPENMP
-		    omp_unset_lock(&mlock_array[EquationId[i]]);
-#endif
-		  }
-	      }
+        //count the row sizes
+        unsigned int nnz = 0;
+        for (unsigned int i = 0; i < indices.size(); i++)
+            nnz += indices[i].size();
 
+        A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
 
-	  }
+        double* Avalues = A.value_data().begin();
+        std::size_t* Arow_indices = A.index1_data().begin();
+        std::size_t* Acol_indices = A.index2_data().begin();
 
-	Element::EquationIdVectorType ids(3, 0);
-
-
-#pragma omp parallel for firstprivate(nconditions, ids)
-	for (int iii = 0; iii<nconditions; iii++)
-	  {
-	    typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
-	    pScheme->Condition_EquationId( *(i_condition.base()) , ids, CurrentProcessInfo);
-	    for (std::size_t i = 0; i < ids.size(); i++)
-	      {
-		if (ids[i] < BaseType::mEquationSystemSize)
-		  {
-#ifdef _OPENMP
-		    omp_set_lock(&mlock_array[ids[i]]);
-#endif
-		    auto& row_indices = indices[ids[i]];
-		    for (auto it = ids.begin(); it != ids.end(); it++)
-		      {
-			if (*it < BaseType::mEquationSystemSize)
-			  row_indices.insert(*it);
-		      }
-#ifdef _OPENMP
-		    omp_unset_lock(&mlock_array[ids[i]]);
-#endif
-		  }
-	      }
-	  }
-
-	//count the row sizes
-	unsigned int nnz = 0;
-	for (unsigned int i = 0; i < indices.size(); i++)
-	  nnz += indices[i].size();
-
-	A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
-
-	double* Avalues = A.value_data().begin();
-	std::size_t* Arow_indices = A.index1_data().begin();
-	std::size_t* Acol_indices = A.index2_data().begin();
-
-	//filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-	Arow_indices[0] = 0;
-	for (int i = 0; i < static_cast<int>(A.size1()); i++)
-	  Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
+        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        Arow_indices[0] = 0;
+        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+            Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
 
 
-#pragma omp parallel for
-	for (int i = 0; i < static_cast<int>(A.size1()); i++)
-	  {
-	    const unsigned int row_begin = Arow_indices[i];
-	    const unsigned int row_end = Arow_indices[i + 1];
-	    unsigned int k = row_begin;
-	    for (auto it = indices[i].begin(); it != indices[i].end(); it++)
-	      {
-		Acol_indices[k] = *it;
-		Avalues[k] = 0.0;
-		k++;
-	      }
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+        {
+            const unsigned int row_begin = Arow_indices[i];
+            const unsigned int row_end = Arow_indices[i + 1];
+            unsigned int k = row_begin;
+            for (auto it = indices[i].begin(); it != indices[i].end(); it++)
+            {
+            Acol_indices[k] = *it;
+            Avalues[k] = 0.0;
+            k++;
+            }
 
-	    std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+            std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
 
-	  }
+        }
 
-	A.set_filled(indices.size() + 1, nnz);
+        A.set_filled(indices.size() + 1, nnz);
 
-	Timer::Stop("MatrixStructure");
-
-	/* std::cout<<"..... ConstructMatrixStructure for Momentum equation DONE"<<std::endl; */
-
-      }
-
-
+        Timer::Stop("MatrixStructure");
+    }
 
 
       void AssembleLHS(
