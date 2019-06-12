@@ -45,7 +45,8 @@ namespace Kratos {
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
             int i_neighbour_count,
-            int time_steps) {
+            int time_steps,
+            const ProcessInfo& r_process_info) {
 
         int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
 
