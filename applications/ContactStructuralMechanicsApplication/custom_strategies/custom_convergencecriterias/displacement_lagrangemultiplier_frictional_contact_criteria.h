@@ -70,6 +70,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ENSURE_CONTACT );
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -114,6 +115,7 @@ public:
         const TDataType LMTangentAbsTolerance,
         const TDataType NormalTangentRatio,
         const bool EnsureContact = false,
+        const bool PureSlip = false,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -121,6 +123,7 @@ public:
         // Set local flags
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);
+        mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP, PureSlip);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
 
         // The displacement solution
@@ -150,6 +153,7 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "ensure_contact"                                     : false,
+            "pure_slip"                                          : false,
             "print_convergence_criterion"                        : false,
             "displacement_relative_tolerance"                    : 1.0e-4,
             "displacement_absolute_tolerance"                    : 1.0e-9,
@@ -181,6 +185,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
     }
 
     //* Copy constructor.
@@ -258,7 +263,7 @@ public:
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
 
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -278,7 +283,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -298,7 +303,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -429,10 +434,12 @@ public:
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
             r_table.AddColumn("EXP. ABS", 10);
-            r_table.AddColumn("STI. RATIO", 10);
-            r_table.AddColumn("EXP. RAT", 10);
-            r_table.AddColumn("ABS", 10);
-            r_table.AddColumn("EXP. ABS", 10);
+            if (mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
+                r_table.AddColumn("STI. RATIO", 10);
+                r_table.AddColumn("EXP. RAT", 10);
+                r_table.AddColumn("ABS", 10);
+                r_table.AddColumn("EXP. ABS", 10);
+            }
             r_table.AddColumn("SLIP RATIO", 10);
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
@@ -551,6 +558,10 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(3));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(3, false));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_FRICTIONAL_CONTACT_CRITERIA_H */
