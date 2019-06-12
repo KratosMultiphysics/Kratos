@@ -13348,7 +13348,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<2, 2, true, 2>::CalculateLo
     const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 2, 2>,  (2 * 2)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 2, 2>, 4>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -13780,7 +13780,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<3, 3, true, 3>::CalculateLo
     const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 3, 3>,  (3 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 3, 3>, 9>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -15846,7 +15846,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<3, 4, true, 4>::CalculateLo
     const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 4, 3>,  (4 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 4, 3>, 12>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -20418,7 +20418,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<3, 3, true, 4>::CalculateLo
     const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 3, 3>,  (3 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 3, 3>, 9>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -23252,7 +23252,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<3, 4, true, 3>::CalculateLo
     const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 4, 3>,  (4 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 4, 3>, 12>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0

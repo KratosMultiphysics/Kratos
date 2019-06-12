@@ -1177,7 +1177,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                             if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
-                            } else {
+                            } else if (!r_node.IsDefined(SLIP)) {
                                 r_node.Set(SLIP, false);
                             }
                         }
@@ -1185,7 +1185,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         NodeType& r_node = r_slave_geometry[i_node];
                         if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
-                        } else {
+                        } else if (!r_node.IsDefined(SLIP)) {
                             r_node.Set(SLIP, false);
                         }
                     }
@@ -1200,7 +1200,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                             if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
-                            } else {
+                            } else if (!r_node.IsDefined(SLIP)) {
                                 r_node.Set(SLIP, false);
                             }
                         }
@@ -1208,7 +1208,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         NodeType& r_node = r_slave_geometry[i_node];
                         if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
-                        } else {
+                        } else if (!r_node.IsDefined(SLIP)) {
                             r_node.Set(SLIP, false);
                         }
                     }
@@ -1226,7 +1226,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                 if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                     if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                         r_node.Set(SLIP, true);
-                    } else {
+                    } else if (!r_node.IsDefined(SLIP)) {
                         r_node.Set(SLIP, false);
                     }
                 }
@@ -1234,7 +1234,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                 NodeType& r_node = r_slave_geometry[i_node];
                 if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                     r_node.Set(SLIP, true);
-                } else {
+                } else if (!r_node.IsDefined(SLIP)) {
                     r_node.Set(SLIP, false);
                 }
             }
@@ -1459,7 +1459,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     if (mrMainModelPart.Is(SLIP)) {
         if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
-        } else {
+        } else if (!ItNode->IsDefined(SLIP)) {
             ItNode->Set(SLIP, false);
         }
     }
