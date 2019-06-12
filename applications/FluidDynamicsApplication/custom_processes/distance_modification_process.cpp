@@ -357,12 +357,12 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState(){
             auto it_node = mrModelPart.NodesBegin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                    Variable<double> double_var = mDoubleVariablesList[i_var];
+                    Variable<double>& double_var = mDoubleVariablesList[i_var];
                     // Free the nodal DOFs  that were fixed
                     it_node->Free(double_var);
                 }
                 for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                    ComponentType component_var = mComponentVariablesList[i_comp];
+                    ComponentType& component_var = mComponentVariablesList[i_comp];
                     // Free the nodal DOFs that were fixed
                     it_node->Free(component_var);
                 }
@@ -457,14 +457,14 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
             ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (int i_var = 0; i_var < static_cast<int>(mDoubleVariablesList.size()); i_var++){
-                    Variable<double> double_var = mDoubleVariablesList[i_var];
+                    Variable<double>& double_var = mDoubleVariablesList[i_var];
                     // Fix the nodal DOFs
                     it_node->Fix(double_var);
                     // Set to zero the nodal DOFs
                     it_node->FastGetSolutionStepValue(double_var) = 0.0;
                 }
                 for (int i_comp = 0; i_comp < static_cast<int>(mComponentVariablesList.size()); i_comp++){
-                    ComponentType component_var = mComponentVariablesList[i_comp];
+                    ComponentType& component_var = mComponentVariablesList[i_comp];
                     // Fix the nodal DOFs
                     it_node->Fix(component_var);
                     // Set to zero the nodal DOFs
