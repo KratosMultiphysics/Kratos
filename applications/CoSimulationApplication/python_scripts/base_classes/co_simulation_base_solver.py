@@ -62,20 +62,20 @@ class CoSimulationBaseSolver(object):
     def SolveSolutionStep(self):
         pass
 
-    def ImportCouplingInterfaceData(self, data_name, from_client):
+    def ImportCouplingInterfaceData(self, data_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterfaceData(data_name, from_client)
-    def ImportCouplingInterface(self, geometry_name, from_client):
+    def ImportCouplingInterface(self, geometry_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterface(geometry_name, from_client)
 
-    def ExportCouplingInterfaceData(self, data_name, to_client):
+    def ExportCouplingInterfaceData(self, data_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterfaceData(data_name, to_client)
-    def ExportCouplingInterface(self, geometry_name, to_client):
+    def ExportCouplingInterface(self, geometry_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(geometry_name, to_client)
@@ -112,7 +112,8 @@ class CoSimulationBaseSolver(object):
         return False
 
     def _GetIOName(self):
-        raise Exception('"_GetIOName" function must be implemented in derived class!')
+        # only external solvers have to specify sth here
+        return "dummy"
 
     ## __CreateInterfaceDataDict : Private Function to obtain the map of data objects
     #

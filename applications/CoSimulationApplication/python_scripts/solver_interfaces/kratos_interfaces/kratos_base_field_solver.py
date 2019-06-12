@@ -74,6 +74,3 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
 
     def IsDistributed(self):
         return (self._GetParallelType() == "MPI")
-
-    def _GetIOName(self):
-        return "kratos"

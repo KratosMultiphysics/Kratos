@@ -116,7 +116,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             to_solver_data = to_solver.GetInterfaceData(i_input_data["data"].GetString())
 
             # Importing data from external solvers
-            # to_solver.ImportCouplingInterfaceData(to_solver_data)
+            to_solver.ImportCouplingInterfaceData(to_solver_data)
 
             # perform the data transfer
             self.__ExecuteCouplingOperations(i_input_data["before_data_transfer_operations"])
@@ -126,8 +126,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_input_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
-
-
 
     def _SynchronizeOutputData(self, solver_name):
         from_solver = self.participating_solvers[solver_name]
@@ -153,7 +151,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.__ExecuteCouplingOperations(i_output_data["after_data_transfer_operations"])
 
             # Importing data from external solvers
-            # from_solver.ExportCouplingInterfaceData(from_solver_data)
+            from_solver.ExportCouplingInterfaceData(from_solver_data)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
