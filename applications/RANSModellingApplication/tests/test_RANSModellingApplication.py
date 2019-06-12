@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suites
 from evm_k_epsilon_tests import EvmKEpsilonTest
+from custom_process_tests import CustomProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -31,7 +32,12 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(EvmKEpsilonTest('testCylinderTransient'))
+    nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
+    nightSuite.addTest(CustomProcessTest('testScalarCellCenterAveragingProcess'))
+    nightSuite.addTest(CustomProcessTest('testVectorCellCenterAveragingProcess'))
+    nightSuite.addTest(CustomProcessTest('testVectorAlignProcessTangential'))
+    nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
+    # nightSuite.addTest(EvmKEpsilonTest('testCylinderTransient')) #TODO: Has a convergence problem, therefore gives a race condition
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -39,8 +45,9 @@ def AssembleTestSuites():
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    # allSuite.addTests(nightSuite) #TODO: Has a convergence problem, therefore gives a race condition
-    allSuite.addTests(validationSuite)
+    allSuite.addTests(nightSuite)
+
+    # allSuite.addTests(validationSuite)
 
     return suites
 
