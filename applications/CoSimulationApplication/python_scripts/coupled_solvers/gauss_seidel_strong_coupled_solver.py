@@ -32,7 +32,6 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
-        # TODO check if an accelerator was specified for a field that is manipulated in the input!
 
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
@@ -66,23 +65,10 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
                 couplingsolverprint(self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
                 return False
 
-    def PrintInfo(self):
-        super(GaussSeidelStrongCouplingSolver, self).PrintInfo()
-
-        couplingsolverprint(self._Name(), "Uses the following objects:")
-        for conv_acc in self.convergence_accelerators_list:
-            conv_acc.PrintInfo()
-        for conv_crit in self.convergence_criteria_list:
-            conv_crit.PrintInfo()
-
     def Check(self):
-        super(GaussSeidelStrongCouplingSolver, self).Check()
-        for conv_acc in self.convergence_accelerators_list:
-            conv_acc.Check()
-        for conv_crit in self.convergence_criteria_list:
-            conv_crit.Check()
-
-            # TODO check if at least one conv-crit was specified?
+        # TODO check if at least one conv-crit was specified?
+        # TODO check if an accelerator was specified for a field that is manipulated in the input!
+        pass
 
     @classmethod
     def _GetDefaultSettings(cls):
