@@ -6,6 +6,7 @@ message("**** configuring KratosExaquteSandboxApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 # generate variables with the sources
 set( KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES
@@ -30,7 +31,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosExaquteSandboxCore SHARED ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES} ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_CORE} ${KRATOS_EXAQUTE_SANDBOX_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosExaquteSandboxCore PRIVATE KratosCore )
+target_link_libraries(KratosExaquteSandboxCore PRIVATE KratosCore KratosMeshingCore)
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosExaquteSandboxApplication MODULE THIN_LTO ${KRATOS_EXAQUTE_SANDBOX_PYTHON_INTERFACE_SOURCES})
