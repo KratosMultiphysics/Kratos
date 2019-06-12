@@ -163,7 +163,7 @@ for normalvar in range(normal_combs):
                 if active == 1:
                     augmented_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                     rv_galerkin += DynamicFactor[node] * (augmented_contact_pressure * NormalSlave.row(node)).dot(Dw1Mw2.row(node))
-                    rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
+                    rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
                 else:
                     rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
 
