@@ -242,18 +242,20 @@ for normalvar in range(normal_combs):
                 for slip in range(5):
                     rv_galerkin = 0
                     if slip == 0: # Inactive
-                        rv_galerkin -= ScaleFactor**2.0 / PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
-                        rv_galerkin -= ScaleFactor**2.0 / (PenaltyParameter[node] * TangentFactor) * (LMTangent.row(node)).dot(wLMTangent.row(node))
+                        rv_galerkin -= ScaleFactor**2 / PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
+                        rv_galerkin -= ScaleFactor**2 / (PenaltyParameter[node] * TangentFactor) * (LMTangent.row(node)).dot(wLMTangent.row(node))
+                        #rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
                     else:
-                        augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                         rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
 
+                        augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                         normal_augmented_contact_pressure = augmented_normal_contact_pressure * NormalSlave.row(node)
                         rv_galerkin -= DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
 
                         if slip == 1 or slip == 2: # Slip
                             augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
                             modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
+
                             rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
                             if slip == 1: # Objective
                                 rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
