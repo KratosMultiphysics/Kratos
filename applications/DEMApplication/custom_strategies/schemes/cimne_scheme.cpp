@@ -54,6 +54,7 @@ namespace Kratos {
         }
         else if(StepFlag == 2) //CORRECTOR
         {
+            KRATOS_WATCH(mOldVelocity)
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
                     vel[k] = mOldVelocity[k] + (1.0 - alpha_coeff)*(mOldAcceleration[k]* delta_t) +
