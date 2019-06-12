@@ -95,7 +95,7 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
         "avoid_almost_empty_elements"                 : true,
         "deactivate_full_negative_elements"           : true,
         "recover_original_distance_at_each_step"      : false,
-        "full_negative_elements_fixed_variables_list" : ["PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"]
+        "full_negative_elements_fixed_variables_list" : ["PRESSURE","VELOCITY"]
     }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -519,6 +519,22 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var, r_node)
                
                 mComponentVariablesList.push_back(&r_component_var);
+            }
+            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(rVariableStringArray[i_variable])){
+                const auto& r_component_var_x = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_X");
+                const auto& r_component_var_y = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Y");
+                const auto& r_component_var_z = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Z");
+
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var_x, r_node);
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var_y, r_node);
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var_z, r_node);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var_x, r_node)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var_y, r_node)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var_z, r_node)
+
+                mComponentVariablesList.push_back(&r_component_var_x);
+                mComponentVariablesList.push_back(&r_component_var_y);
+                mComponentVariablesList.push_back(&r_component_var_z);
             }
             else {
                 KRATOS_ERROR << "The variable defined in the list is not a double variable nor a component variable. Given variable: " << rVariableStringArray[i_variable] << std::endl;
