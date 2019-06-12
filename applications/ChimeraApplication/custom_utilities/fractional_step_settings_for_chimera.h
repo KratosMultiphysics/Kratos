@@ -22,7 +22,8 @@
 #include "processes/process.h"
 
 // Application includes
-#include "custom_utilities/solver_settings_for_chimera.h"
+#include "custom_utilities/solver_settings.h"
+#include "custom_strategies/custom_builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_for_chimera.h"
 
 namespace Kratos
 {
