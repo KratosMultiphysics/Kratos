@@ -223,9 +223,6 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param Parameters Settings used in the strategy
-     * @param CalculateReactions The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag The flag that allows to move the mesh
      */
     ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
@@ -279,9 +276,6 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver employed
      * @param Parameters Settings used in the strategy
-     * @param CalculateReactions The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag The flag that allows to move the mesh
      */
     ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
@@ -1175,6 +1169,7 @@ class ResidualBasedNewtonRaphsonStrategy
     
     /**
      * @brief This method assigns settings to member variables
+     * @param Settings Parameters that are assigned to the member variables
      */
     virtual void AssignSettings(Parameters Settings)
     {
