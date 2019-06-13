@@ -236,7 +236,7 @@ for normalvar in range(normal_combs):
         #############################################################################
         #############################################################################
 
-        # Compute galerkin functional # NOTE: Maybe you can define a different penalty and scale factor in the tangent direction NOTE: This is for Galerkin functional
+        # Compute galerkin functional # NOTE: This is for Galerkin functional
         lhs_string += lhs_template_begin_string
         rhs_string += rhs_template_begin_string
         if debug_counter == 0:
