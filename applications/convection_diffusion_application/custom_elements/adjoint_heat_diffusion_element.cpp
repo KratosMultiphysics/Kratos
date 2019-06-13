@@ -196,6 +196,8 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             const double weight = integration_points[g].Weight();
 
             Vector primal_gradient = prod(trans(shape_function_global_gradients),primal_values);
+            Matrix laplacian_operator = prod(shape_function_global_gradients, trans(shape_function_global_gradients));
+            Vector laplacian_rhs = prod(laplacian_operator, primal_values);
 
             for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
             {
@@ -204,9 +206,26 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                 GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
                 geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
 
-                for (unsigned int j = 0; j < num_nodes; j++)
+                Vector aux = prod(shape_function_gradient_deriv, primal_values);
+
+                // Calculation by product rule of d/dX_l ( w * J * dN_i/dx_k * dN_j/dx_k * Temperature_j )
+                for (unsigned int i = 0; i < num_nodes; i++)
                 {
-                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, j) += 0.0; // write to the matrix!
+                    const unsigned int l = deriv.NodeIndex * dimension + deriv.Direction;
+
+                    // partial derivative of the determinant of Jacobian w * dJ/dX * dN_i/dx_k * dN_j/dx_k * Temperature_j
+                    double contribution_li = det_j_deriv * laplacian_rhs[i];
+
+                    for (unsigned int k = 0; k < dimension; k++)
+                    {
+                        // partial derivative of the "test function" shape function gradient w * J * d/dX(dN_i/dx_k) * dN_j/dx_k * Temperature_j
+                        contribution_li += det_j * shape_function_gradient_deriv(l,k) * primal_gradient[k];
+
+                        // partial derivative of the "primal variable" shape function gradient w * J * dN_i/dx_k * d/dX(dN_j/dx_k) * Temperature_j
+                        contribution_li += det_j * shape_function_global_gradients(i,k) * aux[k];
+                    }
+
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * contribution_li;
                 }
             }
         }
