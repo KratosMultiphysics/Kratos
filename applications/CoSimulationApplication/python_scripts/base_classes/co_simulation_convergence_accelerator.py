@@ -1,20 +1,37 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-from . import co_simulation_coupling_operation
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-class CoSimulationConvergenceAccelerator(co_simulation_coupling_operation.CoSimulationCouplingOperation):
+class CoSimulationConvergenceAccelerator(object):
     def __init__(self, settings, solver):
-        super(CoSimulationConvergenceAccelerator, self).__init__(settings)
+        self.settings = settings
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
 
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
+
+        self.echo_level = self.settings["echo_level"].GetInt()
+
+    def Initialize(self):
+        pass
+
+    def Finalize(self):
+        pass
+
+    def InitializeSolutionStep(self):
+        pass
+
+    def FinalizeSolutionStep(self):
+        pass
 
     def InitializeCouplingIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
         self.input_data = self.interface_data.GetNumpyArray()
+
+    def FinalizeCouplingIteration(self):
+        pass
 
     def ComputeAndApplyUpdate(self):
         current_data = self.interface_data.GetNumpyArray()
@@ -31,20 +48,14 @@ class CoSimulationConvergenceAccelerator(co_simulation_coupling_operation.CoSimu
     def Check(self):
         print("ConvAcc does not yet implement Check")
 
-    def Execute(self):
-        raise Exception("This is not supposed to be used for ConvergenceAccelerators!")
-
     def ComputeUpdate( self, residual, previous_data ):
         raise Exception('"ComputeUpdate" has to be implemented in the derived class!')
 
     @classmethod
     def _GetDefaultSettings(cls):
-        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+        return cs_tools.cs_data_structure.Parameters("""{
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",
-            "data_name"  : "UNSPECIFIED"
+            "data_name"  : "UNSPECIFIED",
+            "echo_level" : 0
         }""")
-
-        this_defaults.AddMissingParameters(super(CoSimulationConvergenceAccelerator, cls)._GetDefaultSettings())
-
-        return this_defaults
