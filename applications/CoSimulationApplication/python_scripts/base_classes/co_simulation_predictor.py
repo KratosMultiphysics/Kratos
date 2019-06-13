@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-class CosimulationPredictor(object):
+class CoSimulationPredictor(object):
     def __init__(self, settings, solver):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
