@@ -23,10 +23,9 @@ def convert_active_inactive_int(list_active):
     return value
 
 # Debug
-#dim_combinations = [2]
-#nnodes_combinations = [2]
-#nnodes_master_combinations = [2]
-#normal_combs = 1
+debug = False
+#debug = True # NOTE: COMMENT FOR NOT DEBUG
+debug_counter = 0
 
 dim_combinations = [2,3,3,3,3]
 nnodes_combinations = [2,3,4,3,4]
@@ -132,7 +131,7 @@ for normalvar in range(normal_combs):
         Dw1Mw2 = DOperator * w1 - MOperator * w2
 
         for node in range(nnodes):
-            NormalGap[node] = Dx1Mx2.row(node).dot(NormalSlave.row(node))
+            NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
 
         # Define dofs & test function vector
         dofs = sympy.Matrix( sympy.zeros(number_dof, 1) )
@@ -165,54 +164,57 @@ for normalvar in range(normal_combs):
         # Compute galerkin functional
         lhs_string += lhs_template_begin_string
         rhs_string += rhs_template_begin_string
-        for node in range(nnodes):
-            for active in range(2):
-                rv_galerkin = 0
-                if active == 1: # Active
-                    augmented_lm = (ScaleFactor * LM.row(node) + PenaltyParameter[node] * NormalGap[node] * NormalSlave.row(node))
-                    rv_galerkin += DynamicFactor[node] * (augmented_lm).dot(Dw1Mw2.row(node))
-                    rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
-                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
-                else: # Inactive
-                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
+        if debug_counter == 0:
+            for node in range(nnodes):
+                for active in range(2):
+                    rv_galerkin = 0
+                    if active == 1: # Active
+                        augmented_lm = (ScaleFactor * LM.row(node) + PenaltyParameter[node] * NormalGap[node] * NormalSlave.row(node))
+                        rv_galerkin += DynamicFactor[node] * (augmented_lm).dot(Dw1Mw2.row(node))
+                        rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
+                        rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
+                    else: # Inactive
+                        rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
 
-                if do_simplifications:
-                    rv_galerkin = sympy.simplify(rv_galerkin)
+                    if do_simplifications:
+                        rv_galerkin = sympy.simplify(rv_galerkin)
 
-                #############################################################################
-                # Complete functional
-                rv = sympy.Matrix( sympy.zeros(1, 1) )
-                rv[0,0] = rv_galerkin
+                    #############################################################################
+                    # Complete functional
+                    rv = sympy.Matrix( sympy.zeros(1, 1) )
+                    rv[0,0] = rv_galerkin
 
-                rhs,lhs = custom_sympy_fe_utilities.Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
-                print("LHS= ",lhs.shape)
-                print("RHS= ",rhs.shape)
-                print("LHS and RHS have been created!")
+                    rhs,lhs = custom_sympy_fe_utilities.Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
+                    print("LHS= ",lhs.shape)
+                    print("RHS= ",rhs.shape)
+                    print("LHS and RHS have been created!")
 
-                lhs_out = custom_sympy_fe_utilities.OutputMatrix_CollectingFactorsNonZero(lhs,"lhs", mode, 1, number_dof)
-                rhs_out = custom_sympy_fe_utilities.OutputVector_CollectingFactorsNonZero(rhs,"rhs", mode, 1, number_dof)
-                print("Substitution strings are ready....")
+                    lhs_out = custom_sympy_fe_utilities.OutputMatrix_CollectingFactorsNonZero(lhs,"lhs", mode, 1, number_dof)
+                    rhs_out = custom_sympy_fe_utilities.OutputVector_CollectingFactorsNonZero(rhs,"rhs", mode, 1, number_dof)
+                    print("Substitution strings are ready....")
 
-                if active == 0:
-                    lhs_string += "    \n    // NODE " + str(node) + "\n"
-                    lhs_string += "    if (r_geometry[" + str(node) + "].IsNot(ACTIVE)) { // INACTIVE\n    "
-                else:
-                    lhs_string += "} else { // ACTIVE\n    "
-                lhs_string += lhs_out.replace("\n","\n    ")
-                if active == 1:
-                    lhs_string += "}"
+                    if active == 0:
+                        lhs_string += "    \n    // NODE " + str(node) + "\n"
+                        lhs_string += "    if (r_geometry[" + str(node) + "].IsNot(ACTIVE)) { // INACTIVE\n    "
+                    else:
+                        lhs_string += "} else { // ACTIVE\n    "
+                    lhs_string += lhs_out.replace("\n","\n    ")
+                    if active == 1:
+                        lhs_string += "}"
 
-                if active == 0:
-                    rhs_string += "    \n    // NODE " + str(node) + "\n"
-                    rhs_string += "    if (r_geometry[" + str(node) + "].IsNot(ACTIVE)) { // INACTIVE\n    "
-                else:
-                    rhs_string += "} else { // ACTIVE\n    "
-                rhs_string += rhs_out.replace("\n","\n    ")
-                if active == 1:
-                    rhs_string += "}"
+                    if active == 0:
+                        rhs_string += "    \n    // NODE " + str(node) + "\n"
+                        rhs_string += "    if (r_geometry[" + str(node) + "].IsNot(ACTIVE)) { // INACTIVE\n    "
+                    else:
+                        rhs_string += "} else { // ACTIVE\n    "
+                    rhs_string += rhs_out.replace("\n","\n    ")
+                    if active == 1:
+                        rhs_string += "}"
 
         lhs_string += lhs_template_end_string
         rhs_string += rhs_template_end_string
+        if debug:
+            debug_counter += 1
 
         lhs_string = lhs_string.replace("TDim", str(dim))
         lhs_string = lhs_string.replace("TNumNodesMaster", str(nnodes_master))
