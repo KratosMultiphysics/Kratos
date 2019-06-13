@@ -26,28 +26,35 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             self.solver_wrappers,
             self.echo_level)
 
-        self.coupling_operations_list = list(self.coupling_operations_dict.values())
-
         ### Creating the data transfer operators
         self.data_transfer_operators_dict = cs_tools.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
             self.echo_level)
 
-        # creating list of components involved in the CoSimulation that require common operations
-        # list of lists because this way more objects can be added to the individual lists in derived
-        # classes and they will automatically also be called
-        self.components_lists = [list(self.solver_wrappers.values()), self.coupling_operations_list, self.predictors_list]
-
     def Initialize(self):
-        [[comp.Initialize() for comp in comp_list] for comp_list in self.components_lists]
+        for solver in self.solver_wrappers.values():
+            solver.Initialize()
 
         for solver in self.solver_wrappers.values():
             solver.InitializeIO(self.solver_wrappers, self.echo_level)
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
+        for predictor in self.predictors_list:
+            predictor.Initialize()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.Initialize()
+
     def Finalize(self):
-        [[comp.Finalize() for comp in comp_list] for comp_list in self.components_lists]
+        for solver in self.solver_wrappers.values():
+            solver.Finalize()
+
+        for predictor in self.predictors_list:
+            predictor.Finalize()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.Finalize()
 
     def AdvanceInTime(self, current_time):
         self.time = 0.0
@@ -64,10 +71,24 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             solver.Predict()
 
     def InitializeSolutionStep(self):
-        [[comp.InitializeSolutionStep() for comp in comp_list] for comp_list in self.components_lists]
+        for solver in self.solver_wrappers.values():
+            solver.InitializeSolutionStep()
+
+        for predictor in self.predictors_list:
+            predictor.InitializeSolutionStep()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        [[comp.FinalizeSolutionStep() for comp in comp_list] for comp_list in self.components_lists]
+        for solver in self.solver_wrappers.values():
+            solver.FinalizeSolutionStep()
+
+        for predictor in self.predictors_list:
+            predictor.FinalizeSolutionStep()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         for solver in self.solver_wrappers.values():
@@ -152,11 +173,25 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         super(CoSimulationCoupledSolver, self).PrintInfo()
 
         couplingsolverprint(self._Name(), "Has the following components:")
-        [[comp.PrintInfo() for comp in comp_list] for comp_list in self.components_lists]
+        for solver in self.solver_wrappers.values():
+            solver.PrintInfo()
+
+        for predictor in self.predictors_list:
+            predictor.PrintInfo()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.PrintInfo()
 
     def Check(self):
         super(CoSimulationCoupledSolver, self).Check()
-        [[comp.Check() for comp in comp_list] for comp_list in self.components_lists]
+        for solver in self.solver_wrappers.values():
+            solver.Check()
+
+        for predictor in self.predictors_list:
+            predictor.Check()
+
+        for coupling_operation in self.coupling_operations_dict.values():
+            coupling_operation.Check()
 
     def IsDistributed(self):
         return True
