@@ -72,6 +72,8 @@ namespace Kratos
                 pProperties);
         };
 
+        void Initialize() override;
+
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom
         * @param rResult The vector containing the equation id
@@ -140,7 +142,12 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         }
-        ///@}
+
+        array_1d<double, 3> mReferenceBaseVector;
+
+        //Vector3 GetReferenceBaseVector() const;
+
+        array_1d<double, 3> GetActualBaseVector() const;
 
     }; // Class LoadCurveDiscreteCondition
 

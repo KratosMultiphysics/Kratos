@@ -47,14 +47,16 @@ namespace Kratos
         if (this->Has(SURFACE_LOAD))
         {
             Vector surface_load = this->GetValue(SURFACE_LOAD);
+            if(this->Id() == 0){KRATOS_WATCH(surface_load)};
 
             for (int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                rRightHandSideVector[index]     = - surface_load[0] * integration_weight_area * N[i];
-                rRightHandSideVector[index + 1] = - surface_load[1] * integration_weight_area * N[i];
-                rRightHandSideVector[index + 2] = - surface_load[2] * integration_weight_area * N[i];
+                rRightHandSideVector[index]     -=  surface_load[0] * integration_weight_area * N[i];
+                rRightHandSideVector[index + 1] -=  surface_load[1] * integration_weight_area * N[i];
+                rRightHandSideVector[index + 2] -=  surface_load[2] * integration_weight_area * N[i];
             }
+            //if(this->Id() == 0){KRATOS_WATCH(rRightHandSideVector)};
         }
 
         // Pressure loads

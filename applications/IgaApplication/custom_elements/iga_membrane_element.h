@@ -27,28 +27,10 @@
 namespace Kratos
 {
 
-//template<class TPointType>
-//class Geometry : public PointerVector<TPointType>
-
-//public:
-//    GetGeometry();
-
-//namespace IgaGeometryUtilities
-//{
-//    static void CalculateJacobian(
-//        const Element::GeometryType& rGeometry,
-//        const Matrix& rDN_De,
-//        const unsigned int rWorkingSpaceDimension,
-//        const unsigned int rLocalSpaceDimension,
-//        Matrix& rJacobian);
-//}
-
 class IgaMembraneElement
     : public IgaBaseElement
 {
-protected: //aus surface_base_element.h übernommen
-
-//std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;//SPANNUGEN
+protected: 
 
     struct MetricVariables 
     {
@@ -64,9 +46,7 @@ protected: //aus surface_base_element.h übernommen
         Matrix H; //Hessian
         Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
         Matrix T; //Transformation matrix T from contravariant to local cartesian basis
-        Matrix Qn;
-        //Matrix R; //.R
-
+       
         MetricVariables(const unsigned int& Dimension)
         {
             gab = ZeroVector(Dimension);
@@ -86,13 +66,11 @@ protected: //aus surface_base_element.h übernommen
             Matrix H = ZeroMatrix(3, 3);
             Matrix Q = ZeroMatrix(3, 3);
             Matrix T = ZeroMatrix(3, 3);
-            Matrix Qn = ZeroMatrix(3, 3);
-            //Matrix R = ZeroMatrix(3, 3);//.R
         }
 
     }; 
 
-    MetricVariables mInitialMetric = MetricVariables(3); //aus surface_base_element.h übernommen
+    MetricVariables mInitialMetric = MetricVariables(3); 
 
     struct ConstitutiveVariables //aus surface_base_element.h übernommen
     {
@@ -214,12 +192,6 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override;
 
-    
-    //void CalculateSecondVariationStrainCurvature(
-    //    SecondVariations& rSecondVariationsStrain,
-    //    SecondVariations& rSecondVariationsCurvature,
-    //    const MetricVariables& rMetric);
-
 /**
     * Calculate a double Variable on the Element Constitutive Law
     * @param rVariable: The variable we want to get
@@ -228,29 +200,10 @@ public:
     */
     void Calculate(
         const Variable<double>& rVariable,
-        double& rOutput,//std::vector<double>& rOutput,
+        double& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    /**
-    * Calculate a Vector Variable on the Element
-    * @param rVariable: The variable we want to get
-    * @param rOutput: The values obtained int the integration points
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void Calculate(
-        const Variable<array_1d<double, 3>>& rVariable,
-       array_1d<double, 3>& rOutput,
-       //std::vector<std::array<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    void IgaMembraneElement::Calculate(
-        const Variable<Vector>& rVariable,
-        Vector& rOutput,
-        //std::vector<std::array<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        );// override;
 
     void CalculateStresses(
         Vector& rStresses,
@@ -258,18 +211,13 @@ public:
 
     void CalculatePresstressTensor(
         Vector& rPrestressTensor,
-        MetricVariables& rMetric);
-    
-
-   
+        MetricVariables& rMetric); 
 
 private:
 
-ConstitutiveLaw::Pointer mConstitutiveLaw; //benötige für Initilize()
-//Vector3 mReferenceBaseVector; //.R
-//Vector3 GetActualBaseVector() const; //.R
+ConstitutiveLaw::Pointer mConstitutiveLaw; 
 
-void CalculateMetric( MetricVariables& metric ); //aus surface_base_element.h übernommen
+void CalculateMetric( MetricVariables& metric ); 
 
 void IgaMembraneElement::CalculateBMembrane(
         Matrix& rB,
@@ -284,7 +232,7 @@ void IgaMembraneElement::CalculateStrain(
         Vector& gab,
         Vector& gab0);
 
-void CalculateConstitutiveVariables( //aus shell_kl_discrete_element.h
+void CalculateConstitutiveVariables( 
         MetricVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveLaw::Parameters& rValues,
@@ -307,33 +255,10 @@ void CalculateSecondVariationStrainMembrane(
         const MetricVariables& rMetric);
 
 void CalculateTransformationmatrixPrestress(
-       const MetricVariables& metric,
-        /*Vector& t1,
-        Vector& t2,
-        Vector& t3,
-        Vector& e1,
-        Vector& e2,
-        Vector& e3,
-        double& eG11,
-        double& eG12,
-        double& eG21,
-        double& eG22,*/
-        PrestresstransVariables& Prestresstrans
-         );
-
-void IgaMembraneElement::trans_prestress(
         const MetricVariables& metric,
-        Vector S_prestress_result// transPreVariables& transPre
-    );
+        PrestresstransVariables& Prestresstrans
+        );
 
-/*
-static void IgaGeometryUtilities::CalculateJacobian(    //aus iga_geometry_utilities.h
-        const Element::GeometryType& rGeometry,
-        const Matrix& rDN_De,
-        const unsigned int rWorkingSpaceDimension,
-        const unsigned int rLocalSpaceDimension,
-        Matrix& rJacobian);
-*/
 };
 
 } // namespace Kratos

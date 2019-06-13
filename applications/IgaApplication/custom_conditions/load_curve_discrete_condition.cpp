@@ -99,11 +99,40 @@ namespace Kratos
             }
         }
 
+        // Pressure loads
+        if (this->Has(PRESSURE))
+        {
+            double pressure = this->GetValue(PRESSURE);
+            array_1d<double, 3> t1 = ZeroVector(3);
+            array_1d<double, 2> tangents = GetValue(TANGENTS);
+           //KRATOS_WATCH(tangents);
+            IgaCurveOnSurfaceUtilities::CalculateNormal(GetGeometry(), DN_De, tangents, t1);
+            //KRATOS_WATCH(t1);
+           
+            const array_1d<double, 3> actual_base_vector = GetActualBaseVector();
+            const double reference_a = norm_2(mReferenceBaseVector);
+            const double actual_a = norm_2(actual_base_vector);
+            //KRATOS_WATCH(reference_a );
+            //KRATOS_WATCH(norm_2(actual_base_vector));
+
+            array_1d<double, 3> t_n = ZeroVector(3);
+            t_n=t1/norm_2(t1);
+           
+            for (int i = 0; i < number_of_control_points; i++)
+            {
+                int index = 3 * i;
+                rRightHandSideVector[index] -= t_n[0] * pressure * integration_weight * N[i]*reference_a /actual_a;
+                rRightHandSideVector[index + 1] -= t_n[1] * pressure * integration_weight * N[i] *reference_a/actual_a;
+                rRightHandSideVector[index + 2] -= t_n[2] * pressure * integration_weight * N[i]*reference_a/actual_a;
+                                
+            }
+        }
+
         //KRATOS_WATCH(rRightHandSideVector)
 
         noalias(rRightHandSideVector) += f_loads;
 
-        KRATOS_WATCH(rRightHandSideVector)
+        //KRATOS_WATCH(rRightHandSideVector)
     }
 
     void LoadCurveDiscreteCondition::EquationIdVector(
@@ -141,6 +170,26 @@ namespace Kratos
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
-    };
+    }
 
+    void LoadCurveDiscreteCondition::Initialize()
+        {
+            mReferenceBaseVector= GetActualBaseVector();
+        }
+
+    array_1d<double, 3> LoadCurveDiscreteCondition::GetActualBaseVector() const
+        {
+            const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+            const Vector& t = GetValue(TANGENTS);
+   
+            array_1d<double, 3> actual_base_vector = ZeroVector(3); 
+
+            IgaCurveOnSurfaceUtilities::CalculateTangent(
+                GetGeometry(),
+                DN_De,
+                t,
+                actual_base_vector
+            );
+            return actual_base_vector;
+        }
 } // Namespace Kratos
