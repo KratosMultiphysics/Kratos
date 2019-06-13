@@ -167,7 +167,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def __CreateSolvers(self):
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
-        import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
+        import KratosMultiphysics.CoSimulationApplication.solver_wrappers.co_simulation_solver_factory as solver_factory
         from collections import OrderedDict
         # first create all solvers
         solvers = {}

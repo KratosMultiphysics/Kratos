@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_io_factory as io_factory
+import KratosMultiphysics.CoSimulationApplication.solver_wrappers.co_simulation_io_factory as io_factory
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 # Other imports
