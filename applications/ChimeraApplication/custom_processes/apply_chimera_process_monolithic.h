@@ -99,9 +99,9 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteInitializeSolutionStep() override;
+    virtual void ExecuteInitializeSolutionStep() override;
 
-    void ExecuteFinalizeSolutionStep() override;
+    virtual void ExecuteFinalizeSolutionStep() override;
 
     virtual std::string Info() const override
     {
@@ -160,27 +160,27 @@ protected:
     /**
      * @brief Does a loop on the background and patch combinations possible and uses FormulateChimera method.
      */
-    void DoChimeraLoop();
+    virtual void DoChimeraLoop();
 
     /**
      * @brief Formulates the Chimera conditions with a given set of background and patch combination.
      * @param MainDomainOrNot Flag specifying if the background is the main bg or not
      */
-    void FormulateChimera(int MainDomainOrNot);
+    virtual void FormulateChimera(int MainDomainOrNot);
 
     /**
      * @brief Creates a vector of unique constraint ids based on how many required and how many are already present in the mrModelPart.
      * @param rIdVector The vector which is populated with unique constraint ids.
      * @param NumberOfConstraintsRequired The number of further constraints required. used for calculation of unique ids.
      */
-    void CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired);
+    virtual void CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired);
 
     /**
      * @brief Applies the continuity between the boundary modelpart and the background.
      * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
      * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes on rBoundaryModelPart.
      */
-    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator);
+    virtual void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator);
 
     /**
      * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)
@@ -188,7 +188,7 @@ protected:
      * @param rLowPoint The lowest point in the modelpart (returned)
      * @param rHighPoint The highest point in the modelpart (returned)
      */
-    void GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint);
+    virtual void GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint);
 
     /**
      * @brief Checks if two given modelparts (A and B) have bounding box overlaps
@@ -197,7 +197,7 @@ protected:
      * @param rModelPartB ModelPartB
      * @return bool if the bounding boxes intersect or not.
      */
-    bool BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB);
+    virtual bool BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB);
 
     /**
      * @brief Applies the master-slave constraint between the given master and slave nodes with corresponding variable.
