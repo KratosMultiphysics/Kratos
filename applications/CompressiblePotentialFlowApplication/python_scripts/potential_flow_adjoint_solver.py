@@ -8,16 +8,25 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solv
 class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
     def _SetUpIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "incompressible"
+            "element_type": "",
+            "gradient_mode": ""
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "AdjointIncompressiblePotentialFlowElement"
-        self.condition_name = "AdjointPotentialWallCondition"
+        gradient_mode = formulation_settings["gradient_mode"].GetString()
+        if gradient_mode == "semi_analytic":
+            self.element_name = "AdjointIncompressiblePotentialFlowElement"
+            self.condition_name = "AdjointPotentialWallCondition"
+        elif gradient_mode == "analytic":
+            self.element_name = "AdjointAnalyticalIncompressiblePotentialFlowElement"
+            self.condition_name = "AdjointPotentialWallCondition"
+        else:
+            raise RuntimeError("Gradient mode not yet implemented.")
 
     def _SetUpCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "compressible"
+            "element_type": "",
+            "gradient_mode": ""
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -41,6 +50,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
 
+        gradient_mode = self.response_function_settings["gradient_mode"].GetString()
+        self.settings["formulation"].AddEmptyValue("gradient_mode").SetString(gradient_mode)
         self.formulation = PotentialFlowAdjointFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
@@ -88,28 +99,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.response_function.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
-
-    def PrepareModelPart(self):
-        super(PotentialFlowAdjointSolver, self).PrepareModelPart()
-        # defines how the primal elements should be replaced with their adjoint counterparts
-        if self.response_function_settings["gradient_mode"].GetString()=="semi_analytic":
-            replacement_settings = KratosMultiphysics.Parameters("""
-            {
-                "element_name" : "AdjointIncompressiblePotentialFlowElement2D3N",
-                "condition_name" : "AdjointPotentialWallCondition2D2N"
-            }
-            """)
-        elif self.response_function_settings["gradient_mode"].GetString()=="analytic":
-            replacement_settings = KratosMultiphysics.Parameters("""
-            {
-                "element_name" : "AdjointAnalyticalIncompressiblePotentialFlowElement2D3N",
-                "condition_name" : "AdjointPotentialWallCondition2D2N"
-            }
-            """)
-
-        KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-
-        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
