@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_coupled_solver import CoSimulationBaseCouplingSolver
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
 
 def Create(model, cosim_solver_settings, solver_name):
     return GaussSeidelWeakCouplingSolver(model, cosim_solver_settings, solver_name)
 
-class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
+class GaussSeidelWeakCouplingSolver(CoSimulationBaseCoupledSolver):
     def SolveSolutionStep(self):
         for coupling_op in self.coupling_operations_list:
             coupling_op.InitializeCouplingIteration()

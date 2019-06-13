@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_coupled_solver import CoSimulationBaseCouplingSolver
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, red, green, cyan, bold
@@ -10,7 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 def Create(model, cosim_solver_settings, solver_name):
     return GaussSeidelStrongCouplingSolver(model, cosim_solver_settings, solver_name)
 
-class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
+class GaussSeidelStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, model, cosim_solver_settings, solver_name):
         if not cosim_solver_settings['coupling_sequence'].size() == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
