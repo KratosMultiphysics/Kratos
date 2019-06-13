@@ -66,5 +66,8 @@ script.py
 # Backup files
 *.bak
 
+# Most used editor files
+*.vscode
+
 # Auxiliar file (deprecated?)
 applications/python_scripts/beam_profiles\.csv
