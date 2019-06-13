@@ -182,7 +182,7 @@ for normalvar in range(normal_combs):
         DeltaDw1DeltaMw2 = (DOperator - DOperatorold) * w1 - (MOperator - MOperatorold) * w2
         for node in range(nnodes):
             NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
-            NormalwGap[node] = - Dw1Mw2.row(node).dot(NormalSlave.row(node))
+            NormalwGap[node] = Dw1Mw2.row(node).dot(NormalSlave.row(node))
             #gap_time_derivative = - Dx1Mx2.row(node)/delta_time
             gap_time_derivative_non_objective = DDeltax1MDeltax2.row(node)/delta_time
             gap_time_derivative_non_objective_w = Dw1Mw2.row(node)/delta_time
@@ -250,7 +250,7 @@ for normalvar in range(normal_combs):
 
                         augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                         normal_augmented_contact_pressure = augmented_normal_contact_pressure * NormalSlave.row(node)
-                        rv_galerkin -= DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
+                        rv_galerkin += DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
 
                         if slip == 1 or slip == 2: # Slip
                             augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
