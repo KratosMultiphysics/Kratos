@@ -183,11 +183,13 @@ namespace MortarUtilities
      * @param rModelPart The model part to compute
      * @param pSlipVariable The pointer to the slip variable
      * @param SlipCoefficient The slip contribution
+     * @param SlipAlways Uses the slip even in case that LM are available
      */
     void KRATOS_API(KRATOS_CORE) ComputeNodesTangentModelPart(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>* pSlipVariable = NULL,
-        const double SlipCoefficient = 1.0
+        const double SlipCoefficient = 1.0,
+        const bool SlipAlways = false
         );
 
     /**

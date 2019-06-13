@@ -217,7 +217,8 @@ void ComputeNodesMeanNormalModelPart(
 void ComputeNodesTangentModelPart(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>* pSlipVariable,
-    const double SlipCoefficient
+    const double SlipCoefficient,
+    const bool SlipAlways
     )
 {
     // Check NORMAL is available
@@ -228,6 +229,7 @@ void ComputeNodesTangentModelPart(
 
     // Checking if we have LM
     const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+    KRATOS_ERROR_IF(!has_lm && pSlipVariable == NULL) << "Slip variable not defined" <<  std::endl;
 
     // We iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
@@ -240,7 +242,7 @@ void ComputeNodesTangentModelPart(
 
         // Computing only slave nodes
         if (it_node->Is(SLAVE)) {
-            if (has_lm) {
+            if (has_lm && !SlipAlways) {
                 ComputeTangentNodeWithLMAndSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
             } else {
                 ComputeTangentNodeWithSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
@@ -266,7 +268,7 @@ void ComputeTangentNodeWithLMAndSlip(
     array_1d<double, 3> tangent_xi, tangent_eta;
     const array_1d<double, 3>& r_lm = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
     const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
-    if (rNode.Is(ACTIVE) && rNode.IsNot(SLIP)) { // STICK
+    if (rNode.Is(ACTIVE) && (rNode.IsNot(SLIP) || pSlipVariable == NULL)) { // STICK
         if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
             noalias(tangent_xi) = r_lm - inner_prod(r_lm, r_normal) * r_normal;
             if (norm_2(tangent_xi) > zero_tolerance) {
