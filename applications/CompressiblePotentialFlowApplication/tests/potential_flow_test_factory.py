@@ -53,6 +53,20 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    def test_Naca0012SmallCompressible(self):
+        file_name = "naca0012_small_compressible"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_compressible_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
     def test_EmbeddedCircleNoWake(self):
         settings_file_name = "embedded_circle_no_wake_parameters.json"
         work_folder = "embedded_test"
@@ -66,40 +80,76 @@ class PotentialFlowTests(UnitTest.TestCase):
             settings = KratosMultiphysics.Parameters(settings_file.read())
 
         if self.print_output:
-            settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
-                "gid_output" : [{
-                    "python_module" : "gid_output_process",
-                    "kratos_module" : "KratosMultiphysics",
-                    "process_name"  : "GiDOutputProcess",
-                    "help"          : "This process writes postprocessing files for GiD",
-                    "Parameters"    : {
-                        "model_part_name"        : "MainModelPart",
-                        "output_name"            : "output",
-                        "postprocess_parameters" : {
-                            "result_file_configuration" : {
-                                "gidpost_flags"       : {
-                                    "GiDPostMode"           : "GiD_PostBinary",
-                                    "WriteDeformedMeshFlag" : "WriteDeformed",
-                                    "WriteConditionsFlag"   : "WriteConditions",
-                                    "MultiFileFlag"         : "SingleFile"
+            if settings_file_name == "naca0012_small_sensitivities_adjoint_parameters.json":
+                settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
+                    "gid_output" : [{
+                        "python_module" : "gid_output_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "GiDOutputProcess",
+                        "help"          : "This process writes postprocessing files for GiD",
+                        "Parameters"    : {
+                            "model_part_name"        : "MainModelPart",
+                            "output_name"            : "naca0012_adjoint",
+                            "postprocess_parameters" : {
+                                "result_file_configuration" : {
+                                    "gidpost_flags"       : {
+                                        "GiDPostMode"           : "GiD_PostBinary",
+                                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                                        "WriteConditionsFlag"   : "WriteConditions",
+                                        "MultiFileFlag"         : "SingleFile"
+                                    },
+                                    "file_label"          : "step",
+                                    "output_control_type" : "step",
+                                    "output_frequency"    : 1,
+                                    "body_output"         : true,
+                                    "node_output"         : false,
+                                    "skin_output"         : false,
+                                    "plane_output"        : [],
+                                    "nodal_results"       : ["SHAPE_SENSITIVITY","ADJOINT_VELOCITY_POTENTIAL", "ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"],
+                                    "nodal_nonhistorical_results": [],
+                                    "elemental_conditional_flags_results": [],
+                                    "gauss_point_results" : []
                                 },
-                                "file_label"          : "step",
-                                "output_control_type" : "step",
-                                "output_frequency"    : 1,
-                                "body_output"         : true,
-                                "node_output"         : false,
-                                "skin_output"         : false,
-                                "plane_output"        : [],
-                                "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
-                                "nodal_nonhistorical_results": ["TRAILING_EDGE"],
-                                "elemental_conditional_flags_results": ["STRUCTURE"],
-                                "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","ELEMENTAL_DISTANCES","KUTTA"]
-                            },
-                            "point_data_configuration"  : []
+                                "point_data_configuration"  : []
+                            }
                         }
-                    }
-                }]
-            }'''))
+                    }]
+                }'''))
+            else:
+                settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
+                    "gid_output" : [{
+                        "python_module" : "gid_output_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "GiDOutputProcess",
+                        "help"          : "This process writes postprocessing files for GiD",
+                        "Parameters"    : {
+                            "model_part_name"        : "MainModelPart",
+                            "output_name"            : "naca0012",
+                            "postprocess_parameters" : {
+                                "result_file_configuration" : {
+                                    "gidpost_flags"       : {
+                                        "GiDPostMode"           : "GiD_PostBinary",
+                                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                                        "WriteConditionsFlag"   : "WriteConditions",
+                                        "MultiFileFlag"         : "SingleFile"
+                                    },
+                                    "file_label"          : "step",
+                                    "output_control_type" : "step",
+                                    "output_frequency"    : 1,
+                                    "body_output"         : true,
+                                    "node_output"         : false,
+                                    "skin_output"         : false,
+                                    "plane_output"        : [],
+                                    "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
+                                    "nodal_nonhistorical_results": ["TRAILING_EDGE"],
+                                    "elemental_conditional_flags_results": ["STRUCTURE"],
+                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","ELEMENTAL_DISTANCES","KUTTA"]
+                                },
+                                "point_data_configuration"  : []
+                            }
+                        }
+                    }]
+                }'''))
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
         potential_flow_analysis.Run()
