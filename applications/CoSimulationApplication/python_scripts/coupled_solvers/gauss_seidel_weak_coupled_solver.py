@@ -11,7 +11,7 @@ class GaussSeidelWeakCouplingSolver(CoSimulationCoupledSolver):
         for coupling_op in self.coupling_operations_list:
             coupling_op.InitializeCouplingIteration()
 
-        for solver_name, solver in self.participating_solvers.items():
+        for solver_name, solver in self.solver_wrappers.items():
             self._SynchronizeInputData(solver_name)
             solver.SolveSolutionStep()
             self._SynchronizeOutputData(solver_name)

@@ -11,19 +11,19 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def __init__(self, model, cosim_solver_settings, solver_name):
         super(CoSimulationCoupledSolver, self).__init__(model, cosim_solver_settings, solver_name)
 
-        self.participating_solvers = self.__CreateSolvers()
+        self.solver_wrappers = self.__CreateSolverWrappers()
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
             self.settings["predictors"],
-            self.participating_solvers,
+            self.solver_wrappers,
             self.echo_level)
 
         ### Creating the coupling operations
         self.coupling_operations_dict = cs_tools.CreateCouplingOperations(
             self.settings["coupling_operations"],
-            self.participating_solvers,
+            self.solver_wrappers,
             self.echo_level)
 
         self.coupling_operations_list = list(self.coupling_operations_dict.values())
@@ -36,13 +36,13 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         # creating list of components involved in the CoSimulation that require common operations
         # list of lists because this way more objects can be added to the individual lists in derived
         # classes and they will automatically also be called
-        self.components_lists = [list(self.participating_solvers.values()), self.coupling_operations_list, self.predictors_list]
+        self.components_lists = [list(self.solver_wrappers.values()), self.coupling_operations_list, self.predictors_list]
 
     def Initialize(self):
         [[comp.Initialize() for comp in comp_list] for comp_list in self.components_lists]
 
-        for solver in self.participating_solvers.values():
-            solver.InitializeIO(self.participating_solvers, self.echo_level)
+        for solver in self.solver_wrappers.values():
+            solver.InitializeIO(self.solver_wrappers, self.echo_level)
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
@@ -51,7 +51,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
     def AdvanceInTime(self, current_time):
         self.time = 0.0
-        for solver in self.participating_solvers.values():
+        for solver in self.solver_wrappers.values():
             self.time = max(self.time, solver.AdvanceInTime(current_time))
 
         return self.time
@@ -60,7 +60,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         for predictor in self.predictors_list:
             predictor.Predict()
 
-        for solver in self.participating_solvers.values():
+        for solver in self.solver_wrappers.values():
             solver.Predict()
 
     def InitializeSolutionStep(self):
@@ -70,7 +70,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         [[comp.FinalizeSolutionStep() for comp in comp_list] for comp_list in self.components_lists]
 
     def OutputSolutionStep(self):
-        for solver in self.participating_solvers.values():
+        for solver in self.solver_wrappers.values():
             solver.OutputSolutionStep()
 
     def SolveSolutionStep(self):
@@ -79,7 +79,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         raise Exception(err_msg)
 
     def _SynchronizeInputData(self, solver_name):
-        to_solver = self.participating_solvers[solver_name]
+        to_solver = self.solver_wrappers[solver_name]
         input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
 
         for i in range(input_data_list.size()):
@@ -91,7 +91,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             #     continue
 
             # from solver
-            from_solver = self.participating_solvers[i_input_data["from_solver"].GetString()]
+            from_solver = self.solver_wrappers[i_input_data["from_solver"].GetString()]
             from_solver_data = from_solver.GetInterfaceData(i_input_data["from_solver_data"].GetString())
 
             # to solver
@@ -110,7 +110,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
 
     def _SynchronizeOutputData(self, solver_name):
-        from_solver = self.participating_solvers[solver_name]
+        from_solver = self.solver_wrappers[solver_name]
         output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
 
         for i in range(output_data_list.size()):
@@ -120,7 +120,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             from_solver_data = from_solver.GetInterfaceData(i_output_data["data"].GetString())
 
             # to solver
-            to_solver = self.participating_solvers[i_output_data["to_solver"].GetString()]
+            to_solver = self.solver_wrappers[i_output_data["to_solver"].GetString()]
             to_solver_data = to_solver.GetInterfaceData(i_output_data["to_solver_data"].GetString())
 
             # perform the data transfer
@@ -165,7 +165,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         # the coupled-solvers always use the kratos-format, since there are no "external" coupled solvers
         return "kratos"
 
-    def __CreateSolvers(self):
+    def __CreateSolverWrappers(self):
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
         import KratosMultiphysics.CoSimulationApplication.solver_wrappers.co_simulation_solver_factory as solver_factory
         from collections import OrderedDict

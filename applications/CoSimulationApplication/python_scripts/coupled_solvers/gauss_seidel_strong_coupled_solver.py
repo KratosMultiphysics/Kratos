@@ -19,12 +19,12 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
-            self.participating_solvers,
+            self.solver_wrappers,
             self.echo_level)
 
         self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
             self.settings["convergence_criteria"],
-            self.participating_solvers,
+            self.solver_wrappers,
             self.echo_level)
 
         self.coupling_operations_list.extend(self.convergence_accelerators_list)
@@ -41,7 +41,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
             for coupling_op in self.coupling_operations_list:
                 coupling_op.InitializeCouplingIteration()
 
-            for solver_name, solver in self.participating_solvers.items():
+            for solver_name, solver in self.solver_wrappers.items():
                 self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver_name)
