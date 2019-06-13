@@ -207,23 +207,25 @@ void LineLoadCondition<TDim>::CalculateAll(
 
     // Pressure applied to the element itself
     double pressure_on_condition = 0.0;
-    if( this->Has( PRESSURE ) ) {
-        pressure_on_condition += this->GetValue( PRESSURE );
-    }
-    if( this->Has( NEGATIVE_FACE_PRESSURE ) ) {
-        pressure_on_condition += this->GetValue( NEGATIVE_FACE_PRESSURE );
-    }
-    if( this->Has( POSITIVE_FACE_PRESSURE ) ) {
-        pressure_on_condition -= this->GetValue( POSITIVE_FACE_PRESSURE );
-    }
-
-    for ( IndexType i = 0; i < pressure_on_nodes.size(); i++ ) {
-        pressure_on_nodes[i] = pressure_on_condition;
-        if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) {
-            pressure_on_nodes[i] += r_geometry[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+    if (TDim == 2) {
+        if( this->Has( PRESSURE ) ) {
+            pressure_on_condition += this->GetValue( PRESSURE );
         }
-        if( r_geometry[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) {
-            pressure_on_nodes[i] -= r_geometry[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+        if( this->Has( NEGATIVE_FACE_PRESSURE ) ) {
+            pressure_on_condition += this->GetValue( NEGATIVE_FACE_PRESSURE );
+        }
+        if( this->Has( POSITIVE_FACE_PRESSURE ) ) {
+            pressure_on_condition -= this->GetValue( POSITIVE_FACE_PRESSURE );
+        }
+
+        for ( IndexType i = 0; i < pressure_on_nodes.size(); i++ ) {
+            pressure_on_nodes[i] = pressure_on_condition;
+            if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) {
+                pressure_on_nodes[i] += r_geometry[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+            }
+            if( r_geometry[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) {
+                pressure_on_nodes[i] -= r_geometry[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+            }
         }
     }
 
