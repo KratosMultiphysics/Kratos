@@ -159,10 +159,12 @@ for normalvar in range(normal_combs):
             wLMNormal[node] = wLM.row(node).dot(NormalSlave.row(node))
 
             # We calculate the LM tangent resultant
-            #aux = wLM.row(node).dot(TangentSlave.row(node)) * TangentSlave.row(node)
+            #aux = LM.row(node).dot(TangentSlave.row(node)) * TangentSlave.row(node)
+            #aux_w = wLM.row(node).dot(TangentSlave.row(node)) * TangentSlave.row(node)
             for idim in range(dim):
+                #LMTangent[node,idim] = aux[idim]
+                #wLMTangent[node,idim] = aux_w[idim]
                 LMTangent[node,idim] = LM[node,idim] - LMNormal[node] * NormalSlave[node, idim]
-                #wLMTangent[node,idim] = aux[idim]
                 wLMTangent[node,idim] = wLM[node,idim] - wLMNormal[node] * NormalSlave[node, idim]
 
         ## Explicit definition tangent
