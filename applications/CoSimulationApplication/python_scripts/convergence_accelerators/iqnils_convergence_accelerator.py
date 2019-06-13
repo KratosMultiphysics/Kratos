@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division
 # Date: Feb. 20, 2017
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # Other imports
 import numpy as np
@@ -20,7 +20,7 @@ def Create(settings, solver):
 ## Class IQNILS.
 # This class contains the implementation of the IQN-ILS method and helper functions.
 # Reference: Joris Degroote, PhD thesis "Development of algorithms for the partitioned simulation of strongly coupled fluid-structure interaction problems", 84-91.
-class IQNILS(CoSimulationBaseConvergenceAccelerator):
+class IQNILS(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.

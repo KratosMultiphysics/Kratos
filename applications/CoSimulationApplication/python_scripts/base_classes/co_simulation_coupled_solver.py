@@ -7,9 +7,9 @@ from  . import co_simulation_solver_wrapper
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
 
-class CoSimulationBaseCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
+class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
     def __init__(self, model, cosim_solver_settings, solver_name):
-        super(CoSimulationBaseCoupledSolver, self).__init__(model, cosim_solver_settings, solver_name)
+        super(CoSimulationCoupledSolver, self).__init__(model, cosim_solver_settings, solver_name)
 
         self.participating_solvers = self.__CreateSolvers()
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
@@ -74,7 +74,7 @@ class CoSimulationBaseCoupledSolver(co_simulation_solver_wrapper.CoSimulationSol
             solver.OutputSolutionStep()
 
     def SolveSolutionStep(self):
-        err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCoupledSolver"!\n'
+        err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationCoupledSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
         raise Exception(err_msg)
 
@@ -149,13 +149,13 @@ class CoSimulationBaseCoupledSolver(co_simulation_solver_wrapper.CoSimulationSol
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
-        super(CoSimulationBaseCoupledSolver, self).PrintInfo()
+        super(CoSimulationCoupledSolver, self).PrintInfo()
 
         couplingsolverprint(self._Name(), "Has the following components:")
         [[comp.PrintInfo() for comp in comp_list] for comp_list in self.components_lists]
 
     def Check(self):
-        super(CoSimulationBaseCoupledSolver, self).Check()
+        super(CoSimulationCoupledSolver, self).Check()
         [[comp.Check() for comp in comp_list] for comp_list in self.components_lists]
 
     def IsDistributed(self):
@@ -210,7 +210,7 @@ class CoSimulationBaseCoupledSolver(co_simulation_solver_wrapper.CoSimulationSol
             "coupling_operations"      : {},
             "data_transfer_operators"  : {}
         }""")
-        this_defaults.AddMissingParameters(super(CoSimulationBaseCoupledSolver, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(CoSimulationCoupledSolver, cls)._GetDefaultSettings())
 
         return this_defaults
 

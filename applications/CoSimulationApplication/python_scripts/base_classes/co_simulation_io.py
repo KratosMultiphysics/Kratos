@@ -6,7 +6,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
 #               Please do not change any thing in this class.
 #
 # This Class servers as a base class for all the Input-output methods to be implemented
-class CoSimulationBaseIO(object):
+class CoSimulationIO(object):
     ## The constructor
     #
     def __init__(self, model, settings):

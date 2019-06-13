@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-from . import co_simulation_base_coupling_operation
+from . import co_simulation_coupling_operation
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operation.CoSimulationBaseCouplingOperation):
+class CoSimulationConvergenceAccelerator(co_simulation_coupling_operation.CoSimulationCouplingOperation):
     def __init__(self, settings, solver):
-        super(CoSimulationBaseConvergenceAccelerator, self).__init__(settings)
+        super(CoSimulationConvergenceAccelerator, self).__init__(settings)
 
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
@@ -45,6 +45,6 @@ class CoSimulationBaseConvergenceAccelerator(co_simulation_base_coupling_operati
             "data_name"  : "UNSPECIFIED"
         }""")
 
-        this_defaults.AddMissingParameters(super(CoSimulationBaseConvergenceAccelerator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(CoSimulationConvergenceAccelerator, cls)._GetDefaultSettings())
 
         return this_defaults

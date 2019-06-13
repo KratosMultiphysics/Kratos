@@ -1,9 +1,9 @@
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_io import CoSimulationBaseIO
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io import CoSimulationIO
 
 def Create(model, custom_settings):
     return CoSimulationDummyIO(model, custom_settings)
 
-class CoSimulationDummyIO(CoSimulationBaseIO):
+class CoSimulationDummyIO(CoSimulationIO):
     def ImportCouplingInterfaceData(self, data_object, from_solver=None):
         pass
 
