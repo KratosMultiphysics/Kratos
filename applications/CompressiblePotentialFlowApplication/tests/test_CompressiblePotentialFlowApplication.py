@@ -31,9 +31,13 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
+<<<<<<< HEAD
     smallSuite.addTest(PotentialFlowTests('test_Naca0012SmallAdjoint'))
     #smallSuite.addTest(PotentialFlowTests('test_Naca0012SmallAdjointAnalytical'))
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
+=======
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([PotentialFlowTests]))
+>>>>>>> origin/master
 
     # Create a test suite with the selected tests
     # nightSuite will contain the following tests:

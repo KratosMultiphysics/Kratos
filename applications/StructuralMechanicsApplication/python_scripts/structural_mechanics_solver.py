@@ -64,7 +64,12 @@ class MechanicalSolver(PythonSolver):
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
 
-        # This will be changed once the Model is fully supported!
+        # Only needed during the transition of removing the ComputingModelPart
+        if self.settings["problem_domain_sub_model_part_list"].size() == 0:
+            self.settings["problem_domain_sub_model_part_list"].Append(model_part_name)
+        if self.settings["processes_sub_model_part_list"].size() == 0:
+            self.settings["processes_sub_model_part_list"].Append(model_part_name)
+
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model[model_part_name]
         else:
@@ -114,8 +119,8 @@ class MechanicalSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings": { },
-            "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""],
+            "problem_domain_sub_model_part_list": [],
+            "processes_sub_model_part_list": [],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []

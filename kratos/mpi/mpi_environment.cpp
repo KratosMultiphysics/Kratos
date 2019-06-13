@@ -12,6 +12,9 @@
 
 // System includes
 #include <mpi.h>
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
 // Project includes
 #include "input_output/logger.h"
@@ -22,6 +25,26 @@
 #include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos {
+
+MPIEnvironment& MPIEnvironment::Instance()
+{
+    // Using double-checked locking to ensure thread safety in the first creation of the singleton.
+    if (mpInstance == nullptr)
+    {
+        #ifdef _OPENMP
+        #pragma omp critical
+        if (mpInstance == nullptr)
+        {
+        #endif
+            KRATOS_ERROR_IF(mDestroyed) << "Accessing MPIEnvironment after its destruction" << std::endl;
+            Create();
+        #ifdef _OPENMP
+        }
+        #endif
+    }
+
+    return *mpInstance;
+}
 
 void MPIEnvironment::Initialize()
 {
@@ -36,9 +59,7 @@ void MPIEnvironment::Initialize()
         #if MPI_VERSION < 2
         MPI_Init(&argc, &argv);
 
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        if (rank == 0) KRATOS_DETAIL("MPIEnvironment") << "MPI version older than 2, no support for MPI_THREAD_MULTIPLE is provided." << std::endl;
+        KRATOS_DETAIL("MPIEnvironment") << "MPI version older than 2, no support for MPI_THREAD_MULTIPLE is provided." << std::endl;
 
         #else
         int provided;
@@ -46,26 +67,19 @@ void MPIEnvironment::Initialize()
 
         if (provided < MPI_THREAD_MULTIPLE)
         {
-            int rank;
-            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-            if (rank == 0) KRATOS_DETAIL("MPIEnvironment") << "MPI initialized without MPI_THREAD_MULTIPLE (not provided)." << std::endl;
+            KRATOS_DETAIL("MPIEnvironment") << "MPI initialized without MPI_THREAD_MULTIPLE (not provided)." << std::endl;
         }
 
         #endif
     }
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    KRATOS_DETAIL("MPIEnvironment") << "MPI initialize called in rank " << rank << "." << std::endl;
+    KRATOS_DETAIL_ALL_RANKS("MPIEnvironment") << "MPI initialize called." << std::endl;
 }
 
 void MPIEnvironment::Finalize()
 {
     if (!MPIEnvironment::IsFinalized())
     {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        KRATOS_DETAIL("MPIEnvironment") << "MPI finalize called in rank " << rank << "." << std::endl;
         MPI_Finalize();
     }
 
@@ -85,23 +99,23 @@ bool MPIEnvironment::IsFinalized()
     return (bool)mpi_is_finalized;
 }
 
-MPI_Comm MPIEnvironment::GetMPICommunicator(const DataCommunicator& rDataCommunicator)
+MPIEnvironment::MPIEnvironment() {}
+
+MPIEnvironment::~MPIEnvironment()
 {
-    if (rDataCommunicator.IsDistributed())
-    {
-        const MPIDataCommunicator& r_mpi_data_comm = static_cast<const MPIDataCommunicator&>(rDataCommunicator);
-        return r_mpi_data_comm.GetMPICommunicator();
-    }
-    else
-    {
-        return MPI_COMM_SELF;
-    }
+    auto& r_instance = Instance();
+    r_instance.Finalize();
+    mpInstance = nullptr;
+    mDestroyed = true;
 }
 
-void MPIEnvironment::InitializeKratosParallelEnvironment()
+void MPIEnvironment::Create()
 {
-    // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
-    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
+    static MPIEnvironment mpi_environment;
+    mpInstance = &mpi_environment;
 }
+
+MPIEnvironment* MPIEnvironment::mpInstance = nullptr;
+bool MPIEnvironment::mDestroyed = false;
 
 }

@@ -30,7 +30,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 
 namespace Kratos
@@ -75,10 +75,10 @@ public:
     typedef Kratos::weak_ptr<TElementType> ElementWeakPointer;
 
     /** An array of pointers to elements. */
-    typedef WeakPointerVector<TElementType> NeighbourElementsArrayType;
+    typedef GlobalPointersVector<TElementType> NeighbourElementsArrayType;
 
     /** An array of pointers to nodes. */
-    typedef WeakPointerVector<TNodeType> NeighbourNodesArrayType;
+    typedef GlobalPointersVector<TNodeType> NeighbourNodesArrayType;
 
     ///@}
     ///@name Life Cycle
