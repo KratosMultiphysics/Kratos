@@ -283,7 +283,12 @@ public:
         MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
-            MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0);//, true);
+            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            if (has_lm) {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
+            } else {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
+            }
         }
 
         // IO for debugging
@@ -404,7 +409,12 @@ private:
         MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
-            MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0);//, true);
+            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            if (has_lm) {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
+            } else {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
+            }
         }
 
         // Iterate over the computing conditions
