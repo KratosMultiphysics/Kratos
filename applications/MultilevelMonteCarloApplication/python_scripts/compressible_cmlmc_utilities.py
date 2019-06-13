@@ -59,7 +59,6 @@ output: difference_QoI_value:              difference QoIvalue to be added
 """
 @ExaquteTask(returns=2,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
-    aux = simulation_results[0]
     def computePowers(value):
         return value, value**2, value**3, value**4
     if (level == 0):
@@ -203,11 +202,12 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
         time_5 = time.time()
     time_6 = time.time()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
-    # print("Sample value:")
-    # print(sample)
-    # sys.stdout.flush()
+    print("[CHECK OUTPUT]: sample value:", str(sample))
+    sys.stdout.flush()
     simulation.Run()
     QoI = simulation.EvaluateQuantityOfInterest()
+    print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
+    sys.stdout.flush()
     time_7 = time.time()
     # save model and parameters as StreamSerializer Kratos objects
     serialized_finer_model = KratosMultiphysics.StreamSerializer()
@@ -234,21 +234,21 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
     serialization_time = time_8 - time_7
     total_task_time = time_8 - time_0
     print("[LEVEL] current level:",current_level)
-    # print("[TIMER] total task time:", total_task_time)
-    # print("[TIMER] Kratos Run time:",Kratos_run_time)
-    # print("[TIMER] Deserialization time:",deserialization_time)
-    # print("[TIMER] Serialization time:",serialization_time)
-    # print("[TIMER] Refinement time:",refinement_time)
-    # if (current_level > 0):
-    #     print("[TIMER] mmg refinement time",mmg_refinement_time)
-    # print("RATIOs: time of interest / total task time")
-    # print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
-    # print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
-    # print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-    # print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
-    # if (current_level > 0):
-    #     print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
-    # print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+    print("[TIMER] total task time:", total_task_time)
+    print("[TIMER] Kratos Run time:",Kratos_run_time)
+    print("[TIMER] Deserialization time:",deserialization_time)
+    print("[TIMER] Serialization time:",serialization_time)
+    print("[TIMER] Refinement time:",refinement_time)
+    if (current_level > 0):
+        print("[TIMER] mmg refinement time",mmg_refinement_time)
+    print("RATIOs: time of interest / total task time")
+    print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
+    print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
+    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+    print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
+    if (current_level > 0):
+        print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
+    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
 
     return mlmc_results,pickled_finer_model,pickled_finer_project_parameters
 
@@ -476,10 +476,10 @@ class MultilevelMonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
-                if self.iteration_counter <3:
-                    self.convergence = False
-                if (self.iteration_counter >= 2):
-                   self.convergence = True
+#                if self.iteration_counter <= 2:
+#                    self.convergence = False
+#                else:
+#                    self.convergence = True
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
             pass
@@ -745,7 +745,7 @@ class MultilevelMonteCarlo(object):
     """
     def UpdateBatches(self):
         # set here number of batches to append
-        new_number_batches = 2
+        new_number_batches = 1
         if (self.settings["adaptive_number_samples"].GetString() == "True"):
             # compute optimal number of levels
             self.ComputeLevels()
@@ -1044,10 +1044,14 @@ class MultilevelMonteCarlo(object):
     """
     def ComputeTolerancei(self):
         tol0 = self.settings["initial_tolerance"].GetDouble()
-        r1 = self.settings["r1"].GetDouble()
-        current_iter = self.iteration_counter
-        tol = tol0 / (r1**(current_iter))
-        self.tolerance_i = tol
+        tolF = self.settings["tolerance"].GetDouble()
+        if (tol0 <= tolF):
+            self.tolerance_i = tolF
+        elif(tol0 > tolF):
+            r1 = self.settings["r1"].GetDouble()
+            current_iter = self.iteration_counter
+            tol = tol0 / (r1**(current_iter))
+            self.tolerance_i = tol
 
     """
     function computing the number of levels for i^th iteration of the algorithm
@@ -1176,7 +1180,6 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeMeanMLMCQoI(self):
-        print(self.difference_QoI.h_statistics_1)
         if (self.difference_QoI.h_statistics_1[-1] == []):
             current_number_levels = self.difference_QoI.h_statistics_1.index([]) # index() method finds the given element in a list and returns its position (starts from 1, not from 0)
         else:
@@ -1189,9 +1192,14 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeTotalErrorMLMC(self):
-        self.difference_QoI.bias_error = np.abs(self.difference_QoI.h_statistics_1[self.current_number_levels])
+        if (self.difference_QoI.h_statistics_1[-1] == []):
+            current_number_levels = self.difference_QoI.h_statistics_1.index([])-1 # index() method finds the given element in a list and returns its position (starts from 1, not from 0)
+        else:
+            current_number_levels = self.settings["maximum_number_levels"].GetInt()
+
+        self.difference_QoI.bias_error = np.abs(self.difference_QoI.h_statistics_1[current_number_levels])
         variance_from_bayesian = np.zeros(np.size(self.number_samples))
-        for lev in range(self.current_number_levels+1):
+        for lev in range(current_number_levels+1):
             variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]
         self.difference_QoI.statistical_error = self.settings["cphi_confidence"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
         total_error = self.difference_QoI.bias_error + self.difference_QoI.statistical_error
