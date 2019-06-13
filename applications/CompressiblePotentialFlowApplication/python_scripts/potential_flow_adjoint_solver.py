@@ -95,31 +95,19 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         if self.response_function_settings["gradient_mode"].GetString()=="semi_analytic":
             replacement_settings = KratosMultiphysics.Parameters("""
             {
-                "element_name_table" :
-                {
-                    "IncompressiblePotentialFlowElement2D3N" : "AdjointPotentialFlowElement2D3N"
-                },
-                "condition_name_table" :
-                {
-                    "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
-                }
+                "element_name" : "AdjointIncompressiblePotentialFlowElement2D3N",
+                "condition_name" : "AdjointPotentialWallCondition2D2N"
             }
             """)
         elif self.response_function_settings["gradient_mode"].GetString()=="analytic":
             replacement_settings = KratosMultiphysics.Parameters("""
             {
-                "element_name_table" :
-                {
-                    "IncompressiblePotentialFlowElement2D3N" : "AdjointAnalyticalIncompressiblePotentialFlowElement2D3N"
-                },
-                "condition_name_table" :
-                {
-                    "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
-                }
+                "element_name" : "AdjointAnalyticalIncompressiblePotentialFlowElement2D3N",
+                "condition_name" : "AdjointPotentialWallCondition2D2N"
             }
             """)
 
-        ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
+        KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 

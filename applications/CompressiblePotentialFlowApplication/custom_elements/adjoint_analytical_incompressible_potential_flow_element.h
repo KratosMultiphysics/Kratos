@@ -48,13 +48,13 @@ public:
      */
     AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
-     mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId))
+     mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId))
     {};
 
     AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId,
                         GeometryType::Pointer pGeometry)
      : Element(NewId, pGeometry),
-      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry))
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry))
     {
     }
 
@@ -62,7 +62,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
      : Element(NewId, pGeometry, pProperties),
-      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties))
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties))
     {
     }
     /**
