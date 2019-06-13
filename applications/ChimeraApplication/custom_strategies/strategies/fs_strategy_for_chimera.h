@@ -186,8 +186,8 @@ protected:
         int Rank = r_model_part.GetCommunicator().MyPID();
 
         // Activate Constraints for VELOCITY and deactivate PRESSURE
-        SetFlagOnConstraints(FS_CHIMERA_VEL_CONSTRAINT, true);
-        SetFlagOnConstraints(FS_CHIMERA_PRE_CONSTRAINT, false);
+        SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, false);
 
         KRATOS_INFO("before Momentum iteration ") <<std::endl;
 
@@ -244,8 +244,8 @@ protected:
         }
 
         // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetFlagOnConstraints(FS_CHIMERA_VEL_CONSTRAINT, false);
-        SetFlagOnConstraints(FS_CHIMERA_PRE_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, false);
+        SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, true);
 
 
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -254,8 +254,8 @@ protected:
         double NormDp = BaseType::mpPressureStrategy->Solve();
 
         // Activate all the Constraints for PRESSURE and VELOCITY
-        SetFlagOnConstraints(FS_CHIMERA_VEL_CONSTRAINT, true);
-        SetFlagOnConstraints(FS_CHIMERA_PRE_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, true);
 
 #pragma omp parallel
         {
@@ -324,7 +324,7 @@ protected:
 
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
         //this->PeriodicConditionProjectionCorrection(r_model_part); // Commented in base solver
-        // this->ChimeraProjectionCorrection(r_model_part); // TODO: uncomment once the impl is finished.
+        this->ChimeraProjectionCorrection(r_model_part);
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -333,12 +333,12 @@ protected:
 
             for ( ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node )
             {
-                const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
-                if(true) //if( NodalArea > 1E-8 )
+                const double nodal_area = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if(true) //if( nodal_area > 1E-8 )
                 {
-                    it_node->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
-                    it_node->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
-                    it_node->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
+                    it_node->FastGetSolutionStepValue(CONV_PROJ) /= nodal_area;
+                    it_node->FastGetSolutionStepValue(PRESS_PROJ) /= nodal_area;
+                    it_node->FastGetSolutionStepValue(DIVPROJ) /= nodal_area;
                 }
             }
         }
@@ -347,7 +347,7 @@ protected:
         const auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
-            if (constraint.IsDefined(FS_CHIMERA_VEL_CONSTRAINT))
+            if (constraint.Is(FS_CHIMERA_VEL_CONSTRAINT))
             {
                 const auto& master_dofs = constraint.GetMasterDofsVector();
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -435,13 +435,50 @@ protected:
 
                 for ( ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node )
                 {
-                    const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                    const double nodal_area = it_node->FastGetSolutionStepValue(NODAL_AREA);
                     if ( ! it_node->IsFixed(VELOCITY_X) )
-                        it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                        it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / nodal_area;
                     if ( ! it_node->IsFixed(VELOCITY_Y) )
-                        it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                        it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / nodal_area;
                     if ( ! it_node->IsFixed(VELOCITY_Z) )
-                        it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+                        it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / nodal_area;
+                }
+            }
+
+            const auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
+            for(const auto& constraint : r_constraints_container)
+            {
+                if (constraint.Is(FS_CHIMERA_VEL_CONSTRAINT))
+                {
+                    const auto& master_dofs = constraint.GetMasterDofsVector();
+                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
+                    ModelPart::MatrixType r_relation_matrix;
+                    ModelPart::VectorType r_constant_vector;
+                    constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,r_model_part.GetProcessInfo());
+
+                    IndexType slave_i = 0;
+                    for(const auto& slave_dof : slave_dofs)
+                    {
+                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                        auto& r_slave_node = r_model_part.Nodes()[slave_node_id];
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Z)=0;
+                        IndexType master_j = 0;
+                        for(const auto& master_dof : master_dofs)
+                        {
+                            const auto master_node_id = master_dof->Id();
+                            const double weight = r_relation_matrix(slave_i, master_j);
+                            auto& r_master_node = r_model_part.Nodes()[master_node_id];
+
+                            r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
+                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
+                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Z))*weight;
+
+                            ++master_j;
+                        }
+                        ++slave_i;
+                    }
                 }
             }
         }
@@ -455,14 +492,14 @@ protected:
 
                 for ( ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node )
                 {
-                    const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                    const double nodal_area = it_node->FastGetSolutionStepValue(NODAL_AREA);
 
-                    if(true) //if(NodalArea >1E-8)
+                    if(true) //if(nodal_area >1E-8)
                     {
                         if ( ! it_node->IsFixed(VELOCITY_X) )
-                            it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                            it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / nodal_area;
                         if ( ! it_node->IsFixed(VELOCITY_Y) )
-                            it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                            it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / nodal_area;
                     }
                 }
             }
@@ -471,7 +508,7 @@ protected:
             const auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
             {
-                if (constraint.IsDefined(FS_CHIMERA_VEL_CONSTRAINT))
+                if (constraint.Is(FS_CHIMERA_VEL_CONSTRAINT))
                 {
                     const auto& master_dofs = constraint.GetMasterDofsVector();
                     const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -484,6 +521,8 @@ protected:
                     {
                         const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
                         auto& r_slave_node = r_model_part.Nodes()[slave_node_id];
+                        //KRATOS_INFO("interpolating for node id")<<slave_node_id<<std::endl;
+                        //KRATOS_INFO("It has a velocity of Vx")<<r_slave_node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
                         r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
                         r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
                         IndexType master_j = 0;
@@ -512,7 +551,7 @@ protected:
         const auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
-            if (constraint.IsDefined(FS_CHIMERA_VEL_CONSTRAINT))
+            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
             {
                 const auto& master_dofs = constraint.GetMasterDofsVector();
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -575,7 +614,7 @@ protected:
         const auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
-            if (constraint.IsDefined(FS_CHIMERA_VEL_CONSTRAINT))
+            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
             {
                 const auto& master_dofs = constraint.GetMasterDofsVector();
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -663,14 +702,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    void SetFlagOnConstraints(const Flags& TheFlagToSet ,const bool ValToSet)
+    void SetActiveStateOnConstraint(const Flags& TheFlagToSet ,const bool ValToSet)
     {
         ModelPart& r_model_part = BaseType::GetModelPart();
         auto& r_constraints_container = r_model_part.MasterSlaveConstraints();
         for(auto& constraint : r_constraints_container)
         {
-            if (constraint.IsDefined(TheFlagToSet))
-               constraint.Set(TheFlagToSet, ValToSet);
+            if (constraint.Is(TheFlagToSet))
+               constraint.Set(ACTIVE, ValToSet);
         }
     }
 
