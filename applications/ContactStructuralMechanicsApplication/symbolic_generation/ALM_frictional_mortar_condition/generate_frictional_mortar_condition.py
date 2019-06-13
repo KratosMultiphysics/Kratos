@@ -155,8 +155,8 @@ for normalvar in range(normal_combs):
 
         # Definitions of components
         for node in range(nnodes):
-            LMNormal[node] = LM.row(node) * NormalSlave.row(node).transpose()
-            wLMNormal[node] = wLM.row(node) * NormalSlave.row(node).transpose()
+            LMNormal[node] = LM.row(node).dot(NormalSlave.row(node))
+            wLMNormal[node] = wLM.row(node).dot(NormalSlave.row(node))
 
             # We calculate the LM tangent resultant
             #aux = wLM.row(node).dot(TangentSlave.row(node)) * TangentSlave.row(node)
