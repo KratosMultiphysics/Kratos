@@ -8,13 +8,13 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
 def CreateSolver(model, settings):
-    return CoSimulationBaseSolver(model, settings)
+    return CoSimulationSolverWrapper(model, settings)
 
-class CoSimulationBaseSolver(object):
-    """The base class for the CoSimulation Solvers
+class CoSimulationSolverWrapper(object):
+    """The base class for the CoSimulation Solver Wrappers
     """
     def __init__(self, model, settings, solver_name):
-        """Constructor of the Base-Solver
+        """Constructor of the Base Solver Wrapper
         Deriving classes should call it in their constructors
         """
 

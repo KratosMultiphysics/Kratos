@@ -4,12 +4,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold
 
-class KratosBaseInterface(CoSimulationBaseSolver):
+class KratosBaseInterface(CoSimulationSolverWrapper):
     def __init__(self, model, settings, solver_name):
         super(KratosBaseInterface, self).__init__(model, settings, solver_name)
 
