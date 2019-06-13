@@ -9,6 +9,11 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 class PotentialFlowFormulation(object):
     def __init__(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
         self.element_name = None
         self.condition_name = None
 
@@ -23,31 +28,15 @@ class PotentialFlowFormulation(object):
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
-
     def _SetUpIncompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "incompressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
         self.element_name = "IncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpCompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "compressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
         self.element_name = "CompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_incompressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
