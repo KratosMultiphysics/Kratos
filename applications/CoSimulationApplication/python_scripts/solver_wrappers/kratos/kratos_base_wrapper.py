@@ -9,9 +9,9 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold
 
-class KratosBaseInterface(CoSimulationSolverWrapper):
+class KratosBaseWrapper(CoSimulationSolverWrapper):
     def __init__(self, model, settings, solver_name):
-        super(KratosBaseInterface, self).__init__(model, settings, solver_name)
+        super(KratosBaseWrapper, self).__init__(model, settings, solver_name)
 
         input_file_name = self.settings["settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):

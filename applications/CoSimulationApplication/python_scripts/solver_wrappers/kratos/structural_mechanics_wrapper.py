@@ -7,8 +7,8 @@ from . import kratos_base_wrapper
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 def CreateSolver(model, settings, solver_name):
-    return KratosStructuralSolver(model, settings, solver_name)
+    return StructuralMechanicsWrapper(model, settings, solver_name)
 
-class KratosStructuralSolver(kratos_base_wrapper.KratosBaseInterface):
+class StructuralMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def _CreateAnalysisStage(self):
         return StructuralMechanicsAnalysis(self.model, self.project_parameters)
