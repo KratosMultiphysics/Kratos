@@ -558,9 +558,13 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_TRY;
 
         if (!mSolutionStepIsInitialized) {
+            // Getting references of operators
+            TSystemMatrixType& rA  = *mpA;
+            TSystemVectorType& rDx = *mpDx;
+            TSystemVectorType& rb  = *mpb;
+            
             // Move the mesh if needed before computing anything to properly compute initial residuals in case of imposed displacements
-            if (this->MoveMeshFlag())
-                BaseType::MoveMesh();
+            UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
             // Pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -595,10 +599,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0)
                 << system_construction_time.ElapsedSeconds() << std::endl;
-
-            TSystemMatrixType& rA  = *mpA;
-            TSystemVectorType& rDx = *mpDx;
-            TSystemVectorType& rb  = *mpb;
 
             // Initial operations ... things that are constant over the Solution Step
             p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
