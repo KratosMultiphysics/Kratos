@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "geometries/geometry.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 
@@ -74,6 +75,10 @@ void CalculateTurbulentValues(double& turbulent_kinetic_energy,
                               const double turbulence_intensity,
                               const double mixing_length,
                               const double c_mu);
+
+template <class NodeType>
+bool HasConditionWithFlag(const typename Geometry<NodeType>::GeometriesArrayType& rConditionsArray,
+                          const Flags& rFlag);
 
 } // namespace EvmKepsilonModelUtilities
 

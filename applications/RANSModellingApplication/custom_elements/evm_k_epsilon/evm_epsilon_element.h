@@ -56,8 +56,10 @@ struct EvmEpsilonElementData
     double KinematicViscosity;
     double TurbulentKineticEnergy;
     double TurbulentKinematicViscosity;
+    double WallDistance;
 
     Matrix ShapeFunctionDerivatives;
+    array_1d<double, 3> WallNormal;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -224,6 +226,14 @@ public:
      * @return Gauss Order
      */
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
+
+    /**
+     * is called to initialize the element
+     * if the element needs to perform any operation before any calculation is done
+     * the elemental variables will be initialized and set using this method
+     */
+    void Initialize() override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input

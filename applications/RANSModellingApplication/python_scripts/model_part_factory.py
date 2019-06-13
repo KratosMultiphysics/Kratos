@@ -16,6 +16,7 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
         connectivity_preserve_modeler.GenerateModelPart(
             origin_modelpart, model_part, element_name, condition_name)
 
+    Kratos.Logger.PrintInfo("RANSModelPartFactory", "Created " + destination_modelpart_name)
     return model.GetModelPart(destination_modelpart_name)
 
 

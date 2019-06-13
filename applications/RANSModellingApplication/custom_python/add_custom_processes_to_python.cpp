@@ -38,9 +38,12 @@
 #include "custom_processes/auxiliary_processes/rans_y_plus_wall_distance_calculation_process.h"
 
 #include "custom_processes/auxiliary_processes/rans_apply_flag_process.h"
+#include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
+#include "custom_processes/auxiliary_processes/rans_epsilon_wall_friction_velocity_process.h"
 #include "custom_processes/auxiliary_processes/rans_find_condition_parent_process.h"
 #include "custom_processes/auxiliary_processes/rans_k_turbulent_intensity_inlet_process.h"
+#include "custom_processes/auxiliary_processes/rans_k_wall_friction_velocity_process.h"
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_high_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.h"
@@ -192,6 +195,21 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansEpsilonTurbulentMixingLengthInletProcessType,
                RansEpsilonTurbulentMixingLengthInletProcessType::Pointer, Process>(
         m, "RansEpsilonTurbulentMixingLengthInletProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansKWallFrictionVelocityProcess RansKWallFrictionVelocityProcessType;
+    py::class_<RansKWallFrictionVelocityProcessType, RansKWallFrictionVelocityProcessType::Pointer, Process>(
+        m, "RansKWallFrictionVelocityProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansEpsilonWallFrictionVelocityProcess RansEpsilonWallFrictionVelocityProcessType;
+    py::class_<RansEpsilonWallFrictionVelocityProcessType, RansEpsilonWallFrictionVelocityProcessType::Pointer, Process>(
+        m, "RansEpsilonWallFrictionVelocityProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansClipScalarVariableProcess RansClipScalarVariableProcessType;
+    py::class_<RansClipScalarVariableProcessType, RansClipScalarVariableProcessType::Pointer, Process>(
+        m, "RansClipScalarVariableProcess")
         .def(py::init<Model&, Parameters&>());
 }
 

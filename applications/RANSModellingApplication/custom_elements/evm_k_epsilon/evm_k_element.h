@@ -54,9 +54,12 @@ struct EvmKElementData
     double Gamma;
 
     double TurbulentKineticEnergy;
+    double TurbulentEnergyDissipationRate;
     double TurbulentKinematicViscosity;
+    double WallDistance;
 
     Matrix ShapeFunctionDerivatives;
+    array_1d<double, 3> WallNormal;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -221,6 +224,9 @@ public:
      * @return Gauss Order
      */
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
+
+    void Initialize() override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input

@@ -19,12 +19,14 @@ def Factory(settings, Model):
         "LogarithmicYPlusCalculationProcess", "CheckScalarBoundsProcess",
         "EpsilonWallFunctionProcess", "NuTKWallFunctionProcess",
         "NuTHighReCalculationProcess", "ApplyKTurbulentIntensityInletProcess",
-        "ApplyEpsilonTurbulentMixingLengthInletProcess"
+        "ApplyEpsilonTurbulentMixingLengthInletProcess",
+        "ApplyKWallFrictionVelocityProcess",
+        "ApplyEpsilonWallFrictionVelocityProcess", "ClipScalarVariableProcess"
     ]
 
     process_name = settings["process_name"].GetString()
     if (process_name not in allowed_process_names_list):
-        msg = "Unknown process_name=\"" + process_name + "\". Allowed process names are:"
+        msg = "Unknown process_name=\"" + process_name + "\". Following process names are allowed:\n    "
         msg += "\n    ".join(allowed_process_names_list)
         raise Exception(msg + "\n")
 
@@ -72,7 +74,15 @@ def Factory(settings, Model):
     elif (process_name == "ApplyEpsilonTurbulentMixingLengthInletProcess"):
         return KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess(
             Model, settings["Parameters"])
-
+    elif (process_name == "ApplyKWallFrictionVelocityProcess"):
+        return KratosRANS.RansKWallFrictionVelocityProcess(
+            Model, settings["Parameters"])
+    elif (process_name == "ApplyEpsilonWallFrictionVelocityProcess"):
+        return KratosRANS.RansEpsilonWallFrictionVelocityProcess(
+            Model, settings["Parameters"])
+    elif (process_name == "ClipScalarVariableProcess"):
+        return KratosRANS.RansClipScalarVariableProcess(
+            Model, settings["Parameters"])
 
 class FindNodalNeighboursProcess(Kratos.Process):
     def __init__(self, Model, settings):

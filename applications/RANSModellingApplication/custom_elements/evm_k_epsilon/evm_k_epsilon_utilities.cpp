@@ -96,8 +96,7 @@ void CalculateTurbulentValues(double& turbulent_kinetic_energy,
 {
     const double u_tau = y_plus * kinematic_viscosity / wall_distance;
     turbulent_kinetic_energy = std::pow(u_tau, 2) / std::sqrt(c_mu);
-    turbulent_energy_dissipation_rate =
-        std::pow(u_tau, 3) / (von_karman * wall_distance);
+    turbulent_energy_dissipation_rate = std::pow(u_tau, 3) / (von_karman * wall_distance);
 }
 
 void CalculateTurbulentValues(double& turbulent_kinetic_energy,
@@ -108,11 +107,41 @@ void CalculateTurbulentValues(double& turbulent_kinetic_energy,
                               const double c_mu)
 {
     turbulent_kinetic_energy = 1.5 * std::pow(velocity_mag * turbulence_intensity, 2);
-    turbulent_energy_dissipation_rate = c_mu * std::pow(turbulent_kinetic_energy, 1.5) / mixing_length;
+    turbulent_energy_dissipation_rate =
+        c_mu * std::pow(turbulent_kinetic_energy, 1.5) / mixing_length;
+}
+
+template <class NodeType>
+bool HasConditionWithFlag(const typename Geometry<NodeType>::GeometriesArrayType& rConditionsArray,
+                          const Flags& rFlag)
+{
+    for (const Geometry<NodeType>& r_condition : rConditionsArray)
+    {
+        const int number_of_nodes = r_condition.PointsNumber();
+        bool flag_value = true;
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+        {
+            if (!r_condition[i_node].Is(rFlag))
+            {
+                flag_value = false;
+                break;
+            }
+        }
+
+        if (flag_value)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 template double CalculateSourceTerm<2>(const BoundedMatrix<double, 2, 2>&, const double, const double);
 template double CalculateSourceTerm<3>(const BoundedMatrix<double, 3, 3>&, const double, const double);
+
+template bool HasConditionWithFlag<Node<3>>(const Geometry<Node<3>>::GeometriesArrayType& rConditionsArray,
+                                            const Flags& rFlag);
 
 } // namespace EvmKepsilonModelUtilities
 

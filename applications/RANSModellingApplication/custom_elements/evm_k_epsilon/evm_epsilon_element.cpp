@@ -405,9 +405,11 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double& nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
     const double& tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    const double& epsilon = this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    const double& epsilon =
+        this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
     // const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
     const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
+    const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
 
     rData.C1 = c1;
     rData.C2 = c2;
@@ -416,6 +418,8 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
+    rData.WallDistance = wall_distance;
+    rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
 
     rEffectiveKinematicViscosity = nu + nu_t / epsilon_sigma;
 }
@@ -456,16 +460,88 @@ double EvmEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmEpsilonE
                                                                const ProcessInfo& rCurrentProcessInfo,
                                                                const int Step) const
 {
+    double production = 0.0;
+    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
-    double production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
-        velocity_gradient_matrix, rData.TurbulentKinematicViscosity, rData.TurbulentKineticEnergy);
+
+    if (this->Is(STRUCTURE))
+    {
+        const double wall_normal_magnitude = norm_2(rData.WallNormal);
+        KRATOS_ERROR_IF(wall_normal_magnitude < std::numeric_limits<double>::epsilon())
+            << "NORMAL is zero.\n";
+        const Vector& normal = RansCalculationUtilities().GetVector<TDim>(
+            rData.WallNormal / wall_normal_magnitude);
+        Vector result(TDim);
+        noalias(result) = prod(velocity_gradient_matrix, normal);
+        production = (rData.KinematicViscosity + rData.TurbulentKinematicViscosity) *
+                     norm_2(result) * std::pow(c_mu, 0.25) *
+                     std::sqrt(std::max(rData.TurbulentKineticEnergy, 0.0)) /
+                     (von_karman * rData.WallDistance);
+
+        // const double u_tau = std::pow(c_mu, 0.25) *
+        //                      std::sqrt(std::max(rData.TurbulentKineticEnergy, 0.0));
+        // production = std::pow(u_tau, 3) / (von_karman * rData.WallDistance);
+    }
+    else
+    {
+        production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
+            velocity_gradient_matrix, rData.TurbulentKinematicViscosity,
+            rData.TurbulentKineticEnergy);
+    }
 
     production *= (rData.C1 * rData.Gamma);
-
     return production;
 }
 
+template <>
+void EvmEpsilonElement<2, 3>::Initialize()
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType::GeometriesArrayType& r_condition_point_list =
+        r_geometry.GenerateEdges();
+
+    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
+            r_condition_point_list, STRUCTURE))
+        this->Set(STRUCTURE, true);
+}
+
+template <>
+void EvmEpsilonElement<2, 4>::Initialize()
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType::GeometriesArrayType& r_condition_point_list =
+        r_geometry.GenerateEdges();
+
+    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
+            r_condition_point_list, STRUCTURE))
+        this->Set(STRUCTURE, true);
+}
+
+template <>
+void EvmEpsilonElement<3, 4>::Initialize()
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType::GeometriesArrayType& r_condition_point_list =
+        r_geometry.GenerateFaces();
+
+    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
+            r_condition_point_list, STRUCTURE))
+        this->Set(STRUCTURE, true);
+}
+
+template <>
+void EvmEpsilonElement<3, 8>::Initialize()
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType::GeometriesArrayType& r_condition_point_list =
+        r_geometry.GenerateFaces();
+
+    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
+            r_condition_point_list, STRUCTURE))
+        this->Set(STRUCTURE, true);
+}
 ///@}
 ///@name Serialization
 ///@{

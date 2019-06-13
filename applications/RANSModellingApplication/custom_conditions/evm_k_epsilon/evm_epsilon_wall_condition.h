@@ -257,6 +257,8 @@ public:
             if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
                 return;
 
+        std::cout<<"Applying epsilon wall functions\n";
+
         RansCalculationUtilities rans_calculation_utilities;
 
         // Get Shape function data
