@@ -150,12 +150,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 self.pure_slip = True
             else:
                 self.pure_slip = False
-            if "WithNormalUpdate" in contact_type:
-                if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
-                    self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
         else:
             self.is_frictional = False
             self.pure_slip = False
+
+        # In case we want a normal update
+        if "WithNormalUpdate" in contact_type:
+            if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
+                self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
