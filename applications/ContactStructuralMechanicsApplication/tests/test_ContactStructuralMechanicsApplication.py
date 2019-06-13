@@ -113,9 +113,9 @@ from NightlyTests import ComponentsALMHertzSimpleSphereTestContact     as TCompo
 from NightlyTests import ComponentsALMHertzSphereTestContact           as TComponentsALMHertzSphereTestContact
 from NightlyTests import ComponentsALMHertzCompleteTestContact         as TComponentsALMHertzCompleteTestContact
 
-# ALM frictionless tests
-from NightlyTests import ALMTaylorPatchFrictionalTestContact           as TALMTaylorPatchFrictionalTestContact
+# ALM frictional tests
 from NightlyTests import ALMPureFrictionalTestContact                  as TALMPureFrictionalTestContact
+from NightlyTests import ALMBasicFrictionTestContact                   as TALMBasicFrictionTestContact
 
 ## VALIDATION TESTS
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
@@ -137,6 +137,9 @@ from ValidationTests import ComponentsALMMeshMovingNotMatchingTestContact as TCo
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestTetra as TComponentsALMLargeDisplacementPatchTestTetra
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestHexa as TComponentsALMLargeDisplacementPatchTestHexa
 from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALMMultiLayerContactTest
+
+# ALM frictional tests
+from ValidationTests import ALMTaylorPatchFrictionalTestContact as TALMTaylorPatchFrictionalTestContact
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -254,6 +257,7 @@ def AssembleTestSuites():
 
     # ALM frictional tests
     nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))
+    nightlySuite.addTest(TALMBasicFrictionTestContact('test_execution'))
 
     ### END VALIDATION SUITE ###
 
@@ -289,6 +293,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TTestMortarMapperCore('test_mortar_mapping_triangle'))
     validationSuite.addTest(TTestMortarMapperCore('test_mortar_mapping_quad'))
 
+    # Some large displacement tests
     validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
 
     # ALM frictionless tests
@@ -318,7 +323,7 @@ def AssembleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(nightlySuite) # Already contains the smallSuite
     validationSuite.addTests(allSuite) # Validation contains all
-    
+
     # Manual list for debugging
     #allSuite.addTests(
         #KratosUnittest.TestLoader().loadTestsFromTestCases([
@@ -395,6 +400,7 @@ def AssembleTestSuites():
             ######TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             #TComponentsALMHertzCompleteTestContact,
             #TALMPureFrictionalTestContact,
+            #TALMBasicFrictionTestContact,
             ##### VALIDATION
             #TALMTaylorPatchDynamicTestContact,
             #TALMMeshMovingMatchingTestContact,

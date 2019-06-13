@@ -59,7 +59,6 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TFrictional If we are solving a frictional or frictionless problem
  * @tparam TNormalVariation If we are consider normal variation
  * @tparam TNumNodesMaster The number of nodes of the master
  */
@@ -456,16 +455,6 @@ private:
      * @param rCurrentProcessInfo The current process information
      */
     void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
-     * @param rGeometry The geometry to calculate
-     * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
-     */
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry)
-    {
-        return ContactUtilities::ComputeTangentMatrixSlip<TDim, TNumNodes>(rGeometry, StepSlip);
-    }
 
     ///@}
     ///@name Private  Access
