@@ -133,6 +133,16 @@ public:
     ///@name Operations
     ///@{
 
+
+    /**
+     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
+     */
+    void Clear() override
+    {
+        BaseType::Clear();
+        mL.resize(0,0,false);
+    }
+
     ///@}
     ///@name Access
     ///@{
