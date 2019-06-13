@@ -51,6 +51,10 @@ virtual ~PostProcessUtilities(){}
 
 void GetStickyStatus(pybind11::list& is_sticky_list);
 
+void GetInitialContinuumBonds(pybind11::list& initial_continuum_bonds_list);
+
+void GetCurrentContinuumBonds(pybind11::list& current_continuum_bonds_list);
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 

@@ -84,6 +84,12 @@ class SandProductionPostProcessTool(object):
         is_sticky_list = []
         self.post_process_utility.GetStickyStatus(is_sticky_list)
         self.is_sticky_array = np.array(is_sticky_list)
+        initial_continuum_bonds_list = []
+        self.post_process_utility.GetInitialContinuumBonds(initial_continuum_bonds_list)
+        self.initial_continuum_bonds_array = np.array(initial_continuum_bonds_list)
+        current_continuum_bonds_list = []
+        self.post_process_utility.GetCurrentContinuumBonds(current_continuum_bonds_list)
+        self.current_continuum_bonds_array = np.array(current_continuum_bonds_list)
 
         if not self.last_time == time:
             with h5py.File(self.file_path, 'r+') as f:
@@ -99,6 +105,10 @@ class SandProductionPostProcessTool(object):
                 f[name + '/z'][:] = self.z_array[:]
                 f.create_dataset(name + '/is_sticky', compression = self.compression_type, shape = column_shape, dtype = self.dtype)
                 f[name + '/is_sticky'][:] = self.is_sticky_array[:]
+                f.create_dataset(name + '/initial_continuum_bonds', compression = self.compression_type, shape = column_shape, dtype = self.dtype)
+                f[name + '/initial_continuum_bonds'][:] = self.initial_continuum_bonds_array[:]
+                f.create_dataset(name + '/current_continuum_bonds', compression = self.compression_type, shape = column_shape, dtype = self.dtype)
+                f[name + '/current_continuum_bonds'][:] = self.current_continuum_bonds_array[:]
 
 
         self.last_time = time

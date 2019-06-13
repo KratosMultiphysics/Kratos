@@ -61,6 +61,8 @@ namespace Kratos {
             class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
                 .def(init<ModelPart&>())
                 .def("GetStickyStatus", &PostProcessUtilities::GetStickyStatus)
+                .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)
+                .def("GetCurrentContinuumBonds", &PostProcessUtilities::GetCurrentContinuumBonds)
                 ;
 
         }
