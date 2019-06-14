@@ -403,12 +403,13 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
+        // If the operations needed were already performed this does nothing
+        if (!mInitializeWasPerformed)
             Initialize();
 
-        //initialize solution step
-        if (mSolutionStepIsInitialized == false)
+        // Initialize solution step
+        const bool compute_conv_criteria_predict = !mSolutionStepIsInitialized ? true : false;
+        if (!mSolutionStepIsInitialized)
             InitializeSolutionStep();
 
         TSystemMatrixType& rA  = *mpA;
@@ -417,6 +418,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
+        // Calling Predict of scheme
         GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0)
@@ -444,6 +446,10 @@ class ResidualBasedNewtonRaphsonStrategy
         //move the mesh if needed
         if (this->MoveMeshFlag() == true)
             BaseType::MoveMesh();
+
+        // Calling Predict of convergence criteria
+        if (compute_conv_criteria_predict)
+            mpConvergenceCriteria->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         KRATOS_CATCH("")
     }
@@ -558,10 +564,6 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_TRY;
 
         if (!mSolutionStepIsInitialized) {
-            // Move the mesh if needed before computing anything to properly compute initial residuals in case of imposed displacements
-            if (this->MoveMeshFlag())
-                BaseType::MoveMesh();
-
             // Pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
