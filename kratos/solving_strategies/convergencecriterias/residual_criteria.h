@@ -202,14 +202,15 @@ public:
     }
 
     /**
-     * @brief This function initializes the solution step
+     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+    values of the solution step of interest are assumed equal to the old values
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rA System matrix (unused)
      * @param rDx Vector of results (variations on nodal variables)
      * @param rb RHS vector (residual + reactions)
      */
-    void InitializeSolutionStep(
+    void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& rA,
@@ -217,7 +218,7 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+        BaseType::Predict(rModelPart, rDofSet, rA, rDx, rb);
 
         // Filling mActiveDofs when MPC exist
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
@@ -248,6 +249,25 @@ public:
 
         SizeType size_residual;
         CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
+    }
+
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual + reactions)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
 
     /**
