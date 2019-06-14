@@ -28,7 +28,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             err_msg += "Please specify the model part that contains the body surface nodes"
             raise Exception(err_msg)
         self.body_model_part = Model[body_model_part_name]
-
+        self.model = Model
         self.epsilon = settings["epsilon"].GetDouble()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
@@ -53,7 +53,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Check which elements are cut and mark them as wake
         self.__MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
-        self.__MarkKuttaElements()
+        self._MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
         self.__MarkWakeTEElement()
 
@@ -189,7 +189,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Elements with nodes above and below the wake are wake elements
         return(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0)
 
-    def __MarkKuttaElements(self):
+    def _MarkKuttaElements(self):
         # This function selects the kutta elements. Kutta elements
         # are touching the trailing edge from below.
         for elem in self.trailing_edge_model_part.Elements:
