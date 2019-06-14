@@ -315,7 +315,7 @@ public:
     }
 
     /// 3d with variables list and data constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : BaseType(NewX, NewY, NewZ)
         , IndexedObject(NewId)
         , Flags()
@@ -514,7 +514,7 @@ public:
         mSolutionStepsNodalData.Clear();
     }
 
-    void SetSolutionStepVariablesList(VariablesList* pVariablesList)
+    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
     {
         mSolutionStepsNodalData.SetVariablesList(pVariablesList);
     }
@@ -751,12 +751,12 @@ public:
         mInitialPosition.Z() = Z;
     }
 
-    VariablesList * pGetVariablesList()
+    VariablesList::Pointer pGetVariablesList()
     {
         return mSolutionStepsNodalData.pGetVariablesList();
     }
 
-    const VariablesList * pGetVariablesList() const
+    const VariablesList::Pointer pGetVariablesList() const
     {
         return mSolutionStepsNodalData.pGetVariablesList();
     }

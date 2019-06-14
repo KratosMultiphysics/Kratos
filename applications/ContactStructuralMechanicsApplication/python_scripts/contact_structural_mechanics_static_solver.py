@@ -111,15 +111,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-        if self.contact_settings["inner_loop_adaptive"].GetBool():
-            process_info = self.GetComputingModelPart().ProcessInfo
-            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
-                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
-                if inner_iterations > 1:
-                    delta_time = delta_time/float(inner_iterations)
-                    KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
-        return delta_time
+        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
