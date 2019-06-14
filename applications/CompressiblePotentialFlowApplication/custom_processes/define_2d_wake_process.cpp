@@ -86,8 +86,8 @@ void Define2DWakeProcess::MarkWakeElements()
     BoundedVector<double, 3> distances_to_wake = ZeroVector(3);
 
     //#pragma omp parallel for
-    for (auto it_elem = root_model_part.ElementsBegin();
-         it_elem != root_model_part.ElementsEnd(); ++it_elem) {
+    for (int i=0; i< static_cast<int>(root_model_part.Elements().size()); i++){
+        ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 
         // Elements downstream the trailing edge can be wake elements
         potentially_wake = CheckIfPotentiallyWakeElement(it_elem);
@@ -98,7 +98,6 @@ void Define2DWakeProcess::MarkWakeElements()
 
             // Selecting the cut (wake) elements
             is_wake_element = CheckIfWakeElement(distances_to_wake);
-            //KRATOS_WATCH(is_wake_element)
 
             if(is_wake_element){
                 it_elem->SetValue(WAKE, true);
