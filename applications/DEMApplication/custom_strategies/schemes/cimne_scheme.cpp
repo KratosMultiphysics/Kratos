@@ -43,7 +43,7 @@ namespace Kratos {
                     delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
                     // displ[k] += delta_displ[k];
                     // coor[k] = initial_coor[k] + displ[k];
-                    vel[k] += force_reduction_factor * force[k] * mass_inv * delta_t ;
+                    vel[k] += force[k] * mass_inv * delta_t ;
 
                 } else {
                     delta_displ[k] = delta_t * vel[k];
@@ -63,7 +63,7 @@ namespace Kratos {
                     delta_displ[k] = beta_coeff*(vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t) +
                     (1-beta_coeff)*(mOldVelocity[k] * delta_t + 0.5 * mOldAcceleration[k] * delta_t * delta_t);
 
-                    displ[k] += delta_displ[k];
+                    displ[k] += delta_displ[k];             // should be moved to the prediction step
                     coor[k] = initial_coor[k] + displ[k];
                 }
             }
