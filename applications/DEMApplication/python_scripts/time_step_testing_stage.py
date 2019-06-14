@@ -1,6 +1,7 @@
-import KratosMultiphysics as Kratos
+import KratosMultiphysics
 from KratosMultiphysics.DEMApplication import *
-import main_script as DEM_main_script
+import DEM_analysis_stage
+
 
 class TimeStepTester(object):
     def __init__(self):
@@ -37,7 +38,7 @@ class TimeStepTester(object):
 
     @classmethod
     def RunTestCaseWithCustomizedDtAndScheme(self, dt, scheme):
-        model = Kratos.Model()
+        model = KratosMultiphysics.Model()
         CustomizedSolutionForTimeStepTesting(model, dt, scheme).Run()
 
     def Finalize(self):
@@ -52,15 +53,18 @@ class TimeStepTester(object):
         print("\n")
 
 
-class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
+class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
     def __init__(self, model, dt, scheme):
         self.customized_time_step = dt
         self.customized_scheme = scheme
-        super(CustomizedSolutionForTimeStepTesting, self).__init__(model)
+        self.LoadParametersFile()
+        # with open("ProjectParametersDEM.json",'r') as parameter_file:
+        #     project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        super(CustomizedSolutionForTimeStepTesting, self).__init__(model, self.project_parameters)
 
     def LoadParametersFile(self):
-        self.DEM_parameters = Kratos.Parameters(
+        self.project_parameters = KratosMultiphysics.Parameters(
             """
             {
                 "Dimension"                        : 3,
@@ -81,7 +85,12 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "VelocityTrapOption"               : false,
                 "RotationOption"                   : true,
                 "CleanIndentationsOption"          : true,
-                "RemoveBallsInEmbeddedOption"      : true,
+                "RemoveBallsInEmbeddedOption"      : false,
+                "solver_settings" :{
+                    "strategy"                 : "sphere_strategy",
+                    "RemoveBallsInitiallyTouchingWalls": false
+                },
+
                 "DeltaOption"                      : "Absolute",
                 "SearchTolerance"                  : 0.0,
                 "CoordinationNumber"               : 10,
@@ -93,7 +102,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "ContactMeshOption"                : false,
                 "OutputFileType"                   : "Binary",
                 "Multifile"                        : "multiple_files",
-                "IntegrationScheme"                : "Forward_Euler",
+                "TranslationalIntegrationScheme"   : "Forward_Euler",
+                "RotationalIntegrationScheme"      : "Direct_Integration",
                 "AutomaticTimestep"                : false,
                 "DeltaTimeSafetyFactor"            : 1.0,
                 "MaxTimeStep"                      : 1e-4,
@@ -102,9 +112,10 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "NeighbourSearchFrequency"         : 1,
                 "PeriodicDomainOption"             : false,
                 "ElementType"                      : "SphericPartDEMElement3D",
+
                 "GraphExportFreq"                  : 1e-5,
                 "VelTrapGraphExportFreq"           : 1e-3,
-                "OutputTimeStep"                   : 1e-3,
+                "OutputTimeStep"                   : 1e-5,
                 "PostDisplacement"                 : false,
                 "PostVelocity"                     : false,
                 "PostElasticForces"                : false,
@@ -133,29 +144,30 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "PostMeanContactArea"              : false,
                 "PostStressStrainOption"           : false,
                 "PostRollingResistanceMoment"      : false,
-                "TranslationalIntegrationScheme"   : "Taylor_Scheme",
-                "RotationalIntegrationScheme"      :  "Direct_Integration",
-
+                "post_vtk_option"                  : false,
                 "problem_name"                     : "TimeStepTests"
                 }
+
             """
             )
 
+
+
+    def SetDt(self):
         self.DEM_parameters["TranslationalIntegrationScheme"].SetString(self.customized_scheme)
-
         self.DEM_parameters["MaxTimeStep"].SetDouble(self.customized_time_step)
-
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
 
-    def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
+        self._GetSolver().dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
-        properties = Kratos.Properties(0)
-        properties_walls = Kratos.Properties(0)
+
+    def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):   # exists in DEM_analysis_stage
+        properties = KratosMultiphysics.Properties(0)
+        properties_walls = KratosMultiphysics.Properties(0)
         self.SetHardcodedProperties(properties, properties_walls)
         self.spheres_model_part.AddProperties(properties)
         self.rigid_face_model_part.AddProperties(properties_walls)
-
 
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
@@ -169,7 +181,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         element_name = "SphericParticle3D"
         PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
 
-        coordinates = Kratos.Array3()
+        coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
         coordinates[1] = -0.1
         coordinates[2] = 0.0
@@ -184,12 +196,11 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
 
 
         for node in self.spheres_model_part.Nodes:
-            node.SetSolutionStepValue(Kratos.VELOCITY_X, 10.0)
-            node.SetSolutionStepValue(Kratos.VELOCITY_Y, 5.0)
-            node.SetSolutionStepValue(Kratos.VELOCITY_Z, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 10.0)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 5.0)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
 
         self.initial_test_energy = self.ComputeEnergy()
-
         self.rigid_face_model_part.CreateNewNode(11, -0.5, -0.5, -0.5)
         self.rigid_face_model_part.CreateNewNode(12, -0.5, -0.5, 0.5)
 
@@ -229,14 +240,13 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
-
         properties[PARTICLE_DENSITY] = 2650.0
-        properties[Kratos.YOUNG_MODULUS] = 7.0e6
-        properties[Kratos.POISSON_RATIO] = 0.30
+        properties[KratosMultiphysics.YOUNG_MODULUS] = 7.0e6
+        properties[KratosMultiphysics.POISSON_RATIO] = 0.30
         properties[FRICTION] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 1.0
-        properties[Kratos.PARTICLE_MATERIAL] = 1
+        properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
         properties[ROLLING_FRICTION] = 0.0
         properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
         properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
@@ -247,8 +257,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         properties_walls[SEVERITY_OF_WEAR] = 0.001
         properties_walls[IMPACT_WEAR_SEVERITY] = 0.001
         properties_walls[BRINELL_HARDNESS] = 200.0
-        properties_walls[Kratos.YOUNG_MODULUS] = 7.0e10
-        properties_walls[Kratos.POISSON_RATIO] = 0.30
+        properties_walls[KratosMultiphysics.YOUNG_MODULUS] = 7.0e10
+        properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.30
 
 
     def FinalizeTimeStep(self, time):
