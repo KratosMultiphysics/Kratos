@@ -631,7 +631,7 @@ namespace Kratos
         Vector TDisplacements(mat_size);
         for (unsigned int i = 0; i < number_of_control_points; i++)
         {
-            KRATOS_WATCH(GetGeometry()[i].Coordinates())
+            //KRATOS_WATCH(GetGeometry()[i].Coordinates())
 
             const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             int index = 3 * i;
@@ -650,8 +650,8 @@ namespace Kratos
         rLeftHandSideMatrix  *= (Weighting * JGeometrictoParameter * Penalty);
         rRightHandSideVector *= (Weighting * JGeometrictoParameter * Penalty);
 
-        KRATOS_WATCH(rLeftHandSideMatrix)
-            KRATOS_WATCH(rRightHandSideVector)
+        //KRATOS_WATCH(rLeftHandSideMatrix)
+            //KRATOS_WATCH(rRightHandSideVector)
 
         KRATOS_CATCH("")
     }

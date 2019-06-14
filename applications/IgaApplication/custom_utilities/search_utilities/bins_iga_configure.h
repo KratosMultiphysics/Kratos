@@ -144,8 +144,8 @@ public:
     {
         auto radiusExtension = PointType(Radius, Radius, Radius);
 
-        rLowPoint  = *rObject - radiusExtension;
-        rHighPoint = *rObject + radiusExtension;
+        //rLowPoint  = *rObject - radiusExtension;
+        //rHighPoint = *rObject + radiusExtension;
     }
 
     /** Calculates the Center of the object.

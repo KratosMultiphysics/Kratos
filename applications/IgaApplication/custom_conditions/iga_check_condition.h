@@ -76,7 +76,7 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<IgaCheckCondition >(
+        return Kratos::make_intrusive<IgaCheckCondition >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -86,7 +86,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared<IgaCheckCondition>(
+        return Kratos::make_intrusive<IgaCheckCondition>(
             NewId, pGeom, pProperties);
     };
 

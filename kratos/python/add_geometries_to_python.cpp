@@ -38,6 +38,8 @@
 #include "geometries/prism_3d_6.h"
 // #include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/coupling_master_slave.h"
+#include "geometries/integration_point_curve_on_surface_3d.h"
 // #include "geometries/hexahedra_3d_20.h"
 // #include "geometries/hexahedra_3d_27.h"
 #include "python/add_geometries_to_python.h"
@@ -158,7 +160,11 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     ;
 //     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
 //     ;
-
+    py::class_<CouplingMasterSlave<NodeType>, CouplingMasterSlave<NodeType>::Pointer, GeometryType  >(m, "CouplingMasterSlave").def(py::init<GeometryType::Pointer, GeometryType::Pointer, bool>())
+        ;
+    py::class_<IntegrationPointCurveOnSurface3d<NodeType>, IntegrationPointCurveOnSurface3d<NodeType>::Pointer, GeometryType  >(m, "IntegrationPointCurveOnSurface3d").def(py::init<
+        GeometryType::PointsArrayType, GeometryType::CoordinatesArrayType, array_1d<double, 2>, double, Matrix, GeometryType::ShapeFunctionsGradientsType>())
+        ;
 }
 
 }  // namespace Python.

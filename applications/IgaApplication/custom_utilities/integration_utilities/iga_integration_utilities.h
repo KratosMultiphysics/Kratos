@@ -14,6 +14,7 @@
 #define IGA_INTEGRATION_UTILITIES_H_INCLUDED
 
 #include "includes/model_part.h"
+#include "geometries/integration_point_curve_on_surface_3d.h"
 
 namespace Kratos
 {
@@ -159,7 +160,7 @@ namespace IgaIntegrationUtilities
 
                         Element ele(0, non_zero_control_points);
 
-                        Element::Pointer element = Kratos::make_shared<Element>(ele);
+                        Element::Pointer element = Kratos::make_intrusive<Element>(ele);
 
                         if (ShapeFunctionDerivativesOrder > -1)
                         {
@@ -246,7 +247,7 @@ namespace IgaIntegrationUtilities
 
                             Element ele(0, non_zero_control_points);
 
-                            Element::Pointer element = Kratos::make_shared<Element>(ele);
+                            Element::Pointer element = Kratos::make_intrusive<Element>(ele);
 
                             if (ShapeFunctionDerivativesOrder > -1)
                             {
@@ -281,14 +282,14 @@ namespace IgaIntegrationUtilities
         return new_elements;
     }
 
-    static std::vector<Element::Pointer> GetIntegrationDomainSurfaceEdgeSurfaceEdge(
+    static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainSurfaceEdgeSurfaceEdge(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface1,
         const Kratos::shared_ptr<Curve<2>>& pTrimmingCurve1,
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface2,
         const Kratos::shared_ptr<Curve<2>>& pTrimmingCurve2,
         int ShapeFunctionDerivativesOrder)
     {
-        std::vector<Element::Pointer> new_elements;
+        std::vector<Geometry<Node<3>>::Pointer> new_geometries;
 
         int degree_1 = pSurface1->DegreeU() + pSurface1->DegreeV();
         int degree_2 = pSurface2->DegreeU() + pSurface2->DegreeV();
@@ -367,10 +368,9 @@ namespace IgaIntegrationUtilities
 
                     int number_of_non_zero_cps_1 = shape_1.NonzeroPoleIndices().size();
 
-                    Vector shape_function(number_of_non_zero_cps_1);
+                    Matrix shape_function(1, number_of_non_zero_cps_1);
                     Matrix shape_function_derivative(number_of_non_zero_cps_1, 2);
-                    Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
-
+                    //Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
                     //KRATOS_WATCH(number_of_non_zero_cps_1)
 
                     array_1d<double, 3> location = ZeroVector(3);
@@ -385,21 +385,49 @@ namespace IgaIntegrationUtilities
                             shape_1.NonzeroPoleIndices()[n].second));
 
                         if (ShapeFunctionDerivativesOrder>-1)
-                            shape_function[n] = shape_1(0, indexU, indexV);
+                            shape_function(0, n) = shape_1(0, indexU, indexV);
                         if (ShapeFunctionDerivativesOrder > 0)
                         {
                             shape_function_derivative(n, 0) = shape_1(1, indexU, indexV);
                             shape_function_derivative(n, 1) = shape_1(2, indexU, indexV);
                         }
-                        if (ShapeFunctionDerivativesOrder > 1)
-                        {
-                            shape_function_second_derivative(n, 0) = shape_1(3, indexU, indexV);
-                            shape_function_second_derivative(n, 1) = shape_1(5, indexU, indexV);
-                            shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
-                        }
+                        //if (ShapeFunctionDerivativesOrder > 1)
+                        //{
+                        //    shape_function_second_derivative(n, 0) = shape_1(3, indexU, indexV);
+                        //    shape_function_second_derivative(n, 1) = shape_1(5, indexU, indexV);
+                        //    shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
+                        //}
 
                         location += non_zero_control_points.back().Coordinates()*shape_function(n);
                     }
+
+                    std::vector<Matrix> shape_function_gradients { shape_function_derivative };
+
+                    array_1d<double, 2> tangents;
+                    tangents[0] = derivatives_1[1][0];
+                    tangents[1] = derivatives_1[1][1];
+
+                    array_1d<double, 2> local_coordinates;
+                    local_coordinates[0] = derivatives_1[0][0];
+                    local_coordinates[1] = derivatives_1[0][1];
+
+                    //Geometry<Node<3>> as = new IntegrationPointCurveOnSurface3d(
+                    //    non_zero_control_points,
+                    //    local_coordinates,
+                    //    tangents,
+                    //    integration_points[ip].weight,
+                    //    shape_function,
+                    //    shape_function_gradients);
+
+                    //Geometry<Node<3>>::Pointer master_geometry = Kratos::make_shared<Geometry<Node<3>>>(
+                    //    new IntegrationPointCurveOnSurface3d(
+                    //        non_zero_control_points,
+                    //        local_coordinates,
+                    //        tangents,
+                    //        integration_points[ip].weight,
+                    //        shape_function,
+                    //        shape_function_gradients));
+
                     //KRATOS_WATCH(location)
                     //KRATOS_WATCH(shape_function_derivative)
                     //KRATOS_WATCH(shape_function_second_derivative)
@@ -420,9 +448,8 @@ namespace IgaIntegrationUtilities
 
                     int number_of_non_zero_cps_2 = shape_2.NonzeroPoleIndices().size();
 
-                    Vector shape_function_slave(number_of_non_zero_cps_2);
+                    Matrix shape_function_slave(1, number_of_non_zero_cps_2);
                     Matrix shape_function_derivative_slave(number_of_non_zero_cps_2, 2);
-                    Matrix shape_function_second_derivative_slave(number_of_non_zero_cps_2, 3);
 
                     for (int n = 0; n < number_of_non_zero_cps_2; ++n)
                     {
@@ -434,72 +461,68 @@ namespace IgaIntegrationUtilities
                             shape_2.NonzeroPoleIndices()[n].second));
 
                         if (ShapeFunctionDerivativesOrder>-1)
-                            shape_function_slave[n] = shape_2(0, indexU, indexV);
+                            shape_function_slave(0, n) = shape_2(0, indexU, indexV);
                         if (ShapeFunctionDerivativesOrder > 0)
                         {
                             shape_function_derivative_slave(n, 0) = shape_2(1, indexU, indexV);
                             shape_function_derivative_slave(n, 1) = shape_2(2, indexU, indexV);
                         }
-                        if (ShapeFunctionDerivativesOrder > 1)
-                        {
-                            shape_function_second_derivative_slave(n, 0) = shape_2(3, indexU, indexV);
-                            shape_function_second_derivative_slave(n, 1) = shape_2(5, indexU, indexV);
-                            shape_function_second_derivative_slave(n, 2) = shape_2(4, indexU, indexV);
-                        }
+                        //if (ShapeFunctionDerivativesOrder > 1)
+                        //{
+                        //    shape_function_second_derivative_slave(n, 0) = shape_2(3, indexU, indexV);
+                        //    shape_function_second_derivative_slave(n, 1) = shape_2(5, indexU, indexV);
+                        //    shape_function_second_derivative_slave(n, 2) = shape_2(4, indexU, indexV);
+                        //}
                     }
 
-                    Element ele(0, non_zero_control_points);
+                    //Element ele(0, non_zero_control_points);
 
-                    Element::Pointer element = Kratos::make_shared<Element>(ele);
+                    //Element::Pointer element = Kratos::make_intrusive<Element>(ele);
 
-                    if (ShapeFunctionDerivativesOrder > -1)
-                    {
-                        element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
-                    }
-                    if (ShapeFunctionDerivativesOrder > 0)
-                    {
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
-                    }
-                    if (ShapeFunctionDerivativesOrder > 1)
-                    {
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
-                    }
+                    //if (ShapeFunctionDerivativesOrder > -1)
+                    //{
+                    //    element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
+                    //}
+                    //if (ShapeFunctionDerivativesOrder > 0)
+                    //{
+                    //    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
+                    //}
+                    ////if (ShapeFunctionDerivativesOrder > 1)
+                    ////{
+                    ////    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
+                    ////}
 
-                    if (ShapeFunctionDerivativesOrder > -1)
-                    {
-                        element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
-                    }
-                    if (ShapeFunctionDerivativesOrder > 0)
-                    {
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
-                    }
-                    if (ShapeFunctionDerivativesOrder > 1)
-                    {
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
-                    }
+                    //if (ShapeFunctionDerivativesOrder > -1)
+                    //{
+                    //    element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
+                    //}
+                    //if (ShapeFunctionDerivativesOrder > 0)
+                    //{
+                    //    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
+                    //}
+                    ////if (ShapeFunctionDerivativesOrder > 1)
+                    ////{
+                    ////    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
+                    ////}
+                    //element->SetValue(TANGENTS, tangents);
 
-                    Vector tangents(2);
-                    tangents[0] = derivatives_1[1][0];
-                    tangents[1] = derivatives_1[1][1];
-                    element->SetValue(TANGENTS, tangents);
+                    //element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
 
-                    element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+                    ////element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
+                    ////element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
+                    ////element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
 
-                    //element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
-                    //element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
-                    //element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
+                    //Vector tangents_slave(2);
+                    //tangents_slave[0] = derivatives_2[1][0];
+                    //tangents_slave[1] = derivatives_2[1][1];
+                    //element->SetValue(TANGENTS_SLAVE, tangents_slave);
 
-                    Vector tangents_slave(2);
-                    tangents_slave[0] = derivatives_2[1][0];
-                    tangents_slave[1] = derivatives_2[1][1];
-                    element->SetValue(TANGENTS_SLAVE, tangents_slave);
-
-                    new_elements.push_back(element);
+                    //new_elements.push_back(element);
                 }
             }
         }
 
-        return new_elements;
+        return new_geometries;
     }
 
     //static void GetIntegrationDomainCurve(

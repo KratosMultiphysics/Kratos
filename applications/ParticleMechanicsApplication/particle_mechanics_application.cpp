@@ -201,16 +201,16 @@ namespace Kratos
 
         // Registering Constitutive Laws
         // CL: Linear Elastic laws
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mLinearElastic3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsLinearElastic3DLaw", mLinearElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsLinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsLinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw);
         // CL: Hyperelastic laws
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElastic3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrainUP2DLaw", mHyperElasticPlaneStrainUP2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsHyperElastic3DLaw", mHyperElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsHyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsHyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsHyperElasticUP3DLaw", mHyperElasticUP3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("ParticleMechanicsHyperElasticPlaneStrainUP2DLaw", mHyperElasticPlaneStrainUP2DLaw);
         // CL: Mohr Coulomb
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);

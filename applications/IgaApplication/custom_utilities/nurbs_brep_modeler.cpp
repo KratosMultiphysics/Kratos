@@ -244,8 +244,8 @@ namespace Kratos
                                         if (sub_model_part.GetRootModelPart().Elements().size() > 0)
                                             id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
 
-                                        IgaIntegrationUtilities::ChangeElementType(
-                                            element_vector, sub_model_part, name, id);
+                                        //IgaIntegrationUtilities::ChangeElementType(
+                                        //    element_vector, sub_model_part, name, id);
                                     }
 
                                     if (type == "condition")
@@ -254,8 +254,8 @@ namespace Kratos
                                         if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
                                             id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
 
-                                        IgaIntegrationUtilities::ChangeConditionType(
-                                            element_vector, sub_model_part, name, id);
+                                        //IgaIntegrationUtilities::ChangeConditionType(
+                                        //    element_vector, sub_model_part, name, id);
                                     }
                                 }
                             }

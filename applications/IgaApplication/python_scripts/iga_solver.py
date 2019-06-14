@@ -43,53 +43,6 @@ class IgaSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         super(IgaSolver, self).__init__(model, custom_settings)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "model_part_name" : "",
-            "domain_size" : -1,
-            "echo_level": 0,
-            "buffer_size": 1,
-            "analysis_type": "non_linear",
-            "model_import_settings": {
-                "input_type": "json",
-                "input_filename": "geometry"
-            },
-            "computing_model_part_name" : "computing_domain",
-            "material_import_settings" :{
-                "materials_filename": "materials.json"
-            },
-            "time_stepping" : { },
-            "rotation_dofs": false,
-            "reform_dofs_at_each_step": false,
-            "line_search": false,
-            "compute_reactions": true,
-            "block_builder": true,
-            "clear_storage": false,
-            "move_mesh_flag": true,
-            "convergence_criterion": "residual_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 10,
-            "solver_type": "static",
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
-            },
-            "problem_domain_sub_model_part_list": [ "StructuralAnalysis" ],
-            "processes_sub_model_part_list": [ "IgaModelPart" ],
-            "auxiliary_variables_list" : [],
-            "auxiliary_dofs_list" : [],
-            "auxiliary_reaction_list" : []
-        }
-        """)
-
-        # Overwrite the default settings with user-provided parameters.
-        self.settings.ValidateAndAssignDefaults(default_settings)
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":

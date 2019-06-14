@@ -786,6 +786,8 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+    template<typename TPointType>
+    friend class Geometry;
 
     friend class Serializer;
 

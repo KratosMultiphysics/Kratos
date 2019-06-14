@@ -29,6 +29,9 @@ class MpmSolver(MechanicalSolver):
         # Add model part containers
         self._add_model_part_containers()
 
+        self.pressure_dofs = self.settings["pressure_dofs"].GetBool()
+        self.axis_symmetric_flag = self.settings["axis_symmetric_flag"].GetBool()
+
         KratosMultiphysics.Logger.PrintInfo("::[MpmSolver]:: ", "Construction finished.")
 
     @classmethod
@@ -38,73 +41,21 @@ class MpmSolver(MechanicalSolver):
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name_Grid"
             },
+            "axis_symmetric_flag"                : false,
             "pressure_dofs"                      : false,
             "element_search_settings"            : {
                 "max_number_of_results"          : 1000,
                 "searching_tolerance"            : 1.0E-5
-            },
+            }
         }""")
         this_defaults.AddMissingParameters(super(MpmSolver, cls).GetDefaultSettings())
         return this_defaults
-
-        ## Default settings string in json format
-        #default_settings = KratosMultiphysics.Parameters("""
-        #{
-        #    "model_part_name" : "MPM_Material",
-        #    "domain_size"     : -1,
-        #    "time_stepping"   : {},
-        #    "solver_type"                        : "StaticSolver",
-        #    "echo_level"                         : 0,
-        #    "analysis_type"                      : "linear",
-        #    "scheme_type"                        : "",
-        #    "grid_model_import_settings"              : {
-        #        "input_type"     : "mdpa",
-        #        "input_filename" : "unknown_name_Grid"
-        #    },
-        #    "model_import_settings"              : {
-        #        "input_type"        : "mdpa",
-        #        "input_filename"    : "unknown_name_Body"
-        #    },
-        #    "material_import_settings"           : {
-        #        "materials_filename" : ""
-        #    },
-        #    "pressure_dofs"                      : false,
-        #    "compute_reactions"                  : false,
-        #    "convergence_criterion"              : "Residual_criteria",
-        #    "displacement_relative_tolerance"    : 1.0E-4,
-        #    "displacement_absolute_tolerance"    : 1.0E-9,
-        #    "residual_relative_tolerance"        : 1.0E-4,
-        #    "residual_absolute_tolerance"        : 1.0E-9,
-        #    "max_iteration"                      : 20,
-        #    "axis_symmetric_flag"                : false,
-        #    "move_mesh_flag"                     : false,
-        #    "problem_domain_sub_model_part_list" : [],
-        #    "processes_sub_model_part_list"      : [],
-        #    "element_search_settings"            : {
-        #        "max_number_of_results"          : 1000,
-        #        "searching_tolerance"            : 1.0E-5
-        #    },
-        #    "linear_solver_settings"             : {
-        #        "solver_type" : "amgcl",
-        #        "smoother_type":"damped_jacobi",
-        #        "krylov_type": "cg",
-        #        "coarsening_type": "aggregation",
-        #        "max_iteration": 200,
-        #        "provide_coordinates": false,
-        #        "gmres_krylov_space_dimension": 100,
-        #        "verbosity" : 0,
-        #        "tolerance": 1e-7,
-        #        "scaling": false,
-        #        "block_size": 3,
-        #        "use_block_matrices_if_possible" : true,
-        #        "coarse_enough" : 50
-        #    }
-        #}""")
 
     ### Solver public functions
     def AddVariables(self):
         # Add variables to different model parts
         self._add_variables_to_model_part(self.grid_model_part)
+        self._add_variables_to_model_part(self.main_model_part)
         self._add_variables_to_model_part(self.initial_material_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[MpmSolver]:: ", "Variables are added.")
@@ -146,22 +97,46 @@ class MpmSolver(MechanicalSolver):
                 else:
                     self.new_element = KratosParticle.CreateUpdatedLagragian3D8N()
 
-        KratosParticle.CreateMaterialPointElement()
+        KratosParticle.CreateMaterialPointElement(
+            self.grid_model_part, self.main_model_part, self.initial_material_model_part, self.new_element, False)
+        KratosParticle.CreateMaterialPointCondition(
+            self.grid_model_part, self.main_model_part, self.initial_material_model_part)
+
+        for prop in self.main_model_part.Properties:
+            print(prop)
+
+        print(self.grid_model_part)
+        print(self.main_model_part)
+        print(self.initial_material_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[MpmSolver]:: ","Models are imported.")
+
+    def _identify_geometry_type(self):
+        for mpm in self.grid_model_part.Elements:
+            num_nodes = len(mpm.GetNodes())
+            break
+
+        self.domain_size = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+
+        if (self.domain_size == 2 and num_nodes == 3) or (self.domain_size == 3 and num_nodes == 4):
+            self.geometry_element = "Triangle"
+        elif (self.domain_size == 2 and num_nodes == 4) or (self.domain_size == 3 and num_nodes == 8):
+            self.geometry_element = "Quadrilateral"
 
     def AddDofs(self):
         # Add dofs to different model parts
         self._add_dofs_to_model_part(self.grid_model_part)
+        self._add_dofs_to_model_part(self.main_model_part)
         self._add_dofs_to_model_part(self.initial_material_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[MpmSolver]:: ","DOFs are added.")
 
     def SearchElement(self):
-        self.get_mechanical_solution_strategy().SearchElement(self.max_number_of_search_results, self.searching_tolerance)
+        KratosParticle.SearchElement2D(self.grid_model_part, self.main_model_part, 1000, 1.0e-5)
 
     def InitializeSolutionStep(self):
         self.SearchElement()
+        print(self.main_model_part)
         self.get_mechanical_solution_strategy().Initialize()
         self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
@@ -253,8 +228,19 @@ class MpmSolver(MechanicalSolver):
         # Specify domain size
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
+        """Prepare computing model part and import constitutive laws. """
+        # Auxiliary parameters object for the CheckAndPepareModelProcess
+        params = KratosMultiphysics.Parameters("{}")
+        params.AddValue("model_part_name",self.settings["model_part_name"])
+        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
+        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        # Assign mesh entities from domain and process sub model parts to the computing model part.
+        import check_and_prepare_model_process_structural
+        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
+
         # Read material property
-        materials_imported = self._import_constitutive_laws()
+        materials_imported = self.import_constitutive_laws()
         if materials_imported:
             KratosMultiphysics.Logger.PrintInfo("::[MpmSolver]:: ","Constitutive law was successfully imported.")
         else:

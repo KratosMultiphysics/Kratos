@@ -62,6 +62,6 @@ template< class T > class GlobalPointer;
 #define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef typename Kratos::intrusive_ptr<a > Pointer; \
 typedef Kratos::GlobalPointer<a > WeakPointer; \
 typedef Kratos::unique_ptr<a > UniquePointer; \
-a::Pointer shared_from_this(){ return a::Pointer(this); }
+typename a::Pointer shared_from_this(){ return a::Pointer(this); }
 
 #endif /* KRATOS_MEMORY_H_INCLUDED  defined */

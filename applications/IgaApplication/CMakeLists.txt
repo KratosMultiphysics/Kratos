@@ -46,6 +46,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_trimming_curve.cpp
 
     # conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_coupling_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_base_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_check_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp

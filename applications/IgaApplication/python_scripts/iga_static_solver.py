@@ -27,6 +27,16 @@ class IgaStaticSolver(structural_mechanics_static_solver.StaticMechanicalSolver)
         super(IgaStaticSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[IgaStaticSolver]:: ", "Construction finished")
 
+    #@classmethod
+    #def GetDefaultSettings(cls):
+    #    this_defaults = KratosMultiphysics.Parameters("""{
+    #        "model_import_settings": {
+    #            "physics_filename": "physics.json"
+    #        }
+    #    }""")
+    #    this_defaults.AddMissingParameters(super(IgaStaticSolver, cls).GetDefaultSettings())
+    #    return this_defaults
+
     def ImportModelPart(self):
         """This function imports the ModelPart"""
         self._set_nurbs_brep_modeler()

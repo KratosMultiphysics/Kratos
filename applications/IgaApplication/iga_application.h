@@ -35,6 +35,7 @@
 #include "custom_conditions/load_surface_discrete_condition.h"
 
 #include "custom_conditions/load_curve_discrete_condition.h"
+#include "custom_conditions/penalty_coupling_condition.h"
 
 namespace Kratos {
 
@@ -187,6 +188,7 @@ private:
 
     const LoadSurfaceDiscreteCondition mLoadSurfaceDiscreteCondition;
     const LoadCurveDiscreteCondition mLoadCurveDiscreteCondition;
+    const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
 
     ///@}
