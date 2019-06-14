@@ -341,6 +341,44 @@ namespace Kratos
         }
     };
 
+    /**
+     * @brief This is a hasher for pairs
+     * @details Used for example for edges ids
+     */
+    template<class TType1, class TType2>
+    struct PairHasher
+    {
+        /**
+         * @brief The () operator
+         * @param rPair The index pair to hash
+         */
+        std::size_t operator()(const std::pair<TType1, TType2>& rPair) const
+        {
+            std::size_t seed = 0;
+            HashCombine<TType1>(seed, rPair.first);
+            HashCombine<TType2>(seed, rPair.second);
+            return seed;
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexes pairs
+     * @details Used for example for the B&S
+     */
+    template<class TType1, class TType2>
+    struct PairComparor
+    {
+        /**
+         * @brief The () operator
+         * @param rIndexPair1 The first index pair to hash
+         * @param rIndexPair2 The second index pair to hash
+         */
+        bool operator()(const std::pair<TType1, TType2>& rPair1, const std::pair<TType1, TType2>& rPair2) const
+        {
+            return ((std::get<0>(rPair1) == std::get<0>(rPair2)) && (std::get<1>(rPair1) == std::get<1>(rPair2)));
+        }
+    };
+
 ///@}
 ///@name Kratos Classes
 ///@{
