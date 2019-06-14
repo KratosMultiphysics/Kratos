@@ -89,6 +89,14 @@ public:
             return mNonLocalData[gp];
     }
 
+    TSendType Get(GlobalPointer<TPointerDataType> const& gp)
+    {
+        if(gp.GetRank() == mCurrentRank)
+            return mUserFunctor(gp);
+        else
+            return mNonLocalData[gp];
+    }
+
     void Update()
     {
         mpPointerComm->Update(mUserFunctor, mNonLocalData);
