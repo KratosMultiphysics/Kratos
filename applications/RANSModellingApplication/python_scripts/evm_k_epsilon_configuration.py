@@ -197,5 +197,5 @@ class TurbulenceKEpsilonConfiguration(
 
         return self.turbulence_model_process
 
-    def GetFluidConditionName(self):
+    def GetFluidVelocityPressureConditionName(self):
         return "RANSEVMVMSMonolithicWallCondition"

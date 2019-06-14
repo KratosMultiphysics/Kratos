@@ -59,3 +59,8 @@ class TurbulenceModelConfiguration(PythonSolver):
         msg = "Calling the base TurbulenceModelConfiguration class FinalizeSolutionStep method."
         msg += " Please override it in the derrived class."
         raise Exception(msg)
+
+    def GetFluidVelocityPressureConditionName(self):
+        msg = "Calling the base TurbulenceModelConfiguration class GetFluidVelocityPressureConditionName method."
+        msg += " Please override it in the derrived class to return a condition name."
+        raise Exception(msg)
