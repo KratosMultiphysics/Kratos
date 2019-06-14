@@ -153,6 +153,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 			element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 
+			# We assign the flag to recompute neighbours inside the 3D elements
+			utils = KratosMultiphysics.VariableUtils()
+			utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, 1, self.FEM_Solution.main_model_part.Elements)
+
 #============================================================================================================================
 	def CheckInactiveNodes(self):
 
