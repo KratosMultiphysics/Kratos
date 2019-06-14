@@ -96,6 +96,19 @@ namespace Kratos
   }
 
 
+  double& SmallStrain3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+  {
+    KRATOS_TRY
+
+    rValue = mpModel->GetValue(rThisVariable,rValue);
+ 
+
+    return rValue;
+
+    KRATOS_CATCH(" ")
+  }
+
+
 
   //************* COMPUTING  METHODS
   //************************************************************************************

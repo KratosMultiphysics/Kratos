@@ -191,7 +191,7 @@ c
       parameter (perturb  = 1.0d-4)
       parameter (nfasv    = 1)
       parameter (prsw     = 0)
-      parameter (cons_lin = 2)
+      parameter (cons_lin = 1)
 	parameter (abaqus = 0)
 c chiara
  	parameter (eps_debug = 0.9d-3)
@@ -222,7 +222,6 @@ c
 	plastic=0
 	phimob=0.0d0
 	ptshift=0.0d0
-
 c
 c
 c ... Error Management:
@@ -393,7 +392,6 @@ c ... Normal RKF23 integration
      &         DTmin,deps_np1,parms,nparms,nfev,elprsw,
      &	       mario_DT_test,
      &         error,tol_f,check_ff,drcor,p_thres,plastic)
-        write(*,*) y
       end if
 c
 c ... error conditions (if any)
@@ -488,8 +486,6 @@ c ... convert solution (stress + cons. tangent) to abaqus format
 c     update pore pressure and compute total stresses
 
       inittension=0
-      write(*,*) 'check NAN'
-      write(*,*) y
 c     just checks for NAN
       call check_RKF_DM(inittension,y,nyact,nasvy,parms,nparms)
       if (inittension.ne.0) then
@@ -562,9 +558,6 @@ c -----------------------
 c End of time integration
 c -----------------------
 c
-      write(*,*) 'HOLIS'
-      write(*,*) stress
-      write(*,*) y
       return
       end
 c
@@ -1985,6 +1978,7 @@ c
 
 	ff0=yf_DM(y,ny,parms,nparms)
 c .......................................................................
+	
 	if(mario_DT_test.eq.zero) then
 
 		if(LDeR.lt.zero) then
@@ -4571,8 +4565,8 @@ c ... writes for mode = 2
 c
       if (mode.eq.2) then
         write(6,*) 'Co-ordinates of material point:'
-        write(6,104) 'x1 = ',coords(1),' x2 = ',coords(2),' x3 = ',
-     &    coords(3)
+c        write(6,*) 'x1 = ',coords(1),' x2 = ',coords(2),' x3 = ',
+c     &    coords(3)
         write(6,*) 
         write(6,*) 'Material parameters:'
         write(6,*) 

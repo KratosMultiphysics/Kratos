@@ -86,6 +86,10 @@ namespace Kratos
          ///@}
          ///@name Operations
          ///@{
+         /**
+          * Calculate Stress and Constitutive Tensor
+          */
+         virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
 
          ///@}
@@ -156,31 +160,7 @@ namespace Kratos
          /*
             Create the vector with constitutive parameters value
           */
-         virtual void CreateConstitutiveParametersVector(double* & pVector, int & rNumberParameters, const Properties & rMaterialProperties) override {
-            rNumberParameters = 19;
-            pVector = new double[rNumberParameters];
-
-            pVector[0] = 101325; // p_a atmospheric pressure
-            pVector[1] = 0.8191; // e0
-            pVector[2] = 0.00178; // lambda 
-            pVector[3] = 2.4352; // epsi 
-            pVector[4] = 1.287; // M_c or phi_c 
-            pVector[5] = 0; // M_e or phi_e
-            pVector[6] = 0.01; // m
-            pVector[7] = 400000000; // Go
-            pVector[8] = 0.05; // nu
-            pVector[9] = 4.05; // h_0
-            pVector[10] = 1.100; // c_h
-            pVector[11] = 2.800; // n^b
-            pVector[12] = 0.550; // A_0
-            pVector[13] = 2.564; // n_d
-            pVector[14] = 0; // z_max
-            pVector[15] = 0; // c_z
-            pVector[16] = 0; // K_w
-            pVector[17] = 0.01; // p_tmult stabilising param
-            pVector[18] = 0.6531; // e
-
-         };
+         virtual void CreateConstitutiveParametersVector(double* & pVector, int & rNumberParameters, const Properties & rMaterialProperties) override;
 
          /*
             Number of the constitutive equation in the fortran wrapper

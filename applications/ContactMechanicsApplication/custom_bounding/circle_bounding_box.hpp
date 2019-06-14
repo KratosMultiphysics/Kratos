@@ -156,6 +156,16 @@ public:
     //************************************************************************************
     //************************************************************************************
 
+    void ResetRigidCircleRadius(double rNewRadius) 
+    {
+       KRATOS_TRY
+
+       this->mBox.Radius = rNewRadius;
+
+       KRATOS_CATCH("")
+    }
+
+
     //Circle
     void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {

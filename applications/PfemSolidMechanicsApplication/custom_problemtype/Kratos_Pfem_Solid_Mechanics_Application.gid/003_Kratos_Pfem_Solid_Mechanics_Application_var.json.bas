@@ -574,12 +574,6 @@
         "process_name"    : "CavityProcess",
         "Parameters"      : {}
 	},
-        {
-	"kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
-        "python_module"   : "footing_problem_process",
-        "process_name"    : "FootingProblemProcess",
-        "Parameters"      : {}
-	},
 *set var numberconstraints= 0
 *set cond group_WATER_MOVEMENT *groups 
 *add cond group_LINEAR_MOVEMENT *groups

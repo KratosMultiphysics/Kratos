@@ -188,7 +188,10 @@ class RemoveNodesMesherProcess
 
 
       if(any_node_removed || any_condition_removed){
-        std::cout<<" Removed Nodes: ( error "<<any_node_removed_on_error<<" distance "<<any_node_removed_on_distance<<" conv_cond "<<any_convex_condition_removed<<" cond "<< any_condition_removed<<")"<<std::endl;
+                  std::cout<<" Removed Nodes: true=1 false=0 (error: "<<any_node_removed_on_error<<" distance: "<<any_node_removed_on_distance<<" conv_cond: "<<any_convex_condition_removed<<" cond: "<< any_condition_removed<<")"<<std::endl;
+
+                  this->LMVRemoveRigidContactConditions( mrModelPart);
+
         this->CleanRemovedNodes(mrModelPart);
       }
 
@@ -346,6 +349,45 @@ class RemoveNodesMesherProcess
 
     KRATOS_CATCH( "" )
   }
+
+
+         // ************************************************************************
+         // try to remove PointRigidConditions, because, otherwise, in the meshing 
+         // before output they still exist and everyitng sucks
+         void LMVRemoveRigidContactConditions( ModelPart & rModelPart)
+         {
+            KRATOS_TRY
+
+            ModelPart & rParentModelPart = *(rModelPart.GetParentModelPart());
+
+            for (ModelPart::SubModelPartIterator i_mp = rParentModelPart.SubModelPartsBegin(); i_mp != rParentModelPart.SubModelPartsEnd(); ++i_mp)
+            {
+               if ( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) && i_mp->NumberOfElements() == 0 )
+               {
+                  ModelPart::ConditionsContainerType PreservedConditions;
+                  PreservedConditions.reserve(i_mp->Conditions().size() );
+                  //PreservedConditions.swap( i_mp->Conditions());
+
+                  for (ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
+                  {
+                     GeometryType & rGeom = i_cond->GetGeometry();
+                     if ( rGeom.PointsNumber() > 1) {
+                        PreservedConditions.push_back( *(i_cond.base()) );
+                     } else {
+
+                        if ( rGeom[0].IsNot(TO_ERASE) ) {
+                           PreservedConditions.push_back( *(i_cond.base()) );
+                        }
+
+                     }
+                  }
+                  i_mp->Conditions().swap( PreservedConditions);
+               }
+            }
+
+
+            KRATOS_CATCH("")
+         }
 
 
   //**************************************************************************
@@ -644,7 +686,7 @@ class RemoveNodesMesherProcess
     double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius;
     double size_for_distance_boundary     = 1.5  * size_for_distance_inside;
 
-    double size_for_wall_tip_contact_side = (0.5 * mrRemesh.Refine->CriticalSide); // the distance to refine
+      double size_for_wall_tip_contact_side = (0.95 * mrRemesh.Refine->CriticalSide); // the distance to refine
     size_for_wall_tip_contact_side *= 0.5; // half the distance
     size_for_wall_tip_contact_side =  size_for_wall_tip_contact_side * size_for_wall_tip_contact_side;  // the return of  search in radius is distance^2
 
@@ -754,7 +796,7 @@ class RemoveNodesMesherProcess
             //here we loop over the neighbouring nodes and if there are nodes
             //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
             unsigned int k = 0;
-            unsigned int counterC2 = 0, counterC3 = 0;
+                  unsigned int counterC2 = 0, counterC3 = 0, counterC5 = 0;
             for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
             {
 
@@ -778,6 +820,9 @@ class RemoveNodesMesherProcess
                   }
                   if ( nn_on_contact_tip && nn_on_contact_tip_strict && neighbour_distances[k] < SF*size_for_distance_boundary ) {
                     counterC3 += 1;
+                           }
+                           if ( nn_on_contact_tip && neighbour_distances[k] < SF*size_for_distance_boundary) {
+                              counterC5 += 1;
                   }
                 }
               }
@@ -801,6 +846,14 @@ class RemoveNodesMesherProcess
               std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
 
             }
+                  else if ( counterC5 > 0 && in->IsNot(NEW_ENTITY) && on_contact_tip && !on_contact_tip_strict)
+                  {
+                     in->Set(TO_ERASE);
+                     any_node_removed = true;
+                     boundary_nodes_removed++;
+                     std::cout << "    RemovingC5: a non_contacting_node was to close to a noncontacting. removing one non_contacting " << in->Id() << std::endl;
+                     std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
+                  }
           }
         }
 
@@ -1069,6 +1122,7 @@ class RemoveNodesMesherProcess
   {
     KRATOS_TRY
 
+      return false;
     if( mEchoLevel > 0 ){
       std::cout<<"   [ REMOVE NON CONVEX BOUNDARY : "<<std::endl;
       //std::cout<<"     Starting Conditions : "<<rModelPart.Conditions().size()<<std::endl;
@@ -1214,6 +1268,9 @@ class RemoveNodesMesherProcess
             bool remove_S2 = false;
             if(norm_2(S2)<size_for_side_normal)
               remove_S2 = true;
+
+                  remove_S1 = false;
+                  remove_S2 = false;
 
             if(norm_2(S1)!=0)
               S1/=norm_2(S1);

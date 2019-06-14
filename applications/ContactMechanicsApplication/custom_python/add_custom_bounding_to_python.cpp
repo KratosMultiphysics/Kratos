@@ -56,6 +56,7 @@ void  AddCustomBoundingToPython(pybind11::module& m)
       .def(py::init< Parameters >())
       .def(py::init< Parameters& >())
       .def("CreateBoundingBoxBoundaryMesh",&CircleBoundingBox::CreateBoundingBoxBoundaryMesh)
+      .def("ResetRigidCircleRadius",&CircleBoundingBox::ResetRigidCircleRadius)
       ;
 
   //cylinder-wall

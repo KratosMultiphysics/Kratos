@@ -102,10 +102,12 @@ namespace Kratos
          const Properties & rMaterialProperties = rValues.GetProperties();
          this->InitializeStateVariables( mStateVariablesFinalized, rMaterialProperties);
 
-         mStressVectorFinalized.clear();
-         mStressVectorFinalized[0] = 100.0;
-         mStressVectorFinalized[1] = 200.0;
-         mStressVectorFinalized[2] = 100.0;
+         if ( mStressVectorFinalized.size() != 6) {
+            mStressVectorFinalized.clear();
+            mStressVectorFinalized[0] = -2.0;
+            mStressVectorFinalized[1] = -2.0;
+            mStressVectorFinalized[2] = -2.0;
+         }
 
 
          mStrainVectorFinalized.clear();
@@ -280,18 +282,6 @@ namespace Kratos
 
       this->SetConstitutiveMatrix( rConstitutiveMatrix, Matrix, rStressMatrix);
 
-      std::cout << " " << std::endl;
-      std::cout << " " << std::endl;
-      std::cout << " " << std::endl;
-
-      std::cout << " C " << rConstitutiveMatrix << std::endl;
-      std::cout << " s " << rStressMatrix << std::endl;
-
-
-      std::cout << " " << std::endl;
-      std::cout << " " << std::endl;
-      std::cout << " " << std::endl;
-      std::cout << " " << std::endl;
 
       // update internal variables
       if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
@@ -303,6 +293,11 @@ namespace Kratos
       delete [] pStrain;
       delete [] pDeltaStrain;
       delete [] pStressVector;
+
+      /*std::cout << " C " << rConstitutiveMatrix << std::endl;
+      std::cout << " s " << rStressMatrix << std::endl;
+      std::cout << std::endl;
+      std::cout << std::endl;*/
 
       KRATOS_CATCH(" ")
    }
@@ -364,9 +359,42 @@ namespace Kratos
       {
          double p, J2;
          StressInvariantsUtilities::CalculateStressInvariants(mStressVectorFinalized , p, J2, rValue);
+      } else if ( rVariable == PLASTIC_DEV_DEF ) {
+         double epsilonVolumetric = 0;
+         for (unsigned int ii = 0; ii < 3; ii++)
+            epsilonVolumetric += mStrainVectorFinalized[ii];
+         rValue = 0;
+         for (unsigned int ii = 0; ii < 3; ii++)
+            rValue += pow( mStrainVectorFinalized[ii] - epsilonVolumetric/3.0, 2);
+         for (unsigned int ii = 3; ii < 6; ii++)
+            rValue += 2.0*pow( mStrainVectorFinalized[ii]/2.0, 2);
+         rValue =sqrt(rValue);
+      } else if ( rVariable == PLASTIC_VOL_DEF ) {
+         double epsilonVolumetric = 0;
+         for (unsigned int ii = 0; ii < 3; ii++)
+            epsilonVolumetric += mStrainVectorFinalized[ii];
+         rValue = epsilonVolumetric;
       }
 
       return rValue;
+      KRATOS_CATCH("")
+   }
+
+   //*************************************************************************
+   // Set Value (Vector)
+   void SmallStrainUmatModel::SetValue( const Variable<Vector> & rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+   {
+      KRATOS_TRY
+
+      if ( rVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS) 
+      {
+            mStressVectorFinalized.clear();
+            mStressVectorFinalized[0] = rValue[0];
+            mStressVectorFinalized[1] = rValue[1];
+            mStressVectorFinalized[2] = rValue[2];
+      }
+
+
       KRATOS_CATCH("")
    }
 

@@ -287,7 +287,7 @@ public:
       bool refine_condition = false;
 
       //THRESHOLD VALUE INSERT
-      double size_for_threshold_face  = 2.50 * mrRemesh.Refine->CriticalSide;
+      double size_for_threshold_face  = 1.250 * mrRemesh.Refine->CriticalSide;
 
       if ( mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
 	refine_condition = this->RefineOnThreshold(pCondition, rCurrentProcessInfo, size_for_threshold_face);
@@ -354,17 +354,17 @@ public:
 
 	  //FACTOR VALUE INSERT curved contact transition
 	  if( curved_contact )
-	    factor = 0.75;
+	    factor = 1.0;
 
 
 	  if( contact_active ){
 
 	    //FACTOR VALUE INSERT plane contact
-	    factor = 1.5;
+	    factor = 1.0;
 
 	    //FACTOR VALUE INSERT curved contact
 	    if( curved_contact )
-	      factor = 0.5;
+	      factor = 1.0;
 
 	  }
 
@@ -430,9 +430,15 @@ public:
 
 	}
 
+        bool add_correction = true;
+	if( pCondition->GetGeometry().size() != pCondition->GetGeometry().WorkingSpaceDimension() ){ //contact domain element
 	//correct only if not self contact
 	MesherUtilities MesherUtils;
-	if( !MesherUtils.CheckSubdomain(pCondition->GetGeometry()) )
+          if(MesherUtils.CheckSubdomain(pCondition->GetGeometry())) //return true if self contact (same domain)
+            add_correction = false;
+        }
+
+	if(add_correction)
 	  {
 	    xc += position_correction[0];
 	    yc += position_correction[1];

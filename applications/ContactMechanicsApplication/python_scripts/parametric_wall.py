@@ -252,7 +252,11 @@ class ParametricWall(object):
 
 
     def InitializeSearch(self):
-        pass
+        someSettings = self.settings["bounding_box_settings"]["bounding_box_parameters"]["parameters_list"];
+        R0 = someSettings[0]["radius"].GetDouble()
+        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        R = R0*(1.0-1.0*time)
+        self.wall_bounding_box.ResetRigidCircleRadius(R)
 
 
     def FinalizeSearch(self):

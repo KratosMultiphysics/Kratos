@@ -167,21 +167,8 @@ namespace Kratos
          ///@name Access
          ///@{
 
-         virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
-               const ProcessInfo& rCurrentProcessInfo ) override
-         {
-            KRATOS_TRY
-
-      // A method to compute the initial linear strain from the stress is needed
-      //if(rThisVariable == INITIAL_STRESS_VECTOR)
-
-      // A method to compute the initial linear strain from the stress is needed
-      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-      //   this->mHistoryVector = rValue;
-      // }
-
-      KRATOS_CATCH(" ")
-         }
+         void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
+               const ProcessInfo& rCurrentProcessInfo ) override;
 
 
          virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,

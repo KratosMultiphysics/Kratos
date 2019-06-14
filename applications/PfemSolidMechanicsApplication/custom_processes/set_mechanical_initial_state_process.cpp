@@ -381,7 +381,14 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateU( ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
       unsigned int Properties = rModelPart.NumberOfProperties();
-      Properties -= 1;
+
+      for (unsigned int prop = 0; prop < Properties ; prop++)
+      {
+         if ( rModelPart.GetProperties(prop)[DENSITY] > 0.0) {
+            Properties = prop;
+            break;
+         }
+      }
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
 
@@ -447,7 +454,15 @@ namespace Kratos
    {
 
       unsigned int Properties = rModelPart.NumberOfProperties();
-      Properties -= 1;
+
+      for (unsigned int prop = 0; prop < Properties ; prop++)
+      {
+         if ( rModelPart.GetProperties(prop)[DENSITY] > 0.0) {
+            Properties = prop;
+            break;
+         }
+      }
+          
       const double WaterDensity = rModelPart.GetProperties(Properties)[ DENSITY_WATER ];
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
