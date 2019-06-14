@@ -84,6 +84,7 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
+        Kratos_NURBS,
         Kratos_generic_family
     };
 
@@ -113,7 +114,11 @@ public:
         Kratos_Line3D3,
         Kratos_Point2D,
         Kratos_Point3D,
-        Kratos_Sphere3D1
+        Kratos_Sphere3D1,
+        Kratos_Bezier1D,
+        Kratos_Bezier2D,
+        Kratos_Bezier2D3,
+        Kratos_Bezier3D
     };
 
 

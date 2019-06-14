@@ -428,6 +428,26 @@ public:
     // }
 
     /**
+     * @brief Initialize this geometry
+     * @param ThisMethod the integration method
+     */
+    virtual void Initialize(IntegrationMethod ThisMethod)
+    {}
+
+    /**
+     * @brief Initialize this geometry
+     * @param integration_points the integration points
+     */
+    virtual void Initialize(const IntegrationPointsArrayType& integration_points)
+    {}
+
+    /**
+     * @brief Clean the internal memory of the geometry
+     */
+    virtual void Clean()
+    {}
+
+    /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
      * @param rResult Vector containing the lumping factors
      * @param LumpingMethod The lumping method considered. The three methods available are:
@@ -1064,6 +1084,63 @@ public:
     }
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point, considering additionally a certain increment in the coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @param DeltaPosition The increment of position considered
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint,
+            Matrix& DeltaPosition
+            ) const
+    {
+        KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
+
+        Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
+
+        rResult.clear();
+
+        Vector DeltaXi = ZeroVector( LocalSpaceDimension() );
+
+        CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        //Newton iteration:
+        for(std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
+            CurrentGlobalCoords.clear();
+            DeltaXi.clear();
+
+            GlobalCoordinates( CurrentGlobalCoords, rResult, DeltaPosition );
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+            InverseOfJacobian( J, rResult, DeltaPosition );
+            for(unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
+                for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
+                    DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
+                }
+                rResult[i] += DeltaXi[i];
+            }
+
+            const double norm2DXi = norm_2(DeltaXi);
+
+            if(norm2DXi > MaxNormPointLocalCoordinates) {
+                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
+                break;
+            }
+
+            if(norm2DXi < MaxTolerancePointLocalCoordinates) {
+                break;
+            }
+        }
+
+        return rResult;
+    }
+
+    /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
@@ -1074,6 +1151,26 @@ public:
     virtual bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return false;
+    }
+
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point, considering additionally a certain increment in the coordinates
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param DeltaPosition The increment of position considered
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        Matrix& DeltaPosition,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
@@ -1859,6 +1956,32 @@ public:
         return rResult;
     }
 
+    /** Inverse of jacobian in given point. This method calculate inverse of jacobian
+    matrix in given point.
+
+    @param rPoint point which inverse of jacobians has to
+    be calculated in it.
+
+    @param rDeltaPosition Matrix with the nodes position increment which describes
+    the configuration where the jacobian has to be calculated.
+
+    @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
+
+    @see DeterminantOfJacobian
+    @see InverseOfJacobian
+    */
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& DeltaPosition ) const
+    {
+        Jacobian(rResult,rCoordinates, DeltaPosition); //this will be overwritten
+
+        double detJ;
+        Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
+
+        MathUtils<double>::GeneralizedInvertMatrix(rResult, Jinv, detJ);
+        noalias(rResult) = Jinv;
+
+        return rResult;
+    }
 
 
     ///@}
@@ -2370,6 +2493,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    GeometryData const* mpGeometryData;
 
     ///@}
     ///@name Protected Operators
@@ -2603,8 +2727,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    GeometryData const* mpGeometryData;
 
 
     ///@}
