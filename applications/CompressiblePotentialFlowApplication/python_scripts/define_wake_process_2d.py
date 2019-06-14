@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
+import time as time
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -47,6 +48,16 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
+
+        start_time_c = time.time()
+
+        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+
+        exe_time_c = time.time() - start_time_c
+        print('Executing wake process took ', exe_time_c, 'sec in c++')
+
+        start_time = time.time()
+
         self.__SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
         self.__SaveTrailingEdgeNode()
@@ -56,6 +67,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.__MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
         self.__MarkWakeTEElement()
+        exe_time = time.time() - start_time
+
+        print('Executing wake process took ', exe_time, 'sec in python')
 
     def __SetWakeDirectionAndNormal(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
@@ -81,7 +95,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 max_x_coordinate = node.X
                 self.trailing_edge_node = node
 
-        self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
+        #self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
 
     def __MarkWakeElements(self):
         # This function checks which elements are cut by the wake
@@ -103,9 +117,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 is_wake_element = self.__CheckIfWakeElement(distances_to_wake)
 
                 if(is_wake_element):
-                    elem.SetValue(CPFApp.WAKE, True)
-                    elem.SetValue(
-                        KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                    #elem.SetValue(CPFApp.WAKE, True)
+                    #elem.SetValue(
+                     #   KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
                     counter=0
                     for node in elem.GetNodes():
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])

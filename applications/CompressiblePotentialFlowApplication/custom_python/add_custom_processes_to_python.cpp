@@ -41,7 +41,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<Define2DWakeProcess, Define2DWakeProcess::Pointer, Process >
         (m, "Define2DWakeProcess")
-        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const double>())
         ;
 }
 

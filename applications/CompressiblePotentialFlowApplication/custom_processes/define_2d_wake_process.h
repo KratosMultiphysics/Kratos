@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos
 {
@@ -39,15 +40,21 @@ public:
     /// Pointer definition of Define2DWakeProcess
     KRATOS_CLASS_POINTER_DEFINITION(Define2DWakeProcess);
 
+    typedef Node<3> NodeType;
+    typedef ModelPart::NodeIterator NodeIteratorType;
+    typedef ModelPart::ElementIterator ElementIteratorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
     Define2DWakeProcess(
-        ModelPart& rModelPart
+        ModelPart& rModelPart,
+        const double Tolerance
         ) : Process() ,
-            mrModelPart(rModelPart)
+            mrModelPart(rModelPart),
+            mTolerance(Tolerance)
     {
         std::cout << "Entering Constructor" << std::endl;
     }
@@ -75,8 +82,8 @@ public:
     ///@name Operations
     ///@{
 
-    /// Execute method is used to execute the Define2DWakeProcess algorithms.
-    void Execute() override;
+    /// ExecuteInitialize method is used to execute the Define2DWakeProcess algorithms.
+    void ExecuteInitialize() override;
 
     ///@}
     ///@name Input and output
@@ -100,11 +107,39 @@ public:
     }
 
     ///@}
-protected:
+private:
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart; /// The main model part where the wake elements will be defined
+    const double mTolerance;
+    NodeIteratorType mTrailingEdgeNode;
+    BoundedVector<double, 3> mWakeDirection;
+    BoundedVector<double, 3> mWakeNormal;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+    void SetWakeDirectionAndNormal();
+
+    BoundedVector<double, 3> GetWakeDirection();
+
+    void SaveTrailingEdgeNode();
+
+    void SetTrailingEdgeNode(NodeIteratorType TrailingEdgeNode);
+
+    NodeIteratorType GetTrailingEdgeNode();
+
+    void MarkWakeElements();
+
+    bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
+
+    BoundedVector<double, 3> ComputeDistancesToWake(ElementIteratorType& rElement);
+
+    bool CheckIfWakeElement(BoundedVector<double, 3>& rDistancesToWake);
+
+    //void SetTrailingEdgeNode(NodeType node);
+
 
     ///@}
 
