@@ -55,7 +55,7 @@ class SwimmingDEMSolver(PythonSolver):
         elif self.fluid_solver.settings["solvers"][0]["Parameters"]["time_integration_settings"].Has('move_mesh_flag'):
             the_mesh_moves = self.fluid_solver.settings["solvers"][0]["Parameters"]["time_integration_settings"]["move_mesh_flag"].GetBool()
             nodal_area_process_parameters["fixed_mesh"].SetBool(not the_mesh_moves)
-        self.time_integration_move_mesh_flag = self.GetTimeIntegrationMoveMeshFlag()
+        self.move_mesh_flag = self.GetTimeIntegrationMoveMeshFlag()
         return project_parameters
 
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
@@ -241,7 +241,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def SolveFluidSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
-        if self.time_integration_move_mesh_flag:
+        if self.move_mesh_flag:
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
 
     def SolveDEMSolutionStep(self):
@@ -255,7 +255,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
 
-        if (not self.time_integration_move_mesh_flag
+        if (not self.move_mesh_flag
             and (it_is_time_to_forward_couple or self.first_DEM_iteration)):
                 self.ApplyForwardCoupling(alpha)
 
@@ -270,7 +270,7 @@ class SwimmingDEMSolver(PythonSolver):
                 self.ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
 
         # Performing the time integration of the DEM part
-        if (self.time_integration_move_mesh_flag
+        if (self.move_mesh_flag
             and (it_is_time_to_forward_couple or self.first_DEM_iteration)):
             self.ApplyForwardCoupling(alpha)
 
@@ -292,8 +292,7 @@ class SwimmingDEMSolver(PythonSolver):
         return self.dem_solver.spheres_model_part
 
     def GetTimeIntegrationMoveMeshFlag(self):
-        if (self.fluid_solver.settings.Has('time_integration_settings') and
-            self.fluid_solver.settings["time_integration_settings"]["move_mesh_flag"].GetBool()):
-            return True
-        else:
-            return False
+        move_mesh_flag = False
+        if self.fluid_solver.settings.Has('time_integration_settings'):
+            move_mesh_flag = self.fluid_solver.settings["time_integration_settings"]["move_mesh_flag"].GetBool()
+        return move_mesh_flag
