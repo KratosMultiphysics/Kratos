@@ -21,7 +21,8 @@ def Factory(settings, Model):
         "NuTHighReCalculationProcess", "ApplyKTurbulentIntensityInletProcess",
         "ApplyEpsilonTurbulentMixingLengthInletProcess",
         "ApplyKWallFrictionVelocityProcess",
-        "ApplyEpsilonWallFrictionVelocityProcess", "ClipScalarVariableProcess"
+        "ApplyEpsilonWallFrictionVelocityProcess", "ClipScalarVariableProcess",
+        "ClipScalarVariableByNeighbourAveragingProcess"
     ]
 
     process_name = settings["process_name"].GetString()
@@ -83,6 +84,10 @@ def Factory(settings, Model):
     elif (process_name == "ClipScalarVariableProcess"):
         return KratosRANS.RansClipScalarVariableProcess(
             Model, settings["Parameters"])
+    elif (process_name == "ClipScalarVariableByNeighbourAveragingProcess"):
+        return KratosRANS.RansClipScalarVariableByNeighbourAveragingProcess(
+            Model, settings["Parameters"])
+
 
 class FindNodalNeighboursProcess(Kratos.Process):
     def __init__(self, Model, settings):
