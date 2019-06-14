@@ -594,10 +594,10 @@ class MultilevelMonteCarlo(object):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
                         if (self.settings["refinement_strategy"].GetString() == "concurrent_adaptive_refinement"):
                             batch_results.append(self.ExecuteInstanceConcurrentAdaptiveRefinement(level))
-
                         elif (self.settings["refinement_strategy"].GetString() == "single_refinement"):
                             batch_results.append(self.ExecuteInstanceSingleRefinement(level))
-
+                        else:
+                            raise Exception ("Specify refinement_strategy: concurrent_adaptive_refinement or single_refinement")
                         self.running_number_samples[level] = self.running_number_samples[level] - 1
                     self.AddResults(batch_results,batch)
                 self.batches_execution_finished[batch] = True
@@ -685,10 +685,10 @@ class MultilevelMonteCarlo(object):
 
             if (self.settings["refinement_strategy"].GetString() == "concurrent_adaptive_refinement"):
                 self.SerializeModelParametersConcurrentAdaptiveRefinement()
-
             elif (self.settings["refinement_strategy"].GetString() == "single_refinement"):
                 self.SerializeModelParametersSingleRefinement()
-
+            else:
+                raise Exception ("Specify refinement_strategy: concurrent_adaptive_refinement or single_refinement")
             self.is_project_parameters_pickled = True
             self.is_model_pickled = True
             print("\n","#"*50," SERIALIZATION MODEL AND PROJECT PARAMETERS COMPLETED ","#"*50,"\n")
