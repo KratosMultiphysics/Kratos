@@ -130,13 +130,6 @@ public:
     };
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (bool)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<bool>& rThisVariable) override;
-
-    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -153,17 +146,6 @@ public:
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (bool)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
         ) override;
 
     /**
@@ -329,7 +311,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mInelasticFlag; /// This flags tells if we are in a elastic or ineslastic regime
     Vector mPlasticStrain; /// The previous plastic strain (one for each of the strain components)
     double mAccumulatedPlasticStrain; /// The previous accumulated plastic strain
 

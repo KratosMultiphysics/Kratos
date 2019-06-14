@@ -51,14 +51,6 @@ SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D()
 //************************************************************************************
 //************************************************************************************
 
-bool SmallStrainIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        return true;
-    }
-    return false;
-}
-
 bool SmallStrainIsotropicDamage3D::Has(const Variable<int>& rThisVariable)
 {
     if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES){
@@ -77,19 +69,6 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 
 //************************************************************************************
 //************************************************************************************
-
-bool& SmallStrainIsotropicDamage3D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
-    }
-
-    return rValue;
-}
-
 
 int& SmallStrainIsotropicDamage3D::GetValue(
     const Variable<int>& rThisVariable,
@@ -182,7 +161,6 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
-            mInelasticFlag = false;
             rStrainVariable = mStrainVariable;
             const double stress_variable = EvaluateHardeningLaw(rStrainVariable, rMaterialProperties);
             const double damage_variable = 1. - stress_variable / rStrainVariable;
@@ -192,7 +170,6 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         else
         {
             // INELASTIC
-            mInelasticFlag = true;
             rStrainVariable = strain_norm;
             const double stress_variable = EvaluateHardeningLaw(rStrainVariable, rMaterialProperties);
             const double damage_variable = 1. - stress_variable / rStrainVariable;
@@ -347,7 +324,6 @@ int SmallStrainIsotropicDamage3D::Check(
 void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
@@ -357,7 +333,6 @@ void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 void SmallStrainIsotropicDamage3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.load("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 

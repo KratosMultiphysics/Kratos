@@ -58,17 +58,6 @@ SmallStrainJ2Plasticity3D::~SmallStrainJ2Plasticity3D()
 //************************************************************************************
 //************************************************************************************
 
-bool SmallStrainJ2Plasticity3D::Has(const Variable<bool>& rThisVariable)
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        return true;
-    }
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
 bool SmallStrainJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == ACCUMULATED_PLASTIC_STRAIN){
@@ -89,21 +78,6 @@ void SmallStrainJ2Plasticity3D::SetValue(
     if(rThisVariable == ACCUMULATED_PLASTIC_STRAIN){
         mAccumulatedPlasticStrain = rValue;
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool& SmallStrainJ2Plasticity3D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{ //TODO: Eliminate. Use AccumulatedPlasticStrain > 0 instead
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
-    }
-
-    return rValue;
 }
 
 //************************************************************************************
@@ -311,7 +285,6 @@ void SmallStrainJ2Plasticity3D::CalculateStressResponse(
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
-            mInelasticFlag = false;
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
                 r_stress_vector = trial_stress;
             }
@@ -320,7 +293,6 @@ void SmallStrainJ2Plasticity3D::CalculateStressResponse(
             }
         } else {
             // INELASTIC
-            mInelasticFlag = true;
             double accum_plastic_strain_rate = 0;
             Vector yield_function_normal_vector = trial_stress_dev / norm_trial_stress_dev;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
@@ -664,7 +636,6 @@ int SmallStrainJ2Plasticity3D::Check(
 void SmallStrainJ2Plasticity3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mPlasticStrain", mPlasticStrain);
     rSerializer.save("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
 }
@@ -675,7 +646,6 @@ void SmallStrainJ2Plasticity3D::save(Serializer& rSerializer) const
 void SmallStrainJ2Plasticity3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.load("mInelasticFlag", mInelasticFlag);
     rSerializer.load("mPlasticStrain", mPlasticStrain);
     rSerializer.load("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
 }
