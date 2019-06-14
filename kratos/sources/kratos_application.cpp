@@ -54,9 +54,9 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/coupling_master_slave.h"
-#include "geometries/integration_point_surface_3d.h"
+// #include "geometries/integration_point_surface_3d.h"
 #include "geometries/integration_point_curve_on_surface_3d.h"
-#include "geometries/integration_point_point_on_surface_3d.h"
+// #include "geometries/integration_point_point_on_surface_3d.h"
 
 /* Factories */
 #include "includes/standard_linear_solver_factory.h"

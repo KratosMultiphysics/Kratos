@@ -16,10 +16,13 @@
 #define  KRATOS_COUPLING_MASTER_SLAVE_H_INCLUDED
 
 // System includes
+#include <vector>
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "geometry.h"
 
 
 namespace Kratos
@@ -100,15 +103,15 @@ public:
         mpGeometries[1] = pSlaveGeometry;
     }
 
-    CouplingMasterSlave(
-        typename std::vector<GeometryType::Pointer> pGeometries,
-        bool IsGeometryDataInitialized = false)
-        : BaseType(PointsArrayType(), &(pGeometries[0]->GetGeometryData())),
-        mpGeometries(pGeometries),
-        mIsGeometryDataInitialized(IsGeometryDataInitialized)
-    {
-        //Maybe some checks
-    }
+    // CouplingMasterSlave(
+    //     std::vector<GeometryType::Pointer> pGeometries,
+    //     bool IsGeometryDataInitialized = false)
+    //     : BaseType(PointsArrayType(), &(pGeometries[0]->GetGeometryData())),
+    //     mpGeometries(pGeometries),
+    //     mIsGeometryDataInitialized(IsGeometryDataInitialized)
+    // {
+    //     //Maybe some checks
+    // }
 
     explicit CouplingMasterSlave(const PointsArrayType& ThisPoints)
         : BaseType()
@@ -323,7 +326,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    std::vector<GeometryType::Pointer> mpGeometries;
+    std::vector<typename GeometryType::Pointer> mpGeometries;
 
     bool mIsGeometryDataInitialized;
 

@@ -27,12 +27,12 @@ namespace Kratos
 /**
  * @class IntegrationPointCurveOnSurface3d
  * @ingroup KratosCore
- * @brief A sinlge integration point, that can be used for geometries without 
+ * @brief A sinlge integration point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single integration point.
  *        This point defines a line segment described on a underlying surface.
- *        Shape functions and integration types have to be precomputed and are set from 
+ *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
  */
 template<class TPointType> class IntegrationPointCurveOnSurface3d
@@ -49,7 +49,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     typedef PointerVector<TPointType> PointsArrayType;
-    typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename TPointType::CoordinatesArrayType CoordinatesArrayType;
 
     typedef IntegrationPoint<2> IntegrationPointType;
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
@@ -57,6 +57,11 @@ public:
     typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     typedef array_1d<double, 2> LocalTangentsArray2dType;
+
+    typedef typename GeometryType::IntegrationMethod IntegrationMethod;
+    typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
+    typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -72,10 +77,8 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mLocalTangents2d(rLocalTangents2d)
     {
-        IntegrationPoint(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
-
         IntegrationPointsArrayType IntegrationPoints = IntegrationPointsArrayType(1);
-        IntegrationPoints[0] = IntegrationPoint;
+        IntegrationPoints[0] = IntegrationPointType(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
 
         mGeometryData = GeometryData(
             3,3,3,//msGeometryDimension,
@@ -108,12 +111,12 @@ public:
         IntegrationPointsContainerType integration_points = {};
         ShapeFunctionsValuesContainerType shape_functions_values = {};
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        //mGeometryData = GeometryData(
-        //    3,3,3,//msGeometryDimension,
-        //    GeometryData::GI_GAUSS_1,
-        //    integration_points,
-        //    shape_functions_values,
-        //    shape_functions_local_gradients);
+        mGeometryData = GeometryData(
+           3,3,3,//msGeometryDimension,
+           GeometryData::GI_GAUSS_1,
+           integration_points,
+           shape_functions_values,
+           shape_functions_local_gradients);
     }
 
     /**
@@ -121,7 +124,7 @@ public:
      * Constructs this geometry as a copy of given geometry.
      *
      * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry. 
+     * the new geometry shares points with the source geometry.
      * Any changes to the new geometry points affect the source
      * geometry points too.
      */
@@ -319,8 +322,8 @@ public:
         array_1d<double, 3> a_2 = row(J, 1);
 
         Matrix Tangents = ZeroMatrix(3, 2);
-        row(Tangents, 0) = Tangents(1)*a_1 + Tangents(0)*a_2;
-        row(Tangents, 1) = Tangents(0)*a_1 + Tangents(1)*a_2;
+        // row(Tangents, 0) = Tangents(1)*a_1 + Tangents(0)*a_2;
+        // row(Tangents, 1) = Tangents(0)*a_1 + Tangents(1)*a_2;
 
         return rResult;
     }
@@ -358,7 +361,7 @@ public:
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
         Matrix jacobian;
-        Jacobian( jacobian, PointType() );
+        Jacobian( jacobian, TPointType() );
         rOStream << "    Jacobian in the integration point\t : " << jacobian;
     }
     ///@}
@@ -373,7 +376,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static const GeometryData msGeometryDimension;
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Private Member Variables
@@ -457,4 +460,4 @@ const GeometryDimension IntegrationPointCurveOnSurface3d<TPointType>::msGeometry
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_POINT_CURVE_ON_SURFACE_3D_H_INCLUDED  defined 
+#endif // KRATOS_INTEGRATION_POINT_CURVE_ON_SURFACE_3D_H_INCLUDED  defined
