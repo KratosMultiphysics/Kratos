@@ -43,3 +43,6 @@ class ALMPureFrictionalTestContact(TestFactory):
 
 class ALMBasicFrictionTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/basic_friction_test"
+
+class ALMEvolutionLoadFrictionTestContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/evolution_load_test"
