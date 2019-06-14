@@ -329,8 +329,8 @@ class MechanicalSolver(PythonSolver):
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import StructuralMechanicsApplication.check_and_prepare_model_process_structural
-        StructuralMechanicsApplication.check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
+        import check_and_prepare_model_process_structural
+        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
 
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()

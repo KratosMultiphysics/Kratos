@@ -94,6 +94,36 @@ public:
     virtual ~PenaltyCouplingCondition() override
     {};
 
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo)
+    {
+        MatrixType left_hand_side_matrix = Matrix(0, 0);
+
+        CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+            rCurrentProcessInfo, false, true);
+    }
+
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo)
+    {
+        VectorType right_hand_side_vector = Vector(0);
+
+        CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
+            rCurrentProcessInfo, true, false);
+    }
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+            rCurrentProcessInfo, true, true);
+    }
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id

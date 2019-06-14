@@ -129,11 +129,16 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        std::cout << "Watch" << std::endl;
+
         const auto& r_geometry_master = *GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = *GetGeometry().GetGeometryPart(1);
 
         const int number_of_nodes_master = r_geometry_master.size();
         const int number_of_nodes_slave = r_geometry_slave.size();
+
+        KRATOS_WATCH(number_of_nodes_master)
+            KRATOS_WATCH(number_of_nodes_slave)
 
         if (rResult.size() != 3 * (number_of_nodes_master + number_of_nodes_slave))
             rResult.resize(3 * (number_of_nodes_master + number_of_nodes_slave), false);
@@ -163,6 +168,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        std::cout << "Watch 2 " << std::endl;
         const auto& r_geometry_master = *GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = *GetGeometry().GetGeometryPart(1);
 

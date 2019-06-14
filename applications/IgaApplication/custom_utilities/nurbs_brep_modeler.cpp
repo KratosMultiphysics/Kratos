@@ -231,12 +231,14 @@ namespace Kratos
                                     const auto surface_2 = brep_face_2.GetSurface();
                                     const auto trimming_curve_2 = brep_face_2.GetTrimCurve(slave_topology.trim_index);
 
-                                    auto element_vector = IgaIntegrationUtilities::GetIntegrationDomainSurfaceEdgeSurfaceEdge(
+                                    auto geometry_vector = IgaIntegrationUtilities::GetIntegrationDomainSurfaceEdgeSurfaceEdge(
                                         surface_1,
                                         trimming_curve_1,
                                         surface_2,
                                         trimming_curve_2,
                                         shape_function_derivatives_order);
+
+                                    KRATOS_WATCH(geometry_vector.size())
 
                                     if (type == "element")
                                     {
@@ -253,9 +255,9 @@ namespace Kratos
                                         int id = 0;
                                         if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
                                             id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
-
-                                        //IgaIntegrationUtilities::ChangeConditionType(
-                                        //    element_vector, sub_model_part, name, id);
+                                        KRATOS_WATCH(geometry_vector[0]->Dimension())
+                                        IgaIntegrationUtilities::CreateConditions(
+                                            geometry_vector, sub_model_part, name, id);
                                     }
                                 }
                             }

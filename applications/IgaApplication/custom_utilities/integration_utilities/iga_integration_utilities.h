@@ -15,6 +15,7 @@
 
 #include "includes/model_part.h"
 #include "geometries/integration_point_curve_on_surface_3d.h"
+#include "geometries/coupling_master_slave.h"
 
 namespace Kratos
 {
@@ -79,7 +80,30 @@ namespace IgaIntegrationUtilities
 
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
+    static void CreateConditions(
+        std::vector<Geometry<Node<3>>::Pointer> rGeometryList,
+        ModelPart& rModelPart,
+        std::string& rConditionName,
+        int& rIdCounter)
+    {
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
+        ModelPart::ConditionsContainerType new_condition_list;
+        new_condition_list.reserve(rGeometryList.size());
+
+        for (int i = 0; i< static_cast<int>(rGeometryList.size()); i++)
+        {
+            auto p_condition = rReferenceCondition.Create(rIdCounter, rGeometryList[i], nullptr);
+
+            rIdCounter++;
+
+            rModelPart.AddNodes(rGeometryList[i]->begin(), rGeometryList[i]->end());
+
+            new_condition_list.push_back(p_condition);
+        }
+
+        rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+    }
     static std::vector<Element::Pointer> GetIntegrationDomainGeometrySurface(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
         const TrimmedSurfaceClipping& rClipper,
@@ -350,13 +374,6 @@ namespace IgaIntegrationUtilities
                     auto point_3d = curve_on_surface_3d_1->PointAt(integration_points[ip].t);
                     auto derivatives_1 = pTrimmingCurve1->DerivativesAt(integration_points[ip].t, 1);
 
-                    //std::cout << "integration_points[ip].t: " << integration_points[ip].t << std::endl;
-                    //std::cout << "derivatives_1[0][0]: " << derivatives_1[0][0] << std::endl;
-                    //std::cout << "derivatives_1[0][1]: " << derivatives_1[0][1] << std::endl;
-
-                    //KRATOS_WATCH(pSurface1->Weights().NbCols())
-                    //KRATOS_WATCH(pSurface1->Weights().NbRows())
-
                     shape_1.Compute(
                         pSurface1->KnotsU(),
                         pSurface1->KnotsV(),
@@ -364,12 +381,12 @@ namespace IgaIntegrationUtilities
                         derivatives_1[0][0],
                         derivatives_1[0][1]);
 
-                    Element::NodesArrayType non_zero_control_points;
+                    Geometry<Node<3>>::PointsArrayType cps_master;
 
                     int number_of_non_zero_cps_1 = shape_1.NonzeroPoleIndices().size();
 
-                    Matrix shape_function(1, number_of_non_zero_cps_1);
-                    Matrix shape_function_derivative(number_of_non_zero_cps_1, 2);
+                    Matrix shape_function_master(1, number_of_non_zero_cps_1);
+                    Matrix shape_function_derivative_master(number_of_non_zero_cps_1, 2);
                     //Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
                     //KRATOS_WATCH(number_of_non_zero_cps_1)
 
@@ -380,16 +397,16 @@ namespace IgaIntegrationUtilities
                         int indexU = shape_1.NonzeroPoleIndices()[n].first - shape_1.FirstNonzeroPoleU();
                         int indexV = shape_1.NonzeroPoleIndices()[n].second - shape_1.FirstNonzeroPoleV();
 
-                        non_zero_control_points.push_back(pSurface1->GetNode(
+                        cps_master.push_back(pSurface1->GetNode(
                             shape_1.NonzeroPoleIndices()[n].first,
                             shape_1.NonzeroPoleIndices()[n].second));
 
                         if (ShapeFunctionDerivativesOrder>-1)
-                            shape_function(0, n) = shape_1(0, indexU, indexV);
+                            shape_function_master(0, n) = shape_1(0, indexU, indexV);
                         if (ShapeFunctionDerivativesOrder > 0)
                         {
-                            shape_function_derivative(n, 0) = shape_1(1, indexU, indexV);
-                            shape_function_derivative(n, 1) = shape_1(2, indexU, indexV);
+                            shape_function_derivative_master(n, 0) = shape_1(1, indexU, indexV);
+                            shape_function_derivative_master(n, 1) = shape_1(2, indexU, indexV);
                         }
                         //if (ShapeFunctionDerivativesOrder > 1)
                         //{
@@ -398,10 +415,11 @@ namespace IgaIntegrationUtilities
                         //    shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
                         //}
 
-                        location += non_zero_control_points.back().Coordinates()*shape_function(n);
+                        location += cps_master.back().Coordinates()*shape_function_master(n);
                     }
 
-                    std::vector<Matrix> shape_function_gradients { shape_function_derivative };
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients;
+                    //shape_function_gradients.back(shape_function_derivative);
 
                     array_1d<double, 2> tangents;
                     tangents[0] = derivatives_1[1][0];
@@ -411,34 +429,38 @@ namespace IgaIntegrationUtilities
                     local_coordinates[0] = derivatives_1[0][0];
                     local_coordinates[1] = derivatives_1[0][1];
 
-                    //Geometry<Node<3>> as = new IntegrationPointCurveOnSurface3d(
-                    //    non_zero_control_points,
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients_master(1);
+                    shape_function_gradients_master[0] = shape_function_derivative_master;
+
+                    Geometry<Node<3>>::IntegrationPointsArrayType integration_points(1);
+                    integration_points[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], 1);
+
+                    IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType IntegrationPointsArray =
+                    { { integration_points } };
+                    IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer_master =
+                    { { shape_function_master } };
+                    IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType sfgcontainer_master =
+                    { { shape_function_gradients_master } };
+
+
+                    Geometry<Node<3>>::Pointer intgeration_point_master = Kratos::make_shared<IntegrationPointCurveOnSurface3d<Node<3>>>(
+                        cps_master,
+                        IntegrationPointsArray,
+                        tangents,
+                        sfcontainer_master,
+                        sfgcontainer_master);
+                    //Geometry<Node<3>> intgeration_point_master = IntegrationPointCurveOnSurface3d<Node<3>>(
+                    //    cps_master,
                     //    local_coordinates,
                     //    tangents,
                     //    integration_points[ip].weight,
                     //    shape_function,
                     //    shape_function_gradients);
 
-                    //Geometry<Node<3>>::Pointer master_geometry = Kratos::make_shared<Geometry<Node<3>>>(
-                    //    new IntegrationPointCurveOnSurface3d(
-                    //        non_zero_control_points,
-                    //        local_coordinates,
-                    //        tangents,
-                    //        integration_points[ip].weight,
-                    //        shape_function,
-                    //        shape_function_gradients));
-
-                    //KRATOS_WATCH(location)
-                    //KRATOS_WATCH(shape_function_derivative)
-                    //KRATOS_WATCH(shape_function_second_derivative)
-
                     //SLAVE
                     projection_2.Compute(point_3d);
-                    //std::cout << "point_3d: " << point_3d[0] << ", " << point_3d[1] << ", " << point_3d[2] << std::endl;
-                    //KRATOS_WATCH(projection_2.Parameter())
                     auto derivatives_2 = pTrimmingCurve2->DerivativesAt(projection_2.Parameter(), 1);
-                    //std::cout << "derivatives_2[0][0]: " << derivatives_2[0][0] << std::endl;
-                    //std::cout << "derivatives_2[0][1]: " << derivatives_2[0][1] << std::endl;
+
                     shape_2.Compute(
                         pSurface2->KnotsU(),
                         pSurface2->KnotsV(),
@@ -446,6 +468,7 @@ namespace IgaIntegrationUtilities
                         derivatives_2[0][0],
                         derivatives_2[0][1]);
 
+                    Geometry<Node<3>>::PointsArrayType cps_slave;
                     int number_of_non_zero_cps_2 = shape_2.NonzeroPoleIndices().size();
 
                     Matrix shape_function_slave(1, number_of_non_zero_cps_2);
@@ -456,7 +479,7 @@ namespace IgaIntegrationUtilities
                         int indexU = shape_2.NonzeroPoleIndices()[n].first - shape_2.FirstNonzeroPoleU();
                         int indexV = shape_2.NonzeroPoleIndices()[n].second - shape_2.FirstNonzeroPoleV();
 
-                        non_zero_control_points.push_back(pSurface2->GetNode(
+                        cps_slave.push_back(pSurface2->GetNode(
                             shape_2.NonzeroPoleIndices()[n].first,
                             shape_2.NonzeroPoleIndices()[n].second));
 
@@ -475,49 +498,43 @@ namespace IgaIntegrationUtilities
                         //}
                     }
 
-                    //Element ele(0, non_zero_control_points);
+                    array_1d<double, 2> tangents_slave;
+                    tangents_slave[0] = derivatives_2[1][0];
+                    tangents_slave[1] = derivatives_2[1][1];
 
-                    //Element::Pointer element = Kratos::make_intrusive<Element>(ele);
+                    array_1d<double, 2> local_coordinates_slave;
+                    local_coordinates[0] = derivatives_2[0][0];
+                    local_coordinates[1] = derivatives_2[0][1];
 
-                    //if (ShapeFunctionDerivativesOrder > -1)
-                    //{
-                    //    element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
-                    //}
-                    //if (ShapeFunctionDerivativesOrder > 0)
-                    //{
-                    //    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
-                    //}
-                    ////if (ShapeFunctionDerivativesOrder > 1)
-                    ////{
-                    ////    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
-                    ////}
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients_slave(1);
+                    shape_function_gradients_slave[0] = shape_function_derivative_slave;
 
-                    //if (ShapeFunctionDerivativesOrder > -1)
-                    //{
-                    //    element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
-                    //}
-                    //if (ShapeFunctionDerivativesOrder > 0)
-                    //{
-                    //    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
-                    //}
-                    ////if (ShapeFunctionDerivativesOrder > 1)
-                    ////{
-                    ////    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
-                    ////}
-                    //element->SetValue(TANGENTS, tangents);
+                    Geometry<Node<3>>::IntegrationPointsArrayType integration_points_slave(1);
+                    integration_points_slave[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], 1);
 
-                    //element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+                    IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType IntegrationPointsArray_slave =
+                    { { integration_points_slave } };
+                    IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer_slave = 
+                    { { shape_function_slave } };
+                    IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType sfgcontainer_slave =
+                    { { shape_function_gradients_slave } };
 
-                    ////element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
-                    ////element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
-                    ////element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
 
-                    //Vector tangents_slave(2);
-                    //tangents_slave[0] = derivatives_2[1][0];
-                    //tangents_slave[1] = derivatives_2[1][1];
-                    //element->SetValue(TANGENTS_SLAVE, tangents_slave);
+                    Geometry<Node<3>>::Pointer intgeration_point_slave = Kratos::make_shared<IntegrationPointCurveOnSurface3d<Node<3>>>(
+                        cps_slave,
+                        IntegrationPointsArray_slave,
+                        tangents_slave,
+                        sfcontainer_slave,
+                        sfgcontainer_slave);
 
-                    //new_elements.push_back(element);
+                    Geometry<Node<3>>::Pointer coupling_geometry = Kratos::make_shared<CouplingMasterSlave<Node<3>>>(
+                        intgeration_point_master, intgeration_point_slave, true);
+
+                    const auto& r_geometry_master = coupling_geometry->GetGeometryPart(0);
+                    KRATOS_WATCH(r_geometry_master->size())
+                        const auto& r_geometry_slave = coupling_geometry->GetGeometryPart(1);
+                    KRATOS_WATCH(r_geometry_slave->size())
+                    new_geometries.push_back(coupling_geometry);
                 }
             }
         }
