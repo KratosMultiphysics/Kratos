@@ -74,6 +74,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		if self.echo_level > 0:
 			KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
 
+		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
+		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, 1, self.FEM_Solution.main_model_part.Elements)
+
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
