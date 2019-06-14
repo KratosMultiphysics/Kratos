@@ -32,7 +32,7 @@ class FEMDEM_Solution:
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
 
         self.InitializePlotsFiles()
-        self.echo_level = 1
+        self.echo_level = 0
 
 #============================================================================================================================
     def Run(self):
