@@ -58,9 +58,100 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
     def __init__(self, model, dt, scheme):
         self.customized_time_step = dt
         self.customized_scheme = scheme
-        with open("ProjectParametersDEM.json",'r') as parameter_file:
-            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        super(CustomizedSolutionForTimeStepTesting, self).__init__(model, project_parameters)
+        self.LoadParametersFile()
+        # with open("ProjectParametersDEM.json",'r') as parameter_file:
+        #     project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        super(CustomizedSolutionForTimeStepTesting, self).__init__(model, self.project_parameters)
+
+    def LoadParametersFile(self):
+        self.project_parameters = KratosMultiphysics.Parameters(
+            """
+            {
+                "Dimension"                        : 3,
+                "BoundingBoxOption"                : true,
+                "BoundingBoxEnlargementFactor"     : 1.1,
+                "AutomaticBoundingBoxOption"       : false,
+                "BoundingBoxEnlargementFactor"     : 1.0,
+                "BoundingBoxMaxX"                  : 1e3,
+                "BoundingBoxMaxY"                  : 1e3,
+                "BoundingBoxMaxZ"                  : 1e3,
+                "BoundingBoxMinX"                  : -1e3,
+                "BoundingBoxMinY"                  : -1e3,
+                "BoundingBoxMinZ"                  : -1e3,
+                "dem_inlet_option"                 : false,
+                "GravityX"                         : 0.0,
+                "GravityY"                         : 0.0,
+                "GravityZ"                         : 0.0,
+                "VelocityTrapOption"               : false,
+                "RotationOption"                   : true,
+                "CleanIndentationsOption"          : true,
+                "RemoveBallsInEmbeddedOption"      : false,
+                "solver_settings" :{
+                    "strategy"                 : "sphere_strategy",
+                    "RemoveBallsInitiallyTouchingWalls": false
+                },
+
+                "DeltaOption"                      : "Absolute",
+                "SearchTolerance"                  : 0.0,
+                "CoordinationNumber"               : 10,
+                "AmplifiedSearchRadiusExtension"   : 1.10000e+00,
+                "ModelDataInfo"                    : false,
+                "VirtualMassCoefficient"           : 1.0,
+                "RollingFrictionOption"            : false,
+                "DontSearchUntilFailure"           : false,
+                "ContactMeshOption"                : false,
+                "OutputFileType"                   : "Binary",
+                "Multifile"                        : "multiple_files",
+                "TranslationalIntegrationScheme"   : "Forward_Euler",
+                "RotationalIntegrationScheme"      : "Direct_Integration",
+                "AutomaticTimestep"                : false,
+                "DeltaTimeSafetyFactor"            : 1.0,
+                "MaxTimeStep"                      : 1e-4,
+                "FinalTime"                        : 4.0,
+                "ControlTime"                      : 100,
+                "NeighbourSearchFrequency"         : 1,
+                "PeriodicDomainOption"             : false,
+                "ElementType"                      : "SphericPartDEMElement3D",
+
+                "GraphExportFreq"                  : 1e-5,
+                "VelTrapGraphExportFreq"           : 1e-3,
+                "OutputTimeStep"                   : 1e-5,
+                "PostDisplacement"                 : false,
+                "PostVelocity"                     : false,
+                "PostElasticForces"                : false,
+                "PostContactForces"                : false,
+                "PostRigidElementForces"           : false,
+                "PostTangentialElasticForces"      : false,
+                "PostPressure"                     : false,
+                "PostTotalForces"                  : false,
+                "PostShearStress"                  : false,
+                "PostNonDimensionalVolumeWear"     : false,
+                "PostNodalArea"                    : false,
+                "PostRHS"                          : false,
+                "PostDampForces"                   : false,
+                "PostAppliedForces"                : false,
+                "PostRadius"                       : false,
+                "PostGroupId"                      : false,
+                "PostExportId"                     : false,
+                "PostAngularVelocity"              : false,
+                "PostParticleMoment"               : false,
+                "PostEulerAngles"                  : false,
+                "PostContactSigma"                 : false,
+                "PostContactTau"                   : false,
+                "PostLocalContactForce"            : false,
+                "PostFailureCriterionState"        : false,
+                "PostContactFailureId"             : false,
+                "PostMeanContactArea"              : false,
+                "PostStressStrainOption"           : false,
+                "PostRollingResistanceMoment"      : false,
+                "post_vtk_option"                  : false,
+                "problem_name"                     : "TimeStepTests"
+                }
+
+            """
+            )
+
+
 
     def SetDt(self):
         self.DEM_parameters["TranslationalIntegrationScheme"].SetString(self.customized_scheme)
