@@ -132,6 +132,7 @@ for normalvar in range(normal_combs):
         delta_time = sympy.Symbol('delta_time', positive=True)
         ScaleFactor = sympy.Symbol('ScaleFactor', positive=True)
         TangentFactor = sympy.Symbol('TangentFactor', positive=True)
+        TangentCoefficient = sympy.Symbol('TangentCoefficient', positive=True)
 
         # Define variables list for later derivation
         u1_var = []
@@ -187,9 +188,9 @@ for normalvar in range(normal_combs):
             NormalwGap[node] = Dw1Mw2.row(node).dot(NormalSlave.row(node))
             #gap_time_derivative = - Dx1Mx2.row(node)/delta_time
             gap_time_derivative_non_objective = DDeltax1MDeltax2.row(node)/delta_time
-            gap_time_derivative_non_objective_w = Dw1Mw2.row(node)/delta_time
+            gap_time_derivative_non_objective_w = - Dw1Mw2.row(node)/delta_time
             gap_time_derivative_objective = - DeltaDx1DeltaMx2.row(node)/delta_time
-            gap_time_derivative_objective_w = - DeltaDw1DeltaMw2.row(node)/delta_time
+            gap_time_derivative_objective_w = DeltaDw1DeltaMw2.row(node)/delta_time
 
             # Direct computation
             auxTangentSlipNonObjective = delta_time * (gap_time_derivative_non_objective - gap_time_derivative_non_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
@@ -257,23 +258,24 @@ for normalvar in range(normal_combs):
                         if slip == 1 or slip == 2: # Slip
                             augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
                             modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
+                            #modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - TangentCoefficient * augmented_tangent_contact_pressure
 
                             rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
                             if slip == 1: # Objective
-                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
                             else:
-                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
                         else: # Stick
                             if slip == 3: # Objective
                                 augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipObjective.row(node)
 
                                 rv_galerkin += ScaleFactor * (TangentSlipObjective.row(node)).dot(wLMTangent.row(node))
-                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
                             else: # Non-Objective
                                 augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipNonObjective.row(node)
 
                                 rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
-                                rv_galerkin -= DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
 
                     if do_simplifications:
                         rv_galerkin = sympy.simplify(rv_galerkin)
