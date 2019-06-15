@@ -66,7 +66,6 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
-    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
@@ -104,12 +103,11 @@ public:
         const bool PrintingOutput = false,
         const bool ComputeDynamicFactor = false,
         const bool IODebug = false
-        ) : BaseType(ComputeDynamicFactor, IODebug)
+        ) : BaseType(ComputeDynamicFactor, IODebug, PureSlip)
     {
         // Set local flags
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
-        BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PURE_SLIP, PureSlip);
     }
 
     ///Copy constructor
@@ -168,7 +166,7 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         // Compute the active set
-        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(ALMFrictionalMortarConvergenceCriteria::PURE_SLIP));
+        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(BaseType::PURE_SLIP));
 
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged[0] + is_converged[1]) == 0 ? true : false;
@@ -349,17 +347,13 @@ private:
 
 /// Local Flags
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(2));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(2, false));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(3, false));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(3));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(4));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(3, false));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(4));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(4, false));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 

@@ -72,6 +72,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DYNAMIC_FACTOR );
     KRATOS_DEFINE_LOCAL_FLAG( IO_DEBUG );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -96,7 +97,8 @@ public:
     /// Default constructors
     explicit BaseMortarConvergenceCriteria(
         const bool ComputeDynamicFactor = false,
-        const bool IODebug = false
+        const bool IODebug = false,
+        const bool PureSlip = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mpIO(nullptr)
@@ -104,6 +106,7 @@ public:
         // Set local flags
         mOptions.Set(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR, ComputeDynamicFactor);
         mOptions.Set(BaseMortarConvergenceCriteria::IO_DEBUG, IODebug);
+        mOptions.Set(BaseMortarConvergenceCriteria::PURE_SLIP, PureSlip);
 
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -284,7 +287,7 @@ public:
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
             const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            if (has_lm) {
+            if (has_lm && mOptions.IsNot(BaseMortarConvergenceCriteria::PURE_SLIP)) {
                 MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
             } else {
                 MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
@@ -402,7 +405,7 @@ private:
      * @brief It computes the mean of the normal in the condition in all the nodes
      * @param rModelPart The model part to compute
      */
-    static inline void ComputeNodesMeanNormalModelPartWithPairedNormal(ModelPart& rModelPart)
+    inline void ComputeNodesMeanNormalModelPartWithPairedNormal(ModelPart& rModelPart)
     {
         // Compute normal and tangent
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
@@ -410,7 +413,7 @@ private:
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
             const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            if (has_lm) {
+            if (has_lm && mOptions.IsNot(BaseMortarConvergenceCriteria::PURE_SLIP)) {
                 MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
             } else {
                 MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
@@ -471,6 +474,10 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::IO_DEBUG(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_IO_DEBUG(Kratos::Flags::Create(1, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(2, false));
 
 }  // namespace Kratos
 
