@@ -33,7 +33,26 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+
+class VariableNamePrinter : public boost::static_visitor<>
+{
+    public:
+        VariableNamePrinter(std::stringstream& rString) : mrString(rString)
+        {
+        }
+
+        template <class T>
+        void operator()(const T& rVar)
+        {
+            mrString << rVar.Name() << std::endl;
+        }
+
+    private:
+        std::stringstream& mrString;
+};
+
+
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -55,8 +74,23 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Generic Container of Variables
+/** This class defines a generic container to hold variables of any type.
+ * it is based on the variant/visitor paradigm.
+ * 
+ * the usage is something like
+ * 
+ *  GenericVariablesList vars;
+ *  vars.AddVariable(TEMPERATURE);
+ *  vars.AddVariable(VELOCITY);
+ *  vars.AddVariable(DISPLACEMENT_X);
+ *  vars.AddVariable(std::string("DISPLACEMENT_Z")); //note that we can add by the name
+ *
+ * operations are defined by creating a custom visitor with an operator specialized per every type
+ * which is then used as
+ *
+ *  MyTestVisitor aux(mp);
+ *   vars.ApplyVisitor( aux );
 */
 class GenericVariablesList
 {
@@ -104,7 +138,7 @@ public:
     ///@name Operators
     ///@{
     template<class TVistorType >
-    void ApplyVisitor(TVistorType& rVisitor)
+    void ApplyVisitor(TVistorType& rVisitor) const
     {
         for(const auto& rVarVariant : mVariables)
         {
@@ -132,7 +166,9 @@ public:
 
     /// Turn back information as a string.
     virtual std::string Info() const
-    {return "GenericVariableList containing :";}
+    {
+        return "GenericVariableList\n";
+    }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
@@ -142,6 +178,12 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        std::stringstream msg;
+        msg << "GenericVariableList containing : " << std::endl;
+        
+        VariableNamePrinter aux(msg);
+        this->ApplyVisitor(aux);
+        rOStream << msg.str();
     }
 
     ///@}
@@ -155,6 +197,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     std::vector< variable_variant_type > mVariables;
+
 
 
     ///@}
@@ -222,13 +265,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    GenericVariablesList& operator=(GenericVariablesList const& rOther);
-
-    /// Copy constructor.
-    GenericVariablesList(GenericVariablesList const& rOther);
-
 
     ///@}
 

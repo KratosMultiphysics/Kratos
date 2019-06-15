@@ -20,7 +20,7 @@ namespace Kratos
 namespace Testing
 {
 
-    class MyTestVisitor : public boost::static_visitor<>
+    class MyTestVisitor : public GenericVariablesList::visitor_base_type
     {
     public:
         //here i pass in the constructor a ModelPart reference...but it is NOt needed
@@ -35,9 +35,8 @@ namespace Testing
         {
             for (auto &node : mrModelPart.Nodes())
             {
-                KRATOS_WATCH(rVar)
-                auto& value = node.FastGetSolutionStepValue(rVar);
-                value = 1.0;
+                auto& r_value = node.FastGetSolutionStepValue(rVar);
+                r_value = 1.0;
             }
         }
 
@@ -46,9 +45,9 @@ namespace Testing
         {
             for (auto &node : mrModelPart.Nodes())
             {
-                auto &v = node.FastGetSolutionStepValue(rVar);
+                auto& r_value = node.FastGetSolutionStepValue(rVar);
                 for (unsigned int i = 0; i < 3; ++i)
-                    v[i] = -1.0;
+                    r_value[i] = -1.0;
             }
         }
 
@@ -90,8 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(GenericVariablesList, KratosCoreFastSuite)
     //NOTE: this is the part to be user-defined!!
     MyTestVisitor aux(mp);
     vars.ApplyVisitor( aux );
-
-
+   
 
     for (auto& rNode : mp.Nodes())
     {
