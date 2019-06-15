@@ -9,6 +9,8 @@
 //
 //  Main authors:    Riccardo Rossi
 
+#include <type_traits>
+
 #include "testing/testing.h"
 #include "containers/generic_variables_list.h"
 #include "containers/model.h"
@@ -30,14 +32,25 @@ namespace Testing
 
 
         //this method is good for both Variable<double> and compoents
+        //this template ACCEPTS ANY SCALAR TYPE
         template <class T>
-        void operator()(const T& rVar)
+        typename std::enable_if<std::is_scalar<typename T::Type>::value, void>::type 
+        operator()(const T& rVar)
         {
+            KRATOS_WATCH(rVar.Name())
             for (auto &node : mrModelPart.Nodes())
-            {
-                auto& r_value = node.FastGetSolutionStepValue(rVar);
-                r_value = 1.0;
-            }
+                {
+                    auto& r_value = node.FastGetSolutionStepValue(rVar);
+                    r_value = 1.0;
+                }
+        }
+
+        //THIS OVERLOAD IS NEEDED TO ACCEPT NON-SCALAR TYPES
+        template <class T>
+        typename std::enable_if<!(std::is_scalar<typename T::Type>::value), void>::type 
+        operator()(const T& rVar)
+        {
+            KRATOS_ERROR << " dummy operator overload for variable : " << rVar.Name() << std::endl;
         }
 
         //treat specially the case of array_1d variable
@@ -50,13 +63,6 @@ namespace Testing
                     r_value[i] = -1.0;
             }
         }
-
-        //unfortunately we need to also define cases where we want to do nothing
-        void operator()(const Variable < Vector >& rVar)
-        {}
-
-        void operator()(const Variable < Matrix >& rVar)
-        {}
 
     private:
         ModelPart &mrModelPart;
