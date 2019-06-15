@@ -628,6 +628,8 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
+        ModelPart& r_model_part = BaseType::GetModelPart();
+
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
@@ -640,8 +642,9 @@ class ResidualBasedNewtonRaphsonStrategy
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+        p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
         //Cleaning memory after the solution
         p_scheme->Clean();
