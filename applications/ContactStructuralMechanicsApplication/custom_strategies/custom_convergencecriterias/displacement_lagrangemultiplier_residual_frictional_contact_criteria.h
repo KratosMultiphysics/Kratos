@@ -335,8 +335,6 @@ public:
             }
 
             // Auxiliar dofs counters
-            KRATOS_WATCH(mStickCounter)
-            KRATOS_WATCH(lm_stick_dof_num)
             if (mStickCounter > 0) {
                 if (lm_stick_dof_num == 0) {
                     mStickCounter = 0;
@@ -414,9 +412,6 @@ public:
             const TDataType residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<TDataType>(lm_slip_dof_num) : 0.0;
             const TDataType normal_tangent_stick_ratio = residual_tangent_lm_stick_abs/residual_normal_lm_abs;
             const TDataType normal_tangent_slip_ratio = residual_tangent_lm_slip_abs/residual_normal_lm_abs;
-
-            // The process info of the model part
-            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
