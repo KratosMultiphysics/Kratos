@@ -4,16 +4,13 @@ import KratosMultiphysics as KM
 
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-
 def print_on_rank_zero(*args):
     # This function will be overridden in the trilinos-solvers
     KM.Logger.PrintInfo(" ".join(map(str, args)))
 
-
 def print_warning_on_rank_zero(*args):
     # This function will be overridden in the trilinos-solvers
     KM.Logger.PrintWarning(" ".join(map(str, args)))
-
 
 def AuxiliarContactSettings():
     contact_settings = KM.Parameters("""
@@ -59,7 +56,6 @@ def AuxiliarContactSettings():
 
     return contact_settings
 
-
 def AuxiliarExplicitContactSettings():
     contact_settings = KM.Parameters("""
     {
@@ -75,7 +71,6 @@ def AuxiliarExplicitContactSettings():
     """)
 
     return contact_settings
-
 
 def AuxiliarSetSettings(settings, contact_settings):
     if not settings["clear_storage"].GetBool():
@@ -126,7 +121,6 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
 
-
 def AuxiliarAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
         KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, main_model_part)
@@ -141,7 +135,6 @@ def AuxiliarAddDofs(main_model_part, mortar_type = ""):
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, main_model_part)
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, main_model_part)
 
-
 def AuxiliarSolve(mechanical_solution_strategy):
     # The steps of the solve are Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep(), FinalizeSolutionStep()
     mechanical_solution_strategy.Solve()
@@ -151,40 +144,63 @@ def AuxiliarSolve(mechanical_solution_strategy):
     # mechanical_solution_strategy.SolveSolutionStep()
     # mechanical_solution_strategy.FinalizeSolutionStep()
 
+def AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
+    if settings["time_stepping"].Has("time_step"):
+        delta_time = settings["time_stepping"]["time_step"].GetDouble()
+        if contact_settings["inner_loop_adaptive"].GetBool():
+            process_info = computing_model_part.ProcessInfo
+            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
+                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
+                if inner_iterations > 1:
+                    delta_time = delta_time/float(inner_iterations)
+                    KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
+        return delta_time
+    elif settings["time_stepping"].Has("time_step_intervals"):
+        current_time = main_model_part.ProcessInfo[KM.TIME]
+        for key in settings["time_stepping"]["time_step_intervals"].keys():
+            interval_settings = settings["time_stepping"]["time_step_intervals"][key]
+            interval = KM.IntervalUtility(interval_settings)
+
+            # Getting the time step of the interval
+            if interval.IsInInterval(current_time):
+                return interval_settings["time_step"].GetDouble()
+        # If we arrive here we raise an error because the intervals are not well defined
+        raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+    else:
+        raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
 def AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.
-        if contact_settings["fancy_convergence_criterion"].GetBool():
-            table = KM.TableStreamUtility()
-            table.SetOnProcessInfo(main_model_part.ProcessInfo)
+    if contact_settings["fancy_convergence_criterion"].GetBool():
+        table = KM.TableStreamUtility()
+        table.SetOnProcessInfo(main_model_part.ProcessInfo)
 
-        conv_params = KM.Parameters("{}")
-        conv_params.AddValue("convergence_criterion", settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs", settings["rotation_dofs"])
-        conv_params.AddValue("echo_level", settings["echo_level"])
-        conv_params.AddValue("displacement_relative_tolerance", settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance", settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance", settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance", settings["residual_absolute_tolerance"])
-        conv_params.AddValue("contact_displacement_relative_tolerance", contact_settings["contact_displacement_relative_tolerance"])
-        conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
-        conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
-        conv_params.AddValue("contact_residual_absolute_tolerance", contact_settings["contact_residual_absolute_tolerance"])
-        conv_params.AddValue("frictional_contact_displacement_relative_tolerance", contact_settings["frictional_contact_displacement_relative_tolerance"])
-        conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", contact_settings["frictional_contact_displacement_absolute_tolerance"])
-        conv_params.AddValue("frictional_contact_residual_relative_tolerance", contact_settings["frictional_contact_residual_relative_tolerance"])
-        conv_params.AddValue("frictional_contact_residual_absolute_tolerance", contact_settings["frictional_contact_residual_absolute_tolerance"])
-        conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
-        conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
-        conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
-        conv_params.AddValue("print_convergence_criterion", contact_settings["print_convergence_criterion"])
-        conv_params.AddValue("ensure_contact", contact_settings["ensure_contact"])
-        conv_params.AddValue("frictional_decomposed", contact_settings["frictional_decomposed"])
-        conv_params.AddValue("compute_dynamic_factor", contact_settings["compute_dynamic_factor"])
-        conv_params.AddValue("gidio_debug", contact_settings["gidio_debug"])
+    conv_params = KM.Parameters("{}")
+    conv_params.AddValue("convergence_criterion", settings["convergence_criterion"])
+    conv_params.AddValue("rotation_dofs", settings["rotation_dofs"])
+    conv_params.AddValue("echo_level", settings["echo_level"])
+    conv_params.AddValue("displacement_relative_tolerance", settings["displacement_relative_tolerance"])
+    conv_params.AddValue("displacement_absolute_tolerance", settings["displacement_absolute_tolerance"])
+    conv_params.AddValue("residual_relative_tolerance", settings["residual_relative_tolerance"])
+    conv_params.AddValue("residual_absolute_tolerance", settings["residual_absolute_tolerance"])
+    conv_params.AddValue("contact_displacement_relative_tolerance", contact_settings["contact_displacement_relative_tolerance"])
+    conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
+    conv_params.AddValue("contact_residual_absolute_tolerance", contact_settings["contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_contact_displacement_relative_tolerance", contact_settings["frictional_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", contact_settings["frictional_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_contact_residual_relative_tolerance", contact_settings["frictional_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_contact_residual_absolute_tolerance", contact_settings["frictional_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
+    conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
+    conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
+    conv_params.AddValue("print_convergence_criterion", contact_settings["print_convergence_criterion"])
+    conv_params.AddValue("ensure_contact", contact_settings["ensure_contact"])
+    conv_params.AddValue("frictional_decomposed", contact_settings["frictional_decomposed"])
+    conv_params.AddValue("compute_dynamic_factor", contact_settings["compute_dynamic_factor"])
+    conv_params.AddValue("gidio_debug", contact_settings["gidio_debug"])
 
-        return conv_params
-
+    return conv_params
 
 def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
     if contact_settings["rescale_linear_solver"].GetBool():
@@ -227,7 +243,6 @@ def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, line
     else:
         return linear_solver
 
-
 def AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     return CSMA.LineSearchContactStrategy(computing_model_part,
@@ -241,7 +256,6 @@ def AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, m
                                             settings["move_mesh_flag"].GetBool(),
                                             newton_parameters
                                             )
-
 
 def AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")

@@ -419,29 +419,29 @@ class ResidualBasedNewtonRaphsonStrategy
 
         GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
-        if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0)
-        {
-            const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        // Applying constraints if needed
+        auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
+        const std::size_t number_of_constraints = r_constraints_array.size();
+        if(number_of_constraints != 0) {
+            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
+            const auto it_const_begin = r_constraints_array.begin();
 
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
-                (it_begin+i)->ResetSlaveDofs(rProcessInfo);
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(number_of_constraints); ++i)
+                (it_const_begin + i)->ResetSlaveDofs(r_process_info);
 
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
-                 (it_begin+i)->Apply(rProcessInfo);
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(number_of_constraints); ++i)
+                 (it_const_begin + i)->Apply(r_process_info);
 
-
-
-            //the following is needed since we need to eventually compute time derivatives after applying
-            //Master slave relations
+            // The following is needed since we need to eventually compute time derivatives after applying
+            // Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         }
 
-        //move the mesh if needed
+        // Move the mesh if needed
         if (this->MoveMeshFlag() == true)
             BaseType::MoveMesh();
 
@@ -628,6 +628,8 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
+        ModelPart& r_model_part = BaseType::GetModelPart();
+
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
@@ -640,8 +642,9 @@ class ResidualBasedNewtonRaphsonStrategy
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+        p_scheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        p_builder_and_solver->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
         //Cleaning memory after the solution
         p_scheme->Clean();
