@@ -165,13 +165,18 @@ public:
         // We call the base class
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Compute the active set
-        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(BaseType::PURE_SLIP));
-
-        // We save to the process info if the active set has converged
+        // Getting process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
-        r_process_info[SLIP_SET_CONVERGED] = is_converged[1] == 0 ? true : false;
+
+        // Compute the active set
+        if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+            const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(BaseType::PURE_SLIP));
+
+            // We save to the process info if the active set has converged
+            r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
+            r_process_info[SLIP_SET_CONVERGED] = is_converged[1] == 0 ? true : false;
+            r_process_info[ACTIVE_SET_COMPUTED] = true;
+        }
 
         // Getting converged bools
         const bool active_set_converged = r_process_info[ACTIVE_SET_CONVERGED];
@@ -239,7 +244,8 @@ public:
      */
     void Initialize(ModelPart& rModelPart) override
     {
-        ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
+        // Calling base criteria
+        BaseType::Initialize(rModelPart);
 
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED)) {

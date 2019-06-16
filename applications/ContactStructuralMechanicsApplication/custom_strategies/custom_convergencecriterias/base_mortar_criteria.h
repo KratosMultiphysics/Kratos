@@ -146,17 +146,17 @@ public:
         ) override
     {
         // The current process info
-        ProcessInfo& process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
         // The contact model part
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
 
         // We update the normals if necessary
-        const auto normal_variation = process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
+        const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
         if (normal_variation != NO_DERIVATIVES_COMPUTATION)
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
 
-        const bool adapt_penalty = process_info.Has(ADAPT_PENALTY) ? process_info.GetValue(ADAPT_PENALTY) : false;
+        const bool adapt_penalty = r_process_info.Has(ADAPT_PENALTY) ? r_process_info.GetValue(ADAPT_PENALTY) : false;
         const bool dynamic_case = rModelPart.HasNodalSolutionStepVariable(VELOCITY);
 
         /* Compute weighthed gap */
@@ -262,7 +262,12 @@ public:
      */
     void Initialize(ModelPart& rModelPart) override
     {
-        KRATOS_ERROR << "YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
+        // Calling base criteria
+        BaseType::Initialize(rModelPart);
+
+        // The current process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
     /**
@@ -319,6 +324,13 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+        // Calling base criteria
+        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+
+        // The current process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
+
         // IO for debugging
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpIO->FinalizeResults();
