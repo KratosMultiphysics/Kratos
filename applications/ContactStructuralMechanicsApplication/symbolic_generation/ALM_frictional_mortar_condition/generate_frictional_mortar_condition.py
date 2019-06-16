@@ -187,10 +187,10 @@ for normalvar in range(normal_combs):
             NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
             NormalwGap[node] = Dw1Mw2.row(node).dot(NormalSlave.row(node))
             #gap_time_derivative = - Dx1Mx2.row(node)/delta_time
-            gap_time_derivative_non_objective = DDeltax1MDeltax2.row(node)/delta_time
-            gap_time_derivative_non_objective_w = - Dw1Mw2.row(node)/delta_time
-            gap_time_derivative_objective = - DeltaDx1DeltaMx2.row(node)/delta_time
-            gap_time_derivative_objective_w = DeltaDw1DeltaMw2.row(node)/delta_time
+            gap_time_derivative_non_objective = - DDeltax1MDeltax2.row(node)/delta_time
+            gap_time_derivative_non_objective_w = Dw1Mw2.row(node)/delta_time
+            gap_time_derivative_objective = DeltaDx1DeltaMx2.row(node)/delta_time
+            gap_time_derivative_objective_w = - DeltaDw1DeltaMw2.row(node)/delta_time
 
             # Direct computation
             auxTangentSlipNonObjective = delta_time * (gap_time_derivative_non_objective - gap_time_derivative_non_objective.dot(NormalSlave.row(node)) * NormalSlave.row(node))
@@ -276,6 +276,8 @@ for normalvar in range(normal_combs):
 
                                 rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
                                 rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+
+                        #rv_galerkin += DynamicFactor[node] * (normal_augmented_contact_pressure + augmented_tangent_contact_pressure).dot(Dw1Mw2.row(node))
 
                     if do_simplifications:
                         rv_galerkin = sympy.simplify(rv_galerkin)

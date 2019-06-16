@@ -922,7 +922,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -978,7 +978,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1035,7 +1035,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1092,7 +1092,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1155,7 +1155,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = - delta_x;
+            slip[0] = delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1219,7 +1219,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = - delta_x;
+            slip[0] = delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1287,7 +1287,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = - delta_x;
+            slip[0] = delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1345,7 +1345,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1401,7 +1401,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {

@@ -139,7 +139,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : {"0" : ["Parts_Parts_Auto1"]},
                 "contact_model_part"          : {"0" : ["GENERIC_Add_SubModelPart_Auto1"]},
-                "contact_type"                : "Frictional"
+                "contact_type"                : "FrictionalWithNormalUpdate"
             }
         }],
         "json_check_process" : [
