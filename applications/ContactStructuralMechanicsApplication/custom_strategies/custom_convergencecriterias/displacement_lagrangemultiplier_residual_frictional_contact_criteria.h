@@ -546,14 +546,14 @@ public:
     }
 
     /**
-     * @brief This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @brief This function finalizes the non-linear iteration
+     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rA System matrix (unused)
      * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual)
+     * @param rb RHS vector (residual + reactions)
      */
-    void FinalizeSolutionStep(
+    void FinalizeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& rA,
@@ -562,7 +562,7 @@ public:
         ) override
     {
         // Calling base criteria
-        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+        BaseType::FinalizeNonLinearIteration(rModelPart, rDofSet, rA, rDx, rb);
 
         // The current process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();

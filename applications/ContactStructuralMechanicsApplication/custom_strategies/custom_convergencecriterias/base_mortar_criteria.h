@@ -324,17 +324,34 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // Calling base criteria
-        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
-
-        // The current process info
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
-
         // IO for debugging
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpIO->FinalizeResults();
         }
+    }
+
+    /**
+     * @brief This function finalizes the non-linear iteration
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // Calling base criteria
+        BaseType::FinalizeNonLinearIteration(rModelPart, rDofSet, rA, rDx, rb);
+
+        // The current process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
     ///@}
