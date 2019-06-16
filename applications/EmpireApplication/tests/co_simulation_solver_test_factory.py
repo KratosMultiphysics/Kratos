@@ -76,7 +76,6 @@ class TestSDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             compareResults(reference_file, result_file)
 
 class TestSDoFStaticSolver(co_simulation_test_case.CoSimulationTestCase):
-    # TODO: implement the static Sdof solver
     def test_SDoFStaticSolver(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
