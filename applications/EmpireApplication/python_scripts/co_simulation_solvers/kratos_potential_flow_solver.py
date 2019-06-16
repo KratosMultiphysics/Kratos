@@ -28,6 +28,29 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
     def Initialize(self):
 
         super(KratosPotentialFlowSolver, self).Initialize()
+        self.model_part = self.model["FluidModelPart.Body2D_Body"]
+
+        self.vtk_parameters = KratosMultiphysics.Parameters("""{
+            "model_part_name"                    : "FluidModelPart.Body2D_Body",
+            "file_format"                        : "ascii",
+            "output_precision"                   : 7,
+            "output_control_type"                : "step",
+            "output_frequency"                   : 1.0,
+            "output_sub_model_parts"             : false,
+            "folder_name"                        : "VTK_Output",
+            "custom_name_prefix"                 : "",
+            "save_output_files_in_folder"        : false,
+            "nodal_solution_step_data_variables" : ["MESH_DISPLACEMENT"],
+            "nodal_data_value_variables"         : [],
+            "nodal_flags"                        : [],
+            "element_data_value_variables"       : [],
+            "element_flags"                      : [],
+            "condition_data_value_variables"     : [],
+            "condition_flags"                    : [],
+            "gauss_point_variables"              : []
+        }""")
+
+        self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, self.vtk_parameters)
 
         sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
@@ -51,6 +74,9 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
+
+        self.model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.vtk_io.PrintOutput()
 
     def FinalizeSolutionStep(self):
         super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
