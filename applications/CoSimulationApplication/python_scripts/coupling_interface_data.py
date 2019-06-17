@@ -1,12 +1,13 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Other imports
 from . import co_simulation_tools as cs_tools
 import numpy as np
 
-## Class CouplingInterfaceData: Class to hold different properties of the data field contributed in
-#                           CoSimulation.
-#
 class CouplingInterfaceData(object):
+    """This class serves as interface to the data structure (Model and ModelPart)
+    that holds the data used during CoSimulation
+    """
     def __init__(self, custom_config, model):
 
         default_config = cs_tools.cs_data_structure.Parameters("""{
