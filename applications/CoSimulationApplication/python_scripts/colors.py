@@ -44,3 +44,35 @@ def magenta(string2color):
     return color_string(string2color, "1;35")
 def darkmagenta(string2color):
     return (darkify(magenta(string2color)))
+
+if __name__ == "__main__":
+    print("printing all color options:\n")
+
+    str2print = "MyCustomString"
+
+    PRINT_COLORS = True
+
+    print("print:", str2print)
+
+    print("bold:", bold(str2print))
+    print("italic:", italic(str2print))
+    print("darkify:", darkify(str2print))
+    print("underline:", underline(str2print))
+
+    print("blue:", blue(str2print))
+    print("darkblue:", darkblue(str2print))
+
+    print("red:", red(str2print))
+    print("darkred:", darkred(str2print))
+
+    print("green:", green(str2print))
+    print("darkgreen:", darkgreen(str2print))
+
+    print("yellow:", yellow(str2print))
+    print("darkyellow:", darkyellow(str2print))
+
+    print("cyan:", cyan(str2print))
+    print("darkcyan:", darkcyan(str2print))
+
+    print("magenta:", magenta(str2print))
+    print("darkmagenta:", darkmagenta(str2print))
