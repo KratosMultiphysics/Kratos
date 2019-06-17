@@ -54,8 +54,12 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
         exe_time_c = time.time() - start_time_c
+
         print('Executing wake process took ', exe_time_c, 'sec in c++')
 
+        #self.__FindWakeElements()
+
+    def __FindWakeElements(self):
         start_time = time.time()
 
         self.__SetWakeDirectionAndNormal()
@@ -95,7 +99,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 max_x_coordinate = node.X
                 self.trailing_edge_node = node
 
-        #self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
+        self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
 
     def __MarkWakeElements(self):
         # This function checks which elements are cut by the wake
@@ -117,9 +121,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 is_wake_element = self.__CheckIfWakeElement(distances_to_wake)
 
                 if(is_wake_element):
-                    #elem.SetValue(CPFApp.WAKE, True)
-                    #elem.SetValue(
-                     #   KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                    elem.SetValue(CPFApp.WAKE, True)
+                    elem.SetValue(
+                        KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
                     counter=0
                     for node in elem.GetNodes():
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])

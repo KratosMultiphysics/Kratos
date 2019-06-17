@@ -57,7 +57,6 @@ public:
             mrModelPart(rModelPart),
             mTolerance(Tolerance)
     {
-        std::cout << "Entering Constructor" << std::endl;
         ModelPart& root_model_part = mrModelPart.GetRootModelPart();
         root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
     }
@@ -130,13 +129,11 @@ private:
 
     void SaveTrailingEdgeNode();
 
-    void MarkWakeElements();
-
-    void CheckIfTrailingEdgeElement(ElementIteratorType& rElement);
-
-    void MarkTrailingEdgeElement(ElementIteratorType& rElement);
+    void MarkTrailingEdgeElements();
 
     void AddTrailingEdgeElements();
+
+    void MarkWakeElements();
 
     bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
 
@@ -145,6 +142,10 @@ private:
     bool CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake);
 
     void MarkKuttaElements();
+
+    void MartkWakeTrailingEdgeElement();
+
+    bool CheckIfElementIsCutByWake(ElementIteratorType& rElement);
 
     BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint);
 
