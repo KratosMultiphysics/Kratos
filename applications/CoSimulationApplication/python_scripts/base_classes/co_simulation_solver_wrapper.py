@@ -28,21 +28,9 @@ class CoSimulationSolverWrapper(object):
         self.io = None
         self.data_dict = self.__CreateInterfaceDataDict()
 
+
     def Initialize(self):
         pass
-
-    def InitializeIO(self, solvers, io_echo_level):
-        if self.__IOIsInitialized():
-            raise Exception('IO for "' + self.name + '" is already initialized!')
-
-        io_settings = self.settings["io_settings"]
-
-        if not io_settings.Has("echo_level"):
-            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
-
-        self.io = io_factory.CreateIO(self._GetIOName(),
-                                      self.model,
-                                      self.settings["io_settings"])
 
     def Finalize(self):
         pass
@@ -65,6 +53,20 @@ class CoSimulationSolverWrapper(object):
     def SolveSolutionStep(self):
         pass
 
+
+    def InitializeIO(self, solvers, io_echo_level):
+        if self.__IOIsInitialized():
+            raise Exception('IO for "' + self.name + '" is already initialized!')
+
+        io_settings = self.settings["io_settings"]
+
+        if not io_settings.Has("echo_level"):
+            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
+
+        self.io = io_factory.CreateIO(self._GetIOName(),
+                                      self.model,
+                                      self.settings["io_settings"])
+
     def ImportCouplingInterfaceData(self, data_name, from_client=None):
         if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
@@ -82,6 +84,7 @@ class CoSimulationSolverWrapper(object):
         if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(geometry_name, to_client)
+
 
     def GetInterfaceData(self, data_name):
         try:
