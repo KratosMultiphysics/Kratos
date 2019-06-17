@@ -3,8 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Other imports
 import numpy as np
 from numpy import linalg as la
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_criteria import CoSimulationConvergenceCriteria
@@ -40,18 +40,18 @@ class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
 
         if self.echo_level > 1:
-            info_msg  = 'Convergence for "'+bold(self.interface_data.variable.Name())+'": '
+            info_msg  = 'Convergence for "'+colors.bold(self.interface_data.variable.Name())+'": '
             if is_converged:
-                info_msg += green("ACHIEVED")
+                info_msg += colors.green("ACHIEVED")
             else:
-                info_msg += red("NOT ACHIEVED")
-            classprint(self._Name(), info_msg)
+                info_msg += colors.red("NOT ACHIEVED")
+            cs_tools.cs_print_info(self._Name(), info_msg)
         if self.echo_level > 2:
-            info_msg  = bold("abs_norm") + " = " + str(abs_norm) + " | "
-            info_msg += bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
-            info_msg += bold("rel_norm") + " = " + str(rel_norm) + " | "
-            info_msg += bold("rel_tol")  + " = " + str(self.rel_tolerance)
-            classprint(self._Name(), info_msg)
+            info_msg  = colors.bold("abs_norm") + " = " + str(abs_norm) + " | "
+            info_msg += colors.bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
+            info_msg += colors.bold("rel_norm") + " = " + str(rel_norm) + " | "
+            info_msg += colors.bold("rel_tol")  + " = " + str(self.rel_tolerance)
+            cs_tools.cs_print_info(self._Name(), info_msg)
 
         return is_converged
 

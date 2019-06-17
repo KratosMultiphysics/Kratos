@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationConvergenceAccelerator(object):
     def __init__(self, settings, solver_wrapper):
@@ -42,7 +43,7 @@ class CoSimulationConvergenceAccelerator(object):
         '''Function to print Info abt the Object
         Can be overridden in derived classes to print more information
         '''
-        cs_tools.classprint("Convergence Accelerator", cs_tools.bold(self._Name()))
+        cs_tools.cs_print_info("Convergence Accelerator", colors.bold(self._Name()))
 
     def Check(self):
         print("ConvAcc does not yet implement Check")

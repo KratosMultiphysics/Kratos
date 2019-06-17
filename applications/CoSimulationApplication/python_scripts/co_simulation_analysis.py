@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import csprint, bold, CheckCoSimulationSettingsAndAssignDefaults
 
 import sys
 
@@ -54,7 +53,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def InitializeSolutionStep(self):
         self.step += 1
-        csprint(bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
+        cs_tools.cs_print_info(colors.bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
 
         self._GetSolver().InitializeSolutionStep()
 

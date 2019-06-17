@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationConvergenceCriteria(object):
     def __init__(self, settings, solver_wrapper):
@@ -38,7 +38,7 @@ class CoSimulationConvergenceCriteria(object):
         raise NotImplementedError('"IsConverged" has to be implemented in the derived class!')
 
     def PrintInfo(self):
-        classprint("Convergence Criteria", bold(self._Name()))
+        cs_tools.cs_print_info("Convergence Criteria", colors.bold(self._Name()))
 
     def Check(self):
         print("ConvCrit does not implement Check yet!")

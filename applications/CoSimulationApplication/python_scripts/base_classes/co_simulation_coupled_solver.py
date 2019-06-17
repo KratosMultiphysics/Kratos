@@ -5,7 +5,7 @@ from  . import co_simulation_solver_wrapper
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
     def __init__(self, GaussSeidelWeakcosim_solver_settings, solver_name):
@@ -172,7 +172,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def PrintInfo(self):
         super(CoSimulationCoupledSolver, self).PrintInfo()
 
-        couplingsolverprint(self._Name(), "Has the following components:")
+        cs_print_info(self._Name(), "Has the following components:")
         for solver in self.solver_wrappers.values():
             solver.PrintInfo()
 

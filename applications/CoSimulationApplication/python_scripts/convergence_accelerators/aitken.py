@@ -12,6 +12,7 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
@@ -42,7 +43,7 @@ class Aitken(CoSimulationConvergenceAccelerator):
         if k == 0:
             alpha = min( self.alpha_old, self.init_alpha_max )
             if self.echo_level > 3:
-                cs_tools.classprint(self._Name(), ": Doing relaxation in the first iteration with initial factor = " + "{0:.1g}".format(alpha))
+                cs_tools.cs_print_info(self._Name(), ": Doing relaxation in the first iteration with initial factor = " + "{0:.1g}".format(alpha))
             return alpha * r
         else:
             r_diff = self.R[0] - self.R[1]
@@ -50,15 +51,15 @@ class Aitken(CoSimulationConvergenceAccelerator):
             denominator = np.inner( r_diff, r_diff )
             alpha = -self.alpha_old * numerator/denominator
             if self.echo_level > 3:
-                cs_tools.classprint(self._Name(), ": Doing relaxation with factor = " + "{0:.1g}".format(alpha))
+                cs_tools.cs_print_info(self._Name(), ": Doing relaxation with factor = " + "{0:.1g}".format(alpha))
             if alpha > 20:
                 alpha = 20
                 if self.echo_level > 0:
-                    cs_tools.classprint(self._Name(), ": "+ red("WARNING: dynamic relaxation factor reaches upper bound: 20"))
+                    cs_tools.cs_print_warning(self._Name(), ": "+ colors.red("WARNING: dynamic relaxation factor reaches upper bound: 20"))
             elif alpha < -2:
                 alpha = -2
                 if self.echo_level > 0:
-                    cs_tools.classprint(self._Name(), ": " + red("WARNING: dynamic relaxation factor reaches lower bound: -2"))
+                    cs_tools.cs_print_warning(self._Name(), ": " + colors.red("WARNING: dynamic relaxation factor reaches lower bound: -2"))
             delta_x = alpha * self.R[0]
         self.alpha_old = alpha
 

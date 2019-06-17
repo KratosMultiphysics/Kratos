@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationPredictor(object):
     def __init__(self, settings, solver_wrapper):
@@ -34,7 +35,7 @@ class CoSimulationPredictor(object):
         '''Function to print Info abt the Object
         Can be overridden in derived classes to print more information
         '''
-        cs_tools.classprint("Predictor", cs_tools.bold(self._Name()))
+        cs_tools.cs_print_info("Predictor", colors.bold(self._Name()))
 
     def Check(self):
         print("The predictors do not yet implement Check!")
@@ -46,7 +47,7 @@ class CoSimulationPredictor(object):
         self.interface_data.ApplyUpdateToData(updated_data)
 
         if self.echo_level > 3:
-            cs_tools.classprint(self._Name(), "Computed prediction")
+            cs_tools.cs_print_info(self._Name(), "Computed prediction")
 
 
     # returns the buffer size needed by the predictor. Can be overridden in derived classes
