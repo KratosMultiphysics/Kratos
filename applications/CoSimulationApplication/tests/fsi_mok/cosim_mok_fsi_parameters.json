@@ -28,6 +28,7 @@
         ],
         "convergence_criteria" : [
             {
+                "type"          : "relative_norm_previous_residual",
                 "solver"        : "fluid",
                 "data_name"     : "disp",
                 "abs_tolerance" : 1e-5,
