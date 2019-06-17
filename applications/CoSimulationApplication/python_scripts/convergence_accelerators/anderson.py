@@ -1,4 +1,5 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 # This module contains the class Anderson
 # Author: Andreas Winterstein
 # Date: Jul. 2018
@@ -6,11 +7,13 @@ from __future__ import print_function, absolute_import, division
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
+# CoSimulation imports
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red, magenta, blue
+
 # Other imports
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red, magenta, blue
 
 def Create(settings, solvers, cosim_solver_details):
     return Anderson(settings, solvers, cosim_solver_details)

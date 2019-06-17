@@ -1,4 +1,5 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 ## @module iqnils
 # This module contains the class IQNILS
 # Author: Wei He
@@ -7,12 +8,14 @@ from __future__ import print_function, absolute_import, division
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
+# CoSimulation imports
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
+import KratosMultiphysics.CoSimulationApplication.colors as colors
+
 # Other imports
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
-import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, solver_wrapper):
     FIXME_needs_some_minor_updates_see_aitken_and_MVQN

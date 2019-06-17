@@ -1,4 +1,5 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 ## @module iqnils
 # This module contains the class MVQN
 # Author: Wei He
@@ -7,11 +8,13 @@ from __future__ import print_function, absolute_import, division
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 # Other imports
 import numpy as np
 from copy import deepcopy
 from collections import deque
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
