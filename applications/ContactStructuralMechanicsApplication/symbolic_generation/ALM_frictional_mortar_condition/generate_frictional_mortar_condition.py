@@ -253,7 +253,7 @@ for normalvar in range(normal_combs):
 
                         augmented_normal_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                         normal_augmented_contact_pressure = augmented_normal_contact_pressure * NormalSlave.row(node)
-                        rv_galerkin += DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
+                        #rv_galerkin += DynamicFactor[node] * augmented_normal_contact_pressure * NormalwGap[node]
 
                         if slip == 1 or slip == 2: # Slip
                             augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
@@ -261,23 +261,23 @@ for normalvar in range(normal_combs):
                             #modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - TangentCoefficient * augmented_tangent_contact_pressure
 
                             rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
-                            if slip == 1: # Objective
-                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
-                            else:
-                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+                            #if slip == 1: # Objective
+                                #rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                            #else:
+                                #rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
                         else: # Stick
                             if slip == 3: # Objective
                                 augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipObjective.row(node)
 
                                 rv_galerkin += ScaleFactor * (TangentSlipObjective.row(node)).dot(wLMTangent.row(node))
-                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
+                                #rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
                             else: # Non-Objective
                                 augmented_tangent_contact_pressure = ScaleFactor * LMTangent.row(node) + TangentFactor * PenaltyParameter[node] * TangentSlipNonObjective.row(node)
 
                                 rv_galerkin += ScaleFactor * (TangentSlipNonObjective.row(node)).dot(wLMTangent.row(node))
-                                rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
+                                #rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipNonObjective.row(node))
 
-                        #rv_galerkin += DynamicFactor[node] * (normal_augmented_contact_pressure + augmented_tangent_contact_pressure).dot(Dw1Mw2.row(node))
+                        rv_galerkin += DynamicFactor[node] * (normal_augmented_contact_pressure + augmented_tangent_contact_pressure).dot(Dw1Mw2.row(node))
 
                     if do_simplifications:
                         rv_galerkin = sympy.simplify(rv_galerkin)
