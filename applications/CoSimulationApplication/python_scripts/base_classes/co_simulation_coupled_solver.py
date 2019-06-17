@@ -202,12 +202,12 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
     def __CreateSolverWrappers(self):
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
-        import KratosMultiphysics.CoSimulationApplication.solver_wrappers.co_simulation_solver_factory as solver_factory
+        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
         from collections import OrderedDict
         # first create all solvers
         solvers = {}
         for solver_name, solver_settings in self.settings["solvers"].items():
-            solvers[solver_name] = solver_factory.CreateSolverInterface(
+            solvers[solver_name] = solvers_wrapper_factory.CreateSolverWrapper(
                 self.model, solver_settings, solver_name)
 
         # then order them according to the coupling-loop

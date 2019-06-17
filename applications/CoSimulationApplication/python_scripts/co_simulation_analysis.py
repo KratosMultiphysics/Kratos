@@ -59,8 +59,8 @@ class CoSimulationAnalysis(AnalysisStage):
         problem_name = "default"
         if "problem_name" in self.cosim_settings["problem_data"]:
             problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
-        import KratosMultiphysics.CoSimulationApplication.coupled_solvers.co_simulation_coupled_solver_factory as solvers_wrapper
-        return solvers_wrapper.CreateCoupledSolver(self.model, self.cosim_settings["solver_settings"], problem_name)
+        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
+        return solvers_wrapper_factory.CreateSolverWrapper(self.model, self.cosim_settings["solver_settings"], problem_name)
 
 if __name__ == '__main__':
     from sys import argv

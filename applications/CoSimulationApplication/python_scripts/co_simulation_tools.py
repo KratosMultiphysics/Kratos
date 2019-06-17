@@ -22,7 +22,7 @@ def ImportDataStructure(parameters_file_name):
     return cs_data_structure
 
 def CreatePredictors(predictor_settings_list, solvers, parent_solver_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.predictors.co_simulation_predictor_factory import CreatePredictor
+    from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
     predictors = []
     for predictor_settings in predictor_settings_list:
         solver = solvers[predictor_settings["solver"].GetString()]
@@ -32,7 +32,7 @@ def CreatePredictors(predictor_settings_list, solvers, parent_solver_echo_level)
     return predictors
 
 def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_solver_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
+    from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
     convergence_accelerators = []
     for conv_acc_setting in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_setting["solver"].GetString()]
@@ -43,7 +43,7 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
     return convergence_accelerators
 
 def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, parent_solver_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
+    from KratosMultiphysics.CoSimulationApplication.factories.convergence_criteria_factory import CreateConvergenceCriteria
     convergence_criteria = []
     for conv_crit_setting in convergence_criteria_settings_list:
         solver = solvers[conv_crit_setting["solver"].GetString()]
@@ -54,7 +54,7 @@ def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, paren
     return convergence_criteria
 
 def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_solver_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.coupling_operations.co_simulation_coupling_operation_factory import CreateCouplingOperation
+    from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
     coupling_operations = {}
     for coupling_operation_name, coupling_operation_setting in coupling_operations_settings_dict.items():
         coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_setting, solvers)
@@ -64,7 +64,7 @@ def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_
     return coupling_operations
 
 def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_solver_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.data_transfer_operators.co_simulation_data_transfer_operator_factory import CreateDataTransferOperator
+    from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
     data_transfer_operators = {}
     for data_transfer_operators_name, data_transfer_operators_setting in data_transfer_operators_settings_dict.items():
         data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_setting)
