@@ -462,17 +462,26 @@ class MonteCarlo(object):
     def SerializeModelParameters(self):
         with open(self.project_parameters_path,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # serialize parmeters (to avoid adding new data dependent on the application)
+        parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
+        serialized_project_parameters = KratosMultiphysics.StreamSerializer()
+        serialized_project_parameters.Save("ParametersSerialization",parameters)
+        self.serialized_project_parameters = serialized_project_parameters
+        # reset to read the model part
+        parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+        # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = generator.GenerateSample() # only used to serialize
         simulation = self.analysis(model,parameters,fake_sample)
         simulation.Initialize()
+        # reset general flags
+        main_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
+        simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+        # serialize model
         serialized_model = KratosMultiphysics.StreamSerializer()
         serialized_model.Save("ModelSerialization",simulation.model)
-        serialized_project_parameters = KratosMultiphysics.StreamSerializer()
-        serialized_project_parameters.Save("ParametersSerialization",parameters)
         self.serialized_model = serialized_model
-        self.serialized_project_parameters = serialized_project_parameters
-        # pickle dataserialized_data
+        # pickle model and parameters
         pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
         pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2)
         self.pickled_model = pickled_model
