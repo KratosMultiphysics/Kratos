@@ -37,8 +37,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
 
         if not self.fluid_model_part.HasSubModelPart("wake__elements"):
-            self.wake_modelpart = self.fluid_model_part.CreateSubModelPart("wake__elements")
-        else: self.wake_modelpart = self.fluid_model_part.GetSubModelPart("wake__elements")
+            self.settings_file_name_fluidwake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake__elements")
+        else: self.settings_file_name_fluidwake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake__elements")
         #List to store trailing edge elements id and wake elements id
         self.trailing_edge_element_id_list = []
         self.wake_element_id_list = []
@@ -120,7 +120,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     for node in elem.GetNodes():
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
-        self.wake_modelpart.AddElements(self.wake_element_id_list)
+        self.settings_file_name_fluidwake_sub_model_part.AddElements(self.wake_element_id_list)
         self.__SaveTrailingEdgeElements()
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
@@ -249,11 +249,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             elem.SetValue(CPFApp.KUTTA, False)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
 
-        for elem in self.wake_modelpart.Elements:
+        for elem in self.settings_file_name_fluidwake_sub_model_part.Elements:
             elem.SetValue(CPFApp.WAKE, False)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
             elem.Set(KratosMultiphysics.TO_ERASE, True)
-        self.wake_modelpart.RemoveElements(KratosMultiphysics.TO_ERASE)
+        self.settings_file_name_fluidwake_sub_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
 
         self.trailing_edge_element_id_list = []
         self.wake_element_id_list = []
