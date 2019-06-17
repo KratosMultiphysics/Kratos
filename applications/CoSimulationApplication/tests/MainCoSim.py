@@ -15,7 +15,5 @@ with open(parameter_file_name,'r') as parameter_file:
     # parameters = json.load(parameter_file)
     parameters = cs_data_structure.Parameters(parameter_file.read())
 
-model = cs_data_structure.Model()
-
-simulation = CoSimulationAnalysis(model, parameters)
+simulation = CoSimulationAnalysis(parameters)
 simulation.Run()
