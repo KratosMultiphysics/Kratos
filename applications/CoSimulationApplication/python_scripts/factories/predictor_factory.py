@@ -7,7 +7,6 @@ def CreatePredictor(predictor_settings, solvers):
     """
     module_name = predictor_settings["type"].GetString()
     module_full = "KratosMultiphysics.CoSimulationApplication.predictors."+module_name
-    module_full += "_predictor"
 
     predictor_module = __import__(module_full,fromlist=[module_name])
     return predictor_module.Create(predictor_settings, solvers)

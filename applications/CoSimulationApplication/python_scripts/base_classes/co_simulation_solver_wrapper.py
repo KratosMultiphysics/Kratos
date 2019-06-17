@@ -110,7 +110,7 @@ class CoSimulationSolverWrapper(object):
 
     def _GetIOName(self):
         # only external solvers have to specify sth here
-        return "dummy"
+        return "dummy_io"
 
     ## __CreateInterfaceDataDict : Private Function to obtain the map of data objects
     #

@@ -6,6 +6,6 @@ def CreateDataTransferOperator(data_transfer_operator_settings):
     """
     data_transfer_operator_type = data_transfer_operator_settings["type"].GetString()
     module_full  = 'KratosMultiphysics.CoSimulationApplication.data_transfer_operators.'+data_transfer_operator_type
-    module_full += '_data_transfer_operator'
+
     data_tranfer_operator_module = __import__(module_full, fromlist=[data_transfer_operator_type])
     return data_tranfer_operator_module.Create(data_transfer_operator_settings)

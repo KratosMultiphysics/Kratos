@@ -6,5 +6,6 @@ def CreateSolverWrapper(model, settings, solver_name):
     """
     co_sim_solver_type = settings["type"].GetString()
     module_full  = 'KratosMultiphysics.CoSimulationApplication.'+co_sim_solver_type
+
     co_sim_solver_module = __import__(module_full, fromlist=[co_sim_solver_type])
     return co_sim_solver_module.Create(model, settings, solver_name)
