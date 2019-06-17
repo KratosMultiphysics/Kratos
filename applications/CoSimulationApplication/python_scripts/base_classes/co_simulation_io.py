@@ -73,12 +73,6 @@ class CoSimulationIO(object):
         """
         raise NotImplementedError(cs_tools.darkred("From BaseIO : The method ExportCouplingInterface is not implemented in the IO class!"))
 
-    ## Sets the echo level of for this IO object. Used for output of information during CoSimulation
-    #
-    #  @param level           int : echo level
-    def SetEchoLevel(self, level):
-        self.echo_level = level
-
     ## Prints the information about the current IO. The derived classes should implement it.
     #
     def PrintInfo(self):

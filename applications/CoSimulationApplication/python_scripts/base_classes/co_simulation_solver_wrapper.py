@@ -94,9 +94,6 @@ class CoSimulationSolverWrapper(object):
         '''
         pass
 
-    def SetEchoLevel(self, level):
-        self.echo_level = level
-
     def _Name(self):
         return self.__class__.__name__
 

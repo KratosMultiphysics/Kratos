@@ -39,9 +39,6 @@ class CoSimulationPredictor(object):
     def Check(self):
         print("The predictors do not yet implement Check!")
 
-    def SetEchoLevel(self, level):
-        self.echo_level = level
-
     def _Name(self):
         return self.__class__.__name__
 
