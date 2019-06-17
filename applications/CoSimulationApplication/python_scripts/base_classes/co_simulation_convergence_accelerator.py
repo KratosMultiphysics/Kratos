@@ -48,7 +48,7 @@ class CoSimulationConvergenceAccelerator(object):
         print("ConvAcc does not yet implement Check")
 
     def ComputeUpdate( self, residual, previous_data ):
-        raise Exception('"ComputeUpdate" has to be implemented in the derived class!')
+        raise NotImplementedError('"ComputeUpdate" has to be implemented in the derived class!')
 
     @classmethod
     def _GetDefaultSettings(cls):
