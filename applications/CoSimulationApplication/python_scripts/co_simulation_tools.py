@@ -14,7 +14,7 @@ def ImportDataStructure(parameters_file_name):
             if 'data_structure' in parameters['problem_data'].keys():
                 data_structure_name = parameters['problem_data']['data_structure']
                 if not data_structure_name in ['KratosMultiphysics', 'pyKratos']:
-                    raise Exception('data_structure needs to be "KratosMultiphysics" or "pyKratos"')
+                    raise Exception('"data_structure" needs to be "KratosMultiphysics" or "pyKratos"')
 
             # Initialize cs_data_structure and import corresponding module
             cs_data_structure = __import__(data_structure_name)
