@@ -30,11 +30,15 @@ class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
         residual = new_data - self.prev_data
         res_norm = la.norm(residual)
         norm_new_data = la.norm(new_data)
+
         if norm_new_data < 1e-15:
             norm_new_data = 1.0 # to avoid division by zero
+
         abs_norm = res_norm / np.sqrt(residual.size)
         rel_norm = res_norm / norm_new_data
+
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
+
         if self.echo_level > 1:
             info_msg  = 'Convergence for "'+bold(self.interface_data.variable.Name())+'": '
             if is_converged:
