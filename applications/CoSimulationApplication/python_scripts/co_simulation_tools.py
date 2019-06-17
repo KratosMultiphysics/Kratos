@@ -25,7 +25,7 @@ def ImportDataStructure(parameters_file_name):
 def cs_print_info(label, *args):
     cs_data_structure.Logger.PrintInfo(label, " ".join(map(str,args)))
 
-def cs_print_warning(*args):
+def cs_print_warning(label, *args):
     cs_data_structure.Logger.PrintWarning(label, " ".join(map(str,args)))
 
 
