@@ -7,8 +7,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
-def CreateSolver(model, settings):
-    return CoSimulationSolverWrapper(model, settings)
+def Create(model, settings, solver_name):
+    return CoSimulationSolverWrapper(model, settings, solver_name)
 
 class CoSimulationSolverWrapper(object):
     """The base class for the CoSimulation Solver Wrappers
