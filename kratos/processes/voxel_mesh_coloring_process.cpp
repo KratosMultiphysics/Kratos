@@ -198,7 +198,7 @@ namespace Kratos
 		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
  
         #pragma omp parallel for
-		for (std::size_t k = min_position[2]; k < max_position[2]; k++) {
+		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
 			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
                 bool previous_cell_was_empty = true;
                 int previous_cell_color = 1;
