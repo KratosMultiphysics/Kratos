@@ -8,7 +8,7 @@
     },
     "solver_settings" :
     {
-        "type" : "gauss_seidel_weak",
+        "type" : "coupled_solvers.gauss_seidel_weak",
         "echo_level" : 0,
         "predictors" : [
             {
