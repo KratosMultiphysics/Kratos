@@ -11,7 +11,7 @@
 //
 
 // System includes
-
+#include <cctype>
 
 // External includes
 
