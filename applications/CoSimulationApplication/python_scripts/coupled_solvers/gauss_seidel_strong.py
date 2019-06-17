@@ -8,14 +8,14 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import coupl
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(model, cosim_solver_settings, solver_name):
-    return GaussSeidelStrongCouplingSolver(model, cosim_solver_settings, solver_name)
+    return GaussSeidelStrong(model, cosim_solver_settings, solver_name)
 
-class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
+class GaussSeidelStrong(CoSimulationCoupledSolver):
     def __init__(self, model, cosim_solver_settings, solver_name):
         if not cosim_solver_settings['coupling_sequence'].size() == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
-        super(GaussSeidelStrongCouplingSolver, self).__init__(model, cosim_solver_settings, solver_name)
+        super(GaussSeidelStrong, self).__init__(model, cosim_solver_settings, solver_name)
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
@@ -30,7 +30,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
     def Initialize(self):
-        super(GaussSeidelStrongCouplingSolver, self).Initialize()
+        super(GaussSeidelStrong, self).Initialize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Initialize()
@@ -39,7 +39,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
             conv_crit.Initialize()
 
     def Finalize(self):
-        super(GaussSeidelStrongCouplingSolver, self).Finalize()
+        super(GaussSeidelStrong, self).Finalize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Finalize()
@@ -48,7 +48,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
             conv_crit.Finalize()
 
     def InitializeSolutionStep(self):
-        super(GaussSeidelStrongCouplingSolver, self).InitializeSolutionStep()
+        super(GaussSeidelStrong, self).InitializeSolutionStep()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.InitializeSolutionStep()
@@ -57,7 +57,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
             conv_crit.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(GaussSeidelStrongCouplingSolver, self).FinalizeSolutionStep()
+        super(GaussSeidelStrong, self).FinalizeSolutionStep()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.FinalizeSolutionStep()
@@ -111,7 +111,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
                 return False
 
     def Check(self):
-        super(GaussSeidelStrongCouplingSolver, self).Check()
+        super(GaussSeidelStrong, self).Check()
         # TODO check if at least one conv-crit was specified?
         # TODO check if an accelerator was specified for a field that is manipulated in the input!
 
@@ -122,6 +122,6 @@ class GaussSeidelStrongCouplingSolver(CoSimulationCoupledSolver):
             "convergence_criteria"     : [],
             "num_coupling_iterations"  : 10
         }""")
-        this_defaults.AddMissingParameters(super(GaussSeidelStrongCouplingSolver, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(GaussSeidelStrong, cls)._GetDefaultSettings())
 
         return this_defaults
