@@ -6,13 +6,12 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
-#if !defined(KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_LINE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -44,14 +43,15 @@ namespace Kratos
 ///@{
 
 /**
- * @class LineLoadCondition2D
+ * @class LineLoadCondition
  * @ingroup StructuralMechanicsApplication
  * @brief This class is the responsible to add the contributions of the RHS and LHS of the line loads of the structure
  * @details It allows to consider different types of pressure and line loads
- * @author Riccardo Rossi
+ * @tparam TDim The dimension of the condition
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LineLoadCondition2D
+template<std::size_t TDim>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LineLoadCondition
     : public BaseLoadCondition
 {
 public:
@@ -79,28 +79,28 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    /// Counted pointer of LineLoadCondition2D
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition2D );
+    /// Counted pointer of LineLoadCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor using an array of nodes
-    KRATOS_DEPRECATED_MESSAGE("Please use LineLoadCondition() instead") LineLoadCondition2D(
+    LineLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    KRATOS_DEPRECATED_MESSAGE("Please use LineLoadCondition() instead") LineLoadCondition2D(
+    LineLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
-    ~LineLoadCondition2D() override;
+    ~LineLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -155,8 +155,8 @@ public:
      * @param rOutput The values of interest (array_1d)
      */
     void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rOutput,
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -167,8 +167,8 @@ public:
      * @param rOutput The values of interest (array_1d)
      */
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector< array_1d<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -190,7 +190,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "LineLoadCondition2D #" << Id();
+        buffer << "LineLoadCondition #" << Id();
         return buffer.str();
     }
 
@@ -198,7 +198,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "LineLoadCondition2D #" << Id();
+        rOStream << "LineLoadCondition #" << Id();
     }
 
     /// Print object's data.
@@ -252,6 +252,7 @@ protected:
     /**
      * @brief This method adds the local contribution of the pressure to the LHS matrix
      * @param rK The local LHS contribution
+     * @param rTangentXi The axis direction
      * @param rDN_De The local gradient of the geometry
      * @param rN The shape function of the current integration point
      * @param Pressure The pressure to be applied
@@ -259,6 +260,7 @@ protected:
      */
     void CalculateAndSubKp(
         Matrix& rK,
+        const array_1d<double, 3>& rTangentXi,
         const Matrix& rDN_De,
         const Vector& rN,
         const double Pressure,
@@ -282,6 +284,32 @@ protected:
         const double IntegrationWeight
         ) const;
 
+    /**
+     * @brief This method provides the local axis
+     * @param rLocalAxis The local axis
+     * @param rJacobian The jacobian matrix
+     */
+    void GetLocalAxis1(
+        array_1d<double, 3>& rLocalAxis,
+        const Matrix& rJacobian
+        ) const;
+
+    /**
+     * @brief This method provides the local axis
+     * @param rLocalAxis The local axis
+     */
+    void GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const;
+
+    /**
+     * @brief This method provides the cross tangent matrix
+     * @param rCrossTangentMatrix The cross tangent matrix
+     * @param rTangentXi The axis direction
+     */
+    void GetCrossTangentMatrix(
+        BoundedMatrix<double, TDim, TDim>& rCrossTangentMatrix,
+        const array_1d<double, 3>& rTangentXi
+        ) const;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -297,7 +325,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    LineLoadCondition2D() {};
+    LineLoadCondition() {};
 
     ///@}
 
@@ -317,11 +345,9 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
@@ -343,21 +369,20 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    //LineLoadCondition2D& operator=(const LineLoadCondition2D& rOther);
+    //LineLoadCondition& operator=(const LineLoadCondition& rOther);
 
     /// Copy constructor.
-    //LineLoadCondition2D(const LineLoadCondition2D& rOther);
+    //LineLoadCondition(const LineLoadCondition& rOther);
 
 
     ///@}
 
-}; // Class LineLoadCondition2D
+}; // Class LineLoadCondition
 
 ///@}
 ///@name Type Definitions
@@ -369,11 +394,13 @@ private:
 ///@{
 
 /// input stream function
+template<std::size_t TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadCondition2D& rThis);
+        LineLoadCondition<TDim>& rThis);
 /// output stream function
+template<std::size_t TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadCondition2D& rThis)
+        const LineLoadCondition<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -386,6 +413,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
+#endif // KRATOS_LINE_LOAD_CONDITION_H_INCLUDED  defined
 
 
