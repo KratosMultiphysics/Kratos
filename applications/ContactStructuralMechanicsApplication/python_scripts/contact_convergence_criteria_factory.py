@@ -69,7 +69,7 @@ class convergence_criterion:
                         pure_slip = True
                     else:
                         pure_slip = False
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalontactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
                 else:
