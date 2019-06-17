@@ -11,8 +11,6 @@ class CoSimulationAnalysis(AnalysisStage):
         # Note: deliberately NOT calling the base-class constructor, since this would
         # break the python-only version due to the type-checks
 
-        # CheckCoSimulationSettingsAndAssignDefaults(cosim_settings)
-
         if cs_tools.cs_data_structure is None:
             raise Exception("The CoSimulation DataStructure has not been initialized!")
 
