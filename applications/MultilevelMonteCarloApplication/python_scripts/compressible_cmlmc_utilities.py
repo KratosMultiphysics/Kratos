@@ -546,6 +546,7 @@ class MultilevelMonteCarlo(object):
         for batch in range (len(self.batches_number_samples)):
             if (self.batches_launched[batch] is not True):
                 self.batches_launched[batch] = True
+                self.objects_to_delete.append([])
                 # batch_results = []
                 for level in range(len(self.batches_number_samples[batch])):
                     batch_results = []
@@ -588,6 +589,12 @@ class MultilevelMonteCarlo(object):
             for current_level in range(current_MLMC_level+1):
                 mlmc_results,pickled_current_model,pickled_current_project_parameters = \
                     ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
+                if (current_level > 0):
+                    self.objects_to_delete[-1].append(pickled_coarse_model)
+                    self.objects_to_delete[-1].append(pickled_coarse_project_parameters)
+                if (current_level > 0 and current_level == current_MLMC_level):
+                    self.objects_to_delete[-1].append(pickled_current_model)
+                    self.objects_to_delete[-1].append(pickled_current_project_parameters)
                 del(pickled_coarse_model,pickled_coarse_project_parameters)
                 pickled_coarse_model = pickled_current_model
                 pickled_coarse_project_parameters = pickled_current_project_parameters
@@ -620,6 +627,7 @@ class MultilevelMonteCarlo(object):
             self.batches_execution_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.batches_analysis_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.batches_convergence_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.objects_to_delete = []
 
 
 
@@ -820,6 +828,10 @@ class MultilevelMonteCarlo(object):
                 self.bayesian_variance = get_value_from_remote(self.bayesian_variance)
                 self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
                 self.number_samples = get_value_from_remote(self.number_samples)
+                # TODO: this is a workaround of a compss bug
+                # delete models and parameters no more used
+                for elem in self.objects_to_delete[batch]:
+                    delete_object(elem)
                 # update iteration counter
                 self.iteration_counter = self.iteration_counter + 1
                 break
@@ -947,6 +959,10 @@ class MultilevelMonteCarlo(object):
                 # if not update current_iteration
                 if (self.total_error < self.settings["tolerance"].GetDouble()):
                     self.convergence = True
+                # TODO: this is a workaround of a compss bug
+                # delete models and parameters no more used
+                for elem in self.objects_to_delete[batch]:
+                    delete_object(elem)
                 # update iteration counter
                 self.iteration_counter = self.iteration_counter + 1
                 break
