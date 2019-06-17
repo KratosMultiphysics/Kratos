@@ -6,6 +6,7 @@ from .ModelPart import ModelPart
 from .Variables import *
 from .QuadElement import Quadrilateral3D4N
 from .TriangleElement import Triangle
+from .Logger import Logger
 
 class KratosGlobals(object):
     def HasVariable(var_name):
@@ -21,6 +22,6 @@ def Array1DVariable3(name):
     globals()[name+'_Z'] = name+'_Z'
     globals()[name] = [name, globals()[name+'_X'], globals()[name+'_Y'], globals()[name+'_Z']]
     return globals()[name]
-    
+
 def VariableDouble(name):
     globals()[name] = name
