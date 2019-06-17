@@ -39,7 +39,7 @@ void Define2DWakeProcess::ExecuteInitialize()
 }
 
 // This function sets the wake direction and normal for further computations
-void Define2DWakeProcess::SetWakeDirectionAndNormal()
+const void Define2DWakeProcess::SetWakeDirectionAndNormal()
 {
     // Reading the free_stream_velocity from the properties
     auto free_stream_velocity = mrModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
@@ -60,7 +60,7 @@ void Define2DWakeProcess::SetWakeDirectionAndNormal()
 }
 
 // This function finds and saves the trailing edge for further computations
-void Define2DWakeProcess::SaveTrailingEdgeNode()
+const void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
     double max_x_coordinate = -1e30;
     NodeIteratorType trailing_edge_node;
@@ -76,7 +76,7 @@ void Define2DWakeProcess::SaveTrailingEdgeNode()
 }
 
 // This function marks the elements touching the trailing edge as trailing edge
-void Define2DWakeProcess::MarkTrailingEdgeElements()
+const void Define2DWakeProcess::MarkTrailingEdgeElements()
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
 
@@ -99,7 +99,7 @@ void Define2DWakeProcess::MarkTrailingEdgeElements()
 
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
-void Define2DWakeProcess::AddTrailingEdgeElements()
+const void Define2DWakeProcess::AddTrailingEdgeElements()
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     std::sort(mTrailingEdgeElementsOrderedIds.begin(),
@@ -107,9 +107,9 @@ void Define2DWakeProcess::AddTrailingEdgeElements()
     root_model_part.GetSubModelPart("trailing_edge_sub_model_part").AddElements(mTrailingEdgeElementsOrderedIds);
 }
 
-// This function checks which elements are cut by the wake
-// and marks them as wake elements
-void Define2DWakeProcess::MarkWakeElements()
+// This function checks which elements are cut by the wake and marks them as
+// wake elements
+const void Define2DWakeProcess::MarkWakeElements()
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     bool potentially_wake = false;
@@ -125,7 +125,7 @@ void Define2DWakeProcess::MarkWakeElements()
 
         if (potentially_wake) {
             // Compute the nodal distances of the element to the wake
-            nodal_distances_to_wake = ComputeDistancesToWake(it_elem);
+            nodal_distances_to_wake = ComputeNodalDistancesToWake(it_elem);
 
             // Selecting the cut (wake) elements
             is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
@@ -142,9 +142,9 @@ void Define2DWakeProcess::MarkWakeElements()
     }
 }
 
-// This function selects the elements downstream the
-// trailing edge as potentially wake elements
-bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorType& rElement)
+// This function selects the elements downstream the trailing edge as
+// potentially wake elements
+const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorType& rElement)
 {
     // Compute the distance from the trailing edge to the element's center
     BoundedVector<double, 3> distance_to_element_center = ZeroVector(3);
@@ -157,9 +157,8 @@ bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorType& rEl
     return projection_on_wake > 0.0;
 }
 
-// This function computes the distance of the element nodes
-// to the wake
-BoundedVector<double, 3> Define2DWakeProcess::ComputeDistancesToWake(ElementIteratorType& rElement)
+// This function computes the distance of the element nodes to the wake
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(ElementIteratorType& rElement)
 {
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
     BoundedVector<double, 3> distance_from_te_to_node = ZeroVector(3);
@@ -183,7 +182,7 @@ BoundedVector<double, 3> Define2DWakeProcess::ComputeDistancesToWake(ElementIter
 }
 
 // This function checks whether the element is cut by the wake
-bool Define2DWakeProcess::CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake)
+const bool Define2DWakeProcess::CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake)
 {
     // Initialize counters
     unsigned int number_of_nodes_with_positive_distance = 0;
@@ -204,7 +203,7 @@ bool Define2DWakeProcess::CheckIfWakeElement(BoundedVector<double, 3>& rNodalDis
            number_of_nodes_with_positive_distance > 0;
 }
 
-void Define2DWakeProcess::MarkKuttaElements()
+const void Define2DWakeProcess::MarkKuttaElements()
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
@@ -236,7 +235,7 @@ void Define2DWakeProcess::MarkKuttaElements()
 // This function finds the trailing edge element that is further downstream and
 // marks it as wake trailing edge element. The rest of trailing edge elements
 // are unassigned from the wake.
-void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
+const void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
@@ -260,7 +259,7 @@ void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
     }
 }
 
-bool Define2DWakeProcess::CheckIfElementIsCutByWake(ElementIteratorType& rElement)
+const bool Define2DWakeProcess::CheckIfElementIsCutByWake(ElementIteratorType& rElement)
 {
     unsigned int number_of_nodes_with_negative_distance = 0;
     auto nodal_distances_to_wake = rElement->GetValue(ELEMENTAL_DISTANCES);
@@ -275,7 +274,7 @@ bool Define2DWakeProcess::CheckIfElementIsCutByWake(ElementIteratorType& rElemen
     return number_of_nodes_with_negative_distance == 1;
 }
 
-BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint)
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint)
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
 

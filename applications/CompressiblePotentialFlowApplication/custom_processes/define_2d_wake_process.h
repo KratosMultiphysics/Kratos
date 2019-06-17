@@ -123,31 +123,29 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    void SetWakeDirectionAndNormal();
+    const void SetWakeDirectionAndNormal();
 
-    void SaveTrailingEdgeNode();
+    const void SaveTrailingEdgeNode();
 
-    void MarkTrailingEdgeElements();
+    const void MarkTrailingEdgeElements();
 
-    void AddTrailingEdgeElements();
+    const void AddTrailingEdgeElements();
 
-    void MarkWakeElements();
+    const void MarkWakeElements();
 
-    bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
+    const bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
 
-    BoundedVector<double, 3> ComputeDistancesToWake(ElementIteratorType& rElement);
+    const BoundedVector<double, 3> ComputeNodalDistancesToWake(ElementIteratorType& rElement);
 
-    bool CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake);
+    const bool CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake);
 
-    void MarkKuttaElements();
+    const void MarkKuttaElements();
 
-    void MartkWakeTrailingEdgeElement();
+    const void MartkWakeTrailingEdgeElement();
 
-    bool CheckIfElementIsCutByWake(ElementIteratorType& rElement);
+    const bool CheckIfElementIsCutByWake(ElementIteratorType& rElement);
 
-    BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint);
-
-    //void SetTrailingEdgeNode(NodeType node);
+    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint);
 
 
     ///@}
