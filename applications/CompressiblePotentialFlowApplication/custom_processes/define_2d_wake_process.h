@@ -43,6 +43,7 @@ public:
     typedef Node<3> NodeType;
     typedef ModelPart::NodeIterator NodeIteratorType;
     typedef ModelPart::ElementIterator ElementIteratorType;
+    typedef typename std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -57,6 +58,8 @@ public:
             mTolerance(Tolerance)
     {
         std::cout << "Entering Constructor" << std::endl;
+        ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+        root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
     }
 
     /// Copy constructor.
@@ -116,6 +119,7 @@ private:
     NodeIteratorType mTrailingEdgeNode;
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mWakeNormal;
+    std::vector<SizeType> mTrailingEdgeElementsOrderedIds;
 
     ///@}
     ///@name Private Operators
@@ -126,17 +130,23 @@ private:
 
     void SaveTrailingEdgeNode();
 
-    void SetTrailingEdgeNode(NodeIteratorType TrailingEdgeNode);
-
-    NodeIteratorType GetTrailingEdgeNode();
-
     void MarkWakeElements();
+
+    void CheckIfTrailingEdgeElement(ElementIteratorType& rElement);
+
+    void MarkTrailingEdgeElement(ElementIteratorType& rElement);
+
+    void AddTrailingEdgeElements();
 
     bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
 
     BoundedVector<double, 3> ComputeDistancesToWake(ElementIteratorType& rElement);
 
-    bool CheckIfWakeElement(BoundedVector<double, 3>& rDistancesToWake);
+    bool CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake);
+
+    void MarkKuttaElements();
+
+    BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint);
 
     //void SetTrailingEdgeNode(NodeType node);
 
