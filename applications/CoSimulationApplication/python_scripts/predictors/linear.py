@@ -8,9 +8,9 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import class
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return StandardLinearPredictor(settings, solver_wrapper)
+    return LinearPredictor(settings, solver_wrapper)
 
-class StandardLinearPredictor(CoSimulationPredictor):
+class LinearPredictor(CoSimulationPredictor):
     def Predict(self):
         current_data  = self.interface_data.GetNumpyArray(0)
         previous_data  = self.interface_data.GetNumpyArray(1)
