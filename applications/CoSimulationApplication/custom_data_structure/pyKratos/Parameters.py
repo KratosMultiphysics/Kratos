@@ -112,10 +112,8 @@ class Parameters(object):
 
     def RemoveValue(self, key):
         self.__CheckIfSubParameter("RemoveValue")
-        try:
+        if self.Has(key): # removing a non-existing key does not throw in Kratos
             self.param.pop(key)
-        except KeyError: # removing a non-existing key does not throw in Kratos
-            pass
 
 
     def __CheckIfSubParameter(self, fct_name):
