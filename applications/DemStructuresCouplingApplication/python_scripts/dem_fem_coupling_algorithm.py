@@ -82,10 +82,11 @@ class Algorithm(object):
         # Create Postprocess tool for SP
         self.sand_production_post_process_parameters = Kratos.Parameters( """
         {
+            "file_name": "sp_data.hdf5",
             "file_path": "/home/ipouplana/Ara/DEM_FEM/bond_sp_counting/demfem_coarsedemtest/",
             "test_id" : "CTW16",
             "target_porosity" : 0.3,
-            "probe_height" : 0.3
+            "probe_height" : 0.2032
         }  """ )
         import sand_production_post_process_tool
         self.sp_post_process_tool = sand_production_post_process_tool.SandProductionPostProcessTool(self.sand_production_post_process_parameters,

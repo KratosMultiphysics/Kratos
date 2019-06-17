@@ -20,9 +20,8 @@ class SandProductionPostProcessTool(object):
         for elem in self.dem_model_part.Elements:
             self.density = elem.Properties[Dem.PARTICLE_DENSITY]
             break
-        # self.density = self.dem_model_part.Elements(0).GetProperties()[PARTICLE_DENSITY]
         self.porosity = self.CalculatePorosity()
-        self.file_path = self.parameters["file_path"].GetString() + 'sp_data.hdf5'
+        self.file_path = self.parameters["file_path"].GetString() + self.parameters["file_name"].GetString()
         self.target_porosity = self.parameters["target_porosity"].GetDouble()
         self.real_probe_height = self.parameters["probe_height"].GetDouble()
 
@@ -32,7 +31,6 @@ class SandProductionPostProcessTool(object):
         self.last_time = - float('inf')
 
         # This assumes annulus centered at the origin
-        print(self.file_path)
         with h5py.File(self.file_path, 'w') as f:
             f.attrs['test_id'] = self.parameters["test_id"].GetString()
             f.attrs['internal_radius'] = self.internal_radius
@@ -109,7 +107,6 @@ class SandProductionPostProcessTool(object):
                 f[name + '/initial_continuum_bonds'][:] = self.initial_continuum_bonds_array[:]
                 f.create_dataset(name + '/current_continuum_bonds', compression = self.compression_type, shape = column_shape, dtype = self.dtype)
                 f[name + '/current_continuum_bonds'][:] = self.current_continuum_bonds_array[:]
-
 
         self.last_time = time
         self.number_of_readings += 1
