@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "Non_Linear_Truss",
         "start_time"      : 0.00,
-        "end_time"        : 4.49,
+        "end_time"        : 10.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
@@ -20,7 +20,7 @@
     "sensitivity_settings" : {
         "sensitivity_model_part_name" : "sensitivity_mp",
         "nodal_solution_step_sensitivity_variables"  : [],
-        "element_data_value_sensitivity_variables"  : ["CROSS_AREA"],
+        "element_data_value_sensitivity_variables"  : ["YOUNG_MODULUS"],
         "condition_data_value_sensitivity_variables"  : [],
         "build_mode": "static-non-linear-strain-energy"
         },
@@ -77,9 +77,9 @@
         "Parameters"    : {
             "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "DISPLACEMENT",
-            "modulus"         : "0.5*t",
+            "modulus"         : "1.0*t",
             "direction"       : [0.0, -1.0,0.0],
-            "interval"        : [0.0,2.01]
+            "interval"        : [0.0,6.01]
         }
     },
     {
@@ -92,8 +92,8 @@
             "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "DISPLACEMENT",
             "modulus"         : 0.2,
-            "direction"       : ["0.5*t - 1.0", -5.0,0.0],
-            "interval"        : [2.01,4.5]
+            "direction"       : ["1.0*t - 6.0", -30.0,0.0],
+            "interval"        : [6.01,11.01]
         }
     }],
     "list_other_processes" :[{
@@ -129,7 +129,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["ADJOINT_DISPLACEMENT", "DISPLACEMENT", "POINT_LOAD", "SHAPE_SENSITIVITY","REACTION"],
-            "gauss_point_results" : ["CROSS_AREA_SENSITIVITY"]
+            "gauss_point_results" : [ "YOUNG_MODULUS_SENSITIVITY"]
         },
         "point_data_configuration"  : []
     },

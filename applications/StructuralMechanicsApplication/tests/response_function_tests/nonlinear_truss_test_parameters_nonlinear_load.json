@@ -3,7 +3,7 @@
         "problem_name"    : "Non_Linear_Truss",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.00,
-        "end_time"        : 4.49,
+        "end_time"        : 10.99,
         "echo_level"      : 0,
         "buffer_size"     : 2
     },
@@ -72,9 +72,9 @@
         "Parameters"    : {
             "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "DISPLACEMENT",
-            "modulus"         : "0.5*t",
+            "modulus"         : "1.0*t",
             "direction"       : [0.0, -1.0,0.0],
-            "interval"        : [0.0,2.01]
+            "interval"        : [0.0,6.01]
         }
     },
     {
@@ -87,8 +87,8 @@
             "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "DISPLACEMENT",
             "modulus"         : 0.2,
-            "direction"       : ["0.5*t - 1.0", -5.0,0.0],
-            "interval"        : [2.01,4.5]
+            "direction"       : ["1.0*t - 6.0", -30.0,0.0],
+            "interval"        : [6.01,11.01]
         }
     }
     ],
