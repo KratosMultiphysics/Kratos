@@ -122,35 +122,23 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+          mpLinearSolver(pNewLinearSolver),
+          mpScheme(pScheme),
+          mpConvergenceCriteria(pNewConvergenceCriteria),
+          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
+          mCalculateReactionsFlag(CalculateReactions),
+          mSolutionStepIsInitialized(false),
+          mMaxIterationNumber(MaxIterations),
+          mInitializeWasPerformed(false),
+          mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY;
-
-        mKeepSystemConstantDuringIterations = false;
-
-        // Set flags to default values
-        SetMaxIterationNumber(MaxIterations);
-        mCalculateReactionsFlag = CalculateReactions;
-
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-        // Saving the convergence criteria to be used
-        mpConvergenceCriteria = pNewConvergenceCriteria;
-
-        // Saving the scheme
-        mpScheme = pScheme;
-
-        // Saving the linear solver
-        mpLinearSolver = pNewLinearSolver;
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
-
-        // Set flags to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
-
+        
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -193,33 +181,123 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+          mpLinearSolver(pNewLinearSolver),
+          mpScheme(pScheme),
+          mpBuilderAndSolver(pNewBuilderAndSolver),
+          mpConvergenceCriteria(pNewConvergenceCriteria),
+          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
+          mCalculateReactionsFlag(CalculateReactions),
+          mSolutionStepIsInitialized(false),
+          mMaxIterationNumber(MaxIterations),
+          mInitializeWasPerformed(false),
+          mKeepSystemConstantDuringIterations(false)
+    {
+        KRATOS_TRY
+        
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        //be reshaped at each step or not
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        SetEchoLevel(1);
+
+        // By default the matrices are rebuilt at each iteration
+        this->SetRebuildLevel(2);
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
+
+        KRATOS_CATCH("")
+    }
+
+
+    /**
+     * Constructor with Parameters
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param Parameters Settings used in the strategy
+     */
+    ResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        Parameters Settings)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
+          mpLinearSolver(pNewLinearSolver),
+          mpScheme(pScheme),
+          mpConvergenceCriteria(pNewConvergenceCriteria),
+          mSolutionStepIsInitialized(false),
+          mInitializeWasPerformed(false),
+          mKeepSystemConstantDuringIterations(false)
+    {
+        KRATOS_TRY;
+
+        Parameters default_settings = this->GetDefaultSettings();
+        Settings.AddMissingParameters(default_settings);
+        this->AssignSettings(Settings);
+
+        // Setting up the default builder and solver
+        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
+            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
+        
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        SetEchoLevel(1);
+
+        // By default the matrices are rebuilt at each iteration
+        this->SetRebuildLevel(2);
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor specifying the builder and solver and using Parameters
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param Parameters Settings used in the strategy
+     */
+    ResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        Parameters Settings)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
+          mpLinearSolver(pNewLinearSolver),
+          mpScheme(pScheme),
+          mpBuilderAndSolver(pNewBuilderAndSolver),
+          mpConvergenceCriteria(pNewConvergenceCriteria),
+          mSolutionStepIsInitialized(false),
+          mInitializeWasPerformed(false),
+          mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
 
-        mKeepSystemConstantDuringIterations = false;
-
-        // Set flags to default values
-        SetMaxIterationNumber(MaxIterations);
-        mCalculateReactionsFlag = CalculateReactions;
-
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-        // Saving the convergence criteria to be used
-        mpConvergenceCriteria = pNewConvergenceCriteria;
-
-        // Saving the scheme
-        mpScheme = pScheme;
-
-        // Saving the linear solver
-        mpLinearSolver = pNewLinearSolver;
-
-        // Setting up the default builder and solver
-        mpBuilderAndSolver = pNewBuilderAndSolver;
-
-        // Set flags to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
+        Parameters default_settings = this->GetDefaultSettings();
+        Settings.AddMissingParameters(default_settings);
+        this->AssignSettings(Settings);
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -976,7 +1054,7 @@ class ResidualBasedNewtonRaphsonStrategy
   protected:
     ///@name Static Member Variables
     ///@{
-
+        
     ///@}
     ///@name Member Variables
     ///@{
@@ -1083,6 +1161,30 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
+    }
+    
+    /**
+     * @brief This method returns the default settings
+     */
+    virtual Parameters GetDefaultSettings()
+    {
+        Parameters default_settings(R"({
+            "max_iterations"           : 30,
+            "reform_dofs_at_each_step" : false,
+            "calculate_reactions"      : false
+        })");
+        return default_settings;
+    }
+    
+    /**
+     * @brief This method assigns settings to member variables
+     * @param Settings Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(Parameters Settings)
+    {
+        mMaxIterationNumber = Settings["max_iterations"].GetInt();
+        mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
     }
 
     ///@}
