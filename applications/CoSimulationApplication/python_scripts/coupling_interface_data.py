@@ -24,10 +24,6 @@ class CouplingInterfaceData(object):
         self.dimension = custom_config["dimension"].GetInt() # TODO check that sth was assigned
         self.location = custom_config["location"].GetString()
         self.model_part_name = custom_config["model_part_name"].GetString()
-        # TODO remove the following
-        self.origin_data      = None
-        self.destination_data = None
-        self.mapper_settings  = None
         # TODO check DOMAIN_SIZE against the dimension
 
     def GetModelPart(self):
