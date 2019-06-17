@@ -38,6 +38,7 @@
 #include "custom_processes/auxiliary_processes/rans_y_plus_wall_distance_calculation_process.h"
 
 #include "custom_processes/auxiliary_processes/rans_apply_flag_process.h"
+#include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_by_neighbour_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
 #include "custom_processes/auxiliary_processes/rans_epsilon_wall_friction_velocity_process.h"
@@ -210,6 +211,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansClipScalarVariableProcess RansClipScalarVariableProcessType;
     py::class_<RansClipScalarVariableProcessType, RansClipScalarVariableProcessType::Pointer, Process>(
         m, "RansClipScalarVariableProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansClipScalarVariableByNeighbourAveragingProcess RansClipScalarVariableByNeighbourAveragingProcessType;
+    py::class_<RansClipScalarVariableByNeighbourAveragingProcessType,
+               RansClipScalarVariableByNeighbourAveragingProcessType::Pointer, Process>(
+        m, "RansClipScalarVariableByNeighbourAveragingProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
