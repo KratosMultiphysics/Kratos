@@ -1,10 +1,8 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-# Other imports
+# CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_factory
-
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-# Other imports
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
 def Create(settings, name):
