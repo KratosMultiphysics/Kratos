@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the base class
 from . import kratos_base_wrapper
 
-# Other imports
+# Importing FluidDynamics
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 def Create(settings, solver_name):
