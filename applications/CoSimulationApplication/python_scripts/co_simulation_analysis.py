@@ -7,11 +7,9 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cspri
 import sys
 
 class CoSimulationAnalysis(AnalysisStage):
-    def __init__(self, model, cosim_settings):
+    def __init__(self, cosim_settings):
         # Note: deliberately NOT calling the base-class constructor, since this would
         # break the python-only version due to the type-checks
-
-        self.model = model
 
         # CheckCoSimulationSettingsAndAssignDefaults(cosim_settings)
 
@@ -60,7 +58,7 @@ class CoSimulationAnalysis(AnalysisStage):
         if "problem_name" in self.cosim_settings["problem_data"]:
             problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
         import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
-        return solvers_wrapper_factory.CreateSolverWrapper(self.model, self.cosim_settings["solver_settings"], problem_name)
+        return solvers_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
 
 if __name__ == '__main__':
     from sys import argv
@@ -79,7 +77,5 @@ if __name__ == '__main__':
     with open(parameter_file_name,'r') as parameter_file:
         parameters = cs_data_structure.Parameters(parameter_file.read())
 
-    model = cs_data_structure.Model()
-
-    simulation = CoSimulationAnalysis(model, parameters)
+    simulation = CoSimulationAnalysis(parameters)
     simulation.Run()
