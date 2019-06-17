@@ -9,7 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold
 
-def CreateSolverWrapper(model, settings, solver_name):
+def Create(model, settings, solver_name):
     raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):

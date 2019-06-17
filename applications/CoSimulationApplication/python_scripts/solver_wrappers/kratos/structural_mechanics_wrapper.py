@@ -6,7 +6,7 @@ from . import kratos_base_wrapper
 # Other imports
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-def CreateSolver(model, settings, solver_name):
+def Create(model, settings, solver_name):
     return StructuralMechanicsWrapper(model, settings, solver_name)
 
 class StructuralMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
