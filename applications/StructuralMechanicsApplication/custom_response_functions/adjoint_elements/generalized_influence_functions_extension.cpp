@@ -57,7 +57,7 @@ namespace Kratos
                 r_design_variable, mDelta, rOutput, rCurrentProcessInfo);
         }
         else
-            KRATOS_ERROR << "It is possible to provide a pseudo quantity for: " << rPseudoQuantityVariable.Name() << "!" << std::endl;
+            KRATOS_ERROR << "It is not possible to provide a pseudo quantity for: " << rPseudoQuantityVariable.Name() << "!" << std::endl;
 
         KRATOS_CATCH("");
     }
