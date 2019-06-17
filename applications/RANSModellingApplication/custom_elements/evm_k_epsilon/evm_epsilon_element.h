@@ -60,6 +60,7 @@ struct EvmEpsilonElementData
 
     Matrix ShapeFunctionDerivatives;
     array_1d<double, 3> WallNormal;
+    double VelocityDivergence;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>

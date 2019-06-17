@@ -420,6 +420,8 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     rData.TurbulentKineticEnergy = tke;
     rData.WallDistance = wall_distance;
     rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
+    rData.VelocityDivergence =
+        this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
 
     rEffectiveKinematicViscosity = nu + nu_t / epsilon_sigma;
 }
@@ -452,7 +454,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 double EvmEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
     const EvmEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
 {
-    return rData.C2 * rData.Gamma;
+    return rData.C2 * rData.Gamma + rData.C1 * 2.0 * rData.VelocityDivergence / 3.0;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -479,10 +481,6 @@ double EvmEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmEpsilonE
                      norm_2(result) * std::pow(c_mu, 0.25) *
                      std::sqrt(std::max(rData.TurbulentKineticEnergy, 0.0)) /
                      (von_karman * rData.WallDistance);
-
-        // const double u_tau = std::pow(c_mu, 0.25) *
-        //                      std::sqrt(std::max(rData.TurbulentKineticEnergy, 0.0));
-        // production = std::pow(u_tau, 3) / (von_karman * rData.WallDistance);
     }
     else
     {

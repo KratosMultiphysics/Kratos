@@ -57,6 +57,7 @@ struct EvmKElementData
     double TurbulentEnergyDissipationRate;
     double TurbulentKinematicViscosity;
     double WallDistance;
+    double VelocityDivergence;
 
     Matrix ShapeFunctionDerivatives;
     array_1d<double, 3> WallNormal;

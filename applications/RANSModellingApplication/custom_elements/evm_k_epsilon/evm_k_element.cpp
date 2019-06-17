@@ -414,6 +414,8 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     rData.KinematicViscosity = nu;
     rData.Gamma = gamma;
     rData.WallDistance = wall_distance;
+    rData.VelocityDivergence =
+        this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
     rEffectiveKinematicViscosity = nu + nu_t / tke_sigma;
 
     KRATOS_CATCH("");
@@ -447,7 +449,7 @@ double EvmKElement<TDim, TNumNodes>::CalculateReactionTerm(const EvmKElementData
                                                            const ProcessInfo& rCurrentProcessInfo,
                                                            const int Step) const
 {
-    return rData.Gamma;
+    return rData.Gamma + 2 * rData.VelocityDivergence / 3.0;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -476,10 +478,6 @@ double EvmKElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmKElementData& 
                                        0.0),
                               0.25) /
                      (von_karman * rData.WallDistance);
-        // const double u_tau = std::pow(
-        //     std::max(rData.TurbulentKinematicViscosity *
-        //     rData.TurbulentEnergyDissipationRate, 0.0), 0.25);
-        // production = std::pow(u_tau, 3) / (von_karman * rData.WallDistance);
     }
     else
     {
