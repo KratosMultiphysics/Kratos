@@ -3,8 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.MappingApplication as KratosMapping
 
@@ -48,7 +47,7 @@ class MappingDataTransferOperator(CoSimulationDataTransferOperator):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+        this_defaults = KratosMultiphysics.Parameters("""{
             "mapper_settings" : {
                 "mapper_type" : "UNSPECIFIED"
             }
