@@ -81,7 +81,7 @@ namespace Kratos
    endsolid 3 triangles
 
 */
-class StlIO : public IO
+class KRATOS_API(KRATOS_CORE) StlIO : public IO
 {
 public:
     ///@name Type Definitions
