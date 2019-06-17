@@ -10,14 +10,14 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # "A new staggered scheme for fluid-structure interaction"; W.G. Dettmer and D. Peric
 # Numerical Methods in Engineering 2013; 93; 1-22
 
-def Create(settings, solver):
+def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return AverageValuePredictor(settings, solver)
+    return AverageValuePredictor(settings, solver_wrapper)
 
 class AverageValuePredictor(CoSimulationPredictor):
     # @param beta factor for weighting last and current value of the predicted values. Can be set in interval: [0, 1.0]
-    def __init__(self, settings, solver):
-        super(AverageValuePredictor, self).__init__(settings, solver)
+    def __init__(self, settings, solver_wrapper):
+        super(AverageValuePredictor, self).__init__(settings, solver_wrapper)
         self.beta = self.settings["beta"].GetDouble()
         if self.beta > 1.0 or self.beta < 0:
             raise Exception("Wrong value for beta. Admissible interval [0.0, 1.0]")

@@ -6,9 +6,9 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_predi
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
-def Create(settings, solver):
+def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return StandardLinearPredictor(settings, solver)
+    return StandardLinearPredictor(settings, solver_wrapper)
 
 class StandardLinearPredictor(CoSimulationPredictor):
     def Predict(self):

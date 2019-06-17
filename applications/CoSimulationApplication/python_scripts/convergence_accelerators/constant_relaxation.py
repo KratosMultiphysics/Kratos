@@ -28,6 +28,3 @@ class ConstantRelaxation(CoSimulationConvergenceAccelerator):
             classprint(self._Name(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
         delta_x = self.alpha * r
         return delta_x
-
-    def _Name(self):
-        return self.__class__.__name__

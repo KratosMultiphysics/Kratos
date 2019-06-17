@@ -101,7 +101,3 @@ class Anderson(CoSimulationConvergenceAccelerator):
         def FinalizeSolutionStep(self):
             self.V.clear()
             self.W.clear()
-
-
-        def _Name(self):
-            return self.__class__.__name__

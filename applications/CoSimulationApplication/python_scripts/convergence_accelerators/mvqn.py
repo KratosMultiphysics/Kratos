@@ -13,9 +13,9 @@ from copy import deepcopy
 from collections import deque
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver):
+def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return MVQN(settings, solver)
+    return MVQN(settings, solver_wrapper)
 
 ## Class MVQN.
 # This class contains the implementation of the MVQN method and helper functions.
@@ -24,8 +24,8 @@ class MVQN(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solver):
-        super(MVQN, self).__init__(settings, solver)
+    def __init__( self, settings, solver_wrapper):
+        super(MVQN, self).__init__(settings, solver_wrapper)
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()

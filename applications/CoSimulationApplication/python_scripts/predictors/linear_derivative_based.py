@@ -6,14 +6,15 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_predi
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver):
+def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return LinearDerivativeBasedPredictor(settings, solver)
+    return LinearDerivativeBasedPredictor(settings, solver_wrapper)
 
 class LinearDerivativeBasedPredictor(CoSimulationPredictor):
-    def __init__(self, settings, solver):
-        super(LinearDerivativeBasedPredictor, self).__init__(settings, solver)
-        self.interface_derivative_data = self.solver.GetInterfaceData(self.settings["derivative_data_name"].GetString())
+    def __init__(self, settings, solver_wrapper):
+        super(LinearDerivativeBasedPredictor, self).__init__(settings, solver_wrapper)
+        self.interface_derivative_data = solver_wrapper.GetInterfaceData(self.settings["derivative_data_name"].GetString())
+        self.solver_wrapper = solver_wrapper
 
     def Predict(self):
         data  = self.interface_data.GetNumpyArray(1)
@@ -21,7 +22,7 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
 
         # TODO get the delta-time from the ModelPart-ProcessInfo in the future
         # => this will be accessible through the data-object (=> has the model)
-        data += self.solver.GetDeltaTime() * derivative_data
+        data += self.solver_wrapper.GetDeltaTime() * derivative_data
 
         self._UpdateData(data)
 

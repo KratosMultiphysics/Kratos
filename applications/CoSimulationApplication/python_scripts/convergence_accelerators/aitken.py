@@ -13,9 +13,9 @@ from copy import deepcopy
 from collections import deque
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver):
+def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return Aitken(settings, solver)
+    return Aitken(settings, solver_wrapper)
 
 ## Class Aitken.
 # This class contains the implementation of Aitken relaxation and helper functions.
@@ -24,8 +24,8 @@ class Aitken(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param init_alpha Initial relaxation factor in the first time step.
     # @param init_alpha_max Maximum relaxation factor for the first iteration in each time step
-    def __init__( self, settings, solver):
-        super(Aitken, self).__init__(settings, solver)
+    def __init__( self, settings, solver_wrapper):
+        super(Aitken, self).__init__(settings, solver_wrapper)
         self.R = deque( maxlen = 2 )
 
         self.alpha_old = self.settings["init_alpha"].GetDouble()

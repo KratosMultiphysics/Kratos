@@ -13,9 +13,9 @@ from copy import deepcopy
 from collections import deque
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
-def Create(settings, solver):
+def Create(settings, solver_wrapper):
     FIXME_needs_some_minor_updates_see_aitken_and_MVQN
-    return IQNILS(settings, solver)
+    return IQNILS(settings, solver_wrapper)
 
 ## Class IQNILS.
 # This class contains the implementation of the IQN-ILS method and helper functions.
@@ -25,8 +25,8 @@ class IQNILS(CoSimulationConvergenceAccelerator):
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solver):
-        super(IQNILS, self).__init__(settings, solver)
+    def __init__( self, settings, solver_wrapper):
+        super(IQNILS, self).__init__(settings, solver_wrapper)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:
