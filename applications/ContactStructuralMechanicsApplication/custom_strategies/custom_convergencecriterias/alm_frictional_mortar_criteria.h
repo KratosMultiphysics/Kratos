@@ -197,16 +197,18 @@ public:
                     else
                         r_table << "Not achieved";
                 }
-                if (slip_set_converged) {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        r_table << BOLDFONT(FGRN("       Achieved"));
-                    else
-                        r_table << "Achieved";
-                } else {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        r_table << BOLDFONT(FRED("   Not achieved"));
-                    else
-                        r_table << "Not achieved";
+                if (BaseType::mOptions.IsNot(BaseType::PURE_SLIP)) {
+                    if (slip_set_converged) {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            r_table << BOLDFONT(FGRN("       Achieved"));
+                        else
+                            r_table << "Achieved";
+                    } else {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            r_table << BOLDFONT(FRED("   Not achieved"));
+                        else
+                            r_table << "Not achieved";
+                    }
                 }
             } else {
                 if (active_set_converged) {
@@ -221,16 +223,18 @@ public:
                         KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tActive set convergence is not achieved" << std::endl;
                 }
 
-                if (slip_set_converged) {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    else
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set convergence is achieved" << std::endl;
-                } else {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    else
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                if (BaseType::mOptions.IsNot(BaseType::PURE_SLIP)) {
+                    if (slip_set_converged) {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        else
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set convergence is achieved" << std::endl;
+                    } else {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        else
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                    }
                 }
             }
         }
@@ -252,7 +256,9 @@ public:
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             auto& r_table = p_table->GetTable();
             r_table.AddColumn("ACTIVE SET CONV", 15);
-            r_table.AddColumn("SLIP/STICK CONV", 15);
+            if (BaseType::mOptions.IsNot(BaseType::PURE_SLIP)) {
+                r_table.AddColumn("SLIP/STICK CONV", 15);
+            }
             BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, true);
         }
     }
