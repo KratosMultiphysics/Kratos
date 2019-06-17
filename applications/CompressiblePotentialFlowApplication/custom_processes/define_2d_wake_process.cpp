@@ -59,11 +59,6 @@ void Define2DWakeProcess::SetWakeDirectionAndNormal()
     mWakeNormal(2) = 0.0;
 }
 
-BoundedVector<double, 3> Define2DWakeProcess::GetWakeDirection()
-{
-    return mWakeDirection;
-}
-
 // This function finds and saves the trailing edge for further computations
 void Define2DWakeProcess::SaveTrailingEdgeNode()
 {

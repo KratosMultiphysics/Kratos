@@ -125,8 +125,6 @@ private:
     ///@{
     void SetWakeDirectionAndNormal();
 
-    BoundedVector<double, 3> GetWakeDirection();
-
     void SaveTrailingEdgeNode();
 
     void MarkTrailingEdgeElements();
