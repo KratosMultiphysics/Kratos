@@ -3,16 +3,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-
-import KratosMultiphysics
-import KratosMultiphysics.MappingApplication as KratosMapping
-
 def Create(settings):
     return CopyDataTransferOperator(settings)
 
 class CopyDataTransferOperator(CoSimulationDataTransferOperator):
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         # TODO to be implemented, depending on the location of the data
-        pass
         raise NotImplementedError
