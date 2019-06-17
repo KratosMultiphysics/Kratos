@@ -1,10 +1,13 @@
-import json
-cs_data_structure = None
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-## ImportDataStructure : Imports the data structure which is specified in the parameters file
-#
-#  @param parameters_file_name   The JSON file name which contains the settings for the co-simulation
+"""This file contains some functionalities that are commonly used in CoSimulation"""
+
+import json
+cs_data_structure = None # global variable that contains the data-structure (Kratos or pyKratos)
+
 def ImportDataStructure(parameters_file_name):
+    """Imports the data structure which is specified in the parameters file"""
+
     global cs_data_structure
     if cs_data_structure is None:
         import json
@@ -27,6 +30,12 @@ def cs_print_info(label, *args):
 
 def cs_print_warning(label, *args):
     cs_data_structure.Logger.PrintWarning(label, " ".join(map(str,args)))
+
+
+def SettingsTypeCheck(settings):
+    if not isinstance(settings, cs_data_structure.Parameters):
+        raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")
+
 
 def AddEchoLevelToSettings(settings, echo_level):
     echo_level_params = cs_data_structure.Parameters("""{
@@ -81,8 +90,3 @@ def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_ec
         data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_settings)
 
     return data_transfer_operators
-
-
-def SettingsTypeCheck(settings):
-    if not isinstance(settings, cs_data_structure.Parameters):
-        raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")
