@@ -1,14 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Other imports
-import numpy as np
-from numpy import linalg as la
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-
-def CreateConvergenceCriteria(settings, solver_wrapper):
-    cs_tools.SettingsTypeCheck(settings)
-    return CoSimulationConvergenceCriteria(settings, solver_wrapper)
 
 class CoSimulationConvergenceCriteria(object):
     def __init__(self, settings, solver_wrapper):
@@ -35,38 +29,13 @@ class CoSimulationConvergenceCriteria(object):
         pass
 
     def InitializeCouplingIteration(self):
-        # Saving the previous data (at beginning of iteration) for the computation of the residual
-        self.old_data = self.interface_data.GetNumpyArray()
+        pass
 
     def FinalizeCouplingIteration(self):
         pass
 
     def IsConverged(self):
-        new_data = self.interface_data.GetNumpyArray()
-
-        residual = new_data - self.old_data
-        res_norm = la.norm(residual)
-        norm_new_data = la.norm(new_data)
-        if norm_new_data < 1e-15:
-            norm_new_data = 1.0 # to avoid division by zero
-        abs_norm = res_norm / np.sqrt(residual.size)
-        rel_norm = res_norm / norm_new_data
-        is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
-        if self.echo_level > 1:
-            info_msg  = 'Convergence for "'+bold(self.interface_data.variable.Name())+'": '
-            if is_converged:
-                info_msg += green("ACHIEVED")
-            else:
-                info_msg += red("NOT ACHIEVED")
-            classprint(self._Name(), info_msg)
-        if self.echo_level > 2:
-            info_msg  = bold("abs_norm") + " = " + str(abs_norm) + " | "
-            info_msg += bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
-            info_msg += bold("rel_norm") + " = " + str(rel_norm) + " | "
-            info_msg += bold("rel_tol")  + " = " + str(self.rel_tolerance)
-            classprint(self._Name(), info_msg)
-
-        return is_converged
+        raise NotImplementedError('"IsConverged" has to be implemented in the derived class!')
 
     def PrintInfo(self):
         classprint("Convergence Criteria", bold(self._Name()))
