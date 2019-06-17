@@ -670,7 +670,7 @@ class MultilevelMonteCarlo(object):
         serialized_model = KratosMultiphysics.StreamSerializer()
         serialized_model.Save("ModelSerialization",simulation.model)
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
-        serialized_project_parameters.Save("ParametersSerialization",simulation.project_parameters)
+        serialized_project_parameters.Save("ParametersSerialization",parameters) # use the one read, and not the ones after the constructor
         self.serialized_model.append(serialized_model)
         self.serialized_project_parameters.append(serialized_project_parameters)
         # pickle dataserialized_data

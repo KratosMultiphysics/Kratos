@@ -469,7 +469,7 @@ class MonteCarlo(object):
         serialized_model = KratosMultiphysics.StreamSerializer()
         serialized_model.Save("ModelSerialization",simulation.model)
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
-        serialized_project_parameters.Save("ParametersSerialization",simulation.project_parameters)
+        serialized_project_parameters.Save("ParametersSerialization",parameters)
         self.serialized_model = serialized_model
         self.serialized_project_parameters = serialized_project_parameters
         # pickle dataserialized_data
