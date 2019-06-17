@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes backward compatible with python 2.6 and 2.7
 
-def CreateSolverWrapper(model, settings, solver_name):
+def CreateSolverWrapper(settings, solver_name):
     """
     This function creates and returns the coupled solver.
     """
@@ -8,4 +8,4 @@ def CreateSolverWrapper(model, settings, solver_name):
     module_full  = 'KratosMultiphysics.CoSimulationApplication.'+co_sim_solver_type
 
     co_sim_solver_module = __import__(module_full, fromlist=[co_sim_solver_type])
-    return co_sim_solver_module.Create(model, settings, solver_name)
+    return co_sim_solver_module.Create(settings, solver_name)

@@ -3,8 +3,8 @@ from __future__ import print_function, absolute_import, division
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
 
-def Create(model, cosim_solver_settings, solver_name):
-    return GaussSeidelWeak(model, cosim_solver_settings, solver_name)
+def Create(cosim_solver_settings, solver_name):
+    return GaussSeidelWeak(cosim_solver_settings, solver_name)
 
 class GaussSeidelWeak(CoSimulationCoupledSolver):
     def SolveSolutionStep(self):

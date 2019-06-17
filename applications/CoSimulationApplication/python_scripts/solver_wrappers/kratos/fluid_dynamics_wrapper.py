@@ -6,8 +6,8 @@ from . import kratos_base_wrapper
 # Other imports
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-def Create(model, settings, solver_name):
-    return FluidDynamicsWrapper(model, settings, solver_name)
+def Create(settings, solver_name):
+    return FluidDynamicsWrapper(settings, solver_name)
 
 class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def _CreateAnalysisStage(self):

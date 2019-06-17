@@ -9,12 +9,12 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold
 
-def Create(model, settings, solver_name):
+def Create(settings, solver_name):
     raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
-    def __init__(self, model, settings, solver_name):
-        super(KratosBaseWrapper, self).__init__(model, settings, solver_name)
+    def __init__(self, settings, solver_name):
+        super(KratosBaseWrapper, self).__init__(settings, solver_name)
 
         input_file_name = self.settings["settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
