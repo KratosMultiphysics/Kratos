@@ -1,7 +1,6 @@
 
-from . import co_simulation_tools as tools
 # Other imports
-cs_data_structure = tools.cs_data_structure
+from . import co_simulation_tools as cs_tools
 import numpy as np
 
 ## Class CouplingInterfaceData: Class to hold different properties of the data field contributed in
@@ -10,7 +9,7 @@ import numpy as np
 class CouplingInterfaceData(object):
     def __init__(self, custom_config, model):
 
-        default_config = cs_data_structure.Parameters("""{
+        default_config = cs_tools.cs_data_structure.Parameters("""{
             "model_part_name" : "UNSPECIFIED",
             "variable_name"   : "UNSPECIFIED",
             "location"        : "node_historical",
@@ -18,8 +17,7 @@ class CouplingInterfaceData(object):
         }""")
         custom_config.ValidateAndAssignDefaults(default_config)
 
-        self.name = custom_config["variable_name"].GetString() # TO BE REMOVED
-        self.variable = cs_data_structure.KratosGlobals.GetVariable(custom_config["variable_name"].GetString())
+        self.variable = cs_tools.cs_data_structure.KratosGlobals.GetVariable(custom_config["variable_name"].GetString())
         self.model = model
         self.dimension = custom_config["dimension"].GetInt() # TODO check that sth was assigned
         self.location = custom_config["location"].GetString()
