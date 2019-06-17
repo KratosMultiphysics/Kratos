@@ -48,13 +48,13 @@ namespace Kratos {
 
         const double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
         const double damage_energy = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
-        const double damage_threshold_tolerance = 0.97;
+        const double damage_threshold_tolerance = 0.95;
         double k_unload = 0.0;
         double limit_force = 0.0;
         double delta_acummulated = 0.0;
         double returned_by_mapping_force = 0.0;
         static bool first_time_entered = true;
-        const unsigned int sphere_id = 2;
+        const unsigned int sphere_id = 222222222;
 
         const std::string filename = "normal_forces_damage.txt";
         std::ifstream ifile(filename.c_str());
@@ -118,6 +118,7 @@ namespace Kratos {
                         mDamage = 1.0 - returned_by_mapping_force/initial_limit_force;
                         if (mDamage > damage_threshold_tolerance) {
                             failure_type = 4; // failure by traction
+                            mKnUpdated = kn_el;
                         }
                     }
                 }
@@ -162,7 +163,7 @@ namespace Kratos {
         const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
         const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
         const double damage_energy = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
-        const double damage_threshold_tolerance = 0.97;
+        const double damage_threshold_tolerance = 0.95;
         double k_unload = 0.0;
         double tau_strength = 0.0;
         static bool first_time_entered = true;
@@ -171,7 +172,7 @@ namespace Kratos {
         int slide = 0;
         double equiv_tg_of_fri_ang;
         double maximum_frictional_shear_force;
-        const unsigned int sphere_id = 2;
+        const unsigned int sphere_id = 222222222;
 
         const std::string filename = "tangential_forces_damage.txt";
         std::ifstream ifile(filename.c_str());
