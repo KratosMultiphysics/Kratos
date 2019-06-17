@@ -7,13 +7,16 @@ import KratosMultiphysics
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_name):
     raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, solver_name):
+        if not cs_tools.cs_data_structure.__name__ == "KratosMultiphysics":
+            raise Exception("Kratos can only be used as a solver if the CoSim DataStructure in also Kratos!")
+
         super(KratosBaseWrapper, self).__init__(settings, solver_name)
 
         input_file_name = self.settings["settings"]["input_file"].GetString()
@@ -68,7 +71,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
 
     def PrintInfo(self):
-        cs_print_info("KratosSolver", self._Name())
+        cs_tools.cs_print_info("KratosSolver", self._Name())
         ## TODO print additional stuff with higher echo-level
 
     def IsDistributed(self):
