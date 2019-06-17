@@ -77,21 +77,9 @@ if __name__ == '__main__':
 
     # Now we import actual parameters from the cs_data_structure
     with open(parameter_file_name,'r') as parameter_file:
-        # import json
-        # parameters = json.load(parameter_file)
         parameters = cs_data_structure.Parameters(parameter_file.read())
 
-    print(type(parameters))
     model = cs_data_structure.Model()
 
     simulation = CoSimulationAnalysis(model, parameters)
     simulation.Run()
-
-
-
-class BaseSolverInterface(object):
-    pass
-
-
-class BaseCompositeSolver(BaseSolverInterface):
-    pass
