@@ -270,6 +270,7 @@ namespace Kratos {
                     mDamage = 1.0 - returned_by_mapping_force / (updated_max_tau_strength * calculation_area);
                     if (mDamage > damage_threshold_tolerance) {
                         failure_type = 2; // failure by shear
+                        mKtUpdated = kt_el;
                     }
                 }
             }
