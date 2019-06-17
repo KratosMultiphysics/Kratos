@@ -50,7 +50,7 @@ namespace Kratos
 	            "start_node_id":1,
                 "start_element_id":1,
                 "start_condition_id":1,
-                "number_of_divisions":1,
+                "number_of_divisions":[1,1,1],
                 "elements_properties_id":0,
                 "conditions_properties_id":0,
                 "element_name": "PLEASE SPECIFY IT",
@@ -67,9 +67,9 @@ namespace Kratos
 		mStartElementId = TheParameters["start_element_id"].GetInt();
 		mStartConditionId = TheParameters["start_condition_id"].GetInt();
 
-        mNumberOfDivisions[0] = TheParameters["number_of_divisions"].GetInt();
-        mNumberOfDivisions[1] = TheParameters["number_of_divisions"].GetInt();
-        mNumberOfDivisions[2] = TheParameters["number_of_divisions"].GetInt();
+        mNumberOfDivisions[0] = TheParameters["number_of_divisions"].GetArrayItem(0).GetInt();
+        mNumberOfDivisions[1] = TheParameters["number_of_divisions"].GetArrayItem(1).GetInt();
+        mNumberOfDivisions[2] = TheParameters["number_of_divisions"].GetArrayItem(2).GetInt();
 		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
 		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
 		mElementName = TheParameters["element_name"].GetString();

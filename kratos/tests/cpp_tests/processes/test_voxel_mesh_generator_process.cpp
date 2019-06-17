@@ -29,7 +29,7 @@ namespace Kratos {
 	{
 		Parameters mesher_parameters(R"(
 		{
-			"number_of_divisions":   5,
+			"number_of_divisions":   [5,5,5],
 			"element_name":     "Element3D4N"
 		})");
 
@@ -63,7 +63,7 @@ namespace Kratos {
 	{
 		Parameters mesher_parameters(R"(
 		{
-			"number_of_divisions":   10,
+			"number_of_divisions":   [10,10,10],
 			"element_name":     "Element3D4N",
 			"entities_to_generate": "center_of_elements"
 		})");
@@ -99,7 +99,7 @@ namespace Kratos {
 	{
 		Parameters mesher_parameters(R"(
 		{
-			"number_of_divisions":   10,
+			"number_of_divisions":   [10,10,10],
 			"element_name":     "Element3D4N",
 			"coloring_settings_list": [
 				{
@@ -163,7 +163,7 @@ namespace Kratos {
 	{
 		Parameters mesher_parameters(R"(
 		{
-			"number_of_divisions":   10,
+			"number_of_divisions":   [10,10,10],
 			"element_name":     "Element3D4N",
 			"entities_to_generate": "center_of_elements",
 			"coloring_settings_list": [
