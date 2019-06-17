@@ -249,7 +249,7 @@ public:
 
             // Compute the active set
             if (!r_process_info[ACTIVE_SET_COMPUTED]) {
-                const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP));
+                const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP), this->GetEchoLevel());
 
                 // We save to the process info if the active set has converged
                 r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
