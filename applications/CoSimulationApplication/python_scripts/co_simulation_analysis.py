@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import csprint, bold, CheckCoSimulationSettingsAndAssignDefaults
 
 import sys
@@ -29,7 +30,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
         problem_data.AddMissingParameters(problem_data_defaults)
 
-        cs_tools.PRINT_COLORS = problem_data["print_colors"].GetBool()
+        colors.PRINT_COLORS = problem_data["print_colors"].GetBool()
         self.flush_stdout = problem_data["flush_stdout"].GetBool()
         self.echo_level = problem_data["echo_level"].GetInt()
 
