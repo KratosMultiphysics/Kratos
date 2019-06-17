@@ -13,6 +13,9 @@ class CoSimulationAnalysis(AnalysisStage):
 
         # CheckCoSimulationSettingsAndAssignDefaults(cosim_settings)
 
+        if cs_tools.cs_data_structure is None:
+            raise Exception("The CoSimulation DataStructure has not been initialized!")
+
         problem_data = cosim_settings["problem_data"]
         self.cosim_settings = cosim_settings
 
