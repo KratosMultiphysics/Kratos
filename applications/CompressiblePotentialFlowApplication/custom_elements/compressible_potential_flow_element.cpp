@@ -643,9 +643,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
     ComputeVelocityLowerWakeElement(lower_wake_velocity);
     const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
-    if (std::abs(vupnorm - vlownorm) > 0.1)
-        std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id()
-                  << std::endl;
+    KRATOS_WARNING_IF("CompressibleElement", std::abs(vupnorm - vlownorm) > 0.1) << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
 }
 
 template <int Dim, int NumNodes>
