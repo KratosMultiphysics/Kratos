@@ -1,13 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-# Other imports
-import numpy as np
-from numpy import linalg as la
+# Importing the base class
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_criteria import CoSimulationConvergenceCriteria
+
+# CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-# Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_criteria import CoSimulationConvergenceCriteria
+# Other imports
+import numpy as np
+from numpy import linalg as la
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
