@@ -289,7 +289,7 @@ public:
 
                         const TDataType normal_comp_residual = residual_dof_value * normal_x;
                         normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
                             ++lm_slip_dof_num;
                         } else {
@@ -304,7 +304,7 @@ public:
 
                         const TDataType normal_comp_residual = residual_dof_value * normal_y;
                         normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
                             ++lm_slip_dof_num;
                         } else {
@@ -319,7 +319,7 @@ public:
 
                         const TDataType normal_comp_residual = residual_dof_value * normal_z;
                         normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
                             ++lm_slip_dof_num;
                         } else {

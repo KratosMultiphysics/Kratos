@@ -282,7 +282,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -304,7 +304,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -326,7 +326,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
