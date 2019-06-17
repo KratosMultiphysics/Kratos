@@ -87,13 +87,13 @@ public:
     ///@{
 
     // Constructor using an array of nodes
-    LineLoadCondition2D(
+    KRATOS_DEPRECATED_MESSAGE("Please use LineLoadCondition() instead") LineLoadCondition2D(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    LineLoadCondition2D(
+    KRATOS_DEPRECATED_MESSAGE("Please use LineLoadCondition() instead") LineLoadCondition2D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
