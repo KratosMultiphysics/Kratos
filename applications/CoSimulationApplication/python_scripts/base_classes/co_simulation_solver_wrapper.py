@@ -35,10 +35,14 @@ class CoSimulationSolverWrapper(object):
         if self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is already initialized!')
 
+        io_settings = self.settings["io_settings"]
+
+        if not io_settings.Has("echo_level"):
+            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
+
         self.io = io_factory.CreateIO(self._GetIOName(),
                                       self.model,
                                       self.settings["io_settings"])
-        self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
     def Finalize(self):
