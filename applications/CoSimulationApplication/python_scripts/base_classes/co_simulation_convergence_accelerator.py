@@ -4,12 +4,11 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 class CoSimulationConvergenceAccelerator(object):
-    def __init__(self, settings, solver):
+    def __init__(self, settings, solver_wrapper):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
 
-        self.solver = solver
-        self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
+        self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
