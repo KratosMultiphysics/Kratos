@@ -7,13 +7,13 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
-def Create(settings, solver_name):
-    return CoSimulationSolverWrapper(settings, solver_name)
+def Create(settings, name):
+    return CoSimulationSolverWrapper(settings, name)
 
 class CoSimulationSolverWrapper(object):
     """The base class for the CoSimulation Solver Wrappers
     """
-    def __init__(self, settings, solver_name):
+    def __init__(self, settings, name):
         """Constructor of the Base Solver Wrapper
         Deriving classes should call it in their constructors
         """
@@ -23,16 +23,16 @@ class CoSimulationSolverWrapper(object):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
 
-        self.name = solver_name
+        self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.io_is_initialized = False
+        self.io = None
         self.data_dict = self.__CreateInterfaceDataDict()
 
     def Initialize(self):
         pass
 
     def InitializeIO(self, solvers, io_echo_level):
-        if self.io_is_initialized:
+        if self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is already initialized!')
 
         io_settings = self.settings["io_settings"]
@@ -43,7 +43,6 @@ class CoSimulationSolverWrapper(object):
         self.io = io_factory.CreateIO(self._GetIOName(),
                                       self.model,
                                       self.settings["io_settings"])
-        self.io_is_initialized = True
 
     def Finalize(self):
         pass
@@ -67,20 +66,20 @@ class CoSimulationSolverWrapper(object):
         pass
 
     def ImportCouplingInterfaceData(self, data_name, from_client=None):
-        if not self.io_is_initialized:
+        if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterfaceData(data_name, from_client)
     def ImportCouplingInterface(self, geometry_name, from_client=None):
-        if not self.io_is_initialized:
+        if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterface(geometry_name, from_client)
 
     def ExportCouplingInterfaceData(self, data_name, to_client=None):
-        if not self.io_is_initialized:
+        if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterfaceData(data_name, to_client)
     def ExportCouplingInterface(self, geometry_name, to_client=None):
-        if not self.io_is_initialized:
+        if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(geometry_name, to_client)
 
@@ -122,6 +121,9 @@ class CoSimulationSolverWrapper(object):
             data_dict[data_name] = CouplingInterfaceData(data_config, self.model)
 
         return data_dict
+
+    def __IOIsInitialized(self):
+        return self.io is not None
 
     @classmethod
     def _GetDefaultSettings(cls):
