@@ -13,6 +13,9 @@ def Create(settings, solver_name):
     raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
+    """This class serves as basis for the kratos-wrappers
+    It uses the AnalysisStage as interface to Kratos
+    """
     def __init__(self, settings, solver_name):
         if not cs_tools.cs_data_structure.__name__ == "KratosMultiphysics":
             raise Exception("Kratos can only be used as a solver if the CoSim DataStructure in also Kratos!")
@@ -38,11 +41,14 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         self.delta_time = new_time - current_time
         return new_time
 
+    def InitializeSolutionStep(self):
+        self._GetAnalysisStage().InitializeSolutionStep()
+
     def Predict(self):
         self._GetAnalysisStage()._GetSolver().Predict()
 
-    def InitializeSolutionStep(self):
-        self._GetAnalysisStage().InitializeSolutionStep()
+    def SolveSolutionStep(self):
+        self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._GetAnalysisStage().FinalizeSolutionStep()
@@ -50,10 +56,9 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def OutputSolutionStep(self):
         self._GetAnalysisStage().OutputSolutionStep()
 
-    def SolveSolutionStep(self):
-        self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
     def GetDeltaTime(self):
+        # TODO this should most probably be removed
         if not hasattr(self, 'delta_time'):
             raise Exception("DeltaTime can only be querried after it has been computed at least once")
         return self.delta_time
