@@ -10,5 +10,7 @@ def Create(settings, solver_name):
     return FluidDynamicsWrapper(settings, solver_name)
 
 class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
+    """This class is the interface to the FluidDynamicsApplication of Kratos"""
+
     def _CreateAnalysisStage(self):
         return FluidDynamicsAnalysis(self.model, self.project_parameters)

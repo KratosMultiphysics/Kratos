@@ -10,5 +10,7 @@ def Create(settings, solver_name):
     return StructuralMechanicsWrapper(settings, solver_name)
 
 class StructuralMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
+    """This class is the interface to the StructuralMechanicsApplication of Kratos"""
+
     def _CreateAnalysisStage(self):
         return StructuralMechanicsAnalysis(self.model, self.project_parameters)
