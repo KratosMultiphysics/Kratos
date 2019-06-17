@@ -16,12 +16,21 @@ class CoSimulationAnalysis(AnalysisStage):
         if cs_tools.cs_data_structure is None:
             raise Exception("The CoSimulation DataStructure has not been initialized!")
 
-        problem_data = cosim_settings["problem_data"]
         self.cosim_settings = cosim_settings
 
-        cs_tools.PRINT_COLORS = problem_data["print_colors"].GetBool()
+        problem_data_defaults = cs_tools.cs_data_structure.Parameters("""{
+            "problem_name" : "default_co_simulation",
+            "print_colors" : false,
+            "flush_stdout" : false,
+            "echo_level"   : 0
+        }""")
 
-        self.flush_stdout = False#problem_data["flush_stdout"].GetBool()
+        problem_data = cosim_settings["problem_data"]
+
+        problem_data.AddMissingParameters(problem_data_defaults)
+
+        cs_tools.PRINT_COLORS = problem_data["print_colors"].GetBool()
+        self.flush_stdout = problem_data["flush_stdout"].GetBool()
         self.echo_level = problem_data["echo_level"].GetInt()
 
     def Initialize(self):
@@ -44,7 +53,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def InitializeSolutionStep(self):
         self.step += 1
-        csprint(0, bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
+        csprint(bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
 
         self._GetSolver().InitializeSolutionStep()
 
@@ -57,9 +66,7 @@ class CoSimulationAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """Create the solver
         """
-        problem_name = "default"
-        if "problem_name" in self.cosim_settings["problem_data"]:
-            problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
+        problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
         import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
         return solvers_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
 
