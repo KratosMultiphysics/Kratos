@@ -50,6 +50,9 @@ class CoSimulationConvergenceAccelerator(object):
     def ComputeUpdate( self, residual, previous_data ):
         raise NotImplementedError('"ComputeUpdate" has to be implemented in the derived class!')
 
+    def _Name(self):
+        return self.__class__.__name__
+
     @classmethod
     def _GetDefaultSettings(cls):
         return cs_tools.cs_data_structure.Parameters("""{
