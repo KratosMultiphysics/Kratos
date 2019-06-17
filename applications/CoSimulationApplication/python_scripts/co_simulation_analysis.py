@@ -7,9 +7,13 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 import sys
 
 class CoSimulationAnalysis(AnalysisStage):
+    """AnalysisStage of the CoSimulationApplication.
+    It contains all necessary modifications to make CoSimulation work both with Kratos and pyKratos
+    It does NOT override the "RunSolutionLoop" method!
+    """
     def __init__(self, cosim_settings):
-        # Note: deliberately NOT calling the base-class constructor, since this would
-        # break the python-only version due to the type-checks
+        # Note: deliberately NOT calling the base-class constructor,
+        # since this would break the python-only version due to the type-checks
 
         if cs_tools.cs_data_structure is None:
             raise Exception("The CoSimulation DataStructure has not been initialized!")
@@ -61,6 +65,9 @@ class CoSimulationAnalysis(AnalysisStage):
     def OutputSolutionStep(self):
         self._GetSolver().OutputSolutionStep()
 
+        if self.flush_stdout:
+            sys.stdout.flush()
+
     def _CreateSolver(self):
         """Create the solver
         """
@@ -69,15 +76,13 @@ class CoSimulationAnalysis(AnalysisStage):
         return solvers_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
 
 if __name__ == '__main__':
-    from sys import argv
-
-    if len(argv) != 2:
+    if len(sys.argv) != 2:
         err_msg  = 'Wrong number of input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '    "python co_simulation_analysis.py <cosim-parameter-file>.json"\n'
         raise Exception(err_msg)
 
-    parameter_file_name = argv[1]
+    parameter_file_name = sys.argv[1]
     global cs_data_structure
     cs_data_structure = cs_tools.ImportDataStructure(parameter_file_name)
 
