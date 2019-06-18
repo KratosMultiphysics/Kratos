@@ -44,6 +44,7 @@ namespace Kratos {
 
         array_1d<double, 3> mOldAcceleration;
         array_1d<double, 3> mOldVelocity;
+        array_1d<double, 3> mOldDisp;
 
         void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;

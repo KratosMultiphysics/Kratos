@@ -28,8 +28,8 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
-        double alpha_coeff = 0.5;
-        double beta_coeff = 0.5;
+        double alpha_coeff = 1.0;
+        double beta_coeff = 1.0;
 
 
         if(StepFlag == 1) //PREDICTOR
@@ -39,11 +39,14 @@ namespace Kratos {
 
                     mOldAcceleration[k] = force[k] * mass_inv;
                     mOldVelocity[k] = vel[k];
+                    mOldDisp[k] = displ[k];
 
                     delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
-                    // displ[k] += delta_displ[k];
-                    // coor[k] = initial_coor[k] + displ[k];
-                    vel[k] += force[k] * mass_inv * delta_t ;
+
+                    vel[k] += force[k] * force_reduction_factor * mass_inv * delta_t ;
+
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
 
                 } else {
                     delta_displ[k] = delta_t * vel[k];
@@ -54,16 +57,18 @@ namespace Kratos {
         }
         else if(StepFlag == 2) //CORRECTOR
         {
-            // KRATOS_WATCH(mOldVelocity)
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
-                    vel[k] = mOldVelocity[k] + (1.0 - alpha_coeff)*(mOldAcceleration[k]* delta_t) +
-                    alpha_coeff * force[k] * mass_inv * delta_t;
+                    //displ[k] -= delta_displ[k];
+
+                    vel[k] = mOldVelocity[k] + (1.0 - alpha_coeff) * force_reduction_factor * (mOldAcceleration[k]* delta_t) +
+                    alpha_coeff * force_reduction_factor * force[k] * mass_inv * delta_t;
 
                     delta_displ[k] = beta_coeff*(vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t) +
                     (1-beta_coeff)*(mOldVelocity[k] * delta_t + 0.5 * mOldAcceleration[k] * delta_t * delta_t);
 
-                    displ[k] += delta_displ[k];             // should be moved to the prediction step
+                    //displ[k] += delta_displ[k];
+                    displ[k] = mOldDisp[k] + delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
                 }
             }
