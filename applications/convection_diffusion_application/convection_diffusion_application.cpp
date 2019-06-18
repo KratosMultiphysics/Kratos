@@ -96,8 +96,8 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D8N", mLaplacian3D8N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D27N", mLaplacian3D27N);
 
-    KRATOS_REGISTER_ELEMENT("AdjointHeatDiffusionElement2D3N", mLaplacian2D3N);
-    KRATOS_REGISTER_ELEMENT("AdjointHeatDiffusionElement3D4N", mLaplacian3D4N);
+    KRATOS_REGISTER_ELEMENT("AdjointHeatDiffusionElement2D3N", mAdjointHeatDiffusionElement2D3N);
+    KRATOS_REGISTER_ELEMENT("AdjointHeatDiffusionElement3D4N", mAdjointHeatDiffusionElement3D4N);
 
     KRATOS_REGISTER_CONDITION("ThermalFace2D2N", mThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("ThermalFace3D3N", mThermalFace3D3N);
