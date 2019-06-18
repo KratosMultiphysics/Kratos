@@ -145,7 +145,9 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_SLIP )                       // The tangent slip employed in contact formulation
 
     /* For ALM mortar condition */
+    KRATOS_REGISTER_VARIABLE( ACTIVE_SET_COMPUTED )                                   // To know if the active set has been computed
     KRATOS_REGISTER_VARIABLE( ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
+    KRATOS_REGISTER_VARIABLE( SLIP_SET_CONVERGED )                                    // To know if the slip set has converged
     KRATOS_REGISTER_VARIABLE( DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )                  // The lagrange multiplier for normal contact pressure
     KRATOS_REGISTER_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )                     // The resultant augmented pressure in the normal direction
