@@ -98,6 +98,10 @@ class AdaptiveRefinement(object):
                 metric_param.AddEmptyValue("maximal_size")
                 metric_param["maximal_size"].SetDouble(10.0)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+
+                # Setting Metric Tensor to 0
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h.Execute()
