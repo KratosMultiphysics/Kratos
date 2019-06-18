@@ -52,17 +52,18 @@ class AdaptiveRefinement(object):
         problem_type = self.problem_type
 
         if (self.metric is "hessian"):
-            model_part_name = parameters_coarse["problem_data"]["model_part_name"].GetString()
-            # set NODAL_AREA and NODAL_H as non historical variables
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
-            # calculate NODAL_H
-            find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
-            find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
-            find_nodal_h.Execute()
+
 
             # problem dependent section
             if (problem_type == "body_fitted_ellipse"):
+                model_part_name = parameters_coarse["problem_data"]["model_part_name"].GetString()
+                # set NODAL_AREA and NODAL_H as non historical variables
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+                # calculate NODAL_H
+                find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
+                find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+                find_nodal_h.Execute()
                 custom_gradient = KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeNonHistoricalCustomNodalGradientProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY, KratosMultiphysics.NODAL_AREA)
                 custom_gradient.Execute()
                 for node in model_coarse.GetModelPart(model_part_name).Nodes:
@@ -70,20 +71,40 @@ class AdaptiveRefinement(object):
                     norm=np.linalg.norm(vector)
                     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,norm)
 
-            # prepare parameters to calculate the gradient of the designed variable
-            local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
-            local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
-            metric_param.RemoveValue("local_gradient_variable")
-            metric_param.AddEmptyValue("minimal_size")
-            metric_param["minimal_size"].SetDouble(minimal_size_value)
-            metric_param.AddEmptyValue("maximal_size")
-            metric_param["maximal_size"].SetDouble(maximal_size_value)
-            # calculate the gradient of the variable
-            local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
-            local_gradient.Execute()
-            # add again the removed variable parameter
-            metric_param.AddEmptyValue("local_gradient_variable")
-            metric_param["local_gradient_variable"].SetString(local_gradient_variable_string)
+                # prepare parameters to calculate the gradient of the designed variable
+                local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
+                local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
+                metric_param.RemoveValue("local_gradient_variable")
+                metric_param.AddEmptyValue("minimal_size")
+                metric_param["minimal_size"].SetDouble(minimal_size_value)
+                metric_param.AddEmptyValue("maximal_size")
+                metric_param["maximal_size"].SetDouble(maximal_size_value)
+                # calculate the gradient of the variable
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
+                local_gradient.Execute()
+                # add again the removed variable parameter
+                metric_param.AddEmptyValue("local_gradient_variable")
+                metric_param["local_gradient_variable"].SetString(local_gradient_variable_string)
+
+            elif (problem_type == "ProblemZero"):
+                metric_param.RemoveValue("local_gradient_variable")
+                metric_param.AddEmptyValue("minimal_size")
+                metric_param["minimal_size"].SetDouble(minimal_size_value)
+                metric_param.AddEmptyValue("maximal_size")
+                metric_param["maximal_size"].SetDouble(maximal_size_value)
+                model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+                # set NODAL_AREA and NODAL_H as non historical variables
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+                # calculate NODAL_H
+                find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
+                find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+                find_nodal_h.Execute()
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
+                local_gradient.Execute()
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_Y,metric_param)
+                local_gradient.Execute()
+
             # create the remeshing process
             MmgProcess = KratosMeshing.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
             MmgProcess.Execute()
