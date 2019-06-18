@@ -66,6 +66,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "normal_variation"             : "no_derivatives_computation",
             "frictional_law"               : "Coulomb",
             "tangent_factor"               : 1.0e0,
+            "slip_convergence_coefficient" : 0.0,
             "integration_order"            : 2,
             "clear_inactive_for_post"      : true,
             "search_parameters"            : {
@@ -392,6 +393,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.is_frictional:
             process_info[KM.TANGENT_FACTOR] = self.contact_settings["tangent_factor"].GetDouble()
+            process_info[CSMA.SLIP_CONVERGENCE_COEFFICIENT] = self.contact_settings["slip_convergence_coefficient"].GetDouble()
 
     def _initialize_problem_parameters(self):
         """ This method initializes the ALM parameters from the process info
