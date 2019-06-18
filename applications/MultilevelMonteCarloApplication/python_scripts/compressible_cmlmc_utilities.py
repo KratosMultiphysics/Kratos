@@ -150,7 +150,7 @@ output:
         pickled_finer_project_parameters: pickled finer parameters
 """
 @constraint(ComputingUnits="${computing_units_mc_execute}")
-@ExaquteTask(returns=3)
+@ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis_stage,mlmc_results):
     time_0 = time.time()
     # unpickle model and build Kratos Model object

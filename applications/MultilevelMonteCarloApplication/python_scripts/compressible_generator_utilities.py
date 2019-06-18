@@ -37,5 +37,4 @@ def GenerateSample():
     u0_bar = 10 # wind speed of 10 m/s
     su = 1.0 # a standard deviation of 10 % of the wind speed is considered
     sample.append(np.random.normal(u0_bar,su))
-    print(sample)
     return sample
