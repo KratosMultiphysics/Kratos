@@ -66,7 +66,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "normal_variation"             : "no_derivatives_computation",
             "frictional_law"               : "Coulomb",
             "tangent_factor"               : 1.0e0,
-            "slip_convergence_coefficient" : 0.0,
+            "slip_convergence_coefficient" : 1.0,
             "integration_order"            : 2,
             "clear_inactive_for_post"      : true,
             "search_parameters"            : {
