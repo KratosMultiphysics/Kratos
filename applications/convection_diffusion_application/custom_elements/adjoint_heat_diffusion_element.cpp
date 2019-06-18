@@ -120,7 +120,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::GetDofList(
 
     for (unsigned int i = 0; i < num_nodes; i++)
     {
-        rElementalDofList.push_back(r_geom[i].pGetDof(ADJOINT_HEAT_TRANSFER));
+        rElementalDofList[i] = r_geom[i].pGetDof(ADJOINT_HEAT_TRANSFER);
     }
 }
 
