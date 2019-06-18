@@ -67,6 +67,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    AdjointHeatDiffusionElement(IndexType NewId, GeometryType::Pointer pGeometry);
+
     AdjointHeatDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry,  Properties::Pointer pProperties);
 
     /// Destructor.

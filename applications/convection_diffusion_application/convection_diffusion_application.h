@@ -29,6 +29,7 @@
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/adjoint_heat_diffusion_element.h"
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
@@ -231,6 +232,10 @@ private:
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
+
+    const AdjointHeatDiffusionElement  mAdjointHeatDiffusionElement2D3N;
+    const AdjointHeatDiffusionElement  mAdjointHeatDiffusionElement3D4N;
+
     const ThermalFace mThermalFace2D2N;
     const ThermalFace mThermalFace3D3N;
     const ThermalFace mThermalFace3D4N;

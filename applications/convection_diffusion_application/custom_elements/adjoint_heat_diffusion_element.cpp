@@ -22,6 +22,11 @@ namespace Kratos
 {
 
 template<class PrimalElement>
+AdjointHeatDiffusionElement<PrimalElement>::AdjointHeatDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry):
+    PrimalElement(NewId, pGeometry)
+{}
+
+template<class PrimalElement>
 AdjointHeatDiffusionElement<PrimalElement>::AdjointHeatDiffusionElement(
     IndexType NewId, typename GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
     PrimalElement(NewId, pGeometry, pProperties)
