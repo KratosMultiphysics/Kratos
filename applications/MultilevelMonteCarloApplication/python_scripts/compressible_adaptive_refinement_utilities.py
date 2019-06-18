@@ -25,7 +25,7 @@ class AdaptiveRefinement(object):
             metric_param:       Kratos parameters class containing metric custom settings
             remesh_param:       Kratos parameters class containing remeshing custom settings
     """
-    def __init__(self,model_coarse,parameters_coarse,metric_param,remesh_param,minimal_size_value=None,maximal_size_value=None,metric_name="hessian"):
+    def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,minimal_size_value=None,maximal_size_value=None,metric_name="hessian"):
         self.model_coarse = model_coarse
         self.parameters_coarse = parameters_coarse
         self.minimal_size = minimal_size_value
@@ -34,6 +34,7 @@ class AdaptiveRefinement(object):
         self.remesh_param = remesh_param
         self.problem_type = self.parameters_coarse["problem_data"]["problem_name"].GetString()
         self.metric = metric_name
+        self.current_level = current_level
 
     """
     function computing the refinement of the model based on the solution on the coarse mesh,
@@ -50,6 +51,7 @@ class AdaptiveRefinement(object):
         metric_param = self.metric_param
         remesh_param = self.remesh_param
         problem_type = self.problem_type
+        current_level = self.current_level
 
         if (self.metric is "hessian"):
 
@@ -88,16 +90,15 @@ class AdaptiveRefinement(object):
 
             elif (problem_type == "ProblemZero"):
                 metric_param.RemoveValue("local_gradient_variable")
+                if current_level > 0:
+                    interp_error = 10**(-current_level)
+                    metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 metric_param.AddEmptyValue("minimal_size")
-                metric_param["minimal_size"].SetDouble(minimal_size_value)
+                metric_param["minimal_size"].SetDouble(1e-4)
                 metric_param.AddEmptyValue("maximal_size")
-                metric_param["maximal_size"].SetDouble(maximal_size_value)
+                metric_param["maximal_size"].SetDouble(10.0)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
-                # set NODAL_AREA and NODAL_H as non historical variables
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
                 # calculate NODAL_H
-                find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h.Execute()
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
@@ -115,6 +116,19 @@ class AdaptiveRefinement(object):
                 model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME , 0.0)
                 model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP , 0)
 
+            # KratosMultiphysics.ModelPartIO("ProblemZero_refined", KratosMultiphysics.IO.WRITE).WriteModelPart(model_coarse.GetModelPart(model_part_name))
+
+            # # stop
+            # for node in model_coarse.GetModelPart(model_part_name).Nodes:
+            #     for i in range(0,4):
+            #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,i,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,i,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,i,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,i,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.FRACT_VEL_X,i,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.FRACT_VEL_Y,i,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE_OLD_IT,i,0.0)
+                # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0.0)
             """
             the refinement process empties the coarse model part object and fill it with the refined model part
             the solution on the refined grid is obtained from the interpolation of the coarse solution

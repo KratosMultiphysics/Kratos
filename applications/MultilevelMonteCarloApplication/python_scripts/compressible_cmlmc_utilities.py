@@ -185,9 +185,10 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickl
             maximal_mesh_size_level = 10.0
         time_3 = time.time()
         # refine the model Kratos object
-        adaptive_refinement_manager = AdaptiveRefinement(current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
+        adaptive_refinement_manager = AdaptiveRefinement(current_level,current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
         refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
         del(refined_project_parameters) # not needed
+        current_model = refined_model
         time_4 = time.time()
         time_5 = time.time()
     time_6 = time.time()
