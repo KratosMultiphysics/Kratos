@@ -27,7 +27,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "conjugate_heat_transfer_solver"
 
         elif solver_type == "adjoint_stationary":
-            solver_module_name "adjoint_diffusion_solver"
+            solver_module_name = "adjoint_diffusion_solver"
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
