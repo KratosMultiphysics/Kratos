@@ -385,7 +385,8 @@ public:
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
         // Compute residual forces on the model part
-        this->CalculateAndAddRHS(pScheme, r_model_part);
+        // not for kim scheme ....
+        //this->CalculateAndAddRHS(pScheme, r_model_part);
 
         // Pre-compute MPC contributions
         if(r_model_part.MasterSlaveConstraints().size() > 0) {

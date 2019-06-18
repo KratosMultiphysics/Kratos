@@ -34,7 +34,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             "time_step_prediction_level" : 0,
             "delta_time_refresh"         : 1000,
             "max_delta_time"             : 1.0e0,
-            "fraction_delta_time"        : 0.9,
+            "fraction_delta_time"        : 0.333333333333333333333333333333333333,
             "rayleigh_alpha"             : 0.0,
             "rayleigh_beta"              : 0.0
         }""")
@@ -97,9 +97,12 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.settings["max_delta_time"].GetDouble(),
                                                                              self.settings["fraction_delta_time"].GetDouble(),
                                                                              self.settings["time_step_prediction_level"].GetDouble())
+        elif(scheme_type == "multi_stage"):
+            mechanical_scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(self.settings["fraction_delta_time"].GetDouble())
+
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"central_differences\""
+            err_msg += "Available options are: \"central_differences\", \"multi_stage\""
             raise Exception(err_msg)
         return mechanical_scheme
 
