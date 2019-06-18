@@ -7,7 +7,7 @@ import h5py
 file_name = '/home/ipouplana/Ara/DEM_FEM/ctw16_pdot5e10_friction65_cohesion0.0_1.5R/sp_data.hdf5'
 f = h5py.File(file_name, 'r')
 
-# File Attributes and general factors
+# File Attributes
 test_id = f.attrs['test_id']
 internal_radius = f.attrs['internal_radius']
 external_radius = f.attrs['external_radius']
@@ -20,60 +20,45 @@ porosity = f.attrs['porosity']
 # density = f.attrs['density']
 density = 2575.0 # TODO: provisional
 
+# General factors
 height_factor = real_probe_height / thickness
 porosity_factor = (1.0-target_porosity)/(1.0-porosity)
+gram_factor = 1000.0
 
 # Total initial mass
-initial_mass = 0.0
-gram_factor = 1000.0
-initial_num_spheres = len(f['0/radius'])
-# Spheres loop
-for i in range(initial_num_spheres):
-    initial_mass +=4.0/3.0 * np.pi * f['0/radius'][i] ** 3 * density * gram_factor * height_factor * porosity_factor
+initial_radii = np.array(f['0'].get('radius'))
+initial_radii_3 = np.power(initial_radii,3)
+initial_masses = 4.0/3.0 * np.pi * density * gram_factor * height_factor * porosity_factor * initial_radii_3
+initial_mass = np.sum(initial_masses)
+# print(initial_mass)
 
 # SP
-total_num_steps = len(f.keys())
 failure_step = 175 # TODO
-step = 5
-num_steps = int(failure_step/step)
+
+times = np.zeros(failure_step+1)
+for i in range(failure_step):
+    times[i+1] = f[str(i)].attrs['time']
+pressures = [5e10*t*0.000145038 for t in times] # Pressure in psi
+# print(times)
+# print(pressures)
+
+total_num_bonds = 6.0 # TODO: this should be an int
 
 all_times=[]
 all_pressures=[]
 all_sps=[]
 
-times = np.array([])
-for i in range(0,failure_step,step):
-    times = np.append(times,f[str(i)].attrs['time'])
-pressures = [5e10*t for t in times] # Pressure in Pa
-pressures = [0.000145038*p for p in pressures] # Pressure in psi
-
-# times = np.zeros(num_steps)
-# sps = np.zeros(num_steps)
-
-# sps_0 = np.array([])
-# sps_1 = np.array([])
-# sps_2 = np.array([])
-# sps_3 = np.array([])
-# sps_4 = np.array([])
-# sps_5 = np.array([])
-
-for nb in np.arange(0.0,6.0,1.0):
-    sps = np.array([])
-    for i in range(0,failure_step,step):
-        # times[int(i/num_steps)] = f[str(i)].attrs['time']
-        times = np.append(times,f[str(i)].attrs['time'])
-        current_mass = 0.0
-        # TODO: use numpy arrays operations instead of standard loop (this is very slow!)
-        # all_radius_h5 = f[str(i)].get('radius')
-        # all_radius = np.array(all_radius_h5)
-        # Spheres loop
-        for j in range(len(f[str(i)+'/radius'])):
-            if f[str(i)+'/current_continuum_bonds'][j] > nb:
-                current_mass += 4.0/3.0 * np.pi * f[str(i)+'/radius'][j] ** 3 * density * gram_factor * height_factor * porosity_factor
+for numbonds in np.arange(0.0,total_num_bonds,1.0):
+    sps = np.zeros(failure_step+1)
+    for i in range(failure_step):
+        radii = np.array(f[str(i)].get('radius'))
+        continuum_bonds = np.array(f[str(i)].get('current_continuum_bonds'))
+        r_cb = np.vstack((radii,continuum_bonds))
+        radii_3 = np.where(r_cb[1,:]>numbonds,np.power(r_cb[0,:],3),0.0)
+        masses = 4.0/3.0 * np.pi * density * gram_factor * height_factor * porosity_factor * radii_3
+        current_mass = np.sum(masses)
         current_sp = initial_mass - current_mass
-        # sps[int(i/num_steps)] = current_sp
-        sps = np.append(sps,current_sp)
-        print(i)
+        sps[i+1] = current_sp
     all_times.append(times)
     all_pressures.append(pressures)
     all_sps.append(sps)
@@ -94,7 +79,7 @@ all_pressures.append(exp_pressures)
 all_sps.append(exp_sps)
 
 # Graphs
-graph_name='sp_bonds.pdf'
+graph_name='sp_bonds_b.pdf'
 graph_labels=['SP up to 0 intact bonds',
             'SP up to 1 intact bonds',
             'SP up to 2 intact bonds',
@@ -105,12 +90,6 @@ graph_labels=['SP up to 0 intact bonds',
                 ]
 
 f = plt.figure()
-
-# plt.plot(pressures, sps)
-# plt.xlabel('Applied pressure (psi)')
-# plt.ylabel('Sand Production (g)')
-# plt.title('SP with 0 or 1 bond left')
-# f.savefig("sp_0_1.pdf", bbox_inches='tight')
 
 for name, pressures, productions in zip(graph_labels, all_pressures, all_sps):
     plt.plot(pressures, productions,label=name)
