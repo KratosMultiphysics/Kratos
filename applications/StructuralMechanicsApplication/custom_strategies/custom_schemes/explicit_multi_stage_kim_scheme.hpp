@@ -161,7 +161,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined on ProcessInfo. Please define" << std::endl;
 
-        KRATOS_ERROR_IF(mDeltaTime.Fraction <= 0.0) << "fraction_delta_time must be >0 && <1 !" << std::endl;
+        KRATOS_ERROR_IF((mDeltaTime.Fraction <= 0.0) || (mDeltaTime.Fraction >= 1.0)) << "fraction_delta_time must be >0 && <1 !" << std::endl;
 
         return 0;
 
@@ -308,6 +308,8 @@ public:
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                 auto it_node = (it_node_begin + i);
                 it_node->SetValue(NODAL_INERTIA, zero_array);
+                array_1d<double, 3>& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ANGULAR_ACCELERATION);
+                r_fractional_acceleration  = ZeroVector(3);
             }
         }
 
