@@ -108,6 +108,13 @@ class AdaptiveRefinement(object):
             # create the remeshing process
             MmgProcess = KratosMeshing.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
             MmgProcess.Execute()
+
+            # reset variables if needed
+            # TODO: improve, now it is problem dependent
+            if (problem_type == "ProblemZero"):
+                model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME , 0.0)
+                model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP , 0)
+
             """
             the refinement process empties the coarse model part object and fill it with the refined model part
             the solution on the refined grid is obtained from the interpolation of the coarse solution
