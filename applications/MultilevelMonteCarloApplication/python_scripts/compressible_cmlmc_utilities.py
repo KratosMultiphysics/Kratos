@@ -187,18 +187,8 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickl
         # refine the model Kratos object
         adaptive_refinement_manager = AdaptiveRefinement(current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
         refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
-
-        # refined_model,refined_project_parameters = \
-        #     hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,minimal_mesh_size_level,maximal_mesh_size_level,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
-
+        del(refined_project_parameters) # not needed
         time_4 = time.time()
-        # initialize the model Kratos object
-        simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
-        simulation.Initialize()
-        # update model Kratos object
-        current_model = simulation.model
-        current_project_parameters = simulation.project_parameters
-        del(simulation)
         time_5 = time.time()
     time_6 = time.time()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
@@ -212,11 +202,8 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickl
     # save model and parameters as StreamSerializer Kratos objects
     serialized_finer_model = KratosMultiphysics.StreamSerializer()
     serialized_finer_model.Save("ModelSerialization",simulation.model)
-    serialized_finer_project_parameters = KratosMultiphysics.StreamSerializer()
-    serialized_finer_project_parameters.Save("ParametersSerialization",simulation.project_parameters)
     # pickle model and parameters
     pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
-    pickled_finer_project_parameters = pickle.dumps(serialized_finer_project_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     del(simulation)
     time_8 = time.time()
     end_MLMC_time = time.time()
@@ -250,7 +237,7 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickl
         print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
 
-    return mlmc_results,pickled_finer_model,pickled_finer_project_parameters
+    return mlmc_results,pickled_finer_model
 
 
 @constraint(ComputingUnits="${computing_units_mc_execute}")
@@ -583,22 +570,19 @@ class MultilevelMonteCarlo(object):
         mlmc_results = MultilevelMonteCarloResults(current_MLMC_level)
         if (current_MLMC_level == 0):
             current_level = 0
-            mlmc_results,pickled_current_model,pickled_current_project_parameters = \
+            mlmc_results,pickled_current_model = \
                 ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
         else:
             for current_level in range(current_MLMC_level+1):
-                mlmc_results,pickled_current_model,pickled_current_project_parameters = \
+                mlmc_results,pickled_current_model = \
                     ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
                 if (current_level > 0):
                     self.objects_to_delete[-1].append(pickled_coarse_model)
-                    self.objects_to_delete[-1].append(pickled_coarse_project_parameters)
                 if (current_level > 0 and current_level == current_MLMC_level):
                     self.objects_to_delete[-1].append(pickled_current_model)
-                    self.objects_to_delete[-1].append(pickled_current_project_parameters)
-                del(pickled_coarse_model,pickled_coarse_project_parameters)
+                del(pickled_coarse_model)
                 pickled_coarse_model = pickled_current_model
-                pickled_coarse_project_parameters = pickled_current_project_parameters
-                del(pickled_current_model,pickled_current_project_parameters)
+                del(pickled_current_model)
         return mlmc_results,current_MLMC_level
 
     def ExecuteInstanceSingleRefinement(self,current_MLMC_level):
@@ -663,16 +647,25 @@ class MultilevelMonteCarlo(object):
     def SerializeModelParametersConcurrentAdaptiveRefinement(self):
         with open(self.project_parameters_path,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # serialize parmeters (to avoid adding new data dependent on the application)
+        parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
+        serialized_project_parameters = KratosMultiphysics.StreamSerializer()
+        serialized_project_parameters.Save("ParametersSerialization",parameters)
+        self.serialized_project_parameters.append(serialized_project_parameters)
+        # reset to read the model part
+        parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+        # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = generator.GenerateSample() # only used to serialize
         simulation = self.analysis(model,parameters,fake_sample)
         simulation.Initialize()
+        # reset general flags
+        main_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
+        simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+        # serialize model
         serialized_model = KratosMultiphysics.StreamSerializer()
         serialized_model.Save("ModelSerialization",simulation.model)
-        serialized_project_parameters = KratosMultiphysics.StreamSerializer()
-        serialized_project_parameters.Save("ParametersSerialization",parameters) # use the one read, and not the ones after the constructor
         self.serialized_model.append(serialized_model)
-        self.serialized_project_parameters.append(serialized_project_parameters)
         # pickle dataserialized_data
         pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
         pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2)
@@ -694,18 +687,15 @@ class MultilevelMonteCarlo(object):
         fake_sample = generator.GenerateSample()
         fake_mlmc_results = MultilevelMonteCarloResults(number_levels_to_serialize)
         for current_level in range(number_levels_to_serialize+1):
-            fake_mlmc_results,pickled_current_model,pickled_current_project_parameters = \
+            fake_mlmc_results,pickled_current_model = \
                 ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,fake_sample,current_level,current_analysis,fake_mlmc_results)
-            del(pickled_coarse_model,pickled_coarse_project_parameters)
+            del(pickled_coarse_model)
             pickled_coarse_model = pickled_current_model
-            pickled_coarse_project_parameters = pickled_current_project_parameters
             if (current_level>0):
                 # save pickled and serialized model and parameters
                 self.pickled_model.append(pickled_current_model)
-                self.pickled_project_parameters.append(pickled_current_project_parameters)
                 self.serialized_model.append(pickle.loads(pickled_current_model))
-                self.serialized_project_parameters.append(pickle.loads(pickled_current_project_parameters))
-            del(pickled_current_model,pickled_current_project_parameters)
+            del(pickled_current_model)
 
     """
     function reading the XMC parameters passed from json file
