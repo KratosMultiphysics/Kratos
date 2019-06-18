@@ -521,20 +521,23 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
                 mComponentVariablesList.push_back(&r_component_var);
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(rVariableStringArray[i_variable])){
+                // Checking vector variable in nodal data
+                const auto& r_vector_var = KratosComponents<Variable<array_1d<double,3>>>::Get(rVariableStringArray[i_variable]);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_vector_var, r_node)
+                // Checking and storing component variable from the vector variable.
                 const auto& r_component_var_x = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_X");
-                const auto& r_component_var_y = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Y");
-                const auto& r_component_var_z = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Z");
-
                 KRATOS_CHECK_DOF_IN_NODE(r_component_var_x, r_node);
-                KRATOS_CHECK_DOF_IN_NODE(r_component_var_y, r_node);
-                KRATOS_CHECK_DOF_IN_NODE(r_component_var_z, r_node);
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var_x, r_node)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var_y, r_node)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var_z, r_node)
-
                 mComponentVariablesList.push_back(&r_component_var_x);
+
+                const auto& r_component_var_y = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Y");
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var_y, r_node);
                 mComponentVariablesList.push_back(&r_component_var_y);
-                mComponentVariablesList.push_back(&r_component_var_z);
+
+                if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+                    const auto& r_component_var_z = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Z");
+                    KRATOS_CHECK_DOF_IN_NODE(r_component_var_z, r_node);
+                    mComponentVariablesList.push_back(&r_component_var_z);
+                }
             }
             else {
                 KRATOS_ERROR << "The variable defined in the list is not a double variable nor a component variable. Given variable: " << rVariableStringArray[i_variable] << std::endl;
