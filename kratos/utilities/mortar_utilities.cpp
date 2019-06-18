@@ -214,6 +214,225 @@ void ComputeNodesMeanNormalModelPart(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ComputeNodesTangentModelPart(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>* pSlipVariable,
+    const double SlipCoefficient,
+    const bool SlipAlways
+    )
+{
+    // Check NORMAL is available
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(NORMAL)) << "NORMAL is not available on the solution step data variable database" << std::endl;
+
+    // The current dimension
+    const std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+    // Checking if we have LM
+    const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+    KRATOS_ERROR_IF(!has_lm && pSlipVariable == NULL) << "Slip variable not defined" <<  std::endl;
+
+    // We iterate over nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes; ++i) {
+        auto it_node = it_node_begin + i;
+
+        // Computing only slave nodes
+        if (it_node->Is(SLAVE)) {
+            if (has_lm && !SlipAlways) {
+                ComputeTangentNodeWithLMAndSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
+            } else {
+                ComputeTangentNodeWithSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ComputeTangentNodeWithLMAndSlip(
+    NodeType& rNode,
+    const std::size_t StepLM,
+    const Variable<array_1d<double, 3>>* pSlipVariable,
+    const double SlipCoefficient,
+    const std::size_t Dimension
+    )
+{
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+    array_1d<double, 3> tangent_xi, tangent_eta;
+    const array_1d<double, 3>& r_lm = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
+    const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
+    if (rNode.Is(ACTIVE) && (rNode.IsNot(SLIP) || pSlipVariable == NULL)) { // STICK
+        if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
+            noalias(tangent_xi) = r_lm - inner_prod(r_lm, r_normal) * r_normal;
+            if (norm_2(tangent_xi) > zero_tolerance) {
+                const array_1d<double, 3> tangent = tangent_xi/norm_2(tangent_xi);
+                rNode.SetValue(TANGENT_XI, tangent);
+            } else {
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                if (Dimension == 3) {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                } else {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                        rNode.SetValue(TANGENT_XI, tangent_eta);
+                    } else {
+                        rNode.SetValue(TANGENT_XI, tangent_xi);
+                    }
+                }
+            }
+        } else { // In case of zero LM
+            MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+            if (Dimension == 3) {
+                rNode.SetValue(TANGENT_XI, tangent_xi);
+            } else {
+                if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                    rNode.SetValue(TANGENT_XI, tangent_eta);
+                } else {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                }
+            }
+        }
+    } else if (rNode.Is(ACTIVE) && pSlipVariable != NULL) { // SLIP
+        // Nodal length
+        const double length = rNode.FastGetSolutionStepValue(NODAL_H);
+        // Slip value
+        const array_1d<double, 3>& r_slip = rNode.FastGetSolutionStepValue(*pSlipVariable, StepLM)/rNode.GetValue(NODAL_AREA);
+        if (norm_2(r_slip) > 1.0e-5 * length) { // Non zero slip vector
+            noalias(tangent_xi) = r_slip - inner_prod(r_slip, r_normal) * r_normal;
+            if (norm_2(tangent_xi) > zero_tolerance) {
+                const array_1d<double, 3> tangent = SlipCoefficient * tangent_xi/norm_2(tangent_xi);
+                rNode.SetValue(TANGENT_XI, tangent);
+            } else {
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                if (Dimension == 3) {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                } else {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                        rNode.SetValue(TANGENT_XI, tangent_eta);
+                    } else {
+                        rNode.SetValue(TANGENT_XI, tangent_xi);
+                    }
+                }
+            }
+        } else if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
+            const array_1d<double, 3> tangent_component = r_lm - inner_prod(r_lm, r_normal) * r_normal;
+            if (norm_2(tangent_component) > zero_tolerance) {
+                const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
+                rNode.SetValue(TANGENT_XI, tangent);
+            } else {
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                if (Dimension == 3) {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                } else {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                        rNode.SetValue(TANGENT_XI, tangent_eta);
+                    } else {
+                        rNode.SetValue(TANGENT_XI, tangent_xi);
+                    }
+                }
+            }
+        } else { // In case of zero LM or zero weighted slip
+            MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+            if (Dimension == 3) {
+                rNode.SetValue(TANGENT_XI, tangent_xi);
+            } else {
+                if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                    rNode.SetValue(TANGENT_XI, tangent_eta);
+                } else {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                }
+            }
+        }
+    } else { // Default
+        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+        if (Dimension == 3) {
+            rNode.SetValue(TANGENT_XI, tangent_xi);
+        } else {
+            if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                rNode.SetValue(TANGENT_XI, tangent_eta);
+            } else {
+                rNode.SetValue(TANGENT_XI, tangent_xi);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ComputeTangentNodeWithSlip(
+    NodeType& rNode,
+    const std::size_t StepLM,
+    const Variable<array_1d<double, 3>>* pSlipVariable,
+    const double SlipCoefficient,
+    const std::size_t Dimension
+    )
+{
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+    if (pSlipVariable != NULL) { // SLIP
+        // Slip value
+        const array_1d<double, 3>& r_slip = rNode.FastGetSolutionStepValue(*pSlipVariable, StepLM)/rNode.GetValue(NODAL_AREA);
+        if (norm_2(r_slip) > zero_tolerance) { // Non zero slip vector
+            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
+            const array_1d<double, 3> tangent_component = r_slip - inner_prod(r_slip, r_normal) * r_normal;
+            if (norm_2(tangent_component) > zero_tolerance) {
+                const array_1d<double, 3> tangent = SlipCoefficient * tangent_component/norm_2(tangent_component);
+                rNode.SetValue(TANGENT_XI, tangent);
+            } else {
+                const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
+                array_1d<double, 3> tangent_xi, tangent_eta;
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                if (Dimension == 3) {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                } else {
+                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                        rNode.SetValue(TANGENT_XI, tangent_eta);
+                    } else {
+                        rNode.SetValue(TANGENT_XI, tangent_xi);
+                    }
+                }
+            }
+        } else { // In case of zero LM or zero weighted slip
+            const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
+            array_1d<double, 3> tangent_xi, tangent_eta;
+            MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+            if (Dimension == 3) {
+                rNode.SetValue(TANGENT_XI, tangent_xi);
+            } else {
+                if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                    rNode.SetValue(TANGENT_XI, tangent_eta);
+                } else {
+                    rNode.SetValue(TANGENT_XI, tangent_xi);
+                }
+            }
+        }
+    } else { // Default
+        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
+        array_1d<double, 3> tangent_xi, tangent_eta;
+        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+        if (Dimension == 3) {
+            rNode.SetValue(TANGENT_XI, tangent_xi);
+        } else {
+            if (std::abs(tangent_xi[2]) > zero_tolerance) {
+                rNode.SetValue(TANGENT_XI, tangent_eta);
+            } else {
+                rNode.SetValue(TANGENT_XI, tangent_xi);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
     ModelPart& rThisModelPart,

@@ -18,8 +18,9 @@
 
 /* Project includes */
 #include "utilities/table_stream_utility.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_utilities/active_set_utilities.h"
 
 namespace Kratos
 {
@@ -232,6 +233,20 @@ public:
         ) override
     {
         if (SparseSpaceType::Size(rb) != 0) { //if we are solving for something
+
+            // Getting process info
+            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+            // Compute the active set
+            if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+                const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP), this->GetEchoLevel());
+
+                // We save to the process info if the active set has converged
+                r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
+                r_process_info[SLIP_SET_CONVERGED] = is_converged[1] == 0 ? true : false;
+                r_process_info[ACTIVE_SET_COMPUTED] = true;
+            }
+
             // Initialize
             TDataType disp_residual_solution_norm = 0.0, normal_lm_solution_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
             IndexType disp_dof_num(0),lm_dof_num(0),lm_stick_dof_num(0),lm_slip_dof_num(0);
@@ -267,7 +282,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -289,7 +304,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -311,7 +326,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) && mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -361,9 +376,6 @@ public:
 
             // We calculate the absolute norms
             TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-
-            // The process info of the model part
-            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -493,6 +505,30 @@ public:
         ) override
     {
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+    }
+
+    /**
+     * @brief This function finalizes the non-linear iteration
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // Calling base criteria
+        BaseType::FinalizeNonLinearIteration(rModelPart, rDofSet, rA, rDx, rb);
+
+        // The current process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
     ///@}
