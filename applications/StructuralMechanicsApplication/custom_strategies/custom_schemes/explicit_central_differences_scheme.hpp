@@ -393,8 +393,6 @@ public:
         ) override
     {
         KRATOS_TRY
-
-        CalculateAndAddRHS(rModelPart);
         // The current process info
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -734,6 +732,19 @@ public:
         ) override
     {
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+    }
+
+     void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    ) override
+    {
+        KRATOS_TRY;
+        CalculateAndAddRHS(rModelPart);
+        KRATOS_CATCH("")
     }
 
     ///@}

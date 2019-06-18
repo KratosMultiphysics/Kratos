@@ -13,8 +13,6 @@
 //
 
 // problems:
-// make it stay in time step if repeated
-// how about righthandside in strategy ???
 // add rotational update
 
 #if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
@@ -301,8 +299,6 @@ public:
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_node_begin + i);
             it_node->SetValue(NODAL_MASS, 0.0);
-            array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-            r_middle_velocity  = ZeroVector(3);
             array_1d<double, 3>& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
             r_fractional_acceleration  = ZeroVector(3);
         }
@@ -312,8 +308,6 @@ public:
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                 auto it_node = (it_node_begin + i);
                 it_node->SetValue(NODAL_INERTIA, zero_array);
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
-                r_middle_angular_velocity  = ZeroVector(3);
             }
         }
 
@@ -448,9 +442,24 @@ public:
 
         // Solution of the explicit equation:
         if (nodal_mass > numerical_limit)
+        {
             noalias(r_acceleration) = (r_current_residual - nodal_displacement_damping * r_current_velocity) / nodal_mass;
+
+            std::array<bool, 3> fix_displacements = {false, false, false};
+            fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
+            fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
+            if (DomainSize == 3)
+                fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
+
+            for (IndexType j = 0; j < DomainSize; j++) {
+                if (fix_displacements[j]) {
+                    r_acceleration[j] = 0.0;
+                }
+            }
+        }
         else
             noalias(r_acceleration) = ZeroVector(3);
+
     }
 
     /**
@@ -465,6 +474,7 @@ public:
         const SizeType DomainSize = 3
         )
     {
+        std::cout << "UpdateTranslationalDegreesOfFreedomStage1" << std::endl;
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
         array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
@@ -499,6 +509,7 @@ public:
         const SizeType DomainSize = 3
         )
     {
+        std::cout << "UpdateTranslationalDegreesOfFreedomStage2" << std::endl;
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
         array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
@@ -538,6 +549,7 @@ public:
         const SizeType DomainSize = 3
         )
     {
+        std::cout << "UpdateTranslationalDegreesOfFreedomStage3" << std::endl;
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
         array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
@@ -735,6 +747,19 @@ public:
         ) override
     {
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        std::cout << "FinalizeSolutionStep scheme" << std::endl;
+    }
+
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    ) override
+    {
+        KRATOS_TRY;
+        KRATOS_CATCH("")
     }
 
     ///@}
