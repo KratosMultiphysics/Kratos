@@ -233,8 +233,8 @@ private:
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
 
-    const AdjointHeatDiffusionElement  mAdjointHeatDiffusionElement2D3N;
-    const AdjointHeatDiffusionElement  mAdjointHeatDiffusionElement3D4N;
+    const AdjointHeatDiffusionElement<LaplacianElement> mAdjointHeatDiffusionElement2D3N;
+    const AdjointHeatDiffusionElement<LaplacianElement> mAdjointHeatDiffusionElement3D4N;
 
     const ThermalFace mThermalFace2D2N;
     const ThermalFace mThermalFace3D3N;
