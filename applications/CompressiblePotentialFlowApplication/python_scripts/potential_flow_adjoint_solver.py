@@ -12,7 +12,16 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "AdjointPotentialFlowElement"
+        self.element_name = "AdjointIncompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
+    def _SetUpCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointCompressiblePotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
