@@ -88,7 +88,6 @@ void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rP
     Parameters default_parameters( R"(
     {
         "model_part_name"                             : "",
-        "distance_factor"                             : 2.0,
         "distance_threshold"                          : 0.001,
         "continuous_distance"                         : true,
         "check_at_each_time_step"                     : true,
@@ -524,7 +523,8 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
                 // Checking vector variable in nodal data
                 const auto& r_vector_var = KratosComponents<Variable<array_1d<double,3>>>::Get(rVariableStringArray[i_variable]);
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_vector_var, r_node)
-                // Checking and storing component variable from the vector variable.
+
+                // Checking and storing the component variables
                 const auto& r_component_var_x = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_X");
                 KRATOS_CHECK_DOF_IN_NODE(r_component_var_x, r_node);
                 mComponentVariablesList.push_back(&r_component_var_x);
