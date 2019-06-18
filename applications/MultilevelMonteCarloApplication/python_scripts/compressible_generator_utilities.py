@@ -27,8 +27,15 @@ def GenerateSample():
     #     raise Exception ("stochastic Mach number computed > 1 or < 0")
 
     # Problem zero problem
+    sample = []
     alpha0 = 0.12 # corresponds to open terrain from annexure to Euro Code DIN EN 1991-1-4 NA
     salpha = 0.012 # a standard deviation of 10 % is considered
-    sample = [np.random.normal(alpha0,salpha)]
-
+    sample.append(np.random.normal(alpha0,salpha))
+    y_0_mean = 0.02 # corresponds to "open country terrain," M. Andre's dissertation, p30 laso needs to be considered as uncertain ?
+    sy_0 = 0.002 # a standard deviation of 10 % is considered
+    sample.append(np.random.normal(y_0_mean, sy_0))
+    u0_bar = 10 # wind speed of 10 m/s
+    su = 1.0 # a standard deviation of 10 % of the wind speed is considered
+    sample.append(np.random.normal(u0_bar,su))
+    print(sample)
     return sample
