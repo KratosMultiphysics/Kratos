@@ -175,9 +175,6 @@ class PotentialFlowSolver(FluidSolver):
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
-    def Predict(self):
-        self.solver.Predict()
-
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 

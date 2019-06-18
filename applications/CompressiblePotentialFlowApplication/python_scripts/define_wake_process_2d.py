@@ -247,11 +247,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             elem.SetValue(CPFApp.TRAILING_EDGE, False)
             elem.Reset(KratosMultiphysics.STRUCTURE)
             elem.SetValue(CPFApp.KUTTA, False)
-            elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
 
         for elem in self.wake_sub_model_part.Elements:
             elem.SetValue(CPFApp.WAKE, False)
-            elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
             elem.Set(KratosMultiphysics.TO_ERASE, True)
         self.wake_sub_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
 
