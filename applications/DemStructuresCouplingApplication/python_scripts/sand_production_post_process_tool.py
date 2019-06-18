@@ -41,6 +41,7 @@ class SandProductionPostProcessTool(object):
             f.attrs['real_probe_height'] = self.real_probe_height
             f.attrs['target_porosity'] = self.target_porosity
             f.attrs['porosity'] = self.porosity
+            f.attrs['density'] = self.density
 
     def CalculateAverageRadius(self):
         radii_array = np.array([node.GetSolutionStepValue(Kratos.RADIUS) for node in self.dem_model_part.Nodes])
