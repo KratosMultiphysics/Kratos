@@ -191,6 +191,22 @@ End Properties
 *endif
 *end materials
 *loop materials
+*if(strcmp(MatProp(Type),"SaniSand")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+ VOID_RATIO *MatProp(VOID_RATIO,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+End Properties
+
+*endif
+*end materials
+*loop materials
 *if(strcmp(MatProp(Type),"GensNovaPlasticity")==0)
 *format "%i"
 Begin Properties *MatNum

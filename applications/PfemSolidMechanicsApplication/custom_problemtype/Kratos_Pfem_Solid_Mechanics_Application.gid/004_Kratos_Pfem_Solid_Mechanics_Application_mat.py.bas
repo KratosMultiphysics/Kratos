@@ -40,6 +40,9 @@ def AssignMaterial(Properties):
     model = GensNovaModel()
     mat = LargeStrainPlaneStrain2DLaw(model)
 *endif
+*elseif(strcmp(MatProp(Type),"SaniSand")==0)
+    model = SanisandSmallStrainUmatModel()
+    mat = *MatProp(DIMENSION_OF_THE_PROBLEM)(model)
 *else
     mat = *MatProp(CONSTITUTIVE_LAW_NAME)()
 *endif

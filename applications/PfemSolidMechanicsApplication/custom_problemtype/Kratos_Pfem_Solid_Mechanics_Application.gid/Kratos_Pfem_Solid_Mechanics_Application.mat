@@ -184,6 +184,22 @@ VALUE: -2000.0
 END MATERIAL
 
 
+MATERIAL: SaniSand
+QUESTION: Type#CB#(SaniSand)
+VALUE: SaniSand
+QUESTION: DIMENSION_OF_THE_PROBLEM#CB#(SmallStrainPlaneStrain2DLaw,SmallStrainAxisymmetric2DLaw,SmallStrain3DLaw)
+VALUE: SmallStrainPlaneStrain2DLaw
+QUESTION: K0
+VALUE: 0.5
+QUESTION: VOID_RATIO
+VALUE: 0.5
+QUESTION: DENSITY
+VALUE: 1.0
+QUESTION: THICKNESS
+VALUE: 1.0
+END MATERIAL
+
+
 MATERIAL: GensNovaPlasticity
 QUESTION: Type#CB#(GensNovaPlasticity)
 VALUE: GensNovaPlasticity
