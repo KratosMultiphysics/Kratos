@@ -91,33 +91,22 @@ class AdjointDiffusionSolver(PythonSolver):
 
     def GetDefaultSettings(self):
         return kratos.Parameters(r'''{
-            "solver_type"                        : "stationary",
-            "analysis_type"                      : "linear",
-            "model_part_name"                    : "",
-            "domain_size"                        : 0,
-            "model_import_settings"              : {
+            "solver_type" : "adjoint_stationary",
+            "model_part_name": "",
+            "domain_size": 0,
+            "response_function_settings" : {
+                "response_type" : "point_temperature"
+            },
+            "sensitivity_settings" : {},
+            "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : ""
             },
-            "material_import_settings"           : {
-                "materials_filename" : "ConvectionDiffusionMaterials.json"
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
             },
-            "element_replace_settings"  :{
-                "element_name" : "AdjointHeatDiffusionElement",
-                "condition_name" : "Condition"
-            },
-            "line_search"                        : false,
-            "echo_level"                         : 0,
-            "compute_reactions"                  : false,
-            "max_iteration"                      : 10,
-            "convergence_criterion"              : "residual_criterion",
-            "solution_relative_tolerance"        : 1e-5,
-            "solution_absolute_tolerance"        : 1e-7,
-            "residual_relative_tolerance"        : 1e-5,
-            "residual_absolute_tolerance"        : 1e-7,
+            "volume_model_part_name" : "volume_model_part",
             "domain_model_parts"                 : [],
             "boundary_model_parts"               : [],
-            "time_stepping"                      : {
-                "time_step" : 0.0
-            }
+            "echo_level"  : 0
         }''')

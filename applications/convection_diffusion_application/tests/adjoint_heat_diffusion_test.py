@@ -11,8 +11,8 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
         self.input_file = "adjoint_test"
         #self.reference_file = "reference10_qasgs"
         self.work_folder = "adjoint_diffusion_test"
-        self.primal_parameter_file_name = "ProjectParameters.json"
-        self.adjoint_parameter_file_name = "ProjectParameters.json"
+        self.primal_parameter_file_name = "ProjectParametersPrimal.json"
+        self.adjoint_parameter_file_name = "ProjectParametersAdjoint.json"
 
         self.check_tolerance = 1e-6
         self.print_output = False

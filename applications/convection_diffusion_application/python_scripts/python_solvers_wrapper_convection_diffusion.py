@@ -3,10 +3,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
-    
+
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
-    
+
     if (type(solver_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
@@ -25,6 +25,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
+
+        elif solver_type == "adjoint_stationary":
+            solver_module_name "adjoint_diffusion_solver"
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
@@ -47,7 +50,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     return solver
 
 def CreateSolver(model, custom_settings):
-    
+
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
@@ -55,7 +58,7 @@ def CreateSolver(model, custom_settings):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    solver_settings = custom_settings["solver_settings"]  
-    
+    solver_settings = custom_settings["solver_settings"]
+
     return CreateSolverByParameters(model, solver_settings, parallelism)
 

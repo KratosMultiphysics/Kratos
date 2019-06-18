@@ -8,35 +8,18 @@
         "echo_level"    : 0
     },
     "solver_settings"  : {
-        "solver_type"                        : "stationary",
-        "analysis_type"                      : "linear",
-        "model_part_name"                    : "ThermalModelPart",
-        "domain_size"                        : 2,
-        "model_import_settings"              : {
+        "solver_type" : "adjoint_stationary",
+        "model_part_name": "",
+        "domain_size": 0,
+        "response_function_settings" : {
+            "response_type" : "point_temperature"
+        },
+        "sensitivity_settings" : {},
+        "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "adjoint_test"
+            "input_filename" : ""
         },
-        "material_import_settings"           : {
-            "materials_filename" : "ConvectionDiffusionMaterials.json"
-        },
-        "element_replace_settings"  :{
-            "element_name" : "LaplacianElement",
-            "condition_name" : "ThermalFace"
-        },
-        "line_search"                        : false,
-        "echo_level"                         : 0,
-        "compute_reactions"                  : false,
-        "max_iteration"                      : 10,
-        "convergence_criterion"              : "residual_criterion",
-        "solution_relative_tolerance"        : 1e-5,
-        "solution_absolute_tolerance"        : 1e-7,
-        "residual_relative_tolerance"        : 1e-5,
-        "residual_absolute_tolerance"        : 1e-7,
-        "problem_domain_sub_model_part_list" : ["Parts_solid"],
-        "processes_sub_model_part_list"      : ["HeatFlux2D_right","ImposedTemperature2D_left"],
-        "time_stepping"                      : {
-            "time_step" : 1.0
-        }
+        "echo_level"  : 0
     },
     "processes"        : {
         "initial_conditions_process_list" : [],
@@ -81,7 +64,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "ThermalModelPart.thermal_computing_domain",
-                "output_name"            : "adjoint_test",
+                "output_name"            : "diffusion_test_adjoint",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
