@@ -33,12 +33,16 @@ initial_mass = np.sum(initial_masses)
 # print(initial_mass)
 
 # SP
+graph_name='sp_bonds_t.pdf'
+graph_name='sp_bonds.pdf'
+
+failure_step = 300 # TODO
 failure_step = 175 # TODO
 
 times = np.zeros(failure_step+1)
 for i in range(failure_step):
     times[i+1] = f[str(i)].attrs['time']
-pressures = [5e10*t*0.000145038 for t in times] # Pressure in psi
+pressures = [5e10*t*0.000145038 for t in times] # Pressure in psi # TODO
 # print(times)
 # print(pressures)
 
@@ -53,8 +57,7 @@ for numbonds in np.arange(0.0,total_num_bonds,1.0):
     for i in range(failure_step):
         radii = np.array(f[str(i)].get('radius'))
         continuum_bonds = np.array(f[str(i)].get('current_continuum_bonds'))
-        r_cb = np.vstack((radii,continuum_bonds))
-        radii_3 = np.where(r_cb[1,:]>numbonds,np.power(r_cb[0,:],3),0.0)
+        radii_3 = np.where(continuum_bonds>numbonds,np.power(radii,3),0.0)
         masses = 4.0/3.0 * np.pi * density * gram_factor * height_factor * porosity_factor * radii_3
         current_mass = np.sum(masses)
         current_sp = initial_mass - current_mass
@@ -79,7 +82,7 @@ all_pressures.append(exp_pressures)
 all_sps.append(exp_sps)
 
 # Graphs
-graph_name='sp_bonds_b.pdf'
+
 graph_labels=['SP up to 0 intact bonds',
             'SP up to 1 intact bonds',
             'SP up to 2 intact bonds',
@@ -93,10 +96,12 @@ f = plt.figure()
 
 for name, pressures, productions in zip(graph_labels, all_pressures, all_sps):
     plt.plot(pressures, productions,label=name)
+
+# for name, times, productions in zip(graph_labels, all_times, all_sps):
+#     plt.plot(times, productions,label=name)
+
 # for name, pressures, productions, i_collapse in zip(graph_labels, all_files_pressures, all_files_productions, all_files_i_collapse):
 #     plt.plot(pressures[:i_collapse], productions[:i_collapse],label=name)
-# for name, times, productions in zip(graph_labels, all_files_times, all_files_productions):
-#     plt.plot(times, productions,label=name)
 
 plt.legend(loc=2, prop={'size': 6})
 plt.xlabel('p (psi)')
