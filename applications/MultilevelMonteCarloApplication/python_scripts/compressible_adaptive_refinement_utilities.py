@@ -25,11 +25,9 @@ class AdaptiveRefinement(object):
             metric_param:       Kratos parameters class containing metric custom settings
             remesh_param:       Kratos parameters class containing remeshing custom settings
     """
-    def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,minimal_size_value=None,maximal_size_value=None,metric_name="hessian"):
+    def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,metric_name="hessian"):
         self.model_coarse = model_coarse
         self.parameters_coarse = parameters_coarse
-        self.minimal_size = minimal_size_value
-        self.maximal_size = maximal_size_value
         self.metric_param = metric_param
         self.remesh_param = remesh_param
         self.problem_type = self.parameters_coarse["problem_data"]["problem_name"].GetString()
@@ -46,15 +44,13 @@ class AdaptiveRefinement(object):
     def ComputeAdaptiveRefinement(self):
         parameters_coarse = self.parameters_coarse
         model_coarse = self.model_coarse
-        minimal_size_value = self.minimal_size
-        maximal_size_value = self.maximal_size
         metric_param = self.metric_param
         remesh_param = self.remesh_param
         problem_type = self.problem_type
         current_level = self.current_level
 
         if (self.metric is "hessian"):
-
+            original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
 
             # problem dependent section
             if (problem_type == "body_fitted_ellipse"):
@@ -77,10 +73,10 @@ class AdaptiveRefinement(object):
                 local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
                 local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
                 metric_param.RemoveValue("local_gradient_variable")
-                metric_param.AddEmptyValue("minimal_size")
-                metric_param["minimal_size"].SetDouble(minimal_size_value)
-                metric_param.AddEmptyValue("maximal_size")
-                metric_param["maximal_size"].SetDouble(maximal_size_value)
+                # set interpolation error value (level dependent)
+                if current_level > 0:
+                    interp_error = original_interp_error*10**(-current_level)
+                    metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 # calculate the gradient of the variable
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
                 local_gradient.Execute()
@@ -91,12 +87,8 @@ class AdaptiveRefinement(object):
             elif (problem_type == "ProblemZero"):
                 metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
-                    interp_error = 10**(-current_level)
+                    interp_error = original_interp_error*10**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
-                metric_param.AddEmptyValue("minimal_size")
-                metric_param["minimal_size"].SetDouble(1e-4)
-                metric_param.AddEmptyValue("maximal_size")
-                metric_param["maximal_size"].SetDouble(10.0)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
@@ -124,4 +116,20 @@ class AdaptiveRefinement(object):
             current_model_refined = model_coarse
             current_parameters_refined = parameters_coarse
             return current_model_refined,current_parameters_refined
+
+
+# """
+# function giving as output the mesh discretization parameter
+# the mesh parameter is the reciprocal of the minimum mesh size of the grid
+# h_lev=h_0*M^(-lev)
+# input:  self: an instance of the class
+# """
+# def ComputeMeshParameters(self):
+#     h0 = self.settings["initial_mesh_size"].GetDouble()
+#     M  = self.settings["mesh_refinement_coefficient"].GetInt()
+#     for level in range(self.settings["maximum_number_levels"].GetInt()+1):
+#         h_current_level = h0 * M**(-level)
+#         mesh_parameter_current_level = h_current_level**(-1)
+#         self.mesh_sizes.append(h_current_level)
+#         self.mesh_parameters.append(mesh_parameter_current_level)
 

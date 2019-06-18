@@ -151,7 +151,7 @@ output:
 """
 @constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=2)
-def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis_stage,mlmc_results):
+def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis_stage,mlmc_results):
     time_0 = time.time()
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
@@ -177,15 +177,9 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickl
         serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
         serialized_custom_remesh_refinement_parameters.Load("RemeshRefinementParametersSerialization",current_custom_remesh_refinement_parameters)
         del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
-        # set minimal and maximal mesh sizes
-        minimal_mesh_size_level = mesh_sizes[current_level]
-        if (recursive_maximal_size == "True"):
-            maximal_mesh_size_level = mesh_sizes[current_level-1]
-        else:
-            maximal_mesh_size_level = 10.0
         time_3 = time.time()
         # refine the model Kratos object
-        adaptive_refinement_manager = AdaptiveRefinement(current_level,current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
+        adaptive_refinement_manager = AdaptiveRefinement(current_level,current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
         refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
         current_model = refined_model
         del(refined_project_parameters,refined_model)
@@ -560,8 +554,6 @@ class MultilevelMonteCarlo(object):
         # local variables
         pickled_coarse_model = self.pickled_model[0] # first component is relative to original model part
         pickled_coarse_project_parameters = self.pickled_project_parameters[0] # first component is relative to original project parameters
-        mesh_sizes = self.mesh_sizes
-        recursive_maximal_size = self.settings["recursive_maximal_size"].GetString() # check if setting or not maximal mesh size
         pickled_custom_metric_refinement_parameters = self.pickled_custom_metric_refinement_parameters
         pickled_custom_remesh_refinement_parameters = self.pickled_custom_remesh_refinement_parameters
         current_analysis = self.analysis
@@ -572,11 +564,11 @@ class MultilevelMonteCarlo(object):
         if (current_MLMC_level == 0):
             current_level = 0
             mlmc_results,pickled_current_model = \
-                ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
+                ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
         else:
             for current_level in range(current_MLMC_level+1):
                 mlmc_results,pickled_current_model = \
-                    ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
+                    ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
                 if (current_level > 0):
                     self.objects_to_delete[-1].append(pickled_coarse_model)
                 if (current_level > 0 and current_level == current_MLMC_level):
@@ -599,7 +591,7 @@ class MultilevelMonteCarlo(object):
         else:
             for current_level in range(current_MLMC_level-1,current_MLMC_level+1):
                 mlmc_results = \
-                    ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,self.pickled_model[current_level],self.pickled_project_parameters[current_level],sample,current_level,current_analysis,mlmc_results)
+                    ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,self.pickled_model[current_level],self.pickled_project_parameters[0],sample,current_level,current_analysis,mlmc_results)
         return mlmc_results,current_MLMC_level
 
     def InitializeScreeningPhase(self):
@@ -679,8 +671,6 @@ class MultilevelMonteCarlo(object):
         # same routine of ExecuteInstanceConcurrentAdaptiveRefinemnt() to build models and parameters, but here we save models and parameters
         pickled_coarse_model = self.pickled_model[0]
         pickled_coarse_project_parameters = self.pickled_project_parameters[0]
-        mesh_sizes = self.mesh_sizes
-        recursive_maximal_size = self.settings["recursive_maximal_size"].GetString() # check if setting or not maximal mesh size
         pickled_custom_metric_refinement_parameters = self.pickled_custom_metric_refinement_parameters
         pickled_custom_remesh_refinement_parameters = self.pickled_custom_remesh_refinement_parameters
         current_analysis = self.analysis
@@ -689,7 +679,7 @@ class MultilevelMonteCarlo(object):
         fake_mlmc_results = MultilevelMonteCarloResults(number_levels_to_serialize)
         for current_level in range(number_levels_to_serialize+1):
             fake_mlmc_results,pickled_current_model = \
-                ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,fake_sample,current_level,current_analysis,fake_mlmc_results)
+                ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_mlmc_results)
             del(pickled_coarse_model)
             pickled_coarse_model = pickled_current_model
             if (current_level>0):
