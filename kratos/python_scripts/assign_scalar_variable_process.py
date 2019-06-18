@@ -71,10 +71,12 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.value = settings["value"].GetDouble()
         else:
             self.function_string = settings["value"].GetString()
-            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+            if not self.function_string == "FIX_CURRENT_VALUE": # If we don't fix current values
+                self.value_is_function = True
+                self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
 
-            if self.aux_function.DependsOnSpace():
-                self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+                if self.aux_function.DependsOnSpace():
+                    self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
 
         # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
@@ -106,11 +108,12 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             if self.value_is_numeric:
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
-                if self.aux_function.DependsOnSpace() == False: #depends on time only
-                    self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
-                    self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
-                else: #most general case - space varying function (possibly also time varying)
-                    self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
+                if self.value_is_function: # Otherwise we just fix current value
+                    if self.aux_function.DependsOnSpace() == False: #depends on time only
+                        self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
+                        self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
+                    else: #most general case - space varying function (possibly also time varying)
+                        self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
