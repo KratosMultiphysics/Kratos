@@ -304,7 +304,10 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
         const double tangent_factor = r_process_info[TANGENT_FACTOR];
-        const double slip_convergence_coefficient = r_process_info.Has(SLIP_CONVERGENCE_COEFFICIENT) ? r_process_info[SLIP_CONVERGENCE_COEFFICIENT] : 1.0; // NOTE: https://www.youtube.com/watch?v=KmAuQ1mHWrQ
+
+        // Slip convergence enhancers NOTE: https://www.youtube.com/watch?v=KmAuQ1mHWrQ
+        const double slip_convergence_coefficient = r_process_info.Has(SLIP_CONVERGENCE_COEFFICIENT) ? r_process_info[SLIP_CONVERGENCE_COEFFICIENT] : 1.0;
+        const double slip_augmentation_coefficient = r_process_info.Has(SLIP_AUGMENTATION_COEFFICIENT) ? r_process_info[SLIP_AUGMENTATION_COEFFICIENT] : 1.0;
 
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const auto it_node_begin = r_nodes_array.begin();
@@ -333,7 +336,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
                     // Computing the augmented tangent pressure
                     const array_1d<double, 3> tangent_lagrange_multiplier = r_lagrange_multiplier - normal_lagrange_multiplier * r_nodal_normal;
-                    const array_1d<double, 3> augmented_tangent_pressure_components = is_slip ? slip_convergence_coefficient * scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * r_gt : scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * r_gt;
+                    const array_1d<double, 3> augmented_tangent_pressure_components = is_slip ? slip_convergence_coefficient * scale_factor * tangent_lagrange_multiplier + slip_augmentation_coefficient * tangent_factor * epsilon * r_gt : scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * r_gt;
 
                     // Finally we assign and compute the norm
                     it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure_components);
