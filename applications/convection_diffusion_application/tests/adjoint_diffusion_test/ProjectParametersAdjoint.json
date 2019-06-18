@@ -9,52 +9,23 @@
     },
     "solver_settings"  : {
         "solver_type" : "adjoint_stationary",
-        "model_part_name": "",
-        "domain_size": 0,
+        "model_part_name": "AdjointModelPart",
+        "domain_size": 2,
         "response_function_settings" : {
-            "response_type" : "point_temperature"
+            "response_type" : "point_temperature",
+            "custom_settings" : {}
         },
         "sensitivity_settings" : {},
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : ""
+            "input_filename" : "adjoint_test"
         },
         "echo_level"  : 0
     },
     "processes"        : {
         "initial_conditions_process_list" : [],
-        "constraints_process_list"        : [{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.HeatFlux2D_right",
-                "variable_name"   : "FACE_HEAT_FLUX",
-                "constrained"     : false,
-                "value"           : -100.0,
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.ImposedTemperature2D_left",
-                "variable_name"   : "TEMPERATURE",
-                "constrained"     : true,
-                "value"           : 300.0,
-                "interval"        : [0.0,"End"]
-            }
-        }],
-        "list_other_processes"            : [{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignScalarVariableProcess",
-            "Parameters"    : {
-                "model_part_name" : "Parts_solid",
-                "variable_name"   : "HEAT_FLUX",
-                "value"           : 0.0,
-                "constrained"     : false
-            }
-        }]
+        "constraints_process_list"        : [],
+        "list_other_processes"            : []
     },
     "output_processes" : {
         "gid_output" : [{
@@ -63,7 +34,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "ThermalModelPart.thermal_computing_domain",
+                "model_part_name"        : "AdjointModelPart",
                 "output_name"            : "diffusion_test_adjoint",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -80,7 +51,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE"],
+                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
