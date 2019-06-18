@@ -77,6 +77,8 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
                 if self.aux_function.DependsOnSpace():
                     self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+            else:
+                self.value_is_function = False
 
         # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
