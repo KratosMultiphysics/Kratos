@@ -116,19 +116,6 @@ class AdaptiveRefinement(object):
                 model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME , 0.0)
                 model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP , 0)
 
-            # KratosMultiphysics.ModelPartIO("ProblemZero_refined", KratosMultiphysics.IO.WRITE).WriteModelPart(model_coarse.GetModelPart(model_part_name))
-
-            # # stop
-            # for node in model_coarse.GetModelPart(model_part_name).Nodes:
-            #     for i in range(0,4):
-            #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,i,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,i,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,i,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,i,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.FRACT_VEL_X,i,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.FRACT_VEL_Y,i,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE_OLD_IT,i,0.0)
-                # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0.0)
             """
             the refinement process empties the coarse model part object and fill it with the refined model part
             the solution on the refined grid is obtained from the interpolation of the coarse solution
