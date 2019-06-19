@@ -1,21 +1,18 @@
 import KratosMultiphysics as kratos
 import KratosMultiphysics.ConvectionDiffusionApplication as convdiff
 
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 def CreateSolver(model, settings):
     return AdjointDiffusionSolver(model, settings)
 
 class AdjointDiffusionSolver(PythonSolver):
 
-    def __init__(self,model,settings):
-        super(AdjointDiffusionSolver,self).__init__(model, settings)
+    def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # for backwards compatibility, to be removed eventually
+        super(AdjointDiffusionSolver,self).__init__(model,custom_settings)
 
-        self.ValidateSettings()
-
-        domain_size = self.settings["domain_size"].GetInt()
-        if domain_size not in [2,3]:
-            raise Exception("Unsupported domain_size: ", domain_size)
+        self.min_buffer_size = 1
 
         model_part_name = self.settings["model_part_name"].GetString()
         if model_part_name == "":
@@ -23,10 +20,45 @@ class AdjointDiffusionSolver(PythonSolver):
 
         if self.model.HasModelPart(model_part_name):
             self.model_part = self.model.GetModelPart(model_part_name)
+            self.solver_imports_model_part = False
         else:
             self.model_part = self.model.CreateModelPart(model_part_name)
 
-        self.model_part.ProcessInfo[kratos.DOMAIN_SIZE] = domain_size
+            domain_size = self.settings["domain_size"].GetInt()
+            if domain_size not in (2,3):
+                raise Exception("Unsupported domain_size: ", domain_size)
+
+            self.model_part.ProcessInfo[kratos.DOMAIN_SIZE] = domain_size
+            self.solver_imports_model_part = True
+
+    def GetDefaultSettings(self):
+
+        default_settings = kratos.Parameters(r'''{
+            "solver_type" : "adjoint_stationary",
+            "model_part_name": "",
+            "domain_size": 0,
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : ""
+            },
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
+            },
+            "response_function_settings" : {
+                "response_type" : "point_temperature"
+            },
+            "sensitivity_settings" : {},
+            "element_replace_settings" : {
+                "element_name" : "AdjointHeatDiffusionElement",
+                "condition_name" : ""
+            },
+            "time_stepping" : {
+                "time_step" : 0.0
+            }
+        }''')
+
+        default_settings.AddMissingParameters(super(AdjointDiffusionSolver,self).GetDefaultSettings())
+        return default_settings
 
     def AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(kratos.TEMPERATURE)
@@ -37,20 +69,27 @@ class AdjointDiffusionSolver(PythonSolver):
         for node in self.model_part.Nodes:
             node.AddDof(convdiff.ADJOINT_HEAT_TRANSFER)
 
-    def GetComputingModelPart(self):
-        return self.model_part
-
     def ImportModelPart(self):
         # we can use the default implementation in the base class
-        self._ImportModelPart(self.model_part,self.settings["model_import_settings"])
+        if self.solver_imports_model_part:
+            self._ImportModelPart(self.model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        if not self.model_part.ProcessInfo[kratos.IS_RESTARTED]:
+        if self.solver_imports_model_part:
+            # ensure that the element type is the correct one
+            self._set_elements_and_conditions()
 
+            # check mesh orientation (tetrahedral mesh orientation check)
             throw_errors = False
             kratos.TetrahedralMeshOrientationCheck(self.model_part, throw_errors).Execute()
 
-            kratos.ReplaceElementsAndConditionsProcess(self.model_part,self.settings["element_replace_settings"]).Execute()
+            # set the buffer size
+            if self.model_part.GetBufferSize() < self.min_buffer_size:
+                self.model_part.SetBufferSize(self.min_buffer_size)
+
+
+    def GetComputingModelPart(self):
+        return self.model_part
 
     def Initialize(self):
 
@@ -62,7 +101,6 @@ class AdjointDiffusionSolver(PythonSolver):
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
         self.sensitivity_builder = kratos.SensitivityBuilder(self.settings["sensitivity_settings"], self.model_part, self.response_function)
-
 
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -108,28 +146,44 @@ class AdjointDiffusionSolver(PythonSolver):
     def Clear(self):
         (self.solver).Clear()
 
-    def GetDefaultSettings(self):
-        return kratos.Parameters(r'''{
-            "solver_type" : "adjoint_stationary",
-            "model_part_name": "",
-            "domain_size": 0,
-            "response_function_settings" : {
-                "response_type" : "point_temperature"
-            },
-            "sensitivity_settings" : {},
-            "model_import_settings" : {
-                "input_type"     : "mdpa",
-                "input_filename" : ""
-            },
-            "linear_solver_settings" : {
-                "solver_type" : "amgcl"
-            },
-            "element_replace_settings" : {
-                "element_name" : "AdjointHeatDiffusionElement2D3N",
-                "condition_name" : ""
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "domain_model_parts"                 : [],
-            "boundary_model_parts"               : [],
-            "echo_level"  : 0
-        }''')
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        self.model_part.ProcessInfo[kratos.STEP] += 1
+        self.model_part.CloneTimeStep(new_time)
+
+        return new_time
+
+    def ComputeDeltaTime(self):
+        return self.settings["time_stepping"]["time_step"].GetDouble()
+
+    def _set_elements_and_conditions(self):
+
+        domain_size = self.model_part.ProcessInfo[kratos.DOMAIN_SIZE]
+        comm = self.model_part.GetCommunicator().GetDataCommunicator()
+
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+        condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+
+        num_nodes_elements = 0
+        for elem in self.model_part.Elements:
+            num_nodes_elements = len(elem.GetNodes())
+            break
+        num_nodes_elements = comm.MaxAll(num_nodes_elements)
+
+        #num_nodes_conditions = 0
+        #for cond in self.model_part.Conditions:
+        #    num_nodes_conditions = len(cond.GetNodes())
+        #    break
+        #num_nodes_conditions = comm.MaxAll(num_nodes_conditions)
+
+        if element_name == "AdjointHeatDiffusionElement":
+            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
+            self.settings["element_replace_settings"]["element_name"].SetString(name_string)
+
+        ## Call the replace elements and conditions process
+        kratos.ReplaceElementsAndConditionsProcess(self.model_part, self.settings["element_replace_settings"]).Execute()
+
+
+
+
