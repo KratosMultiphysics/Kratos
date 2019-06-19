@@ -243,7 +243,6 @@ public:
             ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
         }
         InitializeResidual(rModelPart);
-
         KRATOS_CATCH("")
     }
 
@@ -454,6 +453,7 @@ public:
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
         const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
         const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
+
 
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
