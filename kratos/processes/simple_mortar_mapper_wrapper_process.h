@@ -100,14 +100,14 @@ public:
             if (rOriginModelPart.NumberOfElements() > 0) {
                 ThisParameters["origin_are_conditions"].SetBool(false);
             } else if (rOriginModelPart.NumberOfConditions() == 0) {
-                KRATOS_ERROR << "No conditions defined on origin model part" << std::endl;
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "No conditions defined on origin model part" << std::endl;
             }
         }
         if (!destination_are_conditions_is_defined) {
             if (rDestinationModelPart.NumberOfElements() > 0) {
                 ThisParameters["destination_are_conditions"].SetBool(false);
             } else if (rDestinationModelPart.NumberOfConditions() == 0) {
-                KRATOS_ERROR << "No conditions defined on destination model part" << std::endl;
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "No conditions defined on destination model part" << std::endl;
             }
         }
 
