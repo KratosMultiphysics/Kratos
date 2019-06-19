@@ -946,7 +946,6 @@ public:
         typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
-//         if(!mDofs.IsSorted())
         mDofs.Sort();
 
         return *p_new_dof;
