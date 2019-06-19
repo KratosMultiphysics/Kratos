@@ -1,5 +1,5 @@
 #include "autoslip_inlet_3d.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 
 
 namespace Kratos

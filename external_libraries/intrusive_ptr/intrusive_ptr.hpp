@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <iostream>
 
 
 namespace Kratos

@@ -74,10 +74,12 @@ namespace ActiveSetUtilities
      * @brief This function computes the active set for penalty frictional cases
      * @param rThisModelPart The modelpart to compute
      * @param PureSlip If we are considering pure slip case
+     * @param EchoLevel The echo level considered
      */
     array_1d<std::size_t, 2> KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputePenaltyFrictionalActiveSet(
         ModelPart& rModelPart,
-        const bool PureSlip = false
+        const bool PureSlip = false,
+        const SizeType EchoLevel = 0
         );
 
     /**
@@ -96,13 +98,16 @@ namespace ActiveSetUtilities
      * @brief This function computes the active set for penalty frictional cases
      * @param rThisModelPart The modelpart to compute
      * @param PureSlip If we are considering pure slip case
+     * @param EchoLevel The echo level considered
      */
     array_1d<std::size_t, 2> KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputeALMFrictionalActiveSet(
         ModelPart& rModelPart,
-        const bool PureSlip = false
+        const bool PureSlip = false,
+        const SizeType EchoLevel = 0
         );
 
 };// namespace ActiveSetUtilities
 
 } // namespace Kratos
+
 #endif /* KRATOS_ACTIVE_SET_UTILITIES defined */

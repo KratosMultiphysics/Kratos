@@ -377,7 +377,7 @@ public:
 
     /** Inserts a node in the current mesh.
      */
-    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, IndexType ThisIndex = 0);
 
     NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
 
@@ -1507,13 +1507,13 @@ private:
     friend class Model;
 
     /// Default constructor.
-    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name
-    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Copy constructor.
     ModelPart(ModelPart const& rOther) = delete;
@@ -1539,7 +1539,7 @@ private:
 
     MeshesContainerType mMeshes;
 
-    VariablesList* mpVariablesList;
+    VariablesList::Pointer mpVariablesList;
 
     Communicator::Pointer mpCommunicator;
 

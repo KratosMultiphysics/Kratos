@@ -89,6 +89,14 @@ public:
             return mNonLocalData[gp];
     }
 
+    TSendType Get(GlobalPointer<TPointerDataType> const& gp)
+    {
+        if(gp.GetRank() == mCurrentRank)
+            return mUserFunctor(gp);
+        else
+            return mNonLocalData[gp];
+    }
+
     void Update()
     {
         mpPointerComm->Update(mUserFunctor, mNonLocalData);
@@ -145,7 +153,7 @@ public:
     }
 
     template< class TFunctorType >
-    GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType rFunctor):
+    GlobalPointerCommunicator(const DataCommunicator& rComm, TFunctorType rFunctor):
         mrDataCommunicator(rComm)
     {
         if(rComm.IsDistributed())
