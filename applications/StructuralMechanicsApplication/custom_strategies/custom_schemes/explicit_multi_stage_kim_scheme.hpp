@@ -13,9 +13,7 @@
 //
 
 // problems:
-// add rotational update
 // mpcs?
-// fixity not so often?
 
 #if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
 #define KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED
@@ -327,9 +325,7 @@ public:
 //             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             for (IndexType j = 0; j < DomainSize; j++) {
-                r_current_residual[j] = 0.0;
-//                 r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
-            }
+                r_current_residual[j] = 0.0;}
 
             if (has_dof_for_rot_z) {
                 Double3DArray& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
@@ -337,9 +333,7 @@ public:
 
                 const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
                 for (IndexType j = initial_j; j < 3; j++) {
-                    r_current_residual_moment[j] = 0.0;
-                    // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
-                }
+                    r_current_residual_moment[j] = 0.0;}
             }
         }
 
@@ -387,9 +381,9 @@ public:
         const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
         const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
-        // ____________________________________________________________________________________________
-        // ____________________________________________________________________________________________
-        // ____________________________________________________________________________________________
+        // _____________________________________________________________________
+        // ______________________________ STAGE 1 ______________________________
+        // _____________________________________________________________________
 
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -421,10 +415,20 @@ public:
                 DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
         } // for Node parallel
 
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateAccelerationStage(
+                    it_node_begin + i, rotppos,FRACTIONAL_ANGULAR_ACCELERATION,
+                    ANGULAR_VELOCITY,NODAL_ROTATION_DAMPING,MOMENT_RESIDUAL,
+                    NODAL_INERTIA,ROTATION_X,ROTATION_Y,ROTATION_Z,dim);
+            } // for Node parallel
+        }
 
-        // ____________________________________________________________________________________________
-        // ____________________________________________________________________________________________
-        // ____________________________________________________________________________________________
+        // _____________________________________________________________________
+        // ______________________________ STAGE 2 ______________________________
+        // _____________________________________________________________________
 
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -432,6 +436,16 @@ public:
             this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
                 VELOCITY,DISPLACEMENT,ACCELERATION,FRACTIONAL_ACCELERATION,dim);
         } // for Node parallel
+
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
+                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,
+                    FRACTIONAL_ANGULAR_ACCELERATION,dim);
+            } // for Node parallel
+        }
 
         InitializeResidual(rModelPart);
         CalculateAndAddRHS(rModelPart);
@@ -445,9 +459,20 @@ public:
                 DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
         } // for Node parallel
 
-        // ____________________________________________________________________________________________
-        // ____________________________________________________________________________________________
-        // ____________________________________________________________________________________________
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateAccelerationStage(
+                    it_node_begin + i, rotppos,ANGULAR_ACCELERATION,
+                    ANGULAR_VELOCITY,NODAL_ROTATION_DAMPING,MOMENT_RESIDUAL,
+                    NODAL_INERTIA,ROTATION_X,ROTATION_Y,ROTATION_Z,dim);
+            } // for Node parallel
+        }
+
+        // _____________________________________________________________________
+        // ______________________________ STAGE 3 ______________________________
+        // _____________________________________________________________________
 
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -456,18 +481,29 @@ public:
                 VELOCITY,DISPLACEMENT,ACCELERATION,FRACTIONAL_ACCELERATION,dim);
         } // for Node parallel
 
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateDegreesOfFreedomStage3(it_node_begin + i,
+                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,
+                    FRACTIONAL_ANGULAR_ACCELERATION,dim);
+            } // for Node parallel
+        }
+
         KRATOS_CATCH("")
     }
 
 
+    template <typename TObjectType>
     void UpdateAccelerationStage(
         NodeIterator itCurrentNode,
         const IndexType FieldPosition,
         const ArrayVarType& rAccelerationVariable,
         const ArrayVarType& rVelocityVariable,
-        const DoubleVarType& rDampingVariable,
+        const TObjectType& rDampingVariable,
         const ArrayVarType& rResidualVariable,
-        const DoubleVarType& rIntertiaVariable,
+        const TObjectType& rIntertiaVariable,
         const VarComponentType& rFixVariable1,
         const VarComponentType& rFixVariable2,
         const VarComponentType& rFixVariable3,
@@ -475,30 +511,46 @@ public:
         )
     {
         Double3DArray& r_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable);
-        const double nodal_damping = itCurrentNode->GetValue(rDampingVariable);
-        const Double3DArray& r_current_residual = itCurrentNode->FastGetSolutionStepValue(rResidualVariable);
         Double3DArray& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
-        const double nodal_inertia = itCurrentNode->GetValue(rIntertiaVariable);
+        const Double3DArray& r_current_residual = itCurrentNode->FastGetSolutionStepValue(rResidualVariable);
 
-        // Solution of the explicit equation:
-        if (nodal_inertia > numerical_limit)
-        {
-            noalias(r_acceleration) = (r_current_residual - nodal_damping * r_current_velocity) / nodal_inertia;
+        if (std::is_same<TObjectType,DoubleVarType>::value) {
+            const double& r_nodal_inertia = itCurrentNode->GetValue(NODAL_MASS);
+            const double& r_nodal_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
 
-            std::array<bool, 3> fix_field = {false, false, false};
-            fix_field[0] = (itCurrentNode->GetDof(rFixVariable1, FieldPosition).IsFixed());
-            fix_field[1] = (itCurrentNode->GetDof(rFixVariable2, FieldPosition + 1).IsFixed());
-            if (DomainSize == 3)
-                fix_field[2] = (itCurrentNode->GetDof(rFixVariable3, FieldPosition + 2).IsFixed());
+            // Solution of the explicit equation:
+            if (r_nodal_inertia > numerical_limit)
+            {
+                noalias(r_acceleration) = (r_current_residual - r_nodal_damping * r_current_velocity) / r_nodal_inertia;
+            }
+            else
+                noalias(r_acceleration) = ZeroVector(3);
+        }
+        else if (std::is_same<TObjectType,ArrayVarType>::value) {
+            const Double3DArray& r_nodal_inertia = itCurrentNode->GetValue(NODAL_INERTIA);
+            const Double3DArray& r_nodal_rotational_damping = itCurrentNode->GetValue(NODAL_ROTATION_DAMPING);
 
-            for (IndexType j = 0; j < DomainSize; j++) {
-                if (fix_field[j]) {
-                    r_acceleration[j] = 0.0;
-                }
+            const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
+            for (IndexType kk = initial_k; kk < 3; ++kk) {
+                if (r_nodal_inertia[kk] > numerical_limit)
+                    r_acceleration[kk] = (r_current_residual[kk] - r_nodal_rotational_damping[kk] * r_current_velocity[kk]) / r_nodal_inertia[kk];
+                else
+                    r_acceleration[kk] = 0.0;
             }
         }
-        else
-            noalias(r_acceleration) = ZeroVector(3);
+        else KRATOS_ERROR << "cannot handle input variable in \"explicit_multi_stage_kim_scheme.hpp\"" << std::endl;
+
+        std::array<bool, 3> fix_field = {false, false, false};
+        fix_field[0] = (itCurrentNode->GetDof(rFixVariable1, FieldPosition).IsFixed());
+        fix_field[1] = (itCurrentNode->GetDof(rFixVariable2, FieldPosition + 1).IsFixed());
+        if (DomainSize == 3)
+            fix_field[2] = (itCurrentNode->GetDof(rFixVariable3, FieldPosition + 2).IsFixed());
+
+        for (IndexType j = 0; j < DomainSize; j++) {
+            if (fix_field[j]) {
+                r_acceleration[j] = 0.0;
+            }
+        }
     }
 
     /**
@@ -617,8 +669,12 @@ public:
         // Auxiliar zero array
         const Double3DArray zero_array = ZeroVector(3);
 
+        // If we consider the rotation DoF
+        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+
         // Getting dof position
         const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+        const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -627,9 +683,6 @@ public:
 
             const double nodal_mass = it_node->GetValue(NODAL_MASS);
             const Double3DArray& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-            Double3DArray& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-
             Double3DArray& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
 
             // Solution of the explicit equation:
@@ -650,10 +703,37 @@ public:
                 if (fix_displacements[j]) {
                     r_current_acceleration[j] = 0.0;
                 }
-
-                r_current_velocity[j] = 0.0 + mTime.Delta * r_current_acceleration[j];
-
             } // for DomainSize
+
+
+             ////// ROTATION DEGRESS OF FREEDOM
+            if (has_dof_for_rot_z) {
+                const Double3DArray& nodal_inertia = it_node->GetValue(NODAL_INERTIA);
+                const Double3DArray& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                Double3DArray& r_current_angular_acceleration = it_node->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+                const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
+                for (IndexType kk = initial_k; kk < 3; ++kk) {
+                    if (nodal_inertia[kk] > numerical_limit) {
+                        r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
+                    } else {
+                        r_current_angular_acceleration[kk] = 0.0;
+                    }
+                }
+
+                std::array<bool, 3> fix_rotation = {false, false, false};
+                if (DomainSize == 3) {
+                    fix_rotation[0] = (it_node->GetDof(ROTATION_X, rotppos).IsFixed());
+                    fix_rotation[1] = (it_node->GetDof(ROTATION_Y, rotppos + 1).IsFixed());
+                }
+                fix_rotation[2] = (it_node->GetDof(ROTATION_Z, rotppos + 2).IsFixed());
+
+                for (IndexType j = initial_k; j < 3; j++) {
+                    if (fix_rotation[j]) {
+                        r_current_angular_acceleration[j] = 0.0;
+                    }
+                } // trans DoF
+            }   // Rot DoF
         }     // for node parallel
         KRATOS_CATCH("")
     }
