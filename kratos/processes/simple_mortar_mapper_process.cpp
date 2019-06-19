@@ -1128,15 +1128,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                    auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                    (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                    } else {
+                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
+                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                    }
                 }
             } else {
                 IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                    auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                    (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                    } else {
+                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
+                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                    }
 
                 }
             }
@@ -1154,15 +1164,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                    auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                    (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    } else {
+                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
+                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    }
                 }
             } else {
                 IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                    auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                    (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    } else {
+                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
+                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    }
 
                 }
             }
