@@ -27,7 +27,7 @@ namespace Kratos
 //************************************************************************************
 
 MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
-    : MPMBaseLoadCondition( NewId, pGeometry )
+    : MPMGridBaseLoadCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -36,7 +36,7 @@ MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, Geometr
 //************************************************************************************
 
 MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-    : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
+    : MPMGridBaseLoadCondition( NewId, pGeometry, pProperties )
 {
 }
 
@@ -49,7 +49,7 @@ Condition::Pointer MPMGridLineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************
@@ -61,7 +61,7 @@ Condition::Pointer MPMGridLineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************

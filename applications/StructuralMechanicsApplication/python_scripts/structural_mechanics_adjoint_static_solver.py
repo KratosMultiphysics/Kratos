@@ -6,22 +6,26 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-import structural_mechanics_solver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
 
-class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.MechanicalSolver):
+class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def __init__(self, model, custom_settings):
-
-        self.response_function_settings = custom_settings["response_function_settings"].Clone()
-        self.sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
-        custom_settings.RemoveValue("response_function_settings")
-        custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(StructuralMechanicsAdjointStaticSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "response_function_settings" : {},
+            "sensitivity_settings" : {}
+        }""")
+        this_defaults.AddMissingParameters(super(StructuralMechanicsAdjointStaticSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         super(StructuralMechanicsAdjointStaticSolver, self).AddVariables()
@@ -30,15 +34,46 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
             raise Exception("there are currently only 3D adjoint elements available")
         super(StructuralMechanicsAdjointStaticSolver, self).PrepareModelPart()
         # TODO Why does replacement need to happen after reading materials?
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part).Execute()
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
+
+        process_info = self.main_model_part.ProcessInfo
+        if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and
+            process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
+            raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
+
+        # defines how the primal elements should be replaced with their adjoint counterparts
+        replacement_settings = KratosMultiphysics.Parameters("""
+            {
+                "element_name_table" :
+                {
+                    "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
+                    "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
+                    "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
+                    "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N",
+                    "TotalLagrangianElement2D3N"     : "TotalLagrangianAdjointElement2D3N",
+                    "TotalLagrangianElement2D4N"     : "TotalLagrangianAdjointElement2D4N",
+                    "TotalLagrangianElement2D6N"     : "TotalLagrangianAdjointElement2D6N",
+                    "TotalLagrangianElement3D4N"     : "TotalLagrangianAdjointElement3D4N",
+                    "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N"
+                },
+                "condition_name_table" :
+                {
+                    "PointLoadCondition2D1N"         : "AdjointSemiAnalyticPointLoadCondition2D1N",
+                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N"
+                }
+            }
+        """)
+
+        StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
+        process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
+
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, self.main_model_part)
@@ -48,26 +83,29 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, self.main_model_part)
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        if self.response_function_settings["response_type"].GetString() == "adjoint_local_stress":
-            self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_nodal_displacement":
-            self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
-            self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
+        response_type = self.settings["response_function_settings"]["response_type"].GetString()
+        if response_type == "adjoint_local_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_nodal_displacement":
+            self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_linear_strain_energy":
+            self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_nodal_reaction":
+            self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
-            raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
+            raise Exception("invalid response_type: " + response_type)
 
-        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
-        self.adjoint_postprocess.Initialize()
+        self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
+        self.sensitivity_builder.Initialize()
 
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
         self.response_function.Initialize()
 
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
@@ -76,13 +114,14 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
-        self.adjoint_postprocess.UpdateSensitivities()
+        self.sensitivity_builder.UpdateSensitivities()
 
     def SolveSolutionStep(self):
-        if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
+        if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
+            return True
         else:
-            super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
+            return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:

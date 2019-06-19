@@ -29,13 +29,7 @@
         "reform_dofs_at_each_step" : false,
         "move_mesh_flag"           : false,
         "linear_solver_settings"   : {
-            "solver_type"      : "AMGCL",
-            "smoother_type"    : "ilu0",
-            "krylov_type"      : "gmres",
-            "coarsening_type"  : "aggregation",
-            "max_iteration"    : 100,
-            "tolerance"        : 1.0e-6,
-            "scaling"          : false
+            "solver_type"      : "amgcl"
         },
         "time_stepping"            : {
             "automatic_time_step"      : false,
@@ -76,9 +70,7 @@
         "initial_conditions_process_list"   : [{
             "python_module"   : "set_initial_water_level_process",
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "process_name"    : "SetInitialWaterLevelProcess",
             "Parameters"      : {
-                "mesh_id"         : 0,
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "HEIGHT",
                 "value"           : "5"
@@ -110,12 +102,10 @@
             }
         }],
         "bathymetry_process_list"     : [{
-            "python_module"   : "set_bathymetry_process",
+            "python_module"   : "set_topography_process",
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "process_name"    : "SetBathymetryProcess",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Body_Part-auto-1",
-                "variable_name"   : "BATHYMETRY",
                 "value"           : "z"
             }
         }],

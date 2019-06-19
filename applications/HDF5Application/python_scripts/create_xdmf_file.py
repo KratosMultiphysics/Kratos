@@ -2,13 +2,30 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-import os, sys, xdmf
+import KratosMultiphysics.HDF5Application.xdmf as xdmf
+import os, sys
 import warnings
-with warnings.catch_warnings():
-    # suppressing an import-related warningfrom h5py
-    # problem appears when using it in a test with python >=3.6
-    warnings.simplefilter('ignore', category=ImportWarning)
-    import h5py
+try:
+    with warnings.catch_warnings():
+        # suppressing an import-related warningfrom h5py
+        # problem appears when using it in a test with python >=3.6
+        warnings.simplefilter('ignore', category=ImportWarning)
+        import h5py
+except ModuleNotFoundError:
+    # If h5py is not found, then we delay the exception until name lookup is
+    # performed on the module. This allows the current module to still be used
+    # for testing purposes. Otherwise the tests must be skipped.
+    warn_msg = "h5py module was not found!"
+    KratosMultiphysics.Logger.PrintWarning(__name__, warn_msg)
+    class NonExistingModule(object):
+
+        def __init__(self, module_name):
+            self.module_name = module_name
+
+        def __getattr__(self, name):
+            raise ModuleNotFoundError("No module named '" + self.module_name + "'")
+    h5py = NonExistingModule('h5py')
+
 
 def GenerateXdmfConnectivities(file_name):
     with h5py.File(file_name, "r") as h5py_file:

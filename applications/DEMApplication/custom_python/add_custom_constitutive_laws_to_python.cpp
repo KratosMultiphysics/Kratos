@@ -20,6 +20,7 @@
 #include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
 #include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "../custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 
 #include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
@@ -28,6 +29,8 @@
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CL.h"
+#include "../custom_constitutive/DEM_KDEM_soft_torque_CL.h"
+#include "../custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CamClay_CL.h"
@@ -39,7 +42,7 @@
 #include "../custom_constitutive/DEM_Dempack_dev_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_dev_CL.h"
 #include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
-#include "../custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
+#include "../custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "../custom_constitutive/dem_kdem_2d_cl.h"
 #include "../custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
@@ -103,7 +106,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_D_Hertz_dependent_friction, DEM_D_Hertz_dependent_friction::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Hertz_dependent_friction")
+    py::class_<DEM_D_Stress_Dependent_Cohesive, DEM_D_Stress_Dependent_Cohesive::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Stress_Dependent_Cohesive")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_Conical_damage, DEM_D_Conical_damage::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Conical_damage")
         .def(py::init<>())
         ;
 
@@ -159,6 +166,14 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_KDEM, DEM_KDEM::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_KDEM")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_soft_torque, DEM_KDEM_soft_torque::Pointer, DEM_KDEM>(m, "DEM_KDEM_soft_torque")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_soft_torque_with_noise, DEM_KDEM_soft_torque_with_noise::Pointer, DEM_KDEM_soft_torque>(m, "DEM_KDEM_soft_torque_with_noise")
         .def(py::init<>())
         ;
 

@@ -21,15 +21,17 @@
 
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
+#include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_elemental_neighbours_process.h" 
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/node_erase_process.h"
-#include "processes/element_erase_process.h"
-#include "processes/condition_erase_process.h"
+#include "processes/node_erase_process.h" // TODO: To be removed
+#include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
@@ -46,15 +48,17 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
-#include "processes/assign_scalar_variable_to_conditions_process.h"
-#include "processes/assign_scalar_field_to_conditions_process.h"
+#include "processes/assign_scalar_variable_to_entities_process.h"
+#include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "processes/apply_ray_casting_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -68,6 +72,7 @@ namespace Kratos
 
 namespace Python
 {
+typedef Node<3> NodeType;
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
@@ -108,6 +113,8 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
+
+
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -124,6 +131,20 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("Check",&Process::Check)
     .def("__str__", PrintObject<Process>)
+    ;
+
+    py::class_<FindGlobalNodalNeighboursProcess, FindGlobalNodalNeighboursProcess::Pointer, Process>
+        (m,"FindGlobalNodalNeighboursProcess")
+            .def(py::init<const DataCommunicator&, ModelPart&>())
+    .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
+    .def("GetNeighbourIds",&FindGlobalNodalNeighboursProcess::GetNeighbourIds)
+    ;
+
+    py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>
+        (m,"FindGlobalNodalElementalNeighboursProcess")
+            .def(py::init<const DataCommunicator&, ModelPart&>())
+    .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
+    .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
     ;
 
     // Find NODAL_H (Historical variables stored)
@@ -161,20 +182,25 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
+//     py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess") // TODO: Replace when the remainings of NodeEraseProcess have been cleaned up
     py::class_<NodeEraseProcess, NodeEraseProcess::Pointer, Process>(m,"NodeEraseProcess")
-            .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ElementEraseProcess, ElementEraseProcess::Pointer, Process>(m,"ElementEraseProcess")
-            .def(py::init<ModelPart&>())
+    py::class_<EntitiesEraseProcess<Element>, EntitiesEraseProcess<Element>::Pointer, Process>(m,"ElementEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ConditionEraseProcess, ConditionEraseProcess::Pointer, Process>(m,"ConditionEraseProcess")
-            .def(py::init<ModelPart&>())
+    py::class_<EntitiesEraseProcess<Condition>, EntitiesEraseProcess<Condition>::Pointer, Process>(m,"ConditionEraseProcess")
+    .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<EntitiesEraseProcess<MasterSlaveConstraint>, EntitiesEraseProcess<MasterSlaveConstraint>::Pointer, Process>(m,"MasterSlaveConstraintEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<EliminateIsolatedNodesProcess, EliminateIsolatedNodesProcess::Pointer, Process>(m,"EliminateIsolatedNodesProcess")
-            .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
@@ -333,19 +359,59 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
+    // Continuous distance computation methods
+    py::class_<ApplyRayCastingProcess<2>, ApplyRayCastingProcess<2>::Pointer, Process>(m,"ApplyRayCastingProcess2D")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
+    ;
+
+    py::class_<ApplyRayCastingProcess<3>, ApplyRayCastingProcess<3>::Pointer, Process>(m,"ApplyRayCastingProcess3D")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
+    ;
+
+//     // Calculate embedded variable from skin processes
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+        m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
+        .def(py::init<Model &, Parameters>())
+        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
+
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+        m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
+        .def(py::init<Model &, Parameters>())
+        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
+
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
             ;
 
-
-    py::class_<AssignScalarVariableToConditionsProcess, AssignScalarVariableToConditionsProcess::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
-            .def(py::init<ModelPart&, Parameters >())
+    py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarFieldToConditionsProcess, AssignScalarFieldToConditionsProcess::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
-            .def(py::init<ModelPart&, Parameters >())
+    py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
     ;
 
+    py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
@@ -510,6 +576,12 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
             .def(py::init<ModelPart&,ModelPart&, Parameters>())
+    ;
+
+    // The process to recover internal variables
+    py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     ;
 }
 

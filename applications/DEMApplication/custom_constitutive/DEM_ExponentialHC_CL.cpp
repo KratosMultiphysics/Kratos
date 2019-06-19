@@ -11,7 +11,7 @@
 
 namespace Kratos {
 
-    void DEM_ExponentialHC::Initialize() {
+    void DEM_ExponentialHC::Initialize(SphericContinuumParticle* owner_sphere) {
         KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
         mHistoryMaxForce            = 0.0; //maximum force achieved

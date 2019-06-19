@@ -31,7 +31,7 @@ namespace Kratos
 
 /// Stores all data and dofs which are stored in each elements
 /** This class is the container for nodal data storing:
- *  Id : The Id of the node 
+ *  Id : The Id of the node
 */
 class NodalData
 {
@@ -56,7 +56,7 @@ public:
 
     NodalData(IndexType TheId);
 
-    NodalData(IndexType TheId, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
+    NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
     /// Destructor.
     ~NodalData(){}
@@ -101,7 +101,7 @@ public:
         mSolutionStepsNodalData = TheData;
     }
 
-    VariablesListDataValueContainer& GetSolutionStepData() 
+    VariablesListDataValueContainer& GetSolutionStepData()
     {
         return mSolutionStepsNodalData;
     }

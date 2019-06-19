@@ -23,14 +23,14 @@
 namespace Kratos
 {
 
-    NodalData::NodalData(IndexType TheId) 
+    NodalData::NodalData(IndexType TheId)
     : mId(TheId)
     , mSolutionStepsNodalData()
     {
 
     }
 
-    NodalData::NodalData(IndexType TheId, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize) 
+    NodalData::NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize)
     : mId(TheId)
     , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
     {
@@ -46,19 +46,19 @@ namespace Kratos
     }
 
     /// Turn back information as a string.
-    std::string NodalData::Info() const 
+    std::string NodalData::Info() const
     {
         return "NodalData";
     }
 
     /// Print information about this object.
-    void NodalData::PrintInfo(std::ostream& rOStream) const 
+    void NodalData::PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void NodalData::PrintData(std::ostream& rOStream) const 
+    void NodalData::PrintData(std::ostream& rOStream) const
     {
         rOStream << "Id                  : " << mId << std::endl;
         rOStream << "Solution Steps Data : " << mSolutionStepsNodalData << std::endl;

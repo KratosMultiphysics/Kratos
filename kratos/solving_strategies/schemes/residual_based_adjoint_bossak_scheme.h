@@ -117,6 +117,8 @@ public:
 
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
+        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
+
         KRATOS_CATCH("");
     }
 
@@ -751,13 +753,13 @@ private:
                 const auto& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(
                         p_variable_data->Name());
-                VariableUtils().SetToZero_VectorVar(r_variable, rNodes);
+                VariableUtils().SetHistoricalVariableToZero(r_variable, rNodes);
             }
             else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
             {
                 const auto& r_variable =
                     KratosComponents<Variable<double>>::Get(p_variable_data->Name());
-                VariableUtils().SetToZero_ScalarVar(r_variable, rNodes);
+                VariableUtils().SetHistoricalVariableToZero(r_variable, rNodes);
             }
             else
             {

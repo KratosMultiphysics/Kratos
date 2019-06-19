@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_linear_solvers_to_python.h"
+#include "custom_python/add_custom_frictional_laws_to_python.h"
 
 namespace Kratos
 {
@@ -43,6 +44,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomLinearSolversToPython(m);
+    AddCustomFrictionalLawsToPython(m);
 
     // Adding enums
     py::enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
@@ -64,6 +66,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE_THRESHOLD )                                    // The distance threshold considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_CHECK_FACTOR )                                   // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_GAP )                                            // The normal gap employed in contact formulation
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_SLIP )                       // The tangent slip employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WEIGHTED_GAP )                                          // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WEIGHTED_SLIP )                      // The integrated slip employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WEIGHTED_SCALAR_RESIDUAL )                              // The integrated scalar residual
@@ -79,6 +82,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADAPT_PENALTY )                                         // To set if the penalty is recalculated or not
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_GAP_FACTOR )                                        // The factor between the nodal H and the max gap considered to recalculate the penalty
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRESCA_FRICTION_THRESHOLD )                             // The threshold value for Tresca frictional contact
 }
 
 
