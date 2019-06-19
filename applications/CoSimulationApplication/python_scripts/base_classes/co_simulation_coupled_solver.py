@@ -5,7 +5,6 @@ from  . import co_simulation_solver_wrapper
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
     def __init__(self, GaussSeidelWeakcosim_solver_settings, solver_name):

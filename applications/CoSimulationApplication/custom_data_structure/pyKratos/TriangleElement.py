@@ -1,5 +1,4 @@
-from __future__ import print_function, absolute_import, division 
-import math
+from __future__ import print_function, absolute_import, division
 from numpy import *
 from .Element import *
 
