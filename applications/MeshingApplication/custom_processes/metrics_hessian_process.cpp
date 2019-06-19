@@ -98,7 +98,9 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     const double NodalH,
     const bool EstimateInterpolationError,
     const double InterpolationError,
-    const double MeshDependentConstant
+    const double MeshDependentConstant,
+    const bool AnisotropyRemeshing,
+    const bool EnforceAnisotropyRelativeVariable
     )
 {
     /// The type of array considered for the tensor
@@ -140,19 +142,21 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     }
 
     // Considering anisotropic
-    if (AnisotropicRatio < 1.0) {
-        double eigen_max = eigen_values_matrix(0, 0);
-        double eigen_min = eigen_values_matrix(0, 0);
-        for (IndexType i = 1; i < TDim; ++i) {
-            eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
-            eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
+    if (AnisotropyRemeshing) {
+        if (EnforceAnisotropyRelativeVariable) {
+            double eigen_max = eigen_values_matrix(0, 0);
+            double eigen_min = eigen_values_matrix(0, 0);
+            for (IndexType i = 1; i < TDim; ++i) {
+                eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
+                eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
+            }
+
+            const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - AnisotropicRatio);
+            const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
+
+            for (IndexType i = 0; i < TDim; ++i)
+                eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
         }
-
-        const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - AnisotropicRatio);
-        const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
-
-        for (IndexType i = 0; i < TDim; ++i)
-            eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
     } else { // NOTE: For isotropic we should consider the maximum of the eigenvalues
         double eigen_max = eigen_values_matrix(0, 0);
         for (IndexType i = 1; i < TDim; ++i)
@@ -356,14 +360,16 @@ double ComputeHessianSolMetricProcess::CalculateAnisotropicRatio(
 template<SizeType TDim>
 void ComputeHessianSolMetricProcess::CalculateMetric()
 {
-    const double minimal_size = mThisParameters["minimal_size"].GetDouble();                                         /// The minimal size of the elements
-    const double maximal_size = mThisParameters["maximal_size"].GetDouble();                                         /// The maximal size of the elements
-    const bool enforce_current = mThisParameters["enforce_current"].GetBool();                                       /// With this we choose if we inforce the current nodal size (NODAL_H)
-    const bool estimate_interpolation_error = mThisParameters["estimate_interpolation_error"].GetBool();             /// If the error of interpolation will be estimated
-    const double interpolation_error = mThisParameters["interpolation_error"].GetDouble();                           /// The error of interpolation allowed
-    const double mesh_dependent_constant = mThisParameters["mesh_dependent_constant"].GetDouble();                   /// The error of interpolation allowed
-    const double hmin_over_hmax_anisotropic_ratio = mThisParameters["hmin_over_hmax_anisotropic_ratio"].GetDouble(); /// The error of interpolation allowed
-    const double boundary_layer_max_distance = mThisParameters["boundary_layer_max_distance"].GetDouble();           /// The error of interpolation allowed
+    const double minimal_size = mThisParameters["minimal_size"].GetDouble();                                             /// The minimal size of the elements
+    const double maximal_size = mThisParameters["maximal_size"].GetDouble();                                             /// The maximal size of the elements
+    const bool enforce_current = mThisParameters["enforce_current"].GetBool();                                           /// With this we choose if we inforce the current nodal size (NODAL_H)
+    const bool anisotropy_remeshing = mThisParameters["anisotropy_remeshing"].GetBool();                                 /// If we consider anisotropy
+    const bool enforce_anisotropy_relative_variable = mThisParameters["enforce_anisotropy_relative_variable"].GetBool(); /// If we enforce certain anisotropy
+    const bool estimate_interpolation_error = mThisParameters["estimate_interpolation_error"].GetBool();                 /// If the error of interpolation will be estimated
+    const double interpolation_error = mThisParameters["interpolation_error"].GetDouble();                               /// The error of interpolation allowed
+    const double mesh_dependent_constant = mThisParameters["mesh_dependent_constant"].GetDouble();                       /// The error of interpolation allowed
+    const double hmin_over_hmax_anisotropic_ratio = mThisParameters["hmin_over_hmax_anisotropic_ratio"].GetDouble();     /// The error of interpolation allowed
+    const double boundary_layer_max_distance = mThisParameters["boundary_layer_max_distance"].GetDouble();               /// The error of interpolation allowed
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -401,7 +407,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         // Isotropic by default
         double ratio = 1.0;
 
-        if (it_node->SolutionStepsDataHas(r_reference_var)) {
+        if (it_node->SolutionStepsDataHas(r_reference_var) && anisotropy_remeshing && enforce_anisotropy_relative_variable) {
             const double ratio_reference = it_node->FastGetSolutionStepValue(r_reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_distance, mInterpolation);
         }
@@ -416,11 +422,11 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         const double norm_metric = norm_2(r_metric);
         if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             const TensorArrayType& r_old_metric = it_node->GetValue(r_tensor_variable);
-            const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, ratio, element_minimal_size, element_maximal_size, nodal_h, estimate_interpolation_error, interpolation_error, mesh_dependent_constant);
+            const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, ratio, element_minimal_size, element_maximal_size, nodal_h, estimate_interpolation_error, interpolation_error, mesh_dependent_constant, anisotropy_remeshing, enforce_anisotropy_relative_variable);
 
             noalias(r_metric) = MetricsMathUtils<TDim>::IntersectMetrics(r_old_metric, new_metric);
         } else {
-            noalias(r_metric) = ComputeHessianMetricTensor<TDim>(r_hessian, ratio, element_minimal_size, element_maximal_size, nodal_h, estimate_interpolation_error, interpolation_error, mesh_dependent_constant);
+            noalias(r_metric) = ComputeHessianMetricTensor<TDim>(r_hessian, ratio, element_minimal_size, element_maximal_size, nodal_h, estimate_interpolation_error, interpolation_error, mesh_dependent_constant,anisotropy_remeshing, enforce_anisotropy_relative_variable);
         }
     }
 }
@@ -432,15 +438,15 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "minimal_size"                        : 0.1,
-        "maximal_size"                        : 10.0,
+        "minimal_size"                         : 0.1,
+        "maximal_size"                         : 10.0,
         "sizing_parameters":
         {
-            "reference_variable_name"          : "DISTANCE",
-            "boundary_layer_max_distance"      : 1.0,
-            "interpolation"                    : "constant"
+            "reference_variable_name"              : "DISTANCE",
+            "boundary_layer_max_distance"          : 1.0,
+            "interpolation"                        : "constant"
         },
-        "enforce_current"                     : false,
+        "enforce_current"                      : false,
         "hessian_strategy_parameters":
         {
             "metric_variable"                      : ["DISTANCE"],
@@ -448,15 +454,16 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
         },
-        "anisotropy_remeshing"                : true,
+        "anisotropy_remeshing"                 : true,
+        "enforce_anisotropy_relative_variable" : false,
         "anisotropy_parameters":
         {
-            "reference_variable_name"              : "DISTANCE",
-            "hmin_over_hmax_anisotropic_ratio"     : 1.0,
-            "boundary_layer_max_distance"          : 1.0,
-            "interpolation"                        : "linear"
+            "reference_variable_name"               : "DISTANCE",
+            "hmin_over_hmax_anisotropic_ratio"      : 1.0,
+            "boundary_layer_max_distance"           : 1.0,
+            "interpolation"                         : "linear"
         },
-        "ponderation_value"                   : 1.0
+        "ponderation_value"                     : 1.0
     })" );
 
     // Identify the dimension first
@@ -488,6 +495,8 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("minimal_size", ThisParameters["minimal_size"]);
     mThisParameters.AddValue("maximal_size", ThisParameters["maximal_size"]);
     mThisParameters.AddValue("enforce_current", ThisParameters["enforce_current"]);
+    mThisParameters.AddValue("anisotropy_remeshing", ThisParameters["anisotropy_remeshing"]);
+    mThisParameters.AddValue("enforce_anisotropy_relative_variable", ThisParameters["enforce_anisotropy_relative_variable"]);
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
     mThisParameters.AddValue("interpolation_error", considered_parameters["hessian_strategy_parameters"]["interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);

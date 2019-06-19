@@ -242,6 +242,8 @@ private:
      * @param EstimateInterpolationError If the error of interpolation will be estimated
      * @param InterpolationError The error of interpolation allowed
      * @param MeshDependentConstant The mesh constant to remesh (depends of the element type)
+     * @param AnisotropyRemeshing If we consider anisotropic remeshing
+     * @param EnforceAnisotropyRelativeVariable If we enforce a certain anisotropy relative toa  variable
      */
     template<SizeType TDim>
     array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
@@ -252,7 +254,9 @@ private:
         const double NodalH,
         const bool EstimateInterpolationError,
         const double InterpolationError,
-        const double MeshDependentConstant
+        const double MeshDependentConstant,
+        const bool AnisotropyRemeshing,
+        const bool EnforceAnisotropyRelativeVariable
         );
 
     /**
