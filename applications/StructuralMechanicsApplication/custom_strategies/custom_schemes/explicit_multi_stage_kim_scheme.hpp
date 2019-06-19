@@ -15,6 +15,7 @@
 // problems:
 // add rotational update
 // mpcs?
+// fixity not so often?
 
 #if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
 #define KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED
@@ -94,7 +95,9 @@ public:
     /// The definition of the numerical limit
     static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
 
-    typedef Variable< array_1d<double, 3 > > ArrayVarType;
+    typedef Variable<array_1d<double,3>> ArrayVarType;
+    typedef Variable<double> DoubleVarType;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> VarComponentType;
 
     /// Counted pointer of ExplicitMultiStageKimScheme
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitMultiStageKimScheme);
@@ -386,7 +389,7 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedomStage1(it_node_begin + i, disppos, dim);
+            this->UpdateTranslationalDegreesOfFreedomStage1(it_node_begin + i, dim);
         } // for Node parallel
 
         InitializeResidual(rModelPart);
@@ -397,7 +400,8 @@ public:
             // Current step information "N+1" (before step update).
             this->UpdateAccelerationStage(
                 it_node_begin + i, disppos,FRACTIONAL_ACCELERATION,
-                VELOCITY,NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,dim);
+                VELOCITY,NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,
+                DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
         } // for Node parallel
 
         // ____________________________________________________________________________________________
@@ -407,7 +411,7 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedomStage2(it_node_begin + i, disppos, dim);
+            this->UpdateTranslationalDegreesOfFreedomStage2(it_node_begin + i, dim);
         } // for Node parallel
 
         InitializeResidual(rModelPart);
@@ -418,7 +422,8 @@ public:
             // Current step information "N+1" (before step update).
             this->UpdateAccelerationStage(
                 it_node_begin + i, disppos,ACCELERATION,VELOCITY,
-                NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,dim);
+                NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,
+                DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
         } // for Node parallel
 
         // ____________________________________________________________________________________________
@@ -428,49 +433,52 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedomStage3(it_node_begin + i, disppos, dim);
+            this->UpdateTranslationalDegreesOfFreedomStage3(it_node_begin + i, dim);
         } // for Node parallel
 
         KRATOS_CATCH("")
     }
 
+
     void UpdateAccelerationStage(
         NodeIterator itCurrentNode,
-        const IndexType DisplacementPosition,
+        const IndexType FieldPosition,
         const ArrayVarType& rAccelerationVariable,
         const ArrayVarType& rVelocityVariable,
-        const Variable<double>& rDampingVariable,
+        const DoubleVarType& rDampingVariable,
         const ArrayVarType& rResidualVariable,
-        const Variable<double>& rIntertiaVariable,
+        const DoubleVarType& rIntertiaVariable,
+        const VarComponentType& rFixVariable1,
+        const VarComponentType& rFixVariable2,
+        const VarComponentType& rFixVariable3,
         const SizeType DomainSize = 3
         )
     {
         array_1d<double, 3>& r_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable);
-        const double nodal_displacement_damping = itCurrentNode->GetValue(rDampingVariable);
+        const double nodal_damping = itCurrentNode->GetValue(rDampingVariable);
         const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(rResidualVariable);
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
-        const double nodal_mass = itCurrentNode->GetValue(rIntertiaVariable);
+        const double nodal_inertia = itCurrentNode->GetValue(rIntertiaVariable);
 
         // Solution of the explicit equation:
-        if (nodal_mass > numerical_limit)
+        if (nodal_inertia > numerical_limit)
         {
-            noalias(r_acceleration) = (r_current_residual - nodal_displacement_damping * r_current_velocity) / nodal_mass;
+            noalias(r_acceleration) = (r_current_residual - nodal_damping * r_current_velocity) / nodal_inertia;
 
-            std::array<bool, 3> fix_displacements = {false, false, false};
-            fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-            fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
+            std::array<bool, 3> fix_field = {false, false, false};
+            fix_field[0] = (itCurrentNode->GetDof(rFixVariable1, FieldPosition).IsFixed());
+            fix_field[1] = (itCurrentNode->GetDof(rFixVariable2, FieldPosition + 1).IsFixed());
             if (DomainSize == 3)
-                fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
+                fix_field[2] = (itCurrentNode->GetDof(rFixVariable3, FieldPosition + 2).IsFixed());
 
             for (IndexType j = 0; j < DomainSize; j++) {
-                if (fix_displacements[j]) {
+                if (fix_field[j]) {
                     r_acceleration[j] = 0.0;
                 }
             }
         }
         else
             noalias(r_acceleration) = ZeroVector(3);
-
     }
 
     /**
@@ -481,31 +489,18 @@ public:
      */
     void UpdateTranslationalDegreesOfFreedomStage1(
         NodeIterator itCurrentNode,
-        const IndexType DisplacementPosition,
         const SizeType DomainSize = 3
         )
     {
         std::cout << "UpdateTranslationalDegreesOfFreedomStage1" << std::endl;
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
 
         const array_1d<double, 3>& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
         const array_1d<double, 3>& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY, 1);
         const array_1d<double, 3>& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION, 1);
 
-        std::array<bool, 3> fix_displacements = {false, false, false};
-
-        fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-        fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
-        if (DomainSize == 3)
-            fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
-
         for (IndexType j = 0; j < DomainSize; j++) {
-            if (fix_displacements[j]) {
-                r_current_acceleration[j] = 0.0;
-                r_current_velocity[j] = 0.0;
-            }
 
             r_current_displacement[j] = r_previous_displacement[j] + mTime.MidStep * r_previous_velocity[j];
             r_current_displacement[j] += 0.50 * mTime.MidStep * mTime.MidStep * r_previous_acceleration[j];
@@ -516,32 +511,20 @@ public:
 
     void UpdateTranslationalDegreesOfFreedomStage2(
         NodeIterator itCurrentNode,
-        const IndexType DisplacementPosition,
         const SizeType DomainSize = 3
         )
     {
         std::cout << "UpdateTranslationalDegreesOfFreedomStage2" << std::endl;
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
         array_1d<double, 3>& r_fractional_acceleration = itCurrentNode->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
 
         const array_1d<double, 3>& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
         const array_1d<double, 3>& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY, 1);
         const array_1d<double, 3>& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION, 1);
 
-        std::array<bool, 3> fix_displacements = {false, false, false};
-
-        fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-        fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
-        if (DomainSize == 3)
-            fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
 
         for (IndexType j = 0; j < DomainSize; j++) {
-            if (fix_displacements[j]) {
-                r_current_acceleration[j] = 0.0;
-                r_current_velocity[j] = 0.0;
-            }
 
             r_current_displacement[j] = r_previous_displacement[j] + mTime.Delta * r_previous_velocity[j];
             r_current_displacement[j] += 0.50 * mTime.Delta * mTime.Delta * r_previous_acceleration[j] * ((3.0*mDeltaTime.Fraction-1.0)/(3.0*mDeltaTime.Fraction));
@@ -556,7 +539,6 @@ public:
 
     void UpdateTranslationalDegreesOfFreedomStage3(
         NodeIterator itCurrentNode,
-        const IndexType DisplacementPosition,
         const SizeType DomainSize = 3
         )
     {
@@ -570,18 +552,8 @@ public:
         const array_1d<double, 3>& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY, 1);
         const array_1d<double, 3>& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION, 1);
 
-        std::array<bool, 3> fix_displacements = {false, false, false};
-
-        fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-        fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
-        if (DomainSize == 3)
-            fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
 
         for (IndexType j = 0; j < DomainSize; j++) {
-            if (fix_displacements[j]) {
-                r_current_acceleration[j] = 0.0;
-                r_current_velocity[j] = 0.0;
-            }
 
             r_current_displacement[j] = r_previous_displacement[j] + mTime.Delta * r_previous_velocity[j];
             r_current_displacement[j] += 0.50 * mTime.Delta * mTime.Delta * r_previous_acceleration[j] * ((4.0*mDeltaTime.Fraction-1.0)/(6.0*mDeltaTime.Fraction));
