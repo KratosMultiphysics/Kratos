@@ -1451,12 +1451,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //QuadtreeType::Pointer temp_quadtree = QuadtreeType::Pointer(new QuadtreeType() );
         mpQuadtree.swap(temp_quadtree);
 
-        std::cout << "Inside Quadtree" << std::endl;
-
         double low[2];
         double high[2];
-
-        std::cout << "Fluid Model part" << mrFluidModelPart << std::endl;
 
         for (int i = 0; i < 2; i++)
         {
@@ -1496,11 +1492,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         high[1] +=  0.3*(high[1]-low[1] );
  */
 
-        std::cout << "Skin added" << std::endl;
         mpQuadtree->SetBoundingBox(low, high);
-        std::cout << "Bounding Box Lowest Dimension" << low[0] << "," << low[1] << std::endl;
-
-        std::cout << "Bounding Box Highest Dimension" << high[0] << "," << high[1] << std::endl;
 
         //mpQuadtree->RefineWithUniformSize(0.0625);
 
@@ -1525,9 +1517,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         }
 
         Timer::Stop("Generating Quadtree");
-        std::cout << "Quadtree generation finished" << std::endl;
-        KRATOS_WATCH(mpQuadtree);
-
         /*GenerateNodes();
 
         std::cout << "######## WRITING QUADTREE MESH #########" << std::endl;
