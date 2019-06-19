@@ -525,8 +525,8 @@ protected:
 
         // Fill the node Connectivities
         for(std::size_t i = 0; i < NumElements; i++) {
-            for (std::vector<SizeType>::const_iterator itNode = rElemConnectivities[i]->begin(); itNode != rElemConnectivities[i]->end(); ++itNode) {
-               rElemConnectivities[*itNode-1] = i;
+            for (std::vector<SizeType>::const_iterator itNode = rElemConnectivities[i].begin(); itNode != rElemConnectivities[i].end(); ++itNode) {
+               mNodeConnectivities[*itNode-1].insert(i);
             }
         }
 
