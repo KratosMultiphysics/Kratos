@@ -99,6 +99,8 @@ public:
     typedef Variable<double> DoubleVarType;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> VarComponentType;
 
+    typedef array_1d<double, 3> Double3DArray;
+
     /// Counted pointer of ExplicitMultiStageKimScheme
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitMultiStageKimScheme);
 
@@ -269,7 +271,7 @@ public:
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
         // Auxiliar values
-        const array_1d<double, 3> zero_array = ZeroVector(3);
+        const Double3DArray zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
         const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
@@ -298,12 +300,12 @@ public:
         const auto it_node_begin = rModelPart.NodesBegin();
 
         /// Initialise the database of the nodes
-        const array_1d<double, 3> zero_array = ZeroVector(3);
+        const Double3DArray zero_array = ZeroVector(3);
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_node_begin + i);
             it_node->SetValue(NODAL_MASS, 0.0);
-            array_1d<double, 3>& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
+            Double3DArray& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
             r_fractional_acceleration  = ZeroVector(3);
         }
         const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
@@ -312,7 +314,7 @@ public:
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                 auto it_node = (it_node_begin + i);
                 it_node->SetValue(NODAL_INERTIA, zero_array);
-                array_1d<double, 3>& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ANGULAR_ACCELERATION);
+                Double3DArray& r_fractional_acceleration = it_node->FastGetSolutionStepValue(FRACTIONAL_ANGULAR_ACCELERATION);
                 r_fractional_acceleration  = ZeroVector(3);
             }
         }
@@ -321,7 +323,7 @@ public:
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_node_begin + i);
 
-            array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            Double3DArray& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
 //             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             for (IndexType j = 0; j < DomainSize; j++) {
@@ -330,7 +332,7 @@ public:
             }
 
             if (has_dof_for_rot_z) {
-                array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                Double3DArray& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
 //                 array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
 
                 const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
@@ -378,9 +380,12 @@ public:
 
         // The iterator of the first node
         const auto it_node_begin = rModelPart.NodesBegin();
+        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+
 
         // Getting dof position
         const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+        const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
         // ____________________________________________________________________________________________
         // ____________________________________________________________________________________________
@@ -389,8 +394,20 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedomStage1(it_node_begin + i, dim);
+            this->UpdateDegreesOfFreedomStage1(it_node_begin + i,
+                VELOCITY,DISPLACEMENT,ACCELERATION,dim);
         } // for Node parallel
+
+
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateDegreesOfFreedomStage1(it_node_begin + i,
+                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,dim);
+            } // for Node parallel
+        }
+
 
         InitializeResidual(rModelPart);
         CalculateAndAddRHS(rModelPart);
@@ -404,6 +421,7 @@ public:
                 DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
         } // for Node parallel
 
+
         // ____________________________________________________________________________________________
         // ____________________________________________________________________________________________
         // ____________________________________________________________________________________________
@@ -411,7 +429,8 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedomStage2(it_node_begin + i, dim);
+            this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
+                VELOCITY,DISPLACEMENT,ACCELERATION,FRACTIONAL_ACCELERATION,dim);
         } // for Node parallel
 
         InitializeResidual(rModelPart);
@@ -433,7 +452,8 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedomStage3(it_node_begin + i, dim);
+            this->UpdateDegreesOfFreedomStage3(it_node_begin + i,
+                VELOCITY,DISPLACEMENT,ACCELERATION,FRACTIONAL_ACCELERATION,dim);
         } // for Node parallel
 
         KRATOS_CATCH("")
@@ -454,10 +474,10 @@ public:
         const SizeType DomainSize = 3
         )
     {
-        array_1d<double, 3>& r_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable);
+        Double3DArray& r_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable);
         const double nodal_damping = itCurrentNode->GetValue(rDampingVariable);
-        const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(rResidualVariable);
-        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
+        const Double3DArray& r_current_residual = itCurrentNode->FastGetSolutionStepValue(rResidualVariable);
+        Double3DArray& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
         const double nodal_inertia = itCurrentNode->GetValue(rIntertiaVariable);
 
         // Solution of the explicit equation:
@@ -487,18 +507,20 @@ public:
      * @param DisplacementPosition The position of the displacement dof on the database
      * @param DomainSize The current dimention of the problem
      */
-    void UpdateTranslationalDegreesOfFreedomStage1(
+    void UpdateDegreesOfFreedomStage1(
         NodeIterator itCurrentNode,
+        const ArrayVarType& rVelocityVariable,
+        const ArrayVarType& rDisplacementVariable,
+        const ArrayVarType& rAccelerationVariable,
         const SizeType DomainSize = 3
         )
     {
-        std::cout << "UpdateTranslationalDegreesOfFreedomStage1" << std::endl;
-        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
+        Double3DArray& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
+        Double3DArray& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(rDisplacementVariable);
 
-        const array_1d<double, 3>& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-        const array_1d<double, 3>& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double, 3>& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION, 1);
+        const Double3DArray& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(rDisplacementVariable, 1);
+        const Double3DArray& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable, 1);
+        const Double3DArray& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable, 1);
 
         for (IndexType j = 0; j < DomainSize; j++) {
 
@@ -509,19 +531,22 @@ public:
         } // for DomainSize
     }
 
-    void UpdateTranslationalDegreesOfFreedomStage2(
+    void UpdateDegreesOfFreedomStage2(
         NodeIterator itCurrentNode,
+        const ArrayVarType& rVelocityVariable,
+        const ArrayVarType& rDisplacementVariable,
+        const ArrayVarType& rAccelerationVariable,
+        const ArrayVarType& rFractionalAccelerationVariable,
         const SizeType DomainSize = 3
         )
     {
-        std::cout << "UpdateTranslationalDegreesOfFreedomStage2" << std::endl;
-        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3>& r_fractional_acceleration = itCurrentNode->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
+        Double3DArray& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
+        Double3DArray& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(rDisplacementVariable);
+        Double3DArray& r_fractional_acceleration = itCurrentNode->FastGetSolutionStepValue(rFractionalAccelerationVariable);
 
-        const array_1d<double, 3>& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-        const array_1d<double, 3>& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double, 3>& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION, 1);
+        const Double3DArray& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(rDisplacementVariable, 1);
+        const Double3DArray& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable, 1);
+        const Double3DArray& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable, 1);
 
 
         for (IndexType j = 0; j < DomainSize; j++) {
@@ -537,20 +562,23 @@ public:
         } // for DomainSize
     }
 
-    void UpdateTranslationalDegreesOfFreedomStage3(
+    void UpdateDegreesOfFreedomStage3(
         NodeIterator itCurrentNode,
+        const ArrayVarType& rVelocityVariable,
+        const ArrayVarType& rDisplacementVariable,
+        const ArrayVarType& rAccelerationVariable,
+        const ArrayVarType& rFractionalAccelerationVariable,
         const SizeType DomainSize = 3
         )
     {
-        std::cout << "UpdateTranslationalDegreesOfFreedomStage3" << std::endl;
-        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
-        array_1d<double, 3>& r_fractional_acceleration = itCurrentNode->FastGetSolutionStepValue(FRACTIONAL_ACCELERATION);
+        Double3DArray& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
+        Double3DArray& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(rDisplacementVariable);
+        Double3DArray& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable);
+        Double3DArray& r_fractional_acceleration = itCurrentNode->FastGetSolutionStepValue(rFractionalAccelerationVariable);
 
-        const array_1d<double, 3>& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-        const array_1d<double, 3>& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double, 3>& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION, 1);
+        const Double3DArray& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(rDisplacementVariable, 1);
+        const Double3DArray& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable, 1);
+        const Double3DArray& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable, 1);
 
 
         for (IndexType j = 0; j < DomainSize; j++) {
@@ -566,20 +594,6 @@ public:
             r_current_velocity[j] -= mTime.Delta * r_fractional_acceleration[j] * ((1.0)/(6.0*mDeltaTime.Fraction*(mDeltaTime.Fraction-1.0)));
             r_current_velocity[j] += mTime.Delta * r_current_acceleration[j] * ((3.0*mDeltaTime.Fraction-2.0)/(6.0*(mDeltaTime.Fraction-1.0)));
         } // for DomainSize
-    }
-
-    /**
-     * @brief This method updates the rotation DoF
-     * @param itCurrentNode The iterator of the current node
-     * @param RotationPosition The position of the rotation dof on the database
-     * @param DomainSize The current dimention of the problem
-     */
-    void UpdateRotationalDegreesOfFreedom(
-        NodeIterator itCurrentNode,
-        const IndexType RotationPosition,
-        const SizeType DomainSize = 3
-        )
-    {
     }
 
     /**
@@ -601,7 +615,7 @@ public:
         const auto it_node_begin = rModelPart.NodesBegin();
 
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array = ZeroVector(3);
+        const Double3DArray zero_array = ZeroVector(3);
 
         // Getting dof position
         const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
@@ -612,11 +626,11 @@ public:
             auto it_node = it_node_begin + i;
 
             const double nodal_mass = it_node->GetValue(NODAL_MASS);
-            const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            const Double3DArray& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+            Double3DArray& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
 
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+            Double3DArray& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
 
             // Solution of the explicit equation:
             if (nodal_mass > numerical_limit) {
