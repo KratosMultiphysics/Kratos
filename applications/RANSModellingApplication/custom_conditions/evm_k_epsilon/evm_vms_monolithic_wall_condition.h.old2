@@ -413,17 +413,19 @@ protected:
                     r_geometry, VELOCITY, gauss_shape_functions);
             const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
-            const double tke = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double wall_distance = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, DISTANCE, gauss_shape_functions);
             const double y_plus = rans_calculation_utilities.EvaluateInPoint(
                 r_geometry, RANS_Y_PLUS, gauss_shape_functions);
+            const double nu = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
 
-            if (y_plus > std::numeric_limits<double>::epsilon())
+            if (wall_velocity_magnitude > std::numeric_limits<double>::epsilon() &&
+                wall_distance > std::numeric_limits<double>::epsilon())
             {
-                const double u_tau = std::max(c_mu_25 * std::sqrt(std::max(tke, 0.0)),
-                                              wall_velocity_magnitude / y_plus);
+                const double u_tau = y_plus * nu / wall_distance;
 
-                const double value = u_tau * gauss_weights[g] / y_plus;
+                const double value = std::pow(u_tau, 2) * gauss_weights[g] / wall_velocity_magnitude;
 
                 for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
                 {
