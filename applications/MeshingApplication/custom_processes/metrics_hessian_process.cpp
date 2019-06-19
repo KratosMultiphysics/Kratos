@@ -29,6 +29,9 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     // We push the list of double variables
     mrOriginVariableDoubleList.push_back(&rVariable);
 
+    // TODO: Remove this warning in the future
+    KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
+
     // We check the parameters
     Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -46,6 +49,9 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 {
     // We push the components list
     mrOriginVariableComponentsList.push_back(&rVariable);
+
+    // TODO: Remove this warning in the future
+    KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
     Parameters default_parameters = GetDefaultParameters();
