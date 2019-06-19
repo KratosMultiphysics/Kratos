@@ -18,18 +18,47 @@ class CouplingInterfaceData(object):
         }""")
         custom_config.ValidateAndAssignDefaults(default_config)
 
-        self.variable = cs_tools.cs_data_structure.KratosGlobals.GetVariable(custom_config["variable_name"].GetString())
+        # saving the Model and ModelPart
         self.model = model
-        self.dimension = custom_config["dimension"].GetInt() # TODO check that sth was assigned
-        self.location = custom_config["location"].GetString()
         self.model_part_name = custom_config["model_part_name"].GetString()
-        # TODO check DOMAIN_SIZE against the dimension
+
+        # variable used to identify data
+        variable_name = custom_config["variable_name"].GetString()
+        variable_type = cs_tools.cs_data_structure.KratosGlobals.GetVariableType(variable_name)
+
+        admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
+        admissible_vector_variable_types = ["Array"]
+
+        if not variable_type in admissible_scalar_variable_types and not variable_type in admissible_vector_variable_types:
+            raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
+
+        self.variable = cs_tools.cs_data_structure.KratosGlobals.GetVariable(variable_name)
+
+        self.is_scalar_variable = variable_type in admissible_scalar_variable_types
+
+        # dimensionality of the data
+        # TODO check that sth was assigned
+        # TODO check DOMAIN_SIZE against the dimension???
+        self.dimension = custom_config["dimension"].GetInt()
+
+        # location of data on ModelPart
+        self.location = custom_config["location"].GetString()
+        admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
+        if not self.location in admissible_locations:
+            raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
+
 
     def GetModelPart(self):
         return self.model[self.model_part_name]
 
     def IsDistributed(self):
         return self.GetModelPart().GetCommunicator().GetDataCommunicator().IsDistributed()
+
+    def Size(self):
+        if self.location in ["process_info", "model_part"]:
+            return 1
+        else:
+            return len(self.GetDataContainer())
 
     def GetBufferSize(self):
         # only historical nodal data can store multiple steps!
