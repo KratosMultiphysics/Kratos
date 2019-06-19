@@ -21,6 +21,8 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
         derivative_data  = self.interface_derivative_data.GetNumpyArray(1)
 
         delta_time = self.interface_data.GetModelPart().ProcessInfo[cs_tools.cs_data_structure.DELTA_TIME]
+        if abs(delta_time) < 1E-15:
+            raise Exception("delta-time is almost zero!")
 
         data += delta_time * derivative_data
 
