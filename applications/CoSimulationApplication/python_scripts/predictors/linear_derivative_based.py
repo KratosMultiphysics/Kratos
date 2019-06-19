@@ -20,9 +20,9 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
         data  = self.interface_data.GetNumpyArray(1)
         derivative_data  = self.interface_derivative_data.GetNumpyArray(1)
 
-        # TODO get the delta-time from the ModelPart-ProcessInfo in the future
-        # => this will be accessible through the data-object (=> has the model)
-        data += self.solver_wrapper.GetDeltaTime() * derivative_data
+        delta_time = self.interface_data.GetModelPart().ProcessInfo[cs_tools.cs_data_structure.DELTA_TIME]
+
+        data += delta_time * derivative_data
 
         self._UpdateData(data)
 
