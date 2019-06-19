@@ -88,8 +88,13 @@ class CouplingInterfaceData(object):
 
     def SetData(self, new_data, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
-        if len(new_data) != self.Size(): # Dimensionality is missing!
-            raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(new_data), self.Size())):
+
+        # checking size of data
+        exp_size = self.Size()
+        if not self.is_scalar_variable:
+            exp_size *= self.dimension
+        if len(new_data) != exp_size:
+            raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(new_data), exp_size))
 
         if self.location == "node_historical":
             data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, SetSolutionStepValue, new_data, solution_step_index)
