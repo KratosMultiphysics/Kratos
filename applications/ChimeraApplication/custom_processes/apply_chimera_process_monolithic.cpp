@@ -128,8 +128,8 @@ void ApplyChimeraProcessMonolithic<TDim>::DoChimeraLoop() //selecting patch and 
         }
     }
     KRATOS_INFO("End of chimera loop") << std::endl;
-    int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
-    KRATOS_INFO("Total number of constraints created so far") << number_of_constraints << std::endl;
+
+    KRATOS_INFO("Total number of constraints created so far") << mrMainModelPart.NumberOfMasterSlaveConstraints() << std::endl;
 }
 
 //Apply Chimera with or without overlap
@@ -179,13 +179,19 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
             it_elem->Set(VISITED, true);
         }
 
-        KRATOS_INFO("Formulate Chimera: Number of nodes in modified patch boundary : ") << r_modified_patch_boundary_model_part.Nodes().size() << std::endl;
-        KRATOS_INFO("Formulate Chimera: Number of nodes in hole boundary : ") << r_hole_boundary_model_part.Nodes().size() << std::endl;
         ApplyContinuityWithMpcs(r_modified_patch_boundary_model_part, p_point_locator_on_background);
-        KRATOS_INFO("Formulate Chimera: Constraints formulated for modified patch boundary ... ") << std::endl;
-
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("") << std::endl;
         ApplyContinuityWithMpcs(r_hole_boundary_model_part, p_pointer_locator_on_patch);
-        KRATOS_INFO("Formulate Chimera: Constraints formulated for hole boundary ... ") << std::endl;
+
+        const unsigned int n_nodes = r_hole_model_part.NumberOfNodes();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node)
+        {
+            auto it_node = r_hole_model_part.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+            it_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+            it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
+        }
 
         current_model.DeleteModelPart("HoleModelpart");
         current_model.DeleteModelPart("HoleBoundaryModelPart");
@@ -236,6 +242,7 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
     const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
     std::size_t counter = 0;
     std::size_t removed_counter = 0;
+    std::size_t not_found_counter = 0;
 
     for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
@@ -245,7 +252,7 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
         mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
     }
 
-#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) firstprivate(removed_counter) reduction(+ \
+#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) reduction(+:not_found_counter) reduction(+:removed_counter) reduction(+ \
                                                                                                                                            : counter)
     for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
@@ -282,7 +289,9 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
         {
             Geometry<Node<3>> &r_geom = p_element->GetGeometry();
             ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, start_constraint_id, constraints_id_vector, ms_container);
-            counter += r_geom.size();
+            counter += 1;
+        }else{
+            not_found_counter+=1;
         }
         p_boundary_node->Set(VISITED, true);
     } // end of loop over boundary nodes
@@ -290,10 +299,9 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
     for (auto &container : master_slave_container_vector)
         mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
 
-    counter /= TDim + 1;
-    KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter << std::endl;
-    KRATOS_INFO("number of constraints created for this combination") << counter * 9 << std::endl;
-    KRATOS_INFO("number of constraints removed for this combination") << removed_counter << std::endl;
+    KRATOS_INFO("Number of boundary nodes in : ") << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
+    KRATOS_INFO("Number of Boundary nodes found : ") << counter<<". Number of constraints : "<<counter*9<< std::endl;
+    KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
 }
 
 template <int TDim>
