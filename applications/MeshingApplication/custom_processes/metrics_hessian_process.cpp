@@ -497,8 +497,8 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("enforce_current", ThisParameters["enforce_current"]);
     mThisParameters.AddValue("anisotropy_remeshing", ThisParameters["anisotropy_remeshing"]);
     mThisParameters.AddValue("enforce_anisotropy_relative_variable", ThisParameters["enforce_anisotropy_relative_variable"]);
+    mThisParameters.AddValue("interpolation_error", ThisParameters["hessian_strategy_parameters"]["interpolation_error"]);
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
-    mThisParameters.AddValue("interpolation_error", considered_parameters["hessian_strategy_parameters"]["interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);
     mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["enforced_anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);
     mThisParameters.AddValue("boundary_layer_max_distance", considered_parameters["enforced_anisotropy_parameters"]["boundary_layer_max_distance"]);
