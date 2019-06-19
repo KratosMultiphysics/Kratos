@@ -24,17 +24,17 @@ class CouplingInterfaceData(object):
 
         # variable used to identify data
         variable_name = custom_config["variable_name"].GetString()
-        variable_type = cs_tools.cs_data_structure.KratosGlobals.GetVariableType(variable_name)
+        self.variable_type = cs_tools.cs_data_structure.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
         admissible_vector_variable_types = ["Array"]
 
-        if not variable_type in admissible_scalar_variable_types and not variable_type in admissible_vector_variable_types:
-            raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
+        if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
+            raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
         self.variable = cs_tools.cs_data_structure.KratosGlobals.GetVariable(variable_name)
 
-        self.is_scalar_variable = variable_type in admissible_scalar_variable_types
+        self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
         # TODO check that sth was assigned
@@ -67,6 +67,64 @@ class CouplingInterfaceData(object):
         else:
             return 1
 
+    def GetData(self, solution_step_index=0):
+        self.__CheckBufferSize(solution_step_index)
+
+        if self.location == "node_historical":
+            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, GetSolutionStepValue, solution_step_index)
+        elif self.location == "node_non_historical":
+            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, GetValue)
+        elif self.location == "element":
+            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Elements, GetValue)
+        elif self.location == "condition":
+            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Conditions, GetValue)
+        elif self.location == "process_info":
+            data = [self.GetModelPart().ProcessInfo[self.variable]]
+        elif self.location == "model_part":
+            data = [self.GetModelPart()[self.variable]]
+
+        return np.asarray(data, dtype=self.dtype) # => https://docs.scipy.org/doc/numpy/user/basics.types.html
+
+
+    def SetData(self, new_data, solution_step_index=0):
+        self.__CheckBufferSize(solution_step_index)
+        if len(new_data) != self.Size(): # Dimensionality is missing!
+            raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(new_data), self.Size())):
+
+        if self.location == "node_historical":
+            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, SetSolutionStepValue, new_data, solution_step_index)
+        elif self.location == "node_non_historical":
+            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, SetValue, new_data)
+        elif self.location == "element":
+            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Elements, SetValue, new_data)
+        elif self.location == "condition":
+            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Conditions, SetValue, new_data)
+        elif self.location == "process_info":
+            self.GetModelPart().ProcessInfo[self.variable] = new_data[0]
+        elif self.location == "model_part":
+            self.GetModelPart()[self.variable] = new_data[0]
+
+    def __GetDataFromContainer(self, container, fct_ptr, *args):
+        if self.is_scalar_variable:
+            return [entity.fct_ptr(self.variable, *args) for entity in container]
+        else:
+            data = []
+            for entity in container:
+                vals = entity.fct_ptr(self.variable, *args)
+                for i in range(self.dimension):
+                    data.append(vals[i])
+
+            return data
+
+    def __SetDataOnContainer(self, container, fct_ptr, data, *args):
+        if self.is_scalar_variable:
+            return [entity.fct_ptr(self.variable, *args, value) for entity, value in zip(container, data)]
+        else:
+            for i_entity, entity in enumerate(container):
+                slice_start = i_entity*self.dimension
+                slice_end = slice_start + self.dimension
+                entity.fct_ptr(self.variable, *args, data[slice_start:slice_end])
+
     def GetPythonList(self, solution_step_index=0):
         model_part = self.GetModelPart()
         data = [0]*len(model_part.Nodes)*self.dimension
@@ -92,3 +150,17 @@ class CouplingInterfaceData(object):
 
             node.SetSolutionStepValue(self.variable, 0, updated_value)
             node_index += 1
+
+
+    def __CheckBufferSize(self, solution_step_index):
+        if solution_step_index+1 > self.GetBufferSize():
+            if self.location == "node_historical":
+                raise Exception("The buffer-size is not large enough (current buffer size: {} | requested solution_step_index: {})!".format(self.GetBufferSize(), solution_step_index+1))
+            else:
+                raise Exception("accessing data from previous steps is only possible with historical nodal data!")
+
+    def __GetNumpyDataType(self):
+        type_map = {
+
+        }
+        return ""
