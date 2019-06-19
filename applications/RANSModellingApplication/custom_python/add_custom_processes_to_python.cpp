@@ -51,6 +51,7 @@
 #include "custom_processes/auxiliary_processes/rans_vector_align_process.h"
 #include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_apply_exact_nodal_periodic_condition_process.h"
 
 namespace Kratos
 {
@@ -217,6 +218,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansClipScalarVariableByNeighbourAveragingProcessType,
                RansClipScalarVariableByNeighbourAveragingProcessType::Pointer, Process>(
         m, "RansClipScalarVariableByNeighbourAveragingProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansApplyExactNodalPeriodicConditionProcess RansApplyExactNodalPeriodicConditionProcessType;
+    py::class_<RansApplyExactNodalPeriodicConditionProcessType,
+               RansApplyExactNodalPeriodicConditionProcessType::Pointer, Process>(
+        m, "RansApplyExactNodalPeriodicConditionProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
