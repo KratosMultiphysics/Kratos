@@ -10,6 +10,8 @@ from kratos_base_field_solver import KratosBaseFieldSolver
 # Other imports
 from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
+import math
+
 def CreateSolver(cosim_solver_settings, level):
     return KratosParticleSolver(cosim_solver_settings, level)
 
@@ -38,7 +40,10 @@ class KratosParticleSolver(KratosBaseFieldSolver):
 
             ## ADD NORMAL
             normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
-            model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
+            # Check and see whether the normal is not zero
+            norm_normal = math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
+            if norm_normal > 1.e-10:
+                model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
 
         super(KratosParticleSolver, self).SolveSolutionStep()
 
