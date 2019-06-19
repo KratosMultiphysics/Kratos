@@ -101,6 +101,6 @@ class Anderson(CoSimulationConvergenceAccelerator):
 
             return delta_x
 
-        def FinalizeSolutionStep(self):
-            self.V.clear()
-            self.W.clear()
+    def FinalizeSolutionStep(self):
+        self.V.clear()
+        self.W.clear()
