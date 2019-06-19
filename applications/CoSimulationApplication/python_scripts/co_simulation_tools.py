@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 """This file contains some functionalities that are commonly used in CoSimulation"""
 
-import json
 cs_data_structure = None # global variable that contains the data-structure (Kratos or pyKratos)
 
 def ImportDataStructure(parameters_file_name):
