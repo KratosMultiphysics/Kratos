@@ -72,6 +72,14 @@ public:
         ComputePointTemperatureSensitivityContribution(rResidualGradient, rAdjointElement.GetGeometry().Points(),rResponseGradient);
     }
 
+    void CalculateGradient(const Condition& rAdjointCondition,
+                           const Matrix& rResidualGradient,
+                           Vector& rResponseGradient,
+                           const ProcessInfo& rProcessInfo) override
+    {
+        noalias(rResponseGradient) = ZeroVector(rResidualGradient.size2());
+    }
+
     void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
                                            const Matrix& rResidualGradient,
                                            Vector& rResponseGradient,
