@@ -292,7 +292,7 @@ protected:
             "origin_are_conditions"            : true,
             "destination_variable_historical"  : true,
             "destination_are_conditions"       : true,
-            "update_interface"                 : false,
+            "update_interface"                 : true,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,
