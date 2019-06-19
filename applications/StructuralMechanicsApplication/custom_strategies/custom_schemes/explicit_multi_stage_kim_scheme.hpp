@@ -14,6 +14,7 @@
 
 // problems:
 // add rotational update
+// mpcs?
 
 #if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
 #define KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED
@@ -394,7 +395,9 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateAccelerationStage(it_node_begin + i, disppos,FRACTIONAL_ACCELERATION, dim);
+            this->UpdateAccelerationStage(
+                it_node_begin + i, disppos,FRACTIONAL_ACCELERATION,
+                VELOCITY,NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,dim);
         } // for Node parallel
 
         // ____________________________________________________________________________________________
@@ -413,7 +416,9 @@ public:
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateAccelerationStage(it_node_begin + i, disppos,ACCELERATION, dim);
+            this->UpdateAccelerationStage(
+                it_node_begin + i, disppos,ACCELERATION,VELOCITY,
+                NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,dim);
         } // for Node parallel
 
         // ____________________________________________________________________________________________
@@ -432,15 +437,19 @@ public:
     void UpdateAccelerationStage(
         NodeIterator itCurrentNode,
         const IndexType DisplacementPosition,
-        const ArrayVarType& rVariable,
+        const ArrayVarType& rAccelerationVariable,
+        const ArrayVarType& rVelocityVariable,
+        const Variable<double>& rDampingVariable,
+        const ArrayVarType& rResidualVariable,
+        const Variable<double>& rIntertiaVariable,
         const SizeType DomainSize = 3
         )
     {
-        array_1d<double, 3>& r_acceleration = itCurrentNode->FastGetSolutionStepValue(rVariable);
-        const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
-        const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
-        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
-        const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
+        array_1d<double, 3>& r_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable);
+        const double nodal_displacement_damping = itCurrentNode->GetValue(rDampingVariable);
+        const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(rResidualVariable);
+        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable);
+        const double nodal_mass = itCurrentNode->GetValue(rIntertiaVariable);
 
         // Solution of the explicit equation:
         if (nodal_mass > numerical_limit)
