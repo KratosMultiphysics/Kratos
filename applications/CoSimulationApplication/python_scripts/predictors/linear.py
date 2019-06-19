@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_predictor import CoSimulationPredictor
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
