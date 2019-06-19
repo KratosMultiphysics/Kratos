@@ -116,6 +116,8 @@ from NightlyTests import ComponentsALMHertzCompleteTestContact         as TCompo
 # ALM frictional tests
 from NightlyTests import ALMPureFrictionalTestContact                  as TALMPureFrictionalTestContact
 from NightlyTests import ALMBasicFrictionTestContact                   as TALMBasicFrictionTestContact
+from NightlyTests import ALMStaticEvolutionLoadFrictionTestContact     as TALMStaticEvolutionLoadFrictionTestContact
+from NightlyTests import ALMEvolutionLoadFrictionTestContact           as TALMEvolutionLoadFrictionTestContact
 
 ## VALIDATION TESTS
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
@@ -139,7 +141,10 @@ from ValidationTests import ComponentsALMLargeDisplacementPatchTestHexa as TComp
 from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALMMultiLayerContactTest
 
 # ALM frictional tests
-from ValidationTests import ALMTaylorPatchFrictionalTestContact as TALMTaylorPatchFrictionalTestContact
+from ValidationTests import ALMTaylorPatchFrictionalTestContact                   as TALMTaylorPatchFrictionalTestContact
+from ValidationTests import ALMMeshMovingMatchingTestFrictionalPureSlipContact    as TALMMeshMovingMatchingTestFrictionalPureSlipContact
+from ValidationTests import ALMMeshMovingNotMatchingTestFrictionalPureSlipContact as TALMMeshMovingNotMatchingTestFrictionalPureSlipContact
+from ValidationTests import ALMHertzTestFrictionalContact                         as TALMHertzTestFrictionalContact
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -258,6 +263,8 @@ def AssembleTestSuites():
     # ALM frictional tests
     nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))
     nightlySuite.addTest(TALMBasicFrictionTestContact('test_execution'))
+    nightlySuite.addTest(TALMStaticEvolutionLoadFrictionTestContact('test_execution'))
+    nightlySuite.addTest(TALMEvolutionLoadFrictionTestContact('test_execution'))
 
     ### END VALIDATION SUITE ###
 
@@ -316,6 +323,9 @@ def AssembleTestSuites():
 
     # ALM frictional tests
     validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
+    validationSuite.addTest(TALMMeshMovingMatchingTestFrictionalPureSlipContact('test_execution'))
+    validationSuite.addTest(TALMMeshMovingNotMatchingTestFrictionalPureSlipContact('test_execution'))
+    validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
 
     ### END VALIDATION ###
 
@@ -401,13 +411,18 @@ def AssembleTestSuites():
             #TComponentsALMHertzCompleteTestContact,
             #TALMPureFrictionalTestContact,
             #TALMBasicFrictionTestContact,
+            #TALMStaticEvolutionLoadFrictionTestContact,
+            #TALMEvolutionLoadFrictionTestContact,
             ##### VALIDATION
             #TALMTaylorPatchDynamicTestContact,
             #TALMMeshMovingMatchingTestContact,
             #TALMMeshMovingNotMatchingTestContact,
             #TALMTaylorPatchFrictionalTestContact,
-            ###TALMIroningTestContact,
-            ###TALMIroningDieTestContact,
+            #TALMMeshMovingMatchingTestFrictionalPureSlipContact,
+            #TALMMeshMovingNotMatchingTestFrictionalPureSlipContact,
+            #TALMHertzTestFrictionalContact,
+            #####TALMIroningTestContact,
+            #####TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
             #TALMLargeDisplacementPatchTestTetra,
             #TALMLargeDisplacementPatchTestHexa,

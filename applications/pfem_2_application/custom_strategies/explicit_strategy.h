@@ -79,7 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 //#include "custom_utilities/neighbours_calculator.h"
 //#include "custom_elements/2fluid_2d.h"
 //#include "custom_elements/2fluid_3d.h"

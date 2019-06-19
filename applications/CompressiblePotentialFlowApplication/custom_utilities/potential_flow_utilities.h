@@ -18,7 +18,37 @@ namespace Kratos
 namespace PotentialFlowUtilities
 {
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
+array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
+    const Element& rElement, const array_1d<double, NumNodes>& rDistances);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> GetPotentialOnUpperWakeElement(
+    const Element& rElement, const array_1d<double, NumNodes>& rDistances);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
+    const Element& rElement, const array_1d<double, NumNodes>& rDistances);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement);
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeVelocity(const Element& rElement);
+
+template <int Dim, int NumNodes>
+double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 } // namespace PotentialFlow
 } // namespace Kratos
