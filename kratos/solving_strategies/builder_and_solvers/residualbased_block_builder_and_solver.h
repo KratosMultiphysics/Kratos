@@ -578,12 +578,12 @@ public:
                 if( it_const->IsDefined(ACTIVE) ) {
                     constraint_is_active = it_const->Is(ACTIVE);
                 }
-
-                if(constraint_is_active){
+                if(constraint_is_active) {
                     // Gets list of Dof involved on every element
                     it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
                     dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
                     dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+                    ++num_active;
                 }
             }
 
@@ -880,7 +880,7 @@ public:
     /**
      * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
      */
-    virtual void Clear() override
+    void Clear() override
     {
         BaseType::Clear();
 
@@ -1178,8 +1178,6 @@ protected:
                 max_diag = std::max(std::abs(rA(i,i)), max_diag);
             }
 
-            std::cout<<"A.size1 :: "<<rA.size1()<<"  A.size2 :: "<<rA.size2()<<"   rModelPart.MasterSlaveConstraints().size()  : "<<rModelPart.MasterSlaveConstraints().size()<<std::endl;
-            std::cout<<"BaseType::mDofSet.size() : "<<BaseType::mDofSet.size()<<std::endl;
             // Apply diagonal values on slaves
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
