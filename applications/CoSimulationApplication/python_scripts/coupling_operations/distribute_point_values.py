@@ -3,8 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
-class CoSimulationCouplingOperation(CoSimulationCouplingOperation):
-    # this is a dummy implementation
+class DistributePointValuesOperation(CoSimulationCouplingOperation):
+    # this is a dummy implementation, this should use the "VariableRedistributionUtility" from the core
     def Initialize(self):
         pass
 
