@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import math
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
@@ -89,6 +90,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         import python_linear_solver_factory as linear_solver_factory
 
         default_solver_settings = Kratos.Parameters(r'''{
+                "is_periodic"           : false,
                 "relative_tolerance"    : 1e-3,
                 "absolute_tolerance"    : 1e-5,
                 "max_iterations"        : 200,
@@ -116,8 +118,16 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         convergence_criteria = KratosRANS.GenericScalarConvergenceCriteria(
             solver_settings["relative_tolerance"].GetDouble(),
             solver_settings["absolute_tolerance"].GetDouble())
-        builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(
-            linear_solver)
+
+        is_periodic = solver_settings["is_periodic"].GetBool()
+
+        if is_periodic:
+            self.__InitializePeriodicConditions(model_part, scalar_variable)
+            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
+                linear_solver, KratosCFD.PATCH_INDEX)
+        else:
+            builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(
+                linear_solver)
 
         if (scheme_settings["scheme_type"].GetString() == "bossak"):
             time_scheme = KratosRANS.GenericResidualBasedBossakVelocityDynamicScalarScheme(
@@ -148,8 +158,16 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         convergence_criteria.SetEchoLevel(
             solver_settings["echo_level"].GetInt() - 1)
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                "Successfully created solving strategy.")
+        if (is_periodic):
+            Kratos.Logger.PrintInfo(
+                self.__class__.__name__,
+                "Successfully created periodic solving strategy for " +
+                scalar_variable.Name() + ".")
+        else:
+            Kratos.Logger.PrintInfo(
+                self.__class__.__name__,
+                "Successfully created solving strategy for " +
+                scalar_variable.Name() + ".")
 
         return strategy, linear_solver, convergence_criteria, builder_and_solver, time_scheme
 
@@ -159,7 +177,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                                           Kratos.KINEMATIC_VISCOSITY,
                                           self.fluid_model_part.Nodes)
         rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
-                                         self.nu_t_min,
+                                         self.nu_t_max,
                                          self.fluid_model_part.Nodes)
 
         self.PrepareSolvingStrategy()
@@ -199,3 +217,19 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             process.ExecuteFinalizeSolutionStep()
 
         self.GetTurbulenceSolvingProcess().ExecuteFinalizeSolutionStep()
+
+    def __InitializePeriodicConditions(self, model_part, scalar_variable):
+        properties = model_part.CreateNewProperties(
+            model_part.NumberOfProperties() + 1)
+        pcu = KratosCFD.PeriodicConditionUtilities(
+            model_part, model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
+        pcu.AddPeriodicVariable(properties, scalar_variable)
+
+        index = model_part.NumberOfConditions()
+        for condition in self.fluid_model_part.Conditions:
+            if condition.Is(Kratos.PERIODIC):
+                index += 1
+                node_id_list = [node.Id for node in condition.GetNodes()]
+                periodic_condition = model_part.CreateNewCondition(
+                    "PeriodicCondition", index, node_id_list, properties)
+                periodic_condition.Set(Kratos.PERIODIC)
