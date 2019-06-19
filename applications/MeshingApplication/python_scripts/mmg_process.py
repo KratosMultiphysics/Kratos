@@ -131,7 +131,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 "force_gradation_value"               : false,
                 "gradation_value"                     : 1.3
             },
-            "anisotropy_remeshing"             : true,
+            "anisotropy_remeshing"                 : true,
+            "enforce_anisotropy_relative_variable" : false,
             "anisotropy_parameters":{
                 "reference_variable_name"          : "DISTANCE",
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
@@ -396,6 +397,7 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters.AddValue("hessian_strategy_parameters",self.settings["hessian_strategy_parameters"])
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("metric_variable")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
+            hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
             hessian_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
             for current_metric_variable in self.metric_variable:
