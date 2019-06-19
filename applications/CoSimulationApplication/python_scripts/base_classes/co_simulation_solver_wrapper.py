@@ -90,9 +90,6 @@ class CoSimulationSolverWrapper(object):
         except KeyError:
             raise Exception("Requested data field " + data_name + " does not exist in the solver ")
 
-    def GetDeltaTime(self):
-        raise Exception('"GetDeltaTime" function must be implemented in derived class!')
-
     def PrintInfo(self):
         '''This function can be filled if desired, e.g. to print settings at higher echo-levels
         '''

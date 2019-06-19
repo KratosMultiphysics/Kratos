@@ -38,7 +38,6 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def AdvanceInTime(self, current_time):
         new_time = self._GetAnalysisStage()._GetSolver().AdvanceInTime(current_time)
         self._GetAnalysisStage().time = new_time # only needed to print the time correctly
-        self.delta_time = new_time - current_time
         return new_time
 
     def InitializeSolutionStep(self):
@@ -56,12 +55,6 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def OutputSolutionStep(self):
         self._GetAnalysisStage().OutputSolutionStep()
 
-
-    def GetDeltaTime(self):
-        # TODO this should most probably be removed
-        if not hasattr(self, 'delta_time'):
-            raise Exception("DeltaTime can only be querried after it has been computed at least once")
-        return self.delta_time
 
     def _GetAnalysisStage(self):
         if not hasattr(self, '_analysis_stage'):
