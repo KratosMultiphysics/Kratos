@@ -56,9 +56,12 @@ namespace Kratos {
             DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) override;
 
+        void FindMaximumValueOfNormalAndTangentialDamageComponents(double&);
+
         double mKtUpdated = 1e30;
         double mKnUpdated = 1e30;
-        double mDamage = 0.0;
+        double mDamageNormal = 0.0;
+        double mDamageTangential = 0.0;
 
     private:
 

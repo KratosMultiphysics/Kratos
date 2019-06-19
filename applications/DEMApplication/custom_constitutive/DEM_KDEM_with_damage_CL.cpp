@@ -54,15 +54,13 @@ namespace Kratos {
         double delta_acummulated = 0.0;
         double returned_by_mapping_force = 0.0;
         static bool first_time_entered = true;
-        const unsigned int sphere_id = 222222222;
-
+        const unsigned int sphere_id = 2;
         const std::string filename = "normal_forces_damage.txt";
-        std::ifstream ifile(filename.c_str());
 
         if (element1->Id() == sphere_id) {
-
+            static std::ifstream ifile(filename.c_str());
             if ((bool) ifile && first_time_entered) {
-                //std::remove("normal_forces_damage.txt");
+                std::remove("normal_forces_damage.txt");
                 first_time_entered = false;
             }
         }
@@ -86,7 +84,7 @@ namespace Kratos {
             if (!failure_type) {
 
                 const double initial_limit_force = tension_limit * calculation_area;
-                limit_force = (1.0 - mDamage) * tension_limit * calculation_area;
+                limit_force = (1.0 - mDamageNormal) * tension_limit * calculation_area;
                 LocalElasticContactForce[2] = mKnUpdated * indentation;
 
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {
@@ -115,8 +113,8 @@ namespace Kratos {
                             mKnUpdated = returned_by_mapping_force / delta_acummulated;
                         }
 
-                        mDamage = 1.0 - returned_by_mapping_force/initial_limit_force;
-                        if (mDamage > damage_threshold_tolerance) {
+                        mDamageNormal = 1.0 - returned_by_mapping_force/initial_limit_force;
+                        if (mDamageNormal > damage_threshold_tolerance) {
                             failure_type = 4; // failure by traction
                             mKnUpdated = kn_el;
                         }
@@ -131,7 +129,7 @@ namespace Kratos {
         if (element1->Id() == sphere_id) {
             static std::ofstream normal_forces_file("normal_forces_damage.txt", std::ios_base::out | std::ios_base::app);
             normal_forces_file << r_process_info[TIME] << " " << indentation << " " << LocalElasticContactForce[2] << " " << limit_force << " "
-                               << delta_acummulated << " " << returned_by_mapping_force << " " << mKnUpdated << '\n';
+                               << delta_acummulated << " " << returned_by_mapping_force << " " << mKnUpdated << " " << mDamageNormal << '\n';
             normal_forces_file.flush();
         }
 
@@ -171,16 +169,14 @@ namespace Kratos {
         int damage = 0;
         int slide = 0;
         double equiv_tg_of_fri_ang;
-        double maximum_frictional_shear_force;
-        const unsigned int sphere_id = 222222222;
-
+        double maximum_frictional_shear_force = 0.0;
+        const unsigned int sphere_id = 2;
         const std::string filename = "tangential_forces_damage.txt";
-        std::ifstream ifile(filename.c_str());
 
         if (element1->Id() == sphere_id) {
-
+            static std::ifstream ifile(filename.c_str());
             if ((bool) ifile && first_time_entered) {
-                //std::remove("tangential_forces_damage.txt");
+                std::remove("tangential_forces_damage.txt");
                 first_time_entered = false;
             }
         }
@@ -197,17 +193,17 @@ namespace Kratos {
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKtUpdated * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKtUpdated * LocalDeltDisp[1]; // 1: second tangential
 
-        const double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+        double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                                           + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        double returned_by_mapping_force = current_tangential_force_module;
-        double delta_acummulated = returned_by_mapping_force / kt_el;
+        double returned_by_mapping_force = 0.0;
+        double delta_acummulated = current_tangential_force_module / mKtUpdated;
 
         if (element1->Id() == sphere_id) {
-            KRATOS_WATCH(r_process_info[TIME])
+            /*KRATOS_WATCH(r_process_info[TIME])
             KRATOS_WATCH(kt_el)
             KRATOS_WATCH(returned_by_mapping_force)
-            KRATOS_WATCH(delta_acummulated)
+            KRATOS_WATCH(delta_acummulated)*/
         }
 
         if (!failure_type) { // This means it has not broken
@@ -220,10 +216,10 @@ namespace Kratos {
             contact_tau = current_tangential_force_module / calculation_area;
 
             double updated_max_tau_strength = mTauZero;
-            tau_strength = (1.0 - mDamage) * mTauZero;
+            tau_strength = (1.0 - mDamageTangential) * mTauZero;
 
             if (contact_sigma >= 0) {
-                tau_strength += (1.0 - mDamage) * mInternalFriction * contact_sigma;
+                tau_strength += (1.0 - mDamageTangential) * mInternalFriction * contact_sigma;
                 updated_max_tau_strength += mInternalFriction * contact_sigma;
             }
 
@@ -242,15 +238,15 @@ namespace Kratos {
                         delta_acummulated = delta_at_undamaged_peak + updated_max_tau_strength * calculation_area / k_unload;
                     }
                     if (element1->Id() == sphere_id) {
-                        KRATOS_WATCH(r_process_info[TIME])
+                        /*KRATOS_WATCH(r_process_info[TIME])
                         KRATOS_WATCH(current_tangential_force_module)
                         KRATOS_WATCH(mKtUpdated)
-                        KRATOS_WATCH(delta_acummulated)
+                        KRATOS_WATCH(delta_acummulated)*/
                         // Data to build the damage envelope
-                        KRATOS_WATCH(kt_el)
+                        /*KRATOS_WATCH(kt_el)
                         KRATOS_WATCH(k_unload)
                         KRATOS_WATCH(delta_at_undamaged_peak)
-                        KRATOS_WATCH(delta_at_undamaged_peak + updated_max_tau_strength * calculation_area / k_unload)
+                        KRATOS_WATCH(delta_at_undamaged_peak + updated_max_tau_strength * calculation_area / k_unload)*/
                     }
 
                     returned_by_mapping_force = updated_max_tau_strength * calculation_area - k_unload * (delta_acummulated - delta_at_undamaged_peak);
@@ -264,12 +260,14 @@ namespace Kratos {
                         LocalElasticContactForce[1] = (returned_by_mapping_force / current_tangential_force_module) * LocalElasticContactForce[1];
                     }
 
+                    current_tangential_force_module = returned_by_mapping_force;
+
                     if (delta_acummulated) {
                         mKtUpdated = returned_by_mapping_force / delta_acummulated;
                     }
 
-                    mDamage = 1.0 - returned_by_mapping_force / (updated_max_tau_strength * calculation_area);
-                    if (mDamage > damage_threshold_tolerance) {
+                    mDamageTangential = 1.0 - returned_by_mapping_force / (updated_max_tau_strength * calculation_area);
+                    if (mDamageTangential > damage_threshold_tolerance) {
                         failure_type = 2; // failure by shear
                         mKtUpdated = kt_el;
                     }
@@ -288,16 +286,34 @@ namespace Kratos {
                 sliding = true;
                 slide = 1;
             }
+
+            returned_by_mapping_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            delta_acummulated = returned_by_mapping_force / mKtUpdated;
+            current_tangential_force_module = returned_by_mapping_force;
         }
+
+        double max_damage;
+        FindMaximumValueOfNormalAndTangentialDamageComponents(max_damage);
 
         if (element1->Id() == sphere_id) {
             static std::ofstream tangential_forces_file("tangential_forces_damage.txt", std::ios_base::out | std::ios_base::app);
             tangential_forces_file << r_process_info[TIME] << " " << failure << " " << LocalElasticContactForce[0] << " "
                                    << tau_strength * calculation_area << " " << delta_acummulated << " " << returned_by_mapping_force << " "
-                                   << mKtUpdated << " " << damage << " " << slide << " " << contact_sigma << " " << mDamage << " "
-                                   << contact_tau << " " << current_tangential_force_module << " " << LocalElasticContactForce[2] << '\n';
+                                   << mKtUpdated << " " << damage << " " << slide << " " << contact_sigma << " " << max_damage << " "
+                                   << contact_tau << " " << current_tangential_force_module << " " << LocalElasticContactForce[2] << " "
+                                   << maximum_frictional_shear_force << '\n';
             tangential_forces_file.flush();
         }
+
+        KRATOS_CATCH("")
+    }
+
+    void DEM_KDEM_with_damage::FindMaximumValueOfNormalAndTangentialDamageComponents(double& max_damage) {
+
+        KRATOS_TRY
+
+        max_damage = std::max(mDamageNormal, mDamageTangential);
+        mDamageNormal = mDamageTangential = max_damage;
 
         KRATOS_CATCH("")
     }
