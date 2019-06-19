@@ -99,7 +99,7 @@ public:
         if (!origin_are_conditions_is_defined) {
             if (rOriginModelPart.NumberOfElements() > 0) {
                 ThisParameters["origin_are_conditions"].SetBool(false);
-                KRATOS_WARNING("SimpleMortarMapperProcessWrapper")  << "We will consider an origin model part with elements. Set manually origin_are_conditions to true to avoid this" << std::endl;
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'origin_are_conditions\' changed to \`False\`. Mapping from elements." << std::endl;
             } else if (rOriginModelPart.NumberOfConditions() == 0) {
                 KRATOS_ERROR << "No conditions defined on origin model part" << std::endl;
             }
@@ -107,7 +107,7 @@ public:
         if (!destination_are_conditions_is_defined) {
             if (rDestinationModelPart.NumberOfElements() > 0) {
                 ThisParameters["destination_are_conditions"].SetBool(false);
-                KRATOS_WARNING("SimpleMortarMapperProcessWrapper")  << "We will consider an destination model part with elements. Set manually destination_are_conditions to true to avoid this" << std::endl;
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'destination_are_conditions\' changed to \`False\`. Mapping from elements." << std::endl;
             } else if (rDestinationModelPart.NumberOfConditions() == 0) {
                 KRATOS_ERROR << "No conditions defined on destination model part" << std::endl;
             }
