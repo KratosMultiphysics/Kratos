@@ -33,35 +33,62 @@ initial_mass = np.sum(initial_masses)
 # print(initial_mass)
 
 # SP
-graph_name='sp_bonds_t.pdf'
-graph_name='sp_bonds.pdf'
-
-failure_step = 300 # TODO
-failure_step = 175 # TODO
-
-times = np.zeros(failure_step+1)
-for i in range(failure_step):
-    times[i+1] = f[str(i)].attrs['time']
-pressures = [5e10*t*0.000145038 for t in times] # Pressure in psi # TODO
-# print(times)
-# print(pressures)
-
-total_num_bonds = 6.0 # TODO: this should be an int
-
 all_times=[]
 all_pressures=[]
 all_sps=[]
 
-for numbonds in np.arange(0.0,total_num_bonds,1.0):
-    sps = np.zeros(failure_step+1)
-    for i in range(failure_step):
-        radii = np.array(f[str(i)].get('radius'))
+# Time and external applied pressure
+failure_step = 175 # TODO
+max_step = 2*failure_step
+max_step = failure_step
+times = np.zeros(max_step+1)
+for i in range(max_step):
+    times[i+1] = f[str(i)].attrs['time']
+p_rate = 5e10 # TODO
+psi_factor = 0.000145038
+pressures = [p_rate*t*psi_factor for t in times] # Pressure in psi
+t_f=times[failure_step]
+
+# Estimated time of initial sanding. TODO
+t_is=times[130]
+
+# Maximum number of intact bonds to consider spheres as SP
+max_num_bonds = 6.0 # TODO: this should be an int
+
+for numbonds in np.arange(0.0,max_num_bonds,1.0):
+    sps = np.zeros(max_step+1)
+    for i in range(max_step):
+
+        # Read datasets
+        all_radii = np.array(f[str(i)].get('radius'))
         continuum_bonds = np.array(f[str(i)].get('current_continuum_bonds'))
-        radii_3 = np.where(continuum_bonds>numbonds,np.power(radii,3),0.0)
-        masses = 4.0/3.0 * np.pi * density * gram_factor * height_factor * porosity_factor * radii_3
+        xs = np.array(f[str(i)].get('x'))
+        ys = np.array(f[str(i)].get('y'))
+
+        # Separate internal and external spheres (weak region and strong region)
+        xs_2 = np.power(xs,2)
+        ys_2 = np.power(ys,2)
+        distance_2 = xs_2 + ys_2
+        # weak_radius = 0.5*(internal_radius+interface_radius)
+        if times[i+1] < t_is:
+            weak_radius = internal_radius
+        else:
+            weak_radius = internal_radius + (interface_radius-internal_radius)/(t_f-t_is)*(times[i+1]-t_is)
+        internal_radii = np.where(distance_2<weak_radius**2,all_radii,0.0) # spheres between inner wall (hole) and a certain radius (weak region)
+        external_radii = np.where(distance_2>=weak_radius**2,all_radii,0.0) # spheres between a certain radius and the interface wall (dem-fem wall) (strong region)
+
+        # Eliminate spheres that are free (SP), taking special care of those falling near the hole (internal spheres)
+        cont_internal_radii = np.where(continuum_bonds>numbonds,internal_radii,0.0) # We eliminate spheres with small number of bonds in the weak part of the probe
+        cont_external_radii = np.where(continuum_bonds>0.0,external_radii,0.0)
+
+        total_radii_3 = np.power(cont_internal_radii+cont_external_radii,3)
+
+        # Compute SP
+        masses = 4.0/3.0 * np.pi * density * gram_factor * height_factor * porosity_factor * total_radii_3
         current_mass = np.sum(masses)
         current_sp = initial_mass - current_mass
         sps[i+1] = current_sp
+
     all_times.append(times)
     all_pressures.append(pressures)
     all_sps.append(sps)
@@ -82,6 +109,8 @@ all_pressures.append(exp_pressures)
 all_sps.append(exp_sps)
 
 # Graphs
+graph_name='sp_bonds_t.pdf'
+graph_name='sp_bonds.pdf'
 
 graph_labels=['SP up to 0 intact bonds',
             'SP up to 1 intact bonds',
@@ -96,12 +125,13 @@ f = plt.figure()
 
 for name, pressures, productions in zip(graph_labels, all_pressures, all_sps):
     plt.plot(pressures, productions,label=name)
+p_is = p_rate*t_is*psi_factor
+plt.axvline(x=p_is, c='k', ls='--', label='estimated numerical initial sanding')
 
 # for name, times, productions in zip(graph_labels, all_times, all_sps):
 #     plt.plot(times, productions,label=name)
-
-# for name, pressures, productions, i_collapse in zip(graph_labels, all_files_pressures, all_files_productions, all_files_i_collapse):
-#     plt.plot(pressures[:i_collapse], productions[:i_collapse],label=name)
+# plt.axvline(x=t_is, c='k', ls='--', label='estimated numerical initial sanding')
+# plt.axvline(x=t_f, c='k', ls=':', label='numerical collapse')
 
 plt.legend(loc=2, prop={'size': 6})
 plt.xlabel('p (psi)')
