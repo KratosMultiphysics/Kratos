@@ -514,7 +514,6 @@ protected:
                        std::vector<idxtype>& rElemPartition)
     {
         SizeType NumElements = rElemConnectivities.size();
-        std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
 
         // initialize ElementPartition
         rElemPartition.resize(NumElements,-1);
@@ -536,7 +535,6 @@ protected:
             if ( NeighbourNodes == itElem->size() )
             {
                 *itPart = MyPartition;
-                PartitionWeights[MyPartition]++;
             }
 
             // Advance to next element in connectivities array
@@ -582,7 +580,6 @@ protected:
                 int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
                 {
                     *itPart = MajorityPartition;
-                    PartitionWeights[MajorityPartition]++;
                 }
             }
 
@@ -603,7 +600,6 @@ protected:
     {
       SizeType NumElements = rElemConnectivities.size();
       SizeType NumConditions = rCondConnectivities.size();
-      std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
 
       // initialize CondPartition
       rCondPartition.resize(NumConditions,-1);
@@ -630,7 +626,6 @@ protected:
           if ( NeighbourNodes == itCond->size() )
           {
               *itPart = MyPartition;
-              PartitionWeights[MyPartition]++;
           }
 
           // Advance to next condition in connectivities array
@@ -674,7 +669,6 @@ protected:
               int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
               {
                   *itPart = MajorityPartition;
-                  PartitionWeights[MajorityPartition]++;
               }
 
               // ensure conditions sharing nodes with an element have same partition as the element
