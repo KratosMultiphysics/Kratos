@@ -25,11 +25,9 @@ class AdaptiveRefinement(object):
             metric_param:       Kratos parameters class containing metric custom settings
             remesh_param:       Kratos parameters class containing remeshing custom settings
     """
-    def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,minimal_size_value=None,maximal_size_value=None,metric_name="hessian"):
+    def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,metric_name="hessian"):
         self.model_coarse = model_coarse
         self.parameters_coarse = parameters_coarse
-        self.minimal_size = minimal_size_value
-        self.maximal_size = maximal_size_value
         self.metric_param = metric_param
         self.remesh_param = remesh_param
         self.problem_type = self.parameters_coarse["problem_data"]["problem_name"].GetString()
@@ -46,15 +44,13 @@ class AdaptiveRefinement(object):
     def ComputeAdaptiveRefinement(self):
         parameters_coarse = self.parameters_coarse
         model_coarse = self.model_coarse
-        minimal_size_value = self.minimal_size
-        maximal_size_value = self.maximal_size
         metric_param = self.metric_param
         remesh_param = self.remesh_param
         problem_type = self.problem_type
         current_level = self.current_level
 
         if (self.metric is "hessian"):
-
+            original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
 
             # problem dependent section
             if (problem_type == "body_fitted_ellipse"):
@@ -62,6 +58,8 @@ class AdaptiveRefinement(object):
                 # set NODAL_AREA and NODAL_H as non historical variables
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+                # Setting Metric Tensor to 0
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
@@ -77,10 +75,10 @@ class AdaptiveRefinement(object):
                 local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
                 local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
                 metric_param.RemoveValue("local_gradient_variable")
-                metric_param.AddEmptyValue("minimal_size")
-                metric_param["minimal_size"].SetDouble(minimal_size_value)
-                metric_param.AddEmptyValue("maximal_size")
-                metric_param["maximal_size"].SetDouble(maximal_size_value)
+                # set interpolation error value (level dependent)
+                if current_level > 0:
+                    interp_error = original_interp_error*10**(-current_level)
+                    metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 # calculate the gradient of the variable
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
                 local_gradient.Execute()
@@ -91,12 +89,8 @@ class AdaptiveRefinement(object):
             elif (problem_type == "ProblemZero"):
                 metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
-                    interp_error = 10**(-current_level)
+                    interp_error = original_interp_error*10**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
-                metric_param.AddEmptyValue("minimal_size")
-                metric_param["minimal_size"].SetDouble(1e-4)
-                metric_param.AddEmptyValue("maximal_size")
-                metric_param["maximal_size"].SetDouble(10.0)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
 
                 # Setting Metric Tensor to 0
@@ -129,3 +123,42 @@ class AdaptiveRefinement(object):
             current_parameters_refined = parameters_coarse
             return current_model_refined,current_parameters_refined
 
+    """
+    method computing the mesh size of coarsest level, estimated as minimum nodal_h
+    input:  self: an instance of the class
+    """
+    def ComputeMeshSizeCoarsestLevel(self):
+        model_coarse = self.model_coarse
+        parameters_coarse = self.parameters_coarse
+        model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+        # set NODAL_AREA and NODAL_H as non historical variables
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+        # calculate NODAL_H
+        find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+        find_nodal_h.Execute()
+        # compute average mesh size
+        mesh_size = 10.0
+        for node in model_coarse.GetModelPart(model_part_name).Nodes:
+            if (node.GetValue(KratosMultiphysics.NODAL_H) < mesh_size):
+                mesh_size = node.GetValue(KratosMultiphysics.NODAL_H)
+        self.mesh_size_coarsest_level = mesh_size
+
+    """
+    method estimating the mesh size of current level
+    input:  self: an instance of the class
+    """
+    def EstimateMeshSizeCurrentLevel(self):
+        self.ComputeMeshSizeCoarsestLevel()
+        current_level = self.current_level
+        if (self.metric is "hessian"):
+            original_interp_error = self.metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
+            domain_size = self.parameters_coarse["solver_settings"]["domain_size"].GetInt()
+            if (domain_size == 2):
+                coefficient = 2/9 # 2d
+            elif (domain_size == 3):
+                coefficient = 9/32 # 3d
+            interp_error_level = original_interp_error*10**(-current_level)
+            mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error)
+            self.mesh_size = mesh_size_level
