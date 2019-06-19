@@ -28,8 +28,8 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
-        double alpha_coeff = 1.0;
-        double beta_coeff = 1.0;
+        double alpha_coeff = 0.5;
+        double beta_coeff = 0.0;
 
 
         if(StepFlag == 1) //PREDICTOR
@@ -43,7 +43,7 @@ namespace Kratos {
 
                     delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
 
-                    vel[k] += force[k] * force_reduction_factor * mass_inv * delta_t ;
+                    vel[k] += 1.0 * force_reduction_factor * force[k] * mass_inv * delta_t ;
 
                     displ[k] += delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
@@ -64,8 +64,8 @@ namespace Kratos {
                     vel[k] = mOldVelocity[k] + (1.0 - alpha_coeff) * force_reduction_factor * (mOldAcceleration[k]* delta_t) +
                     alpha_coeff * force_reduction_factor * force[k] * mass_inv * delta_t;
 
-                    delta_displ[k] = beta_coeff*(vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t) +
-                    (1-beta_coeff)*(mOldVelocity[k] * delta_t + 0.5 * mOldAcceleration[k] * delta_t * delta_t);
+                    delta_displ[k] = mOldVelocity[k] * delta_t + beta_coeff*(0.5 * force[k] * mass_inv * delta_t * delta_t) +
+                    (1-beta_coeff)*(0.5 * mOldAcceleration[k] * delta_t * delta_t);
 
                     //displ[k] += delta_displ[k];
                     displ[k] = mOldDisp[k] + delta_displ[k];

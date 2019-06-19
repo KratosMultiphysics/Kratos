@@ -7,9 +7,30 @@ import os
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        #self.schemes_list = ["Symplectic_Euler"]
+        #self.schemes_list = ["Cimne_Scheme"]
         self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme"]
         self.stable_time_steps_list = []
+
+        gnuplot_data = open("gnuplot_file.dem", 'w+')
+        gnuplot_data.write('unset xrange' +'\n')
+        gnuplot_data.write('unset yrange' +'\n')
+        gnuplot_data.write('clear' +'\n')
+        gnuplot_data.write('reset' +'\n')
+        gnuplot_data.write('set style fill solid 1.0 noborder' +'\n')
+        gnuplot_data.write("set terminal pngcairo size 700,250 enhanced font 'Verdana,8'" +'\n')
+        gnuplot_data.write('set border 3 back ls 11' +'\n')
+        gnuplot_data.write('set tics nomirror' +'\n')
+        gnuplot_data.write('set grid back ls 12' +'\n')
+        gnuplot_data.write('set boxwidth 0.8 absolute' +'\n')
+        gnuplot_data.write('set style fill   solid 1.00 border' +'\n')
+        gnuplot_data.write('set key inside right bottom vertical Right noreverse noenhanced autotitles columnhead nobox' +'\n')
+        gnuplot_data.write('set key noinvert samplen 1 spacing 1 width 0 height 0 ' +'\n')
+        gnuplot_data.write('set xtics border out scale 0.75 nomirror norotate  offset character 0, 0, 0 autojustify' +'\n')
+        gnuplot_data.write('set xtics  norangelimit font ",8"' +'\n')
+        gnuplot_data.write('set xtics   ()' +'\n')
+        gnuplot_data.write('set ytics border out scale 0.75 nomirror norotate  offset character 0, 0, 0 #autojustify' +'\n')
+        gnuplot_data.write('set ytics autofreq  norangelimit font ",8"' +'\n')
+        gnuplot_data.write('\n')
 
 
     def Run(self):
@@ -24,18 +45,32 @@ class TimeStepTester(object):
         tolerance = 1e-7
         dt = 1e-2
         previous_dt = 0.0
+
+        gnuplot_data = open("gnuplot_file.dem", 'a')
+        gnuplot_data.write('\n'+'\n'+'\n'+'\n'+'\n'+'\n'+'\n')
+        gnuplot_data.write('unset xrange' +'\n')
+        gnuplot_data.write('unset yrange' +'\n')
+        gnuplot_data.write('unset title' +'\n')
+        gnuplot_data.write("set output '" +str(scheme) + "-time_vs_disp.png'" +'\n')
+        gnuplot_data.write("set xrange [0:1]" +'\n')
+        gnuplot_data.write("set title '" +str(scheme) + " Time|Displacement'" +'\n')
+        gnuplot_data.write("set xlabel '{/Helvetica-Italic Time (s)}'" +'\n')
+        gnuplot_data.write("set ylabel '{/Helvetica-Italic Displacement}'" +'\n')
+        gnuplot_data.write('plot 	"a" , \\' +'\n')
+        gnuplot_data.close()
+
         while dt > previous_dt + tolerance:
             try:
                 self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
-                
+
             except SystemExit:
-                factor = min(0.5, 0.5*(dt-previous_dt))
+                factor = min(0.25, 0.25*(dt-previous_dt))
                 dt = factor * dt
                 print("decreasing dt by " + str(factor))
                 continue
 
             previous_dt = dt
-            dt = dt * 1.5
+            dt = dt * 1.25
             print("increasing dt by 1.5")
 
         self.stable_time_steps_list.append(previous_dt)
@@ -63,19 +98,24 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         self.customized_time_step = dt
         self.customized_scheme = scheme
         self.LoadParametersFile()
-        
+
         import math
         def truncate(number, digits) -> float:
             stepper = 10.0 ** digits
             return math.trunc(stepper * number) / stepper
         dt_short = truncate(self.customized_time_step, 6)
-        
-        #self.absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + scheme + "_graph.grf")
+
         absolute_path_to_file = os.path.join(scheme + str(dt_short) + "_graph.grf")
         self.graph_export   = open(absolute_path_to_file, 'w')
-                
-        # with open("ProjectParametersDEM.json",'r') as parameter_file:
-        #     project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.gnuplot_data = open("gnuplot_file.dem", 'a')
+        # self.disp_ = []
+        # self.energy_ = []
+        # self.vel_ = []
+
+        # self.disp_.append("        " +" '" + str(scheme) + str(dt_short) + "_graph.grf'" + "  " + "using ($1):($2) every 1 with lines lc 1 lw 2 lt 1  title '" + " " + str(scheme) + str(dt_short) + "_graph'" + ' , \\' +'\n')
+        # self.energy_.append("        " +" '" + str(scheme) + str(dt_short) + "_graph.grf'" + "  " + "using ($1):($3) every 1 with lines lc 1 lw 2 lt 1  title '" + " " + str(scheme) + str(dt_short) + "_graph'" + ' , \\' +'\n')
+        # self.vel_.append("        " +" '" + str(scheme) + str(dt_short) + "_graph.grf'" + "  " + "using ($1):($4) every 1 with lines lc 1 lw 2 lt 1  title '" + " " + str(scheme) + str(dt_short) + "_graph'" + ' , \\' +'\n')
+        self.gnuplot_data.write("        " +" '" + str(scheme) + str(dt_short) + "_graph.grf'" + "  " + "using ($1):($2) every 1 with lines lc 1 lw 2 lt 1  title '" + " " + str(scheme) + str(dt_short) + "_graph'" + ' , \\' +'\n')
         super(CustomizedSolutionForTimeStepTesting, self).__init__(model, self.project_parameters)
 
     def LoadParametersFile(self):
@@ -122,7 +162,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 "AutomaticTimestep"                : false,
                 "DeltaTimeSafetyFactor"            : 1.0,
                 "MaxTimeStep"                      : 1e-4,
-                "FinalTime"                        : 4.0,
+                "FinalTime"                        : 1.0,
                 "ControlTime"                      : 100,
                 "NeighbourSearchFrequency"         : 1,
                 "PeriodicDomainOption"             : false,
@@ -173,7 +213,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         self.DEM_parameters["MaxTimeStep"].SetDouble(self.customized_time_step)
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
-
         self._GetSolver().dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
 
@@ -278,16 +317,13 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
     def FinalizeTimeStep(self, time):
         super(CustomizedSolutionForTimeStepTesting, self).FinalizeTimeStep(time)
-
         current_test_energy = self.ComputeEnergy()
-        print("Energy: "+str(current_test_energy))
-        
         if current_test_energy/self.initial_test_energy > 1.5:
             print("GAINING ENERGY!!")
             print("time step is:" + str(self.customized_time_step))
             import sys
             sys.exit()
-            
+
         stime = self.spheres_model_part.ProcessInfo[KratosMultiphysics.TIME]
         for node in self.spheres_model_part.Nodes:
             if node.Id == 1:
@@ -295,15 +331,23 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 self.disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 self.graph_export.write(str("%.8g"%stime).rjust(13) +"  "+str("%.6g"%self.disp).rjust(12) +"  "+str("%.6g"%self.vel).rjust(12) +"  "+str("%.6g"%current_test_energy).rjust(12)+'\n')
 
-        
+
         #if not self.step%200:
-        #    print("Energy: "+str(current_test_energy))    
+        #    print("Energy: "+str(current_test_energy))
 
         #elif self.initial_test_energy/current_test_energy > 1.5:
         #    print("LOSING ENERGY!!")
         #    print("time step is:" + str(self.customized_time_step))
         #    import sys
         #    sys.exit()
+
+    def Finalize(self):
+        # total = self.disp_ + self.energy_ + self.vel_
+        # for i in total:
+        #     self.gnuplot_data.write(i)
+
+        super(CustomizedSolutionForTimeStepTesting, self).Finalize()
+
 
     def PrintResultsForGid(self, time):
         pass
