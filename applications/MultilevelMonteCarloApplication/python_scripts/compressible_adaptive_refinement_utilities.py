@@ -58,6 +58,8 @@ class AdaptiveRefinement(object):
                 # set NODAL_AREA and NODAL_H as non historical variables
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+                # Setting Metric Tensor to 0
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
@@ -121,19 +123,42 @@ class AdaptiveRefinement(object):
             current_parameters_refined = parameters_coarse
             return current_model_refined,current_parameters_refined
 
+    """
+    method computing the mesh size of coarsest level, estimated as minimum nodal_h
+    input:  self: an instance of the class
+    """
+    def ComputeMeshSizeCoarsestLevel(self):
+        model_coarse = self.model_coarse
+        parameters_coarse = self.parameters_coarse
+        model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+        # set NODAL_AREA and NODAL_H as non historical variables
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
+        # calculate NODAL_H
+        find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+        find_nodal_h.Execute()
+        # compute average mesh size
+        mesh_size = 10.0
+        for node in model_coarse.GetModelPart(model_part_name).Nodes:
+            if (node.GetValue(KratosMultiphysics.NODAL_H) < mesh_size):
+                mesh_size = node.GetValue(KratosMultiphysics.NODAL_H)
+        self.mesh_size_coarsest_level = mesh_size
 
-# """
-# function giving as output the mesh discretization parameter
-# the mesh parameter is the reciprocal of the minimum mesh size of the grid
-# h_lev=h_0*M^(-lev)
-# input:  self: an instance of the class
-# """
-# def ComputeMeshParameters(self):
-#     h0 = self.settings["initial_mesh_size"].GetDouble()
-#     M  = self.settings["mesh_refinement_coefficient"].GetInt()
-#     for level in range(self.settings["maximum_number_levels"].GetInt()+1):
-#         h_current_level = h0 * M**(-level)
-#         mesh_parameter_current_level = h_current_level**(-1)
-#         self.mesh_sizes.append(h_current_level)
-#         self.mesh_parameters.append(mesh_parameter_current_level)
-
+    """
+    method estimating the mesh size of current level
+    input:  self: an instance of the class
+    """
+    def EstimateMeshSizeCurrentLevel(self):
+        self.ComputeMeshSizeCoarsestLevel()
+        current_level = self.current_level
+        if (self.metric is "hessian"):
+            original_interp_error = self.metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
+            domain_size = self.parameters_coarse["solver_settings"]["domain_size"].GetInt()
+            if (domain_size == 2):
+                coefficient = 2/9 # 2d
+            elif (domain_size == 3):
+                coefficient = 9/32 # 3d
+            interp_error_level = original_interp_error*10**(-current_level)
+            mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error)
+            self.mesh_size = mesh_size_level

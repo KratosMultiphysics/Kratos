@@ -367,9 +367,6 @@ class MultilevelMonteCarlo(object):
             "levels_screening" : 2,
             "initial_number_batches" : 1,
             "maximum_number_levels" : 4,
-            "mesh_refinement_coefficient" : 2,
-            "recursive_maximal_size" : "False",
-            "initial_mesh_size" : 0.5,
             "minimum_samples_add_level" : 6.0,
             "splitting_parameter_max" : 0.9,
             "splitting_parameter_min" : 0.1
@@ -380,9 +377,6 @@ class MultilevelMonteCarlo(object):
         else: # standard contructor
             self.custom_parameters_path = custom_parameters_path
             self.SetXMCParameters()
-            # warning if initial_mesh_size parameter not set by the user
-            if not (self.settings.Has("initial_mesh_size")):
-                print("\n ######## WARNING: initial_mesh_size parameter not set --> using defalut value 0.5 as initial minimum size ########\n")
             # compute cphi = CDF**-1 (confidence)
             self.settings.AddEmptyValue("cphi_confidence")
             if (self.settings["confidence"].GetDouble()==1.0):
@@ -448,8 +442,6 @@ class MultilevelMonteCarlo(object):
         # total_error: total error of MLMC algorithm, the sum of bias and statistical error is an overestmation of the real total error
         #               total_error := \abs(E^MLMC[QoI] - E[QoI])
         self.total_error = None
-        # compute mesh parameter for each mesh
-        self.ComputeMeshParameters()
 
         # difference_QoI: Quantity of Interest of the considered problem organized per levels
         #                 difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1
@@ -605,6 +597,8 @@ class MultilevelMonteCarlo(object):
             self.batches_analysis_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.batches_convergence_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.objects_to_delete = []
+            # estimate the mesh sizes
+            self.ComputeMeshParameters()
 
 
 
@@ -1043,14 +1037,25 @@ class MultilevelMonteCarlo(object):
     """
     function giving as output the mesh discretization parameter
     the mesh parameter is the reciprocal of the minimum mesh size of the grid
-    h_lev=h_0*M^(-lev)
     input:  self: an instance of the class
     """
     def ComputeMeshParameters(self):
-        h0 = self.settings["initial_mesh_size"].GetDouble()
-        M  = self.settings["mesh_refinement_coefficient"].GetInt()
-        for level in range(self.settings["maximum_number_levels"].GetInt()+1):
-            h_current_level = h0 * M**(-level)
+        # unpickle and unserialize model and build Kratos Model object
+        serialized_model = pickle.loads(self.pickled_model[0])
+        current_model = KratosMultiphysics.Model()
+        serialized_model.Load("ModelSerialization",current_model)
+        # unpickle and unserialize parameters and build Kratos Parameters object
+        serialized_project_parameters = pickle.loads(self.pickled_project_parameters[0])
+        current_project_parameters = KratosMultiphysics.Parameters()
+        serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
+        # unpickle and unserialize metric refinement parameters and build Kratos Parameters objects
+        serialized_custom_metric_refinement_parameters = pickle.loads(self.pickled_custom_metric_refinement_parameters)
+        current_custom_metric_refinement_parameters = KratosMultiphysics.Parameters()
+        serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
+        for level in range(0,self.settings["maximum_number_levels"].GetInt()+1):
+            adaptive_refinement_manager = AdaptiveRefinement(level,current_model,current_project_parameters,current_custom_metric_refinement_parameters,None)
+            adaptive_refinement_manager.EstimateMeshSizeCurrentLevel()
+            h_current_level = adaptive_refinement_manager.mesh_size
             mesh_parameter_current_level = h_current_level**(-1)
             self.mesh_sizes.append(h_current_level)
             self.mesh_parameters.append(mesh_parameter_current_level)
