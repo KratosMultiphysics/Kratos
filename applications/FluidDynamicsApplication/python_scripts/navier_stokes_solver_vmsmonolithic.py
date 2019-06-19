@@ -379,8 +379,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                             self.settings["pressure_relaxation"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                             self.turbulence_model_configuration.GetTurbulenceSolvingProcess())
-
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
+        if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
                                                                                 KratosCFD.PATCH_INDEX)
         else:
@@ -419,8 +418,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def FinalizeSolutionStep(self):
         super(NavierStokesSolverMonolithic, self).FinalizeSolutionStep()
 
-        if (self.turbulence_model_configuration is not None):
-            self.turbulence_model_configuration.FinalizeSolutionStep()
+        # if (self.turbulence_model_configuration is not None):
+        #     self.turbulence_model_configuration.FinalizeSolutionStep()
 
     def Check(self):
         super(NavierStokesSolverMonolithic, self).Check()
