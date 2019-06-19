@@ -28,6 +28,16 @@ class CouplingInterfaceData(object):
     def GetModelPart(self):
         return self.model[self.model_part_name]
 
+    def IsDistributed(self):
+        return self.GetModelPart().GetCommunicator().GetDataCommunicator().IsDistributed()
+
+    def GetBufferSize(self):
+        # only historical nodal data can store multiple steps!
+        if self.location == "node_historical":
+            return self.GetModelPart().GetBufferSize()
+        else:
+            return 1
+
     def GetPythonList(self, solution_step_index=0):
         model_part = self.GetModelPart()
         data = [0]*len(model_part.Nodes)*self.dimension
