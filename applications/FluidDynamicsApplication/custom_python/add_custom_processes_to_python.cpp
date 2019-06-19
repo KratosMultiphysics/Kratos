@@ -44,6 +44,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
+#include "custom_processes/weighted_average_velocity_calculation_process.cpp"
+
 
 namespace Kratos
 {
@@ -59,6 +61,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+    py::class_<WeightedAverageVelocityCalculationProcess, WeightedAverageVelocityCalculationProcess::Pointer, Process >
+    (m, "WeightedAverageVelocityCalculationProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"SpalartAllmarasTurbulenceModel")
