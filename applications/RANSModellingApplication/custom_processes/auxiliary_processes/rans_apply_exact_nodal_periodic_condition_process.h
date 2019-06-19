@@ -297,24 +297,21 @@ private:
         Properties::Pointer p_properties = r_base_model_part.CreateNewProperties(
             r_base_model_part.NumberOfProperties() + 1);
 
-        const int domain_size = r_base_model_part.GetProcessInfo()[DOMAIN_SIZE];
-        PeriodicConditionUtilities periodic_condition_utilities(r_base_model_part, domain_size);
-
         for (std::string variable_name : mVariablesList)
         {
             if (KratosComponents<Variable<double>>::Has(variable_name))
             {
-                Variable<double> variable =
+                const Variable<double>& variable =
                     KratosComponents<Variable<double>>::Get(variable_name);
-                periodic_condition_utilities.AddPeriodicVariable(*p_properties, variable);
+                p_properties->GetValue(PERIODIC_VARIABLES).Add(variable);
             }
             else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
                          variable_name))
             {
-                VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> variable =
+                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
                     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
                         variable_name);
-                periodic_condition_utilities.AddPeriodicVariable(*p_properties, variable);
+                p_properties->GetValue(PERIODIC_VARIABLES).Add(variable);
             }
             else
             {
