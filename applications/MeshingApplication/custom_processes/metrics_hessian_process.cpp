@@ -456,7 +456,7 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
         },
         "anisotropy_remeshing"                 : true,
         "enforce_anisotropy_relative_variable" : false,
-        "anisotropy_parameters":
+        "enforced_anisotropy_parameters":
         {
             "reference_variable_name"               : "DISTANCE",
             "hmin_over_hmax_anisotropic_ratio"      : 1.0,
@@ -500,14 +500,14 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
     mThisParameters.AddValue("interpolation_error", considered_parameters["hessian_strategy_parameters"]["interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);
-    mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);
-    mThisParameters.AddValue("boundary_layer_max_distance", considered_parameters["anisotropy_parameters"]["boundary_layer_max_distance"]);
+    mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["enforced_anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);
+    mThisParameters.AddValue("boundary_layer_max_distance", considered_parameters["enforced_anisotropy_parameters"]["boundary_layer_max_distance"]);
 
     // Interpolation type
-    mInterpolation = ConvertInter(considered_parameters["anisotropy_parameters"]["interpolation"].GetString());
+    mInterpolation = ConvertInter(considered_parameters["enforced_anisotropy_parameters"]["interpolation"].GetString());
 
     // Ratio reference variable
-    const std::string& r_variable_name = considered_parameters["anisotropy_parameters"]["reference_variable_name"].GetString();
+    const std::string& r_variable_name = considered_parameters["enforced_anisotropy_parameters"]["reference_variable_name"].GetString();
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_variable_name)) << "Variable " << r_variable_name << " is not a double variable" << std::endl;
     mpRatioReferenceVariable = const_cast<Variable<double>*>(&KratosComponents<Variable<double>>::Get(r_variable_name));
 }
