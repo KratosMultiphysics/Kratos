@@ -269,7 +269,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    double Solve() override
+    virtual double Solve() override
     {
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -316,7 +316,7 @@ public:
         return NormDp;
     }
 
-    bool SolveSolutionStep() override
+    virtual bool SolveSolutionStep() override
     {
         double norm_dp = this->Solve();
         /* If not doing predictor corrector iterations, norm_dp will
