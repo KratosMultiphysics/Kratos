@@ -5,22 +5,26 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
+// System includes
+#include <unordered_set>
+
+// External includes
+
 // Project includes
 #include "testing/testing.h"
-#include "containers/model.h"
-#include "includes/prime_numbers.h"
-#include "includes/model_part.h"
+#include "containers/nodal_data.h"
 #include "includes/stream_serializer.h"
-
+#include "containers/model.h"
 
 namespace Kratos {
-	namespace Testing {
+namespace Testing {
 
 		KRATOS_TEST_CASE_IN_SUITE(NodalSolutionStepData, KratosCoreFastSuite)
 		{
@@ -119,5 +123,17 @@ namespace Kratos {
 			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(VELOCITY_X), 2.32);
 		}
 
-	}
-}  // namespace Kratos.
+KRATOS_TEST_CASE_IN_SUITE(NodalDataSerialization, KratosCoreFastSuite) {
+    NodalData nodal_data_to_be_saved(23);
+    NodalData nodal_data_to_be_loaded(42);
+
+    StreamSerializer serializer;
+
+    serializer.save("NodalData", nodal_data_to_be_saved);
+    serializer.load("NodalData", nodal_data_to_be_loaded);
+
+    KRATOS_CHECK_EQUAL(nodal_data_to_be_saved.Id(), nodal_data_to_be_loaded.Id());
+}
+
+}
+} // namespace Kratos.
