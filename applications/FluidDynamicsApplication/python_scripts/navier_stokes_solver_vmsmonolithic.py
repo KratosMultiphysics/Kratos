@@ -418,8 +418,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def FinalizeSolutionStep(self):
         super(NavierStokesSolverMonolithic, self).FinalizeSolutionStep()
 
-        # if (self.turbulence_model_configuration is not None):
-        #     self.turbulence_model_configuration.FinalizeSolutionStep()
+        if (self.turbulence_model_configuration is not None):
+            self.turbulence_model_configuration.FinalizeSolutionStep()
 
     def Check(self):
         super(NavierStokesSolverMonolithic, self).Check()
