@@ -68,7 +68,7 @@ class convergence_criterion:
         # Convergence criteria without rotation DOFs
         else:
             if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
-                self.mechanical_convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+                self.mechanical_convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
             elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
                 if(component_wise == True):
