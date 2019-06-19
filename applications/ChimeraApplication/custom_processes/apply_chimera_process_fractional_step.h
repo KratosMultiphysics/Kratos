@@ -122,7 +122,6 @@ protected:
         if (TDim == 3)
             rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
         rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-
         for (std::size_t i = 0; i < rGeometry.size(); i++)
         {
             //Interpolation of velocity
@@ -213,7 +212,9 @@ private:
         rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 
         // TODO: Set the FS_CHIMERA_VEL_CONSTRAINT variable to true
-        p_new_constraint->Set(FS_CHIMERA_VEL_CONSTRAINT);
+        p_new_constraint->Set(FS_CHIMERA_PRE_CONSTRAINT, false);
+        p_new_constraint->Set(FS_CHIMERA_VEL_CONSTRAINT, true);
+        p_new_constraint->Set(ACTIVE);
     }
 
     /**
@@ -247,7 +248,9 @@ private:
         rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 
         // TODO: Set the FS_CHIMERA_PRE_CONSTRAINT variable to true
-        p_new_constraint->Set(FS_CHIMERA_PRE_CONSTRAINT);
+        p_new_constraint->Set(FS_CHIMERA_PRE_CONSTRAINT, true);
+        p_new_constraint->Set(FS_CHIMERA_VEL_CONSTRAINT, false);
+        p_new_constraint->Set(ACTIVE);
     }
 
     ///@}
