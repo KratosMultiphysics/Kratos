@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.CoSimulationApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -12,6 +11,7 @@ try:
     numpy_available = True
 except ImportError:
     numpy_available = False
+
 
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
@@ -81,6 +81,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("fsi_mok/ProjectParametersCFD.json")
 
+
 class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "full" CoSimulation-Cases, too large for the nightly suite and therefore
     have to be in the validation-suite
@@ -92,17 +93,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
             self._runTest()
 
-    def _test_SDoFDragRectangleFSI(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_sdof_drag_rectangle", "cosim_sdof_drag_rectangle_fsi")
-            self._runTest()
-
-    # def test_MDoFDragPitchRectangleFSI(self):
-    #     with co_simulation_test_case.WorkFolderScope(".", __file__):
-    #         self._createTest("fsi_mdof_drag_pitch_rectangle", "cosim_mdof_drag_pitch_rectangle_fsi")
-    #         self._runTest()
 
 if __name__ == '__main__':
     KratosUnittest.main()
