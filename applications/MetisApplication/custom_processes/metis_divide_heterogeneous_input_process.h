@@ -520,7 +520,7 @@ protected:
         SizeType NumElements = rElemConnectivities.size();
 
         // initialize ElementPartition
-        mNodeConnectivities = std::vector(mNumNodes,std::unordered_set());
+        mNodeConnectivities = std::vector<std::unordered_set<std::size_t>>(mNumNodes,std::unordered_set<std::size_t>());
         rElemPartition.resize(NumElements,-1);
 
         // Fill the node Connectivities
