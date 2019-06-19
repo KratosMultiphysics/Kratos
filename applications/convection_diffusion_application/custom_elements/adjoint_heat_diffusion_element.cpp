@@ -60,9 +60,10 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateLocalSystem(
     ProcessInfo& rCurrentProcessInfo)
 {
     // Delegating LHS matrix to base class (the adjoint system matrix is also a laplacian)
-    PrimalElement::CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    PrimalElement::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    // Setting the RHS vector to zero
+    noalias(rRightHandSideVector) = ZeroVector(rLeftHandSideMatrix.size2());
 }
 
 template<class PrimalElement>
