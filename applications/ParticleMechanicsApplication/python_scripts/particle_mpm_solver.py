@@ -101,7 +101,6 @@ class ParticleMPMSolver(PythonSolver):
     def AddVariables(self):
         # Add variables to different model parts
         self._add_variables_to_model_part(self.grid_model_part)
-        self._add_variables_to_model_part(self.initial_material_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Variables are added.")
 
@@ -133,7 +132,6 @@ class ParticleMPMSolver(PythonSolver):
     def AddDofs(self):
         # Add dofs to different model parts
         self._add_dofs_to_model_part(self.grid_model_part)
-        self._add_dofs_to_model_part(self.initial_material_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","DOFs are added.")
 
