@@ -105,9 +105,9 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-	if (this->GetValue(RECOMPUTE_NEIGHBOURS) > 0) {
+	if (this->GetValue(RECOMPUTE_NEIGHBOURS)) {
 		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
-		this->SetValue(RECOMPUTE_NEIGHBOURS, 0);		
+		this->SetValue(RECOMPUTE_NEIGHBOURS, false);		
 	}
 
 	this->InitializeInternalVariablesAfterMapping();

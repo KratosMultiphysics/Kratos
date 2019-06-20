@@ -581,7 +581,7 @@ class FEMDEM_Solution:
     def InitializeIntegrationPointsVariables(self):
         elements = self.FEM_Solution.main_model_part.Elements
         utils = KratosMultiphysics.VariableUtils()
-        utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, 1, elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)

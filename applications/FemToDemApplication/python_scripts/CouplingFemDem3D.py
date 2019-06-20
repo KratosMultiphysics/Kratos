@@ -59,7 +59,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Just to find neighbours the 1st time
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
-		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = 1
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
 		KratosMultiphysics.Logger.PrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
 		KratosMultiphysics.Logger.PrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
@@ -76,7 +76,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
 		utils = KratosMultiphysics.VariableUtils()
-		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, 1, self.FEM_Solution.main_model_part.Elements)
+		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 	def InitializeSolutionStep(self):
@@ -159,7 +159,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			# We assign the flag to recompute neighbours inside the 3D elements
 			utils = KratosMultiphysics.VariableUtils()
-			utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, 1, self.FEM_Solution.main_model_part.Elements)
+			utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 	def CheckInactiveNodes(self):
@@ -509,7 +509,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				self.nodal_neighbour_finder.Execute()
 				# We assign the flag to recompute neighbours inside the 3D elements
 				utils = KratosMultiphysics.VariableUtils()
-				utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, 1, self.FEM_Solution.main_model_part.Elements)
+				utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #===================================================================================================================================
 
