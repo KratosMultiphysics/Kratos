@@ -132,7 +132,6 @@ for normalvar in range(normal_combs):
         delta_time = sympy.Symbol('delta_time', positive=True)
         ScaleFactor = sympy.Symbol('ScaleFactor', positive=True)
         TangentFactor = sympy.Symbol('TangentFactor', positive=True)
-        TangentCoefficient = sympy.Symbol('TangentCoefficient', positive=True)
 
         # Define variables list for later derivation
         u1_var = []
@@ -258,7 +257,6 @@ for normalvar in range(normal_combs):
                         if slip == 1 or slip == 2: # Slip
                             augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
                             modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
-                            #modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - TangentCoefficient * augmented_tangent_contact_pressure
 
                             rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
                             #if slip == 1: # Objective
