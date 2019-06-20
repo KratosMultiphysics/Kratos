@@ -1362,7 +1362,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
         SwitchFlagNodes(r_nodes_array);
 
     // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,"update_interface" : false, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     if (r_process_info.Has(DISTANCE_THRESHOLD)) {
         mapping_parameters["distance_threshold"].SetDouble(r_process_info[DISTANCE_THRESHOLD]);
     }
