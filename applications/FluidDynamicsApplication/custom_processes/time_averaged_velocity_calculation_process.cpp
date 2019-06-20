@@ -19,7 +19,7 @@
 
 // Application includes
 #include "includes/checks.h"
-#include "weighted_average_velocity_calculation_process.h"
+#include "time_averaged_velocity_calculation_process.h"
 
 
 namespace Kratos
@@ -27,7 +27,7 @@ namespace Kratos
     /* Public functions *******************************************************/
 
     // Constructor
-    WeightedAverageVelocityCalculationProcess::WeightedAverageVelocityCalculationProcess(
+    TimeAveragedVelocityCalculationProcess::TimeAveragedVelocityCalculationProcess(
         ModelPart& rModelPart,
         Parameters ThisParameters):
         Process(),
@@ -49,23 +49,23 @@ namespace Kratos
         mTimeCoefficient = ThisParameters["time_coefficient"].GetDouble();
     }
 
-    std::string WeightedAverageVelocityCalculationProcess::Info() const
+    std::string TimeAveragedVelocityCalculationProcess::Info() const
     {
-        return "WeightedAverageVelocityCalculationProcess";
+        return "TimeAveragedVelocityCalculationProcess";
     }
 
-    void WeightedAverageVelocityCalculationProcess::PrintInfo(std::ostream& rOStream) const
+    void TimeAveragedVelocityCalculationProcess::PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "WeightedAverageVelocityCalculationProcess";
+        rOStream << "TimeAveragedVelocityCalculationProcess";
     }
 
-    void WeightedAverageVelocityCalculationProcess::PrintData(std::ostream& rOStream) const
+    void TimeAveragedVelocityCalculationProcess::PrintData(std::ostream& rOStream) const
     {
         this->PrintInfo(rOStream);
     }
 
     // Execution
-    void WeightedAverageVelocityCalculationProcess::Execute()
+    void TimeAveragedVelocityCalculationProcess::Execute()
     {
         KRATOS_TRY;
 
@@ -75,7 +75,6 @@ namespace Kratos
         const double& time_step_previous = r_previous_process_info[TIME];
         const double& final_time = r_current_process_info[END_TIME];
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
 
         if (time_step_previous >= mTimeCoefficient * final_time) {
             // Check and set number of elements and check dimension
@@ -98,7 +97,8 @@ namespace Kratos
 
                 // Compute divergence weighted time average
                 auto average_new = ComputeWeightedTimeAverage(average_old, variable_current);
-                it_node->SetValue(AVERAGE_VELOCITY,average_new);
+
+                it_node->FastGetSolutionStepValue(AVERAGE_VELOCITY) = average_new;
 
             }
         }
@@ -107,7 +107,7 @@ namespace Kratos
     }
 
     // Compute time average
-    array_1d<double, 3> WeightedAverageVelocityCalculationProcess::ComputeWeightedTimeAverage(const array_1d<double, 3>& old_average, const array_1d<double, 3>& current_value)
+    array_1d<double, 3> TimeAveragedVelocityCalculationProcess::ComputeWeightedTimeAverage(const array_1d<double, 3>& old_average, const array_1d<double, 3>& current_value)
     {
         // Extract time information
         const auto& r_current_process_info = mrModelPart.GetProcessInfo();
@@ -118,7 +118,8 @@ namespace Kratos
 
         array_1d<double, 3> new_average;
         for (std::size_t i_dim = 0; i_dim<3;i_dim++){
-            new_average[i_dim] = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(old_average[i_dim],2) + (time_step_current - time_step_previous) * current_value[i_dim]) / (time_step_current - mTimeCoefficient*final_time));
+            // new_average[i_dim] = std::sqrt(std::abs(((time_step_previous-mTimeCoefficient*final_time) * std::pow(old_average[i_dim],2) + (time_step_current - time_step_previous) * current_value[i_dim]) )/ (time_step_current - mTimeCoefficient*final_time));
+            new_average[i_dim] = (old_average[i_dim]*(time_step_previous-mTimeCoefficient*final_time)+current_value[i_dim]*(time_step_current - time_step_previous))/(time_step_current - mTimeCoefficient*final_time);
         }
         return new_average;
     }
@@ -128,7 +129,7 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const WeightedAverageVelocityCalculationProcess& rThis)
+        const TimeAveragedVelocityCalculationProcess& rThis)
     {
         rThis.PrintData(rOStream);
         return rOStream;

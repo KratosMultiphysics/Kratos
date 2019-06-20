@@ -44,7 +44,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
-#include "custom_processes/weighted_average_velocity_calculation_process.cpp"
+#include "custom_processes/time_averaged_velocity_calculation_process.cpp"
 
 
 namespace Kratos
@@ -62,8 +62,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    py::class_<WeightedAverageVelocityCalculationProcess, WeightedAverageVelocityCalculationProcess::Pointer, Process >
-    (m, "WeightedAverageVelocityCalculationProcess")
+    py::class_<TimeAveragedVelocityCalculationProcess, TimeAveragedVelocityCalculationProcess::Pointer, Process >
+    (m, "TimeAveragedVelocityCalculationProcess")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     ;

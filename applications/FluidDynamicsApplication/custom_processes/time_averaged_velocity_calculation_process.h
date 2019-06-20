@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Tosi
 //
 
-#ifndef KRATOS_WEIGHTED_AVERAGE_VELOCITY_CALCULATION_PROCESS_H
-#define KRATOS_WEIGHTED_AVERAGE_VELOCITY_CALCULATION_PROCESS_H
+#ifndef KRATOS_TIME_AVERAGED_VELOCITY_CALCULATION_PROCESS_H
+#define KRATOS_TIME_AVERAGED_VELOCITY_CALCULATION_PROCESS_H
 
 // System includes
 
@@ -56,14 +56,14 @@ namespace Kratos
      * where u is the velocity field and K an element of the domain \Omega.
      * The time average does not consider the transient 20% first part of the simulation.
      */
-    class WeightedAverageVelocityCalculationProcess : public Process
+    class TimeAveragedVelocityCalculationProcess : public Process
     {
     public:
         ///@name Type Definitions
         ///@{
 
         /// Pointer definition of Process
-        KRATOS_CLASS_POINTER_DEFINITION(WeightedAverageVelocityCalculationProcess);
+        KRATOS_CLASS_POINTER_DEFINITION(TimeAveragedVelocityCalculationProcess);
 
         ///@}
         ///@name Life Cycle
@@ -71,20 +71,20 @@ namespace Kratos
 
         /// Default constructor
         /**
-         * @brief Construct WeightedAverageVelocityCalculationProcess object
+         * @brief Construct TimeAveragedVelocityCalculationProcess object
          * @param rModelPart Model part the weighted process is applied to
          * @param ThisParameters The input parameters
          */
-        WeightedAverageVelocityCalculationProcess(
+        TimeAveragedVelocityCalculationProcess(
         ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
         /// Destructor.
-        ~WeightedAverageVelocityCalculationProcess() override = default;
+        ~TimeAveragedVelocityCalculationProcess() override = default;
 
         /// Assignment operator.
-        WeightedAverageVelocityCalculationProcess& operator=(WeightedAverageVelocityCalculationProcess const& rOther) = delete;
+        TimeAveragedVelocityCalculationProcess& operator=(TimeAveragedVelocityCalculationProcess const& rOther) = delete;
 
         ///@}
         ///@name Operators
@@ -184,7 +184,7 @@ namespace Kratos
         ///@{
 
         /// Copy constructor.
-        WeightedAverageVelocityCalculationProcess(WeightedAverageVelocityCalculationProcess const& rOther);
+        TimeAveragedVelocityCalculationProcess(TimeAveragedVelocityCalculationProcess const& rOther);
 
         ///@}
 
@@ -201,11 +201,11 @@ namespace Kratos
 
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream,
-                                    WeightedAverageVelocityCalculationProcess& rThis);
+                                    TimeAveragedVelocityCalculationProcess& rThis);
 
     /// output stream function
     inline std::ostream& operator << (std::ostream& rOStream,
-                                    const WeightedAverageVelocityCalculationProcess& rThis);
+                                    const TimeAveragedVelocityCalculationProcess& rThis);
 
     ///@}
 
