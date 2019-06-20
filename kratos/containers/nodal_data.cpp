@@ -30,6 +30,13 @@ namespace Kratos
 
     }
 
+    NodalData::NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, SizeType NewQueueSize)
+    : mId(TheId)
+    , mSolutionStepsNodalData(pVariablesList,NewQueueSize)
+    {
+
+    }
+
     NodalData::NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize)
     : mId(TheId)
     , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)

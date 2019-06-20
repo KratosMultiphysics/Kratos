@@ -56,6 +56,8 @@ public:
 
     NodalData(IndexType TheId);
 
+    NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, SizeType NewQueueSize = 1);
+
     NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
     /// Destructor.
