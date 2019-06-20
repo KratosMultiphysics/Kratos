@@ -415,8 +415,6 @@ public:
 
             // Variables to be cleaned
             double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-            double & nodal_area     = (i)->FastGetSolutionStepValue(NODAL_AREA);
-            double & nodal_density  = (i)->FastGetSolutionStepValue(DENSITY);
             array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
@@ -433,8 +431,6 @@ public:
 
             // Clear
             nodal_mass = 0.0;
-            nodal_area = 0.0;
-            nodal_density = 0.0;
             nodal_momentum.clear();
             nodal_inertia.clear();
 
@@ -443,6 +439,12 @@ public:
             nodal_acceleration.clear();
             nodal_old_pressure = 0.0;
             nodal_pressure = 0.0;
+
+            // Other additional variables
+            if ((i)->SolutionStepsDataHas(NODAL_AREA)){
+                double & nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
+                nodal_area          = 0.0;
+            }
 		}
 
         // Extrapolate from Material Point Elements and Conditions

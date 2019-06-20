@@ -71,6 +71,9 @@ class ParticleMPMSolver(PythonSolver):
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
             "processes_sub_model_part_list"      : [],
+            "auxiliary_variables_list"           : [],
+            "auxiliary_dofs_list"                : [],
+            "auxiliary_reaction_list"            : [],
             "element_search_settings"            : {
                 "max_number_of_results"          : 1000,
                 "searching_tolerance"            : 1.0E-5
@@ -268,30 +271,29 @@ class ParticleMPMSolver(PythonSolver):
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
     def _add_variables_to_model_part(self, model_part):
-        # Add displacements
+        # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         # Add dynamic variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-
-        # Add reactions for the displacements
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         # Add specific variables for the problem conditions
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+
+        # MPM specific nodal variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
-        # Add variables for arbitrary slope with slip
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        # Add variables that the user defined in the ProjectParameters
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            model_part.AddNodalSolutionStepVariable(variable)
 
         # Add variables for specific cases
         if self.settings["pressure_dofs"].GetBool():
@@ -363,6 +365,29 @@ class ParticleMPMSolver(PythonSolver):
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
+
+        # Add dofs that the user defined in the ProjectParameters
+        if (self.settings["auxiliary_dofs_list"].size() != self.settings["auxiliary_reaction_list"].size()):
+                raise Exception("DoFs list and reaction list should be the same long")
+        for i in range(self.settings["auxiliary_dofs_list"].size()):
+            dof_variable_name = self.settings["auxiliary_dofs_list"][i].GetString()
+            reaction_variable_name = self.settings["auxiliary_reaction_list"][i].GetString()
+            if (KratosMultiphysics.KratosGlobals.HasDoubleVariable(dof_variable_name)): # Double variable
+                dof_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name)
+                reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable, model_part)
+            elif (KratosMultiphysics.KratosGlobals.HasArrayVariable(dof_variable_name)): # Components variable
+                dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
+                reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, model_part)
+                dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
+                reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, model_part)
+                dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
+                reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, model_part)
+            else:
+                KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
 
     def _set_buffer_size(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()

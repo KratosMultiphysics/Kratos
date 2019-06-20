@@ -49,9 +49,13 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     const double & MPC_Area = this->GetIntegrationWeight();
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * MPC_Area;
-        rGeom[i].UnSetLock();
+        if (rGeom[i].SolutionStepsDataHas(NODAL_AREA))
+        {
+            rGeom[i].SetLock();
+            rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * MPC_Area;
+            rGeom[i].UnSetLock();
+        }
+        else break;
     }
 
 }

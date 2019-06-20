@@ -36,7 +36,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "slip_tests/slip_boundary_test_Grid"
         },
-        "pressure_dofs"                      : false
+        "pressure_dofs"                      : false,
+        "auxiliary_variables_list"           : ["NORMAL","IS_STRUCTURE"]
     },
     "processes"        : {
         "constraints_process_list" : [{
