@@ -16,6 +16,7 @@ class ParticleMPMSolver(PythonSolver):
 
     ### Solver constructor
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(ParticleMPMSolver, self).__init__(model, custom_settings)
 
         # Add model part containers
@@ -24,8 +25,21 @@ class ParticleMPMSolver(PythonSolver):
         # Default settings
         self.min_buffer_size = 2
 
-        # Default settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+        # Construct the linear solvers
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+        linear_solver_type = self.settings["linear_solver_settings"]["solver_type"].GetString()
+        if(linear_solver_type == "amgcl" or linear_solver_type == "AMGCL"):
+            self.block_builder = True
+        else:
+            self.block_builder = False
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
+
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "MPM_Material",
             "domain_size"     : -1,
@@ -77,38 +91,8 @@ class ParticleMPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
-
-        # Temporary warnings, to be removed
-        if custom_settings.Has("geometry_element"):
-            custom_settings.RemoveValue("geometry_element")
-            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "geometry_element", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("Geometry element", warning)
-        if custom_settings.Has("particle_per_element"):
-            custom_settings.RemoveValue("particle_per_element")
-            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "particle_per_element", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("Particle per element", warning)
-        if custom_settings.Has("line_search"):
-            custom_settings.RemoveValue("line_search")
-            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "line_search", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("Geometry element", warning)
-
-        # Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        # Construct the linear solvers
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        linear_solver_type = self.settings["linear_solver_settings"]["solver_type"].GetString()
-        if(linear_solver_type == "amgcl" or linear_solver_type == "AMGCL"):
-            self.block_builder = True
-        else:
-            self.block_builder = False
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
-
+        this_defaults.AddMissingParameters(super(ParticleMPMSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     ### Solver public functions
     def AddVariables(self):
