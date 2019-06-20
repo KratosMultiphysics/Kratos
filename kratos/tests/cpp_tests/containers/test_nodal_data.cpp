@@ -123,17 +123,23 @@ namespace Testing {
 			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(VELOCITY_X), 2.32);
 		}
 
-KRATOS_TEST_CASE_IN_SUITE(NodalDataSerialization, KratosCoreFastSuite) {
-    NodalData nodal_data_to_be_saved(23);
-    NodalData nodal_data_to_be_loaded(42);
+        KRATOS_TEST_CASE_IN_SUITE(NodalDataSerialization, KratosCoreFastSuite) {
+			Model current_model;
 
-    StreamSerializer serializer;
+			ModelPart& model_part = current_model.CreateModelPart("test");
+			model_part.AddNodalSolutionStepVariable(DISTANCE);
+			model_part.AddNodalSolutionStepVariable(VELOCITY);
 
-    serializer.save("NodalData", nodal_data_to_be_saved);
-    serializer.load("NodalData", nodal_data_to_be_loaded);
+            NodalData nodal_data_to_be_saved(23, &model_part.GetNodalSolutionStepVariablesList());
+            NodalData nodal_data_to_be_loaded(42, &model_part.GetNodalSolutionStepVariablesList());
 
-    KRATOS_CHECK_EQUAL(nodal_data_to_be_saved.Id(), nodal_data_to_be_loaded.Id());
-}
+            StreamSerializer serializer;
+
+            serializer.save("NodalData", nodal_data_to_be_saved);
+            serializer.load("NodalData", nodal_data_to_be_loaded);
+
+            KRATOS_CHECK_EQUAL(nodal_data_to_be_saved.Id(), nodal_data_to_be_loaded.Id());
+        }
 
 }
 } // namespace Kratos.
