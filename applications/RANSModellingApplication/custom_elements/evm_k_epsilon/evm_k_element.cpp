@@ -402,9 +402,10 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double& epsilon =
         this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
-    // const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
-    const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
+    const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
+    // const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
     const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
+    const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
     rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
     rData.TurbulentEnergyDissipationRate =
         this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
@@ -417,6 +418,9 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     rData.VelocityDivergence =
         this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
     rEffectiveKinematicViscosity = nu + nu_t / tke_sigma;
+
+    rData.YPlus = y_plus;
+    rData.WallVelocity = norm_2(this->EvaluateInPoint(VELOCITY, rShapeFunctions));
 
     KRATOS_CATCH("");
 }
@@ -449,6 +453,9 @@ double EvmKElement<TDim, TNumNodes>::CalculateReactionTerm(const EvmKElementData
                                                            const ProcessInfo& rCurrentProcessInfo,
                                                            const int Step) const
 {
+    // if (this->Is(STRUCTURE))
+    //     return 2.0 * rData.VelocityDivergence / 3.0;
+    // else
     return rData.Gamma + 2 * rData.VelocityDivergence / 3.0;
 }
 
@@ -460,31 +467,24 @@ double EvmKElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmKElementData& 
     double production = 0.0;
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
+    const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
 
-    if (this->Is(STRUCTURE))
-    {
-        const double wall_normal_magnitude = norm_2(rData.WallNormal);
-        KRATOS_ERROR_IF(wall_normal_magnitude < std::numeric_limits<double>::epsilon())
-            << "NORMAL is zero.\n";
-        const Vector& normal = RansCalculationUtilities().GetVector<TDim>(
-            rData.WallNormal / wall_normal_magnitude);
-        Vector result(TDim);
-        noalias(result) = prod(velocity_gradient_matrix, normal);
-        production = (rData.KinematicViscosity + rData.TurbulentKinematicViscosity) *
-                     norm_2(result) *
-                     std::pow(std::max(rData.TurbulentKinematicViscosity * rData.TurbulentEnergyDissipationRate,
-                                       0.0),
-                              0.25) /
-                     (von_karman * rData.WallDistance);
-    }
-    else
-    {
+    // if (this->Is(STRUCTURE))
+    // {
+    //     // Calculate the wall production term
+    //     const double u_tau = std::max(
+    //         std::pow(c_mu, 0.25) * std::sqrt(std::max(rData.TurbulentKineticEnergy, 0.0)),
+    //         rData.WallVelocity / (std::log(rData.YPlus) / von_karman + beta));
+    //     production = std::pow(u_tau, 3) / (von_karman * rData.WallDistance);
+    // }
+    // else
+    // {
         production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
             velocity_gradient_matrix, rData.TurbulentKinematicViscosity,
             rData.TurbulentKineticEnergy);
-    }
+    // }
 
     return production;
 }

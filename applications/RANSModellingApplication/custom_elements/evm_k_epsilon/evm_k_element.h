@@ -61,6 +61,8 @@ struct EvmKElementData
 
     Matrix ShapeFunctionDerivatives;
     array_1d<double, 3> WallNormal;
+    double WallVelocity;
+    double YPlus;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
