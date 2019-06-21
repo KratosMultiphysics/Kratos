@@ -22,7 +22,9 @@ def Factory(settings, Model):
         "ApplyEpsilonTurbulentMixingLengthInletProcess",
         "ApplyKWallFrictionVelocityProcess",
         "ApplyEpsilonWallFrictionVelocityProcess", "ClipScalarVariableProcess",
-        "ClipScalarVariableByNeighbourAveragingProcess", "ApplyExactNodalPeriodicConditionProcess"
+        "ClipScalarVariableByNeighbourAveragingProcess",
+        "ApplyExactNodalPeriodicConditionProcess",
+        "ApplyYPlusKCalculationProcess", "ApplyNutYPlusWallFunctionProcess"
     ]
 
     process_name = settings["process_name"].GetString()
@@ -89,6 +91,12 @@ def Factory(settings, Model):
             Model, settings["Parameters"])
     elif (process_name == "ApplyExactNodalPeriodicConditionProcess"):
         return KratosRANS.RansApplyExactNodalPeriodicConditionProcess(
+            Model, settings["Parameters"])
+    elif (process_name == "ApplyYPlusKCalculationProcess"):
+        return KratosRANS.RansYPlusKCalculationProcess(
+            Model, settings["Parameters"])
+    elif (process_name == "ApplyNutYPlusWallFunctionProcess"):
+        return KratosRANS.RansNutYPlusWallFunctionProcess(
             Model, settings["Parameters"])
 
 class FindNodalNeighboursProcess(Kratos.Process):

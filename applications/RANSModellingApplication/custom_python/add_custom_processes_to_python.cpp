@@ -37,6 +37,7 @@
 #include "custom_processes/auxiliary_processes/rans_scalar_neighbour_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_y_plus_wall_distance_calculation_process.h"
 
+#include "custom_processes/auxiliary_processes/rans_apply_exact_nodal_periodic_condition_process.h"
 #include "custom_processes/auxiliary_processes/rans_apply_flag_process.h"
 #include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_by_neighbour_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.h"
@@ -51,7 +52,8 @@
 #include "custom_processes/auxiliary_processes/rans_vector_align_process.h"
 #include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_apply_exact_nodal_periodic_condition_process.h"
+#include "custom_processes/auxiliary_processes/rans_y_plus_k_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.h"
 
 namespace Kratos
 {
@@ -224,6 +226,16 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansApplyExactNodalPeriodicConditionProcessType,
                RansApplyExactNodalPeriodicConditionProcessType::Pointer, Process>(
         m, "RansApplyExactNodalPeriodicConditionProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansYPlusKCalculationProcess RansYPlusKCalculationProcessType;
+    py::class_<RansYPlusKCalculationProcessType, RansYPlusKCalculationProcessType::Pointer, Process>(
+        m, "RansYPlusKCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansNutYPlusWallFunctionProcess RansNutYPlusWallFunctionProcessType;
+    py::class_<RansNutYPlusWallFunctionProcessType, RansNutYPlusWallFunctionProcessType::Pointer, Process>(
+        m, "RansNutYPlusWallFunctionProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
