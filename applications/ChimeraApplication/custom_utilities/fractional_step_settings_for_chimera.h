@@ -20,6 +20,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "processes/process.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
+#include "containers/model.h"
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
@@ -120,6 +122,7 @@ public:
         bool CalculateNormDxFlag = true;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
+
         bool UseSlip = BaseType::UseSlipConditions();
         // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
         bool ReformDofSet = false; //BaseType::GetReformDofSet();
@@ -128,6 +131,8 @@ public:
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
+            ModelPart &r_fs_velocity_model_part = rModelPart.CreateSubModelPart("fs_velocity_model_part");
+            FastTransferBetweenModelPartsProcess(r_fs_velocity_model_part, rModelPart).Execute();
             // Velocity Builder and Solver
             //ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver = new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver >(pLinearSolver);
             ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
@@ -148,18 +153,20 @@ public:
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+                                                                        (r_fs_velocity_model_part, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
+            ModelPart &r_fs_pressure_model_part = rModelPart.CreateSubModelPart("fs_pressure_model_part");
+            FastTransferBetweenModelPartsProcess(r_fs_pressure_model_part, rModelPart).Execute();
             // Pressure Builder and Solver
             ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+                                                                        (r_fs_pressure_model_part, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
         else
         {
