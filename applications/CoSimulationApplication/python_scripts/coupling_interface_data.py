@@ -52,7 +52,7 @@ class CouplingInterfaceData(object):
         return self.model[self.model_part_name]
 
     def IsDistributed(self):
-        return self.GetModelPart().GetCommunicator().GetDataCommunicator().IsDistributed()
+        return self.GetModelPart().IsDistributed()
 
     def Size(self):
         if self.location in ["process_info", "model_part"]:
