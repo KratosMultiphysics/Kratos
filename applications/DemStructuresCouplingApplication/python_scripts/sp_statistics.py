@@ -48,9 +48,11 @@ p_rate = 5e10 # TODO
 psi_factor = 0.000145038
 pressures = [p_rate*t*psi_factor for t in times] # Pressure in psi
 t_f=times[failure_step]
-
+# print(t_f)
 # Estimated time of initial sanding. TODO
+# t_is=times[90]
 t_is=times[130]
+# print(t_is)
 
 # Maximum number of intact bonds to consider spheres as SP
 max_num_bonds = 6.0 # TODO: this should be an int
