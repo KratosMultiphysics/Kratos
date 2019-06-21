@@ -216,7 +216,7 @@ if __name__ == '__main__':
     test.setUp()
     test.A = 1.5
     test.w = 2.0 * math.pi
-    test.print_output = True
+    test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedPiston2DTest"
     test.reference_file = "reference_embedded_piston_2D"
