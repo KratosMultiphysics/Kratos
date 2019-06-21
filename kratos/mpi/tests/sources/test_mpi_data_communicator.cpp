@@ -456,7 +456,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinUnsignedIntVector, K
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
-    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     std::vector<unsigned int> local{(unsigned int)world_rank, 0};
@@ -480,6 +479,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinUnsignedIntVector, K
     }
 
     #ifdef KRATOS_DEBUG
+    const int world_size = mpi_world_communicator.Size();
     // One of the inputs has a different size
     if (world_size > 1)
     {
@@ -1021,7 +1021,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllUnsignedIntVector
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
-    const int world_size = mpi_world_communicator.Size();
 
     std::vector<unsigned int> local{(unsigned int)world_rank, 0};
     std::vector<unsigned int> output{999, 999};
@@ -1038,6 +1037,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllUnsignedIntVector
     KRATOS_CHECK_EQUAL(returned_result[1], 0);
 
     #ifdef KRATOS_DEBUG
+    const int world_size = mpi_world_communicator.Size();
     if (world_size > 1)
     {
         // One of the inputs has a different size
