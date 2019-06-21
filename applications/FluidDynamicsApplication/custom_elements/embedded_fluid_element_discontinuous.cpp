@@ -74,15 +74,19 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize()
     TBaseElement::Initialize();
 
     // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
-    Vector zero_vector(NumNodes, 0.0);
-    this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+    if (!this->Has(ELEMENTAL_DISTANCES)) {
+        Vector zero_vector(NumNodes, 0.0);
+        this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+    }
 
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
     const array_1d<double,3> zero_vel = ZeroVector(3);
     for (auto &r_node : this->GetGeometry()) {
-        r_node.SetLock();
-        r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
-        r_node.UnSetLock();
+        if (!r_node.Has(EMBEDDED_VELOCITY)) {
+            r_node.SetLock();
+            r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
+            r_node.UnSetLock();
+        }
     }
 
     KRATOS_CATCH("");

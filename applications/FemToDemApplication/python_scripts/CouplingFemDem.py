@@ -244,7 +244,6 @@ class FEMDEM_Solution:
             self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
-            
 
 #============================================================================================================================
     def GetNodeCoordinates(self, Node):
@@ -582,6 +581,7 @@ class FEMDEM_Solution:
     def InitializeIntegrationPointsVariables(self):
         elements = self.FEM_Solution.main_model_part.Elements
         utils = KratosMultiphysics.VariableUtils()
+        utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)

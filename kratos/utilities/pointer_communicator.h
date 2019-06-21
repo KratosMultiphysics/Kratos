@@ -106,7 +106,7 @@ private:
     const int mCurrentRank;
     GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
     TFunctorType mUserFunctor;
-    GlobalPointerCommunicator<TPointerDataType>* mpPointerComm; 
+    GlobalPointerCommunicator<TPointerDataType>* mpPointerComm;
 
 };
 
@@ -191,14 +191,14 @@ public:
         {
             Update(UserFunctor, non_local_data);
         }
-        
+
         return ResultsProxy<TPointerDataType, TFunctorType>(current_rank,non_local_data,UserFunctor, this );
     }
 
     template< class TFunctorType >
     void Update(
-        TFunctorType& rUserFunctor, 
-        GlobalPointersUnorderedMap< TPointerDataType, typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType >& rNonLocalData) 
+        TFunctorType& rUserFunctor,
+        GlobalPointersUnorderedMap< TPointerDataType, typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType >& rNonLocalData)
     {
         //sendrecv data
         for(auto color : mColors)
@@ -207,13 +207,13 @@ public:
             {
                 auto& gps_to_be_sent = mNonLocalPointers[color];
 
-                auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
+                auto recv_global_pointers = mrDataCommunicator.SendRecv(gps_to_be_sent, color, color );
 
                 std::vector< typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                 for(auto& gp : recv_global_pointers.GetContainer())
                     locally_gathered_data.push_back( rUserFunctor(gp) );
 
-                auto remote_data = SendRecv(locally_gathered_data, color, color );
+                auto remote_data = mrDataCommunicator.SendRecv(locally_gathered_data, color, color );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
                     rNonLocalData[gps_to_be_sent(i)] = remote_data[i];
@@ -355,23 +355,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    template< class TDataType>
-    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
-    {
-        MpiSerializer send_serializer;
-        send_serializer.save("data",send_buffer);
-        std::string send_string = send_serializer.GetStringRepresentation();
-
-        std::string recv_string = mrDataCommunicator.SendRecv(send_string, send_rank, send_rank);
-
-        MpiSerializer recv_serializer(recv_string);
-
-        TDataType recv_data;
-        recv_serializer.load("data",recv_data);
-        return recv_data;
-    }
-
-    //TODO explicitly instantiate this function to SendRecv for basic types
 
 
     ///@}
