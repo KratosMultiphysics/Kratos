@@ -288,7 +288,17 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
         if (is_found == true)
         {
             Geometry<Node<3>> &r_geom = p_element->GetGeometry();
-            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, start_constraint_id, constraints_id_vector, ms_container);
+            int init_index = 0;
+            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id+init_index, constraints_id_vector, ms_container);
+            init_index+=3;
+            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Y, start_constraint_id+init_index, constraints_id_vector, ms_container);
+            init_index+=3;
+            if(TDim == 3){
+                ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Z, start_constraint_id+init_index, constraints_id_vector, ms_container);
+                init_index+=3;
+            }
+            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id+init_index, constraints_id_vector, ms_container);
+            init_index+=3;
             counter += 1;
         }else{
             not_found_counter+=1;
@@ -366,47 +376,48 @@ bool ApplyChimeraProcessMonolithic<TDim>::BoundingBoxTest(ModelPart &rModelPartA
 }
 
 template <int TDim>
+template <typename TVariableType>
 void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
                                                                      Node<3> &rBoundaryNode,
                                                                      Vector &rShapeFuncWeights,
+                                                                     TVariableType& rVariable,
                                                                      unsigned int StartId,
                                                                      std::vector<int> &ConstraintIdVector,
                                                                      MasterSlaveConstraintContainerType &rMsContainer)
 {
     const auto &r_clone_constraint = (LinearMasterSlaveConstraint)KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
     // Initialise the boundary nodes dofs to 0 at ever time steps
-    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-    if (TDim == 3)
-        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-    rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+    rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) = 0.0;
     for (std::size_t i = 0; i < rGeometry.size(); i++)
     {
-        //Interpolation of velocity
-        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 0) += rGeometry[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * rShapeFuncWeights[i];
-        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 0) += rGeometry[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * rShapeFuncWeights[i];
-        //Interpolation of pressure
-        rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0) += rGeometry[i].GetDof(PRESSURE).GetSolutionStepValue(0) * rShapeFuncWeights[i];
-
-        //Define master slave relation for velocity X and Y
-        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], VELOCITY_X, rBoundaryNode, VELOCITY_X, rShapeFuncWeights[i]);
-        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], VELOCITY_Y, rBoundaryNode, VELOCITY_Y, rShapeFuncWeights[i]);
-        if (TDim == 3)
-        {
-            //Interpolation of velocity Z
-            rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0) += rGeometry[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * rShapeFuncWeights[i];
-            AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], VELOCITY_Z, rBoundaryNode, VELOCITY_Z, rShapeFuncWeights[i]);
-        }
-        //Defining master slave relation for pressure
-        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], PRESSURE, rBoundaryNode, PRESSURE, rShapeFuncWeights[i]);
+        //Interpolation of rVariable
+        rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) += rGeometry[i].GetDof(rVariable).GetSolutionStepValue(0) * rShapeFuncWeights[i];
+        AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], rVariable, rBoundaryNode, rVariable, rShapeFuncWeights[i]);
     } // end of loop over host element nodes
 
     // Setting the buffer 1 same buffer 0
-    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 1) = rBoundaryNode.FastGetSolutionStepValue(VELOCITY_X, 0);
-    rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 1) = rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Y, 0);
-    if (TDim == 3)
-        rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 1) = rBoundaryNode.FastGetSolutionStepValue(VELOCITY_Z, 0);
-    rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 1) = rBoundaryNode.FastGetSolutionStepValue(PRESSURE, 0);
+    rBoundaryNode.FastGetSolutionStepValue(rVariable, 1) = rBoundaryNode.FastGetSolutionStepValue(rVariable, 0);
+}
+
+
+
+template <int TDim>
+template <typename TVariableType>
+void ApplyChimeraProcessMonolithic<TDim>::AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
+                                    const LinearMasterSlaveConstraint &rCloneConstraint,
+                                    unsigned int ConstraintId,
+                                    Node<3> &rMasterNode,
+                                    TVariableType &rMasterVariable,
+                                    Node<3> &rSlaveNode,
+                                    TVariableType &rSlaveVariable,
+                                    const double Weight,
+                                    const double Constant)
+{
+    rSlaveNode.Set(SLAVE);
+    ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+    p_new_constraint->Set(TO_ERASE);
+    mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
+    rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 }
 
 template class ApplyChimeraProcessMonolithic<2>;

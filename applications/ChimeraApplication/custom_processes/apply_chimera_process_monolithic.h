@@ -220,14 +220,7 @@ protected:
                                        Node<3> &rSlaveNode,
                                        TVariableType &rSlaveVariable,
                                        const double Weight,
-                                       const double Constant = 0.0)
-    {
-        rSlaveNode.Set(SLAVE);
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-        p_new_constraint->Set(TO_ERASE);
-        mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
-        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
-    }
+                                       const double Constant = 0.0);
 
 
     /**
@@ -239,9 +232,11 @@ protected:
      * @param rConstraintIdVector The vector of the constraints Ids which is accessed with StartIndex.
      * @param rMsContainer The Constraint container to which the contraints are added.
      */
-    virtual void ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
+    template <typename TVariableType>
+    void ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
                                     Node<3> &rBoundaryNode,
                                     Vector &rShapeFuncWeights,
+                                    TVariableType& rVariable,
                                     unsigned int StartIndex,
                                     std::vector<int> &rConstraintIdVector,
                                     MasterSlaveConstraintContainerType &rMsContainer);
