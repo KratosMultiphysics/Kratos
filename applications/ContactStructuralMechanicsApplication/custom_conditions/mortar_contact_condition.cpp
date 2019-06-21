@@ -261,7 +261,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_ERROR << "You are calling to the base class method AddExplicitContribution, check your condition definition" << std::endl;
+    const IndexType integration_order = this->GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? this->GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    MortarExplicitContributionUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::ComputeNodalArea(this, rCurrentProcessInfo, rDestinationVariable, integration_order, false);
 }
 
 /***********************************************************************************/
