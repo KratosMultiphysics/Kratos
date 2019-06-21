@@ -59,7 +59,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Just to find neighbours the 1st time
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
-		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = 1
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
 		KratosMultiphysics.Logger.PrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
 		KratosMultiphysics.Logger.PrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
@@ -73,6 +73,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		if self.echo_level > 0:
 			KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
+
+		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
+		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 	def InitializeSolutionStep(self):
@@ -152,6 +156,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.RemoveAloneDEMElements()
 			element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 			element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+
+			# We assign the flag to recompute neighbours inside the 3D elements
+			utils = KratosMultiphysics.VariableUtils()
+			utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 	def CheckInactiveNodes(self):
@@ -499,6 +507,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				self.InitializeSolutionAfterRemeshing()
 				self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
 				self.nodal_neighbour_finder.Execute()
+				# We assign the flag to recompute neighbours inside the 3D elements
+				utils = KratosMultiphysics.VariableUtils()
+				utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #===================================================================================================================================
 

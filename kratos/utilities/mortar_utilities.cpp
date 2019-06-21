@@ -254,6 +254,61 @@ void ComputeNodesTangentModelPart(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ComputeNodesTangentFromNormalModelPart(ModelPart& rModelPart)
+{
+    // Check NORMAL is available
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(NORMAL)) << "NORMAL is not available on the solution step data variable database" << std::endl;
+
+    // The current dimension
+    const std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+    // We iterate over nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes; ++i) {
+        auto it_node = it_node_begin + i;
+
+        // Computing only slave nodes
+        if (it_node->Is(SLAVE)) {
+            const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+            ComputeTangentsFromNormal(*it_node, r_normal, domain_size);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ComputeTangentsFromNormal(
+    NodeType& rNode,
+    const array_1d<double, 3>& rNormal,
+    const std::size_t Dimension
+    )
+{
+    array_1d<double, 3> tangent_xi, tangent_eta;
+    MathUtils<double>::OrthonormalBasis(rNormal, tangent_xi, tangent_eta);
+    if (Dimension == 3) {
+        rNode.SetValue(TANGENT_XI, tangent_xi);
+        rNode.SetValue(TANGENT_ETA, tangent_eta);
+    } else {
+        if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+            rNode.SetValue(TANGENT_XI, tangent_eta);
+        } else {
+            rNode.SetValue(TANGENT_XI, tangent_xi);
+        }
+        tangent_eta[0] = 0.0;
+        tangent_eta[1] = 0.0;
+        tangent_eta[2] = 1.0;
+        rNode.SetValue(TANGENT_ETA, tangent_eta);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ComputeTangentNodeWithLMAndSlip(
     NodeType& rNode,
     const std::size_t StepLM,
@@ -265,38 +320,20 @@ void ComputeTangentNodeWithLMAndSlip(
     // Zero tolerance
     const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
-    array_1d<double, 3> tangent_xi, tangent_eta;
+    array_1d<double, 3> tangent;
     const array_1d<double, 3>& r_lm = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
     const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
     if (rNode.Is(ACTIVE) && (rNode.IsNot(SLIP) || pSlipVariable == NULL)) { // STICK
         if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
-            noalias(tangent_xi) = r_lm - inner_prod(r_lm, r_normal) * r_normal;
-            if (norm_2(tangent_xi) > zero_tolerance) {
-                const array_1d<double, 3> tangent = tangent_xi/norm_2(tangent_xi);
+            noalias(tangent) = r_lm - inner_prod(r_lm, r_normal) * r_normal;
+            if (norm_2(tangent) > zero_tolerance) {
+                noalias(tangent) = tangent/norm_2(tangent);
                 rNode.SetValue(TANGENT_XI, tangent);
             } else {
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (Dimension == 3) {
-                    rNode.SetValue(TANGENT_XI, tangent_xi);
-                } else {
-                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
-                        rNode.SetValue(TANGENT_XI, tangent_eta);
-                    } else {
-                        rNode.SetValue(TANGENT_XI, tangent_xi);
-                    }
-                }
+                ComputeTangentsFromNormal(rNode, r_normal, Dimension);
             }
         } else { // In case of zero LM
-            MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-            if (Dimension == 3) {
-                rNode.SetValue(TANGENT_XI, tangent_xi);
-            } else {
-                if (std::abs(tangent_xi[2]) > zero_tolerance) {
-                    rNode.SetValue(TANGENT_XI, tangent_eta);
-                } else {
-                    rNode.SetValue(TANGENT_XI, tangent_xi);
-                }
-            }
+            ComputeTangentsFromNormal(rNode, r_normal, Dimension);
         }
     } else if (rNode.Is(ACTIVE) && pSlipVariable != NULL) { // SLIP
         // Nodal length
@@ -304,62 +341,26 @@ void ComputeTangentNodeWithLMAndSlip(
         // Slip value
         const array_1d<double, 3>& r_slip = rNode.FastGetSolutionStepValue(*pSlipVariable, StepLM)/rNode.GetValue(NODAL_AREA);
         if (norm_2(r_slip) > 1.0e-5 * length) { // Non zero slip vector
-            noalias(tangent_xi) = r_slip - inner_prod(r_slip, r_normal) * r_normal;
-            if (norm_2(tangent_xi) > zero_tolerance) {
-                const array_1d<double, 3> tangent = SlipCoefficient * tangent_xi/norm_2(tangent_xi);
+            noalias(tangent) = r_slip - inner_prod(r_slip, r_normal) * r_normal;
+            if (norm_2(tangent) > zero_tolerance) {
+                noalias(tangent) = SlipCoefficient * tangent/norm_2(tangent);
                 rNode.SetValue(TANGENT_XI, tangent);
             } else {
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (Dimension == 3) {
-                    rNode.SetValue(TANGENT_XI, tangent_xi);
-                } else {
-                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
-                        rNode.SetValue(TANGENT_XI, tangent_eta);
-                    } else {
-                        rNode.SetValue(TANGENT_XI, tangent_xi);
-                    }
-                }
+                ComputeTangentsFromNormal(rNode, r_normal, Dimension);
             }
         } else if (norm_2(r_lm) > zero_tolerance) { // Non zero LM vector
             const array_1d<double, 3> tangent_component = r_lm - inner_prod(r_lm, r_normal) * r_normal;
             if (norm_2(tangent_component) > zero_tolerance) {
-                const array_1d<double, 3> tangent = tangent_component/norm_2(tangent_component);
+                noalias(tangent) = tangent_component/norm_2(tangent_component);
                 rNode.SetValue(TANGENT_XI, tangent);
             } else {
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (Dimension == 3) {
-                    rNode.SetValue(TANGENT_XI, tangent_xi);
-                } else {
-                    if (std::abs(tangent_xi[2]) > zero_tolerance) {
-                        rNode.SetValue(TANGENT_XI, tangent_eta);
-                    } else {
-                        rNode.SetValue(TANGENT_XI, tangent_xi);
-                    }
-                }
+                ComputeTangentsFromNormal(rNode, r_normal, Dimension);
             }
         } else { // In case of zero LM or zero weighted slip
-            MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-            if (Dimension == 3) {
-                rNode.SetValue(TANGENT_XI, tangent_xi);
-            } else {
-                if (std::abs(tangent_xi[2]) > zero_tolerance) {
-                    rNode.SetValue(TANGENT_XI, tangent_eta);
-                } else {
-                    rNode.SetValue(TANGENT_XI, tangent_xi);
-                }
-            }
+            ComputeTangentsFromNormal(rNode, r_normal, Dimension);
         }
     } else { // Default
-        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-        if (Dimension == 3) {
-            rNode.SetValue(TANGENT_XI, tangent_xi);
-        } else {
-            if (std::abs(tangent_xi[2]) > zero_tolerance) {
-                rNode.SetValue(TANGENT_XI, tangent_eta);
-            } else {
-                rNode.SetValue(TANGENT_XI, tangent_xi);
-            }
-        }
+        ComputeTangentsFromNormal(rNode, r_normal, Dimension);
     }
 }
 
