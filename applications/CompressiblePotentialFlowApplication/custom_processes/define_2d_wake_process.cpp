@@ -132,11 +132,11 @@ const void Define2DWakeProcess::MarkWakeElements()
 
             // Mark wake element and save their nodal distances to the wake
             if (is_wake_element) {
-                #pragma omp critical
-                {
                     it_elem->SetValue(WAKE, true);
                     it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
-                }
+                    for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                        it_elem->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) = nodal_distances_to_wake(i);
+                    }
             }
         }
     }
