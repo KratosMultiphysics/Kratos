@@ -375,6 +375,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Perform the FM-ALE operations
             self._do_fm_ale_operations()
 
+            # If FM-ALE is performed, use the MESH_VELOCITY as EMBEDDED_VELOCITY
+            for node in self.GetComputingModelPart().Nodes:
+                v_mesh = node.FastGetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY)
+                node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, v_mesh)
+
             # Call the base SolveSolutionStep to solve the embedded CFD problem
             return super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
         else:
