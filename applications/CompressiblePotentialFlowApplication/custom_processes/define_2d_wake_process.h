@@ -13,13 +13,8 @@
 #if !defined(KRATOS_DEFINE_2D_WAKE_PROCESS_H_INCLUDED )
 #define  KRATOS_DEFINE_2D_WAKE_PROCESS_H_INCLUDED
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "compressible_potential_flow_application_variables.h"
 
@@ -50,16 +45,7 @@ public:
     ///@{
 
     /// Constructor
-    Define2DWakeProcess(
-        ModelPart& rModelPart,
-        const double Tolerance
-        ) : Process() ,
-            mrModelPart(rModelPart),
-            mTolerance(Tolerance)
-    {
-        ModelPart& root_model_part = mrModelPart.GetRootModelPart();
-        root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
-    }
+    Define2DWakeProcess(ModelPart& rModelPart,const double Tolerance);
 
     /// Copy constructor.
     Define2DWakeProcess(Define2DWakeProcess const& rOther) = delete;
@@ -73,12 +59,6 @@ public:
 
     /// Assignment operator.
     Define2DWakeProcess& operator=(Define2DWakeProcess const& rOther) = delete;
-
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations
@@ -113,11 +93,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart; /// The main model part where the wake elements will be defined
+    // The airfoil model part conatining the trailing edge
+    ModelPart& mrModelPart;
+    // Tolerance to avoid nodes laying exactly on the wake
     const double mTolerance;
     NodeIteratorType mTrailingEdgeNode;
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mWakeNormal;
+    // Vector to store the trailing edge elements ids
     std::vector<SizeType> mTrailingEdgeElementsOrderedIds;
 
     ///@}
@@ -145,11 +128,9 @@ private:
 
     const void MartkWakeTrailingEdgeElement();
 
-    const bool CheckIfElementIsCutByWake(ElementIteratorType& rElement);
+    const bool CheckIfTrailingEdgeElementIsCutByWake(ElementIteratorType& rElement);
 
     const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint);
-
-
     ///@}
 
 }; // Class Define2DWakeProcess

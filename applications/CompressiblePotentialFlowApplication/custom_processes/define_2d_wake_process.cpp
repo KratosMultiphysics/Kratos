@@ -10,17 +10,18 @@
 //  Main authors:    Inigo Lopez
 //
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "define_2d_wake_process.h"
 
 namespace Kratos {
 
-/***********************************************************************************/
-/***********************************************************************************/
+// Constructor for Define2DWakeProcess Process
+Define2DWakeProcess::Define2DWakeProcess(ModelPart& rModelPart, const double Tolerance)
+    : Process(), mrModelPart(rModelPart), mTolerance(Tolerance)
+{
+    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
+}
 
 void Define2DWakeProcess::ExecuteInitialize()
 {
@@ -252,7 +253,7 @@ const void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
             trailing_edge_sub_model_part.ElementsBegin() + i;
         if(it_elem->GetValue(WAKE)){
             // Trailing edge wake element
-            if(CheckIfElementIsCutByWake(it_elem)){
+            if(CheckIfTrailingEdgeElementIsCutByWake(it_elem)){
                 it_elem->Set(STRUCTURE);
                 it_elem->SetValue(KUTTA, false);
             }
@@ -264,7 +265,8 @@ const void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
     }
 }
 
-const bool Define2DWakeProcess::CheckIfElementIsCutByWake(ElementIteratorType& rElement)
+// This function checks if the element is cut by the wake
+const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(ElementIteratorType& rElement)
 {
     unsigned int number_of_nodes_with_negative_distance = 0;
     auto nodal_distances_to_wake = rElement->GetValue(ELEMENTAL_DISTANCES);
@@ -279,6 +281,7 @@ const bool Define2DWakeProcess::CheckIfElementIsCutByWake(ElementIteratorType& r
     return number_of_nodes_with_negative_distance == 1;
 }
 
+// This function computes the distance from the trailing edge to an input point
 const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint)
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
