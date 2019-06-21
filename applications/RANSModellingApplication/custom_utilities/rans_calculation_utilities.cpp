@@ -213,6 +213,31 @@ Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector,
     return result;
 }
 
+double RansCalculationUtilities::CalculateLogarithmicYPlusLimit(const double Kappa,
+                                                                const double Beta,
+                                                                const int MaxIterations,
+                                                                const double Tolerance)
+{
+    double y_plus = 11.06;
+    const double inv_kappa = 1.0 / Kappa;
+    double dx = 0.0;
+    for (int i = 0; i < MaxIterations; ++i)
+    {
+        const double value = inv_kappa * std::log(y_plus) + Beta;
+        dx = value - y_plus;
+
+        if (std::abs(dx) < Tolerance)
+            return y_plus;
+
+        y_plus = value;
+    }
+
+    KRATOS_WARNING("LogarithmicYPlusLimit")
+        << "Logarithmic y_plus limit reached max iterations with dx > "
+           "Tolerance [ "
+        << dx << " > " << Tolerance << ", MaxIterations = " << MaxIterations << " ].\n";
+}
+
 // template instantiations
 
 template double RansCalculationUtilities::CalculateMatrixTrace<2>(

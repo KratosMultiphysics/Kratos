@@ -276,11 +276,8 @@ private:
 
     int mEchoLevel;
 
-    double mLimitYPlus;
-
     double mCmu;
     double mVonKarman;
-    double mBeta;
     bool mIsConstrained;
 
     ///@}

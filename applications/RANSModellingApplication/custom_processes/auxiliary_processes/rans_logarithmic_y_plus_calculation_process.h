@@ -20,6 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
@@ -115,6 +116,9 @@ public:
 
         mVonKarman = mrParameters["constants"]["von_karman"].GetDouble();
         mBeta = mrParameters["constants"]["beta"].GetDouble();
+
+        mLimitYPlus = RansCalculationUtilities().CalculateLogarithmicYPlusLimit(
+            mVonKarman, mBeta);
 
         KRATOS_CATCH("");
     }
@@ -259,6 +263,7 @@ private:
 
     double mVonKarman;
     double mBeta;
+    double mLimitYPlus;
 
     ///@}
     ///@name Private Operators
@@ -294,12 +299,10 @@ private:
         // linear region
         double utau = sqrt(velocity_magnitude * kinematic_viscosity / wall_distance);
         double yplus = wall_distance * utau / kinematic_viscosity;
-
-        const double limit_yplus = 11.06;
         const double inv_von_karman = 1.0 / mVonKarman;
 
         // log region
-        if (yplus > limit_yplus)
+        if (yplus > mLimitYPlus)
         {
             unsigned int iter = 0;
             double dx = 1e10;

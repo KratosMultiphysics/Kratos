@@ -100,20 +100,14 @@ public:
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "c_mu"            : 0.09,
-            "von_karman"      : 0.41,
-            "beta"            : 5.2,
-            "limit_y_plus"    : 11.06
+            "c_mu"            : 0.09
         })");
 
         mrParameters.ValidateAndAssignDefaults(default_parameters);
 
         mEchoLevel = mrParameters["echo_level"].GetInt();
         mModelPartName = mrParameters["model_part_name"].GetString();
-        mLimitYPlus = mrParameters["limit_y_plus"].GetDouble();
         mCmu = mrParameters["c_mu"].GetDouble();
-        mVonKarman = mrParameters["von_karman"].GetDouble();
-        mBeta = mrParameters["beta"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -285,11 +279,7 @@ private:
 
     int mEchoLevel;
 
-    double mLimitYPlus;
-
     double mCmu;
-    double mVonKarman;
-    double mBeta;
 
     ///@}
     ///@name Private Operators

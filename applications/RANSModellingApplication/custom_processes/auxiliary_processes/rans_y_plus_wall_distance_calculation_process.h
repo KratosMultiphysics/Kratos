@@ -20,6 +20,7 @@
 
 // Project includes
 #include "containers/global_pointers_vector.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
@@ -107,11 +108,12 @@ public:
         mrParameters.ValidateAndAssignDefaults(default_parameters);
 
         mEchoLevel = mrParameters["echo_level"].GetInt();
-        mLimitYPlus = mrParameters["limit_y_plus"].GetDouble();
         mVonKarman = mrParameters["von_karman"].GetDouble();
         mBeta = mrParameters["beta"].GetDouble();
         mMinWallDistance = mrParameters["minimum_wall_distance"].GetDouble();
         mWallVelocityVariableName = mrParameters["velocity_variable"].GetString();
+        mLimitYPlus = RansCalculationUtilities().CalculateLogarithmicYPlusLimit(
+            mVonKarman, mBeta);
 
         KRATOS_CATCH("");
     }

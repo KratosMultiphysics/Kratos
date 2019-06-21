@@ -122,6 +122,11 @@ public:
 
     Vector GetVector(const array_1d<double, 3>& rVector, const unsigned int Dim) const;
 
+    double CalculateLogarithmicYPlusLimit(const double Kappa,
+                                          const double Beta,
+                                          const int MaxIterations = 20,
+                                          const double Tolerance = 1e-6);
+
     ///@}
 
 private:

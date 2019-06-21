@@ -21,6 +21,7 @@
 // Project includes
 #include "containers/global_pointers_vector.h"
 #include "containers/model.h"
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
@@ -101,18 +102,18 @@ public:
             "echo_level"      : 0,
             "c_mu"            : 0.09,
             "von_karman"      : 0.41,
-            "beta"            : 5.2,
-            "limit_y_plus"    : 11.06
+            "beta"            : 5.2
         })");
 
         mrParameters.ValidateAndAssignDefaults(default_parameters);
 
         mEchoLevel = mrParameters["echo_level"].GetInt();
         mModelPartName = mrParameters["model_part_name"].GetString();
-        mLimitYPlus = mrParameters["limit_y_plus"].GetDouble();
         mCmu = mrParameters["c_mu"].GetDouble();
         mVonKarman = mrParameters["von_karman"].GetDouble();
         mBeta = mrParameters["beta"].GetDouble();
+        mLimitYPlus = RansCalculationUtilities().CalculateLogarithmicYPlusLimit(
+            mVonKarman, mBeta);
 
         KRATOS_CATCH("");
     }
