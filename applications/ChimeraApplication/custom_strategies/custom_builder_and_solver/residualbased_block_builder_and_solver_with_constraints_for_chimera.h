@@ -197,6 +197,8 @@ protected:
 
         KRATOS_TRY
 
+
+
         BaseType::BuildMasterSlaveConstraints(rModelPart);
 
         // Setting the master dofs into the T and C system
@@ -248,8 +250,6 @@ protected:
             {
                 max_diag = std::max(std::abs(rA(i, i)), max_diag);
             }
-            std::cout<<"A.size1 :: "<<rA.size1()<<"  A.size2 :: "<<rA.size2()<<"   rModelPart.MasterSlaveConstraints().size()  : "<<rModelPart.MasterSlaveConstraints().size()<<std::endl;
-            std::cout<<"BaseType::mDofSet.size() : "<<BaseType::mDofSet.size()<<std::endl;
 // Apply diagonal values on slaves  BaseType::mDofSet.size()
 #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i)
