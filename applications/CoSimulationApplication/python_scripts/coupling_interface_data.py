@@ -37,8 +37,8 @@ class CouplingInterfaceData(object):
         self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
-        # TODO check that sth was assigned
-        # TODO check DOMAIN_SIZE against the dimension???
+        # TODO check that sth was assigned (only for vector_variable)
+        # TODO check DOMAIN_SIZE against the dimension??? (only for vector_variable) and issue warning if it does not coincide
         self.dimension = custom_config["dimension"].GetInt()
 
         # location of data on ModelPart
@@ -58,7 +58,7 @@ class CouplingInterfaceData(object):
         if self.location in ["process_info", "model_part"]:
             return 1
         else:
-            return len(self.GetDataContainer())
+            return len(self.GetDataContainer()) # TODO this should include the dimensionality I think
 
     def GetBufferSize(self):
         # only historical nodal data can store multiple steps!
