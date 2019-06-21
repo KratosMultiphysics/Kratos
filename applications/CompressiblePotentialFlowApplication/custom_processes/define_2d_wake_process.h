@@ -45,7 +45,7 @@ public:
     ///@{
 
     /// Constructor
-    Define2DWakeProcess(ModelPart& rModelPart,const double Tolerance);
+    Define2DWakeProcess(ModelPart& rBodyModelPart,const double Tolerance);
 
     /// Copy constructor.
     Define2DWakeProcess(Define2DWakeProcess const& rOther) = delete;
@@ -94,7 +94,7 @@ private:
     ///@{
 
     // The airfoil model part conatining the trailing edge
-    ModelPart& mrModelPart;
+    ModelPart& mrBodyModelPart;
     // Tolerance to avoid nodes laying exactly on the wake
     const double mTolerance;
     NodeIteratorType mTrailingEdgeNode;

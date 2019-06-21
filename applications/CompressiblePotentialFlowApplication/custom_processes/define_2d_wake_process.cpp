@@ -16,10 +16,10 @@
 namespace Kratos {
 
 // Constructor for Define2DWakeProcess Process
-Define2DWakeProcess::Define2DWakeProcess(ModelPart& rModelPart, const double Tolerance)
-    : Process(), mrModelPart(rModelPart), mTolerance(Tolerance)
+Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double Tolerance)
+    : Process(), mrBodyModelPart(rBodyModelPart), mTolerance(Tolerance)
 {
-    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
 }
 
@@ -41,13 +41,13 @@ void Define2DWakeProcess::ExecuteInitialize()
 const void Define2DWakeProcess::SetWakeDirectionAndNormal()
 {
     // Reading the free_stream_velocity from the properties
-    auto free_stream_velocity = mrModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
+    const auto free_stream_velocity = mrBodyModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
     KRATOS_ERROR_IF(free_stream_velocity.size() != 3)
         << "The free stream velocity should be a vector with 3 components!"
         << std::endl;
 
     // Computing the norm of the free_stream_velocity vector
-    double norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
+    const double norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
 
     // The wake direction is the free stream direction
     mWakeDirection = free_stream_velocity / norm;
@@ -63,8 +63,8 @@ const void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
     double max_x_coordinate = -1e30;
     NodeIteratorType trailing_edge_node;
-    for (auto it_node = mrModelPart.NodesBegin();
-         it_node != mrModelPart.NodesEnd(); ++it_node) {
+    for (auto it_node = mrBodyModelPart.NodesBegin();
+         it_node != mrBodyModelPart.NodesEnd(); ++it_node) {
         if (it_node->X() > max_x_coordinate) {
             max_x_coordinate = it_node->X();
             trailing_edge_node = it_node;
@@ -78,7 +78,7 @@ const void Define2DWakeProcess::SaveTrailingEdgeNode()
 // wake elements
 const void Define2DWakeProcess::MarkWakeElements()
 {
-    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     bool potentially_wake = false;
     bool is_wake_element = false;
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
@@ -86,6 +86,7 @@ const void Define2DWakeProcess::MarkWakeElements()
     #pragma omp parallel for private(potentially_wake, is_wake_element, nodal_distances_to_wake)
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
+
         // Check if the element is touching the trailing edge
         CheckIfTrailingEdgeElement(it_elem);
 
@@ -162,7 +163,7 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(
     for (unsigned int i = 0; i < rElement->GetGeometry().size(); i++) {
         // Compute the distance from the trailing edge to the node
         distance_from_te_to_node =
-            ComputeDistanceFromTrailingEdgeToPoint(rElement->GetGeometry().GetPoint(i));
+            ComputeDistanceFromTrailingEdgeToPoint(rElement->GetGeometry()[i]);
 
         // Compute the projection of the distance vector in the wake normal
         // direction
@@ -203,15 +204,17 @@ const bool Define2DWakeProcess::CheckIfWakeElement(BoundedVector<double, 3>& rNo
 // trailing_edge_sub_model_part
 const void Define2DWakeProcess::AddTrailingEdgeElements()
 {
-    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     std::sort(mTrailingEdgeElementsOrderedIds.begin(),
               mTrailingEdgeElementsOrderedIds.end());
     root_model_part.GetSubModelPart("trailing_edge_sub_model_part").AddElements(mTrailingEdgeElementsOrderedIds);
 }
 
+// This function selects the kutta elements. Kutta elements are touching the
+// trailing edge from below
 const void Define2DWakeProcess::MarkKuttaElements()
 {
-    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
@@ -223,8 +226,7 @@ const void Define2DWakeProcess::MarkKuttaElements()
         ModelPart::ElementIterator it_elem =
             trailing_edge_sub_model_part.ElementsBegin() + i;
 
-        // Compute the distance from the element's center to
-        // the trailing edge
+        // Compute the distance from the element's center to the trailing edge
         distance_to_element_center =
             ComputeDistanceFromTrailingEdgeToPoint(it_elem->GetGeometry().Center());
 
@@ -243,7 +245,7 @@ const void Define2DWakeProcess::MarkKuttaElements()
 // are unassigned from the wake.
 const void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
 {
-    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
@@ -269,6 +271,8 @@ const void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
 const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(ElementIteratorType& rElement)
 {
     unsigned int number_of_nodes_with_negative_distance = 0;
+    // REMINDER: In 3D the elemental_distances may not be match with the nodal
+    // distances if CalculateDistanceToSkinProcess is used.
     auto nodal_distances_to_wake = rElement->GetValue(ELEMENTAL_DISTANCES);
 
     // Count how many element nodes are above and below the wake
