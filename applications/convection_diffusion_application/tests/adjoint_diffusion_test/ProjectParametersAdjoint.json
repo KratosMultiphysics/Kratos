@@ -10,6 +10,7 @@
     "solver_settings"  : {
         "solver_type" : "adjoint_stationary",
         "model_part_name": "AdjointModelPart",
+        "primal_model_part_name": "ThermalModelPart",
         "domain_size": 2,
         "response_function_settings" : {
             "response_type" : "point_temperature",

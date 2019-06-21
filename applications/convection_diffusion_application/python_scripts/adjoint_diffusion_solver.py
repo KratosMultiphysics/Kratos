@@ -31,11 +31,16 @@ class AdjointDiffusionSolver(PythonSolver):
             self.model_part.ProcessInfo[kratos.DOMAIN_SIZE] = domain_size
             self.solver_imports_model_part = True
 
+        self.primal_model_part_name = self.settings["primal_model_part_name"].GetString()
+        if self.primal_model_part_name == "":
+            raise Exception("No primal_model_part_name provided")
+
     def GetDefaultSettings(self):
 
         default_settings = kratos.Parameters(r'''{
             "solver_type" : "adjoint_stationary",
             "model_part_name": "",
+            "primal_model_part_name" : "",
             "domain_size": 0,
             "model_import_settings" : {
                 "input_type"     : "mdpa",
@@ -86,6 +91,11 @@ class AdjointDiffusionSolver(PythonSolver):
             # set the buffer size
             if self.model_part.GetBufferSize() < self.min_buffer_size:
                 self.model_part.SetBufferSize(self.min_buffer_size)
+
+            # initialize the adjoint model part using primal results
+            primal_model_part = self.model.GetModelPart(self.primal_model_part_name)
+            variable_utils = kratos.VariableUtils()
+            variable_utils.CopyModelPartNodalVar(kratos.TEMPERATURE, primal_model_part, self.model_part, 0)
 
 
     def GetComputingModelPart(self):
