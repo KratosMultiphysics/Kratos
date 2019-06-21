@@ -327,7 +327,7 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
         msElementSize);
 }
 
-Vector CrBeamElement3D2N::CalculateLocalNodalForces()
+Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
     // deformation modes
     Vector element_forces_t = CalculateElementForces();
@@ -340,7 +340,7 @@ Vector CrBeamElement3D2N::CalculateLocalNodalForces()
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
-CrBeamElement3D2N::CreateElementStiffnessMatrix_Material()
+CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
 {
 
     KRATOS_TRY;
@@ -425,7 +425,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material()
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
-CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry()
+CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() const
 {
 
     KRATOS_TRY;
@@ -552,7 +552,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry()
 
 BoundedMatrix<double, CrBeamElement3D2N::msLocalSize,
 CrBeamElement3D2N::msLocalSize>
-CrBeamElement3D2N::CalculateDeformationStiffness()
+CrBeamElement3D2N::CalculateDeformationStiffness() const
 {
 
     KRATOS_TRY
@@ -736,17 +736,17 @@ Vector CrBeamElement3D2N::GetIncrementDeformation() const
     KRATOS_CATCH("")
 }
 
-BoundedMatrix<double, CrBeamElement3D2N::msDimension,
-CrBeamElement3D2N::msDimension>
-CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
-        Vector& VectorDifference,const bool& rFinalize)
-{
 
-    KRATOS_TRY
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
+void CrBeamElement3D2N::UpdateQuaternionParameters(
+    double& rScalNodeA,double& rScalNodeB,
+    Vector& rVecNodeA,Vector& rVecNodeB) const
+{
+    KRATOS_TRY;
     BoundedVector<double, msDimension> d_phi_a = ZeroVector(msDimension);
     BoundedVector<double, msDimension> d_phi_b = ZeroVector(msDimension);
     Vector increment_deformation = GetIncrementDeformation();
+
+
 
     for (unsigned int i = 0; i < msDimension; ++i) {
         d_phi_a[i] = increment_deformation[i + 3];
@@ -780,30 +780,67 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     temp_vector = mQuaternionVEC_A;
     temp_scalar = mQuaternionSCA_A;
 
-    double quaternion_sca_a = drA_sca * temp_scalar;
+    rScalNodeA = drA_sca * temp_scalar;
     for (unsigned int i = 0; i < msDimension; ++i) {
-        quaternion_sca_a -= drA_vec[i] * temp_vector[i];
+        rScalNodeA -= drA_vec[i] * temp_vector[i];
     }
 
-    Vector quaternion_vec_a = drA_sca * temp_vector;
-    quaternion_vec_a += temp_scalar * drA_vec;
-    quaternion_vec_a +=
-        MathUtils<double>::CrossProduct(drA_vec, temp_vector);
+    rVecNodeA = drA_sca * temp_vector;
+    rVecNodeA += temp_scalar * drA_vec;
+    rVecNodeA += MathUtils<double>::CrossProduct(drA_vec, temp_vector);
 
     // Node B
     temp_vector = mQuaternionVEC_B;
     temp_scalar = mQuaternionSCA_B;
 
-    double quaternion_sca_b = drB_sca * temp_scalar;
+   rScalNodeB = drB_sca * temp_scalar;
     for (unsigned int i = 0; i < msDimension; ++i) {
-        quaternion_sca_b -= drB_vec[i] * temp_vector[i];
+        rScalNodeB -= drB_vec[i] * temp_vector[i];
     }
 
-    Vector quaternion_vec_b = drB_sca * temp_vector;
-    quaternion_vec_b += temp_scalar * drB_vec;
-    quaternion_vec_b +=
-        MathUtils<double>::CrossProduct(drB_vec, temp_vector);
+    rVecNodeB = drB_sca * temp_vector;
+    rVecNodeB += temp_scalar * drB_vec;
+    rVecNodeB += MathUtils<double>::CrossProduct(drB_vec, temp_vector);
+    KRATOS_CATCH("");
+}
 
+void CrBeamElement3D2N::SaveQuaternionParameters()
+{
+    KRATOS_TRY;
+    double quaternion_sca_a = 0.0;
+    double quaternion_sca_b = 0.0;
+    Vector quaternion_vec_a = ZeroVector(msDimension);
+    Vector quaternion_vec_b = ZeroVector(msDimension);
+
+    UpdateQuaternionParameters(quaternion_sca_a,
+    quaternion_sca_b,quaternion_vec_a,quaternion_vec_b);
+
+    mQuaternionVEC_A = quaternion_vec_a;
+    mQuaternionVEC_B = quaternion_vec_b;
+    mQuaternionSCA_A = quaternion_sca_a;
+    mQuaternionSCA_B = quaternion_sca_b;
+    KRATOS_CATCH("");
+}
+
+BoundedMatrix<double, CrBeamElement3D2N::msDimension,
+CrBeamElement3D2N::msDimension>
+CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
+        Vector& VectorDifference) const
+{
+
+    KRATOS_TRY
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+    double quaternion_sca_a = 0.0;
+    double quaternion_sca_b = 0.0;
+    Vector quaternion_vec_a = ZeroVector(msDimension);
+    Vector quaternion_vec_b = ZeroVector(msDimension);
+
+    UpdateQuaternionParameters(quaternion_sca_a,
+    quaternion_sca_b,quaternion_vec_a,quaternion_vec_b);
+
+
+    Vector temp_vector = ZeroVector(msDimension);
     // scalar part of difference quaternion
     double scalar_diff;
     scalar_diff = (quaternion_sca_a + quaternion_sca_b) *
@@ -904,37 +941,28 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     Identity -= 2.0 * outer_prod(Bisectrix, Bisectrix);
     n_xyz = prod(Identity, n_xyz);
 
-
-    if (rFinalize)
-    {
-        mQuaternionVEC_A = quaternion_vec_a;
-        mQuaternionVEC_B = quaternion_vec_b;
-        mQuaternionSCA_A = quaternion_sca_a;
-        mQuaternionSCA_B = quaternion_sca_b;
-    }
-
     return n_xyz;
     KRATOS_CATCH("")
 }
 
-Vector CrBeamElement3D2N::CalculateSymmetricDeformationMode()
+Vector CrBeamElement3D2N::CalculateSymmetricDeformationMode() const
 {
 
     Vector phi_s = ZeroVector(msDimension);
     Vector vector_difference = ZeroVector(msDimension);
     Vector bisectrix = ZeroVector(msDimension);
-    Matrix rotation_matrix = UpdateRotationMatrixLocal(bisectrix, vector_difference, false);
+    Matrix rotation_matrix = UpdateRotationMatrixLocal(bisectrix, vector_difference);
     phi_s = prod(Matrix(trans(rotation_matrix)), vector_difference);
     phi_s *= 4.00;
     return phi_s;
 }
 
-Vector CrBeamElement3D2N::CalculateAntiSymmetricDeformationMode()
+Vector CrBeamElement3D2N::CalculateAntiSymmetricDeformationMode() const
 {
     Vector phi_a = ZeroVector(msDimension);
     Vector vector_difference = ZeroVector(msDimension);
     Vector bisectrix = ZeroVector(msDimension);
-    Matrix rotation_matrix = UpdateRotationMatrixLocal(bisectrix, vector_difference, false);
+    Matrix rotation_matrix = UpdateRotationMatrixLocal(bisectrix, vector_difference);
 
 
     Vector rotated_nx0 = ZeroVector(msDimension);
@@ -1053,7 +1081,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-Vector CrBeamElement3D2N::CalculateGlobalNodalForces()
+Vector CrBeamElement3D2N::CalculateGlobalNodalForces() const
 {
     Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
@@ -1067,7 +1095,7 @@ Vector CrBeamElement3D2N::CalculateGlobalNodalForces()
 }
 
 BoundedVector<double, CrBeamElement3D2N::msLocalSize>
-CrBeamElement3D2N::CalculateElementForces()
+CrBeamElement3D2N::CalculateElementForces() const
 {
     KRATOS_TRY;
     BoundedVector<double, msLocalSize> deformation_modes_total_v =
@@ -1242,12 +1270,12 @@ void CrBeamElement3D2N::AssembleSmallInBigMatrix(
 }
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize, CrBeamElement3D2N::msElementSize>
-  CrBeamElement3D2N::GetTransformationMatrixGlobal()
+  CrBeamElement3D2N::GetTransformationMatrixGlobal() const
 {
     KRATOS_TRY;
     Vector vector_difference = ZeroVector(msDimension);
     Vector bisectrix = ZeroVector(msDimension);
-    Matrix rotation_matrix = UpdateRotationMatrixLocal(bisectrix, vector_difference, false);
+    Matrix rotation_matrix = UpdateRotationMatrixLocal(bisectrix, vector_difference);
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix;
     AssembleSmallInBigMatrix(rotation_matrix, total_rotation_matrix);
     return total_rotation_matrix;
@@ -1698,9 +1726,7 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void CrBeamElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    Vector vector_difference = ZeroVector(msDimension);
-    Vector bisectrix = ZeroVector(msDimension);
-    UpdateRotationMatrixLocal(bisectrix,vector_difference,true);
+    SaveQuaternionParameters();
 }
 
 void CrBeamElement3D2N::save(Serializer& rSerializer) const
