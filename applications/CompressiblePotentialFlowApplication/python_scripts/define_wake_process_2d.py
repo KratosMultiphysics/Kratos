@@ -1,7 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
-import time as time
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -46,18 +45,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        start_time_c = time.time()
-
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
-
-        exe_time_c = time.time() - start_time_c
-
-        print('Executing wake process took ', exe_time_c, 'sec in c++')
 
         #self.__FindWakeElements()
 
     def __FindWakeElements(self):
-        start_time = time.time()
 
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         #List to store trailing edge elements id
@@ -72,9 +64,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.__MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
         self.__MarkWakeTEElement()
-        exe_time = time.time() - start_time
-
-        print('Executing wake process took ', exe_time, 'sec in python')
 
     def __SetWakeDirectionAndNormal(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
