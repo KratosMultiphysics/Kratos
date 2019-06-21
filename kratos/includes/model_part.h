@@ -1475,6 +1475,11 @@ public:
         return (mpParentModelPart != NULL);
     }
 
+    bool IsDistributed() const
+    {
+        return mpCommunicator->IsDistributed();
+    }
+
     ///@}
     ///@name Input and output
     ///@{
