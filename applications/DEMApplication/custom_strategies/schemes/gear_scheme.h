@@ -1,7 +1,7 @@
 //
 
-#if !defined(KRATOS_CIMNE_SCHEME_H_INCLUDED )
-#define  KRATOS_CIMNE_SCHEME_H_INCLUDED
+#if !defined(KRATOS_GEAR_SCHEME_H_INCLUDED )
+#define  KRATOS_GEAR_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
@@ -18,33 +18,32 @@
 
 namespace Kratos {
 
-    class KRATOS_API(DEM_APPLICATION) CimneScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) GearScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        /// Pointer definition of CimneScheme
-        KRATOS_CLASS_POINTER_DEFINITION(CimneScheme);
+        /// Pointer definition of GearScheme
+        KRATOS_CLASS_POINTER_DEFINITION(GearScheme);
 
         /// Default constructor.
-        CimneScheme() {}
+        GearScheme() {}
 
         /// Destructor.
-        virtual ~CimneScheme() {}
+        virtual ~GearScheme() {}
 
         DEMIntegrationScheme* CloneRaw() const override {
-            DEMIntegrationScheme* cloned_scheme(new CimneScheme(*this));
+            DEMIntegrationScheme* cloned_scheme(new GearScheme(*this));
             return cloned_scheme;
         }
 
         DEMIntegrationScheme::Pointer CloneShared() const override {
-            DEMIntegrationScheme::Pointer cloned_scheme(new CimneScheme(*this));
+            DEMIntegrationScheme::Pointer cloned_scheme(new GearScheme(*this));
             return cloned_scheme;
         }
 
         array_1d<double, 3> mOldAcceleration;
-        array_1d<double, 3> mOldVelocity;
-        array_1d<double, 3> mOldDisp;
+        array_1d<double, 3> mDeltaAccel;
 
         void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
@@ -115,14 +114,14 @@ namespace Kratos {
 
         virtual std::string Info() const override{
             std::stringstream buffer;
-            buffer << "CimneScheme";
+            buffer << "GearScheme";
             return buffer.str();
         }
 
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const override{
-            rOStream << "CimneScheme";
+            rOStream << "GearScheme";
         }
 
         /// Print object's data.
@@ -138,29 +137,29 @@ namespace Kratos {
 
         /// Assignment operator.
 
-        CimneScheme& operator=(CimneScheme const& rOther) {
+        GearScheme& operator=(GearScheme const& rOther) {
             return *this;
         }
 
         /// Copy constructor.
 
-        CimneScheme(CimneScheme const& rOther) {
+        GearScheme(GearScheme const& rOther) {
             *this = rOther;
         }
 
 
         ///@}
 
-    }; // Class CimneScheme
+    }; // Class GearScheme
 
 
     inline std::istream& operator>>(std::istream& rIStream,
-            CimneScheme& rThis) {
+            GearScheme& rThis) {
         return rIStream;
     }
 
     inline std::ostream& operator<<(std::ostream& rOStream,
-            const CimneScheme& rThis) {
+            const GearScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -170,4 +169,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_CIMNE_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_GEAR_SCHEME_H_INCLUDED  defined

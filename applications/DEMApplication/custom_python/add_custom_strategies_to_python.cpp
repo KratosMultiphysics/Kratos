@@ -26,6 +26,7 @@
 #include "custom_strategies/schemes/taylor_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
 #include "custom_strategies/schemes/cimne_scheme.h"
+#include "custom_strategies/schemes/gear_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
 
@@ -80,6 +81,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<CimneScheme, CimneScheme::Pointer, DEMIntegrationScheme>(m, "CimneScheme")
+        .def(py::init<>())
+        ;
+
+    py::class_<GearScheme, GearScheme::Pointer, DEMIntegrationScheme>(m, "GearScheme")
         .def(py::init<>())
         ;
 

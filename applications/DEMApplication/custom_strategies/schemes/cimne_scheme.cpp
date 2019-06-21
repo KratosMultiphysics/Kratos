@@ -21,7 +21,7 @@ namespace Kratos {
             array_1d<double, 3 >& delta_displ,
             array_1d<double, 3 >& vel,
             const array_1d<double, 3 >& initial_coor,
-            const array_1d<double, 3 >& force,
+            array_1d<double, 3 >& force,
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
@@ -29,7 +29,7 @@ namespace Kratos {
 
         double mass_inv = 1.0 / mass;
         double alpha_coeff = 0.5;
-        double beta_coeff = 0.0;
+        double beta_coeff = 0.25;
 
 
         if(StepFlag == 1) //PREDICTOR

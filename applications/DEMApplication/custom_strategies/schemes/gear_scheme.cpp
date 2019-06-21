@@ -1,19 +1,19 @@
 // Project includes
-#include "taylor_scheme.h"
+#include "gear_scheme.h"
 
 namespace Kratos {
 
-    void TaylorScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) KRATOS_INFO("DEM") << "Assigning TaylorScheme to properties " << pProp->Id() << std::endl;
+    void GearScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning GearScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
-    void TaylorScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) KRATOS_INFO("DEM") << "Assigning TaylorScheme to properties " << pProp->Id() << std::endl;
+    void GearScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning GearScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
-    void TaylorScheme::UpdateTranslationalVariables(
+    void GearScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 >& i,
             array_1d<double, 3 >& coor,
@@ -28,21 +28,72 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
-        for (int k = 0; k < 3; k++) {
-            if (Fix_vel[k] == false) {
-                delta_displ[k] = delta_t * (vel [k] + (0.5 * delta_t * mass_inv) * force[k]);
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
-                vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
-            } else {
-                delta_displ[k] = delta_t * vel[k];
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
+        array_1d<double, 3> accel_est_pred;
+
+        if(StepFlag == 1) //predict
+        {
+            for (int k = 0; k < 3; k++) {
+                if (Fix_vel[k] == false) {
+
+                    delta_displ[k] = vel[k] * delta_t +
+                                     0.5 * force[k] * mass_inv * delta_t * delta_t +
+                                     0.166666*mDeltaAccel[k] * delta_t * delta_t * delta_t;
+
+                    vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t +
+                             0.5 * mDeltaAccel[k] * delta_t * delta_t;
+
+                    mOldAcceleration[k] = force[k] * mass_inv + mDeltaAccel[k] * delta_t;
+
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+
+                    // if (k ==0 && i.Id()==1){
+                    //     KRATOS_WATCH("StepFlag == 1")
+                    //     KRATOS_WATCH(mDeltaAccel[k])
+                    //     KRATOS_WATCH(delta_displ[k])
+                    //     KRATOS_WATCH(vel[k])
+                    //     KRATOS_WATCH(mOldAcceleration[k])
+                    // }
+
+                } else {
+                    delta_displ[k] = delta_t * vel[k];
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+                }
+            }
+        }
+        else if(StepFlag == 2) //correct
+        {
+            for (int k = 0; k < 3; k++) {
+                if (Fix_vel[k] == false) {
+
+                    accel_est_pred[k] = force[k] * mass_inv - mOldAcceleration[k];
+
+                    //delta_displ[k] += 1/12*mDeltaAccel[k] * delta_t * delta_t;
+
+                    vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t +
+                              5/12 * mDeltaAccel[k] * delta_t;
+                    //vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t;
+
+                    mDeltaAccel[k] += accel_est_pred[k]/delta_t;
+
+                    //displ[k] += delta_displ[k];
+                    //coor[k] = initial_coor[k] + displ[k];
+
+                    // if (k ==0 && i.Id()==1){
+                    //     KRATOS_WATCH("StepFlag == 2")
+                    //     KRATOS_WATCH(accel_est_pred[k])
+                    //     KRATOS_WATCH(mDeltaAccel[k])
+                    //     KRATOS_WATCH(delta_displ[k])
+                    //     KRATOS_WATCH(vel[k])
+                    //     KRATOS_WATCH(mOldAcceleration[k])
+                    // }
+                }
             }
         } // dimensions
     }
 
-    void TaylorScheme::CalculateNewRotationalVariablesOfSpheres(
+    void GearScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -60,7 +111,7 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void TaylorScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
+    void GearScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -84,15 +135,18 @@ namespace Kratos {
 
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-        double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
+        if (StepFlag == 1) //PREDICT
+        {
+            double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
 
-        if (ang) {
-            GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
-        } //if ang
+            if (ang) {
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            } //if ang
+        }
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
-    void TaylorScheme::UpdateRotationalVariables(
+    void GearScheme::UpdateRotationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
@@ -102,19 +156,31 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
 
-        for (int k = 0; k < 3; k++) {
-            if (Fix_Ang_vel[k] == false) {
-                delta_rotation[k] = delta_t * (angular_velocity[k] + (0.5 * delta_t * angular_acceleration[k]));
-                rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-            } else {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
+        if (StepFlag == 1) //PREDICT
+        {
+             for (int k = 0; k < 3; k++) {
+                 if (Fix_Ang_vel[k] == false) {
+                     delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
+                     rotated_angle[k] += delta_rotation[k];
+                     angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+                } else {
+                     delta_rotation[k] = angular_velocity[k] * delta_t;
+                     rotated_angle[k] += delta_rotation[k];
+                }
             }
         }
+
+        else if(StepFlag == 2) //CORRECT
+        {
+            for (int k = 0; k < 3; k++) {
+                if (Fix_Ang_vel[k] == false) {
+                    angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+                }
+            }
+        }//CORRECT
     }
 
-    void TaylorScheme::CalculateLocalAngularAcceleration(
+    void GearScheme::CalculateLocalAngularAcceleration(
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -126,7 +192,7 @@ namespace Kratos {
         }
     }
 
-    void TaylorScheme::CalculateLocalAngularAccelerationByEulerEquations(
+    void GearScheme::CalculateLocalAngularAccelerationByEulerEquations(
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

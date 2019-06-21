@@ -7,8 +7,8 @@ import os
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        #self.schemes_list = ["Cimne_Scheme"]
-        self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme"]
+        self.schemes_list = ["Gear_Scheme"]
+        #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme"]
         self.stable_time_steps_list = []
 
         gnuplot_data = open("gnuplot_file.dem", 'w+')
@@ -43,7 +43,7 @@ class TimeStepTester(object):
     def RunForACertainScheme(self, scheme):
         print("Computing stable time step for scheme: "+ scheme)
         tolerance = 1e-7
-        dt = 1e-2
+        dt = 1e-3
         previous_dt = 0.0
 
         gnuplot_data = open("gnuplot_file.dem", 'a')
@@ -170,7 +170,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
                 "GraphExportFreq"                  : 1e-5,
                 "VelTrapGraphExportFreq"           : 1e-3,
-                "OutputTimeStep"                   : 1e-5,
+                "OutputTimeStep"                   : 1e-4,
                 "PostDisplacement"                 : false,
                 "PostVelocity"                     : false,
                 "PostElasticForces"                : false,
@@ -255,18 +255,18 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
 
         self.initial_test_energy = self.ComputeEnergy()
-        self.rigid_face_model_part.CreateNewNode(11, -0.5, -0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(12, -0.5, -0.5, 0.5)
+        self.rigid_face_model_part.CreateNewNode(11, -0.4, -0.5, -0.5)
+        self.rigid_face_model_part.CreateNewNode(12, -0.4, -0.5, 0.5)
 
-        self.rigid_face_model_part.CreateNewNode(13, 0.5, -0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(14, 0.5, -0.5, 0.5)
+        self.rigid_face_model_part.CreateNewNode(13, 0.4, -0.5, -0.5)
+        self.rigid_face_model_part.CreateNewNode(14, 0.4, -0.5, 0.5)
 
 
-        self.rigid_face_model_part.CreateNewNode(15, 0.5, 0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(16, 0.5, 0.5, 0.5)
+        self.rigid_face_model_part.CreateNewNode(15, 0.4, 0.5, -0.5)
+        self.rigid_face_model_part.CreateNewNode(16, 0.4, 0.5, 0.5)
 
-        self.rigid_face_model_part.CreateNewNode(17, -0.5, 0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(18, -0.5, 0.5, 0.5)
+        self.rigid_face_model_part.CreateNewNode(17, -0.4, 0.5, -0.5)
+        self.rigid_face_model_part.CreateNewNode(18, -0.4, 0.5, 0.5)
 
         condition_name = "RigidFace3D3N"
         self.rigid_face_model_part.CreateNewCondition(condition_name, 1, [11, 12, 13], self.rigid_face_model_part.GetProperties()[0])

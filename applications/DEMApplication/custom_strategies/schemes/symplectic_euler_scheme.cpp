@@ -24,7 +24,7 @@ namespace Kratos {
             array_1d<double, 3 >& delta_displ,
             array_1d<double, 3 >& vel,
             const array_1d<double, 3 >& initial_coor,
-            const array_1d<double, 3 >& force,
+            array_1d<double, 3 >& force,
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
