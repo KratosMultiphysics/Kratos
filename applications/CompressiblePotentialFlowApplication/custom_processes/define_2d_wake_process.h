@@ -127,17 +127,19 @@ private:
 
     const void SaveTrailingEdgeNode();
 
-    const void MarkTrailingEdgeElements();
-
-    const void AddTrailingEdgeElements();
-
     const void MarkWakeElements();
+
+    const void CheckIfTrailingEdgeElement(ElementIteratorType& rElement);
+
+    const void MarkTrailingEdgeElement(ElementIteratorType& rElement);
 
     const bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
 
     const BoundedVector<double, 3> ComputeNodalDistancesToWake(ElementIteratorType& rElement);
 
     const bool CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake);
+
+    const void AddTrailingEdgeElements();
 
     const void MarkKuttaElements();
 
