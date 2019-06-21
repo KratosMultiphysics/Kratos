@@ -574,16 +574,10 @@ public:
             #pragma omp for  schedule(guided, 512) nowait
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
-                bool constraint_is_active = true;
-                if( it_const->IsDefined(ACTIVE) ) {
-                    constraint_is_active = it_const->Is(ACTIVE);
-                }
-                if(constraint_is_active) {
-                    // Gets list of Dof involved on every element
-                    it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                    dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-                }
+                // Gets list of Dof involved on every element
+                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
             }
 
             // We merge all the sets in one thread
