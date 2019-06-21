@@ -82,6 +82,9 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         super(CustomFluidDynamicsAnalysis,self).ApplyBoundaryConditions()
 
         # Set the EMBEDDED_VELOCITY
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.Set(KratosMultiphysics.VISITED, False)
+
         for element in self._GetSolver().GetComputingModelPart().Elements:
             # Check if the element is split
             n_pos = 0
@@ -93,9 +96,13 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
                     n_pos += 1
             # If it is split, set the EMBEDDED_VELOCITY
             if n_neg != 0 and n_pos != 0:
-                element.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [vel,0.0,0.0])
+                for node in element.GetNodes():
+                    node.Set(KratosMultiphysics.VISITED, True)
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [vel,0.0,0.0])
             else:
-                element.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [0.0,0.0,0.0])
+                for node in element.GetNodes():
+                    if not node.Is(KratosMultiphysics.VISITED):
+                        element.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [0.0,0.0,0.0])
 
     def OutputSolutionStep(self):
         if self.print_output:
