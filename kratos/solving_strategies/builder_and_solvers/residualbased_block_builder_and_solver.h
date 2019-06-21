@@ -583,7 +583,6 @@ public:
                     it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
                     dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
                     dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-                    ++num_active;
                 }
             }
 
