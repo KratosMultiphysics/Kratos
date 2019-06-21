@@ -150,6 +150,11 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
 
+    void ConstCalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) const;
+
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
@@ -157,6 +162,14 @@ public:
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo) override;
+
+    void ConstCalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) const;
+
+    void ConstCalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,

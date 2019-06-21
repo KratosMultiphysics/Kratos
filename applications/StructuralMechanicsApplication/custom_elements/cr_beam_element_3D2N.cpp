@@ -1041,13 +1041,31 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
 
     KRATOS_TRY;
-    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    ConstCalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::ConstCalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+    ConstCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    ConstCalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    KRATOS_CATCH("");
 }
 
 void CrBeamElement3D2N::CalculateRightHandSide(
     VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    ConstCalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::ConstCalculateRightHandSide(
+    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     Vector internal_forces = CalculateGlobalNodalForces();
@@ -1062,6 +1080,15 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 
 void CrBeamElement3D2N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+
+    KRATOS_TRY;
+    ConstCalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::ConstCalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_TRY;
