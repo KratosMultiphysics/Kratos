@@ -806,9 +806,9 @@ protected:
             }
         }
 
-        //For correcting projections for chimera
 
-        const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+         //For correcting projections for chimera
+        auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
