@@ -47,8 +47,8 @@ ApplyChimeraProcessMonolithic<TDim>::ApplyChimeraProcessMonolithic(ModelPart &rM
         mLevelTable.push_back(mParameters[i].size());
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-    this->mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
-    this->mpCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+    mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
+    mpCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 }
 
 template <int TDim>
@@ -162,14 +162,14 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
         if (has_overlap)
         {
             KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-            this->mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
+            mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
-            this->mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot);
+            mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
         }
 
         mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
-        this->mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
-        this->mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
+        mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
+        mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
 
         //for multipatch
         const unsigned int n_elements = r_hole_model_part.NumberOfElements();
@@ -183,15 +183,6 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("") << std::endl;
         ApplyContinuityWithMpcs(r_hole_boundary_model_part, p_pointer_locator_on_patch);
-
-        const unsigned int n_nodes = r_hole_model_part.NumberOfNodes();
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node)
-        {
-            auto it_node = r_hole_model_part.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
-            it_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
-            it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
-        }
 
         current_model.DeleteModelPart("HoleModelpart");
         current_model.DeleteModelPart("HoleBoundaryModelPart");
