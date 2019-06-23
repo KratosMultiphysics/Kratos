@@ -130,7 +130,7 @@ public:
         KRATOS_INFO("\n::[Creating Hole]::") << std::endl;
         Model &current_model = rModelPart.GetModel();
         ModelPart &r_dummy_internal_boundary = current_model.CreateModelPart("dummy_chimera_internal_boundary");
-        RemoveOutOfDomainElements(rModelPart, rExtractedModelPart,1,Distance);
+        RemoveOutOfDomainElements(rModelPart, rExtractedModelPart,1,Distance, true);
         FindOutsideBoundaryOfModelPartGivenInside(rExtractedModelPart, r_dummy_internal_boundary, rExtractedBoundaryModelPart);
         current_model.DeleteModelPart("dummy_chimera_internal_boundary");
         KRATOS_CATCH("");
@@ -147,7 +147,8 @@ public:
     void RemoveOutOfDomainElements(ModelPart &rModelPart,
                                    ModelPart &rModifiedModelPart,
                                    const int MainDomainOrNot,
-                                   const double Distance=0.0)
+                                   const double Distance=0.0,
+                                   const bool GetInside=false)
     {
         KRATOS_TRY;
         KRATOS_INFO("\n:: Removing Out Of Domain Patch with Inside boundary Given ::") << std::endl;
@@ -180,6 +181,8 @@ public:
                 i_element->Set(ACTIVE, false);
                 Element::Pointer p_elem = *(i_element.base());
                 std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber();
+                if(GetInside)
+                    rModifiedModelPart.Elements().push_back(p_elem);
                 for (j = 0; j < num_nodes_per_elem; j++)
                 {
                     p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
@@ -192,20 +195,24 @@ public:
                     if (num_nodes_per_elem - 1 > 2)
                         p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
                     p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+                    if(GetInside)
+                        vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
                 }
             }
             else
             {
-                count++;
-                Element::Pointer p_elem = *(i_element.base());
-                std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber(); // Size()
-                rModifiedModelPart.Elements().push_back(p_elem);                   //AddElement()
-                for (j = 0; j < num_nodes_per_elem; j++)
-                    vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
+                if(!GetInside){
+                    count++;
+                    Element::Pointer p_elem = *(i_element.base());
+                    std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber(); // Size()
+                    rModifiedModelPart.Elements().push_back(p_elem);                   //AddElement()
+                    for (j = 0; j < num_nodes_per_elem; j++)
+                        vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
+                }
             }
         }
 
-        rModifiedModelPart.Nodes() = rModelPart.Nodes();
+        //rModifiedModelPart.Nodes() = rModelPart.Nodes();
 
         KRATOS_INFO("Number of elements added to the modified patch") << count << std::endl;
         //sorting and making unique list of node ids
@@ -385,10 +392,10 @@ public:
         std::set<std::size_t> sort_set(vector_of_node_ids.begin(), vector_of_node_ids.end());
         vector_of_node_ids.assign(sort_set.begin(), sort_set.end());
 
-        for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
+        for (const auto& i_node_id : vector_of_node_ids)
         {
             //Adding the nodes to the rExtractedBoundaryModelPart
-            Node<3>::Pointer pnode = rVolumeModelPart.Nodes()(*it);
+            Node<3>::Pointer pnode = rVolumeModelPart.Nodes()(i_node_id);
             rExtractedBoundaryModelPart.AddNode(pnode);
         }
         KRATOS_INFO("Successful extraction of the boundary mesh") << std::endl;
