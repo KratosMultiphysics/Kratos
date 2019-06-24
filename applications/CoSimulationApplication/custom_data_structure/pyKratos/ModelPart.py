@@ -20,6 +20,7 @@ class ModelPart:
         self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
 
         self.Nodes = list(self.NodesMap.values())
+
     def RemoveNode(self):
         pass
 
@@ -30,6 +31,9 @@ class ModelPart:
             self.solution_step_variables.append(variable[3])
         else:
             self.solution_step_variables.append(variable)
+
+    def SetBufferSize(self, new_buffer_size):
+        self.buffer_size = new_buffer_size
 
     def CloneTimeStep(self, time):
         for node in self.NodeIterators():
@@ -89,6 +93,9 @@ class ModelPart:
     # add properties
     def AddProperties(self, dict_of_properties):
         self.Properties.update(dict_of_properties)
+
+    def CreateNewProperties(self, prop_id):
+        return None
 
     def AddElements(self, dict_of_elements):
         pass
