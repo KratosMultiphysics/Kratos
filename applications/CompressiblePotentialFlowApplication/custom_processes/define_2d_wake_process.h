@@ -37,7 +37,6 @@ public:
 
     typedef ModelPart::NodeIterator NodeIteratorType;
     typedef ModelPart::ElementIterator ElementIteratorType;
-    typedef typename std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -100,7 +99,7 @@ private:
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mWakeNormal;
     // Vector to store the trailing edge elements ids
-    std::vector<SizeType> mTrailingEdgeElementsOrderedIds;
+    std::vector<std::size_t> mTrailingEdgeElementsOrderedIds;
 
     ///@}
     ///@name Private Operators
