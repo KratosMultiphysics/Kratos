@@ -64,11 +64,14 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
         {
             AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
 
+            double response_value = 1.0;
+            if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = rCurrentProcessInfo.GetValue(RESPONSE_VALUE);}
+
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
-                rOutput[i][0] *=  1.0 / (G * J);
-                rOutput[i][1] *= -1.0 / (E * Iy);
-                rOutput[i][2] *= -1.0 / (E * Iz);
+                rOutput[i][0] *=  1.0 / (G * J)  / response_value;
+                rOutput[i][1] *= -1.0 / (E * Iy) / response_value;
+                rOutput[i][2] *= -1.0 / (E * Iz) / response_value;
             }
         }
         else if (rVariable == ADJOINT_STRAIN)
@@ -78,9 +81,12 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
             KRATOS_WARNING_IF("ADJOINT_STRAIN", (this->GetProperties().Has(AREA_EFFECTIVE_Y) || this->GetProperties().Has(AREA_EFFECTIVE_Z)))
                         << "Not available for Timoschenko beam!" << std::endl;
 
+            double response_value = 1.0;
+            if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = rCurrentProcessInfo.GetValue(RESPONSE_VALUE);}
+
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
-                rOutput[i][0] *= 1.0 / (E * A);
+                rOutput[i][0] *= 1.0 / (E * A) / response_value;
                 rOutput[i][1] *= 0.0;
                 rOutput[i][2] *= 0.0;
             }
