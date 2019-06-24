@@ -68,6 +68,10 @@ const void Define2DWakeProcess::SetWakeDirectionAndNormal()
     // Computing the norm of the free_stream_velocity vector
     const double norm = std::sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
 
+    KRATOS_ERROR_IF(norm != 0.0)
+        << "The norm of the free stream velocity should be different than 0."
+        << std::endl;
+
     // The wake direction is the free stream direction
     mWakeDirection = free_stream_velocity / norm;
 
