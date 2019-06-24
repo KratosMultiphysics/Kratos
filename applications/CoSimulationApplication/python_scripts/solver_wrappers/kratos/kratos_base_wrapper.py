@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
@@ -17,9 +17,6 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     It uses the AnalysisStage as interface to Kratos
     """
     def __init__(self, settings, solver_name):
-        if not cs_tools.cs_data_structure.__name__ == "KratosMultiphysics":
-            raise Exception("Kratos can only be used as a solver if the CoSim DataStructure in also Kratos!")
-
         super(KratosBaseWrapper, self).__init__(settings, solver_name)
 
         input_file_name = self.settings["settings"]["input_file"].GetString()
@@ -27,7 +24,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
             input_file_name += ".json"
 
         with open(input_file_name,'r') as parameter_file:
-            self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            self.project_parameters = KM.Parameters(parameter_file.read())
 
     def Initialize(self):
         self._GetAnalysisStage().Initialize()
