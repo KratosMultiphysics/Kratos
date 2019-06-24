@@ -293,7 +293,7 @@ const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Elem
     unsigned int number_of_nodes_with_negative_distance = 0;
     // REMINDER: In 3D the elemental_distances may not be match with the nodal
     // distances if CalculateDistanceToSkinProcess is used.
-    auto nodal_distances_to_wake = rElement->GetValue(ELEMENTAL_DISTANCES);
+    const auto nodal_distances_to_wake = rElement->GetValue(ELEMENTAL_DISTANCES);
 
     // Count how many element nodes are above and below the wake
     for (unsigned int i = 0; i < nodal_distances_to_wake.size(); i++) {
