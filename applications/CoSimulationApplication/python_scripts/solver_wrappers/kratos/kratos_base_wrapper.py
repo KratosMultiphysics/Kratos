@@ -31,6 +31,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def Initialize(self):
         self._GetAnalysisStage().Initialize()
+        super(KratosBaseWrapper, self).Initialize()
 
     def Finalize(self):
         self._GetAnalysisStage().Finalize()

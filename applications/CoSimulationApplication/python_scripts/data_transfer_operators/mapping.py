@@ -20,11 +20,11 @@ class MappingDataTransferOperator(CoSimulationDataTransferOperator):
         # or throw if it is not in a suitable location (e.g. on the ProcessInfo)
 
         model_part_origin      = from_solver_data.GetModelPart()
-        model_part_origin_name = from_solver_data.model_part_name
+        model_part_origin_name = model_part_origin.Name
         variable_origin        = from_solver_data.variable
 
         model_part_destinatinon      = to_solver_data.GetModelPart()
-        model_part_destinatinon_name = to_solver_data.model_part_name
+        model_part_destinatinon_name = model_part_destinatinon.Name
         variable_destination         = to_solver_data.variable
 
         mapper_flags = GetMapperFlags(transfer_options)

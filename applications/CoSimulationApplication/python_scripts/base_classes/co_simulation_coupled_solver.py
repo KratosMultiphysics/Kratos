@@ -39,6 +39,8 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
+        super(CoSimulationCoupledSolver, self).Initialize()
+
         for predictor in self.predictors_list:
             predictor.Initialize()
 

@@ -28,7 +28,8 @@ class CoSimulationSolverWrapper(object):
 
 
     def Initialize(self):
-        pass
+        for data in self.data_dict.values():
+            data.Initialize()
 
     def Finalize(self):
         pass
