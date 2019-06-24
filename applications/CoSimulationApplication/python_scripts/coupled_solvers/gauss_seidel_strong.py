@@ -7,15 +7,15 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-def Create(cosim_solver_settings, solver_name):
-    return GaussSeidelStrong(cosim_solver_settings, solver_name)
+def Create(settings, solver_name):
+    return GaussSeidelStrong(settings, solver_name)
 
 class GaussSeidelStrong(CoSimulationCoupledSolver):
-    def __init__(self, cosim_solver_settings, solver_name):
-        if not cosim_solver_settings['coupling_sequence'].size() == 2:
+    def __init__(self, settings, solver_name):
+        if not settings['coupling_sequence'].size() == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
-        super(GaussSeidelStrong, self).__init__(cosim_solver_settings, solver_name)
+        super(GaussSeidelStrong, self).__init__(settings, solver_name)
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],

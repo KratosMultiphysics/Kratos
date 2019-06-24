@@ -7,8 +7,8 @@ from  . import co_simulation_solver_wrapper
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
-    def __init__(self, GaussSeidelWeakcosim_solver_settings, solver_name):
-        super(CoSimulationCoupledSolver, self).__init__(GaussSeidelWeakcosim_solver_settings, solver_name)
+    def __init__(self, settings, solver_name):
+        super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
