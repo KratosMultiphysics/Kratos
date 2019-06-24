@@ -27,10 +27,10 @@ class RelativeNormInitialResidual(CoSimulationConvergenceCriteria):
 
     def InitializeCouplingIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
-        self.prev_data = self.interface_data.GetNumpyArray()
+        self.prev_data = self.interface_data.GetData()
 
     def IsConverged(self):
-        new_data = self.interface_data.GetNumpyArray()
+        new_data = self.interface_data.GetData()
 
         residual = new_data - self.prev_data
 

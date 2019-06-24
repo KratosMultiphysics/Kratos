@@ -28,16 +28,16 @@ class CoSimulationConvergenceAccelerator(object):
     def InitializeCouplingIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
-        self.input_data = self.interface_data.GetNumpyArray()
+        self.input_data = self.interface_data.GetData()
 
     def FinalizeCouplingIteration(self):
         pass
 
     def ComputeAndApplyUpdate(self):
-        current_data = self.interface_data.GetNumpyArray()
+        current_data = self.interface_data.GetData()
         residual = current_data - self.input_data
         updated_data = self.input_data + self.ComputeUpdate(residual, self.input_data)
-        self.interface_data.ApplyUpdateToData(updated_data)
+        self.interface_data.SetData(updated_data)
 
     def PrintInfo(self):
         '''Function to print Info abt the Object

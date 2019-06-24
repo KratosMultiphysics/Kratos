@@ -12,8 +12,8 @@ def Create(settings, solver_wrapper):
 
 class LinearPredictor(CoSimulationPredictor):
     def Predict(self):
-        current_data  = self.interface_data.GetNumpyArray(0)
-        previous_data  = self.interface_data.GetNumpyArray(1)
+        current_data  = self.interface_data.GetData(0)
+        previous_data  = self.interface_data.GetData(1)
 
         predicted_data = 2*current_data - previous_data
 

@@ -23,15 +23,15 @@ class AverageValuePredictor(CoSimulationPredictor):
             raise Exception("Wrong value for beta. Admissible interval [0.0, 1.0]")
 
     def Predict(self):
-        current_data  = self.interface_data.GetNumpyArray(0)
-        previous_data = self.interface_data.GetNumpyArray(1)
+        current_data  = self.interface_data.GetData(0)
+        previous_data = self.interface_data.GetData(1)
 
         self.predicted_data = 2*current_data - previous_data
 
         self._UpdateData(self.predicted_data)
 
     def FinalizeSolutionStep(self):
-        current_data  = self.interface_data.GetNumpyArray(0)
+        current_data  = self.interface_data.GetData(0)
 
         self.predicted_data = self.beta * current_data + (1-self.beta) * self.predicted_data
 

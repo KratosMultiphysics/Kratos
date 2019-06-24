@@ -44,7 +44,7 @@ class CoSimulationPredictor(object):
         return self.__class__.__name__
 
     def _UpdateData(self, updated_data):
-        self.interface_data.ApplyUpdateToData(updated_data)
+        self.interface_data.SetData(updated_data)
 
         if self.echo_level > 3:
             cs_tools.cs_print_info(self._Name(), "Computed prediction")
