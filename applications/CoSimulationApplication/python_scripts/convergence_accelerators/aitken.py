@@ -61,11 +61,11 @@ class Aitken(CoSimulationConvergenceAccelerator):
             if alpha > 20:
                 alpha = 20
                 if self.echo_level > 0:
-                    cs_tools.cs_print_warning(self._Name(), ": "+ colors.red("WARNING: dynamic relaxation factor reaches upper bound: 20"))
+                    cs_tools.cs_print_warning(self._Name(), "dynamic relaxation factor reaches upper bound: 20")
             elif alpha < -2:
                 alpha = -2
                 if self.echo_level > 0:
-                    cs_tools.cs_print_warning(self._Name(), ": " + colors.red("WARNING: dynamic relaxation factor reaches lower bound: -2"))
+                    cs_tools.cs_print_warning(self._Name(), "dynamic relaxation factor reaches lower bound: -2")
             delta_x = alpha * self.R[0]
         self.alpha_old = alpha
 
