@@ -144,19 +144,23 @@ private:
         const Element::NodesArrayType& rNodes,
         Vector& rLocalSensitivityContribution) const
     {
-        constexpr std::size_t max_size = 50;
+        /*constexpr std::size_t max_size = 50;
         BoundedVector<double, max_size> nodal_flag_vector(rDerivativesOfResidual.size2());
 
         const unsigned int num_nodes = rNodes.size();
         for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
         {
             nodal_flag_vector[i_node] = rNodes[i_node].Is(STRUCTURE) ? 1.0 : 0.0;
-        }
+        }*/
 
         if (rLocalSensitivityContribution.size() != rDerivativesOfResidual.size1())
             rLocalSensitivityContribution.resize(rDerivativesOfResidual.size1(), false);
 
-        noalias(rLocalSensitivityContribution) = prod(rDerivativesOfResidual, nodal_flag_vector);
+        /*noalias(rLocalSensitivityContribution) = prod(rDerivativesOfResidual, nodal_flag_vector);*/
+        for (unsigned int i = 0; i < rLocalSensitivityContribution.size(); i++)
+        {
+            rLocalSensitivityContribution[i] = 1.0;
+        }
     }
 
     ///@}
