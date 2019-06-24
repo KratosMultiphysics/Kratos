@@ -377,7 +377,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         self.assertEqual(len(exp_data), len(data))
 
         for exp_val, val in zip(exp_data, data):
-            self.asserAlmostEqual(exp_val, val)
+            self.assertAlmostEqual(exp_val, val)
 
     def __CheckSetGetData(self, the_data, coupling_data, solution_step_index=0):
         # Checking to call fct differently
