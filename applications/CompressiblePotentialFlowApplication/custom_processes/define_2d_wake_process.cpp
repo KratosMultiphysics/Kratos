@@ -239,7 +239,7 @@ const void Define2DWakeProcess::MarkKuttaElements()
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
     BoundedVector<double, 3> distance_to_element_center = ZeroVector(3);
-    double distance_to_wake = 1.0;
+    double distance_to_wake;
 
     for (int i = 0;
          i < static_cast<int>(trailing_edge_sub_model_part.Elements().size()); i++) {
