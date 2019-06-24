@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
-# Importing the Kratos Library
+# Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
