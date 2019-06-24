@@ -191,6 +191,18 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data = CouplingInterfaceData(settings, self.model)
 
+    def test_wrong_input_missing_solutionstepvar(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "FORCE",
+            "dimension"       : 2
+        }""")
+
+        exp_error = '"FORCE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+
+        with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data = CouplingInterfaceData(settings, self.model)
+
     def test_GetSetNodalHistoricalData(self):
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",

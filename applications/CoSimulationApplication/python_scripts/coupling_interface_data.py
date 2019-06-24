@@ -41,8 +41,6 @@ class CouplingInterfaceData(object):
 
         self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 
-        # TODO check in historical case if the var is in the MP!
-
         self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
@@ -68,6 +66,10 @@ class CouplingInterfaceData(object):
         admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
         if not self.location in admissible_locations:
             raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
+
+        if self.location == "node_historical":
+            if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(variable_name, self.model_part_name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
@@ -113,13 +115,17 @@ class CouplingInterfaceData(object):
         elif self.location in ["node_non_historical", "element", "condition"]:
             data = self.__GetDataFromContainer(self.__GetDataContainer(), GetValue)
         elif self.location == "process_info":
-            data = [self.GetModelPart().ProcessInfo[self.variable]]
-            if not self.is_scalar_variable:
-                data = [data[0][i] for i in range(self.dimension)]
+            var_val = self.GetModelPart().ProcessInfo[self.variable]
+            if self.is_scalar_variable:
+                data = [var_val]
+            else:
+                data = [var_val[i] for i in range(self.dimension)]
         elif self.location == "model_part":
-            data = [self.GetModelPart()[self.variable]]
-            if not self.is_scalar_variable:
-                data = [data[0][i] for i in range(self.dimension)]
+            var_val = self.GetModelPart()[self.variable]
+            if self.is_scalar_variable:
+                data = [var_val]
+            else:
+                data = [var_val[i] for i in range(self.dimension)]
 
         return np.asarray(data, dtype=self.dtype) # => https://docs.scipy.org/doc/numpy/user/basics.types.html
 
@@ -138,17 +144,22 @@ class CouplingInterfaceData(object):
             if self.is_scalar_variable:
                 self.GetModelPart().ProcessInfo[self.variable] = new_data[0]
             else:
-                vec_value = [0.0, 0.0, 0.0] # Array values require three entries
-                vec_value[:self.dimension] = new_data[:self.dimension] # apply "padding"
-                self.GetModelPart().ProcessInfo[self.variable] = vec_value
-
+                if self.variable_type == "Array":
+                    vec_value = [0.0, 0.0, 0.0] # Array values require three entries
+                    vec_value[:self.dimension] = new_data[:self.dimension] # apply "padding"
+                    self.GetModelPart().ProcessInfo[self.variable] = vec_value
+                else:
+                    self.GetModelPart().ProcessInfo[self.variable] = new_data
         elif self.location == "model_part":
             if self.is_scalar_variable:
                 self.GetModelPart()[self.variable] = new_data[0]
             else:
-                vec_value = [0.0, 0.0, 0.0] # Array values require three entries
-                vec_value[:self.dimension] = new_data[:self.dimension] # apply "padding"
-                self.GetModelPart()[self.variable] = vec_value
+                if self.variable_type == "Array":
+                    vec_value = [0.0, 0.0, 0.0] # Array values require three entries
+                    vec_value[:self.dimension] = new_data[:self.dimension] # apply "padding"
+                    self.GetModelPart()[self.variable] = vec_value
+                else:
+                    self.GetModelPart()[self.variable] = new_data
 
     def __GetDataFromContainer(self, container, fct_ptr, *args):
         if self.is_scalar_variable:
@@ -159,7 +170,6 @@ class CouplingInterfaceData(object):
                 vals = fct_ptr(entity, self.variable, *args)
                 for i in range(self.dimension):
                     data.append(vals[i])
-
             return data
 
     def __SetDataOnContainer(self, container, fct_ptr, data, *args):
@@ -188,7 +198,6 @@ class CouplingInterfaceData(object):
             return self.GetModelPart().GetCommunicator().LocalMesh().Elements
         elif self.location == "condition":
             return self.GetModelPart().GetCommunicator().LocalMesh().Conditions
-
 
     def __CheckBufferSize(self, solution_step_index):
         if solution_step_index+1 > self.GetBufferSize():
