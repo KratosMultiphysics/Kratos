@@ -224,12 +224,12 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
             "location"        : "node_non_historical",
-            "variable_name"   : "PRESSURE"
+            "variable_name"   : "TEMPERATURE"
         }""")
 
         settings_vec = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
-            "variable_name"   : "DISPLACEMENT",
+            "variable_name"   : "VELOCITY",
             "location"        : "node_non_historical",
             "dimension"       : 3
         }""")
@@ -240,8 +240,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
 
         # 1. check the initial values
-        exp_data_scal = [NodeScalarHistValueCurrent(node.Id) for node in self.mp.Nodes]
-        exp_data_vec = GetVectorValues(self.mp.Nodes, NodeVectorHistValueCurrent, 3)
+        exp_data_scal = [NodeScalarNonHistValue(node.Id) for node in self.mp.Nodes]
+        exp_data_vec = GetVectorValues(self.mp.Nodes, NodeVectorNonHistValue, 3)
 
         self.__CheckData(exp_data_scal, coupling_data_scal.GetData())
         self.__CheckData(exp_data_vec, coupling_data_vec.GetData())
@@ -336,11 +336,11 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         # 1. check the initial values
         self.__CheckData([model_part_scalar_value], coupling_data_scal.GetData())
-        self.__CheckData([model_part_vector_value], coupling_data_vec.GetData())
+        self.__CheckData([model_part_vector_value[0]], coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [process_info_scalar_value]
-        set_data_vec = [process_info_vector_value]
+        set_data_vec = [process_info_vector_value[0]]
 
         self.__CheckSetGetData(set_data_scal, coupling_data_scal)
         self.__CheckSetGetData(set_data_vec, coupling_data_vec)
@@ -364,11 +364,11 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         # 1. check the initial values
         self.__CheckData([process_info_scalar_value], coupling_data_scal.GetData())
-        self.__CheckData([process_info_vector_value], coupling_data_vec.GetData())
+        self.__CheckData([process_info_vector_value[0], process_info_vector_value[1]], coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [model_part_scalar_value]
-        set_data_vec = [model_part_vector_value]
+        set_data_vec = [model_part_vector_value[0], model_part_vector_value[1]]
 
         self.__CheckSetGetData(set_data_scal, coupling_data_scal)
         self.__CheckSetGetData(set_data_vec, coupling_data_vec)
