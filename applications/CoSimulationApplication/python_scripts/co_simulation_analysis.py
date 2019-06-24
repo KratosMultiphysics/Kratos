@@ -1,9 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
 from KratosMultiphysics.analysis_stage import AnalysisStage
+
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
+# Other imports
 import sys
 
 class CoSimulationAnalysis(AnalysisStage):
@@ -15,12 +21,9 @@ class CoSimulationAnalysis(AnalysisStage):
         # Note: deliberately NOT calling the base-class constructor,
         # since this would break the python-only version due to the type-checks
 
-        if cs_tools.cs_data_structure is None:
-            raise Exception("The CoSimulation DataStructure has not been initialized!")
-
         self.cosim_settings = cosim_settings
 
-        problem_data_defaults = cs_tools.cs_data_structure.Parameters("""{
+        problem_data_defaults = KM.Parameters("""{
             "problem_name" : "default_co_simulation",
             "print_colors" : false,
             "flush_stdout" : false,
@@ -72,7 +75,6 @@ class CoSimulationAnalysis(AnalysisStage):
         """Create the solver
         """
         problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
-        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
         return solvers_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
 
 if __name__ == '__main__':
@@ -83,12 +85,9 @@ if __name__ == '__main__':
         raise Exception(err_msg)
 
     parameter_file_name = sys.argv[1]
-    global cs_data_structure
-    cs_data_structure = cs_tools.ImportDataStructure(parameter_file_name)
 
-    # Now we import actual parameters from the cs_data_structure
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = cs_data_structure.Parameters(parameter_file.read())
+        parameters = KM.Parameters(parameter_file.read())
 
     simulation = CoSimulationAnalysis(parameters)
     simulation.Run()
