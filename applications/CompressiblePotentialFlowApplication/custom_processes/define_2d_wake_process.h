@@ -35,7 +35,6 @@ public:
     /// Pointer definition of Define2DWakeProcess
     KRATOS_CLASS_POINTER_DEFINITION(Define2DWakeProcess);
 
-    typedef Node<3> NodeType;
     typedef ModelPart::NodeIterator NodeIteratorType;
     typedef ModelPart::ElementIterator ElementIteratorType;
     typedef typename std::size_t SizeType;
