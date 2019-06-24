@@ -171,9 +171,7 @@ const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorTyp
         ComputeDistanceFromTrailingEdgeToPoint(rElement->GetGeometry().Center());
 
     // Compute the projection of the distance in the wake direction
-    double projection_on_wake = inner_prod(distance_to_element_center, mWakeDirection);
-
-    return projection_on_wake > 0.0;
+    return inner_prod(distance_to_element_center, mWakeDirection) > 0.0 ? true : false;
 }
 
 // This function computes the distance of the element nodes to the wake
