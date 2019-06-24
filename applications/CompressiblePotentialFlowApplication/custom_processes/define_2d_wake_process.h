@@ -13,6 +13,9 @@
 #if !defined(KRATOS_DEFINE_2D_WAKE_PROCESS_H_INCLUDED )
 #define  KRATOS_DEFINE_2D_WAKE_PROCESS_H_INCLUDED
 
+// System includes
+#include <unordered_set>
+
 // Project includes
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -112,7 +115,8 @@ private:
 
     const void MarkWakeElements();
 
-    const void CheckIfTrailingEdgeElement(ElementIteratorType& rElement);
+    void CheckIfTrailingEdgeElement(const ElementIteratorType& rElement,
+                                    std::unordered_set<std::size_t>& thread_trailing_edge_element_ids);
 
     const bool CheckIfPotentiallyWakeElement(const ElementIteratorType& rElement);
 
@@ -120,7 +124,8 @@ private:
 
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake);
 
-    const void AddTrailingEdgeElements();
+    const void AddTrailingEdgeElements(const int number_of_threads,
+                                       std::vector<std::unordered_set<std::size_t>>& thread_trailing_edge_element_ids);
 
     const void MarkKuttaElements();
 

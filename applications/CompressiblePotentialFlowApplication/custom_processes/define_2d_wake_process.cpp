@@ -13,6 +13,7 @@
 // Project includes
 #include "define_2d_wake_process.h"
 #include "utilities/variable_utils.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -106,12 +107,18 @@ const void Define2DWakeProcess::MarkWakeElements()
     bool is_wake_element = false;
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
 
+    const int number_of_threads = OpenMPUtils::GetNumThreads();
+    std::vector<std::unordered_set<std::size_t>> all_threads_trailing_edge_element_ids(number_of_threads);
+
     #pragma omp parallel for firstprivate(potentially_wake, is_wake_element, nodal_distances_to_wake)
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 
+        const int thread = OpenMPUtils::ThisThread();
+        auto& thread_trailing_edge_element_ids = all_threads_trailing_edge_element_ids[thread];
+
         // Check if the element is touching the trailing edge
-        CheckIfTrailingEdgeElement(it_elem);
+        CheckIfTrailingEdgeElement(it_elem, thread_trailing_edge_element_ids);
 
         // Elements downstream the trailing edge can be wake elements
         potentially_wake = CheckIfPotentiallyWakeElement(it_elem);
@@ -137,21 +144,19 @@ const void Define2DWakeProcess::MarkWakeElements()
         }
     }
     // Add the trailing edge elements to the trailing_edge_sub_model_part
-    AddTrailingEdgeElements();
+    AddTrailingEdgeElements(number_of_threads, all_threads_trailing_edge_element_ids);
 }
 
 // This function checks if the element is touching the trailing edge
-const void Define2DWakeProcess::CheckIfTrailingEdgeElement(ElementIteratorType& rElement)
+void Define2DWakeProcess::CheckIfTrailingEdgeElement(const ElementIteratorType& rElement,
+                                                    std::unordered_set<std::size_t>& thread_trailing_edge_element_ids)
 {
     // Loop over element nodes
     for (unsigned int i = 0; i < rElement->GetGeometry().size(); i++) {
         // Elements touching the trailing edge are trailing edge elements
         if (rElement->GetGeometry()[i].Id() == mTrailingEdgeNode->Id()) {
             rElement->SetValue(TRAILING_EDGE, true);
-            #pragma omp critical
-            {
-                mTrailingEdgeElementsOrderedIds.push_back(rElement->Id());
-            }
+            thread_trailing_edge_element_ids.insert(rElement->Id());
         }
     }
 }
@@ -216,11 +221,19 @@ const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3
 
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
-const void Define2DWakeProcess::AddTrailingEdgeElements()
+const void Define2DWakeProcess::AddTrailingEdgeElements(const int number_of_threads, std::vector<std::unordered_set<std::size_t>>& thread_trailing_edge_element_ids)
 {
-    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    // Collect the ids of all threads within mTrailingEdgeElementsOrderedIds
+    for (int thread = 0; thread < number_of_threads; thread++) {
+        for (std::size_t ids : thread_trailing_edge_element_ids[thread]) {
+            mTrailingEdgeElementsOrderedIds.push_back(ids);
+        }
+    }
+
     std::sort(mTrailingEdgeElementsOrderedIds.begin(),
               mTrailingEdgeElementsOrderedIds.end());
+
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     root_model_part.GetSubModelPart("trailing_edge_sub_model_part").AddElements(mTrailingEdgeElementsOrderedIds);
 }
 
