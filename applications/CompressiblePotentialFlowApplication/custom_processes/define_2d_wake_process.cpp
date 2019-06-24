@@ -164,7 +164,7 @@ const void Define2DWakeProcess::MarkTrailingEdgeElement(ElementIteratorType& rEl
 
 // This function selects the elements downstream the trailing edge as
 // potentially wake elements
-const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorType& rElement)
+const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const ElementIteratorType& rElement)
 {
     // Compute the distance from the trailing edge to the element's center
     const auto distance_to_element_center =
@@ -175,7 +175,7 @@ const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorTyp
 }
 
 // This function computes the distance of the element nodes to the wake
-const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(ElementIteratorType& rElement)
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(const ElementIteratorType& rElement)
 {
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
     BoundedVector<double, 3> distance_from_te_to_node = ZeroVector(3);
@@ -288,7 +288,7 @@ const void Define2DWakeProcess::MarkWakeTrailingEdgeElement()
 }
 
 // This function checks if the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(ElementIteratorType& rElement)
+const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const ElementIteratorType& rElement)
 {
     unsigned int number_of_nodes_with_negative_distance = 0;
     // REMINDER: In 3D the elemental_distances may not be match with the nodal
@@ -306,7 +306,7 @@ const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(ElementIte
 }
 
 // This function computes the distance from the trailing edge to an input point
-const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint)
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(const Point InputPoint)
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
 

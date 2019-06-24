@@ -118,9 +118,9 @@ private:
 
     const void MarkTrailingEdgeElement(ElementIteratorType& rElement);
 
-    const bool CheckIfPotentiallyWakeElement(ElementIteratorType& rElement);
+    const bool CheckIfPotentiallyWakeElement(const ElementIteratorType& rElement);
 
-    const BoundedVector<double, 3> ComputeNodalDistancesToWake(ElementIteratorType& rElement);
+    const BoundedVector<double, 3> ComputeNodalDistancesToWake(const ElementIteratorType& rElement);
 
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake);
 
@@ -130,9 +130,9 @@ private:
 
     const void MarkWakeTrailingEdgeElement();
 
-    const bool CheckIfTrailingEdgeElementIsCutByWake(ElementIteratorType& rElement);
+    const bool CheckIfTrailingEdgeElementIsCutByWake(const ElementIteratorType& rElement);
 
-    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(Point InputPoint);
+    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point InputPoint);
     ///@}
 
 }; // Class Define2DWakeProcess
