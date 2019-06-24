@@ -106,7 +106,7 @@ const void Define2DWakeProcess::MarkWakeElements()
     bool is_wake_element = false;
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
 
-    #pragma omp parallel for private(potentially_wake, is_wake_element, nodal_distances_to_wake)
+    #pragma omp parallel for firstprivate(potentially_wake, is_wake_element, nodal_distances_to_wake)
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 
