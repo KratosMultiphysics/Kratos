@@ -68,7 +68,7 @@
             "fluid":
             {
                 "solver_type" : "kratos_potential_flow",
-                "input_file"  : "naca0012_small_parameters_coupling",
+                "input_file"  : "fsi_potential_flow_sdof/naca0012_small_coupling_parameters",
                 "data" : {
                     "disp_y" : {
                         "geometry_name" : "FluidModelPart.Body2D_Body",
@@ -90,7 +90,7 @@
             "structure" :
             {
                 "solver_type" : "sdof_static",
-                "input_file"  : "ProjectParametersSDoF",
+                "input_file"  : "fsi_potential_flow_sdof/ProjectParametersSDoF",
                 "data" : {
                     "disp_y" : {
                         "data_identifier" : "DISPLACEMENT",
@@ -104,4 +104,4 @@
             }
         }
     }
-}
+} 

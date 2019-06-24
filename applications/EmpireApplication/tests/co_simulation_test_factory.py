@@ -25,6 +25,16 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self.createTest("fsi_mok", "cosim_mok_fsi")
             self.runTest()
 
+class TestSmallCoSimulationPotentialCase(co_simulation_test_case.CoSimulationTestCase):
+    '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
+    '''
+    def test_PotentialCase(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.createTest("fsi_potential_flow_sdof", "project_cosim_naca0012_small_fsi")
+            self.runTestSteady()
+
 class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "full" CoSimulation-Cases, too large for the nightly suite and therefore
     have to be in the validation-suite

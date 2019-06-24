@@ -9,7 +9,6 @@ class CoSimulationSteadyAnalysis(CoSimulationAnalysis):
 
     def RunSolutionLoop(self):
         self.InitializeSolutionStep()
-        self._GetSolver().Predict()
         self._GetSolver().SolveSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()

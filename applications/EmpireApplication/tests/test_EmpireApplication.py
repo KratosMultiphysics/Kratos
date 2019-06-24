@@ -12,6 +12,7 @@ from co_simulation_solver_test_factory import TestMDoFSolver
 from co_simulation_solver_test_factory import TestEmpireSolver
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
+from co_simulation_test_factory import TestSmallCoSimulationPotentialCase
 
 import os
 if "EMPIRE_API_LIBSO_ON_MACHINE" in os.environ:
@@ -42,6 +43,7 @@ def AssembleTestSuites():
 
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationPotentialCase]))
 
     nightSuite.addTests(smallSuite)
 
@@ -49,6 +51,7 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationPotentialCase]))
 
     # If EMPIRE is available then also add the tests involving EMPIRE
     if empire_available:

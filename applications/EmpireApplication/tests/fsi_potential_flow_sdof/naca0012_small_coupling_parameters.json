@@ -24,7 +24,7 @@
             "model_part_name" : "FluidModelPart",
             "model_import_settings"  : {
                 "input_type"     : "mdpa",
-                "input_filename" : "naca0012_small"
+                "input_filename" : "fsi_potential_flow_sdof/naca0012_small"
             },
             "maximum_iterations"     : 5,
             "echo_level"             : 1,
@@ -158,7 +158,7 @@
                         "node_output"         : true,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["MESH_DISPLACEMENT","REACTION","VELOCITY","PRESSURE"],
+                        "nodal_results"       : ["MESH_DISPLACEMENT","REACTION","VELOCITY","PRESSURE", "VELOCITY_POTENTIAL"],
                         "nodal_nonhistorical_results": [],
                         "gauss_point_results" : ["PRESSURE","VELOCITY"]
                     },

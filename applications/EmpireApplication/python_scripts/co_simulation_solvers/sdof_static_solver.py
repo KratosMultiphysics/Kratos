@@ -62,8 +62,6 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         with open(self.output_file_name, "a") as results_sdof_static:
             #outputs displacements
             results_sdof_static.write(str(self.dx) + "\n")
-    def AdvanceInTime(self, current_time):
-        pass
 
     def SolveSolutionStep(self):
         self.dx = self.force/self.stiffness
