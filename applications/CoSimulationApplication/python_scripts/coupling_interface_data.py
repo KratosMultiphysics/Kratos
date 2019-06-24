@@ -1,7 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Other imports
-from . import co_simulation_tools as cs_tools
 import numpy as np
 
 class CouplingInterfaceData(object):
@@ -10,7 +12,7 @@ class CouplingInterfaceData(object):
     """
     def __init__(self, custom_config, model):
 
-        default_config = cs_tools.cs_data_structure.Parameters("""{
+        default_config = KM.Parameters("""{
             "model_part_name" : "UNSPECIFIED",
             "variable_name"   : "UNSPECIFIED",
             "location"        : "node_historical",
@@ -24,7 +26,7 @@ class CouplingInterfaceData(object):
 
         # variable used to identify data
         variable_name = custom_config["variable_name"].GetString()
-        self.variable_type = cs_tools.cs_data_structure.KratosGlobals.GetVariableType(variable_name)
+        self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
         admissible_vector_variable_types = ["Array"]
@@ -32,7 +34,7 @@ class CouplingInterfaceData(object):
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
             raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
-        self.variable = cs_tools.cs_data_structure.KratosGlobals.GetVariable(variable_name)
+        self.variable = KM.KratosGlobals.GetVariable(variable_name)
 
         self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
 
