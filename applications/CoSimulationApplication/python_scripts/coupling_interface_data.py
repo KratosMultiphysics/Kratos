@@ -76,7 +76,7 @@ class CouplingInterfaceData(object):
         if self.location in ["process_info", "model_part"]:
             return 1
         else:
-            return len(self.GetDataContainer()) # TODO this should include the dimensionality I think
+            return len(self.__GetDataContainer()) * self.dimension
 
     def GetBufferSize(self):
         # only historical nodal data can store multiple steps!
@@ -89,13 +89,9 @@ class CouplingInterfaceData(object):
         self.__CheckBufferSize(solution_step_index)
 
         if self.location == "node_historical":
-            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, GetSolutionStepValue, solution_step_index)
-        elif self.location == "node_non_historical":
-            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, GetValue)
-        elif self.location == "element":
-            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Elements, GetValue)
-        elif self.location == "condition":
-            data = self.__GetDataFromContainer(self.GetModelPart().GetCommunicator().LocalMesh().Conditions, GetValue)
+            data = self.__GetDataFromContainer(self.__GetDataContainer(), GetSolutionStepValue, solution_step_index)
+        elif self.location in ["node_non_historical", "element", "condition"]:
+            data = self.__GetDataFromContainer(self.__GetDataContainer(), GetValue)
         elif self.location == "process_info":
             data = [self.GetModelPart().ProcessInfo[self.variable]]
         elif self.location == "model_part":
@@ -103,25 +99,17 @@ class CouplingInterfaceData(object):
 
         return np.asarray(data, dtype=self.dtype) # => https://docs.scipy.org/doc/numpy/user/basics.types.html
 
-
     def SetData(self, new_data, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
 
         # checking size of data
-        exp_size = self.Size()
-        if not self.is_scalar_variable:
-            exp_size *= self.dimension
-        if len(new_data) != exp_size:
-            raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(new_data), exp_size))
+        if len(new_data) != self.Size():
+            raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(new_data), self.Size()))
 
         if self.location == "node_historical":
-            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, SetSolutionStepValue, new_data, solution_step_index)
-        elif self.location == "node_non_historical":
-            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Nodes, SetValue, new_data)
-        elif self.location == "element":
-            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Elements, SetValue, new_data)
-        elif self.location == "condition":
-            data = self.__SetDataOnContainer(self.GetModelPart().GetCommunicator().LocalMesh().Conditions, SetValue, new_data)
+            data = self.__SetDataOnContainer(self.__GetDataContainer(), SetSolutionStepValue, new_data, solution_step_index)
+        elif self.location in ["node_non_historical", "element", "condition"]:
+            data = self.__SetDataOnContainer(self.__GetDataContainer(), SetValue, new_data)
         elif self.location == "process_info":
             self.GetModelPart().ProcessInfo[self.variable] = new_data[0]
         elif self.location == "model_part":
@@ -148,6 +136,31 @@ class CouplingInterfaceData(object):
                 slice_end = slice_start + self.dimension
                 entity.fct_ptr(self.variable, *args, data[slice_start:slice_end])
 
+    def __GetDataContainer(self):
+        if self.location == "node_historical":
+            return self.GetModelPart().GetCommunicator().LocalMesh().Nodes
+        elif self.location == "node_non_historical":
+            return self.GetModelPart().GetCommunicator().LocalMesh().Nodes
+        elif self.location == "element":
+            return self.GetModelPart().GetCommunicator().LocalMesh().Elements
+        elif self.location == "condition":
+            return self.GetModelPart().GetCommunicator().LocalMesh().Conditions
+
+    def __CheckBufferSize(self, solution_step_index):
+        if solution_step_index+1 > self.GetBufferSize():
+            if self.location == "node_historical":
+                raise Exception("The buffer-size is not large enough (current buffer size: {} | requested solution_step_index: {})!".format(self.GetBufferSize(), solution_step_index+1))
+            else:
+                raise Exception("accessing data from previous steps is only possible with historical nodal data!")
+
+
+
+
+
+
+
+
+
     def GetPythonList(self, solution_step_index=0):
         model_part = self.GetModelPart()
         data = [0]*len(model_part.Nodes)*self.dimension
@@ -173,17 +186,3 @@ class CouplingInterfaceData(object):
 
             node.SetSolutionStepValue(self.variable, 0, updated_value)
             node_index += 1
-
-
-    def __CheckBufferSize(self, solution_step_index):
-        if solution_step_index+1 > self.GetBufferSize():
-            if self.location == "node_historical":
-                raise Exception("The buffer-size is not large enough (current buffer size: {} | requested solution_step_index: {})!".format(self.GetBufferSize(), solution_step_index+1))
-            else:
-                raise Exception("accessing data from previous steps is only possible with historical nodal data!")
-
-    def __GetNumpyDataType(self):
-        type_map = {
-
-        }
-        return ""
