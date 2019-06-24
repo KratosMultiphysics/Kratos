@@ -29,21 +29,21 @@ class CouplingInterfaceData(object):
 
         # variable used to identify data
         variable_name = custom_config["variable_name"].GetString()
-        variable_type = KM.KratosGlobals.GetVariableType(variable_name)
+        self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
         admissible_vector_variable_types = ["Array"]
 
-        if not variable_type in admissible_scalar_variable_types and not variable_type in admissible_vector_variable_types:
-            raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
+        if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
+            raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
         self.variable = KM.KratosGlobals.GetVariable(variable_name)
 
-        self.dtype = GetNumpyDataType(variable_type) # required for numpy array creation
+        self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 
         # TODO check in historical case if the var is in the MP!
 
-        self.is_scalar_variable = variable_type in admissible_scalar_variable_types
+        self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
         self.dimension = custom_config["dimension"].GetInt()
@@ -55,7 +55,7 @@ class CouplingInterfaceData(object):
             if self.dimension < 1:
                 raise Exception('"dimension" has to be specifed for vector variables!')
             else:
-                if variable_type == "Array" and self.dimension not in [1,2,3]:
+                if self.variable_type == "Array" and self.dimension not in [1,2,3]:
                     raise Exception('"dimension" can only be 1,2,3 when using variables of type "Array"')
                 domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
                 if domain_size == 0:
@@ -166,12 +166,18 @@ class CouplingInterfaceData(object):
         if self.is_scalar_variable:
             return [fct_ptr(entity, self.variable, *args, value) for entity, value in zip(container, data)]
         else:
-            vec_value = [0.0, 0.0, 0.0] # Array values require three entries
-            for i_entity, entity in enumerate(container):
-                slice_start = i_entity*self.dimension
-                slice_end = slice_start + self.dimension
-                vec_value[:self.dimension] = data[slice_start:slice_end] # apply "padding"
-                fct_ptr(entity, self.variable, *args, vec_value)
+            if self.variable_type == "Array":
+                vec_value = [0.0, 0.0, 0.0] # Array values require three entries
+                for i_entity, entity in enumerate(container):
+                    slice_start = i_entity*self.dimension
+                    slice_end = slice_start + self.dimension
+                    vec_value[:self.dimension] = data[slice_start:slice_end] # apply "padding"
+                    fct_ptr(entity, self.variable, *args, vec_value)
+            else:
+                for i_entity, entity in enumerate(container):
+                    slice_start = i_entity*self.dimension
+                    slice_end = slice_start + self.dimension
+                    fct_ptr(entity, self.variable, *args, data[slice_start:slice_end])
 
     def __GetDataContainer(self):
         if self.location == "node_historical":
