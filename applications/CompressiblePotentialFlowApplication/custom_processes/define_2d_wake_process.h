@@ -106,6 +106,8 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    const void InitializeVariables();
+
     const void SetWakeDirectionAndNormal();
 
     const void SaveTrailingEdgeNode();
