@@ -167,8 +167,7 @@ const void Define2DWakeProcess::MarkTrailingEdgeElement(ElementIteratorType& rEl
 const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(ElementIteratorType& rElement)
 {
     // Compute the distance from the trailing edge to the element's center
-    BoundedVector<double, 3> distance_to_element_center = ZeroVector(3);
-    distance_to_element_center =
+    const auto distance_to_element_center =
         ComputeDistanceFromTrailingEdgeToPoint(rElement->GetGeometry().Center());
 
     // Compute the projection of the distance in the wake direction
