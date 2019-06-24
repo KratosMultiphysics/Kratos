@@ -67,6 +67,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 
     // add bodyforces
     rRightHandSideVector += CalculateBodyForces();
+    IncrementIterationCounter();
     KRATOS_CATCH("")
 }
 
@@ -153,7 +154,7 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
 BoundedMatrix<double, CrBeamElement3D2N::msLocalSize,
 CrBeamElement3D2N::msLocalSize>
-CrBeamElementLinear3D2N::CalculateDeformationStiffness()
+CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
 {
 
     KRATOS_TRY
