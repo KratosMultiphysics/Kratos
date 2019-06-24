@@ -127,11 +127,11 @@ const void Define2DWakeProcess::MarkWakeElements()
             if (is_wake_element) {
                 it_elem->SetValue(WAKE, true);
                 it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
-                #pragma omp critical
-                {
-                    for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
-                        it_elem->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) = nodal_distances_to_wake(i);
-                    }
+                auto r_geometry = it_elem->GetGeometry();
+                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                    r_geometry[i].SetLock();
+                    r_geometry[i].FastGetSolutionStepValue(DISTANCE) = nodal_distances_to_wake(i);
+                    r_geometry[i].UnSetLock();
                 }
             }
         }
