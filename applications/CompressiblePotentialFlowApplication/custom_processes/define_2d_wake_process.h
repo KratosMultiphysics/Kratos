@@ -122,7 +122,7 @@ private:
 
     const BoundedVector<double, 3> ComputeNodalDistancesToWake(ElementIteratorType& rElement);
 
-    const bool CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake);
+    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake);
 
     const void AddTrailingEdgeElements();
 

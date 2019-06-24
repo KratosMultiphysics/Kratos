@@ -199,7 +199,7 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(
 }
 
 // This function checks whether the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfWakeElement(BoundedVector<double, 3>& rNodalDistancesToWake)
+const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake)
 {
     // Initialize counters
     unsigned int number_of_nodes_with_positive_distance = 0;
