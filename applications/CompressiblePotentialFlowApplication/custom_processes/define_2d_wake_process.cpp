@@ -179,7 +179,7 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(
 {
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
     BoundedVector<double, 3> distance_from_te_to_node = ZeroVector(3);
-    double distance_to_wake = 1.0;
+    double distance_to_wake;
     for (unsigned int i = 0; i < rElement->GetGeometry().size(); i++) {
         // Compute the distance from the trailing edge to the node
         distance_from_te_to_node =
