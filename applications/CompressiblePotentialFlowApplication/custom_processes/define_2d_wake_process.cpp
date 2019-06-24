@@ -37,7 +37,7 @@ void Define2DWakeProcess::ExecuteInitialize()
     // Mark the elements touching the trailing edge from below as kutta
     MarkKuttaElements();
     // Mark the trailing edge element that is further downstream as wake
-    MartkWakeTrailingEdgeElement();
+    MarkWakeTrailingEdgeElement();
 }
 
 const void Define2DWakeProcess::InitializeVariables()
@@ -262,7 +262,7 @@ const void Define2DWakeProcess::MarkKuttaElements()
 // This function finds the trailing edge element that is further downstream and
 // marks it as wake trailing edge element. The rest of trailing edge elements
 // are unassigned from the wake.
-const void Define2DWakeProcess::MartkWakeTrailingEdgeElement()
+const void Define2DWakeProcess::MarkWakeTrailingEdgeElement()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =

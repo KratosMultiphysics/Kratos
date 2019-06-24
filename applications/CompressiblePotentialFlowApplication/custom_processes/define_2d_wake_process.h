@@ -128,7 +128,7 @@ private:
 
     const void MarkKuttaElements();
 
-    const void MartkWakeTrailingEdgeElement();
+    const void MarkWakeTrailingEdgeElement();
 
     const bool CheckIfTrailingEdgeElementIsCutByWake(ElementIteratorType& rElement);
 
