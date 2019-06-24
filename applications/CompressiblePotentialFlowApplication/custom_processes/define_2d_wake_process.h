@@ -114,8 +114,6 @@ private:
 
     const void CheckIfTrailingEdgeElement(ElementIteratorType& rElement);
 
-    const void MarkTrailingEdgeElement(ElementIteratorType& rElement);
-
     const bool CheckIfPotentiallyWakeElement(const ElementIteratorType& rElement);
 
     const BoundedVector<double, 3> ComputeNodalDistancesToWake(const ElementIteratorType& rElement);

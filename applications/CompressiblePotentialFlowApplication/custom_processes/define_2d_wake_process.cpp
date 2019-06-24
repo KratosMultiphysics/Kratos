@@ -147,18 +147,12 @@ const void Define2DWakeProcess::CheckIfTrailingEdgeElement(ElementIteratorType& 
     for (unsigned int i = 0; i < rElement->GetGeometry().size(); i++) {
         // Elements touching the trailing edge are trailing edge elements
         if (rElement->GetGeometry()[i].Id() == mTrailingEdgeNode->Id()) {
-            MarkTrailingEdgeElement(rElement);
+            rElement->SetValue(TRAILING_EDGE, true);
+            #pragma omp critical
+            {
+                mTrailingEdgeElementsOrderedIds.push_back(rElement->Id());
+            }
         }
-    }
-}
-
-// This function marks the elements touching the trailing edge as trailing edge
-const void Define2DWakeProcess::MarkTrailingEdgeElement(ElementIteratorType& rElement)
-{
-    #pragma omp critical
-    {
-    rElement->SetValue(TRAILING_EDGE, true);
-    mTrailingEdgeElementsOrderedIds.push_back(rElement->Id());
     }
 }
 
