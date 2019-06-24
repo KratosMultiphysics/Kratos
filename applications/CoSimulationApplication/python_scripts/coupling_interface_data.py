@@ -3,6 +3,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 # Other imports
 import numpy as np
 
@@ -32,16 +35,29 @@ class CouplingInterfaceData(object):
         admissible_vector_variable_types = ["Array"]
 
         if not variable_type in admissible_scalar_variable_types and not variable_type in admissible_vector_variable_types:
-            raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
+            raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
         self.variable = KM.KratosGlobals.GetVariable(variable_name)
+
+        # TODO check in historical case if the var is in the MP!
 
         self.is_scalar_variable = variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
-        # TODO check that sth was assigned (only for vector_variable)
-        # TODO check DOMAIN_SIZE against the dimension??? (only for vector_variable) and issue warning if it does not coincide
         self.dimension = custom_config["dimension"].GetInt()
+        if self.is_scalar_variable:
+            if self.dimension != -1:
+                raise Exception('"dimension" cannot be specifed for scalar variables!')
+            self.dimension = 1 # needed in other places, e.g. for "Size"
+        else:
+            if self.dimension < 1:
+                raise Exception('"dimension" has to be specifed for vector variables!')
+            else:
+                domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
+                if domain_size == 0:
+                    cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.GetModelPart().Name))
+                if domain_size != self.dimension:
+                    cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
 
         # location of data on ModelPart
         self.location = custom_config["location"].GetString()
