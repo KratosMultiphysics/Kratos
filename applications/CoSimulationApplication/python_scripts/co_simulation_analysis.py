@@ -18,8 +18,7 @@ class CoSimulationAnalysis(AnalysisStage):
     It does NOT override the "RunSolutionLoop" method!
     """
     def __init__(self, cosim_settings):
-        # Note: deliberately NOT calling the base-class constructor,
-        # since this would break the python-only version due to the type-checks
+        # Note: deliberately NOT calling the base-class constructor since arguments are different
 
         self.cosim_settings = cosim_settings
 
