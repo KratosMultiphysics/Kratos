@@ -198,8 +198,8 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     {
         Matrix shape_function_local_gradients(num_nodes,dimension);
         Matrix shape_function_global_gradients(num_nodes,dimension);
-        Matrix jacobian(num_nodes,num_nodes);
-        Matrix jacobian_inv(num_nodes,num_nodes);
+        Matrix jacobian(dimension,dimension);
+        Matrix jacobian_inv(dimension,dimension);
 
         for (unsigned int g = 0; g < num_integration_points; g++)
         {
@@ -223,7 +223,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                 GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
                 geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
 
-                Vector aux = prod(shape_function_gradient_deriv, primal_values);
+                Vector aux = prod(trans(shape_function_gradient_deriv), primal_values);
 
                 // Calculation by product rule of d/dX_l ( w * J * dN_i/dx_k * dN_j/dx_k * Temperature_j )
                 for (unsigned int i = 0; i < num_nodes; i++)
@@ -236,7 +236,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                     for (unsigned int k = 0; k < dimension; k++)
                     {
                         // partial derivative of the "test function" shape function gradient w * J * d/dX(dN_i/dx_k) * dN_j/dx_k * Temperature_j
-                        contribution_li += det_j * shape_function_gradient_deriv(l,k) * primal_gradient[k];
+                        contribution_li += det_j * shape_function_gradient_deriv(i,k) * primal_gradient[k];
 
                         // partial derivative of the "primal variable" shape function gradient w * J * dN_i/dx_k * d/dX(dN_j/dx_k) * Temperature_j
                         contribution_li += det_j * shape_function_global_gradients(i,k) * aux[k];
