@@ -49,6 +49,22 @@ class CouplingInterfaceData(object):
         if not self.location in admissible_locations:
             raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
 
+    def __str__(self):
+        self_str =  'CouplingInterfaceData:\n'
+        self_str += '\tModelPart: "{}"\n'.format(self.model_part_name)
+        self_str += '\tIsDistributed: {}\n'.format(self.IsDistributed())
+        self_str += '\tVariable: "{}"'.format(self.variable.Name())
+        if self.is_scalar_variable:
+            self_str += ' (Scalar)'
+        else:
+            self_str += ' (Vector with dimension: {})'.format(self.dimension)
+        self_str += '\n\tLocation: "{}"\n'.format(self.location)
+        self_str += '\tSize: {}\n'.format(self.Size())
+
+        return self_str
+
+    def PrintInfo(self):
+        print(self)
 
     def GetModelPart(self):
         return self.model[self.model_part_name]
