@@ -163,6 +163,23 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
     }
 }
 
+//************************************************************************************
+//************************************************************************************
+void LaplacianElement::GetValuesVector(Vector& rValues, int Step)
+{
+    const auto& r_geom = GetGeometry();
+    const unsigned int number_of_nodes = r_geom.PointsNumber();
+    if (rValues.size() != number_of_nodes)
+    {
+        rValues.resize(number_of_nodes,false);
+    }
+
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        rValues[i] = r_geom[i].FastGetSolutionStepValue(TEMPERATURE, Step);
+    }
+}
+
 } // Namespace Kratos
 
 
