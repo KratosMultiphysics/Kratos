@@ -308,7 +308,6 @@ public:
 
     BoundedMatrix<double, msElementSize, msElementSize> GetTransformationMatrixGlobal() const;
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 

@@ -126,15 +126,6 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    GetValuesVector(mDeformationCurrent, 0);
-    GetValuesVector(mDeformationPrevious, 0);
-    KRATOS_CATCH("")
-}
-
-
 void CrBeamElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
