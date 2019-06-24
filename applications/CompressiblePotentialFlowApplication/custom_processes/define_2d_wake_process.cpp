@@ -66,7 +66,7 @@ const void Define2DWakeProcess::SetWakeDirectionAndNormal()
         << std::endl;
 
     // Computing the norm of the free_stream_velocity vector
-    const double norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
+    const double norm = std::sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
 
     // The wake direction is the free stream direction
     mWakeDirection = free_stream_velocity / norm;
