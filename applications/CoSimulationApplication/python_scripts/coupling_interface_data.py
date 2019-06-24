@@ -26,17 +26,17 @@ class CouplingInterfaceData(object):
 
         # variable used to identify data
         variable_name = custom_config["variable_name"].GetString()
-        self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
+        variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
         admissible_vector_variable_types = ["Array"]
 
-        if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
-            raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
+        if not variable_type in admissible_scalar_variable_types and not variable_type in admissible_vector_variable_types:
+            raise Exception('The input for "variable" ("{}") is of variable-type "{}" which is not allowed, only the following options are possible:\n{}, {}'.format(variable_name, variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
         self.variable = KM.KratosGlobals.GetVariable(variable_name)
 
-        self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
+        self.is_scalar_variable = variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
         # TODO check that sth was assigned (only for vector_variable)
@@ -67,7 +67,7 @@ class CouplingInterfaceData(object):
         print(self)
 
     def GetModelPart(self):
-        return self.model[self.model_part_name]
+        return self.model[self.model_part_name] # TODO maybe save after first access
 
     def IsDistributed(self):
         return self.GetModelPart().IsDistributed()
