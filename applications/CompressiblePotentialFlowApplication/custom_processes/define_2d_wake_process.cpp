@@ -84,7 +84,7 @@ const void Define2DWakeProcess::SetWakeDirectionAndNormal()
 // This function finds and saves the trailing edge for further computations
 const void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
-    double max_x_coordinate = -1e30;
+    double max_x_coordinate = -std::numeric_limits<double>::max();;
     NodeIteratorType trailing_edge_node;
     for (auto it_node = mrBodyModelPart.NodesBegin();
          it_node != mrBodyModelPart.NodesEnd(); ++it_node) {
