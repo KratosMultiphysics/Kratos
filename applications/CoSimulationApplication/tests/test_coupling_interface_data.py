@@ -198,27 +198,27 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         exp_data_scal_cur = [NodeScalarHistValueCurrent(node.Id) for node in self.mp.Nodes]
         exp_data_scal_prev = [NodeScalarHistValuePrevious(node.Id) for node in self.mp.Nodes]
 
-        exp_data_vec_cur = [NodeVectorHistValueCurrent(node.Id) for node in self.mp.Nodes]
-        exp_data_vec_prev = [NodeVectorHistValuePrevious(node.Id) for node in self.mp.Nodes]
+        exp_data_vec_cur = GetVectorValues(self.mp.Nodes, NodeVectorHistValueCurrent, 2)
+        exp_data_vec_prev = GetVectorValues(self.mp.Nodes, NodeVectorHistValuePrevious, 2)
 
-        self.__CheckScalarData(exp_data_scal_cur, coupling_data_scal.GetData())
-        self.__CheckVectorData(exp_data_vec_cur, coupling_data_vec.GetData(), 2)
+        self.__CheckData(exp_data_scal_cur, coupling_data_scal.GetData())
+        self.__CheckData(exp_data_vec_cur, coupling_data_vec.GetData())
 
-        self.__CheckScalarData(exp_data_scal_prev, coupling_data_scal.GetData(1))
-        self.__CheckVectorData(exp_data_vec_prev, coupling_data_vec.GetData(1), 2)
+        self.__CheckData(exp_data_scal_prev, coupling_data_scal.GetData(1))
+        self.__CheckData(exp_data_vec_prev, coupling_data_vec.GetData(1))
 
         # 2. check setting and getting works
         set_data_scal_cur = [ElementScalarValue(node.Id) for node in self.mp.Nodes]
         set_data_scal_prev = [ConditionScalarValue(node.Id) for node in self.mp.Nodes]
 
-        set_data_vec_cur = [ElementVectorValue(node.Id) for node in self.mp.Nodes]
-        set_data_vec_prev = [ConditionVectorValue(node.Id) for node in self.mp.Nodes]
+        set_data_vec_cur = GetVectorValues(self.mp.Nodes, ElementVectorValue, 2)
+        set_data_vec_prev = GetVectorValues(self.mp.Nodes, ConditionVectorValue, 2)
 
-        self.__CheckSetGetScalarData(set_data_scal_cur, coupling_data_scal)
-        self.__CheckSetGetVectorData(set_data_vec_cur, coupling_data_vec, 2)
+        self.__CheckSetGetData(set_data_scal_cur, coupling_data_scal)
+        self.__CheckSetGetData(set_data_vec_cur, coupling_data_vec)
 
-        self.__CheckSetGetScalarData(set_data_scal_prev, coupling_data_scal, 1)
-        self.__CheckSetGetVectorData(set_data_vec_prev, coupling_data_vec, 2, 1)
+        self.__CheckSetGetData(set_data_scal_prev, coupling_data_scal, 1)
+        self.__CheckSetGetData(set_data_vec_prev, coupling_data_vec, 1)
 
     def test_GetSetNodalNonHistoricalData(self):
         settings_scal = KM.Parameters("""{
@@ -241,17 +241,17 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         # 1. check the initial values
         exp_data_scal = [NodeScalarHistValueCurrent(node.Id) for node in self.mp.Nodes]
-        exp_data_vec = [NodeVectorHistValueCurrent(node.Id) for node in self.mp.Nodes]
+        exp_data_vec = GetVectorValues(self.mp.Nodes, NodeVectorHistValueCurrent, 3)
 
-        self.__CheckScalarData(exp_data_scal, coupling_data_scal.GetData())
-        self.__CheckVectorData(exp_data_vec, coupling_data_vec.GetData(), 3)
+        self.__CheckData(exp_data_scal, coupling_data_scal.GetData())
+        self.__CheckData(exp_data_vec, coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [ConditionScalarValue(node.Id) for node in self.mp.Nodes]
-        set_data_vec = [ConditionVectorValue(node.Id) for node in self.mp.Nodes]
+        set_data_vec = GetVectorValues(self.mp.Nodes, ConditionVectorValue, 3)
 
-        self.__CheckSetGetScalarData(set_data_scal, coupling_data_scal)
-        self.__CheckSetGetVectorData(set_data_vec, coupling_data_vec, 3)
+        self.__CheckSetGetData(set_data_scal, coupling_data_scal)
+        self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
     def test_GetSetElementalData(self):
         settings_scal = KM.Parameters("""{
@@ -272,17 +272,17 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         # 1. check the initial values
         exp_data_scal = [ElementScalarValue(elem.Id) for elem in self.mp.Elements]
-        exp_data_vec = [ElementVectorValue(elem.Id) for elem in self.mp.Elements]
+        exp_data_vec = GetVectorValues(self.mp.Elements, ElementVectorValue, 2)
 
-        self.__CheckScalarData(exp_data_scal, coupling_data_scal.GetData())
-        self.__CheckVectorData(exp_data_vec, coupling_data_vec.GetData(), 2)
+        self.__CheckData(exp_data_scal, coupling_data_scal.GetData())
+        self.__CheckData(exp_data_vec, coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [NodeScalarNonHistValue(elem.Id) for elem in self.mp.Elements]
-        set_data_vec = [NodeVectorNonHistValue(elem.Id) for elem in self.mp.Elements]
+        set_data_vec = GetVectorValues(self.mp.Elements, NodeVectorNonHistValue, 2)
 
-        self.__CheckSetGetScalarData(set_data_scal, coupling_data_scal)
-        self.__CheckSetGetVectorData(set_data_vec, coupling_data_vec, 2)
+        self.__CheckSetGetData(set_data_scal, coupling_data_scal)
+        self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
     def test_GetSetConditionalData(self):
         settings_scal = KM.Parameters("""{
@@ -303,17 +303,17 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         # 1. check the initial values
         exp_data_scal = [ConditionScalarValue(cond.Id) for cond in self.mp.Conditions]
-        exp_data_vec = [ConditionVectorValue(cond.Id) for cond in self.mp.Conditions]
+        exp_data_vec = GetVectorValues(self.mp.Conditions, ConditionVectorValue, 2)
 
-        self.__CheckScalarData(exp_data_scal, coupling_data_scal.GetData())
-        self.__CheckVectorData(exp_data_vec, coupling_data_vec.GetData(), 2)
+        self.__CheckData(exp_data_scal, coupling_data_scal.GetData())
+        self.__CheckData(exp_data_vec, coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [NodeScalarHistValuePrevious(cond.Id) for cond in self.mp.Conditions]
-        set_data_vec = [NodeVectorHistValuePrevious(cond.Id) for cond in self.mp.Conditions]
+        set_data_vec = GetVectorValues(self.mp.Conditions, NodeVectorHistValuePrevious, 2)
 
-        self.__CheckSetGetScalarData(set_data_scal, coupling_data_scal)
-        self.__CheckSetGetVectorData(set_data_vec, coupling_data_vec, 2)
+        self.__CheckSetGetData(set_data_scal, coupling_data_scal)
+        self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
     def test_GetSetModelPartData(self):
         settings_scal = KM.Parameters("""{
@@ -335,15 +335,15 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
 
         # 1. check the initial values
-        self.__CheckScalarData([model_part_scalar_value], coupling_data_scal.GetData())
-        self.__CheckVectorData([model_part_vector_value], coupling_data_vec.GetData(), 1)
+        self.__CheckData([model_part_scalar_value], coupling_data_scal.GetData())
+        self.__CheckData([model_part_vector_value], coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [process_info_scalar_value]
         set_data_vec = [process_info_vector_value]
 
-        self.__CheckSetGetScalarData(set_data_scal, coupling_data_scal)
-        self.__CheckSetGetVectorData(set_data_vec, coupling_data_vec, 1)
+        self.__CheckSetGetData(set_data_scal, coupling_data_scal)
+        self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
     def test_GetSetProcessInfoData(self):
         settings_scal = KM.Parameters("""{
@@ -363,31 +363,23 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
 
         # 1. check the initial values
-        self.__CheckScalarData([process_info_scalar_value], coupling_data_scal.GetData())
-        self.__CheckVectorData([process_info_vector_value], coupling_data_vec.GetData(), 2)
+        self.__CheckData([process_info_scalar_value], coupling_data_scal.GetData())
+        self.__CheckData([process_info_vector_value], coupling_data_vec.GetData())
 
         # 2. check setting and getting works
         set_data_scal = [model_part_scalar_value]
         set_data_vec = [model_part_vector_value]
 
-        self.__CheckSetGetScalarData(set_data_scal, coupling_data_scal)
-        self.__CheckSetGetVectorData(set_data_vec, coupling_data_vec, 2)
+        self.__CheckSetGetData(set_data_scal, coupling_data_scal)
+        self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
-
-    def __CheckScalarData(self, exp_data, data):
+    def __CheckData(self, exp_data, data):
         self.assertEqual(len(exp_data), len(data))
 
         for exp_val, val in zip(exp_data, data):
             self.asserAlmostEqual(exp_val, val)
 
-    def __CheckVectorData(self, exp_data, data, dim):
-        self.assertEqual(len(exp_data), len(data))
-
-        for exp_vec, vec in zip(exp_data, data):
-            for i in range(dim):
-                self.asserAlmostEqual(exp_vec[i], vec[i])
-
-    def __CheckSetGetScalarData(self, the_data, coupling_data, solution_step_index=0):
+    def __CheckSetGetData(self, the_data, coupling_data, solution_step_index=0):
         # Checking to call fct differently
         if solution_step_index > 0:
             coupling_data.SetData(the_data, solution_step_index)
@@ -396,19 +388,15 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             coupling_data.SetData(the_data)
             extracted_data = coupling_data.GetData()
 
-        self.__CheckScalarData(the_data, extracted_data)
+        self.__CheckData(the_data, extracted_data)
 
-    def __CheckSetGetVectorData(self, the_data, coupling_data, dim, solution_step_index=0):
-        # Checking to call fct differently
-        if solution_step_index > 0:
-            coupling_data.SetData(the_data, solution_step_index)
-            extracted_data = coupling_data.GetData(solution_step_index)
-        else:
-            coupling_data.SetData(the_data)
-            extracted_data = coupling_data.GetData()
-
-        self.__CheckVectorData(the_data, extracted_data, dim)
-
+def GetVectorValues(container, fct_ptr, dim):
+    values = []
+    for entity in container:
+        vector_vals = fct_ptr(entity.Id)
+        for i in range(dim):
+            values.append(vector_vals[i])
+    return values
 
 def NodeScalarHistValueCurrent(the_id):
     return the_id*1.5
