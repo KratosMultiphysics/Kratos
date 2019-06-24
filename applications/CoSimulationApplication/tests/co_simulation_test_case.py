@@ -17,12 +17,10 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
     def _createTest(self, problem_dir_name, parameter_file_name):
         self.problem_dir_name = problem_dir_name
 
-        global cs_data_structure
         full_parameter_file_name = os.path.join(problem_dir_name, parameter_file_name + '_parameters.json')
-        cs_data_structure = cs_tools.ImportDataStructure(full_parameter_file_name)
 
         with open(full_parameter_file_name, 'r') as parameter_file:
-            self.cosim_parameters = cs_data_structure.Parameters(parameter_file.read())
+            self.cosim_parameters = KM.Parameters(parameter_file.read())
 
         # To avoid many prints
         echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()

@@ -1,8 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_factory
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
 def Create(settings, name):
@@ -16,7 +18,7 @@ class CoSimulationSolverWrapper(object):
         Deriving classes should call it in their constructors
         """
 
-        self.model = cs_tools.cs_data_structure.Model()
+        self.model = KM.Model()
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
@@ -126,7 +128,7 @@ class CoSimulationSolverWrapper(object):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        return cs_tools.cs_data_structure.Parameters("""{
+        return KM.Parameters("""{
             "type"        : "",
             "io_settings" : {},
             "settings"    : {},

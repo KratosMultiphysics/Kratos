@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-# CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+# Importing the Kratos Library
+import KratosMultiphysics as KM
 
 class CoSimulationCouplingOperation(object):
     def __init__(self, settings):
@@ -45,6 +45,6 @@ class CoSimulationCouplingOperation(object):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        return cs_tools.cs_data_structure.Parameters("""{
+        return KM.Parameters("""{
             "echo_level" : 0
         }""")

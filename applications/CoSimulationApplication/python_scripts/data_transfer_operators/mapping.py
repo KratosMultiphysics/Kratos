@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 def Create(settings):
@@ -47,7 +47,7 @@ class MappingDataTransferOperator(CoSimulationDataTransferOperator):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        this_defaults = KratosMultiphysics.Parameters("""{
+        this_defaults = KM.Parameters("""{
             "mapper_settings" : {
                 "mapper_type" : "UNSPECIFIED"
             }
@@ -64,7 +64,7 @@ def GetMapperFlags(transfer_options):
         "use_transpose" : KratosMapping.Mapper.USE_TRANSPOSE
     }
 
-    mapper_flags = KratosMultiphysics.Flags()
+    mapper_flags = KM.Flags()
     for i in range(transfer_options.size()):
         flag_name = transfer_options[i].GetString()
         mapper_flags |= mapper_flags_dict[flag_name]

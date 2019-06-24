@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from  . import co_simulation_solver_wrapper
 
@@ -107,7 +110,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         for i in range(input_data_list.size()):
             i_input_data = input_data_list[i]
 
-            # interval_util = cs_tools.cs_data_structure.IntervalUtility(i_input_data)
+            # interval_util = KM.IntervalUtility(i_input_data)
             # current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             # if not interval_util.IsInInterval(current_time):
             #     continue
@@ -238,7 +241,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
     @classmethod
     def _GetDefaultSettings(cls):
-        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+        this_defaults = KM.Parameters("""{
             "coupling_sequence"        : [],
             "solvers"                  : {},
             "predictors"               : [],
@@ -250,7 +253,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         return this_defaults
 
 def GetInputDataDefaults():
-    return cs_tools.cs_data_structure.Parameters("""{
+    return KM.Parameters("""{
         "data"                            : "UNSPECIFIED",
         "from_solver"                     : "UNSPECIFIED",
         "from_solver_data"                : "UNSPECIFIED",
@@ -262,7 +265,7 @@ def GetInputDataDefaults():
     }""")
 
 def GetOutputDataDefaults():
-    return cs_tools.cs_data_structure.Parameters("""{
+    return KM.Parameters("""{
         "data"                            : "UNSPECIFIED",
         "to_solver"                       : "UNSPECIFIED",
         "to_solver_data"                  : "UNSPECIFIED",

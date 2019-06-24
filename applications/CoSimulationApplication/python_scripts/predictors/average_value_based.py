@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_predictor import CoSimulationPredictor
 
@@ -39,7 +42,7 @@ class AverageValuePredictor(CoSimulationPredictor):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+        this_defaults = KM.Parameters("""{
             "beta"     : 0.5
         }""")
         this_defaults.AddMissingParameters(super(AverageValuePredictor, cls)._GetDefaultSettings())
