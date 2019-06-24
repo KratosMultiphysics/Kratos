@@ -74,13 +74,12 @@ public:
 	/** @param DomainSize Number of space dimensions (2 or 3)
 	 * @param NumRowsPerNode Number of matrix or vector rows associated to each node. Displacement DOFs are assumed to be the first mDomainSize rows in each block of rows.
 	 * @param rVariable Kratos variable used to flag nodes where local system contributions will be rotated. All nodes with rVariable != Zero will be rotated.
-	 * @param Zero The zero value for the variable.
 	 */
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
 		const unsigned int BlockSize,
 		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,rVariable,0.0), mrFlagVariable(rVariable)
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
 	{}
 
 	/// Destructor.

@@ -23,8 +23,9 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
+#include "includes/key_hash.h"
 #include "includes/kratos_flags.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
@@ -168,25 +169,7 @@ public:
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
-    struct Hash
-    {
-        std::size_t operator()(const std::pair<unsigned int,bool>& k) const
-        {
-            std::size_t h1 = std::hash<unsigned int>()(std::get<0>(k));
-            std::size_t h2 = std::hash<bool>()(std::get<1>(k));
-            return h1 ^ (h2 << 1);
-        }
-    };
-
-    struct KeyEqual
-    {
-        bool operator()(const std::pair<std::size_t, std::size_t>& lhs, const std::pair<std::size_t, std::size_t>& rhs) const
-        {
-            return ((std::get<0>(lhs) == std::get<0>(rhs)) && (std::get<1>(lhs) == std::get<1>(rhs)));
-        }
-    };
-
-    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, Hash, KeyEqual> EdgesMapType;
+    typedef std::unordered_set<std::pair<std::size_t, std::size_t>, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesSetType;
 
     ///@}
     ///@name Pointer Definitions
@@ -213,7 +196,6 @@ public:
             "skin_model_part_name": "",
             "skin_variable_name": "",
             "embedded_nodal_variable_name": "",
-            "level_set_type": "",
             "buffer_position": 0,
             "gradient_penalty_coefficient": 0.0,
             "aux_model_part_name": "IntersectedElementsModelPart",
@@ -270,11 +252,9 @@ public:
         const Variable<TVarType> &rSkinVariable,
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const double GradientPenaltyCoefficient = 0.0,
-        const std::string LevelSetType = "continuous",
         const unsigned int BufferPosition = 0,
         const std::string AuxPartName = "IntersectedElementsModelPart")
         : Process(),
-          mLevelSetType(LevelSetType),
           mBufferPosition(BufferPosition),
           mAuxModelPartName(AuxPartName),
           mGradientPenaltyCoefficient(GradientPenaltyCoefficient),
@@ -286,8 +266,6 @@ public:
         KRATOS_TRY
 
         // Check the process settings
-        KRATOS_ERROR_IF(mLevelSetType != "continuous" && mLevelSetType != "discontinuous") <<
-            "Provided level set type " << mLevelSetType << ". Options are \'continuous\' or \'discontinuous\'." << std::endl;
         KRATOS_ERROR_IF(!(mBufferPosition < rBaseModelPart.GetBufferSize())) <<
             "Asked for buffer position " << mBufferPosition << " buf base model part buffer size is " << rBaseModelPart.GetBufferSize() << std::endl;
         KRATOS_ERROR_IF(!(mBufferPosition < rSkinModelPart.GetBufferSize())) <<
@@ -296,8 +274,8 @@ public:
         // Check that there is at least one element and node in the model
         int n_loc_mesh_nodes = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfNodes();
         int n_loc_mesh_elements = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfElements();
-        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
@@ -420,7 +398,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    const std::string mLevelSetType;
     const unsigned int mBufferPosition;
     const std::string mAuxModelPartName;
     const double mGradientPenaltyCoefficient;
@@ -510,8 +487,12 @@ protected:
         // It will be used to mark the nodes already added to the intersected elements model part
         VariableUtils().SetFlag(VISITED, false, mrBaseModelPart.Nodes());
 
+        // Initialize the INTERFACE flag in the origin model part
+        // It will be used to mark the elements that have any intersection with the skin model part
+        VariableUtils().SetFlag(INTERFACE, false, mrBaseModelPart.Elements());
+
         // Create element edges map
-        EdgesMapType edges_map;
+        EdgesSetType edges_set;
 
         // Get the base model part intersections
         auto &r_int_obj_vect = mpFindIntersectedGeometricalObjectsProcess->GetIntersections();
@@ -523,78 +504,78 @@ protected:
         std::size_t new_elem_id = 1;
         for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
             auto it_elem = mrBaseModelPart.ElementsBegin() + i_elem;
-            const auto elem_dist = this->SetDistancesVector(it_elem);
-            // Check if the current element is split
-            if (IsSplit(elem_dist)) {
-                if (r_int_obj_vect[i_elem].size() != 0) {
-                    // Initialize the element values
-                    auto &r_geom = it_elem->GetGeometry();
-                    const auto edges = r_geom.Edges();
+            // Check if the current element has intersections
+            if (r_int_obj_vect[i_elem].size() != 0) {
+                // Initialize the element values
+                auto &r_geom = it_elem->GetGeometry();
+                const auto edges = r_geom.Edges();
 
-                    // Loop the edges
-                    for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
-                        // Check if the current edge is already stored
-                        auto &r_i_edge_geom = edges[i_edge];
-                        auto i_edge_pair = this->SetEdgePair(r_i_edge_geom);
+                // Loop the edges
+                for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
+                    // Check if the current edge is already stored
+                    auto &r_i_edge_geom = edges[i_edge];
+                    auto i_edge_pair = this->SetEdgePair(r_i_edge_geom);
 
-                        if (edges_map.find(i_edge_pair) == edges_map.end()) {
-                            // Initialize edge values
-                            double i_edge_d = 0.0; // Average normalized distance from lower id. node
-                            unsigned int n_int_obj = 0; // Number edge of intersecting entities
-                            TVarType i_edge_val = mrEmbeddedNodalVariable.Zero(); // Average edge variable value
+                    if (edges_set.find(i_edge_pair) == edges_set.end()) {
+                        // Initialize edge values
+                        double i_edge_d = 0.0; // Average normalized distance from lower id. node
+                        unsigned int n_int_obj = 0; // Number edge of intersecting entities
+                        TVarType i_edge_val = mrEmbeddedNodalVariable.Zero(); // Average edge variable value
 
-                            // Check the edge intersection against all the candidates
-                            for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
-                                Point intersection_point;
-                                const int is_intersected = this->ComputeEdgeIntersection(
-                                    r_int_obj.GetGeometry(),
-                                    r_i_edge_geom[0],
-                                    r_i_edge_geom[1],
-                                    intersection_point);
+                        // Check the edge intersection against all the candidates
+                        for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
+                            Point intersection_point;
+                            const bool is_intersected = this->ComputeEdgeIntersection(
+                                r_int_obj.GetGeometry(),
+                                r_i_edge_geom[0],
+                                r_i_edge_geom[1],
+                                intersection_point);
 
-                                // Compute the variable value in the intersection point
-                                if (is_intersected == 1) {
-                                    n_int_obj++;
-                                    Vector int_obj_N;
-                                    array_1d<double,3> local_coords;
-                                    r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
-                                    r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
-                                    for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
-                                        i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
-                                    }
-                                    i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
+                            // Compute the variable value in the intersection point
+                            if (is_intersected) {
+                                n_int_obj++;
+                                Vector int_obj_N;
+                                array_1d<double,3> local_coords;
+                                r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
+                                r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
+                                for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
+                                    i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
                                 }
+                                i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
                             }
+                        }
 
-                            // Check if the edge is intersected
-                            if (n_int_obj != 0) {
-                                // Add the average edge value (there might exist cases in where
-                                // more than one geometry intersects the edge of interest).
-                                i_edge_d /= n_int_obj;
-                                i_edge_val /= n_int_obj;
+                        // Check if the edge is intersected
+                        if (n_int_obj != 0) {
+                            // Flag the edge parent element if the edge is intersected by any entity
+                            it_elem->Set(INTERFACE, true);
 
-                                // If not added yet, add the edge nodes
-                                this->AddEdgeNodes(r_i_edge_geom, rModelPart);
+                            // Add the average edge value (there might exist cases in where
+                            // more than one geometry intersects the edge of interest).
+                            i_edge_d /= n_int_obj;
+                            i_edge_val /= n_int_obj;
 
-                                // Create a new element with the intersected edge geometry and fake properties
-                                Element::Pointer p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
-                                    new_elem_id,
-                                    this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
-                                    rModelPart.pGetProperties(0));
+                            // If not added yet, add the edge nodes
+                            this->AddEdgeNodes(r_i_edge_geom, rModelPart);
 
-                                // Save the edge values in the new element
-                                p_element->SetValue(DISTANCE, i_edge_d);
-                                p_element->SetValue(rUnknownVariable, i_edge_val);
+                            // Create a new element with the intersected edge geometry and fake properties
+                            auto p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
+                                new_elem_id,
+                                this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
+                                rModelPart.pGetProperties(0));
 
-                                // Update the id. counter
-                                new_elem_id++;
+                            // Save the edge values in the new element
+                            p_element->SetValue(DISTANCE, i_edge_d);
+                            p_element->SetValue(rUnknownVariable, i_edge_val);
 
-                                // Add the new edge element to the hash map
-                                edges_map.insert(std::make_pair(i_edge_pair, new_elem_id));
+                            // Update the id. counter
+                            new_elem_id++;
 
-                                // Add the new edge element to the intersected elements model part
-                                rModelPart.Elements().push_back(p_element);
-                            }
+                            // Add the new edge element to the hash map
+                            edges_set.insert(i_edge_pair);
+
+                            // Add the new edge element to the intersected elements model part
+                            rModelPart.Elements().push_back(p_element);
                         }
                     }
                 }
@@ -664,7 +645,6 @@ protected:
             KratosComponents<Variable<TVarType>>::Get(rSettings["skin_variable_name"].GetString()),
             KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
             rSettings["gradient_penalty_coefficient"].GetDouble(),
-            rSettings["level_set_type"].GetString(),
             rSettings["buffer_position"].GetInt(),
             rSettings["aux_model_part_name"].GetString())
     {
@@ -702,59 +682,26 @@ private:
         mpFindIntersectedGeometricalObjectsProcess->Clear();
     }
 
-    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem) const
-    {
-        const auto &r_geom = ItElem->GetGeometry();
-        Vector nodal_distances(r_geom.PointsNumber());
-
-        if (mLevelSetType == "continuous"){
-            // Continuous nodal distance function case
-            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-            }
-        } else if (mLevelSetType == "discontinuous") {
-            // Discontinuous elemental distance function case
-            nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
-        } else {
-            KRATOS_ERROR << "Level set type must be either 'continuous' or 'discontinuous'. Got " << mLevelSetType;
-        }
-
-        return nodal_distances;
-    }
-
-    inline bool IsSplit(const Vector &rDistances) const
-    {
-        unsigned int n_pos = 0, n_neg = 0;
-
-        for (double dist : rDistances) {
-            if(dist >= 0) {
-                ++n_pos;
-            } else {
-                ++n_neg;
-            }
-        }
-
-        if (n_pos > 0 && n_neg > 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-	int ComputeEdgeIntersection(
+	bool ComputeEdgeIntersection(
 		const Element::GeometryType& rIntObjGeometry,
 		const Element::NodeType& rEdgePoint1,
 		const Element::NodeType& rEdgePoint2,
 		Point& rIntersectionPoint) const
 	{
-		int intersection_flag = 0;
+		bool intersection_flag = false;
 		const unsigned int work_dim = rIntObjGeometry.WorkingSpaceDimension();
 		if (work_dim == 2){
-			intersection_flag = IntersectionUtilities::ComputeLineLineIntersection<Element::GeometryType>(
+			const unsigned int intersection_status = IntersectionUtilities::ComputeLineLineIntersection<Element::GeometryType>(
 				rIntObjGeometry, rEdgePoint1.Coordinates(), rEdgePoint2.Coordinates(), rIntersectionPoint.Coordinates());
+            if (intersection_status == 1 || intersection_status == 3) {
+                intersection_flag = true;
+            }
 		} else if (work_dim == 3){
-			intersection_flag = IntersectionUtilities::ComputeTriangleLineIntersection<Element::GeometryType>(
+			const unsigned int intersection_status = IntersectionUtilities::ComputeTriangleLineIntersection<Element::GeometryType>(
 				rIntObjGeometry, rEdgePoint1.Coordinates(), rEdgePoint2.Coordinates(), rIntersectionPoint.Coordinates());
+            if (intersection_status == 1) {
+                intersection_flag = true;
+            }
 		} else {
 			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
 		}

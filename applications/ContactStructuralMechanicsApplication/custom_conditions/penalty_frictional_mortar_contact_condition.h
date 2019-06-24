@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "utilities/math_utils.h"
+#include "custom_utilities/contact_utilities.h"
 #include "custom_conditions/mortar_contact_condition.h"
 
 namespace Kratos
@@ -493,40 +493,10 @@ private:
      * @param rGeometry The geometry to calculate
      * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
      */
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry) {
-        /* DEFINITIONS */
-        // Zero tolerance
-        const double zero_tolerance = std::numeric_limits<double>::epsilon();
-        // Tangent matrix
-        BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
-
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& r_gt = rGeometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP, StepSlip);
-            const double norm_slip = norm_2(r_gt);
-            if (norm_slip > zero_tolerance) { // Non zero r_gt
-                const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
-            } else { // We consider the tangent direction as auxiliar
-                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
-                array_1d<double, 3> tangent_xi, tangent_eta;
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (TDim == 3) {
-                    for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                } else  {
-                    if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
-                    } else {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                    }
-                }
-            }
-        }
-
-        return tangent_matrix;
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry)
+    {
+        return MortarUtilities::ComputeTangentMatrix<TDim, TNumNodes>(rGeometry);
+//         return ContactUtilities::ComputeTangentMatrixSlip<TDim, TNumNodes>(rGeometry, StepSlip);
     }
 
     ///@}

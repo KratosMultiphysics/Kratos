@@ -54,7 +54,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
                 parameter_file.close()
             primal_simulation = FluidDynamicsAnalysis(model,project_parameters)
             primal_simulation.Run()
-            KratosMPI.mpi.world.barrier()
+            Kratos.DataCommunicator.GetDefault().Barrier()
 
             # solve adjoint
             with open('AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_parameters.json', 'r') as parameter_file:
@@ -64,7 +64,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             adjoint_model = Kratos.Model()
             adjoint_simulation = AdjointFluidAnalysis(adjoint_model,project_parameters)
             adjoint_simulation.Run()
-            KratosMPI.mpi.world.barrier()
+            Kratos.DataCommunicator.GetDefault().Barrier()
             rank = adjoint_simulation._solver.main_model_part.GetCommunicator().MyPID()
             # remove files
             if rank == 0:

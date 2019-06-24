@@ -632,10 +632,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
+template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
+template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
+template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 
 } // namespace Kratos
 

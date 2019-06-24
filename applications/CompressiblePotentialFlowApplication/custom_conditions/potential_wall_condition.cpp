@@ -66,7 +66,7 @@ void PotentialWallCondition<TDim, TNumNodes>::Initialize()
     GetSortedIds(NodeIds, rGeom);
     FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
 
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "error in condition # " << this->Id() << "\n"
         << "Condition cannot find parent element" << std::endl;
     KRATOS_CATCH("");
@@ -94,7 +94,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
     else
         CalculateNormal3D(An);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     const PotentialWallCondition& r_this = *this;
     const array_1d<double, 3>& v = r_this.GetValue(FREE_STREAM_VELOCITY);
@@ -177,7 +177,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     std::vector<double> rValues;
-    ElementPointerType pElem = pGetElement();
+    GlobalPointer<Element> pElem = pGetElement();
     pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
     this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
@@ -254,11 +254,11 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 // private operators
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
+inline GlobalPointer<Element> PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "No element found for condition #" << this->Id() << std::endl;
-    return mpElement.lock();
+    return mpElement;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

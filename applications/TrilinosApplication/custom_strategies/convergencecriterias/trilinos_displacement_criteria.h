@@ -291,7 +291,7 @@ private:
 
         //perform the sum between all of the nodes
         TDataType ReferenceDispNorm = local_ReferenceDispNorm;
-        rModelPart.GetCommunicator().SumAll(ReferenceDispNorm);
+        ReferenceDispNorm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(ReferenceDispNorm);
 
 
         ReferenceDispNorm = std::sqrt(ReferenceDispNorm);

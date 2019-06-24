@@ -192,6 +192,20 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
 }
 
+void VariableUtilsUpdateCurrentPosition(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes)
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariable(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable)
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
 
 void AddUtilitiesToPython(pybind11::module& m)
 {
@@ -355,6 +369,10 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ConditionsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::MasterSlaveConstraintContainerType>)
+        .def("ResetFlag", &VariableUtils::ResetFlag<ModelPart::NodesContainerType>)
+        .def("ResetFlag", &VariableUtils::ResetFlag<ModelPart::ConditionsContainerType>)
+        .def("ResetFlag", &VariableUtils::ResetFlag<ModelPart::ElementsContainerType>)
+        .def("ResetFlag", &VariableUtils::ResetFlag<ModelPart::MasterSlaveConstraintContainerType>)
         .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::NodesContainerType>)
         .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::ConditionsContainerType>)
         .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::ElementsContainerType>)
@@ -424,6 +442,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("CheckDofs", &VariableUtils::CheckDofs)
         .def("UpdateCurrentToInitialConfiguration", &VariableUtils::UpdateCurrentToInitialConfiguration)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex

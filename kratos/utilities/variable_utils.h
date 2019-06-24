@@ -450,14 +450,40 @@ public:
     {
         KRATOS_TRY
 
+        const auto it_cont_begin = rContainer.begin();
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
+            auto it_cont = it_cont_begin + k;
             it_cont->Set(rFlag, rFlagValue);
         }
 
         KRATOS_CATCH("")
 
+    }
+
+    /**
+     * @brief Flips a flag over a given container
+     * @param rFlag flag to be set
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType >
+    void ResetFlag(
+        const Flags& rFlag,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        const auto it_cont_begin = rContainer.begin();
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            auto it_cont = it_cont_begin + k;
+            it_cont->Reset(rFlag);
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -473,9 +499,11 @@ public:
     {
         KRATOS_TRY
 
+        const auto it_cont_begin = rContainer.begin();
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
+            auto it_cont = it_cont_begin + k;
             it_cont->Flip(rFlag);
         }
 
@@ -710,9 +738,7 @@ public:
             sum_value += it_node->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -758,9 +784,7 @@ public:
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -804,9 +828,7 @@ public:
             sum_value += it_cond->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -850,9 +872,7 @@ public:
             sum_value += it_elem->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -942,10 +962,21 @@ public:
     void UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
 
     /**
-     * @brief This method updates the initial nodal coordinates to the current coordinates
      * @param rNodes the nodes to be updated
+     * @brief This method updates the initial nodal coordinates to the current coordinates
      */
     void UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+    /**
+     * @brief This method updates the current coordinates
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * @param rNodes
+     * @param rUpdateVariable variable to retrieve the updating values from
+     */
+    void UpdateCurrentPosition(
+        const ModelPart::NodesContainerType &rNodes,
+        const ArrayVarType &rUpdateVariable = DISPLACEMENT);
 
     ///@}
     ///@name Acces

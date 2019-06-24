@@ -53,6 +53,8 @@ from test_spring_damper_element import SpringDamperElementTests as TSpringDamper
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 from test_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Dynamic eigenvalue test
+from test_dynamic_eigenvalue_analysis import TestDynamicEigenvalueAnalysis as TTestDynamicEigenvalueAnalysis
 # Dynamic basic tests
 from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesTests
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
@@ -275,6 +277,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
+    # Dynamic Eigenvalue Analysis
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Dynamic basic tests

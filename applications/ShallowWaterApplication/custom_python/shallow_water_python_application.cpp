@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -72,7 +73,9 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FREE_SURFACE_ELEVATION);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MANNING);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,EQUIVALENT_MANNING);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TOPOGRAPHY_GRADIENT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_HEIGHT);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,WATER_SURFACE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,TOPOGRAPHY_GRADIENT);
 
     // Specific variables for PFEM2
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MEAN_SIZE);

@@ -123,9 +123,10 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # Here we also check if the point has been found in more than one partition
         # In sich a case only one rank (the one with the larger PID) writes the output!
         my_rank = -1 # dummy to indicate that the point is not in my partition
+        comm = self.model_part.GetCommunicator().GetDataCommunicator()
         if found_id > -1: # the point lies in my partition
-            my_rank = self.model_part.GetCommunicator().MyPID()
-        writing_rank = self.model_part.GetCommunicator().MaxAll(my_rank) # The partition with the larger rank writes
+            my_rank = comm.Rank()
+        writing_rank = comm.MaxAll(my_rank) # The partition with the larger rank writes
 
         if my_rank == writing_rank:
 

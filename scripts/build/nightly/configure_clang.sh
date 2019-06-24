@@ -9,7 +9,7 @@ cmake .. \
 -DCMAKE_CXX_COMPILER=${HOME}/CompiledLibs/clang-3.8.0-16.04-prebuilt/bin/clang++                \
 -DCMAKE_BUILD_TYPE=Custom                                                                      \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -fopenmp"                                              \
--DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
+-DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp -Wno-missing-braces"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
 -DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
 -DMESH_MOVING_APPLICATION=ON                                                                    \

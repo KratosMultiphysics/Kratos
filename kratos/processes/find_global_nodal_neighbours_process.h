@@ -33,7 +33,6 @@
 #include "includes/global_pointer_variables.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/pointer_communicator.h"
-#include "includes/mpi_serializer.h"
 #include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
@@ -147,7 +146,7 @@ public:
                 auto& neighbours = it->GetValue(NEIGHBOUR_NODES);
                 neighbours.shrink_to_fit();
                 std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
-                          [](GlobalPointer<Node<3>>& gp1, GlobalPointer<Node<3>>& gp2)
+                          [](GlobalPointer<Node<3>> const& gp1, GlobalPointer<Node<3>> const& gp2)
                             {
                                 return gp1->Id() < gp2->Id();
                             }
@@ -192,7 +191,7 @@ public:
             {
                 if(color >= 0)
                 {
-                    auto tmp = SendRecv(neighbours_ids[color], color, color );
+                    auto tmp = mrComm.SendRecv(neighbours_ids[color], color, color );
                     for(auto& item : tmp)
                     {
                         auto& ids = neighbours_ids[current_rank][item.first];
@@ -257,7 +256,7 @@ public:
                     {
                         neighbours_to_send[id] = mr_model_part.Nodes()[id].GetValue(NEIGHBOUR_NODES);
                     }
-                    auto received_neighbours = SendRecv(neighbours_to_send, color, color );
+                    auto received_neighbours = mrComm.SendRecv(neighbours_to_send, color, color );
                     for(auto& item : received_neighbours)
                     {
                         auto& r_node = mr_model_part.Nodes()[item.first];
@@ -338,7 +337,7 @@ public:
             {
                 tmp[i] = result_proxy.Get(neighbours(i));
             }
-            output[node.Id()] = tmp;   
+            output[node.Id()] = tmp;
         }
 
         return output;
@@ -440,24 +439,6 @@ private:
             v.push_back(candidate);
     }
 
-    //TODO: remove in favor of generic implementation in communicator
-    template< class TDataType>
-    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
-    {
-        MpiSerializer send_serializer;
-        send_serializer.save("data",send_buffer);
-        std::string send_string = send_serializer.GetStringRepresentation();
-
-        std::string recv_string = mrComm.SendRecv(send_string, send_rank, send_rank);
-
-        MpiSerializer recv_serializer(recv_string);
-
-        TDataType recv_data;
-        recv_serializer.load("data",recv_data);
-        return recv_data;
-    }
-
-
     ///@}
     ///@name Private Operations
     ///@{
@@ -518,6 +499,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FIND_GLOBAL_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_FIND_GLOBAL_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined
 
 

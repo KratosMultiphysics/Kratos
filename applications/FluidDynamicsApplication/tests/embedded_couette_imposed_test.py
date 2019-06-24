@@ -98,7 +98,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                 distance = self.distance - node.Z
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
 
-        # Set the ELEMENTAL_VELOCITY in the intersected elements
+        # Set the EMBEDDED_VELOCITY in the intersected elements nodes
         for elem in self.main_model_part.Elements:
             n_pos = 0
             n_neg = 0
@@ -109,8 +109,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     n_pos += 1
 
             if ((n_pos != 0) and (n_neg != 0)):
-                embedded_velocity = KratosMultiphysics.Vector([self.embedded_velocity,0.0,0.0])
-                elem.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY,embedded_velocity)
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [self.embedded_velocity, 0.0, 0.0])
 
     def setUpNoSlipBoundaryConditions(self):
         # Set the inlet function
