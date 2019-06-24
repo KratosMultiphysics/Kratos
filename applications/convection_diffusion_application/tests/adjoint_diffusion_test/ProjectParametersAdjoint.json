@@ -16,7 +16,12 @@
             "response_type" : "point_temperature",
             "custom_settings" : {}
         },
-        "sensitivity_settings" : {},
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name": "Parts_solid",
+            "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+            "build_mode": "static",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false
+        },
         "model_import_settings" : {
             "input_type"     : "mdpa",
             "input_filename" : "adjoint_test"
@@ -28,7 +33,17 @@
     },
     "processes"        : {
         "initial_conditions_process_list" : [],
-        "constraints_process_list"        : [],
+        "constraints_process_list"        : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "AdjointModelPart.ImposedTemperature2D_left",
+                "variable_name"   : "ADJOINT_HEAT_TRANSFER",
+                "constrained"     : true,
+                "value"           : 0.0,
+                "interval"        : [0.0,"End"]
+            }
+        }],
         "list_other_processes"            : []
     },
     "output_processes" : {
@@ -55,7 +70,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER"],
+                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER","SHAPE_SENSITIVITY"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
