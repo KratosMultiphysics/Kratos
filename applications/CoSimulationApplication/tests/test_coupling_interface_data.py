@@ -179,6 +179,18 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, "accessing data from previous steps is only possible with historical nodal data!"):
             coupling_data_mp.SetData(correct_data, 2)
 
+    def test_wrong_input_dim_array(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "DISPLACEMENT",
+            "dimension"       : 4
+        }""")
+
+        exp_error = '"dimension" can only be 1,2,3 when using variables of type "Array"'
+
+        with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data = CouplingInterfaceData(settings, self.model)
+
     def test_GetSetNodalHistoricalData(self):
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",

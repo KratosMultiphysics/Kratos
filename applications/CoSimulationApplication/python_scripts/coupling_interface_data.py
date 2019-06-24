@@ -55,6 +55,8 @@ class CouplingInterfaceData(object):
             if self.dimension < 1:
                 raise Exception('"dimension" has to be specifed for vector variables!')
             else:
+                if variable_type == "Array" and self.dimension not in [1,2,3]:
+                    raise Exception('"dimension" can only be 1,2,3 when using variables of type "Array"')
                 domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
                 if domain_size == 0:
                     cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.GetModelPart().Name))
