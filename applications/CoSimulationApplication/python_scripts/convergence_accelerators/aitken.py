@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Author: Wei He
 # Date: Feb. 20, 2017
 
-# Importing Kratos
+# Importing the Kratos Library
 import KratosMultiphysics as KM
 
 # Importing the base class
