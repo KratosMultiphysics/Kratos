@@ -13,7 +13,7 @@ class CouplingInterfaceData(object):
     """This class serves as interface to the data structure (Model and ModelPart)
     that holds the data used during CoSimulation
     """
-    def __init__(self, custom_config, model):
+    def __init__(self, custom_settings, model):
 
         default_config = KM.Parameters("""{
             "model_part_name" : "UNSPECIFIED",
@@ -21,14 +21,17 @@ class CouplingInterfaceData(object):
             "location"        : "node_historical",
             "dimension"       : -1
         }""")
-        custom_config.ValidateAndAssignDefaults(default_config)
+        custom_settings.ValidateAndAssignDefaults(default_config)
 
-        # saving the Model and ModelPart
+        self.settings = custom_settings
         self.model = model
-        self.model_part_name = custom_config["model_part_name"].GetString()
+
+    def Initialize(self):
+        # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # variable used to identify data
-        variable_name = custom_config["variable_name"].GetString()
+        variable_name = self.settings["variable_name"].GetString()
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
@@ -44,7 +47,7 @@ class CouplingInterfaceData(object):
         self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
 
         # dimensionality of the data
-        self.dimension = custom_config["dimension"].GetInt()
+        self.dimension = self.settings["dimension"].GetInt()
         if self.is_scalar_variable:
             if self.dimension != -1:
                 raise Exception('"dimension" cannot be specifed for scalar variables!')
@@ -62,18 +65,18 @@ class CouplingInterfaceData(object):
                     cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
 
         # location of data on ModelPart
-        self.location = custom_config["location"].GetString()
+        self.location = self.settings["location"].GetString()
         admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
         if not self.location in admissible_locations:
             raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
 
         if self.location == "node_historical":
             if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
-                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(variable_name, self.model_part_name))
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(variable_name, self.GetModelPart().Name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
-        self_str += '\tModelPart: "{}"\n'.format(self.model_part_name)
+        self_str += '\tModelPart: "{}"\n'.format(self.GetModelPart().Name)
         self_str += '\tIsDistributed: {}\n'.format(self.IsDistributed())
         self_str += '\tVariable: "{}"'.format(self.variable.Name())
         if self.is_scalar_variable:
@@ -89,7 +92,7 @@ class CouplingInterfaceData(object):
         print(self)
 
     def GetModelPart(self):
-        return self.model[self.model_part_name] # TODO maybe save after first access
+        return self.model_part
 
     def IsDistributed(self):
         return self.GetModelPart().IsDistributed()
