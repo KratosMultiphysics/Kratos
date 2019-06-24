@@ -1,43 +1,24 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics as KM
+from . import colors
+
 """This file contains some functionalities that are commonly used in CoSimulation"""
 
-cs_data_structure = None # global variable that contains the data-structure (Kratos or pyKratos)
-
-def ImportDataStructure(parameters_file_name):
-    """Imports the data structure which is specified in the parameters file"""
-
-    global cs_data_structure
-    if cs_data_structure is None:
-        import json
-        with open(parameters_file_name,'r') as parameter_file:
-            parameters = json.load(parameter_file) # This is for getting the flag for database
-            data_structure_name = 'KratosMultiphysics' # Kratos is default
-            if 'data_structure' in parameters['problem_data'].keys():
-                data_structure_name = parameters['problem_data']['data_structure']
-                if not data_structure_name in ['KratosMultiphysics', 'pyKratos']:
-                    raise Exception('"data_structure" needs to be "KratosMultiphysics" or "pyKratos"')
-
-            # Initialize cs_data_structure and import corresponding module
-            cs_data_structure = __import__(data_structure_name)
-
-    return cs_data_structure
-
-
 def cs_print_info(label, *args):
-    cs_data_structure.Logger.PrintInfo(label, " ".join(map(str,args)))
+    KM.Logger.PrintInfo(colors.bold(label), " ".join(map(str,args)))
 
 def cs_print_warning(label, *args):
-    cs_data_structure.Logger.PrintWarning(label, " ".join(map(str,args)))
+    KM.Logger.PrintWarning(colors.red("Warning: ")+colors.bold(label), " ".join(map(str,args)))
 
 
 def SettingsTypeCheck(settings):
-    if not isinstance(settings, cs_data_structure.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")
 
 
 def AddEchoLevelToSettings(settings, echo_level):
-    echo_level_params = cs_data_structure.Parameters("""{
+    echo_level_params = KM.Parameters("""{
         "echo_level" : """ + str(echo_level) + """
     }""")
     settings.AddMissingParameters(echo_level_params)
