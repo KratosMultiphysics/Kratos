@@ -541,8 +541,8 @@ class ConstitutiveLawUtilities
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
         const double young_modulus = r_material_properties[YOUNG_MODULUS];
-        const double yield_compression = r_material_properties[YIELD_STRESS_C];
-        rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+        const double yield_tension = r_material_properties[YIELD_STRESS_T];
+        rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_tension, 2)) - 0.5);
         KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
     }
 
