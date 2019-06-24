@@ -11,7 +11,7 @@ Check also "kratos/python_scripts/analysis-stage.py" for available methods that 
 
 parameter_file_name = "ProjectParametersCoSim.json"
 with open(parameter_file_name,'r') as parameter_file:
-    parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    parameters = KM.Parameters(parameter_file.read())
 
 simulation = CoSimulationAnalysis(parameters)
 simulation.Run()
