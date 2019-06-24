@@ -214,6 +214,7 @@ public:
         ) override
     {
         KRATOS_TRY
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
         InitializeResidual(rModelPart);
         KRATOS_CATCH("")
     }
@@ -364,11 +365,6 @@ public:
         /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
         const SizeType dim = r_current_process_info[DOMAIN_SIZE];
 
-        // Step Update
-        // The first step is time =  initial_time ( 0.0) + delta time
-        mTime.Delta = r_current_process_info[DELTA_TIME];
-        mTime.MidStep = mTime.Delta * mDeltaTime.Fraction;
-
         // The iterator of the first node
         const auto it_node_begin = rModelPart.NodesBegin();
         const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
@@ -379,73 +375,8 @@ public:
         const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
         // _____________________________________________________________________
-        // ______________________________ STAGE 1 ______________________________
+        // ______________________________ STAGE 3 ______________________________
         // _____________________________________________________________________
-
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            this->UpdateDegreesOfFreedomStage1(it_node_begin + i,
-                VELOCITY,DISPLACEMENT,ACCELERATION,dim);
-        } // for Node parallel
-
-
-        if (has_dof_for_rot_z){
-            #pragma omp parallel for schedule(guided,512)
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                // Current step information "N+1" (before step update).
-                this->UpdateDegreesOfFreedomStage1(it_node_begin + i,
-                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,dim);
-            } // for Node parallel
-        }
-
-
-        InitializeResidual(rModelPart);
-        CalculateAndAddRHS(rModelPart);
-
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            this->UpdateAccelerationStage(
-                it_node_begin + i, disppos,FRACTIONAL_ACCELERATION,
-                VELOCITY,NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,
-                DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
-        } // for Node parallel
-
-        if (has_dof_for_rot_z){
-            #pragma omp parallel for schedule(guided,512)
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                // Current step information "N+1" (before step update).
-                this->UpdateAccelerationStage(
-                    it_node_begin + i, rotppos,FRACTIONAL_ANGULAR_ACCELERATION,
-                    ANGULAR_VELOCITY,NODAL_ROTATION_DAMPING,MOMENT_RESIDUAL,
-                    NODAL_INERTIA,ROTATION_X,ROTATION_Y,ROTATION_Z,dim);
-            } // for Node parallel
-        }
-
-        // _____________________________________________________________________
-        // ______________________________ STAGE 2 ______________________________
-        // _____________________________________________________________________
-
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
-                VELOCITY,DISPLACEMENT,ACCELERATION,FRACTIONAL_ACCELERATION,dim);
-        } // for Node parallel
-
-        if (has_dof_for_rot_z){
-            #pragma omp parallel for schedule(guided,512)
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                // Current step information "N+1" (before step update).
-                this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
-                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,
-                    FRACTIONAL_ANGULAR_ACCELERATION,dim);
-            } // for Node parallel
-        }
-
-        InitializeResidual(rModelPart);
-        CalculateAndAddRHS(rModelPart);
 
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -467,9 +398,6 @@ public:
             } // for Node parallel
         }
 
-        // _____________________________________________________________________
-        // ______________________________ STAGE 3 ______________________________
-        // _____________________________________________________________________
 
         #pragma omp parallel for schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -821,7 +749,6 @@ public:
         ) override
     {
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        std::cout << "FinalizeSolutionStep scheme" << std::endl;
     }
 
     void Predict(
@@ -833,6 +760,98 @@ public:
     ) override
     {
         KRATOS_TRY;
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // The array of nodes
+        NodesArrayType& r_nodes = rModelPart.Nodes();
+
+        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
+        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
+
+        // Step Update
+        // The first step is time =  initial_time ( 0.0) + delta time
+        mTime.Delta = r_current_process_info[DELTA_TIME];
+        mTime.MidStep = mTime.Delta * mDeltaTime.Fraction;
+
+        // The iterator of the first node
+        const auto it_node_begin = rModelPart.NodesBegin();
+        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+
+
+        // Getting dof position
+        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+        const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
+
+        // _____________________________________________________________________
+        // ______________________________ STAGE 1 ______________________________
+        // _____________________________________________________________________
+
+        #pragma omp parallel for schedule(guided,512)
+        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+            // Current step information "N+1" (before step update).
+            this->UpdateDegreesOfFreedomStage1(it_node_begin + i,
+                VELOCITY,DISPLACEMENT,ACCELERATION,dim);
+        } // for Node parallel
+
+
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateDegreesOfFreedomStage1(it_node_begin + i,
+                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,dim);
+            } // for Node parallel
+        }
+
+
+        InitializeResidual(rModelPart);
+        CalculateAndAddRHS(rModelPart);
+
+        #pragma omp parallel for schedule(guided,512)
+        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+            // Current step information "N+1" (before step update).
+            this->UpdateAccelerationStage(
+                it_node_begin + i, disppos,FRACTIONAL_ACCELERATION,
+                VELOCITY,NODAL_DISPLACEMENT_DAMPING,FORCE_RESIDUAL,NODAL_MASS,
+                DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,dim);
+        } // for Node parallel
+
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateAccelerationStage(
+                    it_node_begin + i, rotppos,FRACTIONAL_ANGULAR_ACCELERATION,
+                    ANGULAR_VELOCITY,NODAL_ROTATION_DAMPING,MOMENT_RESIDUAL,
+                    NODAL_INERTIA,ROTATION_X,ROTATION_Y,ROTATION_Z,dim);
+            } // for Node parallel
+        }
+
+        // _____________________________________________________________________
+        // ______________________________ STAGE 2 ______________________________
+        // _____________________________________________________________________
+
+        #pragma omp parallel for schedule(guided,512)
+        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+            // Current step information "N+1" (before step update).
+            this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
+                VELOCITY,DISPLACEMENT,ACCELERATION,FRACTIONAL_ACCELERATION,dim);
+        } // for Node parallel
+
+        if (has_dof_for_rot_z){
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                // Current step information "N+1" (before step update).
+                this->UpdateDegreesOfFreedomStage2(it_node_begin + i,
+                    ANGULAR_VELOCITY,ROTATION,ANGULAR_ACCELERATION,
+                    FRACTIONAL_ANGULAR_ACCELERATION,dim);
+            } // for Node parallel
+        }
+
+        InitializeResidual(rModelPart);
+        CalculateAndAddRHS(rModelPart);
+
         KRATOS_CATCH("")
     }
 
