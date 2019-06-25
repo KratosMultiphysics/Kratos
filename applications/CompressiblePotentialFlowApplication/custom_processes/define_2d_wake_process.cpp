@@ -25,8 +25,6 @@ void Define2DWakeProcess::ExecuteInitialize()
 {
     // Initialize submodelparts
     InitializeSubModelparts();
-    // Initialize element and node variables for the process
-    //InitializeVariables();
     // Set the wake direction and normal for further computations
     SetWakeDirectionAndNormal();
     // Save the trailing edge for further computations
@@ -80,22 +78,6 @@ void Define2DWakeProcess::InitializeSubModelparts() const
         // Creating the wake_sub_model_part
         root_model_part.CreateSubModelPart("wake_sub_model_part");
     }
-}
-
-void Define2DWakeProcess::InitializeVariables() const
-{
-    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-
-    // Initialize element variables
-    VariableUtils().SetNonHistoricalVariable(WAKE, false, root_model_part.Elements());
-    VariableUtils().SetNonHistoricalVariable(KUTTA, false, root_model_part.Elements());
-    VariableUtils().SetNonHistoricalVariable(TRAILING_EDGE, false, root_model_part.Elements());
-    VariableUtils().SetFlag(STRUCTURE, false, root_model_part.Elements());
-    VariableUtils().SetNonHistoricalVariable(ELEMENTAL_DISTANCES, ZeroVector(3), root_model_part.Elements());
-
-    // Initialize node variables
-    VariableUtils().SetNonHistoricalVariable(TRAILING_EDGE, false, root_model_part.Nodes());
-    VariableUtils().SetVariable(DISTANCE, 1.0, root_model_part.Nodes());
 }
 
 // This function sets the wake direction and normal for further computations

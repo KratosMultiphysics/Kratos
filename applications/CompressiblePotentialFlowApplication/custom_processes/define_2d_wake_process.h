@@ -104,8 +104,6 @@ private:
     ///@{
     void InitializeSubModelparts() const;
 
-    void InitializeVariables() const;
-
     void SetWakeDirectionAndNormal();
 
     void SaveTrailingEdgeNode();
