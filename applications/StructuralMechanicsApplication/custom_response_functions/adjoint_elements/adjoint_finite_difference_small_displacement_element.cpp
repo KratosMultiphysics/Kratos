@@ -43,6 +43,9 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
     const SizeType dimension = this->mpPrimalElement->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs_per_node = (this->mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = num_nodes * num_dofs_per_node;
+  
+    KRATOS_ERROR_IF(dimension != 3)
+        << "AdjointFiniteDifferencingSmallDisplacementElement::CalculateStressDisplacementDerivative: Invalid element dimension! Currently only 3D SmallDisplacementElements are supported!" << std::endl;
 
     // Build vector of variables containing the DOF-variables of the primal problem
     std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
