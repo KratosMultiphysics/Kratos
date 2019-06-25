@@ -1,5 +1,6 @@
 import numpy as np
 import math as m
+import os.path as path
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
@@ -16,7 +17,11 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         super().__init__()
 
         self.parameters = parameters
-        self.settings = parameters["settings"]
+        working_directory = parameters["settings"]["working_directory"].GetString()
+        input_file = parameters["settings"]["input_file"].GetString()
+        parameter_file_name = path.join(working_directory, input_file)
+        with open(parameter_file_name, 'r') as parameter_file:
+            self.settings = cs_data_structure.Parameters(parameter_file.read())
 
         l = self.settings["l"].GetDouble()  # Length
         self.d = self.settings["d"].GetDouble() # Diameter

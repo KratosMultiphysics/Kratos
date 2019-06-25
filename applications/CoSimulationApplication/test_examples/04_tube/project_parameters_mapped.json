@@ -57,37 +57,20 @@
                 "type" : "solver_wrappers.pipe.flow_solver",
                 "settings" :
                 {
-                    "echo_level" : 1,
-                    "l" : 0.05,
-                    "d" : 0.005,
-                    "rhof" : 1000.0,
-                    "ureference" : 1.0,
-                    "uamplitude" : 0.1,
-                    "uperiod" : 1.0,
-                    "utype" : 1,
-                    "e" : 300000.0,
-                    "h" : 0.001,
-                    "m" : 100,
-                    "newtonmax" : 10,
-                    "newtontol" : 1e-12,
-                    "dt" : 0.01
+                    "working_directory" : "CFD",
+                    "input_file"  : "solver_parameters.json"
                 }
             },
             {
-                "type": "solver_wrappers.mapped_interface",
+                "type": "solver_wrappers.mapped",
                 "settings": {
                     "solver" :
                     {
                         "type" : "solver_interfaces.pipe.structure_solver",
                         "settings" :
                         {
-                            "echo_level" : 1,
-                            "l" : 0.05,
-                            "d" : 0.005,
-                            "rhof" : 1000.0,
-                            "e" : 300000.0,
-                            "h" : 0.001,
-                            "m" : 100
+                            "working_directory" : "CSD",
+                            "input_file"  : "solver_parameters.json"
                         }
                     },
                     "mapper_in":
