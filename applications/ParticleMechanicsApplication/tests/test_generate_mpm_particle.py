@@ -34,14 +34,8 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         self._create_nodes(sub_mp, dimension, geometry_element)
         self._create_elements(sub_mp,dimension, geometry_element)
 
-        # Initialize linear_solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-
-        # Initialize solver
-        if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
-        else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
+        # Generate MP Elements
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_material_model_part, material_model_part, False, False)
 
         # Check total number of element
         particle_counter = material_model_part.NumberOfElements()

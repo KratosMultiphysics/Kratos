@@ -45,14 +45,8 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         # Set active
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_material_model_part.Elements)
 
-        # Initialize linear_solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-
-        # Initialize solver
-        if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
-        else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
+        # Generate MP Elements
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_material_model_part, material_model_part, False, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):
@@ -175,7 +169,11 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
             mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
 
         # Search element
-        self.solver.SearchElement(max_num_results, specific_tolerance)
+        domain_size = grid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        if (domain_size==2):
+            KratosParticle.SearchElement2D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
+        elif (domain_size==3):
+            KratosParticle.SearchElement3D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
 
 
     def _check_connectivity(self, current_model, expected_connectivity_node=[]):

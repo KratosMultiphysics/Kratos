@@ -37,11 +37,9 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         self._create_elements(background_sub_mp)
         self._create_conditions(background_sub_mp)
 
-        # Initialize linear_solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-
-        # Initialize solver
-        self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
+        # Generate MP Elements and Conditions
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_material_model_part, material_model_part, False, False)
+        KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_material_model_part, material_model_part)
 
     def _create_nodes(self, initial_mp):
         initial_mp.CreateNewNode(1, -0.5, -0.5, 0.0)
@@ -73,7 +71,11 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         grid_model_part     = current_model.GetModelPart("Background_Grid")
 
         # Search element
-        self.solver.SearchElement(max_num_results, specific_tolerance)
+        domain_size = grid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        if (domain_size==2):
+            KratosParticle.SearchElement2D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
+        elif (domain_size==3):
+            KratosParticle.SearchElement3D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
 
 
     def test_ParticleEraseOutsideGivenDomain(self):
