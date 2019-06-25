@@ -326,7 +326,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
                             aux_modified_distances_ids.push_back(it_elem->Id());
                             aux_modified_elemental_distances.push_back(r_elem_dist);
                         }
-                        r_elem_dist(i_node) = -tol_d;
+                        r_elem_dist(i_node) = r_elem_dist(i_node) > 0.0 ? tol_d : -tol_d;
                     }
                 }
             }
