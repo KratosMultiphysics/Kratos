@@ -102,31 +102,31 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    const void InitializeVariables();
+    void InitializeVariables() const;
 
-    const void SetWakeDirectionAndNormal();
+    void SetWakeDirectionAndNormal();
 
-    const void SaveTrailingEdgeNode();
+    void SaveTrailingEdgeNode();
 
-    const void MarkWakeElements();
+    void MarkWakeElements();
 
     void CheckIfTrailingEdgeElement(Element& rElement);
 
-    const bool CheckIfPotentiallyWakeElement(const Element& rElement);
+    const bool CheckIfPotentiallyWakeElement(const Element& rElement) const;
 
-    const BoundedVector<double, 3> ComputeNodalDistancesToWake(const Element& rElement);
+    const BoundedVector<double, 3> ComputeNodalDistancesToWake(const Element& rElement) const;
 
-    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake);
+    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
 
-    const void AddTrailingEdgeElements();
+    void AddTrailingEdgeElements();
 
-    const void MarkKuttaElements();
+    void MarkKuttaElements() const;
 
-    const void MarkWakeTrailingEdgeElement();
+    void MarkWakeTrailingEdgeElement() const;
 
-    const bool CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement);
+    const bool CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement) const;
 
-    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint);
+    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint) const;
     ///@}
 
 }; // Class Define2DWakeProcess

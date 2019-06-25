@@ -43,7 +43,7 @@ void Define2DWakeProcess::ExecuteInitialize()
     MarkWakeTrailingEdgeElement();
 }
 
-const void Define2DWakeProcess::InitializeVariables()
+void Define2DWakeProcess::InitializeVariables() const
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
 
@@ -60,7 +60,7 @@ const void Define2DWakeProcess::InitializeVariables()
 }
 
 // This function sets the wake direction and normal for further computations
-const void Define2DWakeProcess::SetWakeDirectionAndNormal()
+void Define2DWakeProcess::SetWakeDirectionAndNormal()
 {
     // Reading the free_stream_velocity from the properties
     const auto free_stream_velocity = mrBodyModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
@@ -86,7 +86,7 @@ const void Define2DWakeProcess::SetWakeDirectionAndNormal()
 }
 
 // This function finds and saves the trailing edge for further computations
-const void Define2DWakeProcess::SaveTrailingEdgeNode()
+void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
     double max_x_coordinate = std::numeric_limits<double>::lowest();
     NodeType* trailing_edge_node;
@@ -102,7 +102,7 @@ const void Define2DWakeProcess::SaveTrailingEdgeNode()
 
 // This function checks which elements are cut by the wake and marks them as
 // wake elements
-const void Define2DWakeProcess::MarkWakeElements()
+void Define2DWakeProcess::MarkWakeElements()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
 
@@ -158,7 +158,7 @@ void Define2DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement)
 
 // This function selects the elements downstream the trailing edge as
 // potentially wake elements
-const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const Element& rElement)
+const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const Element& rElement) const
 {
     // Compute the distance from the trailing edge to the element's center
     const auto distance_to_element_center =
@@ -169,13 +169,13 @@ const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const Element& rEl
 }
 
 // This function computes the distance of the element nodes to the wake
-const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(const Element& rElement)
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(const Element& rElement) const
 {
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
 
     for (unsigned int i = 0; i < rElement.GetGeometry().size(); i++) {
         // Compute the distance from the trailing edge to the node
-        BoundedVector<double, 3> distance_from_te_to_node =
+        const auto distance_from_te_to_node =
             ComputeDistanceFromTrailingEdgeToPoint(rElement.GetGeometry()[i]);
 
         // Compute the projection of the distance vector in the wake normal
@@ -192,7 +192,7 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(
 }
 
 // This function checks whether the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake)
+const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const
 {
     // Initialize counters
     unsigned int number_of_nodes_with_positive_distance = 0;
@@ -215,7 +215,7 @@ const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3
 
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
-const void Define2DWakeProcess::AddTrailingEdgeElements()
+void Define2DWakeProcess::AddTrailingEdgeElements()
 {
     std::sort(mTrailingEdgeElementsOrderedIds.begin(),
               mTrailingEdgeElementsOrderedIds.end());
@@ -226,7 +226,7 @@ const void Define2DWakeProcess::AddTrailingEdgeElements()
 
 // This function selects the kutta elements. Kutta elements are touching the
 // trailing edge from below
-const void Define2DWakeProcess::MarkKuttaElements()
+void Define2DWakeProcess::MarkKuttaElements() const
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
@@ -234,12 +234,12 @@ const void Define2DWakeProcess::MarkKuttaElements()
 
     for (auto& r_element : trailing_edge_sub_model_part.Elements()) {
         // Compute the distance from the element's center to the trailing edge
-        BoundedVector<double, 3> distance_to_element_center =
+        const auto distance_to_element_center =
             ComputeDistanceFromTrailingEdgeToPoint(r_element.GetGeometry().Center());
 
         // Compute the projection of the distance vector in the wake normal
         // direction
-        double distance_to_wake = inner_prod(distance_to_element_center, mWakeNormal);
+        const double distance_to_wake = inner_prod(distance_to_element_center, mWakeNormal);
 
         if (distance_to_wake < 0.0) {
             r_element.SetValue(KUTTA, true);
@@ -250,7 +250,7 @@ const void Define2DWakeProcess::MarkKuttaElements()
 // This function finds the trailing edge element that is further downstream and
 // marks it as wake trailing edge element. The rest of trailing edge elements
 // are unassigned from the wake.
-const void Define2DWakeProcess::MarkWakeTrailingEdgeElement()
+void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
@@ -272,7 +272,7 @@ const void Define2DWakeProcess::MarkWakeTrailingEdgeElement()
 }
 
 // This function checks if the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement)
+const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement) const
 {
     unsigned int number_of_nodes_with_negative_distance = 0;
     // REMINDER: In 3D the elemental_distances may not be match with the nodal
@@ -290,7 +290,7 @@ const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Elem
 }
 
 // This function computes the distance from the trailing edge to an input point
-const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint)
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint) const
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
 
