@@ -271,8 +271,10 @@ private:
         KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "Mesh model part has no elements.";
 
         // Loop the edge intersection nodes to set their values
-        #pragma parallel for
-        for (int i_node = 0; i_node < mrSkinModelPart.NumberOfNodes(); ++i_node) {
+        unsigned int i_edge;
+        Element::Pointer p_elem;
+        #pragma parallel for private (i_edge, p_elem)
+        for (int i_node = 0; i_node < static_cast<int>(mrSkinModelPart.NumberOfNodes()); ++i_node) {
             // Get the current node
             auto it_node = mrSkinModelPart.NodesBegin() + i_node;
             Node<3>::Pointer p_node = &(*it_node);
@@ -281,8 +283,6 @@ private:
             const auto i_node_info = mEdgeNodesMap.find(p_node);
             if (i_node_info != mEdgeNodesMap.end()){
                 // Get the cut node info from the map tuple iterator
-                unsigned int i_edge;
-                Element::Pointer p_elem;
                 std::tie(p_elem, i_edge) = std::get<1>(*i_node_info);
 
                 // Set the modified shape functions for the parent element
