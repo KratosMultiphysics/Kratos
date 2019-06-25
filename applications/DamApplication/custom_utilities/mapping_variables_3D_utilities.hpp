@@ -442,8 +442,9 @@ protected:
                 std::cout << "None of the old elements contains node " << itNodeNew->Id() << std::endl;
                 if (add_stress)
                 {
-                    Matrix InitialNodalStress = ZeroMatrix(3,3);
-                    itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = InitialNodalStress;
+                    Matrix NodalStress = ZeroMatrix(3,3);
+                    itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
+                    itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
                 }
                 continue;
             }
@@ -507,13 +508,6 @@ protected:
                     {
                         MaxNodalStress(k,l) = -10e12;
                         MinNodalStress(k,l) = 10e12;
-                    }
-                }
-
-                for(int k = 0; k < 3; k++)
-                {
-                    for(int l = 0; l < 3; l++)
-                    {
                         for(int j = 0; j < PointsNumber; j++)
                         {
                             NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(k,l);
