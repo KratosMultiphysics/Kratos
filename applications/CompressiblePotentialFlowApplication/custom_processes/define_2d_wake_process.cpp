@@ -22,7 +22,10 @@ Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double
     : Process(), mrBodyModelPart(rBodyModelPart), mTolerance(Tolerance)
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-    root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
+    if(!root_model_part.HasSubModelPart("trailing_edge_sub_model_part"))
+    {
+        root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
+    }
 }
 
 void Define2DWakeProcess::ExecuteInitialize()
