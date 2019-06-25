@@ -105,7 +105,7 @@ const void Define2DWakeProcess::MarkWakeElements()
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
 
     const int number_of_threads = OpenMPUtils::GetNumThreads();
-    std::vector<std::unordered_set<std::size_t>> all_threads_trailing_edge_element_ids(number_of_threads);
+    UnorderedSetType all_threads_trailing_edge_element_ids(number_of_threads);
 
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
@@ -217,7 +217,7 @@ const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3
 
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
-const void Define2DWakeProcess::AddTrailingEdgeElements(const int number_of_threads, std::vector<std::unordered_set<std::size_t>>& thread_trailing_edge_element_ids)
+const void Define2DWakeProcess::AddTrailingEdgeElements(const int number_of_threads, UnorderedSetType& thread_trailing_edge_element_ids)
 {
     // Collect the ids of all threads within mTrailingEdgeElementsOrderedIds
     for (int thread = 0; thread < number_of_threads; thread++) {

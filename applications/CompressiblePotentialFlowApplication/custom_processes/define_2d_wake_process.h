@@ -40,6 +40,7 @@ public:
 
     typedef ModelPart::NodeIterator NodeIteratorType;
     typedef ModelPart::ElementIterator ElementIteratorType;
+    typedef std::vector<std::unordered_set<std::size_t>> UnorderedSetType;
 
     ///@}
     ///@name Life Cycle
@@ -125,7 +126,7 @@ private:
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake);
 
     const void AddTrailingEdgeElements(const int number_of_threads,
-                                       std::vector<std::unordered_set<std::size_t>>& thread_trailing_edge_element_ids);
+                                       UnorderedSetType& thread_trailing_edge_element_ids);
 
     const void MarkKuttaElements();
 
