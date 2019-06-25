@@ -36,7 +36,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Define2DWakeProcess);
 
     typedef Node <3> NodeType;
-    typedef ModelPart::ElementIterator ElementIteratorType;
 
     ///@}
     ///@name Life Cycle
@@ -111,11 +110,11 @@ private:
 
     const void MarkWakeElements();
 
-    void CheckIfTrailingEdgeElement(const ElementIteratorType& rElement);
+    void CheckIfTrailingEdgeElement(Element& rElement);
 
-    const bool CheckIfPotentiallyWakeElement(const ElementIteratorType& rElement);
+    const bool CheckIfPotentiallyWakeElement(const Element& rElement);
 
-    const BoundedVector<double, 3> ComputeNodalDistancesToWake(const ElementIteratorType& rElement);
+    const BoundedVector<double, 3> ComputeNodalDistancesToWake(const Element& rElement);
 
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake);
 
@@ -125,7 +124,7 @@ private:
 
     const void MarkWakeTrailingEdgeElement();
 
-    const bool CheckIfTrailingEdgeElementIsCutByWake(const ElementIteratorType& rElement);
+    const bool CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement);
 
     const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point InputPoint);
     ///@}
