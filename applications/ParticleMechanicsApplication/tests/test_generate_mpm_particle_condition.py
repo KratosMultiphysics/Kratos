@@ -38,17 +38,11 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         # Initialize linear_solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
 
-        # Initialize element - dummy
-        if (dimension == 2):
-            new_element = KratosParticle.CreateUpdatedLagragian2D4N()
-        else:
-            new_element = KratosParticle.CreateUpdatedLagragian3D8N()
-
         # Initialize solver
         if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
+            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
         else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
+            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, "static", 20, False, False, False, False, False)
 
         # Check total number of element
         particle_counter = material_model_part.NumberOfConditions()
