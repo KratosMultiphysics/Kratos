@@ -103,14 +103,11 @@ const void Define2DWakeProcess::SaveTrailingEdgeNode()
 const void Define2DWakeProcess::MarkWakeElements()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-    bool potentially_wake = false;
-    bool is_wake_element = false;
-    BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
 
     const int number_of_threads = OpenMPUtils::GetNumThreads();
     std::vector<std::unordered_set<std::size_t>> all_threads_trailing_edge_element_ids(number_of_threads);
 
-    #pragma omp parallel for firstprivate(potentially_wake, is_wake_element, nodal_distances_to_wake)
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 
@@ -121,14 +118,14 @@ const void Define2DWakeProcess::MarkWakeElements()
         CheckIfTrailingEdgeElement(it_elem, thread_trailing_edge_element_ids);
 
         // Elements downstream the trailing edge can be wake elements
-        potentially_wake = CheckIfPotentiallyWakeElement(it_elem);
+        bool potentially_wake = CheckIfPotentiallyWakeElement(it_elem);
 
         if (potentially_wake) {
             // Compute the nodal distances of the element to the wake
-            nodal_distances_to_wake = ComputeNodalDistancesToWake(it_elem);
+            BoundedVector<double, 3> nodal_distances_to_wake = ComputeNodalDistancesToWake(it_elem);
 
             // Selecting the cut (wake) elements
-            is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
+            bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
 
             // Mark wake element and save their nodal distances to the wake
             if (is_wake_element) {
@@ -177,16 +174,15 @@ const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const ElementItera
 const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(const ElementIteratorType& rElement)
 {
     BoundedVector<double, 3> nodal_distances_to_wake = ZeroVector(3);
-    BoundedVector<double, 3> distance_from_te_to_node = ZeroVector(3);
-    double distance_to_wake;
+
     for (unsigned int i = 0; i < rElement->GetGeometry().size(); i++) {
         // Compute the distance from the trailing edge to the node
-        distance_from_te_to_node =
+        BoundedVector<double, 3> distance_from_te_to_node =
             ComputeDistanceFromTrailingEdgeToPoint(rElement->GetGeometry()[i]);
 
         // Compute the projection of the distance vector in the wake normal
         // direction
-        distance_to_wake = inner_prod(distance_from_te_to_node, mWakeNormal);
+        double distance_to_wake = inner_prod(distance_from_te_to_node, mWakeNormal);
 
         // Nodes laying on the wake have a positive distance
         if (std::abs(distance_to_wake) < mTolerance) {
@@ -245,21 +241,18 @@ const void Define2DWakeProcess::MarkKuttaElements()
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
-    BoundedVector<double, 3> distance_to_element_center = ZeroVector(3);
-    double distance_to_wake;
-
     for (int i = 0;
          i < static_cast<int>(trailing_edge_sub_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem =
             trailing_edge_sub_model_part.ElementsBegin() + i;
 
         // Compute the distance from the element's center to the trailing edge
-        distance_to_element_center =
+        BoundedVector<double, 3> distance_to_element_center =
             ComputeDistanceFromTrailingEdgeToPoint(it_elem->GetGeometry().Center());
 
         // Compute the projection of the distance vector in the wake normal
         // direction
-        distance_to_wake = inner_prod(distance_to_element_center, mWakeNormal);
+        double distance_to_wake = inner_prod(distance_to_element_center, mWakeNormal);
 
         if (distance_to_wake < 0.0) {
             it_elem->SetValue(KUTTA, true);
