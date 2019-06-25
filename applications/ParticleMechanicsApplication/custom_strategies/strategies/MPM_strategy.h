@@ -157,30 +157,17 @@ public:
     /*@{ */
 
     MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,
-        std::string SolutionType = "static", int MaxIteration = 10, bool ComputeReaction = false, bool BlockBuilder = false, bool IsAxisSymmetry = false,
+        std::string SolutionType = "static", int MaxIteration = 10, bool ComputeReaction = false, bool BlockBuilder = false,
         bool IsMixedFormulation = false, bool MoveMeshFlag = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
         mr_mpm_model_part(mpm_model_part)
     {
-
-        // Assigning the nodes to the new model part
-        mr_mpm_model_part.Nodes() = mr_grid_model_part.Nodes();
-
-        mr_mpm_model_part.SetProcessInfo(mr_grid_model_part.pGetProcessInfo());
-        mr_mpm_model_part.SetBufferSize(mr_grid_model_part.GetBufferSize());
-        mr_mpm_model_part.SetProperties(mr_initial_model_part.pProperties());
 
         // Prepare Dimension and Block Size
         unsigned int TBlock = TDim;
         if (IsMixedFormulation) TBlock ++;
 
         KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
-
-        // Generate Material Point Element
-        MPMParticleGeneratorUtility::GenerateMaterialPointElement(mr_grid_model_part, mr_initial_model_part, mr_mpm_model_part, IsAxisSymmetry, IsMixedFormulation);
-
-        // Generate Material Point Condition
-        MPMParticleGeneratorUtility::GenerateMaterialPointCondition(mr_grid_model_part, mr_initial_model_part, mr_mpm_model_part);
 
         // Define a standard static strategy to be used in the calculation
         if(SolutionType == "static" || SolutionType == "Static")

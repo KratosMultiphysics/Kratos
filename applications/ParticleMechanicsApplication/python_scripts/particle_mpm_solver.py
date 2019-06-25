@@ -159,15 +159,18 @@ class ParticleMPMSolver(PythonSolver):
         self.max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         self.searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
 
+        # Generate material points
+        self._generate_material_point()
+
         # Initialize solver
         if(self.domain_size==2):
             self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
                                 self.linear_solver, self.solver_type, self.max_iteration, self.compute_reactions,
-                                self.block_builder, self.axis_symmetric_flag, self.pressure_dofs, self.move_mesh_flag)
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
         else:
             self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
                                 self.linear_solver, self.solver_type, self.max_iteration, self.compute_reactions,
-                                self.block_builder, self.axis_symmetric_flag, self.pressure_dofs, self.move_mesh_flag)
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
 
         # Set echo level
         self._set_echo_level()
@@ -343,6 +346,17 @@ class ParticleMPMSolver(PythonSolver):
                 KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, model_part)
             else:
                 KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
+
+    def _generate_material_point(self):
+        # Assigning extra information to the main model part
+        self.material_model_part.SetNodes(self.grid_model_part.GetNodes())
+        self.material_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
+
+        # Generate MP Element and Condition
+        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.axis_symmetric_flag, self.pressure_dofs)
+
+        KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_material_model_part, self.material_model_part)
+
 
     def _set_buffer_size(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()
