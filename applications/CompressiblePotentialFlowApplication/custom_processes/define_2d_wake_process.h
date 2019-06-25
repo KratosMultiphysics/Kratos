@@ -102,6 +102,8 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    void InitializeSubModelparts() const;
+
     void InitializeVariables() const;
 
     void SetWakeDirectionAndNormal();
@@ -118,7 +120,7 @@ private:
 
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
 
-    void AddTrailingEdgeElements();
+    void AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds);
 
     void MarkKuttaElements() const;
 

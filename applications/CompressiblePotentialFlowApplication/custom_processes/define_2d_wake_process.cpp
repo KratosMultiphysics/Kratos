@@ -19,16 +19,12 @@ namespace Kratos {
 // Constructor for Define2DWakeProcess Process
 Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double Tolerance)
     : Process(), mrBodyModelPart(rBodyModelPart), mTolerance(Tolerance)
-{
-    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-    if(!root_model_part.HasSubModelPart("trailing_edge_sub_model_part"))
-    {
-        root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
-    }
-}
+{}
 
 void Define2DWakeProcess::ExecuteInitialize()
 {
+    // Initialize submodelparts
+    InitializeSubModelparts();
     // Initialize element and node variables for the process
     //InitializeVariables();
     // Set the wake direction and normal for further computations
@@ -41,6 +37,49 @@ void Define2DWakeProcess::ExecuteInitialize()
     MarkKuttaElements();
     // Mark the trailing edge element that is further downstream as wake
     MarkWakeTrailingEdgeElement();
+}
+
+void Define2DWakeProcess::InitializeSubModelparts() const
+{
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    if(root_model_part.HasSubModelPart("trailing_edge_sub_model_part"))
+    {
+        // Clearing the variables and elements of the already existing
+        // trailing_edge_sub_model_part
+        ModelPart& trailing_edge_sub_model_part =
+            root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
+
+        for (auto& r_element : trailing_edge_sub_model_part.Elements()){
+            r_element.SetValue(TRAILING_EDGE, false);
+            r_element.SetValue(KUTTA, false);
+            r_element.Reset(STRUCTURE);
+            r_element.Set(TO_ERASE, true);
+        }
+        trailing_edge_sub_model_part.RemoveElements(TO_ERASE);
+    }
+    else{
+        // Creating the trailing_edge_sub_model_part
+        root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
+    }
+
+    if(root_model_part.HasSubModelPart("wake_sub_model_part"))
+    {
+        // Clearing the variables and elements of the already existing
+        // wake_sub_model_part
+        ModelPart& wake_sub_model_part =
+            root_model_part.GetSubModelPart("wake_sub_model_part");
+
+        for (auto& r_element : wake_sub_model_part.Elements()){
+            r_element.SetValue(WAKE, false);
+            r_element.SetValue(ELEMENTAL_DISTANCES, ZeroVector(3));
+            r_element.Set(TO_ERASE, true);
+        }
+        wake_sub_model_part.RemoveElements(TO_ERASE);
+    }
+    else{
+        // Creating the wake_sub_model_part
+        root_model_part.CreateSubModelPart("wake_sub_model_part");
+    }
 }
 
 void Define2DWakeProcess::InitializeVariables() const
@@ -105,6 +144,7 @@ void Define2DWakeProcess::SaveTrailingEdgeNode()
 void Define2DWakeProcess::MarkWakeElements()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    std::vector<std::size_t> wake_elements_ordered_ids;
 
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
@@ -127,6 +167,10 @@ void Define2DWakeProcess::MarkWakeElements()
             if (is_wake_element) {
                 it_elem->SetValue(WAKE, true);
                 it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+                #pragma omp critical
+                {
+                    wake_elements_ordered_ids.push_back(it_elem->Id());
+                }
                 auto r_geometry = it_elem->GetGeometry();
                 for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
@@ -137,7 +181,7 @@ void Define2DWakeProcess::MarkWakeElements()
         }
     }
     // Add the trailing edge elements to the trailing_edge_sub_model_part
-    AddTrailingEdgeElements();
+    AddTrailingEdgeAndWakeElements(wake_elements_ordered_ids);
 }
 
 // This function checks if the element is touching the trailing edge
@@ -215,12 +259,16 @@ const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3
 
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
-void Define2DWakeProcess::AddTrailingEdgeElements()
+void Define2DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds)
 {
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+
+    std::sort(rWakeElementsOrderedIds.begin(),
+              rWakeElementsOrderedIds.end());
+    root_model_part.GetSubModelPart("wake_sub_model_part").AddElements(rWakeElementsOrderedIds);
+
     std::sort(mTrailingEdgeElementsOrderedIds.begin(),
               mTrailingEdgeElementsOrderedIds.end());
-
-    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     root_model_part.GetSubModelPart("trailing_edge_sub_model_part").AddElements(mTrailingEdgeElementsOrderedIds);
 }
 
