@@ -4,7 +4,7 @@ import numpy as np
 import h5py
 
 # Read HDF5 file
-file_name = '/home/ipouplana/Ara/DEM_FEM/ctw16_pdot5e10_friction65_cohesion0.0_1.5R/sp_data.hdf5'
+file_name = 'sp_data.hdf5'
 f = h5py.File(file_name, 'r')
 
 # File Attributes
@@ -17,11 +17,10 @@ volume = f.attrs['volume']
 real_probe_height = f.attrs['real_probe_height']
 target_porosity = f.attrs['target_porosity']
 porosity = f.attrs['porosity']
-# density = f.attrs['density']
-density = 2575.0 # TODO: provisional
+density = f.attrs['density']
 
 # Time and external applied pressure
-failure_step = 175 # TODO
+failure_step = 300 # TODO
 max_step = failure_step
 times = np.zeros(max_step)
 for i in range(max_step):

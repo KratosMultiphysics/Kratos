@@ -4,7 +4,7 @@ import numpy as np
 import h5py
 
 # Read HDF5 file
-file_name = '/home/ipouplana/Ara/DEM_FEM/ctw16_pdot5e10_friction65_cohesion0.0_1.5R/sp_data.hdf5'
+file_name = 'sp_data.hdf5'
 f = h5py.File(file_name, 'r')
 
 # File Attributes
@@ -17,8 +17,7 @@ volume = f.attrs['volume']
 real_probe_height = f.attrs['real_probe_height']
 target_porosity = f.attrs['target_porosity']
 porosity = f.attrs['porosity']
-# density = f.attrs['density']
-density = 2575.0 # TODO: provisional
+density = f.attrs['density']
 
 # General factors
 height_factor = real_probe_height / thickness
@@ -51,7 +50,7 @@ t_f=times[failure_step]
 # print(t_f)
 # Estimated time of initial sanding. TODO
 # t_is=times[90]
-t_is=times[130]
+# t_is=times[130]
 # print(t_is)
 
 # Maximum number of intact bonds to consider spheres as SP
@@ -72,10 +71,12 @@ for numbonds in np.arange(0.0,max_num_bonds,1.0):
         ys_2 = np.power(ys,2)
         distance_2 = xs_2 + ys_2
         # weak_radius = 0.5*(internal_radius+interface_radius)
-        if times[i+1] < t_is:
-            weak_radius = internal_radius
-        else:
-            weak_radius = internal_radius + (interface_radius-internal_radius)/(t_f-t_is)*(times[i+1]-t_is)
+        # if times[i+1] < t_is:
+        #     weak_radius = internal_radius
+        # else:
+        #     weak_radius = internal_radius + (interface_radius-internal_radius)/(t_f-t_is)*(times[i+1]-t_is)
+        # TODO: count all the spheres in the domain
+        weak_radius = interface_radius
         internal_radii = np.where(distance_2<weak_radius**2,all_radii,0.0) # spheres between inner wall (hole) and a certain radius (weak region)
         external_radii = np.where(distance_2>=weak_radius**2,all_radii,0.0) # spheres between a certain radius and the interface wall (dem-fem wall) (strong region)
 
@@ -127,8 +128,8 @@ f = plt.figure()
 
 for name, pressures, productions in zip(graph_labels, all_pressures, all_sps):
     plt.plot(pressures, productions,label=name)
-p_is = p_rate*t_is*psi_factor
-plt.axvline(x=p_is, c='k', ls='--', label='estimated numerical initial sanding')
+#p_is = p_rate*t_is*psi_factor
+#plt.axvline(x=p_is, c='k', ls='--', label='estimated numerical initial sanding')
 
 # for name, times, productions in zip(graph_labels, all_times, all_sps):
 #     plt.plot(times, productions,label=name)
