@@ -159,48 +159,15 @@ class ParticleMPMSolver(PythonSolver):
         self.max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         self.searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
 
-        # Identify geometry type
-        self._identify_geometry_type()
-
-        # Set default solver_settings parameters
-        if self.geometry_element == "Triangle":
-            if (self.domain_size == 2):
-                if (self.pressure_dofs):
-                    self.new_element = KratosParticle.CreateUpdatedLagragianUP2D3N()
-                else:
-                    if (self.axis_symmetric_flag):
-                        self.new_element = KratosParticle.CreateUpdatedLagragianAxis2D3N()
-                    else:
-                        self.new_element = KratosParticle.CreateUpdatedLagragian2D3N()
-            else:
-                if (self.pressure_dofs):
-                    raise Exception("Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented.")
-                else:
-                    self.new_element = KratosParticle.CreateUpdatedLagragian3D4N()
-        elif self.geometry_element == "Quadrilateral":
-            if (self.domain_size == 2):
-                if (self.pressure_dofs):
-                    raise Exception("Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented.")
-                else:
-                    if (self.axis_symmetric_flag):
-                        self.new_element = KratosParticle.CreateUpdatedLagragianAxis2D4N()
-                    else:
-                        self.new_element = KratosParticle.CreateUpdatedLagragian2D4N()
-            else:
-                if (self.pressure_dofs):
-                    raise Exception("Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented.")
-                else:
-                    self.new_element = KratosParticle.CreateUpdatedLagragian3D8N()
-
         # Initialize solver
         if(self.domain_size==2):
             self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
-                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
+                                self.linear_solver, self.solver_type, self.max_iteration, self.compute_reactions,
+                                self.block_builder, self.axis_symmetric_flag, self.pressure_dofs, self.move_mesh_flag)
         else:
             self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
-                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
+                                self.linear_solver, self.solver_type, self.max_iteration, self.compute_reactions,
+                                self.block_builder, self.axis_symmetric_flag, self.pressure_dofs, self.move_mesh_flag)
 
         # Set echo level
         self._set_echo_level()
@@ -345,16 +312,6 @@ class ParticleMPMSolver(PythonSolver):
         else:
             materials_imported = False
         return materials_imported
-
-    def _identify_geometry_type(self):
-        for mpm in self.grid_model_part.Elements:
-            num_nodes = len(mpm.GetNodes())
-            break
-
-        if (self.domain_size == 2 and num_nodes == 3) or (self.domain_size == 3 and num_nodes == 4):
-            self.geometry_element = "Triangle"
-        elif (self.domain_size == 2 and num_nodes == 4) or (self.domain_size == 3 and num_nodes == 8):
-            self.geometry_element = "Quadrilateral"
 
     def _add_dofs_to_model_part(self, model_part):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)

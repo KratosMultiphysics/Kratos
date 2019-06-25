@@ -37,15 +37,28 @@ namespace MPMParticleGeneratorUtility
 
     Matrix MP33ShapeFunctions();
 
+    std::size_t CheckSizeDimension(const GeometryData::KratosGeometryType & rBackgroundGeoType)
+    {
+        if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3 || rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+            return 2;
+        else if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4 || rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+            return 3;
+        else{
+            std::string error_msg = "The Geometry type of the Background Element given is invalid or currently not available. ";
+            error_msg += "Please remesh the problem domain to Triangle2D3N or Quadrilateral2D4N for 2D or ";
+            error_msg += "Tetrahedral3D4N or Hexahedral3D8N for 3D.";
+            KRATOS_ERROR << error_msg << std::endl;
+        }
+    }
+
     /**
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
      */
-    template<std::size_t TDim>
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        Element const& rNewElement,
+                                        bool IsAxisSymmetry = false,
                                         bool IsMixedFormulation = false)
     {
         // Initialize zero the variables needed
@@ -98,10 +111,14 @@ namespace MPMParticleGeneratorUtility
                         particles_per_element = 1;
                     }
 
+                    // Get geometry and dimension of the background grid
+                    const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                    std::size_t TDim = CheckSizeDimension(background_geotype);
+
                     const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's geometry
-                    const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
+                    const GeometryData::KratosGeometryType geotype = rGeom.GetGeometryType();
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    if (rGeoType == GeometryData::Kratos_Tetrahedra3D4  || rGeoType == GeometryData::Kratos_Triangle2D3)
+                    if (geotype == GeometryData::Kratos_Tetrahedra3D4  || geotype == GeometryData::Kratos_Triangle2D3)
                     {
                         switch (particles_per_element)
                         {
@@ -136,7 +153,7 @@ namespace MPMParticleGeneratorUtility
                                 break;
                         }
                     }
-                    else if(rGeoType == GeometryData::Kratos_Hexahedra3D8  || rGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                    else if(geotype == GeometryData::Kratos_Hexahedra3D8  || geotype == GeometryData::Kratos_Quadrilateral2D4)
                     {
                         switch (particles_per_element)
                         {
@@ -161,12 +178,48 @@ namespace MPMParticleGeneratorUtility
                                 break;
                         }
                     }
-                    else{
-                        std::string error_msg = "The Geometry type of the Element given is invalid or currently not available. ";
-                        error_msg += "Please remesh the problem domain to Triangle2D3N or Quadrilateral2D4N for 2D or ";
-                        error_msg += "Tetrahedral3D4N or Hexahedral3D8N for 3D.";
-                        KRATOS_ERROR << error_msg << std::endl;
+
+                    // Check element type
+                    std::string element_type_name;
+                    if (TDim==2){
+                        if (background_geotype == GeometryData::Kratos_Triangle2D3){
+                            if (IsMixedFormulation)
+                                element_type_name = "UpdatedLagrangianUP2D3N";
+                            else{
+                                if (IsAxisSymmetry)
+                                    element_type_name = "UpdatedLagrangianAxisymmetry2D3N";
+                                else
+                                    element_type_name = "UpdatedLagrangian2D3N";
+                            }
+                        }
+                        else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4){
+                            if (IsMixedFormulation)
+                                KRATOS_ERROR << "Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented." << std::endl;
+                            else{
+                                if (IsAxisSymmetry)
+                                    element_type_name = "UpdatedLagrangianAxisymmetry2D4N";
+                                else
+                                    element_type_name = "UpdatedLagrangian2D4N";
+                            }
+                        }
                     }
+                    else if (TDim==3){
+                        if (background_geotype == GeometryData::Kratos_Tetrahedra3D4){
+                            if (IsMixedFormulation)
+                                KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented." << std::endl;
+                            else
+                                element_type_name = "UpdatedLagrangian3D4N";
+                        }
+                        else if (background_geotype == GeometryData::Kratos_Hexahedra3D8){
+                            if (IsMixedFormulation)
+                                KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented." << std::endl;
+                            else
+                                element_type_name = "UpdatedLagrangian3D8N";
+                        }
+                    }
+
+                    // Get new element
+                    const Element& new_element = KratosComponents<Element>::Get(element_type_name);
 
                     // Number of MP per elements
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
@@ -188,7 +241,7 @@ namespace MPMParticleGeneratorUtility
                     {
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
-                        Element::Pointer p_element = rNewElement.Create(new_element_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+                        Element::Pointer p_element = new_element.Create(new_element_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                         const double MP_Density  = density;
                         const int MP_Material_Id = material_id;
@@ -236,9 +289,8 @@ namespace MPMParticleGeneratorUtility
 
     /**
      * @brief Function to Initiate material point condition.
-     * @details It is designed to be called ONCE by the class constructor.
+     * @details Generating particle condition using a designated shape functions
      */
-    template<std::size_t TDim>
     void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart)
@@ -319,14 +371,15 @@ namespace MPMParticleGeneratorUtility
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
-                        const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
+                        const GeometryData::KratosGeometryType geotype = rGeom.GetGeometryType();
                         Matrix shape_functions_values;
 
-                        //Get geometry of the background grid
+                        // Get geometry and dimension of the background grid
                         std::string condition_type_name;
-                        const GeometryData::KratosGeometryType rBackgroundGeoType = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                        const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                        std::size_t TDim = CheckSizeDimension(background_geotype);
 
-                        if (rGeoType == GeometryData::Kratos_Point2D  || rGeoType == GeometryData::Kratos_Point3D)
+                        if (geotype == GeometryData::Kratos_Point2D  || geotype == GeometryData::Kratos_Point3D)
                         {
                             switch (particles_per_condition)
                             {
@@ -344,17 +397,16 @@ namespace MPMParticleGeneratorUtility
                             }
 
                             if(is_neumann_condition){
-
                                 if (TDim==2){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                    if (background_geotype == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePointLoadCondition2D3N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                    else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePointLoadCondition2D4N";
                                 }
                                 else if (TDim==3){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                    if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePointLoadCondition3D4N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                    else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
                                         condition_type_name = "MPMParticlePointLoadCondition3D8N";
                                 }
 
@@ -363,7 +415,7 @@ namespace MPMParticleGeneratorUtility
                             }
 
                         }
-                        else if (rGeoType == GeometryData::Kratos_Line2D2  || rGeoType == GeometryData::Kratos_Line3D2)
+                        else if (geotype == GeometryData::Kratos_Line2D2  || geotype == GeometryData::Kratos_Line3D2)
                         {
                             switch (particles_per_condition)
                             {
@@ -399,7 +451,7 @@ namespace MPMParticleGeneratorUtility
                                 KRATOS_ERROR << "Particle line load condition is not yet implemented." << std::endl;
 
                         }
-                        else if(rGeoType == GeometryData::Kratos_Triangle3D3)
+                        else if(geotype == GeometryData::Kratos_Triangle3D3)
                         {
                             switch (particles_per_condition)
                             {
@@ -438,7 +490,7 @@ namespace MPMParticleGeneratorUtility
                                 KRATOS_ERROR << "Particle surface load condition is not yet implemented." << std::endl;
 
                         }
-                        else if(rGeoType == GeometryData::Kratos_Quadrilateral3D4)
+                        else if(geotype == GeometryData::Kratos_Quadrilateral3D4)
                         {
                             switch (particles_per_condition)
                             {
@@ -505,29 +557,29 @@ namespace MPMParticleGeneratorUtility
                         if (!is_neumann_condition){
                             if(!is_interface){
                                 if (TDim==2){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                    if (background_geotype == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                    else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
                                 }
                                 else if (TDim==3){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                    if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                    else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
                                 }
                             }
                             else{
                                 if (TDim==2){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                    if (background_geotype == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                    else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
                                 }
                                 else if (TDim==3){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                    if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                    else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D8N";
                                 }
                             }
