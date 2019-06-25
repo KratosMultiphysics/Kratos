@@ -102,7 +102,9 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    void InitializeSubModelparts() const;
+    void InitializeTrailingEdgeSubModelpart() const;
+
+    void InitializeWakeSubModelpart() const;
 
     void SetWakeDirectionAndNormal();
 

@@ -24,7 +24,8 @@ Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double
 void Define2DWakeProcess::ExecuteInitialize()
 {
     // Initialize submodelparts
-    InitializeSubModelparts();
+    InitializeTrailingEdgeSubModelpart();
+    InitializeWakeSubModelpart();
     // Set the wake direction and normal for further computations
     SetWakeDirectionAndNormal();
     // Save the trailing edge for further computations
@@ -37,7 +38,9 @@ void Define2DWakeProcess::ExecuteInitialize()
     MarkWakeTrailingEdgeElement();
 }
 
-void Define2DWakeProcess::InitializeSubModelparts() const
+// This function initializes the variables and removes all of the elements of
+// the trailing edge submodelpart
+void Define2DWakeProcess::InitializeTrailingEdgeSubModelpart() const
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     if(root_model_part.HasSubModelPart("trailing_edge_sub_model_part"))
@@ -59,7 +62,13 @@ void Define2DWakeProcess::InitializeSubModelparts() const
         // Creating the trailing_edge_sub_model_part
         root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
     }
+}
 
+// This function initializes the variables and removes all of the elements of
+// the wake submodelpart
+void Define2DWakeProcess::InitializeWakeSubModelpart() const
+{
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     if(root_model_part.HasSubModelPart("wake_sub_model_part"))
     {
         // Clearing the variables and elements of the already existing
