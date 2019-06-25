@@ -65,6 +65,12 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
             "refinement_coefficient"              : 2.0,
             "reference_variable_name"             : "DIVERGENCE_WEIGHTED"
         },
+        "interpolation_error_strategy":
+        {
+            "interpolation_error"                 : 0.1,
+            "reference_variable_name"             : "DIVERGENCE_WEIGHTED",
+            "reference_norm_name"                 : "VELOCITY_H1_SEMINORM"
+        },
         "echo_level"                          : 0
     })"
     );
@@ -87,6 +93,12 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     mMaxStrategyTargetRefinementCoefficient = ThisParameters["maximum_strategy"]["target_refinement_coefficient"].GetDouble();
     mMaxStrategyRefinementCoefficient = ThisParameters["maximum_strategy"]["refinement_coefficient"].GetDouble();
     mDivergenceFreeMaxValue = -1;
+
+    // Interpolation error strategy
+    mInterpErrorStrategyInterpolationError = ThisParameters["interpolation_error_strategy"]["interpolation_error"].GetDouble();
+    mInterpErrorStrategyReferenceVariable = ThisParameters["mean_distribution_strategy"]["reference_variable_name"].GetString();
+    mInterpErrorStrategyReferenceNorm = ThisParameters["mean_distribution_strategy"]["reference_norm_name"].GetString();
+    mInterpErrorStrategyMeshConstant = 1.0;
 
 }
 
@@ -293,6 +305,73 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             KRATOS_INFO_IF("MetricDivergenceFreeProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
 
         }
+    }
+
+    // Mean distribution strategy
+    else if (mRefinementStrategy == "interpolation_error_strategy") {
+
+        // Reference variable
+        const auto& r_reference_var  = KratosComponents<Variable<double>>::Get(mInterpErrorStrategyReferenceVariable);
+        const auto& r_reference_norm = KratosComponents<Variable<double>>::Get(mInterpErrorStrategyReferenceNorm);
+
+        const double min_ratio = 1.0/std::pow(mMinSize, 2);
+        const double max_ratio = 1.0/std::pow(mMaxSize, 2);
+
+        // We check is the interpolation error is near zero. If it is we will correct it
+        if (mInterpErrorStrategyInterpolationError < std::numeric_limits<double>::epsilon())
+        {
+            KRATOS_WARNING("interpolation_error_strategy") << "WARNING: Your interpolation error is near zero: " << mInterpErrorStrategyInterpolationError << std::endl;
+        }
+
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < number_nodes; ++i_node) {
+            auto it_node = nodes_array.begin() + i_node;
+
+            // Initialize Divergence
+            double divergencefree_interp_value = 0;
+            double local_volume = 0;
+
+            // Get divergence interpolation value on the node
+            auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++) {
+                divergencefree_interp_value += i_neighbour_elements->GetValue(r_reference_var)*i_neighbour_elements->GetGeometry().Area();
+                local_volume += i_neighbour_elements->GetGeometry().Area();
+            }
+            divergencefree_interp_value /= local_volume;
+
+            // Estimate element size
+            const double nodal_h = it_node->GetValue(NODAL_H);
+
+            // Set element size
+            double aux_element_size;
+            double factor = mInterpErrorStrategyMeshConstant*std::abs(divergencefree_interp_value)/mInterpErrorStrategyInterpolationError;
+
+            // Check with max and min size
+            aux_element_size = MathUtils<double>::Min(MathUtils<double>::Max(factor, max_ratio), min_ratio);
+
+            // if (factor < 1.0/mMeanStrategyRefinementBound) factor = 1.0/mMeanStrategyRefinementBound;
+            // if (factor > mMeanStrategyRefinementBound) factor = mMeanStrategyRefinementBound;
+            // element_size = factor*nodal_h;
+
+            // Check with max and min size
+            // if (element_size < mMinSize) element_size = mMinSize;
+            // if (element_size > mMaxSize) element_size = mMaxSize;
+
+            // Set metric
+            BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
+            for(IndexType i = 0;i < TDim; ++i)
+                metric_matrix(i,i) = aux_element_size;
+
+            // Transform metric matrix to a vector
+            const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+
+            // Setting value
+            it_node->SetValue(tensor_variable, metric);
+
+            KRATOS_INFO_IF("MetricDivergenceFreeProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
+
+        }
+
     }
 }
 

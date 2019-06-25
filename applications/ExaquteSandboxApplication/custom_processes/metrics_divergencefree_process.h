@@ -218,6 +218,13 @@ private:
     double mMaxStrategyRefinementCoefficient;
     double mDivergenceFreeMaxValue;
 
+    // Interpolation error strategy
+    double mInterpErrorStrategyInterpolationError;
+    double mInterpErrorStrategyMeshConstant;
+    std::string mInterpErrorStrategyReferenceNorm;
+    std::string mInterpErrorStrategyReferenceVariable;
+
+
     ///@}
     ///@name Private Operators
     ///@{
