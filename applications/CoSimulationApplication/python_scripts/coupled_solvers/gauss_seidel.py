@@ -21,11 +21,11 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
         self._convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
-        self._solver_interfaces = []
-        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["wrappers"][0]))
-        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["wrappers"][1]))
+        self._solver_wrappers = []
+        self._solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][0]))
+        self._solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][1]))
         self._components = [self._predictor, self._convergence_accelerator, self._convergence_criterion,
-                            self._solver_interfaces[0], self._solver_interfaces[1]]
+                            self._solver_wrappers[0], self._solver_wrappers[1]]
 
         self.x = []
 
@@ -35,7 +35,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         for component in self._components[1:-1]:
             component.Initialize()
 
-        self.x = self._solver_interfaces[self.master_solver_interface].GetInterfaceIn()
+        self.x = self._solver_wrappers[self.master_solver_index].GetInterfaceIn()
         self._predictor.Initialize(self.x)
 
     def Finalize(self):
@@ -58,8 +58,8 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             else:
                 dx = self._convergence_accelerator.Predict(r)
                 self.x += dx
-            y = self._solver_interfaces[0].SolveSolutionStep(self.x)
-            xt = self._solver_interfaces[1].SolveSolutionStep(y)
+            y = self._solver_wrappers[0].SolveSolutionStep(self.x)
+            xt = self._solver_wrappers[1].SolveSolutionStep(y)
             r = xt - self.x
             self._convergence_accelerator.Update(self.x, xt)
             self._convergence_criterion.Update(r)

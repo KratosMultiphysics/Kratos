@@ -12,7 +12,7 @@
         "settings" :
         {
             "echo_level" : 1,
-            "master_solver_interface" : 0
+            "master_solver_index" : 0
         },
         "predictor" :
         {
@@ -51,7 +51,7 @@
                 }
             }
         },
-        "solver_interfaces" :
+        "solver_wrappers" :
         [
             {
                 "type" : "solver_interfaces.pipe.flow_solver",
