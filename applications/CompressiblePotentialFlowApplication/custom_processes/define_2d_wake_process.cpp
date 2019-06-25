@@ -290,12 +290,12 @@ const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Elem
 }
 
 // This function computes the distance from the trailing edge to an input point
-const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(const Point InputPoint)
+const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint)
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
 
-    distance_to_point(0) = InputPoint.X() - mpTrailingEdgeNode->X();
-    distance_to_point(1) = InputPoint.Y() - mpTrailingEdgeNode->Y();
+    distance_to_point(0) = rInputPoint.X() - mpTrailingEdgeNode->X();
+    distance_to_point(1) = rInputPoint.Y() - mpTrailingEdgeNode->Y();
 
     return distance_to_point;
 }

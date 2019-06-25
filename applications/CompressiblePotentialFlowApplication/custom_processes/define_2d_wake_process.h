@@ -126,7 +126,7 @@ private:
 
     const bool CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement);
 
-    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point InputPoint);
+    const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint);
     ///@}
 
 }; // Class Define2DWakeProcess
