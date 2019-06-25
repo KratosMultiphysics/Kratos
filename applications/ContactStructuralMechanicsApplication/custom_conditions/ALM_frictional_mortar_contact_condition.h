@@ -125,6 +125,8 @@ public:
 
     static constexpr double OperatorThreshold = 1.0e-3;
 
+    static constexpr double TangentCoefficient = 1.0;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -455,16 +457,6 @@ private:
      * @param rCurrentProcessInfo The current process information
      */
     void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
-     * @param rGeometry The geometry to calculate
-     * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
-     */
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry)
-    {
-        return ContactUtilities::ComputeTangentMatrixSlip<TDim, TNumNodes>(rGeometry, StepSlip);
-    }
 
     ///@}
     ///@name Private  Access
