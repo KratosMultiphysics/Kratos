@@ -89,17 +89,16 @@ const void Define2DWakeProcess::SetWakeDirectionAndNormal()
 // This function finds and saves the trailing edge for further computations
 const void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
-    double max_x_coordinate = -std::numeric_limits<double>::max();;
-    NodeIteratorType trailing_edge_node;
-    for (auto it_node = mrBodyModelPart.NodesBegin();
-         it_node != mrBodyModelPart.NodesEnd(); ++it_node) {
-        if (it_node->X() > max_x_coordinate) {
-            max_x_coordinate = it_node->X();
-            trailing_edge_node = it_node;
+    double max_x_coordinate = std::numeric_limits<double>::lowest();
+    NodeType* trailing_edge_node;
+    for (auto& r_node : mrBodyModelPart.Nodes()) {
+        if (r_node.X() > max_x_coordinate) {
+            max_x_coordinate = r_node.X();
+            trailing_edge_node = &r_node;
         }
     }
     trailing_edge_node->SetValue(TRAILING_EDGE, true);
-    mTrailingEdgeNode = trailing_edge_node;
+    mpTrailingEdgeNode = trailing_edge_node;
 }
 
 // This function checks which elements are cut by the wake and marks them as
@@ -108,7 +107,7 @@ const void Define2DWakeProcess::MarkWakeElements()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
 
-    const int number_of_threads = OpenMPUtils::GetNumThreads();
+    const int number_of_threads = omp_get_max_threads();//OpenMPUtils::GetNumThreads();
     UnorderedSetType all_threads_trailing_edge_element_ids(number_of_threads);
 
     #pragma omp parallel for
@@ -155,7 +154,7 @@ void Define2DWakeProcess::CheckIfTrailingEdgeElement(const ElementIteratorType& 
     // Loop over element nodes
     for (unsigned int i = 0; i < rElement->GetGeometry().size(); i++) {
         // Elements touching the trailing edge are trailing edge elements
-        if (rElement->GetGeometry()[i].Id() == mTrailingEdgeNode->Id()) {
+        if (rElement->GetGeometry()[i].Id() == mpTrailingEdgeNode->Id()) {
             rElement->SetValue(TRAILING_EDGE, true);
             thread_trailing_edge_element_ids.insert(rElement->Id());
         }
@@ -314,8 +313,8 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingE
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
 
-    distance_to_point(0) = InputPoint.X() - mTrailingEdgeNode->X();
-    distance_to_point(1) = InputPoint.Y() - mTrailingEdgeNode->Y();
+    distance_to_point(0) = InputPoint.X() - mpTrailingEdgeNode->X();
+    distance_to_point(1) = InputPoint.Y() - mpTrailingEdgeNode->Y();
 
     return distance_to_point;
 }

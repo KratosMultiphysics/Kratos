@@ -38,7 +38,7 @@ public:
     /// Pointer definition of Define2DWakeProcess
     KRATOS_CLASS_POINTER_DEFINITION(Define2DWakeProcess);
 
-    typedef ModelPart::NodeIterator NodeIteratorType;
+    typedef Node <3> NodeType;
     typedef ModelPart::ElementIterator ElementIteratorType;
     typedef std::vector<std::unordered_set<std::size_t>> UnorderedSetType;
 
@@ -99,12 +99,11 @@ private:
     ModelPart& mrBodyModelPart;
     // Tolerance to avoid nodes laying exactly on the wake
     const double mTolerance;
-    NodeIteratorType mTrailingEdgeNode;
+    NodeType* mpTrailingEdgeNode;
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mWakeNormal;
     // Vector to store the trailing edge elements ids
     std::vector<std::size_t> mTrailingEdgeElementsOrderedIds;
-
     ///@}
     ///@name Private Operators
     ///@{
