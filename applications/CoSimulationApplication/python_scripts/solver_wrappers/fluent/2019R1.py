@@ -5,10 +5,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverInterfaceFluent2019R1(parameters)
+    return SolverWrapperFluent2019R1(parameters)
 
 
-class SolverInterfaceFluent2019R1(CoSimulationComponent):
+class SolverWrapperFluent2019R1(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 

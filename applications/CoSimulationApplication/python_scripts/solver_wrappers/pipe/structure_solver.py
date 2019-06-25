@@ -8,10 +8,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverInterfacePipeStructure(parameters)
+    return SolverWrapperPipeStructure(parameters)
 
 
-class SolverInterfacePipeStructure(CoSimulationComponent):
+class SolverWrapperPipeStructure(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
@@ -68,7 +68,7 @@ class SolverInterfacePipeStructure(CoSimulationComponent):
 
         self.n += 1
 
-    def Calculate(self, interface_in):
+    def SolveSolutionStep(self, interface_in):
         self.interface_in = interface_in
         self.p = self.interface_in.GetNumpyArray()
 

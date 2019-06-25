@@ -9,10 +9,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverInterfacePipeFlow(parameters)
+    return SolverWrapperPipeFlow(parameters)
 
 
-class SolverInterfacePipeFlow(CoSimulationComponent):
+class SolverWrapperPipeFlow(CoSimulationComponent):
     Al = 4  # Number of terms below diagonal in matrix
     Au = 4  # Number of terms above diagonal in matrix
 
@@ -86,7 +86,7 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         self.pn = np.array(self.p)
         self.an = np.array(self.a)
 
-    def Calculate(self, interface_in):
+    def SolveSolutionStep(self, interface_in):
         # Input does not contain boundary conditions
         self.interface_in = interface_in
         a = self.interface_in.GetNumpyArray()

@@ -54,7 +54,7 @@
         "solver_wrappers" :
         [
             {
-                "type" : "solver_interfaces.pipe.flow_solver",
+                "type" : "solver_wrappers.pipe.flow_solver",
                 "settings" :
                 {
                     "echo_level" : 1,
@@ -74,7 +74,7 @@
                 }
             },
             {
-                "type": "solver_interfaces.mapped_interface",
+                "type": "solver_wrappers.mapped_interface",
                 "settings": {
                     "solver" :
                     {

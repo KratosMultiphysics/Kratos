@@ -16,7 +16,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.settings = parameters["settings"]
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.master_solver_interface = self.settings["master_solver_interface"].GetInt()
+        self.master_solver_index = self.settings["master_solver_index"].GetInt()
 
         self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])

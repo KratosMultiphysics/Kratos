@@ -5,10 +5,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverInterfaceKratos70(parameters)
+    return SolverWrapperKratos70(parameters)
 
 
-class SolverInterfaceKratos70(CoSimulationComponent):
+class SolverWrapperKratos70(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 

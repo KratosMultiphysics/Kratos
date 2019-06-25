@@ -5,10 +5,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverInterfaceOpenFOAM2019(parameters)
+    return SolverWrapperOpenFOAM2019(parameters)
 
 
-class SolverInterfaceOpenFOAM2019(CoSimulationComponent):
+class SolverWrapperOpenFOAM2019(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
