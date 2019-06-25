@@ -1,6 +1,4 @@
 from __future__ import print_function, absolute_import, division
-import os
-import sys
 
 # Application dependent names and paths
 import KratosMultiphysics as KM

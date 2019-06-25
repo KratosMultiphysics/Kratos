@@ -22,8 +22,8 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
         self._convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
         self._solver_interfaces = []
-        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][0]))
-        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][1]))
+        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["wrappers"][0]))
+        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["wrappers"][1]))
         self._components = [self._predictor, self._convergence_accelerator, self._convergence_criterion,
                             self._solver_interfaces[0], self._solver_interfaces[1]]
 
@@ -58,8 +58,8 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             else:
                 dx = self._convergence_accelerator.Predict(r)
                 self.x += dx
-            y = self._solver_interfaces[0].Calculate(self.x)
-            xt = self._solver_interfaces[1].Calculate(y)
+            y = self._solver_interfaces[0].SolveSolutionStep(self.x)
+            xt = self._solver_interfaces[1].SolveSolutionStep(y)
             r = xt - self.x
             self._convergence_accelerator.Update(self.x, xt)
             self._convergence_criterion.Update(r)
