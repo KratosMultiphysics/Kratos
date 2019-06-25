@@ -169,12 +169,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
             mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
 
         # Search element
-        domain_size = grid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        if (domain_size==2):
-            KratosParticle.SearchElement2D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
-        elif (domain_size==3):
-            KratosParticle.SearchElement3D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
-
+        KratosParticle.SearchElement(grid_model_part, material_model_part, max_num_results, specific_tolerance)
 
     def _check_connectivity(self, current_model, expected_connectivity_node=[]):
         # Get model part

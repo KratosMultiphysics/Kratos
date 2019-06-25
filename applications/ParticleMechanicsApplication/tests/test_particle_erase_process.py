@@ -71,11 +71,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         grid_model_part     = current_model.GetModelPart("Background_Grid")
 
         # Search element
-        domain_size = grid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        if (domain_size==2):
-            KratosParticle.SearchElement2D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
-        elif (domain_size==3):
-            KratosParticle.SearchElement3D(grid_model_part, material_model_part, max_num_results, specific_tolerance)
+        KratosParticle.SearchElement(grid_model_part, material_model_part, max_num_results, specific_tolerance)
 
 
     def test_ParticleEraseOutsideGivenDomain(self):
