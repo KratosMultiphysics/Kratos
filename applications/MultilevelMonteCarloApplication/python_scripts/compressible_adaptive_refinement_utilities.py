@@ -159,6 +159,7 @@ class AdaptiveRefinement(object):
                 coefficient = 2/9 # 2d
             elif (domain_size == 3):
                 coefficient = 9/32 # 3d
+            # TODO: compute below interp error level more automatically
             interp_error_level = original_interp_error*10**(-current_level)
-            mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error)
+            mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error) # relation from [Alauzet] eqs. pag 34 and 35
             self.mesh_size = mesh_size_level
