@@ -193,6 +193,24 @@ namespace MortarUtilities
         );
 
     /**
+     * @brief It computes the tangent in all the nodes of the model part from its normal
+     * @param rModelPart The model part to compute
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeNodesTangentFromNormalModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief It computes the tangent on the given node using the normal provided
+     * @param rNode The node where to compute the tangent
+     * @param rNormal The normal vector
+     * @param Dimension The current working dimension
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeTangentsFromNormal(
+        NodeType& rNode,
+        const array_1d<double, 3>& rNormal,
+        const std::size_t Dimension = 3
+        );
+
+    /**
      * @brief It computes the tangent on the given node using the LM direction and Slip direction
      * @param rNode The node where to compute the tangent
      * @param StepLM The considered step slip

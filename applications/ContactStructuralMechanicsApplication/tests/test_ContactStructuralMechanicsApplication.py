@@ -144,6 +144,7 @@ from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALM
 from ValidationTests import ALMTaylorPatchFrictionalTestContact                   as TALMTaylorPatchFrictionalTestContact
 from ValidationTests import ALMMeshMovingMatchingTestFrictionalPureSlipContact    as TALMMeshMovingMatchingTestFrictionalPureSlipContact
 from ValidationTests import ALMMeshMovingNotMatchingTestFrictionalPureSlipContact as TALMMeshMovingNotMatchingTestFrictionalPureSlipContact
+from ValidationTests import ALMHertzTestFrictionalContact                         as TALMHertzTestFrictionalContact
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -324,6 +325,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingMatchingTestFrictionalPureSlipContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingNotMatchingTestFrictionalPureSlipContact('test_execution'))
+    validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
 
     ### END VALIDATION ###
 
@@ -418,8 +420,9 @@ def AssembleTestSuites():
             #TALMTaylorPatchFrictionalTestContact,
             #TALMMeshMovingMatchingTestFrictionalPureSlipContact,
             #TALMMeshMovingNotMatchingTestFrictionalPureSlipContact,
-            ###TALMIroningTestContact,
-            ###TALMIroningDieTestContact,
+            #TALMHertzTestFrictionalContact,
+            #####TALMIroningTestContact,
+            #####TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
             #TALMLargeDisplacementPatchTestTetra,
             #TALMLargeDisplacementPatchTestHexa,
