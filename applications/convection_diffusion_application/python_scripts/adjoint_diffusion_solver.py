@@ -97,8 +97,6 @@ class AdjointDiffusionSolver(PythonSolver):
             primal_model_part = self.model.GetModelPart(self.primal_model_part_name)
             variable_utils = kratos.VariableUtils()
             variable_utils.CopyModelPartNodalVar(kratos.TEMPERATURE, primal_model_part, self.model_part, 0)
-            for node in self.model_part.Nodes:
-                node.Set(kratos.STRUCTURE)
 
 
     def GetComputingModelPart(self):

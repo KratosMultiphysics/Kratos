@@ -14,7 +14,9 @@
         "domain_size": 2,
         "response_function_settings" : {
             "response_type" : "point_temperature",
-            "custom_settings" : {}
+            "custom_settings" : {
+                "objective_id" : 8
+            }
         },
         "sensitivity_settings" : {
             "sensitivity_model_part_name": "Parts_solid",
