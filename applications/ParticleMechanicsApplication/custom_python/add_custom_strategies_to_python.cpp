@@ -76,13 +76,11 @@ namespace Python{
         // Strategy Type
         py::class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
             .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer, std::string, int, bool, bool, bool, bool>() )
-            .def( "SearchElement", &MPMStrategyType2D::SearchElement)
             .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
             ;
 
         py::class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
             .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer, std::string, int, bool, bool, bool, bool>() )
-            .def( "SearchElement", &MPMStrategyType3D::SearchElement)
             .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
             ;
 

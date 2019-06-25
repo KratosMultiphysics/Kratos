@@ -27,23 +27,6 @@ namespace Kratos
 namespace MPMParticleGeneratorUtility
 {
 
-    std::size_t CheckSizeDimension(const GeometryData::KratosGeometryType & rBackgroundGeoType)
-    {
-        if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3 || rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
-            return 2;
-        else if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4 || rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
-            return 3;
-        else{
-            std::string error_msg = "The Geometry type of the Background Element given is invalid or currently not available. ";
-            error_msg += "Please remesh the problem domain to Triangle2D3N or Quadrilateral2D4N for 2D or ";
-            error_msg += "Tetrahedral3D4N or Hexahedral3D8N for 3D.";
-            KRATOS_ERROR << error_msg << std::endl;
-        }
-    }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
@@ -102,7 +85,7 @@ namespace MPMParticleGeneratorUtility
 
                     // Get geometry and dimension of the background grid
                     const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
-                    std::size_t TDim = CheckSizeDimension(background_geotype);
+                    const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
                     const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's geometry
                     const GeometryData::KratosGeometryType geotype = rGeom.GetGeometryType();
@@ -124,18 +107,18 @@ namespace MPMParticleGeneratorUtility
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                 break;
                             case 16:
-                                if (TDim==2){
+                                if (domain_size==2){
                                     shape_functions_values = MP16ShapeFunctions();
                                     break;
                                 }
                             case 33:
-                                if (TDim==2) {
+                                if (domain_size==2) {
                                     shape_functions_values = MP33ShapeFunctions();
                                     break;
                                 }
                             default:
                                 std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                                warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
+                                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                                 warning_msg += "The default number of particle: 3 is currently assumed.";
                                 KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
@@ -160,7 +143,7 @@ namespace MPMParticleGeneratorUtility
                                 break;
                             default:
                                 std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                                warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
+                                warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                                 warning_msg += "The default number of particle: 4 is currently assumed.";
                                 KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
@@ -170,7 +153,7 @@ namespace MPMParticleGeneratorUtility
 
                     // Check element type
                     std::string element_type_name;
-                    if (TDim==2){
+                    if (domain_size==2){
                         if (background_geotype == GeometryData::Kratos_Triangle2D3){
                             if (IsMixedFormulation)
                                 element_type_name = "UpdatedLagrangianUP2D3N";
@@ -192,7 +175,7 @@ namespace MPMParticleGeneratorUtility
                             }
                         }
                     }
-                    else if (TDim==3){
+                    else if (domain_size==3){
                         if (background_geotype == GeometryData::Kratos_Tetrahedra3D4){
                             if (IsMixedFormulation)
                                 KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented." << std::endl;
@@ -215,7 +198,7 @@ namespace MPMParticleGeneratorUtility
 
                     // Evaluation of element area/volume
                     const double area = rGeom.Area();
-                    if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
+                    if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
                         const double thickness = i->GetProperties()[THICKNESS];
                         mp_mass = area * thickness * density / integration_point_per_elements;
                     }
@@ -364,7 +347,7 @@ namespace MPMParticleGeneratorUtility
                         // Get geometry and dimension of the background grid
                         std::string condition_type_name;
                         const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
-                        std::size_t TDim = CheckSizeDimension(background_geotype);
+                        const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
                         if (geotype == GeometryData::Kratos_Point2D  || geotype == GeometryData::Kratos_Point3D)
                         {
@@ -376,7 +359,7 @@ namespace MPMParticleGeneratorUtility
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
-                                    warning_msg += " is not available for Point" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += " is not available for Point" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available option is: 1 (default).\n";
                                     warning_msg += "The default number of particle: 1 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
@@ -384,13 +367,13 @@ namespace MPMParticleGeneratorUtility
                             }
 
                             if(is_neumann_condition){
-                                if (TDim==2){
+                                if (domain_size==2){
                                     if (background_geotype == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePointLoadCondition2D3N";
                                     else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePointLoadCondition2D4N";
                                 }
-                                else if (TDim==3){
+                                else if (domain_size==3){
                                     if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePointLoadCondition3D4N";
                                     else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
@@ -427,7 +410,7 @@ namespace MPMParticleGeneratorUtility
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
-                                    warning_msg += " is not available for Line" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available options are: 2 (default), 3, 4, 5, 6, 7.\n";
                                     warning_msg += "The default number of particle: 2 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
@@ -466,7 +449,7 @@ namespace MPMParticleGeneratorUtility
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
-                                    warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available options are: 3 (default), 4, 6, 9, 15, 19 and 36.\n";
                                     warning_msg += "The default number of particle: 3 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
@@ -499,7 +482,7 @@ namespace MPMParticleGeneratorUtility
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
-                                    warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available options are: 4 (default), 5, 8, 13, and 20.\n";
                                     warning_msg += "The default number of particle: 4 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
@@ -543,13 +526,13 @@ namespace MPMParticleGeneratorUtility
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
                             if(!is_interface){
-                                if (TDim==2){
+                                if (domain_size==2){
                                     if (background_geotype == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
                                     else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
                                 }
-                                else if (TDim==3){
+                                else if (domain_size==3){
                                     if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
                                     else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
@@ -557,13 +540,13 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
                             else{
-                                if (TDim==2){
+                                if (domain_size==2){
                                     if (background_geotype == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
                                     else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
                                 }
-                                else if (TDim==3){
+                                else if (domain_size==3){
                                     if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
                                     else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)

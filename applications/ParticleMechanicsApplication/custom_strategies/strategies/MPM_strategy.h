@@ -337,23 +337,6 @@ public:
     }
 
     /**
-     * @brief Search element connectivity for each particle
-     * @details A search is performed to know in which grid element the material point falls.
-     * If one or more material points fall in the grid element, the grid element is
-     * set to be active and its connectivity is associated to the material point
-     * element.
-     *
-    */
-    virtual void SearchElement(
-        const std::size_t MaxNumberOfResults = 1000,
-        const double Tolerance = 1.0e-5)
-    {
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
-        MPMSearchElementUtility::SearchElement<TDim>(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
-    }
-
-
-    /**
      * @brief Function to perform expensive checks.
      * @details It is designed to be called ONCE to verify that the input is correct.
      */

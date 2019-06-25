@@ -47,12 +47,6 @@ namespace MPMParticleGeneratorUtility
 
 
     /**
-     * @brief Function that return the size of dimension
-     */
-    std::size_t CheckSizeDimension(const GeometryData::KratosGeometryType & rBackgroundGeoType);
-
-
-    /**
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
      */
