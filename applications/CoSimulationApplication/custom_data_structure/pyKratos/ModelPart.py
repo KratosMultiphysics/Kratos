@@ -40,6 +40,20 @@ class ModelPart(object):
         self.Name = name
         self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
 
+    def IsDistributed(self):
+        return False
+
+    def GetCommunicator(self):
+        # TODO improve this, maybe the fct-call can be redirected? (yield/lambda?)
+        # Or maybe a real communicator Object? => should not be necessary though
+
+        class Communicator(object):
+            def __init__(self, model_part):
+                self.__model_part = model_part
+            def LocalMesh(self):
+                return self.__model_part
+        return Communicator(self)
+
     ### Methods related to historical variables ###
     def AddNodalSolutionStepVariable(self, variable):
         if not variable in self.__hist_variables:
@@ -47,6 +61,12 @@ class ModelPart(object):
                 # this is forbidden since it creates problems with the memory management of historical variables
                 raise Exception("Variables can only be added before adding Nodes!")
             self.__hist_variables.append(variable)
+
+    def HasNodalSolutionStepVariable(self, variable):
+        return variable in self.__hist_variables
+
+    def GetBufferSize(self):
+        return self.__buffer_size
 
     def CloneSolutionStep(self):
         for node in self.Nodes:
@@ -166,9 +186,6 @@ class ModelPart(object):
         return None
 
     def RemoveElement(self):
-        pass
-
-    def HasNodalSolutionStepVariable(self):
         pass
 
     def WriteMesh(self):
