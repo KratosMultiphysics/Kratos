@@ -48,12 +48,13 @@
 #include "custom_processes/auxiliary_processes/rans_k_wall_friction_velocity_process.h"
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_high_re_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_vector_align_process.h"
 #include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_y_plus_k_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.h"
 
 namespace Kratos
 {
@@ -236,6 +237,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansNutYPlusWallFunctionProcess RansNutYPlusWallFunctionProcessType;
     py::class_<RansNutYPlusWallFunctionProcessType, RansNutYPlusWallFunctionProcessType::Pointer, Process>(
         m, "RansNutYPlusWallFunctionProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansNutLowReCalculationProcess RansNutLowReCalculationProcessType;
+    py::class_<RansNutLowReCalculationProcessType, RansNutLowReCalculationProcessType::Pointer, Process>(
+        m, "RansNutLowReCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
