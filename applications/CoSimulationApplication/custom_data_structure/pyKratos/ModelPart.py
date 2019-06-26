@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # pyKratos imports
 from .Node import Node
+from .Element import Element
 from .Variables import *
 
 # Other imports
@@ -22,14 +23,14 @@ class ModelPart(object):
             raise Exception("Creation of standalone ModelParts is not possible, please use Model.CreateModelPart()!")
 
         self.__parent_model_part = None
-        self.__sub_model_parts = PointerVectorSet()
-        self.__nodes           = PointerVectorSet()
-        self.__elements        = PointerVectorSet()
-        self.__properties      = PointerVectorSet()
+        self.__sub_model_parts = ModelPart.PointerVectorSet()
+        self.__nodes           = ModelPart.PointerVectorSet()
+        self.__elements        = ModelPart.PointerVectorSet()
+        self.__properties      = ModelPart.PointerVectorSet()
 
         self.__buffer_size = buffer_size
 
-        self.__hist_variables = set()
+        self.__hist_variables = []
 
         if("." in name):
             RuntimeError("Name of the modelpart cannot contain a . (dot) Please rename ! ")
@@ -41,11 +42,11 @@ class ModelPart(object):
 
     ### Methods related to historical variables ###
     def AddNodalSolutionStepVariable(self, variable):
-        if self.NumberOfNodes() > 0:
-            # this is forbidden since it creates problems with the memory management of historical variables
-            raise Exception("Variables can only be added before adding Nodes!")
-
-        self.__hist_variables.add(variable)
+        if not variable in self.__hist_variables:
+            if self.NumberOfNodes() > 0:
+                # this is forbidden since it creates problems with the memory management of historical variables
+                raise Exception("Variables can only be added before adding Nodes!")
+            self.__hist_variables.append(variable)
 
     def CloneSolutionStep(self):
         for node in self.Nodes:
@@ -118,7 +119,7 @@ class ModelPart(object):
 
                 return existing_node
             else:
-                new_node = self.Node(node_id, coord_x, coord_y, coord_z)
+                new_node = Node(node_id, coord_x, coord_y, coord_z, self.__hist_variables, self.__buffer_size)
                 self.__nodes[node_id] = new_node
                 return new_node
 
@@ -145,7 +146,7 @@ class ModelPart(object):
             return new_element
         else:
             element_nodes = [self.GetNode(node_id) for node_id in node_ids]
-            new_element = Element(element_name, element_id, element_nodes, property_id) # TODO pass property? Or at least check if this property exists ...
+            new_element = Element(element_id, element_nodes) # TODO pass property? Or at least check if this property exists ... # TODO how to create different elements? =>__import__(element_name) ?
             if element_id in self.__elements:
                 existing_element = self.__elements[element_id]
                 if existing_element != new_element:
