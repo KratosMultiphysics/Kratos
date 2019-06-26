@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
 
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 
-import os, json
+import os
+
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -19,10 +19,9 @@ class ControlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+
 class CoSimulationTestCase(KratosUnittest.TestCase):
-    '''This class is the basis for the testing the framework
-    It can be used to test complete cases with the "CoSimulation-Analysis"
-    '''
+    # This class is the basis for the testing. It can be used to test complete cases with the "CoSimulation-Analysis".
 
     def createTest(self, problem_dir_name, parameter_file_name):
         self.problem_dir_name = problem_dir_name
