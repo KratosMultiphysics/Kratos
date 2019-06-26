@@ -20,3 +20,9 @@ class Model(dict):
 
     def DeleteModelPart(self, name):
         self.__dict__.pop(name)
+
+    def __str__(self):
+        self_str = "Model which contains the following ModelParts:"
+        for mp_name in self.__dict__.keys():
+            self_str += '\n\t{}'.format(mp_name)
+        return self_str
