@@ -23,13 +23,17 @@ from .Logger import Logger
 
 class KratosGlobals(object):
     def HasVariable(var_name):
-        return False
+        return var_name in globals()
 
     def GetVariable(var_name):
+        if not KratosGlobals.HasVariable(var_name):
+            raise Exception('Variable "{}" does not exist!'.format(var_name))
         return globals()[var_name]
 
     def GetVariableType(var_name):
-        pass
+        if not KratosGlobals.HasVariable(var_name):
+            return "None"
+        return KratosGlobals.GetVariable(var_name).Type()
 
 
 def Array1DVariable3(name):

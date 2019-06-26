@@ -1,75 +1,57 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 class Variable(object):
-    def __init__(self, var_name, components=None):
+    def __init__(self, var_name, var_type):
         self.__name = var_name
-        # self.__type = var_type
-        self.components = components
+        self.__type = var_type
 
     def Name(self):
         return self.__name
 
+    def Type(self):
+        return self.__type
+
     def __hash__(self):
         return hash(self.__name)
 
-DISPLACEMENT_X = Variable("DISPLACEMENT_X")
-DISPLACEMENT_Y = Variable("DISPLACEMENT_Y")
-DISPLACEMENT_Z = Variable("DISPLACEMENT_Z")
-DISPLACEMENT = Variable("DISPLACEMENT", [DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z])
+def CreateDoubleVariable(name):
+    if name in globals():
+        raise NameError('Variable "{}" exists already!'.format(name))
+    globals()[name] = Variable(name, "Double")
 
-MESH_DISPLACEMENT_X = Variable("MESH_DISPLACEMENT_X")
-MESH_DISPLACEMENT_Y = Variable("MESH_DISPLACEMENT_Y")
-MESH_DISPLACEMENT_Z = Variable("MESH_DISPLACEMENT_Z")
-MESH_DISPLACEMENT = Variable("MESH_DISPLACEMENT",[MESH_DISPLACEMENT_X, MESH_DISPLACEMENT_Y, MESH_DISPLACEMENT_Z])
+def CreateComponentVariable(name):
+    if name in globals():
+        raise NameError('Variable "{}" exists already!'.format(name))
+    globals()[name] = Variable(name, "Component")
 
-VELOCITY_X = Variable("VELOCITY_X")
-VELOCITY_Y = Variable("VELOCITY_Y")
-VELOCITY_Z = Variable("VELOCITY_Z")
-VELOCITY = Variable("VELOCITY",[VELOCITY_X,VELOCITY_Y, VELOCITY_Z])
+def CreateArray3Variable(name):
+    if name in globals():
+        raise NameError('Variable "{}" exists already!'.format(name))
 
-POINT_LOAD_X = Variable("POINT_LOAD_X")
-POINT_LOAD_Y = Variable("POINT_LOAD_Y")
-POINT_LOAD_Z = Variable("POINT_LOAD_Z")
-POINT_LOAD = Variable("POINT_LOAD",[POINT_LOAD_X,POINT_LOAD_Y, POINT_LOAD_Z])
+    for comp in ["X", "Y", "Z"]:
+        CreateComponentVariable(name + "_" + comp)
 
-FORCE_X = Variable("FORCE_X")
-FORCE_Y = Variable("FORCE_Y")
-FORCE_Z = Variable("FORCE_Z")
-FORCE = Variable("FORCE",[FORCE_X, FORCE_Y, FORCE_Z])
+    globals()[name] = Variable(name, "Array")
 
-REACTION_X = Variable("REACTION_X")
-REACTION_Y = Variable("REACTION_Y")
-REACTION_Z = Variable("REACTION_Z")
-REACTION = Variable("REACTION",[REACTION_X, REACTION_Y, REACTION_Z])
+CreateArray3Variable("DISPLACEMENT")
+CreateArray3Variable("MESH_DISPLACEMENT")
+CreateArray3Variable("ROTATION")
+CreateArray3Variable("VELOCITY")
+CreateArray3Variable("POINT_LOAD")
+CreateArray3Variable("FORCE")
+CreateArray3Variable("REACTION")
+CreateArray3Variable("EXTERNAL_FORCES_VECTOR")
+CreateArray3Variable("TORQUE")
+CreateArray3Variable("NORMAL")
 
-EXTERNAL_FORCE_X = Variable("EXTERNAL_FORCE_X")
-EXTERNAL_FORCE_Y = Variable("EXTERNAL_FORCE_Y")
-EXTERNAL_FORCE_Z = Variable("EXTERNAL_FORCE_Z")
-EXTERNAL_FORCE = Variable("EXTERNAL_FORCE",[EXTERNAL_FORCE_X, EXTERNAL_FORCE_Y, EXTERNAL_FORCE_Z])
-
-EXTERNAL_FORCE_X = Variable("EXTERNAL_FORCE_X")
-EXTERNAL_FORCE_Y = Variable("EXTERNAL_FORCE_Y")
-EXTERNAL_FORCE_Z = Variable("EXTERNAL_FORCE_Z")
-EXTERNAL_FORCE = Variable("EXTERNAL_FORCE",[EXTERNAL_FORCE_X, EXTERNAL_FORCE_Y, EXTERNAL_FORCE_Z])
-
-TORQUE_X = Variable("TORQUE_X")
-TORQUE_Y = Variable("TORQUE_Y")
-TORQUE_Z = Variable("TORQUE_Z")
-TORQUE = Variable("TORQUE",[TORQUE_X, TORQUE_Y, TORQUE_Z])
-
-NORMAL_X = Variable("NORMAL_X")
-NORMAL_Y = Variable("NORMAL_Y")
-NORMAL_Z = Variable("NORMAL_Z")
-NORMAL = Variable("NORMAL",[NORMAL_X, NORMAL_Y, NORMAL_Z])
-
-PRESSURE = Variable("PRESSURE")
-YOUNG_MODULUS = Variable("YOUNG_MODULUS")
-POISSON_RATIO = Variable("POISSON_RATIO")
-DOMAIN_SIZE = Variable("DOMAIN_SIZE")
-DENSITY = Variable("DENSITY")
-VISCOSITY = Variable("VISCOSITY")
-TIME = Variable("TIME")
-DELTA_TIME = Variable("DELTA_TIME")
-TEMPERATURE = Variable("TEMPERATURE")
-NODAL_MASS = Variable("NODAL_MASS")
-NODAL_ERROR = Variable("NODAL_ERROR")
+CreateDoubleVariable("PRESSURE")
+CreateDoubleVariable("YOUNG_MODULUS")
+CreateDoubleVariable("POISSON_RATIO")
+CreateDoubleVariable("DOMAIN_SIZE")
+CreateDoubleVariable("DENSITY")
+CreateDoubleVariable("VISCOSITY")
+CreateDoubleVariable("TIME")
+CreateDoubleVariable("DELTA_TIME")
+CreateDoubleVariable("TEMPERATURE")
+CreateDoubleVariable("NODAL_MASS")
+CreateDoubleVariable("NODAL_ERROR")
