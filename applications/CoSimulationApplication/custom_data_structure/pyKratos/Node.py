@@ -1,63 +1,90 @@
-from __future__ import print_function, absolute_import, division
-class Node:
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-    def __init__(self, Id, coordinates):
-        self.variables = []
-        self.coordinates = coordinates
-        self.Id = Id
-        self.X = coordinates[0]
-        self.Y = coordinates[1]
-        self.Z = coordinates[2]
+class Node(object):
 
-        self.X0 = coordinates[0]
-        self.Y0 = coordinates[1]
-        self.Z0 = coordinates[2]
-        self.var_is_fixed = {}
+    def __init__(self, node_id, x, y, z, hist_variables, buffer_size):
+        self.Id = node_id
 
-    def SetBufferSize(self, buffer_size):
-        for i in range(0, buffer_size):
-            self.variables.append(dict())
+        # current position
+        self.X = x
+        self.Y = y
+        self.Z = z
 
-    def AddVariable(self, variable):
-        for i in range(0, len(self.variables)):
-            self.variables[i][variable] = 0
-        self.var_is_fixed[variable] = False
+        # initial position
+        self.X0 = x
+        self.Y0 = y
+        self.Z0 = z
 
-    def AdvanceInTime(self):
-        for i in range(len(self.variables)-1,0,-1):
-            for key in list(self.variables[i].keys()):
-                self.variables[i][key] = self.variables[i - 1][key]
+        # historical variables
+        self.__hist_variables = hist_variables
+        self.__buffer_size = buffer_size
+        self.__solution_steps_nodal_data = {}
+        self.__InitializeSolutionStepsNodalData()
 
-    def SetValue(self):
-        pass # For non historical values
+        # non-historical variables
+        self._non_hist_non_hist_variables = {}
 
-    def GetValue(self):
-        pass
+    ### Methods related to historical variables ###
+    def CloneSolutionStep(self):
+        for i in range(self.__buffer_size-1, 0, -1):
+            for var_vals in self.__solution_steps_nodal_data.values():
+                var_vals[i] = var_vals[i-1]
 
-    def Has(self):
-        pass
+    def SetValue(self, variable, value):
+        # overwrite existing value or add new one
+        self._non_hist_variables[variable] = value
 
-    def HasSolutionStepValue(self):
-        pass
+    def GetValue(self, variable):
+        if not variable in self._non_hist_variables:
+            # allocate this variable if it does not yet exist
+            # this matches the Kratos behavior
+            if isinstance(variable, list):
+                zero_val = [0.0, 0.0, 0.0]
+            else:
+                zero_val = 0.0
+
+            self._non_hist_variables[variable] = zero_val
+
+        return self._non_hist_variables[variable]
+
+    def Has(self, variable):
+        return variable in self._non_hist_variables
+
+    def SolutionStepsDataHas(self, variable):
+        return variable in self.__hist_variables
 
     def GetSolutionStepValue(self, variable, step):
-        if(isinstance(variable, list)):
-            return [self.variables[step][variable[1]],  self.variables[step][variable[2]], self.variables[step][variable[3]]]
-        else:
-            return self.variables[step][variable]
+        self.__CheckHistoricalVariable(variable)
+        self.__CheckBufferSize(step)
+
+        return self.__solution_steps_nodal_data[var][step]
 
     def SetSolutionStepValue(self, variable, step, value):
-        if(isinstance(variable, list)):
-            for i in range(1, len(variable)):
-                if variable[i] in list(self.variables[step].keys()):
-                        self.variables[step][variable[i]] = value[i-1]
-                else:
-                    raise Exception(
-                        "trying to set an non-existing variable with name ",
-                        variable,
-                        " on node ",
-                        self.Id)
+        self.__CheckHistoricalVariable(variable)
+        self.__CheckBufferSize(step)
+
+        self.__solution_steps_nodal_data[var][step] = value
+
+
+    def __CheckHistoricalVariable(self, variable):
+        if not variable in self.__hist_variables:
+            raise Exception('Trying to access historical variable "{}" which does not exist!'.format(variable))
+
+    def __CheckBufferSize(self, step):
+        if step+1 > self.__buffer_size:
+            raise Exception('Insufficient buffer size: requested: {}; available: {}'.format(step+1, self.__buffer_size))
+
+    def __InitializeSolutionStepsNodalData(self):
+        for var in self.__hist_variables:
+            zero_val = GetVariableZeroValue(var)
+            self.__solution_steps_nodal_data[var] = [zero_val for i in range(self.__buffer_size)]
+
+def GetVariableZeroValue(variable):
+    if isinstance(variable, list):
+        return [0.0, 0.0, 0.0]
+    else:
+        return 0.0
 
     def __str__(self):
-        return  "Node #{0} with {1}".format(self.Id, self.variables)
+        return  "Node #{0} with {1}".format(self.Id, self.__hist_variables)
 
