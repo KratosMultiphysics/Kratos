@@ -76,13 +76,13 @@ class Parameters(object):
 
     def __next__(self):
         self.count = self.count + 1
-        if self.count<len(self.parameters):
+        if self.count < len(self.parameters):
             return Parameters(self.parameters[self.count])
         else:
             raise StopIteration
 
     def __contains__(self, item):
-        return (item in self.parameters)
+        return item in self.parameters
 
     def keys(self):
         if isinstance(self.parameters, dict):
@@ -119,6 +119,11 @@ class Parameters(object):
                 self.parameters[key] = value
             else:
                 RuntimeError("Key already exists")
+
+    def AddParameters(self, parameters):
+        if isinstance(self.parameters, dict):
+            for key, value in parameters.items():
+                self.AddValue(key, value)
 
     def Type(self):
         if isinstance(self.parameters, list):

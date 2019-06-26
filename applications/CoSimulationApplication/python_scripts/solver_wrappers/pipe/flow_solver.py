@@ -20,13 +20,16 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
+        # Reading
         self.parameters = parameters
-        working_directory = parameters["settings"]["working_directory"].GetString()
-        input_file = parameters["settings"]["input_file"].GetString()
-        parameter_file_name = path.join(working_directory, input_file)
-        with open(parameter_file_name, 'r') as parameter_file:
-            self.settings = cs_data_structure.Parameters(parameter_file.read())
+        self.settings = parameters["settings"]
+        working_directory = self.settings["working_directory"].GetString()
+        input_file = self.settings["input_file"].GetString()
+        settings_file_name = path.join(working_directory, input_file)
+        with open(settings_file_name, 'r') as settings_file:
+            self.settings.AddParameters(cs_data_structure.Parameters(settings_file.read()))
 
+        # Settings
         l = self.settings["l"].GetDouble()  # Length
         self.d = self.settings["d"].GetDouble()  # Diameter
         self.rhof = self.settings["rhof"].GetDouble()  # Density
@@ -60,25 +63,22 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.an = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Previous area of cross section
 
         # ModelParts
+        self.variable_area = "AREA"
+        self.variable_pres = "PRESSURE"
         self.model = cs_data_structure.Model()
-        self.model_part_in = self.model.CreateModelPart("pipe_flow_in")
-        self.variable_area = cs_data_structure.VariableDouble("AREA")
-        self.model_part_in.AddNodalSolutionStepVariable(self.variable_area)
-        self.model_part_out = self.model.CreateModelPart("pipe_flow_out")
-        self.variable_pres = cs_data_structure.VariableDouble("PRESSURE")
-        self.model_part_out.AddNodalSolutionStepVariable(self.variable_pres)
+        self.model_part = self.model.CreateModelPart("wall")
+        self.model_part.AddNodalSolutionStepVariable(self.variable_area)
+        self.model_part.AddNodalSolutionStepVariable(self.variable_pres)
         for i in range(len(self.z)):
-            self.model_part_in.CreateNewNode(i, 0.0, 0.0, self.z[i])
-            self.model_part_out.CreateNewNode(i, 0.0, 0.0, self.z[i])
+            self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
         step = 0
-        for node in self.model_part_in.Nodes:
+        for node in self.model_part.Nodes:
             node.SetSolutionStepValue(self.variable_area, step, self.a[0])
-        for node in self.model_part_out.Nodes:
             node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
 
         # Interfaces
-        self.interface_in = CoSimulationInterface([self.model_part_in])
-        self.interface_out = CoSimulationInterface([self.model_part_out])
+        self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
+        self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
 
     def Initialize(self):
         super().Initialize()
@@ -91,10 +91,10 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.pn = np.array(self.p)
         self.an = np.array(self.a)
 
-    def SolveSolutionStep(self, interface_in):
+    def SolveSolutionStep(self, interface_input):
         # Input does not contain boundary conditions
-        self.interface_in = interface_in
-        a = self.interface_in.GetNumpyArray()
+        self.interface_input = interface_input
+        a = self.interface_input.GetNumpyArray()
         self.a[1:self.m + 1] = a
         self.a[0] = self.a[1]
         self.a[self.m + 1] = self.a[self.m]
@@ -121,8 +121,8 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
 
         # Output does not contain boundary conditions
         p = self.p[1:self.m + 1]
-        self.interface_out.SetNumpyArray(p)
-        return self.interface_out
+        self.interface_output.SetNumpyArray(p)
+        return self.interface_output
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -130,16 +130,16 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
     def Finalize(self):
         super().Finalize()
 
-    def GetInterfaceIn(self):
-        return self.interface_in
+    def GetInterfaceInput(self):
+        return self.interface_input
 
-    def SetInterfaceIn(self):
+    def SetInterfaceInput(self):
         Exception("This solver interface provides no mapping.")
 
-    def GetInterfaceOut(self):
-        return self.interface_out
+    def GetInterfaceOutput(self):
+        return self.interface_output
 
-    def SetInterfaceOut(self):
+    def SetInterfaceOutput(self):
         Exception("This solver interface provides no mapping.")
 
     def GetBoundary(self):

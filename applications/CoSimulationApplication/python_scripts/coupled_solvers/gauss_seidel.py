@@ -35,7 +35,9 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         for component in self._components[1:-1]:
             component.Initialize()
 
-        self.x = self._solver_wrappers[self.master_solver_index].GetInterfaceIn()
+        self.x = self._solver_wrappers[self.master_solver_index].GetInterfaceInput()
+        print(type(self.x))
+        print(type(self.x.model))
         self._predictor.Initialize(self.x)
 
     def Finalize(self):
@@ -54,7 +56,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         # Coupling iteration loop
         while not self._convergence_criterion.IsSatisfied():
             if not self._convergence_accelerator.IsReady():
-                self.x = self._predictor.Predict()
+                self.x = self._predictor.Predict(self.x)
             else:
                 dx = self._convergence_accelerator.Predict(r)
                 self.x += dx

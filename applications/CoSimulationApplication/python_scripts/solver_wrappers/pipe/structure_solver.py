@@ -16,13 +16,16 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
+        # Reading
         self.parameters = parameters
-        working_directory = parameters["settings"]["working_directory"].GetString()
-        input_file = parameters["settings"]["input_file"].GetString()
-        parameter_file_name = path.join(working_directory, input_file)
-        with open(parameter_file_name, 'r') as parameter_file:
-            self.settings = cs_data_structure.Parameters(parameter_file.read())
+        self.settings = parameters["settings"]
+        working_directory = self.settings["working_directory"].GetString()
+        input_file = self.settings["input_file"].GetString()
+        settings_file_name = path.join(working_directory, input_file)
+        with open(settings_file_name, 'r') as settings_file:
+            self.settings.AddParameters(cs_data_structure.Parameters(settings_file.read()))
 
+        # Settings
         l = self.settings["l"].GetDouble()  # Length
         self.d = self.settings["d"].GetDouble() # Diameter
         self.rhof = self.settings["rhof"].GetDouble()  # Density
@@ -45,25 +48,22 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
 
         # ModelParts
+        self.variable_pres = "PRESSURE"
+        self.variable_area = "AREA"
         self.model = cs_data_structure.Model()
-        self.model_part_in = self.model.CreateModelPart("pipe_structure_in")
-        self.variable_pres = cs_data_structure.VariableDouble("PRESSURE")
-        self.model_part_in.AddNodalSolutionStepVariable(self.variable_pres)
-        self.model_part_out = self.model.CreateModelPart("pipe_structure_out")
-        self.variable_area = cs_data_structure.VariableDouble("AREA")
-        self.model_part_out.AddNodalSolutionStepVariable(self.variable_area)
+        self.model_part = self.model.CreateModelPart("wall")
+        self.model_part.AddNodalSolutionStepVariable(self.variable_pres)
+        self.model_part.AddNodalSolutionStepVariable(self.variable_area)
         for i in range(len(self.z)):
-            self.model_part_in.CreateNewNode(i, 0.0, 0.0, self.z[i])
-            self.model_part_out.CreateNewNode(i, 0.0, 0.0, self.z[i])
+            self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
         step = 0
-        for node in self.model_part_in.Nodes:
+        for node in self.model_part.Nodes:
             node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
-        for node in self.model_part_out.Nodes:
             node.SetSolutionStepValue(self.variable_area, step, self.a[0])
 
         # Interfaces
-        self.interface_in = CoSimulationInterface([self.model_part_in])
-        self.interface_out = CoSimulationInterface([self.model_part_out])
+        self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
+        self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
 
     def Initialize(self):
         super().Initialize()
@@ -73,9 +73,9 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         self.n += 1
 
-    def SolveSolutionStep(self, interface_in):
-        self.interface_in = interface_in
-        self.p = self.interface_in.GetNumpyArray()
+    def SolveSolutionStep(self, interface_input):
+        self.interface_input = interface_input
+        self.p = self.interface_input.GetNumpyArray()
 
         # Independent rings model
         for i in range(len(self.p)):
@@ -84,8 +84,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         for i in range(len(self.a)):
             self.a[i] = self.a0 * (2.0 / (2.0 + (self.p0 - self.p[i]) / self.c02)) ** 2
 
-        self.interface_out.SetNumpyArray(self.a)
-        return self.interface_out
+        self.interface_output.SetNumpyArray(self.a)
+        return self.interface_output
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -93,14 +93,14 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
     def Finalize(self):
         super().Finalize()
 
-    def GetInterfaceIn(self):
-        return self.interface_in
+    def GetInterfaceInput(self):
+        return self.interface_input
 
-    def SetInterfaceIn(self):
-        Exception("This solver interface provides no mapping.")
+    def SetInterfaceInput(self):
+        Exception("This solver wrapper provides no mapping.")
 
-    def GetInterfaceOut(self):
-        return self.interface_out
+    def GetInterfaceOutput(self):
+        return self.interface_output
 
-    def SetInterfaceOut(self):
-        Exception("This solver interface provides no mapping.")
+    def SetInterfaceOutput(self):
+        Exception("This solver wrapper provides no mapping.")

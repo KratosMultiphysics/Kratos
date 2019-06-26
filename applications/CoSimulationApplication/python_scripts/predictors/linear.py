@@ -18,12 +18,14 @@ class PredictorLinear(CoSimulationComponent):
     def Initialize(self, x):
         super().Initialize()
 
-        self.data_last = x
-        self.data_prev = x
+        self.data_last = x.GetNumpyArray()
+        self.data_prev = self.data_last
 
-    def Predict(self):
-        return self.data_last*2.0 - self.data_prev
+    def Predict(self, x):
+        y = self.data_last * 2.0 - self.data_prev
+        x.SetNumpyArray(y)
+        return x
 
     def Update(self, x):
         self.data_prev = self.data_last
-        self.data_last = x
+        self.data_last = x.GetNumpyArray()

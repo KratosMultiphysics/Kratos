@@ -58,7 +58,15 @@
                 "settings" :
                 {
                     "working_directory" : "CFD",
-                    "input_file"  : "solver_parameters.json"
+                    "input_file"  : "solver_parameters.json",
+                    "interface_input" :
+                    {
+                        "wall": "AREA"
+                    },
+                    "interface_output" :
+                    {
+                        "wall" : "PRESSURE"
+                    }
                 }
             },
             {
@@ -66,7 +74,15 @@
                 "settings" :
                 {
                     "working_directory" : "CSD",
-                    "input_file"  : "solver_parameters.json"
+                    "input_file"  : "solver_parameters.json",
+                    "interface_input" :
+                    {
+                        "wall" : "PRESSURE"
+                    },
+                    "interface_output" :
+                    {
+                        "wall": "AREA"
+                    }
                 }
             }
         ]

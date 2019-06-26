@@ -56,8 +56,7 @@
             {
                 "solver_type" : "kratos_fluid",
                 "settings":{
-                    "working_directory" : "CFD",
-                    "input_file"  : "ProjectParametersCFD.json"
+l
                 },
                 "io_settings" : {
                     "io_type"     : "kratos"

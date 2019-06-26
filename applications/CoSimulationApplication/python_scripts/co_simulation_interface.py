@@ -7,19 +7,20 @@ cs_data_structure = cs_tools.cs_data_structure
 
 # Class CoSimulationInterface: Holds the different ModelParts of the interface.
 class CoSimulationInterface(object):
-    def __init__(self, model_parts):
+    def __init__(self, model, parameters):
         super().__init__()
 
-        self.model_parts = model_parts
+        self.model = model
+        self.model_parts_variables = list(parameters.items())
 
     def GetPythonList(self):
         data = []
         step = 0
-        for model_part in self.model_parts:
+        for model_part_name, variable in self.model_parts_variables:
+            model_part = self.model.GetModelPart(model_part_name)
             for node in model_part.Nodes:
-                for variable in list(node.variables[step].keys()):
-                    value = node.GetSolutionStepValue(variable, step)
-                    data.append(value)
+                value = node.GetSolutionStepValue(variable, step)
+                data.append(value)
         return data
 
     def GetNumpyArray(self):
@@ -28,12 +29,12 @@ class CoSimulationInterface(object):
     def SetPythonList(self, data):
         index = 0
         step = 0
-        for model_part in self.model_parts:
+        for model_part_name, variable in self.model_parts_variables:
+            model_part = self.model.GetModelPart(model_part_name)
             for node in model_part.Nodes:
-                for variable in list(node.variables[step].keys()):
-                    value = data[index]
-                    index += 1
-                    node.SetSolutionStepValue(variable, step, value)
+                value = data[index]
+                index += 1
+                node.SetSolutionStepValue(variable, step, value)
 
     def SetNumpyArray(self, data):
         self.SetPythonList(data.tolist())
