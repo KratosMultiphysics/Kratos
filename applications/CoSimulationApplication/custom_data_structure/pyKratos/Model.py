@@ -4,22 +4,25 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from .ModelPart import ModelPart
 
 class Model(dict):
-    def GetModelPart(self, name):
+    def GetModelPart(self, mp_name):
         # TODO this should get the ModelParts through splitting the names, same as in Kratos
-        return self.__dict__[name]
+        return self.__dict__[mp_name]
 
-    def CreateModelPart(self, name="default", buffer_size=1):
-        if(name in self.__dict__.keys() ):
-            RuntimeError("The modelpart with name ", name, " already exist !")
+    def __getitem__(self, mp_name):
+        return self.GetModelPart(mp_name)
 
-        self.__dict__[name] = ModelPart(name, buffer_size, True)
-        return self.__dict__[name]
+    def CreateModelPart(self, mp_name="default", buffer_size=1):
+        if mp_name in self.__dict__.keys():
+            NameError("The modelpart with name ", mp_name, " already exist !")
 
-    def HasModelPart(self, name):
-        return (name in self.__dict__.keys())
+        self.__dict__[mp_name] = ModelPart(mp_name, buffer_size, True)
+        return self.__dict__[mp_name]
 
-    def DeleteModelPart(self, name):
-        self.__dict__.pop(name)
+    def HasModelPart(self, mp_name):
+        return mp_name in self.__dict__.keys()
+
+    def DeleteModelPart(self, mp_name):
+        self.__dict__.pop(mp_name)
 
     def __str__(self):
         self_str = "Model which contains the following ModelParts:"
