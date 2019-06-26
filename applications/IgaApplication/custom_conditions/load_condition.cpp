@@ -60,14 +60,14 @@ namespace Kratos
                 // Point loads
                 if (this->Has(POINT_LOAD))
                 {
-                    const array_1d<double, 3> line_load = this->GetValue(LINE_LOAD);
+                    const array_1d<double, 3> point_load = this->GetValue(POINT_LOAD);
 
                     for (unsigned int i = 0; i < number_of_nodes; i++)
                     {
                         int index = 3 * i;
-                        f[index] += line_load[0] * r_N(point_number, i);
-                        f[index + 1] += line_load[1] * r_N(point_number, i);
-                        f[index + 2] += line_load[2] * r_N(point_number, i);
+                        f[index]     += point_load[0] * r_N(point_number, i);
+                        f[index + 1] += point_load[1] * r_N(point_number, i);
+                        f[index + 2] += point_load[2] * r_N(point_number, i);
                     }
                 }
 
@@ -82,6 +82,20 @@ namespace Kratos
                         f[index]     += line_load[0] * r_N(point_number, i);
                         f[index + 1] += line_load[1] * r_N(point_number, i);
                         f[index + 2] += line_load[2] * r_N(point_number, i);
+                    }
+                }
+
+                // Surface loads
+                if (this->Has(SURFACE_LOAD))
+                {
+                    const array_1d<double, 3> surface_load = this->GetValue(SURFACE_LOAD);
+
+                    for (unsigned int i = 0; i < number_of_nodes; i++)
+                    {
+                        int index = 3 * i;
+                        f[index]     += surface_load[0] * r_N(point_number, i);
+                        f[index + 1] += surface_load[1] * r_N(point_number, i);
+                        f[index + 2] += surface_load[2] * r_N(point_number, i);
                     }
                 }
 
