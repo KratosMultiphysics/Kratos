@@ -1,16 +1,36 @@
-from __future__ import print_function, absolute_import, division
-from .Node import *
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
+# pyKratos imports
+from .Node import Node
 from .Variables import *
 
+# Other imports
+from collections import OrderedDict
 
-class ModelPart:
+class ModelPart(object):
 
-    def __init__(self, name="default", buffer_size=1):
-        self.NodesMap = {}  # empty dictionary
-        self.Properties = {}  # empty dictionary
-        self.ElementsMap = {}  # empty dictionary
-        self.buffer_size = buffer_size
-        self.solution_step_variables = []
+    class PointerVectorSet(OrderedDict):
+        def __iter__(self):
+            self.vals_list = iter(list(self.values()))
+            return self
+
+        def __next__(self):
+            return next(self.vals_list)
+
+    def __init__(self, name="default", buffer_size=1, internal_construction=False):
+        if not internal_construction:
+            raise Exception("Creation of standalone ModelParts is not possible, please use Model.CreateModelPart()!")
+
+        self.__parent_model_part = None
+        self.__sub_model_parts = PointerVectorSet()
+        self.__nodes           = PointerVectorSet()
+        self.__elements        = PointerVectorSet()
+        self.__properties      = PointerVectorSet()
+
+        self.__buffer_size = buffer_size
+
+        self.__hist_variables = set()
+
         if("." in name):
             RuntimeError("Name of the modelpart cannot contain a . (dot) Please rename ! ")
         if(name == ""):
@@ -19,76 +39,121 @@ class ModelPart:
         self.Name = name
         self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
 
-        self.Nodes = list(self.NodesMap.values())
-
-    def RemoveNode(self):
-        pass
+    ### Methods related to historical variables ###
 
     def AddNodalSolutionStepVariable(self, variable):
-        if(isinstance(variable, list)): # For vector variables
-            self.solution_step_variables.append(variable[1])
-            self.solution_step_variables.append(variable[2])
-            self.solution_step_variables.append(variable[3])
-        else:
-            self.solution_step_variables.append(variable)
+        if self.NumberOfNodes() > 0:
+            # this is forbidden since it creates problems with the memory management of historical variables
+            raise Exception("Variables can only be added before adding Nodes!")
 
-    def SetBufferSize(self, new_buffer_size):
-        self.buffer_size = new_buffer_size
+        self.__hist_variables.add(variable)
+
+    def CloneSolutionStep(self):
+        for node in self.Nodes:
+            node.CloneSolutionStep()
 
     def CloneTimeStep(self, time):
-        for node in self.NodeIterators():
-            node.AdvanceInTime()
+        self.CloneSolutionStep()
+
+        # the following is the equvalent of "SetAsTimeStepInfo" on the ProcessInfo
         old_time = self.ProcessInfo[TIME]
         self.ProcessInfo[TIME] = time
         self.ProcessInfo[DELTA_TIME] = time-old_time
 
-    # function to create a list of nodes and give it to the model part
-    def AddNodes(self, dict_of_nodes):
-        for node_id, coords in list(dict_of_nodes.items()):
-            if node_id in list(self.NodesMap.keys()):
-                error_string = "trying to add a node already existing with id =" + \
-                    str(node_id)
-                raise Exception(error_string)
-            else:
-                node = Node(node_id, coords)
-                node.SetBufferSize(self.buffer_size)
-                for var in self.solution_step_variables:
-                    node.AddVariable(var)
+    ### Methods related to SubModelParts ###
+    @property
+    def SubModelParts(self):
+        return self.__sub_model_parts
 
-                self.NodesMap.update({node_id: node})
-        self.Nodes = list(self.NodesMap.values())
+    def CreateSubModelPart(self, name_smp):
+        if name_smp in self.__sub_model_parts:
+            raise RuntimeError('There is an already existing sub model part with name "{}" in model part: "{}"'.format(name_smp, self.Name))
+        smp = ModelPart(name_smp, self.__buffer_size, True)
+        smp.__parent_model_part = self
+        smp.ProcessInfo = self.ProcessInfo
 
-    def CreateNewNode(self, node_id, x, y, z):
-        if node_id in list(self.NodesMap.keys()):
-            error_string = "trying to add a node already existing with id =" + \
-                str(node_id)
-            raise Exception(error_string)
-        else:
-            node = Node(node_id, [x,y,z])
-            node.SetBufferSize(self.buffer_size)
-            for var in self.solution_step_variables:
-                node.AddVariable(var)
+        self.__sub_model_parts[name_smp] = smp
+        return smp
 
-            self.NodesMap.update({node_id: node})
+    def HasSubModelPart(self, name_smp):
+        return name_smp in self.__sub_model_parts
 
-        self.Nodes = list(self.NodesMap.values())
+    def GetSubModelPart(self, smp_name):
+        try:
+            return self.__sub_model_parts[smp_name]
+        except KeyError:
+            raise RuntimeError('SubModelPart "{}" not found'.format(smp_name))
 
-    def AddNode(self, node):
-        if(type(node) == Node):
-            self.NodesMap[node.Id] = node
-            self.Nodes = list(self.NodesMap.values())
-        else:
-            RuntimeError("Adding a non Node type object as a Node ! ")
+    def IsSubModelPart(self):
+        return self.__parent_model_part != None
+
+    ### Methods related to Nodes ###
+    @property
+    def Nodes(self):
+        return self.__nodes
 
     def NumberOfNodes(self):
-        return len(self.NodesMap)
+        return len(self.__nodes)
+
+    def GetNode(self, node_id):
+        try:
+            return self.__nodes[node_id]
+        except KeyError:
+            raise RuntimeError('Node index not found: {}'.format(node_id))
+
+    def CreateNewNode(self, node_id, coord_x, coord_y, coord_z):
+        if self.IsSubModelPart():
+            new_node = self.__parent_model_part.CreateNewNode(node_id, coord_x, coord_y, coord_z, self.__hist_variables, self.__buffer_size)
+            self.__nodes[node_id] = new_node
+            return new_node
+        else:
+            existing_node = self.__nodes.get(node_id)
+            if existing_node:
+                if self.__Distance(existing_node.Coordinates(), [coord_x, coord_y, coord_z]) > 1E-15:
+                    err_msg  = 'A node with Id #' + str(node_id) + ' already exists in the root model part with different Coordinates!'
+                    err_msg += '\nExisting Coords: ' + str(existing_node.Coordinates())
+                    err_msg += '\nNew Coords: '      + str([coord_x, coord_y, coord_z])
+                    raise RuntimeError(err_msg)
+
+                return existing_node
+            else:
+                new_node = self.Node(node_id, coord_x, coord_y, coord_z)
+                self.__nodes[node_id] = new_node
+                return new_node
+
+
+    ### Methods related to Elements ###
+    @property
+    def Elements(self):
+        return self.__elements
 
     def NumberOfElements(self):
-        return len(self.ElementsMap)
+        return len(self.__elements)
 
-    def GetNode(self, id):
-        RuntimeError("Check if the node returned here is by reference !")
-        #return self.NodesMap[id]
+    def GetElement(self, element_id):
+        try:
+            return self.__elements[element_id]
+        except KeyError:
+            raise RuntimeError('Element index not found: {}'.format(element_id))
+
+    def CreateNewElement(self, element_name, element_id, node_ids, property_id):
+        if self.IsSubModelPart():
+            new_element = self.__parent_model_part.CreateNewElement(element_name, element_id, node_ids, property_id)
+            self.__elements[element_id] = new_element
+            self.AddElement(new_element)
+            return new_element
+        else:
+            element_nodes = [self.GetNode(node_id) for node_id in node_ids]
+            new_element = Element(element_name, element_id, element_nodes, property_id) # TODO pass property? Or at least check if this property exists ...
+            if element_id in self.__elements:
+                existing_element = self.__elements[element_id]
+                if existing_element != new_element:
+                    raise RuntimeError('A different element with the same Id exists already!') # TODO check what Kratos does here
+
+                return existing_element
+            else:
+                self.__elements[element_id] = new_element
+                return new_element
 
     # add properties
     def AddProperties(self, dict_of_properties):
@@ -96,12 +161,6 @@ class ModelPart:
 
     def CreateNewProperties(self, prop_id):
         return None
-
-    def AddElements(self, dict_of_elements):
-        pass
-
-    def GetElement(self):
-        pass
 
     def RemoveElement(self):
         pass
