@@ -204,16 +204,15 @@ private:
     double mMaxSize;                 /// The maximal size of the elements
     std::string mRefinementStrategy; /// Refinement strategy
     SizeType mEchoLevel;             /// The echo level
+    std::string mReferenceVariable;
 
     // Mean dsitribution strategy
-    std::string mMeanStrategyReferenceVariable;
     std::string mMeanStrategyReferenceNorm;
     double mMeanStrategyTargetRefinementCoefficient;
     double mMeanStrategyRefinementBound;
     double mMeanStrategyDivergenceFreeOverAllDomain;
 
     // Maximum strategy
-    std::string mMaxStrategyReferenceVariable;
     double mMaxStrategyTargetRefinementCoefficient;
     double mMaxStrategyRefinementCoefficient;
     double mDivergenceFreeMaxValue;
@@ -221,9 +220,6 @@ private:
     // Interpolation error strategy
     double mInterpErrorStrategyInterpolationError;
     double mInterpErrorStrategyMeshConstant;
-    std::string mInterpErrorStrategyReferenceNorm;
-    std::string mInterpErrorStrategyReferenceVariable;
-
 
     ///@}
     ///@name Private Operators

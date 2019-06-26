@@ -136,10 +136,7 @@ namespace Kratos
                 "minimal_size"                        : 0.01,
                 "maximal_size"                        : 10.0,
                 "refinement_strategy"                 : "maximum_strategy",
-                "maximum_strategy":
-                {
-                    "reference_variable_name"         : "DISTANCE"
-                }
+                "reference_variable_name"             : "DISTANCE"
             })"
             );
 
@@ -195,10 +192,7 @@ namespace Kratos
                 "minimal_size"                        : 0.01,
                 "maximal_size"                        : 10.0,
                 "refinement_strategy"                 : "mean_distribution_strategy",
-                "mean_distribution_strategy":
-                {
-                    "reference_variable_name"         : "DISTANCE"
-                }
+                "reference_variable_name"             : "DISTANCE"
             })"
             );
 
@@ -256,10 +250,7 @@ namespace Kratos
                 "minimal_size"                        : 0.01,
                 "maximal_size"                        : 10.0,
                 "refinement_strategy"                 : "maximum_strategy",
-                "maximum_strategy":
-                {
-                    "reference_variable_name"         : "DISTANCE"
-                }
+                "reference_variable_name"             : "DISTANCE"
             })"
             );
 
