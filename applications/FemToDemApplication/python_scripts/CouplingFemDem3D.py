@@ -20,6 +20,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def Initialize(self):
 		self.number_of_nodes_element = 4
+		self.volume_erased = 0.0
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
@@ -154,6 +155,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			dem_generator_process.Execute()
 
 			self.RemoveAloneDEMElements()
+			self.CountErasedVolume()
 			element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 			element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 
@@ -522,3 +524,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.nodal_neighbour_finder.Execute()
 			# We reset the flag
 			self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
+
+	def CountErasedVolume(self):
+		
