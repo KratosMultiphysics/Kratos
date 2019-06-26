@@ -16,8 +16,6 @@ __path__.append(pykratos) # adding the python-scripts from pyKratos to the modul
 from .Parameters import Parameters
 from .Model import Model
 from .ModelPart import ModelPart
-#from .Vector import Vector
-#from .Matrix import Matrix
 from .Variables import *
 from .QuadElement import Quadrilateral3D4N
 from .TriangleElement import Triangle
