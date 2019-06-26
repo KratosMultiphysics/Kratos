@@ -17,17 +17,20 @@ from .Parameters import Parameters
 from .Model import Model
 from .ModelPart import ModelPart
 from .Variables import *
-from .QuadElement import Quadrilateral3D4N
-from .TriangleElement import Triangle
+from .QuadriateralElement import QuadrilateralElement
+from .TriangleElement import TriangleElement
 from .Logger import Logger
 
 class KratosGlobals(object):
     def HasVariable(var_name):
         return False
+
     def GetVariable(var_name):
         return globals()[var_name]
-    def __init__(self):
+
+    def GetVariableType(var_name):
         pass
+
 
 def Array1DVariable3(name):
     globals()[name+'_X'] = name+'_X'
