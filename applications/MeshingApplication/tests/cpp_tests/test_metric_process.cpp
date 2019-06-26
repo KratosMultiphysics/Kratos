@@ -258,7 +258,8 @@ namespace Kratos
             }
 
             // Compute metric
-            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE);
+            Parameters parameters = Parameters(R"({"enforce_anisotropy_relative_variable" : true})");
+            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
             hessian_process.Execute();
 
 //             // DEBUG
@@ -304,7 +305,8 @@ namespace Kratos
             }
 
             // Compute metric
-            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE);
+            Parameters parameters = Parameters(R"({"enforce_anisotropy_relative_variable" : true})");
+            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
             hessian_process.Execute();
 
 //             // DEBUG
