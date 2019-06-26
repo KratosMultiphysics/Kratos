@@ -1,0 +1,7 @@
+{
+    "settings" :
+    {
+        "echo_level" : 1,
+        "data_structure" : "pyKratos"
+    }
+}

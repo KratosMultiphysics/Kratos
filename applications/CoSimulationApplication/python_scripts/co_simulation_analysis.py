@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
 
 

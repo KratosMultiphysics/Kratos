@@ -12,6 +12,7 @@ class PredictorLinear(CoSimulationComponent):
     def __init__(self, _unused):
         super().__init__()
 
+        self.updated = False
         self.data_prev = []
         self.data_last = []
 
@@ -21,11 +22,28 @@ class PredictorLinear(CoSimulationComponent):
         self.data_last = x.GetNumpyArray()
         self.data_prev = self.data_last
 
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
+        self.updated = False
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        if not self.updated:
+            raise Exception("Not updated")
+
     def Predict(self, x):
-        y = self.data_last * 2.0 - self.data_prev
-        x.SetNumpyArray(y)
-        return x
+        if not self.updated:
+            y = self.data_last * 2.0 - self.data_prev
+            x.SetNumpyArray(y)
+            return x
+        else:
+            raise Exception("Already updated")
 
     def Update(self, x):
-        self.data_prev = self.data_last
-        self.data_last = x.GetNumpyArray()
+        if not self.updated:
+            self.data_prev = self.data_last
+            self.data_last = x.GetNumpyArray()
+            self.updated = True
+        else:
+            raise Exception("Already updated")

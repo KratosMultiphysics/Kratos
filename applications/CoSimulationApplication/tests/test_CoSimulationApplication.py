@@ -1,7 +1,3 @@
-import KratosMultiphysics
-import KratosMultiphysics.CoSimulationApplication
-
-# Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from convergence_accelerators.test_iqni import TestConvergenceAcceleratorIQNI
@@ -30,6 +26,7 @@ def AssembleTestSuites():
     suites: A dictionary of suites
         The set of suites with its test_cases added.
     '''
+
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']  # These tests are executed by the continuous integration tool

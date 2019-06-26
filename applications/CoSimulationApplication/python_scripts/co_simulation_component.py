@@ -10,35 +10,35 @@ class CoSimulationComponent(object):
 
     def Initialize(self):
         if self.initialized:
-            Exception("Already initialized")
+            raise Exception("Already initialized")
         else:
             self.initialized = True
 
     def Finalize(self):
         if self.initialized_solution_step:
-            Exception("Solution step not finalized")
+            raise Exception("Solution step not finalized")
         if self.initialized:
             self.initialized = False
         else:
-            Exception("Not initialized")
+            raise Exception("Not initialized")
 
     def InitializeSolutionStep(self):
         if self.initialized:
             if self.initialized_solution_step:
-                Exception("Already solution step initialized")
+                raise Exception("Already solution step initialized")
             else:
                 self.initialized_solution_step = True
         else:
-            Exception("Not initialized")
+            raise Exception("Not initialized")
 
     def FinalizeSolutionStep(self):
         if self.initialized:
             if self.initialized_solution_step:
                 self.initialized_solution_step = False
             else:
-                Exception("Solution step not initialized")
+                raise Exception("Solution step not initialized")
         else:
-            Exception("Not initialized")
+            raise Exception("Not initialized")
 
     def OutputSolutionStep(self):
         pass
