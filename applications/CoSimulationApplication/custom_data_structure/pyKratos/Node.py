@@ -1,5 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# pyKratos imports
+from .data_value_container import DataValueContainer
+
+# Other imports
+from copy import deepcopy
+
 class Node(object):
 
     def __init__(self, node_id, x, y, z, hist_variables, buffer_size):
@@ -22,7 +28,7 @@ class Node(object):
         self.__InitializeSolutionStepsNodalData()
 
         # non-historical variables
-        self._non_hist_variables = {}
+        self.__data_value_container = DataValueContainer()
 
     ### Methods related to historical variables ###
     def CloneSolutionStep(self):
@@ -30,19 +36,13 @@ class Node(object):
             var_vals[1:self.__buffer_size] = var_vals[0:self.__buffer_size-1]
 
     def SetValue(self, variable, value):
-        # overwrite existing value or add new one
-        self._non_hist_variables[variable] = value
+        self.__data_value_container.SetValue(variable, value)
 
     def GetValue(self, variable):
-        if not variable in self._non_hist_variables:
-            # allocate this variable if it does not yet exist
-            # this matches the Kratos behavior
-            self._non_hist_variables[variable] = variable.Zero()
-
-        return self._non_hist_variables[variable]
+        return self.__data_value_container.GetValue(variable)
 
     def Has(self, variable):
-        return variable in self._non_hist_variables
+        return self.__data_value_container.Has(variable)
 
     def SolutionStepsDataHas(self, variable):
         return variable in self.__hist_variables
@@ -57,7 +57,9 @@ class Node(object):
         self.__CheckHistoricalVariable(variable)
         self.__CheckBufferSize(step)
 
-        self.__solution_steps_nodal_data[variable][step] = value
+        # copy the value to match the behavior of Kratos (when used in python)
+        # and to avoid unwanted references to wrong objects (for non-scalar types)
+        self.__solution_steps_nodal_data[variable][step] = deepcopy(value)
 
 
     def __CheckHistoricalVariable(self, variable):

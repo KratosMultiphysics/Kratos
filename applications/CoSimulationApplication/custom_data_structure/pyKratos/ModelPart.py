@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # pyKratos imports
 from .Node import Node
 from .Element import Element
+from .data_value_container import DataValueContainer
 from .Variables import *
 
 # Other imports
@@ -32,6 +33,9 @@ class ModelPart(object):
 
         self.__hist_variables = []
 
+        # non-historical variables
+        self.__data_value_container = DataValueContainer()
+
         if("." in name):
             RuntimeError("Name of the modelpart cannot contain a . (dot) Please rename ! ")
         if(name == ""):
@@ -39,6 +43,7 @@ class ModelPart(object):
 
         self.Name = name
         self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
+
 
     def IsDistributed(self):
         return False
@@ -53,6 +58,7 @@ class ModelPart(object):
             def LocalMesh(self):
                 return self.__model_part
         return Communicator(self)
+
 
     ### Methods related to historical variables ###
     def AddNodalSolutionStepVariable(self, variable):
@@ -79,6 +85,17 @@ class ModelPart(object):
         old_time = self.ProcessInfo[TIME]
         self.ProcessInfo[TIME] = time
         self.ProcessInfo[DELTA_TIME] = time-old_time
+
+
+    ### Methods related to non-historical variables ###
+    def SetValue(self, variable, value):
+        self.__data_value_container.SetValue(variable, value)
+
+    def GetValue(self, variable):
+        return self.__data_value_container.GetValue(variable)
+
+    def Has(self, variable):
+        return self.__data_value_container.Has(variable)
 
 
     ### Methods related to SubModelParts ###
