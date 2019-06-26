@@ -34,14 +34,3 @@ class KratosGlobals(object):
         if not KratosGlobals.HasVariable(var_name):
             return "None"
         return KratosGlobals.GetVariable(var_name).Type()
-
-
-def Array1DVariable3(name):
-    globals()[name+'_X'] = name+'_X'
-    globals()[name+'_Y'] = name+'_Y'
-    globals()[name+'_Z'] = name+'_Z'
-    globals()[name] = [name, globals()[name+'_X'], globals()[name+'_Y'], globals()[name+'_Z']]
-    return globals()[name]
-
-def VariableDouble(name):
-    globals()[name] = name

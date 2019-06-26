@@ -33,6 +33,11 @@ def CreateArray3Variable(name):
 
     globals()[name] = Variable(name, "Array")
 
+def CreateVectorVariable(name):
+    if name in globals():
+        raise NameError('Variable "{}" exists already!'.format(name))
+    globals()[name] = Variable(name, "Vector")
+
 CreateArray3Variable("DISPLACEMENT")
 CreateArray3Variable("MESH_DISPLACEMENT")
 CreateArray3Variable("ROTATION")
@@ -40,7 +45,7 @@ CreateArray3Variable("VELOCITY")
 CreateArray3Variable("POINT_LOAD")
 CreateArray3Variable("FORCE")
 CreateArray3Variable("REACTION")
-CreateArray3Variable("EXTERNAL_FORCES_VECTOR")
+CreateArray3Variable("EXTERNAL_FORCE")
 CreateArray3Variable("TORQUE")
 CreateArray3Variable("NORMAL")
 
@@ -55,3 +60,5 @@ CreateDoubleVariable("DELTA_TIME")
 CreateDoubleVariable("TEMPERATURE")
 CreateDoubleVariable("NODAL_MASS")
 CreateDoubleVariable("NODAL_ERROR")
+
+CreateVectorVariable("EXTERNAL_FORCES_VECTOR")
