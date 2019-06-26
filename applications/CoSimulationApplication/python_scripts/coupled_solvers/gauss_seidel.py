@@ -18,74 +18,72 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.echo_level = self.settings["echo_level"].GetInt()
         self.master_solver_index = self.settings["master_solver_index"].GetInt()
 
-        self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
-        self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
-        self._convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
-        self._solver_wrappers = []
-        self._solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][0]))
-        self._solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][1]))
-        self._components = [self._predictor, self._convergence_accelerator, self._convergence_criterion,
-                            self._solver_wrappers[0], self._solver_wrappers[1]]
+        self.predictor = cs_tools.CreateInstance(self.parameters["predictor"])
+        self.convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
+        self.convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
+        self.solver_wrappers = []
+        self.solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][0]))
+        self.solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][1]))
+        self.components = [self.predictor, self.convergence_accelerator, self.convergence_criterion,
+                            self.solver_wrappers[0], self.solver_wrappers[1]]
 
         self.x = []
 
     def Initialize(self):
         super().Initialize()
 
-        for component in self._components[1:-1]:
+        for component in self.components[1:-1]:
             component.Initialize()
 
-        self.x = self._solver_wrappers[self.master_solver_index].GetInterfaceInput()
-        print(type(self.x))
-        print(type(self.x.model))
-        self._predictor.Initialize(self.x)
+        self.x = self.solver_wrappers[self.master_solver_index].GetInterfaceInput()
+        self.predictor.Initialize(self.x)
 
     def Finalize(self):
         super().Finalize()
 
-        for component in self._components:
+        for component in self.components:
             component.Finalize()
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        for component in self._components:
+        for component in self.components:
             component.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
         # Coupling iteration loop
-        while not self._convergence_criterion.IsSatisfied():
-            if not self._convergence_accelerator.IsReady():
-                self.x = self._predictor.Predict(self.x)
+        while not self.convergence_criterion.IsSatisfied():
+            if not self.convergence_accelerator.IsReady():
+                self.x = self.predictor.Predict(self.x)
             else:
-                dx = self._convergence_accelerator.Predict(r)
+                dx = self.convergence_accelerator.Predict(r)
                 self.x += dx
-            y = self._solver_wrappers[0].SolveSolutionStep(self.x)
-            xt = self._solver_wrappers[1].SolveSolutionStep(y)
+            y = self.solver_wrappers[0].SolveSolutionStep(self.x)
+            xt = self.solver_wrappers[1].SolveSolutionStep(y)
             r = xt - self.x
-            self._convergence_accelerator.Update(self.x, xt)
-            self._convergence_criterion.Update(r)
+            self.convergence_accelerator.Update(self.x, xt)
+            self.convergence_criterion.Update(r)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
-        self._predictor.Update(self.x)
-        for component in self._components:
+        self.predictor.Update(self.x)
+        for component in self.components:
             component.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         super().OutputSolutionStep()
 
-        for component in self._components:
+        for component in self.components:
             component.OutputSolutionStep()
 
     def Check(self):
         super().Check()
 
-        for component in self._components:
+        for component in self.components:
             component.Check()
 
     def PrintInfo(self):
         cs_tools.PrintInfo("The coupled solver ", self.__class__.__name__, " has the following components:")
-        for component in self._components:
+        for component in self.components:
             component.PrintInfo()
