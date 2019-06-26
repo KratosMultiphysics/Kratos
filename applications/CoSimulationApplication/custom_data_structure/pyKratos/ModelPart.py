@@ -40,7 +40,6 @@ class ModelPart(object):
         self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
 
     ### Methods related to historical variables ###
-
     def AddNodalSolutionStepVariable(self, variable):
         if self.NumberOfNodes() > 0:
             # this is forbidden since it creates problems with the memory management of historical variables
@@ -59,6 +58,7 @@ class ModelPart(object):
         old_time = self.ProcessInfo[TIME]
         self.ProcessInfo[TIME] = time
         self.ProcessInfo[DELTA_TIME] = time-old_time
+
 
     ### Methods related to SubModelParts ###
     @property
@@ -86,6 +86,7 @@ class ModelPart(object):
 
     def IsSubModelPart(self):
         return self.__parent_model_part != None
+
 
     ### Methods related to Nodes ###
     @property
@@ -155,6 +156,7 @@ class ModelPart(object):
                 self.__elements[element_id] = new_element
                 return new_element
 
+    ### the following methods are to be checked/implemented!
     # add properties
     def AddProperties(self, dict_of_properties):
         self.Properties.update(dict_of_properties)
