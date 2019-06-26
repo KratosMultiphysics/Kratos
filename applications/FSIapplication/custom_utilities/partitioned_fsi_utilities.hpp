@@ -607,7 +607,7 @@ public:
         ModelPart &rStructureSkinModelPart)
     {
         // Create the bin-based point locator
-        BinBasedFastPointLocator<2> bin_based_locator(rFluidModelPart);
+        BinBasedFastPointLocator<TDim> bin_based_locator(rFluidModelPart);
 
         // Update the search database
         bin_based_locator.UpdateSearchDatabase();

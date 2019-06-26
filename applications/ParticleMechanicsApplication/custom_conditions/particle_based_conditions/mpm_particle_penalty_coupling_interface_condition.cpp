@@ -185,16 +185,15 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 {
     GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.PointsNumber();
-    // const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     // Prepare variables
     GeneralVariables Variables;
     const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-    const double & MPC_Area = this->GetValue(MPC_AREA);
+    const double & r_mpc_area = this->GetIntegrationWeight();
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
 
-    // Interpolate the force to MPC_Force assuming linear shape function
-    array_1d<double, 3 > MPC_Force = ZeroVector(3);
+    // Interpolate the force to mpc_force assuming linear shape function
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         // Check whether there is material point inside the node
@@ -204,7 +203,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
         if (nodal_mass > std::numeric_limits<double>::epsilon())
         {
-            MPC_Force += Variables.N[i] * nodal_force * MPC_Area / nodal_area;
+            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
         }
     }
 
@@ -214,21 +213,21 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
         // Apply only in the normal direction
         array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
         ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
-        const double normal_force = MathUtils<double>::Dot(MPC_Force,unit_normal_vector);
+        const double normal_force = MathUtils<double>::Dot(mpc_force,unit_normal_vector);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            MPC_Force = -1.0 * normal_force * unit_normal_vector;
+            mpc_force = -1.0 * normal_force * unit_normal_vector;
         else
-            MPC_Force = ZeroVector(3);
+            mpc_force = ZeroVector(3);
     }
     // Apply a sticking contact
     else{
-        MPC_Force *= -1.0;
+        mpc_force *= -1.0;
     }
 
     // Set Contact Force
-    this->SetValue(MPC_CONTACT_FORCE, MPC_Force);
+    this->SetValue(MPC_CONTACT_FORCE, mpc_force);
 
 }
 
