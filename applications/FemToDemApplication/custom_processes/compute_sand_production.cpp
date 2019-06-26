@@ -29,7 +29,7 @@ ComputeSandProduction::ComputeSandProduction(
 
 void ComputeSandProduction::Execute() 
 {
-
+    auto& r_process_info = mrModelPart.GetProcessInfo();
 }
 
 /***********************************************************************************/
