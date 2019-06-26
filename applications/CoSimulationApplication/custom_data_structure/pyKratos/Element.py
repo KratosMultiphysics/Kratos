@@ -21,12 +21,7 @@ class Element(object):
         if not variable in self._variables:
             # allocate this variable if it does not yet exist
             # this matches the Kratos behavior
-            if isinstance(variable, list):
-                zero_val = [0.0, 0.0, 0.0]
-            else:
-                zero_val = 0.0
-
-            self._variables[variable] = zero_val
+            self._variables[variable] = variable.Zero()
 
         return self._variables[variable]
 

@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 class Variable(object):
-    def __init__(self, var_name, var_type):
+    def __init__(self, var_name, var_type, zero_val):
         self.__name = var_name
         self.__type = var_type
+        self.__zero = zero_val
 
     def Name(self):
         return self.__name
@@ -11,18 +12,21 @@ class Variable(object):
     def Type(self):
         return self.__type
 
+    def Zero(self):
+        return self.__zero
+
     def __hash__(self):
         return hash(self.__name)
 
 def CreateDoubleVariable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, "Double")
+    globals()[name] = Variable(name, "Double", 0.0)
 
 def CreateComponentVariable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, "Component")
+    globals()[name] = Variable(name, "Component", 0.0)
 
 def CreateArray3Variable(name):
     if name in globals():
@@ -31,12 +35,12 @@ def CreateArray3Variable(name):
     for comp in ["X", "Y", "Z"]:
         CreateComponentVariable(name + "_" + comp)
 
-    globals()[name] = Variable(name, "Array")
+    globals()[name] = Variable(name, "Array", [0.0, 0.0, 0.0])
 
 def CreateVectorVariable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, "Vector")
+    globals()[name] = Variable(name, "Vector", [])
 
 CreateArray3Variable("DISPLACEMENT")
 CreateArray3Variable("MESH_DISPLACEMENT")

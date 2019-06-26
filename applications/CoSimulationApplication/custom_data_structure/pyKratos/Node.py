@@ -37,12 +37,7 @@ class Node(object):
         if not variable in self._non_hist_variables:
             # allocate this variable if it does not yet exist
             # this matches the Kratos behavior
-            if isinstance(variable, list):
-                zero_val = [0.0, 0.0, 0.0]
-            else:
-                zero_val = 0.0
-
-            self._non_hist_variables[variable] = zero_val
+            self._non_hist_variables[variable] = variable.Zero()
 
         return self._non_hist_variables[variable]
 
@@ -75,14 +70,8 @@ class Node(object):
 
     def __InitializeSolutionStepsNodalData(self):
         for var in self.__hist_variables:
-            zero_val = GetVariableZeroValue(var)
+            zero_val = var.Zero()
             self.__solution_steps_nodal_data[var] = [zero_val for i in range(self.__buffer_size)]
-
-def GetVariableZeroValue(variable):
-    if isinstance(variable, list):
-        return [0.0, 0.0, 0.0]
-    else:
-        return 0.0
 
     def __str__(self):
         return  "Node #{0} with {1}".format(self.Id, self.__hist_variables)
