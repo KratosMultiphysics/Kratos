@@ -1,19 +1,22 @@
-from __future__ import print_function, absolute_import, division
-from numpy import *
-from .Element import *
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# pyKratos imports
+from .Element import Element
 
-class Triangle(Element):
+# Other imports
+import numpy as np
 
-    def __init__(self, node_list):
+class TriangleElement(Element):
+
+    def __init__(self, elem_id, nodes):
+        super(TriangleElement, self).__init__(elem_id, nodes)
+
         if(len(node_list) != 3):
-            raise Exception("wrong number of nodes! should be 3!!")
-        self.nodes = node_list
+            raise Exception("wrong number of nodes! should be 3!")
 
         for node in self.nodes:
             if(node.Id < 0):
-                raise Exception("node with Id lesser than 0 found")
-
+                raise Exception("node with Id smaller than 0 found")
 
     def ShapeFunctions(self, order=1):
         '''this function provides the shape function values, derivatives and integration_weight'''
@@ -35,7 +38,7 @@ class Triangle(Element):
 
         detJ = x10 * y20 - y10 * x20
 
-        DN_DX = zeros((3, 2), dtype=float)
+        DN_DX = np.zeros((3, 2), dtype=float)
         DN_DX[0, 0] = -y20 + y10
         DN_DX[0, 1] = x20 - x10
         DN_DX[1, 0] = y20
@@ -47,7 +50,7 @@ class Triangle(Element):
 
         if(order == 1):  # give back 1 single integration point
             one_third = 1.0 / 3.0
-            Ncontainer = [array([one_third, one_third, one_third])]
+            Ncontainer = [np.array([one_third, one_third, one_third])]
 
             Area = 0.5 * detJ
             weights = [Area]
@@ -56,9 +59,9 @@ class Triangle(Element):
         elif(order == 2):  # gives back 3 integration points
             one_sixt = 1.0 / 6.0
             two_third = 2.0 / 3.0
-            Ncontainer.append(array([one_sixt, one_sixt, two_third]))
-            Ncontainer.append(array([one_sixt, two_third, one_sixt]))
-            Ncontainer.append(array([two_third, one_sixt, one_sixt]))
+            Ncontainer.append(np.array([one_sixt, one_sixt, two_third]))
+            Ncontainer.append(np.array([one_sixt, two_third, one_sixt]))
+            Ncontainer.append(np.array([two_third, one_sixt, one_sixt]))
 
             weights = [one_sixt * detJ, one_sixt * detJ, one_sixt * detJ]
 

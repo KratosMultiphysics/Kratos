@@ -1,19 +1,19 @@
-from __future__ import print_function, absolute_import, division
-import math
-from numpy import *
-from .Element import *
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# pyKratos imports
+from .Element import Element
 
-class Quadrilateral3D4N(Element):
+class QuadrilateralElement(Element):
 
-    def __init__(self, node_list):
+    def __init__(self, elem_id, nodes):
+        super(QuadrilateralElement, self).__init__(elem_id, nodes)
+
         if(len(node_list) != 4):
-            raise Exception("wrong number of nodes! should be 4!!")
-        self.nodes = node_list
+            raise Exception("wrong number of nodes! should be 4!")
 
         for node in self.nodes:
             if(node.Id < 0):
-                raise Exception("node with Id lesser than 0 found")
+                raise Exception("node with Id smaller than 0 found")
 
 
     def ShapeFunctions(self, order=1):
