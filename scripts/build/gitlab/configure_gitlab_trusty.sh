@@ -95,7 +95,7 @@ CMAKE_LIBS=(
   #        -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
   # --------------------------------------------------------------------------------------------------------------
   # Should be compiling against the system boost
-  # -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
+  -DBOOST_ROOT="/boost/boost_1_66_0"
 
   # Python
   #    Indicate your python binary dir in case you don't want to use the system default or you
