@@ -25,11 +25,10 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
     def setUp(self):
         self.model = KM.Model()
-        self.mp = self.model.CreateModelPart("mp_4_test")
+        self.mp = self.model.CreateModelPart("mp_4_test", 2)
         self.mp.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.mp.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         self.mp.ProcessInfo[KM.DOMAIN_SIZE] = 2
-        self.mp.SetBufferSize(2)
 
         num_nodes = 5
         num_elems = 7
@@ -41,8 +40,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             node_id = i+1
             node = self.mp.CreateNewNode(node_id, 0.0, 0.0, i+1)
 
-            node.SetSolutionStepValue(KM.PRESSURE, NodeScalarHistValueCurrent(node_id))
-            node.SetSolutionStepValue(KM.DISPLACEMENT, NodeVectorHistValueCurrent(node_id))
+            node.SetSolutionStepValue(KM.PRESSURE, 0, NodeScalarHistValueCurrent(node_id))
+            node.SetSolutionStepValue(KM.DISPLACEMENT, 0, NodeVectorHistValueCurrent(node_id))
 
             node.SetSolutionStepValue(KM.PRESSURE, 1, NodeScalarHistValuePrevious(node_id))
             node.SetSolutionStepValue(KM.DISPLACEMENT, 1, NodeVectorHistValuePrevious(node_id))
