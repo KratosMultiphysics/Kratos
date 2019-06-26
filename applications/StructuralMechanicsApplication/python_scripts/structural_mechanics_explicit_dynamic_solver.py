@@ -44,15 +44,22 @@ class ExplicitMechanicalSolver(MechanicalSolver):
     def AddVariables(self):
         super(ExplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+
+        scheme_type = self.settings["scheme_type"].GetString()
+        if(scheme_type == "central_differences"):
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            if (self.settings["rotation_dofs"].GetBool()):
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+        if(scheme_type == "multi_stage"):
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+            if (self.settings["rotation_dofs"].GetBool()):
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
 
         if (self.settings["rotation_dofs"].GetBool()):
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 

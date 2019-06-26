@@ -717,22 +717,7 @@ public:
 
         KRATOS_CATCH("")
     }
-    /**
-     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-    }
+
 
      void Predict(
         ModelPart& rModelPart,

@@ -8,8 +8,8 @@
 //					 Kratos default license:
 //kratos/license.txt
 //
-//  Main authors:    Klaus B Sautter (based on the work of MSantasusana)
-//
+//  Main authors:    Klaus B Sautter
+//  Based on : "An accurate two‐stage explicit time integration scheme for structural dynamics and various dynamic problems" - Wooram Kim
 //
 
 #if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
@@ -270,10 +270,12 @@ public:
         const Double3DArray zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
-        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
-        if (has_dof_for_rot_z)
-            VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
-
+        if (r_nodes.size()>0)
+        {
+            const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+            if (has_dof_for_rot_z)
+                VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
+        }
         KRATOS_CATCH("")
     }
 
@@ -320,14 +322,12 @@ public:
             auto it_node = (it_node_begin + i);
 
             Double3DArray& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-//             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
             for (IndexType j = 0; j < DomainSize; j++) {
                 r_current_residual[j] = 0.0;}
 
             if (has_dof_for_rot_z) {
                 Double3DArray& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-//                 array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
 
                 const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
                 for (IndexType j = initial_j; j < 3; j++) {
@@ -733,23 +733,6 @@ public:
     }
 
 
-
-    /**
-     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-    }
 
     void Predict(
         ModelPart& rModelPart,
