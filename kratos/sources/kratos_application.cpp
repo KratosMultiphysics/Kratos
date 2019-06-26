@@ -294,8 +294,8 @@ void KratosApplication::RegisterKratosCore() {
     Hexahedra3D27<NodeType > Hexahedra3D27Prototype( GeometryType::PointsArrayType(27));
     Serializer::Register("Hexahedra3D27", Hexahedra3D27Prototype);
 
-    //CouplingMasterSlave<NodeType > CouplingMasterSlavePrototype(GeometryType::PointsArrayType());
-    //Serializer::Register("CouplingMasterSlave", CouplingMasterSlavePrototype);
+    //IntegrationPointCurveOnSurface3d<NodeType > IntegrationPointCurveOnSurface3dPrototype(GeometryType::PointsArrayType());
+    //Serializer::Register("IntegrationPointCurveOnSurface3d", IntegrationPointCurveOnSurface3dPrototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);

@@ -49,10 +49,10 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     typedef PointerVector<TPointType> PointsArrayType;
-    typedef typename TPointType::CoordinatesArrayType CoordinatesArrayType;
+    typedef array_1d<double, 2> LocalCoordinatesArray2dType;
 
     typedef IntegrationPoint<2> IntegrationPointType;
-    typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
@@ -67,56 +67,51 @@ public:
     ///@name Life Cycle
     ///@{
 
+    //IntegrationPointCurveOnSurface3d(
+    //    const PointsArrayType& ThisPoints,
+    //    const CoordinatesArrayType& rLocalCoordinates,
+    //    const LocalTangentsArray2dType& rLocalTangents2d,
+    //    const double rIntegrationWeight,
+    //    Matrix& rShapeFunctionValues,
+    //    ShapeFunctionsGradientsType& rShapeFunctionsDerivativesVector)
+    //    : BaseType(ThisPoints, &mGeometryData)
+    //    , mLocalTangents2d(rLocalTangents2d)
+    //{
+    //    IntegrationPointsArrayType IntegrationPoints = IntegrationPointsArrayType(1);
+    //    IntegrationPoints[0] = IntegrationPointType(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
+
+    //    mGeometryData = GeometryData(
+    //        3,3,3,//msGeometryDimension,
+    //        GeometryData::GI_GAUSS_1,
+    //        IntegrationPoints,
+    //        rShapeFunctionValues,
+    //        rShapeFunctionsDerivativesVector);
+    //}
+
     IntegrationPointCurveOnSurface3d(
         const PointsArrayType& ThisPoints,
-        const CoordinatesArrayType& rLocalCoordinates,
+        const IntegrationPointsContainerType& rIntegrationPoints,
         const LocalTangentsArray2dType& rLocalTangents2d,
-        const double& rIntegrationWeight,
-        Matrix& rShapeFunctionValues,
-        ShapeFunctionsGradientsType& rShapeFunctionsDerivativesVector)
+        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
         , mLocalTangents2d(rLocalTangents2d)
-    {
-        IntegrationPointsArrayType IntegrationPoints = IntegrationPointsArrayType(1);
-        IntegrationPoints[0] = IntegrationPointType(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
-
-        mGeometryData = GeometryData(
-            3,3,3,//msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            IntegrationPoints,
-            rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector);
-    }
-
-    IntegrationPointCurveOnSurface3d(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsArrayType& rIntegrationPoints,
-        const LocalTangentsArray2dType& rLocalTangents2d,
-        Matrix& rShapeFunctionValues,
-        ShapeFunctionsGradientsType& rShapeFunctionsDerivativesVector)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mLocalTangents2d(rLocalTangents2d)
-    {
-        mGeometryData = GeometryData(
-            3, 3, 3,
+        , mGeometryData(
+            &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector);
+            rShapeFunctionsDerivativesVector)
+    {
     }
 
     explicit IntegrationPointCurveOnSurface3d(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
     {
-        IntegrationPointsContainerType integration_points = {};
-        ShapeFunctionsValuesContainerType shape_functions_values = {};
-        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        mGeometryData = GeometryData(
-           3,3,3,//msGeometryDimension,
-           GeometryData::GI_GAUSS_1,
-           integration_points,
-           shape_functions_values,
-           shape_functions_local_gradients);
     }
 
     /**
@@ -212,10 +207,38 @@ public:
     ///@{
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new IntegrationPointCurveOnSurface3d(ThisPoints) );
+        return typename BaseType::Pointer( new IntegrationPointCurveOnSurface3d( ThisPoints ) );
     }
 
     ///@}
+    ///@name Informations
+    ///@{
+
+    /** Function returns the respective curve length on
+    the underlying surface
+    */
+    double Length() const override
+    {
+        //Vector temp;
+        //DeterminantOfJacobian(temp);
+        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
+        double length = 0.0;
+
+        //for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
+        //    length += temp[i] * r_integration_points[i].Weight();
+        //}
+
+        return length;
+    }
+
+
+    /** Returns the length of this curve segment.
+    */
+    double DomainSize() const override
+    {
+        return Length();
+    }
+
     /** Calculates global location of this integration point.
 
     \f[
@@ -226,22 +249,20 @@ public:
 
     @return Point which is the location of this geometry.
     */
-    //Point Center() const override
-    //{
-    //    //const SizeType points_number = PointsNumber();
+    Point Center() const override
+    {
+        const SizeType points_number = PointsNumber();
 
-    //    //array_1d<double, 3> location(0.0);
-    //    //const Matrix& ShapeFunctionValues();
+        Point point(0.0, 0.0, 0.0);
+        const Matrix& N = this->ShapeFunctionsValues();
 
-    //    //for (IndexType point_number = 0; point_number < IntegrationPointsNumber(); ++point_number) {
-    //    //    for (IndexType i = 0; i < PointsNumber(); ++i) {
-    //    //        for (IndexType dim = 0; dim < 3; ++dim) {
-    //    //            location[dim] += (*this)[i][dim] * Matrix(point_number, i);
-    //    //        }
-    //    //    }
-    //    //}
-    //    return new Point(0.0, 0.0, 0.0);// location[0], location[1], location[2]);
-    //}
+        for (IndexType point_number = 0; point_number < IntegrationPointsNumber(); ++point_number) {
+            for (IndexType i = 0; i < PointsNumber(); ++i) {
+                point += (*this)[i] * N(point_number, i);
+            }
+        }
+        return point;
+    }
 
 
     /** Determinant of jacobians for given integration method. This
@@ -406,16 +427,11 @@ private:
         : BaseType(
             PointsArrayType(),
             &mGeometryData)
-    {
-        IntegrationPointsContainerType integration_points = {};
-        ShapeFunctionsValuesContainerType shape_functions_values = {};
-        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        mGeometryData = GeometryData(
-            3, 3, 3,//msGeometryDimension,
+        , mGeometryData(
+            &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
-            integration_points,
-            shape_functions_values,
-            shape_functions_local_gradients);
+            {}, {}, {})
+    {
     }
 
     /**

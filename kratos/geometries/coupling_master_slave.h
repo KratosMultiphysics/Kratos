@@ -223,7 +223,7 @@ public:
 
     typename GeometryType::Pointer GetGeometryPart(IndexType Index) const override
     {
-        KRATOS_ERROR_IF(mpGeometries.size() < Index) << "Index out of range: "
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() < Index) << "Index out of range: "
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
@@ -236,6 +236,21 @@ public:
     //}
 
     ///@}
+
+    /** Returns the domain size of the master geometry.
+    */
+    double DomainSize() const override
+    {
+        return mpGeometries[0]->DomainSize();
+    }
+
+    /** Returns the center of the master geometry.
+    */
+    Point Center() const override
+    {
+        return mpGeometries[0]->Center();
+    }
+
     ///@name Input and output
     ///@{
 

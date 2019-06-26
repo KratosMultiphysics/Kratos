@@ -306,6 +306,114 @@ namespace IgaIntegrationUtilities
         return new_elements;
     }
 
+    static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainSurfaceEdge(
+        const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
+        const std::shared_ptr<Curve<2>>& pTrimmingCurve,
+        int ShapeFunctionDerivativesOrder)
+    {
+        std::vector<Geometry<Node<3>>::Pointer> new_geometries;
+
+        int number_of_points_spans =
+            pSurface->DegreeU() + pSurface->DegreeV() + 1;
+
+        auto spans_u = pSurface->SpansU();
+        auto spans_v = pSurface->SpansV();
+
+        ANurbs::SurfaceShapeEvaluator<double> shape(
+            pSurface->DegreeU(),
+            pSurface->DegreeV(),
+            ShapeFunctionDerivativesOrder);
+
+        auto curve_on_surface_3d = std::make_shared<CurveOnSurface<3>>(
+            pTrimmingCurve->CurveGeometry(), pSurface, pTrimmingCurve->Domain());
+
+        auto curve_knot_intersections = curve_on_surface_3d->Spans();
+
+        for (int i = 0; i < curve_knot_intersections.size(); ++i)
+        {
+            auto integration_points = ANurbs::IntegrationPoints<double>::Points1(
+                number_of_points_spans, curve_knot_intersections[i]);
+
+            for (int ip = 0; ip < integration_points.size(); ++ip)
+            {
+                auto derivatives = pTrimmingCurve->DerivativesAt(integration_points[ip].t, 1);
+
+                shape.Compute(
+                    pSurface->KnotsU(),
+                    pSurface->KnotsV(),
+                    pSurface->Weights(),
+                    derivatives[0][0],
+                    derivatives[0][1]);
+
+                Element::GeometryType::PointsArrayType control_points;
+                Vector shape_function;
+                Matrix shape_function_derivative;
+                Matrix shape_function_second_derivative;
+
+                Geometry<Node<3>>::PointsArrayType cps;
+
+                int number_of_non_zero_cps = shape.NonzeroPoleIndices().size();
+
+                Matrix N(1, number_of_non_zero_cps);
+                Matrix DN_De(number_of_non_zero_cps, 2);
+
+                array_1d<double, 3> location = ZeroVector(3);
+
+                for (int n = 0; n < number_of_non_zero_cps; ++n)
+                {
+                    int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+                    int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+
+                    cps.push_back(pSurface->GetNode(
+                        shape.NonzeroPoleIndices()[n].first,
+                        shape.NonzeroPoleIndices()[n].second));
+
+                    if (ShapeFunctionDerivativesOrder > -1)
+                        N(0, n) = shape(0, indexU, indexV);
+
+                    if (ShapeFunctionDerivativesOrder > 0)
+                    {
+                        DN_De(n, 0) = shape(1, indexU, indexV);
+                        DN_De(n, 1) = shape(2, indexU, indexV);
+                    }
+                }
+
+                array_1d<double, 2> local_coordinates;
+                local_coordinates[0] = derivatives[0][0];
+                local_coordinates[1] = derivatives[0][1];
+
+                array_1d<double, 2> tangents;
+                tangents[0] = derivatives[1][0];
+                tangents[1] = derivatives[1][1];
+
+                Geometry<Node<3>>::ShapeFunctionsGradientsType DN_De_type(1);
+                DN_De_type[0] = DN_De;
+
+                Geometry<Node<3>>::IntegrationPointsArrayType ips(1);
+                ips[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], 1);
+
+                IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType ips_container =
+                { { ips } };
+                IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType N_container =
+                { { N } };
+                IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType DN_De_container =
+                { { DN_De_type } };
+
+                Geometry<Node<3>>::Pointer intgeration_point_geometry =
+                    std::make_shared<IntegrationPointCurveOnSurface3d<Node<3>>>(
+                        cps,
+                        ips_container,
+                        tangents,
+                        N_container,
+                        DN_De_container);
+
+                new_geometries.push_back(intgeration_point_geometry);
+            }
+        }
+
+        return new_geometries;
+    }
+
     static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainSurfaceEdgeSurfaceEdge(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface1,
         const Kratos::shared_ptr<Curve<2>>& pTrimmingCurve1,
@@ -503,8 +611,8 @@ namespace IgaIntegrationUtilities
                     tangents_slave[1] = derivatives_2[1][1];
 
                     array_1d<double, 2> local_coordinates_slave;
-                    local_coordinates[0] = derivatives_2[0][0];
-                    local_coordinates[1] = derivatives_2[0][1];
+                    local_coordinates_slave[0] = derivatives_2[0][0];
+                    local_coordinates_slave[1] = derivatives_2[0][1];
 
                     Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients_slave(1);
                     shape_function_gradients_slave[0] = shape_function_derivative_slave;
@@ -514,11 +622,10 @@ namespace IgaIntegrationUtilities
 
                     IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType IntegrationPointsArray_slave =
                     { { integration_points_slave } };
-                    IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer_slave = 
+                    IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer_slave =
                     { { shape_function_slave } };
                     IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType sfgcontainer_slave =
                     { { shape_function_gradients_slave } };
-
 
                     Geometry<Node<3>>::Pointer intgeration_point_slave = Kratos::make_shared<IntegrationPointCurveOnSurface3d<Node<3>>>(
                         cps_slave,
@@ -530,10 +637,6 @@ namespace IgaIntegrationUtilities
                     Geometry<Node<3>>::Pointer coupling_geometry = Kratos::make_shared<CouplingMasterSlave<Node<3>>>(
                         intgeration_point_master, intgeration_point_slave, true);
 
-                    const auto& r_geometry_master = coupling_geometry->GetGeometryPart(0);
-                    KRATOS_WATCH(r_geometry_master->size())
-                        const auto& r_geometry_slave = coupling_geometry->GetGeometryPart(1);
-                    KRATOS_WATCH(r_geometry_slave->size())
                     new_geometries.push_back(coupling_geometry);
                 }
             }

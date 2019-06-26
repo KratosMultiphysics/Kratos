@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "integration/integration_point.h"
+#include "geometries/geometry_dimension.h"
 
 
 namespace Kratos
@@ -253,13 +254,24 @@ public:
                   const IntegrationPointsContainerType& ThisIntegrationPoints,
                   const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
                   const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
-        : mDimension( ThisDimension )
-        , mWorkingSpaceDimension( ThisWorkingSpaceDimension )
-        , mLocalSpaceDimension( ThisLocalSpaceDimension )
-        , mDefaultMethod( ThisDefaultMethod )
+        : mDefaultMethod( ThisDefaultMethod )
         , mIntegrationPoints( ThisIntegrationPoints )
         , mShapeFunctionsValues( ThisShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
+    {
+        mpGeometryDimension = new GeometryDimension(ThisDimension, ThisWorkingSpaceDimension, ThisLocalSpaceDimension);
+    }
+
+    GeometryData(GeometryDimension const *pThisGeometryDimension,
+        enum IntegrationMethod ThisDefaultMethod,
+        const IntegrationPointsContainerType& ThisIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
+        const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients)
+        : mpGeometryDimension(pThisGeometryDimension)
+        , mDefaultMethod(ThisDefaultMethod)
+        , mIntegrationPoints(ThisIntegrationPoints)
+        , mShapeFunctionsValues(ThisShapeFunctionsValues)
+        , mShapeFunctionsLocalGradients(ThisShapeFunctionsLocalGradients)
     {
     }
 
@@ -267,9 +279,7 @@ public:
     Construct this geometry data as a copy of given geometry data.
     */
     GeometryData( const GeometryData& rOther )
-        : mDimension( rOther.mDimension )
-        , mWorkingSpaceDimension( rOther.mWorkingSpaceDimension )
-        , mLocalSpaceDimension( rOther.mLocalSpaceDimension )
+        : mpGeometryDimension( rOther.mpGeometryDimension)
         , mDefaultMethod( rOther.mDefaultMethod )
         , mIntegrationPoints( rOther.mIntegrationPoints )
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
@@ -299,9 +309,7 @@ public:
     */
     GeometryData& operator=( const GeometryData& rOther )
     {
-        mDimension = rOther.mDimension;
-        mWorkingSpaceDimension = rOther.mWorkingSpaceDimension;
-        mLocalSpaceDimension = rOther.mLocalSpaceDimension;
+        mpGeometryDimension = rOther.mpGeometryDimension;
         mDefaultMethod = rOther.mDefaultMethod;
         mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
@@ -323,7 +331,7 @@ public:
     */
     SizeType Dimension() const
     {
-        return mDimension;
+        return mpGeometryDimension->Dimension();
     }
 
     /** Working space dimension. for example a triangle is a 2
@@ -335,7 +343,7 @@ public:
     */
     SizeType WorkingSpaceDimension() const
     {
-        return mWorkingSpaceDimension;
+        return mpGeometryDimension->WorkingSpaceDimension();
     }
 
     /** Local space dimension. for example a triangle is a 2
@@ -348,7 +356,7 @@ public:
     */
     SizeType LocalSpaceDimension() const
     {
-        return mLocalSpaceDimension;
+        return mpGeometryDimension->LocalSpaceDimension();
     }
 
 
@@ -710,9 +718,9 @@ public:
     */
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mDimension << std::endl;
-        rOStream << "    working space dimension : " << mWorkingSpaceDimension << std::endl;
-        rOStream << "    Local space dimension   : " << mLocalSpaceDimension;
+        rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
+        rOStream << "    working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
+        rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
 
 
@@ -769,11 +777,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mDimension;
-
-    SizeType mWorkingSpaceDimension;
-
-    SizeType mLocalSpaceDimension;
+    GeometryDimension const* mpGeometryDimension;
 
     enum IntegrationMethod mDefaultMethod;
 
@@ -793,9 +797,9 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Dimension", mDimension );
-        rSerializer.save( "Working Space Dimension", mWorkingSpaceDimension );
-        rSerializer.save( "Local Space Dimension", mLocalSpaceDimension );
+        //rSerializer.save( "Dimension", mDimension );
+        //rSerializer.save( "Working Space Dimension", mWorkingSpaceDimension );
+        //rSerializer.save( "Local Space Dimension", mLocalSpaceDimension );
 //    rSerializer.save("Default Method", mDefaultMethod);
 //    rSerializer.save("Integration Points", mIntegrationPoints);
 //    rSerializer.save("Shape Functions Values", mShapeFunctionsValues);
@@ -804,9 +808,9 @@ private:
 
     virtual void load( Serializer& rSerializer )
     {
-        rSerializer.load( "Dimension", mDimension );
-        rSerializer.load( "Working Space Dimension", mWorkingSpaceDimension );
-        rSerializer.load( "Local Space Dimension", mLocalSpaceDimension );
+        //rSerializer.load( "Dimension", mDimension );
+        //rSerializer.load( "Working Space Dimension", mWorkingSpaceDimension );
+        //rSerializer.load( "Local Space Dimension", mLocalSpaceDimension );
 //    rSerializer.load("Default Method", mDefaultMethod);
 //    rSerializer.load("Integration Points", mIntegrationPoints);
 //    rSerializer.load("Shape Functions Values", mShapeFunctionsValues);

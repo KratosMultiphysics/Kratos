@@ -163,7 +163,11 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<CouplingMasterSlave<NodeType>, CouplingMasterSlave<NodeType>::Pointer, GeometryType  >(m, "CouplingMasterSlave").def(py::init<GeometryType::Pointer, GeometryType::Pointer, bool>())
         ;
     py::class_<IntegrationPointCurveOnSurface3d<NodeType>, IntegrationPointCurveOnSurface3d<NodeType>::Pointer, GeometryType  >(m, "IntegrationPointCurveOnSurface3d").def(py::init<
-        GeometryType::PointsArrayType, GeometryType::CoordinatesArrayType, array_1d<double, 2>, double, Matrix, GeometryType::ShapeFunctionsGradientsType>())
+        GeometryType::PointsArrayType,
+        GeometryType::IntegrationPointsContainerType,
+        array_1d<double, 2>,
+        GeometryType::ShapeFunctionsValuesContainerType,
+        GeometryType::ShapeFunctionsLocalGradientsContainerType>())
         ;
 }
 

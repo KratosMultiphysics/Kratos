@@ -32,6 +32,7 @@ namespace Kratos
     )
     {
         KRATOS_TRY
+
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = number_of_nodes * 3;
@@ -328,7 +329,6 @@ namespace Kratos
 
         Jacobian(DN_De, metric.J);
 
-
         metric.g1[0] = metric.J(0, 0);
         metric.g2[0] = metric.J(0, 1);
         metric.g1[1] = metric.J(1, 0);
@@ -363,10 +363,8 @@ namespace Kratos
         metric.gab_con[2] = -invdetGab*metric.gab[2];
         metric.gab_con[1] = invdetGab*metric.gab[0];
 
-
         array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
         array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1];
-
 
         //local cartesian coordinates
         double lg1 = norm_2(metric.g1);

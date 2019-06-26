@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
+//  Main authors:    Tobias Teschemacher
 //                   Riccardo Rossi
 //
 

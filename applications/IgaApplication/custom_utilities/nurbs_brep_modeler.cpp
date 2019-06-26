@@ -178,10 +178,27 @@ namespace Kratos
                         }
                         if (geometry_type == "SurfaceEdge")
                         {
-                            GetBrepEdge(brep_id);
-                            bool success = m_brep_model_vector[0].GetIntegrationDomainBrep(
-                                sub_model_part, brep_id, type, name,
-                                shape_function_derivatives_order, variable_list);
+                            const auto edge = GetBrepEdge(brep_id);
+                            auto topology = edge.GetEdgeTopology(0);
+
+                            const auto brep_face = GetBrepFace(topology.brep_id);
+                            const auto surface = brep_face.GetSurface();
+                            const auto trimming_curve = brep_face.GetTrimCurve(topology.trim_index);
+
+                            auto geometry_vector = IgaIntegrationUtilities::GetIntegrationDomainSurfaceEdge(
+                                surface,
+                                trimming_curve,
+                                shape_function_derivatives_order);
+
+                            if (type == "condition")
+                            {
+                                int id = 1;
+                                if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
+                                    id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+
+                                IgaIntegrationUtilities::CreateConditions(
+                                    geometry_vector, sub_model_part, name, id);
+                            }
                         }
                         if (geometry_type == "SurfacePoint")
                         {
@@ -238,8 +255,6 @@ namespace Kratos
                                         trimming_curve_2,
                                         shape_function_derivatives_order);
 
-                                    KRATOS_WATCH(geometry_vector.size())
-
                                     if (type == "element")
                                     {
                                         int id = 1;
@@ -252,10 +267,10 @@ namespace Kratos
 
                                     if (type == "condition")
                                     {
-                                        int id = 0;
+                                        int id = 1;
                                         if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
                                             id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
-                                        KRATOS_WATCH(geometry_vector[0]->Dimension())
+
                                         IgaIntegrationUtilities::CreateConditions(
                                             geometry_vector, sub_model_part, name, id);
                                     }
