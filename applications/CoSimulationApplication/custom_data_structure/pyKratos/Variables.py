@@ -18,6 +18,12 @@ class Variable(object):
     def __hash__(self):
         return hash(self.__name)
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return 'Variable "{}" of type "{}"'.format(self.__name, self.__type)
+
 def CreateDoubleVariable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
