@@ -1576,6 +1576,13 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)
+     * @param NewBufferSize The new buffer size to be set
+     */
+    void SetBufferSizeSubModelParts(IndexType NewBufferSize);
+
+
     void SetParentModelPart(ModelPart* pParentModelPart)
     {
         mpParentModelPart = pParentModelPart;
