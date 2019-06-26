@@ -11,10 +11,10 @@ class TriangleElement(Element):
     def __init__(self, elem_id, nodes):
         super(TriangleElement, self).__init__(elem_id, nodes)
 
-        if(len(node_list) != 3):
+        if(len(self.GetNodes()) != 3):
             raise Exception("wrong number of nodes! should be 3!")
 
-        for node in self.nodes:
+        for node in self.GetNodes():
             if(node.Id < 0):
                 raise Exception("node with Id smaller than 0 found")
 
