@@ -125,6 +125,8 @@ public:
 
     static constexpr double OperatorThreshold = 1.0e-3;
 
+    static constexpr double TangentCoefficient = 1.0;
+
     ///@}
     ///@name Life Cycle
     ///@{
