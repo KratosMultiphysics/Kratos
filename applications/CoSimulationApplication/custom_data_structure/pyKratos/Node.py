@@ -6,9 +6,10 @@ from .data_value_container import DataValueContainer
 # Other imports
 from copy import deepcopy
 
-class Node(object):
+class Node(DataValueContainer):
 
     def __init__(self, node_id, x, y, z, hist_variables, buffer_size):
+        super(Node, self).__init__()
         self.Id = node_id
 
         # current position
@@ -26,9 +27,6 @@ class Node(object):
         self.__buffer_size = buffer_size
         self.__solution_steps_nodal_data = {}
         self.__InitializeSolutionStepsNodalData()
-
-        # non-historical variables
-        self.__data_value_container = DataValueContainer()
 
 
     ### Methods related to historical variables ###
@@ -52,23 +50,6 @@ class Node(object):
         # copy the value to match the behavior of Kratos (when used in python)
         # and to avoid unwanted references to wrong objects (for non-scalar types)
         self.__solution_steps_nodal_data[variable][step] = deepcopy(value)
-
-
-    ### Methods related to non-historical variables ###
-    def SetValue(self, variable, value):
-        self.__data_value_container.SetValue(variable, value)
-
-    def GetValue(self, variable):
-        return self.__data_value_container.GetValue(variable)
-
-    def Has(self, variable):
-        return self.__data_value_container.Has(variable)
-
-    def __getitem__(self, variable):
-        return self.GetValue(variable)
-
-    def __setitem__(self, variable, value):
-        return self.SetValue(variable, value)
 
 
     def __CheckHistoricalVariable(self, variable):

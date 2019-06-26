@@ -23,3 +23,9 @@ class DataValueContainer(object):
 
     def Has(self, variable):
         return variable in self.__non_hist_variables
+
+    def __getitem__(self, variable):
+        return self.GetValue(variable)
+
+    def __setitem__(self, variable, value):
+        return self.SetValue(variable, value)

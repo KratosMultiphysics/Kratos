@@ -9,7 +9,7 @@ from .Variables import *
 # Other imports
 from collections import OrderedDict
 
-class ModelPart(object):
+class ModelPart(DataValueContainer):
 
     class PointerVectorSet(OrderedDict):
         def __iter__(self):
@@ -23,6 +23,8 @@ class ModelPart(object):
         if not internal_construction:
             raise Exception("Creation of standalone ModelParts is not possible, please use Model.CreateModelPart()!")
 
+        super(ModelPart, self).__init__()
+
         self.__parent_model_part = None
         self.__sub_model_parts = ModelPart.PointerVectorSet()
         self.__nodes           = ModelPart.PointerVectorSet()
@@ -32,9 +34,6 @@ class ModelPart(object):
         self.__buffer_size = buffer_size
 
         self.__hist_variables = []
-
-        # non-historical variables
-        self.__data_value_container = DataValueContainer()
 
         if("." in name):
             RuntimeError("Name of the modelpart cannot contain a . (dot) Please rename ! ")
@@ -85,23 +84,6 @@ class ModelPart(object):
         old_time = self.ProcessInfo[TIME]
         self.ProcessInfo[TIME] = time
         self.ProcessInfo[DELTA_TIME] = time-old_time
-
-
-    ### Methods related to non-historical variables ###
-    def SetValue(self, variable, value):
-        self.__data_value_container.SetValue(variable, value)
-
-    def GetValue(self, variable):
-        return self.__data_value_container.GetValue(variable)
-
-    def Has(self, variable):
-        return self.__data_value_container.Has(variable)
-
-    def __getitem__(self, variable):
-        return self.GetValue(variable)
-
-    def __setitem__(self, variable, value):
-        return self.SetValue(variable, value)
 
 
     ### Methods related to SubModelParts ###
@@ -219,4 +201,3 @@ class ModelPart(object):
 
     def __str__(self):
         return "ModelPart:\n    Number of Nodes: {0}\n    Nunber of Elements: {1}".format(len(self.NodesMap), len(self.ElementsMap))
-
