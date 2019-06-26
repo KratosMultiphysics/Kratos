@@ -22,13 +22,12 @@ class Node(object):
         self.__InitializeSolutionStepsNodalData()
 
         # non-historical variables
-        self._non_hist_non_hist_variables = {}
+        self._non_hist_variables = {}
 
     ### Methods related to historical variables ###
     def CloneSolutionStep(self):
-        for i in range(self.__buffer_size-1, 0, -1):
-            for var_vals in self.__solution_steps_nodal_data.values():
-                var_vals[i] = var_vals[i-1]
+        for var_vals in self.__solution_steps_nodal_data.values():
+            var_vals[1:self.__buffer_size] = var_vals[0:self.__buffer_size-1]
 
     def SetValue(self, variable, value):
         # overwrite existing value or add new one
@@ -63,7 +62,7 @@ class Node(object):
         self.__CheckHistoricalVariable(variable)
         self.__CheckBufferSize(step)
 
-        self.__solution_steps_nodal_data[var][step] = value
+        self.__solution_steps_nodal_data[variable][step] = value
 
 
     def __CheckHistoricalVariable(self, variable):
