@@ -164,6 +164,8 @@ public:
 
         KRATOS_ERROR_IF((mDeltaTime.Fraction <= 0.0) || (mDeltaTime.Fraction >= 1.0)) << "fraction_delta_time must be >0 && <1 !" << std::endl;
 
+        KRATOS_ERROR_IF_NOT(rModelPart.NumberOfNodes()>0) << "model part contains 0 nodes" << std::endl;
+
         return 0;
 
         KRATOS_CATCH("");
@@ -270,12 +272,10 @@ public:
         const Double3DArray zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
-        if (r_nodes.size()>0)
-        {
-            const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
-            if (has_dof_for_rot_z)
-                VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
-        }
+        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+        if (has_dof_for_rot_z)
+            VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
+
         KRATOS_CATCH("")
     }
 
