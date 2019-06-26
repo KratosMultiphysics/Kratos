@@ -97,6 +97,12 @@ class ModelPart(object):
     def Has(self, variable):
         return self.__data_value_container.Has(variable)
 
+    def __getitem__(self, variable):
+        return self.GetValue(variable)
+
+    def __setitem__(self, variable, value):
+        return self.SetValue(variable, value)
+
 
     ### Methods related to SubModelParts ###
     @property

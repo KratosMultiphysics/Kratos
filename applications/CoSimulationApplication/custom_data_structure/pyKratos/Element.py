@@ -9,8 +9,10 @@ class Element(object):
         self.Id = elem_id
         self.__nodes = nodes
         self.__variables = {}
+
         # non-historical variables
         self.__data_value_container = DataValueContainer()
+
 
     def GetNode(self, node_index):
         return self.__nodes[node_index]
@@ -18,6 +20,8 @@ class Element(object):
     def GetNodes(self):
         return self.__nodes
 
+
+    ### Methods related to non-historical variables ###
     def SetValue(self, variable, value):
         self.__data_value_container.SetValue(variable, value)
 
@@ -27,8 +31,12 @@ class Element(object):
     def Has(self, variable):
         return self.__data_value_container.Has(variable)
 
-    def Has(self, variable):
-        return variable in self.__variables
+    def __getitem__(self, variable):
+        return self.GetValue(variable)
+
+    def __setitem__(self, variable, value):
+        return self.SetValue(variable, value)
+
 
     def Initialize(self):
         pass
