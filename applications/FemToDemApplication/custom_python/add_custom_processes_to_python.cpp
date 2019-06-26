@@ -101,7 +101,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
 		.def("Execute", &TransferNodalForcesToFem::Execute);
 
 	class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")
-		.def(init<ModelPart &, ModelPart &>())
+		.def(init<ModelPart &>())
 		.def("Execute", &ComputeSandProduction::Execute);
 }
 } // namespace Python.
