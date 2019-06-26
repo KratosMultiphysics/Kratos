@@ -56,7 +56,7 @@ class Node(object):
         self.__CheckHistoricalVariable(variable)
         self.__CheckBufferSize(step)
 
-        return self.__solution_steps_nodal_data[var][step]
+        return self.__solution_steps_nodal_data[variable][step]
 
     def SetSolutionStepValue(self, variable, step, value):
         self.__CheckHistoricalVariable(variable)
