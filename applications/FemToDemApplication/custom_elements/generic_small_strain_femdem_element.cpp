@@ -1337,7 +1337,7 @@ void GenericSmallStrainFemDemElement<3,6>::CalculateDamageParameter(
 template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristicLength(
     GenericSmallStrainFemDemElement<TDim,TyieldSurf> *pCurrentElement
-    )
+	)
 {
 	auto& r_geometry = pCurrentElement->GetGeometry();
 	const SizeType number_of_edges = r_geometry.EdgesNumber();
