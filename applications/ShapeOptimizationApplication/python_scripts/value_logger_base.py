@@ -32,7 +32,8 @@ class ValueLogger():
         self.history = { "value"                : {},
                          "standardized_value"   : {},
                          "abs_change_objective" : {},
-                         "rel_change_objective" : {} }
+                         "rel_change_objective" : {},
+                         "additional_data"      : {} }
 
         for itr in range(self.objectives.size()):
             objective_id = self.objectives[itr]["identifier"].GetString()
@@ -121,11 +122,8 @@ class ValueLogger():
     # --------------------------------------------------------------------------
     def __LogAdditionalValuesToHistory( self, additional_values_dictionary ):
         for key, value in additional_values_dictionary.items():
-            if key in self.fixed_keys:
-                raise NameError("ValueLogger: The key \""+key+"\" when logging additional values is prohibited! Prohibitet keys are: "+str(self.fixed_keys))
-
             if key not in self.history.keys():
-                self.history[key] = {}
+                self.history[""][key] = {}
 
             self.history[key][self.current_iteration] = value
 
