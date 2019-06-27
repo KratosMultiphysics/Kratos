@@ -51,11 +51,11 @@ namespace MPMSearchElementUtility
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
                 auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
-                auto& rGeom = element_itr->GetGeometry();
+                auto& r_geometry = element_itr->GetGeometry();
                 element_itr->Reset(ACTIVE);
 
-                for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
-                    rGeom[j].Reset(ACTIVE);
+                for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                    r_geometry[j].Reset(ACTIVE);
 
         }
 
@@ -87,10 +87,10 @@ namespace MPMSearchElementUtility
                 if (is_found == true) {
                         pelem->Set(ACTIVE);
                         element_itr->GetGeometry() = pelem->GetGeometry();
-                        auto& rGeom = element_itr->GetGeometry();
+                        auto& r_geometry = element_itr->GetGeometry();
 
-                        for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
-                            rGeom[j].Set(ACTIVE);
+                        for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                            r_geometry[j].Set(ACTIVE);
                 }
                 else{
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
@@ -120,10 +120,10 @@ namespace MPMSearchElementUtility
                     if (is_found == true) {
                             pelem->Set(ACTIVE);
                             condition_itr->GetGeometry() = pelem->GetGeometry();
-                            auto& rGeom = condition_itr->GetGeometry();
+                            auto& r_geometry = condition_itr->GetGeometry();
 
-                            for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
-                                rGeom[j].Set(ACTIVE);
+                            for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                                r_geometry[j].Set(ACTIVE);
                     }
                     else{
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()

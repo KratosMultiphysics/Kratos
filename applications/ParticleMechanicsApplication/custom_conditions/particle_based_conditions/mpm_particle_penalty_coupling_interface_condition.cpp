@@ -71,15 +71,15 @@ void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(
 {
     if (Is(INTERFACE))
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
         // At the beginning of NonLinearIteration, REACTION has to be reset to zero
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(REACTION).clear();
-            rGeom[i].UnSetLock();
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
+            r_geometry[i].UnSetLock();
         }
 
         mReactionIsAdded = false;
@@ -151,9 +151,9 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
 {
     if ( CalculateResidualVectorFlag == true )
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.size();
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int block_size = this->GetBlockSize();
 
         // Calculate nodal forces
@@ -166,12 +166,12 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
             }
 
             // Check whether there nodes are active and associated to material point elements
-            const double& nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
             if (nodal_mass > std::numeric_limits<double>::epsilon())
             {
-                rGeom[i].SetLock();
-                rGeom[i].FastGetSolutionStepValue(REACTION) += nodal_force;
-                rGeom[i].UnSetLock();
+                r_geometry[i].SetLock();
+                r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+                r_geometry[i].UnSetLock();
             }
 
         }
@@ -183,8 +183,8 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( c
 
 void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     // Prepare variables
     GeneralVariables Variables;
@@ -197,9 +197,9 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         // Check whether there is material point inside the node
-        const double& nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        const double nodal_area  = rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0);
-        const Vector nodal_force = rGeom[i].FastGetSolutionStepValue(REACTION);
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+        const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
         if (nodal_mass > std::numeric_limits<double>::epsilon())
         {

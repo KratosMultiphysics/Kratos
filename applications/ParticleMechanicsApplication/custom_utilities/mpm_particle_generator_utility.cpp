@@ -87,24 +87,24 @@ namespace MPMParticleGeneratorUtility
                     const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-                    const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's geometry
-                    const GeometryData::KratosGeometryType geotype = rGeom.GetGeometryType();
-                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                    const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
+                    const GeometryData::KratosGeometryType geotype = r_geometry.GetGeometryType();
+                    Matrix shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                     if (geotype == GeometryData::Kratos_Tetrahedra3D4  || geotype == GeometryData::Kratos_Triangle2D3)
                     {
                         switch (particles_per_element)
                         {
                             case 1:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                 break;
                             case 3:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                 break;
                             case 6:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                 break;
                             case 12:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                 break;
                             case 16:
                                 if (domain_size==2){
@@ -130,16 +130,16 @@ namespace MPMParticleGeneratorUtility
                         switch (particles_per_element)
                         {
                             case 1:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                 break;
                             case 4:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                 break;
                             case 9:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                                 break;
                             case 16:
-                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                 break;
                             default:
                                 std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
@@ -197,7 +197,7 @@ namespace MPMParticleGeneratorUtility
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
 
                     // Evaluation of element area/volume
-                    const double area = rGeom.Area();
+                    const double area = r_geometry.Area();
                     if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
                         const double thickness = i->GetProperties()[THICKNESS];
                         mp_mass = area * thickness * density / integration_point_per_elements;
@@ -221,11 +221,11 @@ namespace MPMParticleGeneratorUtility
                         xg.clear();
 
                         // Loop over the nodes of the grid element
-                        for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
+                        for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++)
                         {
-                            for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                            for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                             {
-                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dim];
                             }
                         }
 
@@ -340,8 +340,8 @@ namespace MPMParticleGeneratorUtility
                         ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
 
                         // Get shape_function_values from defined particle_per_condition
-                        auto& rGeom = i->GetGeometry(); // current condition's geometry
-                        const GeometryData::KratosGeometryType geotype = rGeom.GetGeometryType();
+                        auto& r_geometry = i->GetGeometry(); // current condition's geometry
+                        const GeometryData::KratosGeometryType geotype = r_geometry.GetGeometryType();
                         Matrix shape_functions_values;
 
                         // Get geometry and dimension of the background grid
@@ -394,19 +394,19 @@ namespace MPMParticleGeneratorUtility
                                 case 2: // Only nodal
                                     break;
                                 case 3:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
                                 case 4:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     break;
                                 case 5:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                                     break;
                                 case 6:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                     break;
                                 case 7:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
@@ -430,16 +430,16 @@ namespace MPMParticleGeneratorUtility
                                 case 3: // Only nodal
                                     break;
                                 case 4:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
                                 case 6:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     break;
                                 case 9:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                     break;
                                 case 15:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                     break;
                                 case 19:
                                     shape_functions_values = MP16ShapeFunctions();
@@ -469,16 +469,16 @@ namespace MPMParticleGeneratorUtility
                                 case 4: // Only nodal
                                     break;
                                 case 5:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
                                 case 8:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     break;
                                 case 13:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                                     break;
                                 case 20:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
@@ -504,9 +504,9 @@ namespace MPMParticleGeneratorUtility
                         const unsigned int integration_point_per_conditions = shape_functions_values.size1();
 
                         // Evaluation of geometric length/area
-                        const double area = rGeom.Area();
+                        const double area = r_geometry.Area();
                         mpc_area = area / (1 + integration_point_per_conditions);
-                        const double mpc_nodal_area = mpc_area / rGeom.size();
+                        const double mpc_nodal_area = mpc_area / r_geometry.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -569,9 +569,9 @@ namespace MPMParticleGeneratorUtility
                             mpc_xg.clear();
 
                             // Loop over the nodes of the grid condition
-                            for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
-                                for ( unsigned int j = 0; j < rGeom.size(); j ++){
-                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(point_number, j) * rGeom[j].Coordinates()[dim];
+                            for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++){
+                                for ( unsigned int j = 0; j < r_geometry.size(); j ++){
+                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dim];
                                 }
                             }
 
@@ -613,10 +613,10 @@ namespace MPMParticleGeneratorUtility
                         last_condition_id += integration_point_per_conditions;
 
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
-                        for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                        for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                         {
                             // Nodal normal vector is used
-                            if (rGeom[j].Has(NORMAL)) mpc_normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                            if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
                             const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
                             if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
@@ -628,8 +628,8 @@ namespace MPMParticleGeneratorUtility
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
-                            for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
-                                mpc_xg[dim] = rGeom[j].Coordinates()[dim];
+                            for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++){
+                                mpc_xg[dim] = r_geometry[j].Coordinates()[dim];
                             }
 
                             // Setting particle condition's initial condition
@@ -664,7 +664,7 @@ namespace MPMParticleGeneratorUtility
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                         }
 
-                        last_condition_id += rGeom.size();
+                        last_condition_id += r_geometry.size();
                     }
                 }
             }

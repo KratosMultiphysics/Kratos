@@ -84,9 +84,9 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 {
     KRATOS_TRY;
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
 
     // Resizing as needed the LHS
@@ -113,14 +113,14 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
     }
 
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(rGeom);
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients(integration_method);
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
 
-    const Matrix& Ncontainer = rGeom.ShapeFunctionsValues(integration_method);
+    const Matrix& Ncontainer = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Sizing work matrices
     Vector pressure_on_nodes = ZeroVector( number_of_nodes );
@@ -143,13 +143,13 @@ void MPMGridLineLoadCondition2D::CalculateAll(
     for ( unsigned int i = 0; i < pressure_on_nodes.size(); i++ )
     {
         pressure_on_nodes[i] = pressure_on_condition;
-        if( rGeom[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] += rGeom[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] += r_geometry[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
         }
-        if( rGeom[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] -= rGeom[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] -= r_geometry[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
         }
     }
 
@@ -162,21 +162,21 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
     for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
     {
-        const double det_j = rGeom.DeterminantOfJacobian( integration_points[point_number] );
+        const double det_j = r_geometry.DeterminantOfJacobian( integration_points[point_number] );
 
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
 
         array_1d<double, 3> normal;
-        if(rGeom.WorkingSpaceDimension() == 2 )
+        if(r_geometry.WorkingSpaceDimension() == 2 )
         {
-            noalias(normal) = rGeom.UnitNormal( integration_points[point_number] );
+            noalias(normal) = r_geometry.UnitNormal( integration_points[point_number] );
         }
         else{
             if(!Has(LOCAL_AXIS_2))
                 KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
             const auto& v2 = GetValue(LOCAL_AXIS_2);
 
-            array_1d<double,3> v1 = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+            array_1d<double,3> v1 = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();
 
             MathUtils<double>::CrossProduct(normal,v1,v2 );
             normal /= norm_2(normal);
@@ -209,9 +209,9 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         array_1d<double,3> gauss_load = line_load;
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
-            if( rGeom[ii].SolutionStepsDataHas( LINE_LOAD ) )
+            if( r_geometry[ii].SolutionStepsDataHas( LINE_LOAD ) )
             {
-                noalias(gauss_load) += ( Ncontainer( point_number, ii )) * rGeom[ii].FastGetSolutionStepValue( LINE_LOAD );
+                noalias(gauss_load) += ( Ncontainer( point_number, ii )) * r_geometry[ii].FastGetSolutionStepValue( LINE_LOAD );
             }
         }
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
