@@ -31,8 +31,8 @@ class ValueLoggerTrustRegion( ValueLogger ):
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
 
-            for itr in range(self.specified_constraints.size()):
-                con_type = self.specified_constraints[itr]["type"].GetString()
+            for itr in range(self.constraints.size()):
+                con_type = self.constraints[itr]["type"].GetString()
                 row.append("{:>13}".format("c"+str(itr+1)+": "+con_type))
                 row.append("{:>13}".format("c"+str(itr+1)+"_ref"))
                 row.append("{:>12s}".format("len_C"+str(itr+1)))
@@ -50,14 +50,14 @@ class ValueLoggerTrustRegion( ValueLogger ):
     def _WriteCurrentValuesToConsole( self ):
         print("\n-------------------------------------------------------")
 
-        objective_id = self.specified_objectives[0]["identifier"].GetString()
+        objective_id = self.objectives[0]["identifier"].GetString()
         print("\n> Current value of objective = ", round(self.value_history[objective_id][self.current_iteration],12))
 
-        print("> Absolut change of objective = ",round(self.value_history["abs_change_obj"][self.current_iteration],4)," [%]")
-        print("> Relative change of objective = ",round(self.value_history["rel_change_obj"][self.current_iteration],4)," [%]\n")
+        print("> Absolut change of objective = ",round(self.value_history["abs_change_objective"][self.current_iteration],4)," [%]")
+        print("> Relative change of objective = ",round(self.value_history["rel_change_objective"][self.current_iteration],4)," [%]\n")
 
-        for itr in range(self.specified_constraints.size()):
-            constraint_id = self.specified_constraints[itr]["identifier"].GetString()
+        for itr in range(self.constraints.size()):
+            constraint_id = self.constraints[itr]["identifier"].GetString()
             print("> Value of C"+str(itr+1)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
 
         print("\nNormInf3D of dX = ", round(self.value_history["norm_dX"][self.current_iteration],6))
@@ -77,13 +77,13 @@ class ValueLoggerTrustRegion( ValueLogger ):
             row = []
             row.append("{:>4d}".format(self.current_iteration))
 
-            objective_id = self.specified_objectives[0]["identifier"].GetString()
+            objective_id = self.objectives[0]["identifier"].GetString()
             row.append(" {:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["abs_change_obj"][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["rel_change_obj"][self.current_iteration]))
+            row.append("{:>12f}".format(self.value_history["abs_change_objective"][self.current_iteration]))
+            row.append("{:>12f}".format(self.value_history["rel_change_objective"][self.current_iteration]))
 
-            for itr in range(self.specified_constraints.size()):
-                constraint_id = self.specified_constraints[itr]["identifier"].GetString()
+            for itr in range(self.constraints.size()):
+                constraint_id = self.constraints[itr]["identifier"].GetString()
                 row.append(" {:> .5E}".format(self.value_history[constraint_id][self.current_iteration]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
                 row.append("{:>12f}".format(self.value_history["len_bar_cons"][self.current_iteration][itr]))

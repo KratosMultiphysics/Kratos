@@ -346,7 +346,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 if inner_iteration >= self.min_inner_iterations and inner_iteration >1:
                     # In the first outer iteration, the constraint is not yet active and properly scaled. Therefore, the objective is used to check the relative improvement
                     if outer_iteration == 1:
-                        if abs(self.data_logger.GetValue("rel_change_obj", total_iteration)) < self.inner_iteration_tolerance:
+                        if abs(self.data_logger.GetValue("rel_change_objective", total_iteration)) < self.inner_iteration_tolerance:
                             break
                     else:
                         if abs(dL_relative) < self.inner_iteration_tolerance:

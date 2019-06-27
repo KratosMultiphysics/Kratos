@@ -32,8 +32,8 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             row.append("{:>13s}".format("df_abs[%]"))
             row.append("{:>13s}".format("df_rel[%]"))
 
-            for itr in range(self.specified_constraints.size()):
-                con_type = self.specified_constraints[itr]["type"].GetString()
+            for itr in range(self.constraints.size()):
+                con_type = self.constraints[itr]["type"].GetString()
                 row.append("{:>13s}".format("c"+str(itr+1)+": "+con_type))
                 row.append("{:>13s}".format("c"+str(itr+1)+"_ref"))
 
@@ -44,14 +44,14 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
-        objective_id = self.specified_objectives[0]["identifier"].GetString()
+        objective_id = self.objectives[0]["identifier"].GetString()
         print("\n> Current value of objective = ", "{:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
 
-        print("> Absolut change of objective = ","{:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration])," [%]")
-        print("> Relative change of objective = ","{:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration])," [%]\n")
+        print("> Absolut change of objective = ","{:> .5E}".format(self.value_history["abs_change_objective"][self.current_iteration])," [%]")
+        print("> Relative change of objective = ","{:> .5E}".format(self.value_history["rel_change_objective"][self.current_iteration])," [%]\n")
 
-        for itr in range(self.specified_constraints.size()):
-            constraint_id = self.specified_constraints[itr]["identifier"].GetString()
+        for itr in range(self.constraints.size()):
+            constraint_id = self.constraints[itr]["identifier"].GetString()
             print("> Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.value_history[constraint_id][self.current_iteration]))
 
     # --------------------------------------------------------------------------
@@ -61,13 +61,13 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             row = []
             row.append("{:>4d}".format(self.current_iteration))
 
-            objective_id = self.specified_objectives[0]["identifier"].GetString()
+            objective_id = self.objectives[0]["identifier"].GetString()
             row.append(" {:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["abs_change_objective"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["rel_change_objective"][self.current_iteration]))
 
-            for itr in range(self.specified_constraints.size()):
-                constraint_id = self.specified_constraints[itr]["identifier"].GetString()
+            for itr in range(self.constraints.size()):
+                constraint_id = self.constraints[itr]["identifier"].GetString()
                 row.append(" {:> .5E}".format(self.value_history[constraint_id][self.current_iteration]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
 

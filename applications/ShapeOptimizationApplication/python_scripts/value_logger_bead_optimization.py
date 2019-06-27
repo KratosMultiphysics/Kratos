@@ -46,11 +46,11 @@ class ValueLoggerBeadOptimization( ValueLogger ):
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
-        objective_id = self.specified_objectives[0]["identifier"].GetString()
+        objective_id = self.objectives[0]["identifier"].GetString()
         print("\n> Current value of objective = ","{:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
 
-        print("> Absolut change of objective = ","{:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration])," [%]")
-        print("> Relative change of objective = ","{:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration])," [%]\n")
+        print("> Absolut change of objective = ","{:> .5E}".format(self.value_history["abs_change_objective"][self.current_iteration])," [%]")
+        print("> Relative change of objective = ","{:> .5E}".format(self.value_history["rel_change_objective"][self.current_iteration])," [%]\n")
         print("> Value of penalty term = ","{:> .5E}".format(self.value_history["penalty_value"][self.current_iteration]),"\n")
 
     # --------------------------------------------------------------------------
@@ -61,12 +61,12 @@ class ValueLoggerBeadOptimization( ValueLogger ):
             row.append("{:>12d}".format(self.current_iteration))
             row.append("{:>10d}".format(self.value_history["outer_iteration"][self.current_iteration]))
             row.append("{:>10d}".format(self.value_history["inner_iteration"][self.current_iteration]))
-            objective_id = self.specified_objectives[0]["identifier"].GetString()
+            objective_id = self.objectives[0]["identifier"].GetString()
             row.append(" {:> .5E}".format(self.value_history["lagrange_value"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.value_history["lagrange_value_relative_change"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["abs_change_objective"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["rel_change_objective"][self.current_iteration]))
             row.append("  {:> .5E}".format(self.value_history["max_norm_objective_gradient"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.value_history["penalty_lambda"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.value_history["penalty_value"][self.current_iteration]))
