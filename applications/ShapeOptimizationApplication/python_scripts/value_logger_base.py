@@ -88,7 +88,7 @@ class ValueLogger():
     # --------------------------------------------------------------------------
     def __LogObjectiveValuesToHistory( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        is_first_log = self.__IsFirstLog(objective_id)
+        is_first_log = self.history["value"][objective_id] == {}
 
         self.history["value"][objective_id][self.current_iteration] = self.communicator.getValue( objective_id )
         self.history["standardized_value"][objective_id][self.current_iteration] = self.communicator.getStandardizedValue( objective_id )
@@ -128,12 +128,5 @@ class ValueLogger():
                 self.history[key] = {}
 
             self.history[key][self.current_iteration] = value
-
-    # -------------------------------------------------------------------------
-    def __IsFirstLog( self, key ):
-        if self.history["value"][key] == {}:
-            return True
-        else:
-            return False
 
 # ==============================================================================
