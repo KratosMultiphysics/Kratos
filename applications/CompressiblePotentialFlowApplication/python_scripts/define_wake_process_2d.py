@@ -47,25 +47,25 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
-        #self.__FindWakeElements()
+        # self._FindWakeElements()
 
-    def __FindWakeElements(self):
+    def _FindWakeElements(self):
 
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         #List to store trailing edge elements id
         self.trailing_edge_element_id_list = []
 
-        self.__SetWakeDirectionAndNormal()
+        self._SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
         self._SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake
-        self.__MarkWakeElements()
+        self._MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
         self._MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
-        self.__MarkWakeTEElement()
+        self._MarkWakeTEElement()
 
-    def __SetWakeDirectionAndNormal(self):
+    def _SetWakeDirectionAndNormal(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         if(free_stream_velocity.Size() != 3):
             raise Exception('The free stream velocity should be a vector with 3 components!')
@@ -91,24 +91,24 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
 
-    def __MarkWakeElements(self):
+    def _MarkWakeElements(self):
         # This function checks which elements are cut by the wake
         # and marks them as wake elements
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
 
         for elem in self.fluid_model_part.Elements:
             # Mark and save the elements touching the trailing edge
-            self.__MarkTrailingEdgeElement(elem)
+            self._MarkTrailingEdgeElement(elem)
 
             # Elements downstream the trailing edge can be wake elements
-            potentially_wake = self.__CheckIfPotentiallyWakeElement(elem)
+            potentially_wake = self._CheckIfPotentiallyWakeElement(elem)
 
             if(potentially_wake):
                 # Compute the nodal distances of the element to the wake
-                distances_to_wake = self.__ComputeDistancesToWake(elem)
+                distances_to_wake = self._ComputeDistancesToWake(elem)
 
                 # Selecting the cut (wake) elements
-                is_wake_element = self.__CheckIfWakeElement(distances_to_wake)
+                is_wake_element = self._CheckIfWakeElement(distances_to_wake)
 
                 if(is_wake_element):
                     elem.SetValue(CPFApp.WAKE, True)
@@ -118,11 +118,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     for node in elem.GetNodes():
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
-        self.__SaveTrailingEdgeElements()
+        self._SaveTrailingEdgeElements()
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
-    def __MarkTrailingEdgeElement(self, elem):
+    def _MarkTrailingEdgeElement(self, elem):
         # This function marks the elements touching the trailing
         # edge and saves them in the trailing_edge_element_id_list
         # for further computations
@@ -132,12 +132,12 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 self.trailing_edge_element_id_list.append(elem.Id)
                 break
 
-    def __SaveTrailingEdgeElements(self):
+    def _SaveTrailingEdgeElements(self):
         # This function stores the trailing edge element
         # to its submodelpart.
         self.trailing_edge_model_part.AddElements(self.trailing_edge_element_id_list)
 
-    def __CheckIfPotentiallyWakeElement(self, elem):
+    def _CheckIfPotentiallyWakeElement(self, elem):
         # This function selects the elements downstream the
         # trailing edge as potentially wake elements
 
@@ -156,7 +156,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         else:
             return False
 
-    def __ComputeDistancesToWake(self, elem):
+    def _ComputeDistancesToWake(self, elem):
         # This function computes the distance of the element nodes
         # to the wake
         nodal_distances_to_wake = KratosMultiphysics.Vector(3)
@@ -180,7 +180,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         return nodal_distances_to_wake
 
     @staticmethod
-    def __CheckIfWakeElement(distances_to_wake):
+    def _CheckIfWakeElement(distances_to_wake):
         # This function checks whether the element is cut by the wake
 
         # Initialize counters
@@ -214,7 +214,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 elem.SetValue(CPFApp.KUTTA, True)
 
     @staticmethod
-    def __CheckIfElemIsCutByWake(elem):
+    def _CheckIfElemIsCutByWake(elem):
         nneg=0
         # REMINDER: In 3D the elemental_distances may not be match with
         # the nodal distances if CalculateDistanceToSkinProcess is used.
@@ -225,14 +225,14 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         return nneg==1
 
-    def __MarkWakeTEElement(self):
+    def _MarkWakeTEElement(self):
         # This function finds the trailing edge element that is further downstream
         # and marks it as wake trailing edge element. The rest of trailing edge elements are
         # unassigned from the wake.
 
         for elem in self.trailing_edge_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
-                if(self.__CheckIfElemIsCutByWake(elem)): #TE Element
+                if(self._CheckIfElemIsCutByWake(elem)): #TE Element
                     elem.Set(KratosMultiphysics.STRUCTURE)
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake

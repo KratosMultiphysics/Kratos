@@ -11,12 +11,30 @@ def Factory(settings, Model):
 
 class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
-    def ExecuteInitialize():
+    def ExecuteInitialize(self):
 
-        self.wake_model_part=self.model.CreateModelPart("wake")
-        KratosMultiphysics.ModelPartIO('wake').ReadModelPart(self.wake_model_part)
-        KratosMultiphysics.CompressiblePotentialFlowApplication.DefineEmbeddedWakeProcess(self.fluid_model_part, self.wake_model_part)
 
+        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        #List to store trailing edge elements id
+        self.trailing_edge_element_id_list = []
+
+        self._SetWakeDirectionAndNormal()
+        # Save the trailing edge for further computations
+        self._SaveTrailingEdgeNode()
+        # Check which elements are cut and mark them as wake
+        self._MarkWakeElements()
+        # Mark the elements touching the trailing edge from below as kutta
+        self._MarkKuttaElements()
+        # Mark the trailing edge element that is further downstream as wake
+        self._MarkWakeTEElement()
+    #     self.wake_model_part=self.model.CreateModelPart("wake")
+    #     KratosMultiphysics.ModelPartIO('wake').ReadModelPart(self.wake_model_part)
+    #     KratosMultiphysics.CompressiblePotentialFlowApplication.DefineEmbeddedWakeProcess(self.fluid_model_part, self.wake_model_part)
+        # self.fluid_model_part.GetElement(51791).SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.KUTTA,False)
+        # self.fluid_model_part.GetElement(51790).SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.KUTTA,False)
+
+        # self.fluid_model_part.GetElement(50706).Set(KratosMultiphysics.STRUCTURE,True)
+        # self.fluid_model_part.GetElement(50706).SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE,True)
 
     def _SaveTrailingEdgeNode(self):
         '''
@@ -27,7 +45,7 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
         self.__FindMaximumInactiveNode()
         KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Find Max. Inactive Node time: ',time.time()-ini_time)
         ini_time=time.time()
-        # self.__CreateInactiveTrailingEdgeElementBall()
+        self.__CreateInactiveTrailingEdgeElementBall()
         KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Creating Inactive Element Ball time: ',time.time()-ini_time)
 
         import math
@@ -82,81 +100,63 @@ class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 ##################################################################
 ####################################################################
 
-        self.wake_model_part=self.model.GetModelPart("wake")
+        # self.wake_model_part=self.model.GetModelPart("wake")
 
-        ini_time = time.time()
-        for elem in self.fluid_model_part.Elements:
-            boolean = elem.Is(KratosMultiphysics.TO_SPLIT)
-            elem.Set(KratosMultiphysics.BOUNDARY,boolean)
+        # ini_time = time.time()
+        # for elem in self.fluid_model_part.Elements:
+        #     boolean = elem.Is(KratosMultiphysics.TO_SPLIT)
+        #     elem.Set(KratosMultiphysics.BOUNDARY,boolean)
 
-        distance_calculator = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(self.fluid_model_part, self.wake_model_part)
-        distance_calculator.Execute()
+        # distance_calculator = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(self.fluid_model_part, self.wake_model_part)
+        # distance_calculator.Execute()
 
-        for elem in self.fluid_model_part.Elements:
-            # print(elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
-            boolean = elem.Is(KratosMultiphysics.BOUNDARY)
-            elem.Set(KratosMultiphysics.TO_SPLIT,boolean)
-        KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Computing Wake Distance: ',time.time()-ini_time)
+        # for elem in self.fluid_model_part.Elements:
+        #     # print(elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
+        #     boolean = elem.Is(KratosMultiphysics.BOUNDARY)
+        #     elem.Set(KratosMultiphysics.TO_SPLIT,boolean)
+        # KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Computing Wake Distance: ',time.time()-ini_time)
 
-        # stop
-        x0 =  -0.75#self.origin[0]
-        y0 =  0.0#self.origin[1]
+        # # stop
+        # x0 =  -0.25#self.origin[0]
+        # y0 =  0.0#self.origin[1]
 
-        max_x_center = -1e10
-        for elem in self.boundary_sub_model_part.Elements:
-            distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-            '''with positive epsilon'''
-            npos = 0
-            nneg = 0
-            counter = -1
-            for elnode in elem.GetNodes():
-                counter += 1
-                d =  distances[counter]
-                if(d < 0):
-                    nneg += 1
-                else:
-                    npos += 1
-                elnode.SetValue(KratosMultiphysics.TEMPERATURE,d)
-            if(nneg>0 and npos>0):
-                center_X=elem.GetGeometry().Center().X
-                if (center_X>x0):
-                    elem.Set(KratosMultiphysics.THERMAL,True)
-                    elem.Set(KratosMultiphysics.ACTIVE,False)
-                    # elem.Set(KratosMultiphysics.TO_SPLIT,False)
-                    if (center_X > max_x_center):
-                        max_x_center = center_X
-                        max_elem = elem
+        # max_x_center = -1e10
+        # for elem in self.boundary_sub_model_part.Elements:
+        #     distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+        #     '''with positive epsilon'''
+        #     npos = 0
+        #     nneg = 0
+        #     counter = -1
+        #     for elnode in elem.GetNodes():
+        #         counter += 1
+        #         d =  distances[counter]
+        #         if(d < 0):
+        #             nneg += 1
+        #         else:
+        #             npos += 1
+        #         elnode.SetValue(KratosMultiphysics.TEMPERATURE,d)
+        #     if(nneg>0 and npos>0):
+        #         center_X=elem.GetGeometry().Center().X
+        #         if (center_X>x0):
+        #             elem.Set(KratosMultiphysics.THERMAL,True)
+        #             elem.Set(KratosMultiphysics.ACTIVE,False)
+        #             # elem.Set(KratosMultiphysics.TO_SPLIT,False)
+        #             if (center_X > max_x_center):
+        #                 max_x_center = center_X
+        #                 max_elem = elem
 
-        max_elem.Set(KratosMultiphysics.ACTIVE,False)
-        # max_elem.Set(KratosMultiphysics.TO_SPLIT,False)
-        max_x_node=-1e10
-        for elnode in max_elem.GetNodes():
-            if elnode.X>max_x_node:
-                max_node=elnode
-                max_x_node=elnode.X
-        self.trailing_edge_node=max_node
-
-
+        # max_elem.Set(KratosMultiphysics.ACTIVE,False)
+        # # max_elem.Set(KratosMultiphysics.TO_SPLIT,False)
+        # max_x_node=-1e10
+        # for elnode in max_elem.GetNodes():
+        #     if elnode.X>max_x_node:
+        #         max_node=elnode
+        #         max_x_node=elnode.X
+        # self.trailing_edge_node=max_node
 
 
-
-
-
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(91367))
         # self.__DeactivateActive(self.fluid_model_part.GetElement(86292))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(86294))
 
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(156113))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(152778))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(81065))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(81064))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(158517))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(45471))
-        # self.__DeactivateActive(self.fluid_model_part.GetElement(45470))
-
-
-
-        # self.trailing_edge_node = self.fluid_model_part.GetNode(77523)
         # self.trailing_edge_node = self.fluid_model_part.GetNode(79576)
 
         self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
