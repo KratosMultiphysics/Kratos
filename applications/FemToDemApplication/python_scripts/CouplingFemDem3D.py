@@ -20,7 +20,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def Initialize(self):
 		self.number_of_nodes_element = 4
-		self.volume_erased = 0.0
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 #Sand Production Calculations
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
@@ -150,12 +150,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def GenerateDEM(self): # 3D version
 		if self.echo_level > 0:
 			KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: GenerateDEM")
+		self.CountErasedVolume()
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
 			dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
 			dem_generator_process.Execute()
 
 			self.RemoveAloneDEMElements()
-			self.CountErasedVolume()
 			element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 			element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 
@@ -526,4 +526,13 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
 
 	def CountErasedVolume(self):
+		count_erased_vol = True
+		if count_erased_vol:
+			erased_vol_process = KratosFemDem.ComputeSandProduction(self.FEM_Solution.main_model_part)
+			erased_vol_process.Execute()
+
+			self.ErasedVolume = open("ErasedVolume.txt","a")
+			erased_vol = self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME]
+			self.ErasedVolume.write("    " + "{0:.4e}".format(self.FEM_Solution.time).rjust(11) + "    " + "{0:.4e}".format(erased_vol).rjust(11) + "\n")
+			self.ErasedVolume.close()
 		

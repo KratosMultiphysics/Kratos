@@ -30,6 +30,22 @@ ComputeSandProduction::ComputeSandProduction(
 void ComputeSandProduction::Execute() 
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
+    double erased_volume = r_process_info[ERASED_VOLUME];
+
+    const auto it_element_begin = mrModelPart.ElementsBegin();
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+
+        auto it_elem = it_element_begin + i;
+        bool is_active = true;
+        if (it_elem->IsDefined(ACTIVE))
+            is_active = it_elem->Is(ACTIVE);
+
+        if (!is_active) { // it is going to be removed inside GenerateDEM
+            erased_volume += it_elem->GetGeometry().Volume();
+        }
+    }
+    r_process_info[ERASED_VOLUME] = erased_volume;
 }
 
 /***********************************************************************************/
