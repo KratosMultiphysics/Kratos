@@ -31,7 +31,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //---schemes
-#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 //---builders and solvers
@@ -64,7 +64,7 @@ namespace Python{
 
         // MPM Residual Based Bossak Scheme Type
         py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
-            .def(py::init < ModelPart&, unsigned int, unsigned int, double, double>())
+            .def(py::init < ModelPart&, unsigned int, unsigned int, double, double, bool>())
             .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
             ;
 
