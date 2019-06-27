@@ -45,7 +45,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
      * refinement_coefficient: Coefficient to make the average element size throughout the domain change by a factor of target_refinement_coefficient after the refinement
      *
      * global_tolerance_strategy
-     * interpolation_error: The error of interpolation allowed
+     * global_tolerance: The error of interpolation allowed
      */
     Parameters default_parameters = Parameters(R"(
     {
@@ -66,7 +66,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
         },
         "global_tolerance_strategy":
         {
-            "interpolation_error"                 : 0.1
+            "global_tolerance"                 : 0.1
         },
         "echo_level"                          : 0
     })"
@@ -93,7 +93,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     mDivergenceFreeMaxValue = -1;
 
     // Global tolerance strategy
-    mGlobalErrorStrategyInterpolationError = ThisParameters["global_tolerance_strategy"]["interpolation_error"].GetDouble();
+    mGlobalErrorStrategyGlobalTolerance = ThisParameters["global_tolerance_strategy"]["global_tolerance"].GetDouble();
     mGlobalErrorStrategyMeshConstant = 1.0;
 
 }
@@ -331,12 +331,12 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         const double min_ratio = 1.0/std::pow(mMinSize, 2);
         const double max_ratio = 1.0/std::pow(mMaxSize, 2);
 
-        // Check if the interpolation error is near zero. If it is we will correct it
-        if (mGlobalErrorStrategyInterpolationError < std::numeric_limits<double>::epsilon())
+        // Check if the global tolerance is near zero. If it is we will correct it
+        if (mGlobalErrorStrategyGlobalTolerance < std::numeric_limits<double>::epsilon())
         {
-            KRATOS_WARNING("global_tolerance_strategy") << "WARNING: Your interpolation error is near zero: " << mGlobalErrorStrategyInterpolationError << std::endl;
-            KRATOS_WARNING("global_tolerance_strategy") << "WARNING: Setting interpolation error to lower numeric limit: " << std::numeric_limits<double>::epsilon() << std::endl;
-            mGlobalErrorStrategyInterpolationError = std::numeric_limits<double>::epsilon();
+            KRATOS_WARNING("global_tolerance_strategy") << "WARNING: Your global tolerance is near zero: " << mGlobalErrorStrategyGlobalTolerance << std::endl;
+            KRATOS_WARNING("global_tolerance_strategy") << "WARNING: Setting global tolerance to lower numeric limit: " << std::numeric_limits<double>::epsilon() << std::endl;
+            mGlobalErrorStrategyGlobalTolerance = std::numeric_limits<double>::epsilon();
         }
 
         #pragma omp parallel for
@@ -348,7 +348,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
 
             // Set element size
             double aux_element_size;
-            double factor = mGlobalErrorStrategyMeshConstant*std::abs(divergencefree_interp_value)/mGlobalErrorStrategyInterpolationError;
+            double factor = mGlobalErrorStrategyMeshConstant*std::abs(divergencefree_interp_value)/mGlobalErrorStrategyGlobalTolerance;
 
             // Check with max and min size
             aux_element_size = MathUtils<double>::Min(MathUtils<double>::Max(factor, max_ratio), min_ratio);

@@ -219,7 +219,7 @@ private:
     double mDivergenceFreeMaxValue;
 
     // Interpolation error strategy
-    double mGlobalErrorStrategyInterpolationError;
+    double mGlobalErrorStrategyGlobalTolerance;
     double mGlobalErrorStrategyMeshConstant;
 
     ///@}
