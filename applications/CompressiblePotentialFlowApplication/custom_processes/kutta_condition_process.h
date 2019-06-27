@@ -19,7 +19,6 @@
 #include "includes/kratos_flags.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
-#include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
