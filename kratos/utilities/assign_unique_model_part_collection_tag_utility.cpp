@@ -171,7 +171,7 @@ Parameters AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(
     )
 {
     std::ifstream infile(rFilename + ".json");
-    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    KRATOS_ERROR_IF_NOT(infile.good()) << "Tags file: " << rFilename  + ".json" << " cannot be found" << std::endl;
     std::stringstream buffer;
     buffer << infile.rdbuf();
     Parameters color_json(buffer.str());
@@ -228,7 +228,7 @@ std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursive
         sub_model_parts_names.push_back(rThisModelPart.Name());
     else
         Prefix += ".";
-    
+
     StringVectorType names = rThisModelPart.GetSubModelPartNames();
     for (auto& name : names)
     {

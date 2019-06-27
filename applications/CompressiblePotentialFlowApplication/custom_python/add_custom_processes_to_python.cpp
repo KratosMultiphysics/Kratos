@@ -22,6 +22,7 @@
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/metrics_potential_hessian_process.h"
 #include "custom_processes/compute_custom_nodal_gradient_process.h"
+#include "custom_processes/define_2d_wake_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -56,6 +57,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>, ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalCustomNodalGradientProcess")
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
+
+    py::class_<Define2DWakeProcess, Define2DWakeProcess::Pointer, Process >
+        (m, "Define2DWakeProcess")
+        .def(py::init<ModelPart&, const double>())
+        ;
 }
 
 }  // namespace Python.

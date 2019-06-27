@@ -8,7 +8,6 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(DENSITY)

@@ -284,9 +284,9 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _GetConditionNumNodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
+            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
         else:
-            condition_num_nodes = 0
+            condition_num_nodes = 2
 
         condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes

@@ -73,9 +73,43 @@ proc WriteMdpa { basename dir problemtypedir } {
     set Groups [GiD_Info conditions Body_Part groups]
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
+    set ElementName ""
+        if {[lindex [lindex $Groups $i] 15] eq "false"} {
+            if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
+                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
+                set ElementName "SmallStrainRankineFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
+                set ElementName "SmallStrainSimoJuFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
+                set ElementName "SmallStrainDruckerPragerFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
+                set ElementName "SmallStrainVonMisesFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
+                set ElementName "SmallStrainTrescaFemDemElement2D"
+            } else {
+                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement2D"
+            }        
+        } else {
+            if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
+                set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
+                set ElementName "LargeDisplacementRankineFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
+                set ElementName "LargeDisplacementSimoJuFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
+                set ElementName "LargeDisplacementDruckerPragerFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
+                set ElementName "LargeDisplacementVonMisesFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
+                set ElementName "LargeDisplacementTrescaFemDemElement2D"
+            } else {
+                set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement2D"
+            }  
+        }
          # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-        WriteElements FileVar [lindex $Groups $i] triangle FemDem2DElement $BodyElemsProp Triangle2D3Connectivities
+        WriteElements FileVar [lindex $Groups $i] triangle $ElementName $BodyElemsProp Triangle2D3Connectivities
     }
     puts $FileVar ""
 

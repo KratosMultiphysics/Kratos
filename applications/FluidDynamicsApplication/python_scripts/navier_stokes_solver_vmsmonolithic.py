@@ -44,9 +44,31 @@ class StabilizedFormulation(object):
             "dynamic_tau": 0.01
         }""")
 
+        default_non_newtonian_settings = KratosMultiphysics.Parameters(r"""{
+            "power_law_k": 1e-6,
+            "power_law_n": 1.0,
+            "yield_stress": 0.0,
+            "regularization_coefficient" : 100.0
+        }""")
+
+        # if non-newtonian, there are some extra options
+        if settings.Has("non_newtonian_fluid_parameters"):
+            self.non_newtonian_option = True
+            default_settings.AddValue("non_newtonian_fluid_parameters", default_non_newtonian_settings)
+            self.element_name = 'HerschelBulkleyVMS'
+        else:
+            self.non_newtonian_option = False
+            self.element_name = 'VMS'
+
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "VMS"
+        # validate the non-newtonian parameters if necessary
+        if self.non_newtonian_option:
+            settings["non_newtonian_fluid_parameters"].ValidateAndAssignDefaults(default_non_newtonian_settings)
+            self.process_data[KratosMultiphysics.POWER_LAW_K] = settings["non_newtonian_fluid_parameters"]["power_law_k"].GetDouble()
+            self.process_data[KratosMultiphysics.POWER_LAW_N] = settings["non_newtonian_fluid_parameters"]["power_law_n"].GetDouble()
+            self.process_data[KratosMultiphysics.YIELD_STRESS] = settings["non_newtonian_fluid_parameters"]["yield_stress"].GetDouble()
+            self.process_data[KratosCFD.REGULARIZATION_COEFFICIENT] = settings["non_newtonian_fluid_parameters"]["regularization_coefficient"].GetDouble()
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
