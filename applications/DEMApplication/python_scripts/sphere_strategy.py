@@ -348,6 +348,8 @@ class ExplicitStrategy(object):
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
+
+
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
@@ -358,6 +360,9 @@ class ExplicitStrategy(object):
         self._UpdateTimeInOneModelPart(cluster_model_part, time, is_time_to_print)
         self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, is_time_to_print)
         self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
+        # Ferran
+        self._MoveAllMeshes(time, self.dt)
+        #
 
     def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
@@ -367,7 +372,7 @@ class ExplicitStrategy(object):
 
     def FinalizeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
-        self._MoveAllMeshes(time, self.dt)
+        # self._MoveAllMeshes(time, self.dt)
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)

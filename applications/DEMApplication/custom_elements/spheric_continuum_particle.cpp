@@ -389,7 +389,7 @@ namespace Kratos {
                                   GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce,ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation);
+                ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, false, i);
                 if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, data_buffer.mDistance, calculation_area,
                                                                                         data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
@@ -423,6 +423,17 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
+
+    void SphericContinuumParticle::ComputeRollingResistance(double& RollingResistance, const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
+
+        KRATOS_TRY
+
+        if ((i >= mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+            SphericParticle::ComputeRollingResistance(RollingResistance, NormalLocalContactForce, equiv_rolling_friction_coeff, i);
+        }
+
+        KRATOS_CATCH("")
+    } // ComputeRollingResistance
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
 

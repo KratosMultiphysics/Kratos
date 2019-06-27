@@ -711,7 +711,8 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
                                      double LocalCoordSystem2[3],
                                      SphericParticle* p_neighbour,
                                      double indentation,
-                                     bool wall)
+                                     bool wall,
+                                     unsigned int i)
 {
     double arm_length = GetInteractionRadius() - indentation;
 
@@ -744,10 +745,19 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
             equiv_rolling_friction_coeff = GetRollingFrictionWithWalls() * GetRadius();
         }
 
-        if (equiv_rolling_friction_coeff != 0.0) {
-            RollingResistance += fabs(NormalLocalContactForce) * equiv_rolling_friction_coeff;
+        if (equiv_rolling_friction_coeff) {
+            ComputeRollingResistance(RollingResistance,  NormalLocalContactForce,  equiv_rolling_friction_coeff, i);
         }
     }
+}
+
+void SphericParticle::ComputeRollingResistance(double& RollingResistance, const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
+
+    KRATOS_TRY
+
+    RollingResistance += fabs(NormalLocalContactForce) * equiv_rolling_friction_coeff;
+
+    KRATOS_CATCH("")
 }
 
 void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt)
@@ -852,7 +862,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation);
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, false, i);
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -1042,7 +1052,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             rigid_element_force[2] -= GlobalContactForce[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true, i); //WARNING: sending itself as the neighbor!!
             }
 
             //WEAR
@@ -1165,7 +1175,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         rigid_element_force[2] -= GlobalContactForce[2];
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
-            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true, i); //WARNING: sending itself as the neighbor!!
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
