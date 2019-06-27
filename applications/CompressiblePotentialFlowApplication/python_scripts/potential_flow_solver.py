@@ -125,6 +125,7 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Required for modify_distance_process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) # Required for modify_distance_process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Required for modify_distance_process
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE) # Required for modify_distance_process
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowSolver]:: ", "Variables ADDED")
 
