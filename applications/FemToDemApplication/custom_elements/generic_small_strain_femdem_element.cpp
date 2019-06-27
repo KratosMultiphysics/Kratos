@@ -1339,7 +1339,20 @@ double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristic
     GenericSmallStrainFemDemElement<TDim,TyieldSurf> *pCurrentElement
     )
 {
-    return pCurrentElement->GetGeometry().Length();
+	auto& r_geometry = pCurrentElement->GetGeometry();
+	const SizeType number_of_edges = r_geometry.EdgesNumber();
+	auto& edges = r_geometry.Edges();
+
+	double sum_of_lengths = 0.0;
+	for (IndexType i = 0; i < number_of_edges; ++i) {
+		auto& node_1 = edges[i][0];
+		auto& node_2 = edges[i][1];
+		auto coordinates_1 = node_1.GetInitialPosition();
+		auto coordinates_2 = node_2.GetInitialPosition();
+		sum_of_lengths += std::sqrt(std::pow(coordinates_1[0] - coordinates_2[0], 2) + 
+			std::pow(coordinates_1[1] - coordinates_2[1], 2) + std::pow(coordinates_1[2] - coordinates_2[2], 2));
+	}
+	return sum_of_lengths / number_of_edges;
 }
 
 /***********************************************************************************/
