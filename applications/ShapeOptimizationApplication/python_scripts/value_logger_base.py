@@ -32,7 +32,7 @@ class ValueLogger():
         self.history = { "value"                : {},
                          "standardized_value"   : {},
                          "abs_change_objective" : {},
-                         "abs_change_objective" : {} }
+                         "rel_change_objective" : {} }
 
         for itr in range(self.objectives.size()):
             objective_id = self.objectives[itr]["identifier"].GetString()
