@@ -214,8 +214,7 @@ public:
         KRATOS_TRY
 
         // Rotate the current displacement to the modified coordinate system since Dx is currently at the modified coordinate system
-        // Do not confuse with the name RotateVelocities, what the function really do is to RotateDisplacements
-        mRotationTool.RotateVelocities(r_model_part);
+        mRotationTool.RotateDisplacements(r_model_part);
 
         // Update of displacement (by DOF)
         for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
@@ -227,8 +226,7 @@ public:
         }
 
         // Rotate the displacement back to the original coordinate system to calculate the velocity and acceleration
-        // Do not confuse with the name RecoverVelocities, what the function really do is to RecoverDisplacements
-        mRotationTool.RecoverVelocities(r_model_part);
+        mRotationTool.RecoverDisplacements(r_model_part);
 
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
