@@ -8,7 +8,6 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //
 //
 
@@ -87,7 +86,7 @@ public:
     /// Default constructor.
     explicit VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(&GetDefaultVariablesList())
+          mpData(0), mpVariablesList(pGetDefaultVariablesList())
     {
         // Allcating memory
         Allocate();
@@ -130,7 +129,7 @@ public:
     }
 
     /// Variables list constructor.
-    VariablesListDataValueContainer(VariablesList*  pVariablesList, SizeType NewQueueSize = 1)
+    VariablesListDataValueContainer(VariablesList::Pointer  pVariablesList, SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
@@ -151,7 +150,7 @@ public:
     }
 
     /// Variables list and data constructor
-    VariablesListDataValueContainer(VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+    VariablesListDataValueContainer(VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
@@ -524,19 +523,19 @@ public:
     ///@name Access
     ///@{
 
-    VariablesList* pGetVariablesList()
+    VariablesList::Pointer pGetVariablesList()
     {
         return mpVariablesList;
     }
 
-    const VariablesList * pGetVariablesList() const
+    const VariablesList::Pointer pGetVariablesList() const
     {
         return mpVariablesList;
     }
 
 
 
-    void SetVariablesList(VariablesList* pVariablesList)
+    void SetVariablesList(VariablesList::Pointer pVariablesList)
     {
         DestructAllElements();
 
@@ -556,7 +555,7 @@ public:
         }
     }
 
-    void SetVariablesList(VariablesList* pVariablesList, SizeType ThisQueueSize)
+    void SetVariablesList(VariablesList::Pointer pVariablesList, SizeType ThisQueueSize)
     {
         DestructAllElements();
 
@@ -578,10 +577,10 @@ public:
         }
     }
 
-    VariablesList& GetDefaultVariablesList()
+    VariablesList::Pointer pGetDefaultVariablesList()
     {
-        static VariablesList DefaultVariablesList;
-        return DefaultVariablesList;
+        static VariablesList::Pointer pDefaultVariablesList = Kratos::make_intrusive<VariablesList>();
+        return pDefaultVariablesList;
     }
 
     void Resize(SizeType NewSize)
@@ -901,7 +900,7 @@ private:
 
     ContainerType mpData;
 
-    VariablesList* mpVariablesList;
+    VariablesList::Pointer mpVariablesList;
 
     ///@}
     ///@name Private Operators

@@ -32,9 +32,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.epsilon = settings["epsilon"].GetDouble()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
-        #List to store trailing edge elements id
-        self.trailing_edge_element_id_list = []
 
         # Find nodal neigbours util call
         avg_elem_num = 10
@@ -47,6 +44,17 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
+
+        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+
+        #self.__FindWakeElements()
+
+    def __FindWakeElements(self):
+
+        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        #List to store trailing edge elements id
+        self.trailing_edge_element_id_list = []
+
         self.__SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
         self.__SaveTrailingEdgeNode()

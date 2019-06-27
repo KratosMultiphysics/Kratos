@@ -19,7 +19,6 @@
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {

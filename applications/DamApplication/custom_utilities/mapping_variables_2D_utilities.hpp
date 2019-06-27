@@ -212,7 +212,7 @@ protected:
             if(IsInside==false)
             {
 
-                for(int i = 0; i < 12; i++)
+                for(int i = 0; i <= 12; i++)
                 {
                     for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column]).size(); m++)
                     {
@@ -374,7 +374,7 @@ protected:
             if(IsInside==false)
             {
 
-                for(int i = 0; i < 12; i++)
+                for(int i = 0; i <= 12; i++)
                 {
                     for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column]).size(); m++)
                     {
