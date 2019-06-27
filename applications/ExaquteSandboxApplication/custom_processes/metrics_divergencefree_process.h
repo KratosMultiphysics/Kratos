@@ -202,7 +202,8 @@ private:
 
     double mMinSize;                 /// The minimal size of the elements
     double mMaxSize;                 /// The maximal size of the elements
-    std::string mRefinementStrategy; /// Refinement strategy
+    enum RefinementStrategies {MaximumStrategy, MeanDistributionStrategy, GlobalToleranceStrategy};
+    RefinementStrategies mRefinementStrategy; /// Refinement strategy
     SizeType mEchoLevel;             /// The echo level
     std::string mReferenceVariable;
 
@@ -218,8 +219,8 @@ private:
     double mDivergenceFreeMaxValue;
 
     // Interpolation error strategy
-    double mInterpErrorStrategyInterpolationError;
-    double mInterpErrorStrategyMeshConstant;
+    double mGlobalErrorStrategyInterpolationError;
+    double mGlobalErrorStrategyMeshConstant;
 
     ///@}
     ///@name Private Operators

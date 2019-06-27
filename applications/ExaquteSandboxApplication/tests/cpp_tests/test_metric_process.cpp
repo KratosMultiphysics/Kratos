@@ -349,7 +349,7 @@ namespace Kratos
         }
 
                 /**
-        * Checks the correct work of the divergencefree metric process with geometric error strategy
+        * Checks the correct work of the divergencefree metric process with global tolerance strategy
         * Test triangle
         */
 
@@ -361,7 +361,7 @@ namespace Kratos
             {
                 "minimal_size"                        : 0.01,
                 "maximal_size"                        : 10.0,
-                "refinement_strategy"                 : "interpolation_error_strategy",
+                "refinement_strategy"                 : "global_tolerance_strategy",
                 "reference_variable_name"             : "DISTANCE"
             })"
             );
@@ -407,7 +407,7 @@ namespace Kratos
         }
 
         /**
-        * Checks the correct work of the divergencefree metric process with geometric error strategy
+        * Checks the correct work of the divergencefree metric process with global tolerance strategy
         * Test tetrahedra
         */
 
@@ -419,7 +419,7 @@ namespace Kratos
             {
                 "minimal_size"                        : 0.01,
                 "maximal_size"                        : 10.0,
-                "refinement_strategy"                 : "interpolation_error_strategy",
+                "refinement_strategy"                 : "global_tolerance_strategy",
                 "reference_variable_name"             : "DISTANCE"
             })"
             );
