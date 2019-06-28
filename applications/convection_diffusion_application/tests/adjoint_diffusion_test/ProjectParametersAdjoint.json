@@ -15,7 +15,7 @@
         "response_function_settings" : {
             "response_type" : "point_temperature",
             "custom_settings" : {
-                "objective_id" : 8
+                "model_part_name" : "HeatFlux2D_right"
             }
         },
         "sensitivity_settings" : {

@@ -41,9 +41,27 @@ public:
     {
         KRATOS_TRY;
 
-        unsigned int target_id = Settings["objective_id"].GetInt();
+        std::string target_model_part = Settings["model_part_name"].GetString();
 
-        rModelPart.Nodes()[target_id].Set(STRUCTURE);
+		if (rModelPart.Name() == target_model_part)
+		{
+			for (auto& r_node : rModelPart.Nodes())
+			{
+				r_node.Set(STRUCTURE);
+			}
+		}
+		else if (rModelPart.HasSubModelPart(target_model_part))
+		{
+			auto& r_submodelpart = rModelPart.GetSubModelPart(target_model_part);
+			for (auto& r_node : r_submodelpart.Nodes())
+			{
+				r_node.Set(STRUCTURE);
+			}
+		}
+		else
+		{
+			KRATOS_ERROR << "Unknown ModelPart " << target_model_part << "." << std::endl;
+		}
 
         KRATOS_CATCH("");
     }
