@@ -18,6 +18,9 @@ class CoSimulationSolverWrapper(object):
         Deriving classes should call it in their constructors
         """
 
+        # Every SolverWrapper has its own model, because:
+        # - the names can be easily overlapping (e.g. "Structure.Interface")
+        # - Solvers should not be able to access the data of other solvers directly!
         self.model = KM.Model()
 
         self.settings = settings
@@ -25,8 +28,9 @@ class CoSimulationSolverWrapper(object):
 
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.io = None
         self.data_dict = self.__CreateInterfaceDataDict()
+        # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
+        self.io = None
 
 
     def Initialize(self):
@@ -107,10 +111,12 @@ class CoSimulationSolverWrapper(object):
     def IsDistributed(self):
         '''Returns whether this solver is executed distributed Aka MPI-parallel
         '''
+        # TODO check if this method is necessary!
         return False
 
-    def _GetIOName(self):
-        # only external solvers have to specify sth here
+    @classmethod
+    def _GetIOName(cls):
+        # only external solvers have to specify sth here / override this
         return "dummy_io"
 
     ## __CreateInterfaceDataDict : Private Function to obtain the map of data objects

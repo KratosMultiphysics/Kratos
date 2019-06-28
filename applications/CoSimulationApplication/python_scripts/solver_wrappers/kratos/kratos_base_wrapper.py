@@ -62,13 +62,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def _CreateAnalysisStage(self):
         raise Exception("Creation of the AnalysisStage must be implemented in the derived class!")
 
-    def _GetParallelType(self):
-        raise Exception("Returning the type of parallelism must be implemented in the derived class!")
-
 
     def PrintInfo(self):
         cs_tools.cs_print_info("KratosSolver", self._Name())
         ## TODO print additional stuff with higher echo-level
-
-    def IsDistributed(self):
-        return (self._GetParallelType() == "MPI")

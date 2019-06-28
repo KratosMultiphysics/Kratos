@@ -197,13 +197,6 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Check()
 
-    def IsDistributed(self):
-        return True
-
-    def _GetIOName(self):
-        # the coupled-solvers always use the kratos-format, since there are no "external" coupled solvers
-        return "kratos"
-
     def __CreateSolverWrappers(self):
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
         import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory

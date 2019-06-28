@@ -78,7 +78,8 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             }
         }]'''))
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         kratos_utils.DeleteFileIfExisting("fsi_mok/ProjectParametersCFD.json")
 
 

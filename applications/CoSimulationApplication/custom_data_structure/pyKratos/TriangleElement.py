@@ -19,13 +19,13 @@ class TriangleElement(Element):
                 raise Exception("node with Id smaller than 0 found")
 
     def ShapeFunctions(self, order=1):
-        '''this function provides the shape function values, derivatives and integration_weight'''
-        '''at the location of the gauss points. Order of integration is controlled'''
-        '''by the optional parameter "order".'''
-        '''N[gauss][i] contains the shape function of node i computed at the position of "gauss" '''
-        '''derivatives[gauss][i,k] contains the derivative of node i, component k at the position of gauss '''
-        '''weights[gauss] includes the integration weights, including the det of the jacobian, to be used '''
-        '''at the gauss point'''
+        '''this function provides the shape function values, derivatives and integration_weight
+        at the location of the gauss points. Order of integration is controlled
+        by the optional parameter "order".
+        N[gauss][i] contains the shape function of node i computed at the position of "gauss"
+        derivatives[gauss][i,k] contains the derivative of node i, component k at the position of gauss
+        weights[gauss] includes the integration weights, including the det of the jacobian, to be used
+        at the gauss point'''
         derivatives = []
         weights = []
         Ncontainer = []

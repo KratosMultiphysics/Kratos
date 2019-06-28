@@ -18,7 +18,7 @@ from copy import deepcopy
 from collections import deque
 
 def Create(settings, solver_wrapper):
-    FIXME_needs_some_minor_updates_see_aitken_and_MVQN
+    raise NotImplementedError("FIXME_needs_some_minor_updates_see_aitken_and_MVQN")
     return IQNILS(settings, solver_wrapper)
 
 ## Class IQNILS.

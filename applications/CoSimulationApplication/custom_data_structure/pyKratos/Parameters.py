@@ -21,7 +21,7 @@ class Parameters(object):
     def ValidateAndAssignDefaults(self, defaults, recursive=False):
         self.__CheckIfParameter(defaults)
 
-        for key, val in self.items():
+        for key in self.keys():
             # check if the current entry also exists in the defaults
             if not defaults.Has(key):
                 err_msg  = 'The item with name "' + key + '" is present in this '

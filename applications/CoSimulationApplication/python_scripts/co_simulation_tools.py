@@ -6,7 +6,7 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 from . import colors
 
-"""This file contains some functionalities that are commonly used in CoSimulation"""
+### This file contains functionalities that are commonly used in CoSimulation ###
 
 def cs_print_info(label, *args):
     KM.Logger.PrintInfo(colors.bold(label), " ".join(map(str,args)))
