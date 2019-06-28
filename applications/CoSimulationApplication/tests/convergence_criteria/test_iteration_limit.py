@@ -41,6 +41,9 @@ class TestConvergenceCriterionIterationLimit(KratosUnittest.TestCase):
         convergence_criterion_iteration_limit.Update(interface)
         is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
         self.assertTrue(is_satisfied)
+        convergence_criterion_iteration_limit.Update(interface)
+        is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
+        self.assertTrue(is_satisfied)
 
 
 if __name__ == '__main__':
