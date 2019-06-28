@@ -692,6 +692,18 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
             break;
         }
     }
+    std::vector<std::string> sub_model_part_list;
+    for(auto& r_sub_model_part : rOldModelPart.SubModelParts()){
+        for(auto& r_elem : r_sub_model_part.Elements()){
+            // We get the condition geometry
+            const GeometryType& r_geometry = r_elem.GetGeometry();
+
+            if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
+                sub_model_part_list.push_back(r_sub_model_part.Name());
+                break;
+            }
+        }
+    }
 
     // Node and element counter
     const SizeType total_number_of_nodes = mrThisModelPart.GetRootModelPart().NumberOfNodes(); // Nodes must be ordered
@@ -776,10 +788,18 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[2].Id()));
 
         auto p_new_elem = p_reference_element->Create(total_number_of_elements + i, element_nodes, it_elem->pGetProperties());
+        p_new_elem->Set(NEW_ENTITY, true);
         mrThisModelPart.AddElement(p_new_elem);
     }
 
-    // TODO: Preserve submodelparts
+    // Transfering to submodelparts
+    for (auto& r_name_sub : sub_model_part_list) {
+        ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(r_name_sub);
+        FastTransferBetweenModelPartsProcess(r_sub_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ELEMENTS, NEW_ENTITY).Execute();
+    }
+
+    // Reset flag
+    VariableUtils().ResetFlag(NEW_ENTITY, mrThisModelPart.Elements());
 }
 
 /***********************************************************************************/
@@ -796,13 +816,7 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
     auto& r_conditions_array = mrThisModelPart.Conditions();
 
     // Reset flag
-    const auto it_cond_begin = r_conditions_array.begin();
-    const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-    #pragma omp parallel for
-    for(int i = 0; i < number_of_conditions; ++i) {
-        const auto it_cond = it_cond_begin + i;
-        it_cond->Reset(TO_ERASE);
-    }
+    VariableUtils().ResetFlag(TO_ERASE, r_conditions_array);
 
     // Create map
     for(auto& r_cond : r_conditions_array) {
