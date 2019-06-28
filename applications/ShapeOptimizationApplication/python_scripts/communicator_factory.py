@@ -140,6 +140,9 @@ class Communicator:
             if constraint["type"].GetString() not in self.supported_constraint_types:
                 raise RuntimeError("Unsupported type defined for the following constraint: " + constraint_id)
 
+            if constraint["reference"].GetString() not in self.supported_constraint_references:
+                raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
+
             if  constraint["reference"].GetString() == "specified_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
