@@ -29,7 +29,7 @@ namespace Kratos
         KRATOS_TRY
 
         // KRATOS_WATCH("start: Initialize")
-        //Constitutive Law initialisation
+        // Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
         CalculateMetric(mInitialMetric);
@@ -65,6 +65,8 @@ namespace Kratos
         //resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
+            if (Id() == 4)
+                KRATOS_WATCH("resizing LeftHandSideMatrix")
             if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
                 rLeftHandSideMatrix.resize(mat_size, mat_size);
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
@@ -95,10 +97,12 @@ namespace Kratos
         Matrix BCurvature = ZeroMatrix(3, mat_size);
         CalculateBMembrane(BMembrane, actual_metric);
         CalculateBCurvature(BCurvature, actual_metric);
-        // if (Id() == 1)
-        //     KRATOS_WATCH(BCurvature)
+        // if (Id() == 4)
+        //     KRATOS_WATCH(BMembrane)
 
         double integration_weight = GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA;
+        // if (Id() == 4)
+        //     KRATOS_WATCH(mInitialMetric.dA)
 
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
@@ -120,7 +124,6 @@ namespace Kratos
 
             //adding curvature contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
-            // KRATOS_WATCH(rLeftHandSideMatrix)
 
             // adding  non-linear-contribution to Stiffness-Matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
@@ -132,8 +135,6 @@ namespace Kratos
                 constitutive_variables_curvature.S,
                 integration_weight);
 
-            // if (Id() == 1)
-            //     KRATOS_WATCH(rLeftHandSideMatrix)
         }
 
         // RIGHT HAND SIDE VECTOR
@@ -145,10 +146,14 @@ namespace Kratos
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
 
-            // if (Id() == 1)
-            //     KRATOS_WATCH(rRightHandSideVector)
         }
 
+        if (Id() == 4){
+            KRATOS_WATCH(GetValue(LOCAL_COORDINATES))
+            KRATOS_WATCH(rLeftHandSideMatrix)
+            KRATOS_WATCH(rRightHandSideVector)
+
+        }
         // KRATOS_WATCH(rLeftHandSideMatrix)
         // KRATOS_WATCH("end: CalculateAll")
 
@@ -209,12 +214,12 @@ namespace Kratos
         rMetric.g1[2] = rMetric.J(2, 0);
         rMetric.g2[2] = rMetric.J(2, 1);
 
-        //basis vector g3_notnorm
-        MathUtils<double>::CrossProduct(rMetric.g3_notnorm, rMetric.g1, rMetric.g2);
+        //basis vector g3_tilde
+        MathUtils<double>::CrossProduct(rMetric.g3_tilde, rMetric.g1, rMetric.g2);
         //differential area dA
-        rMetric.dA = norm_2(rMetric.g3_notnorm);
+        rMetric.dA = norm_2(rMetric.g3_tilde);
         //normalized basis vector g3
-        rMetric.g3 = rMetric.g3_notnorm / rMetric.dA;
+        rMetric.g3 = rMetric.g3_tilde / rMetric.dA;
 
         //GetCovariantMetric
         rMetric.gab[0] = pow(rMetric.g1[0], 2) + pow(rMetric.g1[1], 2) + pow(rMetric.g1[2], 2);
@@ -258,11 +263,11 @@ namespace Kratos
             }
             MathUtils<double>::CrossProduct(cross1, Dg1_D1, rMetric.g2);
             MathUtils<double>::CrossProduct(cross2, rMetric.g1, Dg1_D2);
-            array_1d<double, 3> Dg3_D1 = (rMetric.dA * (cross1 + cross2) - rMetric.g3_notnorm * norm_2(cross1 + cross2)) 
+            array_1d<double, 3> Dg3_D1 = (rMetric.dA * (cross1 + cross2) - rMetric.g3_tilde * norm_2(cross1 + cross2)) 
                 / pow(rMetric.dA, 2);
             MathUtils<double>::CrossProduct(cross1, Dg1_D2, rMetric.g2);
             MathUtils<double>::CrossProduct(cross2, rMetric.g1, Dg2_D2);
-            array_1d<double, 3> Dg3_D2 = (rMetric.dA * (cross1 + cross2) - rMetric.g3_notnorm * norm_2(cross1 + cross2))
+            array_1d<double, 3> Dg3_D2 = (rMetric.dA * (cross1 + cross2) - rMetric.g3_tilde * norm_2(cross1 + cross2))
                 / pow(rMetric.dA, 2);
             rMetric.Dcurvature_D1[0] = inner_prod(rMetric.DDg1_DD11, rMetric.g3) + inner_prod(Dg1_D1, Dg3_D1);
             rMetric.Dcurvature_D1[1] = inner_prod(rMetric.DDg2_DD21, rMetric.g3) + inner_prod(Dg2_D2, Dg3_D1);
@@ -337,6 +342,8 @@ namespace Kratos
         Vector curvature_vector = ZeroVector(3);
 
         CalculateStrain(strain_vector, rActualMetric.gab);
+        // if (Id() == 4)
+            // KRATOS_WATCH(strain_vector)
         rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature);
         rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.Q, curvature_vector);
@@ -415,7 +422,6 @@ namespace Kratos
             rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
             rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
         }
-        // KRATOS_WATCH(rB)
     }
 
     void IgaShell3pElement::CalculateBCurvature(
@@ -460,11 +466,11 @@ namespace Kratos
 
                 for (unsigned int j = 0; j < 3; j++)
                 {
-                    double g3dg3lg3 = (rMetric.g3_notnorm[0] * dg3(j, 0) + rMetric.g3_notnorm[1] * dg3(j, 1) + rMetric.g3_notnorm[2] * dg3(j, 2))*inddA3;
+                    double g3dg3lg3 = (rMetric.g3_tilde[0] * dg3(j, 0) + rMetric.g3_tilde[1] * dg3(j, 1) + rMetric.g3_tilde[2] * dg3(j, 2))*inddA3;
 
-                    dn(j, 0) = dg3(j, 0)*invdA - rMetric.g3_notnorm[0] * g3dg3lg3;
-                    dn(j, 1) = dg3(j, 1)*invdA - rMetric.g3_notnorm[1] * g3dg3lg3;
-                    dn(j, 2) = dg3(j, 2)*invdA - rMetric.g3_notnorm[2] * g3dg3lg3;
+                    dn(j, 0) = dg3(j, 0)*invdA - rMetric.g3_tilde[0] * g3dg3lg3;
+                    dn(j, 1) = dg3(j, 1)*invdA - rMetric.g3_tilde[1] * g3dg3lg3;
+                    dn(j, 2) = dg3(j, 2)*invdA - rMetric.g3_tilde[2] * g3dg3lg3;
                 }
 
                 // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
@@ -532,12 +538,12 @@ namespace Kratos
                 S_dg3(1, r) = S_dg_1(2)*rMetric.g2(0) - S_dg_1(0)*rMetric.g2(2) + rMetric.g1(2)*S_dg_2(0) - rMetric.g1(0)*S_dg_2(2);
                 S_dg3(2, r) = S_dg_1(0)*rMetric.g2(1) - S_dg_1(1)*rMetric.g2(0) + rMetric.g1(0)*S_dg_2(1) - rMetric.g1(1)*S_dg_2(0);
 
-                S_g3dg3[r] = rMetric.g3_notnorm[0] * S_dg3(0, r) + rMetric.g3_notnorm[1] * S_dg3(1, r) + rMetric.g3_notnorm[2] * S_dg3(2, r);
+                S_g3dg3[r] = rMetric.g3_tilde[0] * S_dg3(0, r) + rMetric.g3_tilde[1] * S_dg3(1, r) + rMetric.g3_tilde[2] * S_dg3(2, r);
                 S_g3dg3lg3_3[r] = S_g3dg3[r] * inv_lg3_3;
 
-                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rMetric.g3_notnorm[0] * S_g3dg3lg3_3[r];
-                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rMetric.g3_notnorm[1] * S_g3dg3lg3_3[r];
-                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rMetric.g3_notnorm[2] * S_g3dg3lg3_3[r];
+                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rMetric.g3_tilde[0] * S_g3dg3lg3_3[r];
+                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rMetric.g3_tilde[1] * S_g3dg3lg3_3[r];
+                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rMetric.g3_tilde[2] * S_g3dg3lg3_3[r];
             }
 
             // second variation of strain and curvature w.r.t. dofs
@@ -575,16 +581,16 @@ namespace Kratos
                     else if (ddir == 1) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
                     else if (ddir == -2) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
 
-                    double c = -(ddg3[0] * rMetric.g3_notnorm[0] + ddg3[1] * rMetric.g3_notnorm[1] + ddg3[2] * rMetric.g3_notnorm[2]
+                    double c = -(ddg3[0] * rMetric.g3_tilde[0] + ddg3[1] * rMetric.g3_tilde[1] + ddg3[2] * rMetric.g3_tilde[2]
                         + S_dg3(0, r)*S_dg3(0, s) + S_dg3(1, r)*S_dg3(1, s) + S_dg3(2, r)*S_dg3(2, s)
                         )*inv_lg3_3;
 
                     double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
 
                     array_1d<double, 3> ddn = ZeroVector(3);
-                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rMetric.g3_notnorm[0];
-                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rMetric.g3_notnorm[1];
-                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.g3_notnorm[2];
+                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rMetric.g3_tilde[0];
+                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rMetric.g3_tilde[1];
+                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.g3_tilde[2];
 
                     array_1d<double, 3> ddK_cu = ZeroVector(3);
                     ddK_cu[0] = DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)

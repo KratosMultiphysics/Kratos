@@ -8,7 +8,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/surface_base_discrete_element.h"
+#include "custom_elements/base_discrete_element.h"
 
 // Application includes
 #include "iga_application_variables.h"
@@ -153,7 +153,7 @@ private:
         Vector g1; //base vector 1
         Vector g2; //base vector 2
         Vector g3; //base vector 3
-        Vector g3_notnorm; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        Vector g3_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
         double dA; //differential area
         Vector DDg1_DD11;  // second derivative of base vector 1 w.r.t. theta1
         Vector DDg1_DD12;  // second derivative of base vector 1 w.r.t. theta1 and theta2

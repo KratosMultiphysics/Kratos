@@ -35,6 +35,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_shell_3p_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_shell_5p_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_shell_5p_element_pre_int.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_shell_5p_element_stuttgart.cpp
 
     # utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp

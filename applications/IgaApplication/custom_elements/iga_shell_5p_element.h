@@ -8,7 +8,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/surface_base_discrete_element.h"
+#include "custom_elements/base_discrete_element.h"
 
 // Application includes
 #include "iga_application_variables.h"
@@ -18,7 +18,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
+/** Reissner-Mindlin Shell with hierarchical shear vector. Optimized for Isogeometric Analysis by Oesterle et al..
 */
 class IgaShell5pElement
     : public BaseDiscreteElement
@@ -172,11 +172,11 @@ private:
         Vector gab_con; // contravariant metric
         Vector curvature; //
         Matrix J; //Jacobian
-        double  detJ;
-        Vector g1; //base vector 1
-        Vector g2; //base vector 2
-        Vector g3; //base vector 3
-        Vector g3_notnorm; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        double  detJ;       // not used (ML)
+        Vector a1; //base vector 1
+        Vector a2; //base vector 2
+        Vector a3_KL; //base vector 3
+        Vector a3_KL_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
         double dA; //differential area
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
         Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
@@ -196,10 +196,10 @@ private:
             J = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
             detJ = 1.0;
 
-            g1 = ZeroVector(rWorkingSpaceDimension);
-            g2 = ZeroVector(rWorkingSpaceDimension);
-            g3 = ZeroVector(rWorkingSpaceDimension);
-            g3_notnorm = ZeroVector(rWorkingSpaceDimension);
+            a1 = ZeroVector(rWorkingSpaceDimension);
+            a2 = ZeroVector(rWorkingSpaceDimension);
+            a3_KL = ZeroVector(rWorkingSpaceDimension);
+            a3_KL_tilde = ZeroVector(rWorkingSpaceDimension);
 
             dA = 1.0;
 
@@ -308,15 +308,29 @@ private:
     /**
      * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
      * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
+     * @param rw = shear difference vector
      */
     void CalculateShearDifferenceVector(
-        Vector& rShearDifferenceVector,
+        Vector& rw,
         Vector& rDw_D1,
         Vector& rDw_D2,
         Vector& rw_alpha,
         Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric);
 
+    /**
+     * @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the actual configuration
+     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
+     * @param rw = shear difference vector
+     */
+    void CalculateBaseVectorsgLinearized(
+        const MetricVariables& rActualMetric,
+        const Vector& rw,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        array_1d<double, 3>& rg1,
+        array_1d<double, 3>& rg2,
+        array_1d<double, 3>& rg3);
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric
@@ -326,7 +340,7 @@ private:
     */
     void CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
-        const Vector& rShearDifferenceVector,
+        const Vector& rw,
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
         const Vector& rDw_D1,
@@ -342,7 +356,7 @@ private:
 
     void CalculateStrainRM(
         Vector& rStrainVectorRM,
-        const Vector& rShearDifferenceVector,
+        const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& rg1,
@@ -363,7 +377,7 @@ private:
     void CalculateVariationsRM(        
         Matrix& rB,
         SecondVariations& rSecondVariations,
-        const Vector& rShearDifferenceVector,
+        const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& rw_alpha,
@@ -377,6 +391,7 @@ private:
      */
 	void CalculateDifferentialVolume(
 		double& rdV);
+        
     /**
      * @brief Stress recovery
      */
