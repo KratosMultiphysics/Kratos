@@ -2761,13 +2761,16 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
-            SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
 
-            bool blocked = false;
-            if (it_node->IsDefined(BLOCKED))
-                blocked = it_node->Is(BLOCKED);
-            if (blocked)
-                BlockNode(i + 1);
+                bool blocked = false;
+                if (it_node->IsDefined(BLOCKED))
+                    blocked = it_node->Is(BLOCKED);
+                if (blocked)
+                    BlockNode(i + 1);
+            }
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
             it_node->SetId(i + 1);
@@ -2777,13 +2780,16 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
-            SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
 
-            bool blocked = false;
-            if (it_node->IsDefined(BLOCKED))
-                blocked = it_node->Is(BLOCKED);
-            if (blocked)
-                BlockNode(i + 1);
+                bool blocked = false;
+                if (it_node->IsDefined(BLOCKED))
+                    blocked = it_node->Is(BLOCKED);
+                if (blocked)
+                    BlockNode(i + 1);
+            }
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
             it_node->SetId(i + 1);
@@ -2795,13 +2801,16 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
         auto it_cond = it_cond_begin + i;
 
-        SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
 
-        bool blocked = false;
-        if (it_cond->IsDefined(BLOCKED))
-            blocked = it_cond->Is(BLOCKED);
-        if (blocked)
-            BlockCondition(i + 1);
+            bool blocked = false;
+            if (it_cond->IsDefined(BLOCKED))
+                blocked = it_cond->Is(BLOCKED);
+            if (blocked)
+                BlockCondition(i + 1);
+        }
 
         // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
         it_cond->SetId(i + 1);
@@ -2812,13 +2821,16 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
-        SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
 
-        bool blocked = false;
-        if (it_elem->IsDefined(BLOCKED))
-            blocked = it_elem->Is(BLOCKED);
-        if (blocked)
-            BlockElement(i + 1);
+            bool blocked = false;
+            if (it_elem->IsDefined(BLOCKED))
+                blocked = it_elem->Is(BLOCKED);
+            if (blocked)
+                BlockElement(i + 1);
+        }
 
         // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
         it_elem->SetId(i + 1);
