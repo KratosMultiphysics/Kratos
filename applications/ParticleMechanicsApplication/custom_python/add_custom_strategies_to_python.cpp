@@ -25,7 +25,7 @@
 
 //---strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/mpm_residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/MPM_strategy.h"
 
 //---convergence criterias
