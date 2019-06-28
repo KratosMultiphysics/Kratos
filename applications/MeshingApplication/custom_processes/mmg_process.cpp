@@ -563,6 +563,64 @@ void MmgProcess<TMMGLibrary>::OutputMdpa()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
+{
+    // Connectivity map
+    std::unordered_map<IndexType, IndexType> thickness_connectivity_map;
+    std::unordered_map<IndexType, std::vector<IndexType>> transversal_connectivity_map;
+
+    // Now we iterate over the elements to create a connectivity map
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+
+    // Node counter
+    const SizeType total_number_of_nodes = mrThisModelPart.GetRootModelPart().NumberOfNodes(); // Nodes must be ordered
+    const SizeType total_number_of_elements = mrThisModelPart.GetRootModelPart().NumberOfElements(); // Elements must be ordered
+
+//     #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i){
+        const auto it_elem = it_elem_begin + i;
+
+        // We get the condition geometry
+        const GeometryType& r_geometry = it_elem->GetGeometry();
+
+        if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
+            thickness_connectivity_map.insert({r_geometry[0].Id(), r_geometry[3].Id()});
+            thickness_connectivity_map.insert({r_geometry[1].Id(), r_geometry[4].Id()});
+            thickness_connectivity_map.insert({r_geometry[2].Id(), r_geometry[5].Id()});
+
+            transversal_connectivity_map.insert({total_number_of_elements + i + 1, {total_number_of_nodes + r_geometry[0].Id(), total_number_of_nodes + r_geometry[1].Id(), total_number_of_nodes + r_geometry[2].Id()}});
+        }
+    }
+
+    // Now that the connectivity has been constructed
+    array_1d<double, 3> average_coordinates;
+    double distance;
+    ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    for (auto& r_pair : thickness_connectivity_map) {
+        auto pnode1 = mrThisModelPart.pGetNode(r_pair.first);
+        auto pnode2 = mrThisModelPart.pGetNode(r_pair.second);
+        const array_1d<double, 3>& r_coordinates_1 = pnode1->Coordinates();
+        const array_1d<double, 3>& r_coordinates_2 = pnode2->Coordinates();
+        noalias(average_coordinates) = 0.5 * (r_coordinates_1 + r_coordinates_2);
+        distance = norm_2(r_coordinates_1 - r_coordinates_2);
+
+        auto p_new_node = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + r_pair.first, average_coordinates[0], average_coordinates[1], average_coordinates[2]);
+        p_new_node->SetValue(THICKNESS, distance);
+        p_new_node->SetValue(METRIC_TENSOR_3D, 0.5 * (pnode1->GetValue(METRIC_TENSOR_3D) + pnode2->GetValue(METRIC_TENSOR_3D))); // Average metric
+    }
+
+    // Create the new elements
+    auto r_prop = r_auxiliar_model_part.pGetProperties(0);
+    for (auto& r_pair : transversal_connectivity_map) {
+        r_auxiliar_model_part.CreateNewElement("Element3D3N", r_pair.first, r_pair.second, r_prop);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
 {
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
@@ -775,6 +833,7 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
             "force_gradation_value"               : false,
             "gradation_value"                     : 1.3
         },
+        "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,
         "save_colors_files"                    : false,
         "save_mdpa_file"                       : false,

@@ -445,6 +445,11 @@ private:
     }
 
     /**
+     * @brief This method collapses the prisms elements into triangles
+     */
+    void CollapsePrismsToTriangles();
+
+    /**
      * @brief This function removes the conditions with duplicated geometries
      */
     void ClearConditionsDuplicatedGeometries();
