@@ -17,26 +17,17 @@ from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import Empty
 
 # ==============================================================================
 def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
-    if _IsInternalAnalyzerRequired(optimization_settings):
-        internal_analyzer = _CreateInternalAnalyzer(optimization_settings, model_part_controller)
+
+    interal_responses = _IdentifyInternalResponses(optimization_settings)
+    if len(interal_responses) > 0:
+        internal_analyzer = KratosInternalAnalyzer(interal_responses, model_part_controller)
     else:
         internal_analyzer = EmptyAnalyzer()
 
     return Analyzer(internal_analyzer, model_part_controller, external_analyzer)
 
-# --------------------------------------------------------------------------
-def _IsInternalAnalyzerRequired(optimization_settings):
-    for itr in range(optimization_settings["objectives"].size()):
-        if optimization_settings["objectives"][itr]["use_kratos"].GetBool():
-            return True
-
-    for itr in range(optimization_settings["constraints"].size()):
-        if optimization_settings["constraints"][itr]["use_kratos"].GetBool():
-            return True
-    return False
-
 # ------------------------------------------------------------------------------
-def _CreateInternalAnalyzer(optimization_settings, model_part_controller):
+def _IdentifyInternalResponses(optimization_settings):
     specified_response_functions = {}
 
     for itr in range(optimization_settings["objectives"].size()):
@@ -55,7 +46,7 @@ def _CreateInternalAnalyzer(optimization_settings, model_part_controller):
             kratos_settings = constraint_settings["kratos_response_settings"]
             specified_response_functions[identifier] = kratos_settings
 
-    return KratosInternalAnalyzer(specified_response_functions, model_part_controller)
+    return specified_response_functions
 
 # ==============================================================================
 class Analyzer:
