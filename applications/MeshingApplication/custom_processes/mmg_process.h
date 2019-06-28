@@ -450,6 +450,11 @@ private:
     void CollapsePrismsToTriangles();
 
     /**
+     * @brief This method extrudes the triangles elements into prisms
+     */
+    void ExtrudeTrianglestoPrisms();
+
+    /**
      * @brief This function removes the conditions with duplicated geometries
      */
     void ClearConditionsDuplicatedGeometries();

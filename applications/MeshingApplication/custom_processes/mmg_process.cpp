@@ -431,6 +431,35 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     // Writing the new solution data on the model part
     mMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
+    // In case of prism collapse we extrapolate now (and later extrude)
+    if (mThisParameters["collapse_prisms_elements"].GetBool()) {
+        /* We interpolate all the values */
+        Parameters interpolate_parameters = Parameters(R"({})" );
+        interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+        interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+        interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+        interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+        interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+        interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+        interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+        interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+        interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+        interpolate_parameters["surface_elements"].SetBool(true);
+        ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+        ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+        NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
+        interpolate_nodal_values_process.Execute();
+
+        // Reorder before extrude
+        mMmmgUtilities.ReorderAllIds(mrThisModelPart);
+
+        /* Now we can extrude */
+        ExtrudeTrianglestoPrisms();
+
+        // Remove the auxiliar model part
+        mrThisModelPart.RemoveSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    }
+
     /* After that we reorder nodes, conditions and elements: */
     mMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
@@ -467,8 +496,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
     interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
     if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(true);
-    NodalValuesInterpolationProcess<Dimension> InterpolateNodalValues = NodalValuesInterpolationProcess<Dimension>(r_old_model_part, mrThisModelPart, interpolate_parameters);
-    InterpolateNodalValues.Execute();
+    NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
+    interpolate_nodal_values_process.Execute();
 
     /* We initialize elements and conditions */
     if (mThisParameters["initialize_entities"].GetBool()) {
@@ -606,8 +635,7 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
     const SizeType total_number_of_nodes = mrThisModelPart.GetRootModelPart().NumberOfNodes(); // Nodes must be ordered
     const SizeType total_number_of_elements = mrThisModelPart.GetRootModelPart().NumberOfElements(); // Elements must be ordered
 
-//     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i){
+    for(IndexType i = 0; i < r_elements_array.size(); ++i){
         const auto it_elem = it_elem_begin + i;
 
         // We get the condition geometry
@@ -644,6 +672,113 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
     for (auto& r_pair : transversal_connectivity_map) {
         r_auxiliar_model_part.CreateNewElement("Element3D3N", r_pair.first, r_pair.second, r_prop);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms()
+{
+    // We look for the reference element
+    Element::Pointer p_reference_element;
+    for(auto& r_elem : mrThisModelPart.Elements()){
+        // We get the condition geometry
+        const GeometryType& r_geometry = r_elem.GetGeometry();
+
+        if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
+            p_reference_element = r_elem.Create(0, r_elem.GetGeometry(), r_elem.pGetProperties());
+            break;
+        }
+    }
+
+    // Node and element counter
+    const SizeType total_number_of_nodes = mrThisModelPart.GetRootModelPart().NumberOfNodes(); // Nodes must be ordered
+    const SizeType total_number_of_elements = mrThisModelPart.GetRootModelPart().NumberOfElements(); // Elements must be ordered
+
+    // Now we iterate over the elements to create a connectivity map
+    ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    ElementsArrayType& r_elements_array = r_auxiliar_model_part.Elements();
+    const SizeType num_elements = r_elements_array.size();
+    const auto it_elem_begin = r_elements_array.begin();
+
+    /* Compute normal */
+    // We iterate over nodes
+    auto& r_nodes_array = r_auxiliar_model_part.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
+
+    // Reset NORMAL
+    VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array);
+
+    // Declare auxiliar coordinates
+    GeometryType::CoordinatesArrayType aux_coords;
+
+    #pragma omp parallel for firstprivate(aux_coords)
+    for(int i = 0; i < static_cast<int>(num_elements); ++i) {
+        auto it_elem = it_elem_begin + i;
+        const GeometryType& r_geometry = it_elem->GetGeometry();
+
+        // Set elemition normal
+        r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
+        it_elem->SetValue(NORMAL, r_geometry.UnitNormal(aux_coords));
+    }
+
+    // Adding the normal contribution of each node
+    for(Element& r_elem : r_elements_array) {
+        GeometryType& r_geometry = r_elem.GetGeometry();
+
+        // Iterate over nodes
+        for (NodeType& r_node : r_geometry) {
+            r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+            noalias(r_node.GetValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+        }
+    }
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes; ++i) {
+        auto it_node = it_node_begin + i;
+
+        array_1d<double, 3>& r_normal = it_node->GetValue(NORMAL);
+        const double norm_normal = norm_2(r_normal);
+
+        if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
+        else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+    }
+
+    // Iterate over nodes
+    for(IndexType i = 0; i < num_nodes; ++i){
+        const auto it_node = it_node_begin + i;
+
+        const auto& r_normal = it_node->GetValue(NORMAL);
+        const double thickness = it_node->GetValue(THICKNESS);
+        const array_1d<double, 3> upper_coordinates = it_node->Coordinates() + 0.5 * thickness * r_normal;
+        const array_1d<double, 3> lower_coordinates = it_node->Coordinates() - 0.5 * thickness * r_normal;
+        r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + it_node->Id(), upper_coordinates[0], upper_coordinates[1], upper_coordinates[2]);
+        r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + num_elements + it_node->Id(), lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
+
+    }
+
+    // Iterate over elements
+    for(IndexType i = 0; i < num_elements; ++i){
+        const auto it_elem = it_elem_begin + i;
+
+        // We get the condition geometry
+        const GeometryType& r_geometry = it_elem->GetGeometry();
+
+        GeometryType::PointsArrayType element_nodes;
+        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[0].Id()));
+        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[1].Id()));
+        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[2].Id()));
+        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[0].Id()));
+        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[1].Id()));
+        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[2].Id()));
+
+        auto p_new_elem = p_reference_element->Create(total_number_of_elements + i, element_nodes, it_elem->pGetProperties());
+        mrThisModelPart.AddElement(p_new_elem);
+    }
+
+    // TODO: Preserve submodelparts
 }
 
 /***********************************************************************************/
