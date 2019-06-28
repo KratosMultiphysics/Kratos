@@ -18,4 +18,9 @@ class EmptyAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
     def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
         pass
 
+    # --------------------------------------------------------------------------
+    @staticmethod
+    def IsEmpty():
+        return True
+
 # ==============================================================================
