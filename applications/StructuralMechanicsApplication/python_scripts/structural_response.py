@@ -424,3 +424,151 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 adjoint_parameters = Parameters( parameter_file.read() )
 
         return adjoint_parameters
+
+
+# ==============================================================================
+class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
+    """TODO MFusseder add description!
+    """
+    def __init__(self, identifier, response_settings, model):
+        self.identifier = identifier
+        self.response_settings = response_settings
+
+        # Create the primal solver
+        with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
+            primal_parameters = Parameters( parameter_file.read() )
+
+        self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
+
+        self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
+
+        # automatic creation is not provided for this response
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters_fx = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters_my = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters_mz = Parameters( parameter_file.read() )
+
+        # information defining the traced stress
+        self.stress_position_y = adjoint_parameters["solver_settings"]["response_function_settings"]["yp"].GetDouble()
+        self.stress_position_z = adjoint_parameters["solver_settings"]["response_function_settings"]["zp"].GetDouble()
+        self.traced_element_id = adjoint_parameters["solver_settings"]["response_function_settings"]["traced_element_id"].GetInt()
+        self.A = None
+        self.I22 = None
+        self.I33 = None
+
+        # adjoint analysis for FX
+        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
+        adjoint_parameters_fx.RemoveValue("output_processes")
+        adjoint_model_fx = KratosMultiphysics.Model()
+        self.adjoint_model_part_fx = _GetModelPart(adjoint_model_fx, adjoint_parameters_fx["solver_settings"])
+        self.adjoint_analysis_fx = StructuralMechanicsAnalysis(adjoint_model_fx, adjoint_parameters_fx)
+        # adjoint analysis for MY
+        adjoint_parameters_my["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_my["solver_settings"]["response_function_settings"]["stress_type"].SetString("MY")
+        adjoint_parameters_my.RemoveValue("output_processes")
+        adjoint_model_my = KratosMultiphysics.Model()
+        self.adjoint_model_part_my = _GetModelPart(adjoint_model_my, adjoint_parameters_my["solver_settings"])
+        self.adjoint_analysis_my = StructuralMechanicsAnalysis(adjoint_model_my, adjoint_parameters_my)
+        # adjoint analysis for MZ
+        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["stress_type"].SetString("MZ")
+        adjoint_parameters_mz.RemoveValue("output_processes")
+        adjoint_model_mz = KratosMultiphysics.Model()
+        self.adjoint_model_part_mz = _GetModelPart(adjoint_model_mz, adjoint_parameters_mz["solver_settings"])
+        self.adjoint_analysis_mz = StructuralMechanicsAnalysis(adjoint_model_mz, adjoint_parameters_mz)
+        # adjoint analysis for normal stress
+        adjoint_parameters["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
+        adjoint_parameters_fx.RemoveValue("output_processes")
+
+        # use here c++ local stress response as meaningful dummy
+        adjoint_model = KratosMultiphysics.Model()
+        self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
+        self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
+
+        self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
+        self.adjoint_state_variables = [StructuralMechanicsApplication.ADJOINT_DISPLACEMENT]
+        if primal_parameters["solver_settings"].Has("rotation_dofs"):
+            if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
+                self.primal_state_variables.append(KratosMultiphysics.ROTATION)
+                self.adjoint_state_variables.append(StructuralMechanicsApplication.ADJOINT_ROTATION)
+
+    def Initialize(self):
+        self.primal_analysis.Initialize()
+        self.adjoint_analysis.Initialize() # Here the kratos response is created. what to here in adjoint solver?
+        self.adjoint_analysis_fx.Initialize()
+        self.adjoint_analysis_my.Initialize()
+        self.adjoint_analysis_mz.Initialize()
+
+    def InitializeSolutionStep(self):
+        # Run the primal analysis.
+        # TODO if primal_analysis.status==solved: return
+        Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
+        startTime = timer.time()
+        if not self.primal_analysis.time < self.primal_analysis.end_time:
+            self.primal_analysis.end_time += 1
+        self.primal_analysis.RunSolutionLoop()
+        Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+
+        self.A = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.CROSS_AREA]
+        self.I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
+        self.I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
+
+    def CalculateValue(self):
+        startTime = timer.time()
+        FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
+        MY = self.adjoint_analysis_my._GetSolver().response_function.CalculateValue(self.primal_model_part)
+        MZ = self.adjoint_analysis_mz._GetSolver().response_function.CalculateValue(self.primal_model_part)
+
+        value = FX / self.A + MY / self.I22 * self.stress_position_z + MZ / self.I33 * self.stress_position_y # TODO evaluate signs of stress resultants
+        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+
+    def CalculateGradient(self):
+        # synchronize the modelparts
+        #self._SynchronizeAdjointFromPrimal() TODO is this needed?
+        startTime = timer.time()
+        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+
+        # compute here all contributions to sensitivities and and influence funtions
+        self.adjoint_analysis_fx.RunSolutionLoop()
+        self.adjoint_analysis_my.RunSolutionLoop()
+        self.adjoint_analysis_mz.RunSolutionLoop()
+
+        # TODO are all this steps of analysis stage necessary?
+        self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
+        self.adjoint_analysis.InitializeSolutionStep()
+        self.adjoint_analysis._GetSolver().Predict()
+
+        # solve here adjoint problem by superposition TODO improve this
+        for variable in self.adjoint_state_variables:
+            for node, node_fx, node_my, node_mz in zip(self.adjoint_model_part.Nodes, self.adjoint_model_part_fx.Nodes, self.adjoint_model_part_my.Nodes, self.adjoint_model_part_mz.Nodes):
+                adj_disp_fx = node_fx.GetSolutionStepValue(variable)
+                adj_disp_my = node_my.GetSolutionStepValue(variable)
+                adj_disp_mz = node_mz.GetSolutionStepValue(variable)
+
+                adjoint_quantity = adj_disp_fx / self.A + adj_disp_my / self.I22 * self.stress_position_z + adj_disp_mz / self.I33 * self.stress_position_y # TODO evaluate signs of stress resultants
+                node.SetSolutionStepValue(variable, adjoint_quantity)
+
+        self.adjoint_analysis.FinalizeSolutionStep()
+
+        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+
+    def GetValue(self):
+        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+
+    def FinalizeSolutionStep(self):
+        self.adjoint_analysis.OutputSolutionStep()
+
+    def Finalize(self):
+        self.primal_analysis.Finalize()
+        self.adjoint_analysis.Finalize()
+        self.adjoint_analysis_fx.Finalize()
+        self.adjoint_analysis_my.Finalize()
+        self.adjoint_analysis_mz.Finalize()
