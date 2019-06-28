@@ -267,6 +267,9 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     ColorsMapType aux_ref_cond, aux_ref_elem;
 
     // We initialize the mesh data with the given modelpart
+    if (mThisParameters["collapse_prisms_elements"].GetBool()) {
+        CollapsePrismsToTriangles();
+    }
     mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework);
 
     // Iterate over components
