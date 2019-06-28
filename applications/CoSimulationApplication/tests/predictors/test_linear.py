@@ -29,7 +29,10 @@ class TestPredictorLinear(KratosUnittest.TestCase):
         interface = CoSimulationInterface(model, interface_settings)
 
         # Create predictor
-        settings = cs_data_structure.Parameters("{\"type\": \"predictors.linear\"}")
+        parameter_file_name = "predictors/test_linear.json"
+        with open(parameter_file_name, 'r') as parameter_file:
+            settings = cs_data_structure.Parameters(parameter_file.read())
+
         predictor_linear = cs_tools.CreateInstance(settings)
         predictor_linear.Initialize(interface)
 
