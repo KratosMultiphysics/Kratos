@@ -32,18 +32,20 @@ class TestConvergenceCriterionIterationLimit(KratosUnittest.TestCase):
 
         convergence_criterion_iteration_limit = cs_tools.CreateInstance(settings)
         convergence_criterion_iteration_limit.Initialize()
-        convergence_criterion_iteration_limit.InitializeSolutionStep()
-        is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
-        self.assertFalse(is_satisfied)
-        convergence_criterion_iteration_limit.Update(interface)
-        is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
-        self.assertFalse(is_satisfied)
-        convergence_criterion_iteration_limit.Update(interface)
-        is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
-        self.assertTrue(is_satisfied)
-        convergence_criterion_iteration_limit.Update(interface)
-        is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
-        self.assertTrue(is_satisfied)
+        for i in range(3):
+            convergence_criterion_iteration_limit.InitializeSolutionStep()
+            is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
+            self.assertFalse(is_satisfied)
+            convergence_criterion_iteration_limit.Update(interface)
+            is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
+            self.assertFalse(is_satisfied)
+            convergence_criterion_iteration_limit.Update(interface)
+            is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
+            self.assertTrue(is_satisfied)
+            convergence_criterion_iteration_limit.Update(interface)
+            is_satisfied = convergence_criterion_iteration_limit.IsSatisfied()
+            self.assertTrue(is_satisfied)
+            convergence_criterion_iteration_limit.FinalizeSolutionStep()
 
 
 if __name__ == '__main__':

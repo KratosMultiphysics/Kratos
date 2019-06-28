@@ -22,6 +22,48 @@ class ConvergenceCriterionAnd(CoSimulationComponent):
             else:
                 break
 
+    def Initialize(self):
+        super().Initialize()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Initialize()
+
+    def Finalize(self):
+        super().Finalize()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Finalize()
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.FinalizeSolutionStep()
+
+    def OutputSolutionStep(self):
+        super().OutputSolutionStep()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.OutputSolutionStep()
+
+    def Check(self):
+        super().Check()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Check()
+
+    def PrintInfo(self):
+        super().PrintInfo()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.PrintInfo()
+
     def Update(self, r):
         for convergence_criterion in self.convergence_criteria:
             convergence_criterion.Update(r)
@@ -32,9 +74,3 @@ class ConvergenceCriterionAnd(CoSimulationComponent):
             is_satisfied = is_satisfied and convergence_criterion.IsSatisfied()
 
         return is_satisfied
-
-    def PrintInfo(self):
-        super().PrintInfo()
-
-        for convergence_criterion in self.convergence_criteria:
-            convergence_criterion.PrintInfo()

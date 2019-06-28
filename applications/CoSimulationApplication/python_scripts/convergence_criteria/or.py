@@ -12,29 +12,65 @@ class ConvergenceCriterionOr(CoSimulationComponent):
         super().__init__()
 
         settings = parameters["settings"]
-        self._convergence_criteria = []
+        self.convergence_criteria = []
         index = 0
         while True:
             key = "convergence_criterion" + str(index)
             if key in settings.keys():
-                self._convergence_criteria.append(cs_tools.CreateInstance(settings[key]))
+                self.convergence_criteria.append(cs_tools.CreateInstance(settings[key]))
                 index += 1
             else:
                 break
 
-    def Update(self, r):
-        for convergence_criterion in self._convergence_criteria:
-            convergence_criterion.Update(r)
+    def Initialize(self):
+        super().Initialize()
 
-    def IsSatisfied(self):
-        is_satisfied = False
-        for convergence_criterion in self._convergence_criteria:
-            is_satisfied = is_satisfied or convergence_criterion.IsSatisfied()
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Initialize()
 
-        return is_satisfied
+    def Finalize(self):
+        super().Finalize()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Finalize()
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.FinalizeSolutionStep()
+
+    def OutputSolutionStep(self):
+        super().OutputSolutionStep()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.OutputSolutionStep()
+
+    def Check(self):
+        super().Check()
+
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Check()
 
     def PrintInfo(self):
         super().PrintInfo()
 
-        for convergence_criterion in self._convergence_criteria:
+        for convergence_criterion in self.convergence_criteria:
             convergence_criterion.PrintInfo()
+
+    def Update(self, r):
+        for convergence_criterion in self.convergence_criteria:
+            convergence_criterion.Update(r)
+
+    def IsSatisfied(self):
+        is_satisfied = False
+        for convergence_criterion in self.convergence_criteria:
+            is_satisfied = is_satisfied or convergence_criterion.IsSatisfied()
+
+        return is_satisfied
