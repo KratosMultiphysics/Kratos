@@ -247,6 +247,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+
 		const Vector& r_predictive_stress_vector = values.GetStressVector();
 		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 		const Vector& r_strain_vector = values.GetStrainVector();
@@ -1486,16 +1487,16 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
     Vector average_strain_edge = rPerturbedStrainVector;
 
 	for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-        this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-        this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+		this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+		this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
-        double damage_edge = mDamages[edge];
-        double threshold = mThresholds[edge];
-        
-        this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-            average_stress_edge, edge, characteristic_length, rValues, dummy);
+		double damage_edge = mDamages[edge];
+		double threshold = mThresholds[edge];
 
-        damages_edges[edge] = damage_edge;
+		this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+			average_stress_edge, edge, characteristic_length, rValues, dummy);
+
+		damages_edges[edge] = damage_edge;
 	} // Loop edges
 	const double damage_element = this->CalculateElementalDamage(damages_edges);
 	rPerturbedStressVector = (1.0 - damage_element) * r_perturbed_predictive_stress;
