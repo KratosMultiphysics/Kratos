@@ -5,6 +5,7 @@ from .Node import Node
 from .Element import Element
 from .data_value_container import DataValueContainer
 from .Variables import *
+from .Logger import Logger
 
 # Other imports
 from collections import OrderedDict
@@ -66,8 +67,8 @@ class ModelPart(DataValueContainer):
                 # this is forbidden since it creates problems with the memory management of historical variables
                 raise Exception("Variables can only be added before adding Nodes!")
             if variable.Type() == "Component":
-                # TODO maybe add the source-var instead of throwing
-                raise TypeError('Variables of type "Component" cannot be used as SolutionStepVariables')
+                variable = variable.GetSourceVariable()
+                Logger.PrintInfo("ModelPart", '"Component"-variables cannot be used directly as SolutionStepVariables, adding the source-variable instead ({})'.format(variable.Name()))
 
             self.__hist_variables.append(variable)
 
