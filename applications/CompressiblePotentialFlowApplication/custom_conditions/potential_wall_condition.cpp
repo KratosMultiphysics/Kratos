@@ -94,10 +94,10 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
     else
         CalculateNormal3D(An);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     const PotentialWallCondition& r_this = *this;
-    const array_1d<double, 3>& v = r_this.GetValue(VELOCITY_INFINITY);
+    const array_1d<double, 3>& v = r_this.GetValue(FREE_STREAM_VELOCITY);
     const double value = free_stream_density*inner_prod(v, An) / static_cast<double>(TNumNodes);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)

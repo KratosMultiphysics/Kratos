@@ -84,7 +84,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -95,7 +94,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "pfem_particle_fluidonly.h"
 
 //#include "utilities/enrich_2d_2dofs.h"
@@ -775,7 +774,7 @@ namespace Kratos
 					{
 							ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-							if(inode->FastGetSolutionStepValue(IS_STRUCTURE)!=0.0)
+							if(inode->Is(SLIP))
 							{
 
 								array_1d<double, 3 >& velocity = inode->FastGetSolutionStepValue(VELOCITY);

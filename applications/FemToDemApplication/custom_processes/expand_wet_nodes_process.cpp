@@ -44,8 +44,8 @@ void ExpandWetNodesProcess::Execute()
                 condition_is_active = it_elem->Is(ACTIVE);
             }
             int number_of_wet_nodes;
-            bool has_wet_nodes = this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes);
-            if (number_of_wet_nodes > 1 && !condition_is_active && !element_done) {
+            const bool has_wet_nodes = this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes);
+            if (number_of_wet_nodes > dimension - 1 && !condition_is_active && !element_done) {
                 this->ExpandWetNodes(it_elem, pressure_id);
                 extrapolated_elements++;
                 it_elem->SetValue(PRESSURE_EXPANDED, true);

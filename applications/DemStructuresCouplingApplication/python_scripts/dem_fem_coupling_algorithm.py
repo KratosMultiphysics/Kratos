@@ -67,14 +67,20 @@ class Algorithm(object):
         self.dem_solution.solver.Initialize()
 
         self.sandwich_simulation = False
+        # Test types (4 different options):
+        # Test number 0: no test simulation
+        # Test number 1: CTW16 specimen
+        # Test number 2: CTW10 specimen
+        # Test number 3: Blind test specimen
+        self.test_number = 0
 
-        if not self.sandwich_simulation:
+        if not self.sandwich_simulation and self.test_number:
             import control_module_fem_dem_utility
-            self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
+            self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
-        self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
+        self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -165,7 +171,7 @@ class Algorithm(object):
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
             self.structural_solution.InitializeSolutionStep()
-            if not self.sandwich_simulation:
+            if not self.sandwich_simulation and self.test_number:
                 self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
@@ -180,15 +186,16 @@ class Algorithm(object):
 
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
-            self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
 
-            DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
-            DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+            if self.test_number == 1 or self.test_number == 2:
+                self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+            elif self.test_number == 3:
+                self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
+                self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
+                DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
 
-            '''self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
-            self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
-            DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
-            '''
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
                 self.dem_solution.InitializeTimeStep()
                 self.dem_solution.time = self.dem_solution.time + self.dem_solution.solver.dt
@@ -214,10 +221,13 @@ class Algorithm(object):
                 axis[1] = 0.0
                 axis[2] = 1.0
 
-                specimen_radius_small = 0.0036195; #95% of the real hole. This is for the CTW16 specimen (smaller inner radius)
-                specimen_radius_large = 0.012065; #95% of the real hole. This is for the CTW10 specimen (larger inner radius)
-                blind_radius = 0.036195; #95% of the real hole
-                radius = specimen_radius_small
+                radius = 0
+                if self.test_number == 1:
+                    radius = 0.0036195; #95% of the real hole. CTW16 specimen
+                elif self.test_number == 2:
+                    radius = 0.012065; #95% of the real hole. CTW10 specimen
+                elif self.test_number == 3:
+                    radius = 0.036195; #95% of the real hole. Blind Test
 
                 self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
@@ -259,13 +269,14 @@ class Algorithm(object):
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
 
-                    self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
+                    if self.test_number:
+                        self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
 
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
             # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
-            if not self.sandwich_simulation:
+            if not self.sandwich_simulation and self.test_number:
                 self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
     def ReadDemModelParts(self,

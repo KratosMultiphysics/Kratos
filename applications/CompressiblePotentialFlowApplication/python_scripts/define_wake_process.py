@@ -1,7 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlow
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-
+import KratosMultiphysics.CompressiblePotentialFlowApplication
 import math
 
 def Factory(settings, Model):
@@ -9,31 +7,25 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     return DefineWakeProcess(Model, settings["Parameters"])
-def RotateModelPart(origin, angle, model_part):
-    ox,oy=origin
-    for node in model_part.Nodes:
-        node.X = ox+math.cos(angle)*(node.X - ox)-math.sin(angle)*(node.Y - oy)
-        node.Y = oy+math.sin(angle)*(node.X - ox)+math.cos(angle)*(node.Y - oy)
+
 
 class DefineWakeProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
+
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "mesh_id"                   : 0,
                 "model_part_name"           : "please specify the model part that contains the kutta nodes",
                 "fluid_part_name"           : "MainModelPart",
-                "upper_surface_model_part_name" : "Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "Body2D_LowerSurface",
                 "direction"                 : [1.0,0.0,0.0],
                 "stl_filename"              : "please specify name of stl file",
-                "epsilon"    : 1e-9,
-                "geometry_parameter": 0.0
+                "epsilon"    : 1e-9
             }
             """)
 
         settings.ValidateAndAssignDefaults(default_settings)
-        self.geometry_parameter=settings["geometry_parameter"].GetDouble()
+
         self.direction = KratosMultiphysics.Vector(3)
         self.direction[0] = settings["direction"][0].GetDouble()
         self.direction[1] = settings["direction"][1].GetDouble()
@@ -42,49 +34,13 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.direction[0] /= dnorm
         self.direction[1] /= dnorm
         self.direction[2] /= dnorm
+        print(self.direction)
 
         self.epsilon = settings["epsilon"].GetDouble()
 
-        self.fluid_model_part = Model.GetModelPart(settings["fluid_part_name"].GetString()).GetRootModelPart()
+        self.kutta_model_part = Model[settings["model_part_name"].GetString()]
+        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
 
-        self.model=Model
-        self.wake_model_part_name=settings["model_part_name"].GetString()
-        self.upper_surface_model_part_name=settings["upper_surface_model_part_name"].GetString()
-        self.lower_surface_model_part_name=settings["lower_surface_model_part_name"].GetString()
-
-        self.stl_filename = settings["stl_filename"].GetString()
-
-    def Execute(self):
-        self.FindWake()
-        # self.RefineMesh()
-        # self.FindWake()
-    def DefineWakeFromLevelSet(self):
-        KratosMultiphysics.ModelPartIO("wake").ReadModelPart(self.wake_line_model_part)
-        origin=[0.25-1.0,0]
-        angle=math.radians(-self.geometry_parameter)
-
-        for node in self.wake_line_model_part.Nodes:
-            node.X=node.X+1e-4
-            node.Y=node.Y+1e-4
-        RotateModelPart(origin,angle,self.wake_line_model_part)
-        KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(self.fluid_model_part, self.wake_line_model_part).Execute()
-        for elem in self.fluid_model_part.Elements:
-            d=elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-            i=0
-            for node in elem.GetNodes():
-                node.SetSolutionStepValue(CompressiblePotentialFlow.WAKE_DISTANCE,d[i])
-                i += 1
-        # KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.WAKE_DISTANCE, self.fluid_model_part.Nodes)
-
-
-
-        # self.kutta_model_part=self.model.CreateModelPart(self.wake_model_part_name)
-        # self.kutta_model_part.AddNode(kutta_node,0)
-
-    def FindWake(self):
-        self.kutta_model_part = self.model.GetModelPart(self.wake_model_part_name)
-
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         # Neigbour search tool instance
         AvgElemNum = 10
@@ -93,10 +49,17 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Find neighbours
         nodal_neighbour_search.Execute()
 
+        self.stl_filename = settings["stl_filename"].GetString()
+
+    def Execute(self):
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
         for node in self.kutta_model_part.Nodes:
-            # print("Wake Node:",node.Id,": (", node.X,",",node.Y,")")
             node.Set(KratosMultiphysics.STRUCTURE)
+
+
+
+
+        print(self.kutta_model_part)
 
 
         #compute the distances of the elements of the wake, and decide which ones are wak
@@ -108,13 +71,16 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.n[0] = -self.direction[1]
             self.n[1] = self.direction[0]
             self.n[2] = 0.0
+            print("normal =",self.n)
 
             for node in self.kutta_model_part.Nodes:
                 x0 = node.X
                 y0 = node.Y
                 for elem in self.fluid_model_part.Elements:
+
+
+
                     #check in the potentially active portion
-                    elem.Set(KratosMultiphysics.MARKER,False)
                     potentially_active_portion = False
                     for elnode in elem.GetNodes():
                         xn[0] = elnode.X - x0
@@ -140,10 +106,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             xn[2] = 0.0
                             d =  xn[0]*self.n[0] + xn[1]*self.n[1]
                             if(abs(d) < self.epsilon):
-                                if d >= 0.0:
-                                    d = self.epsilon
-                                else:
-                                    d = -self.epsilon
+                                d = self.epsilon
                             distances[counter] = d
                             counter += 1
 
@@ -159,8 +122,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             elem.Set(KratosMultiphysics.MARKER,True)
                             counter = 0
                             for elnode in elem.GetNodes():
-                                elnode.SetSolutionStepValue(CompressiblePotentialFlow.WAKE_DISTANCE,0,distances[counter])
-                                elnode.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,-1)
+                                elnode.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,distances[counter])
                                 counter+=1
                             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
 
@@ -170,8 +132,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                     #elem.Set(KratosMultiphysics.MARKER,False)
 
 
+
         else: #3D case
-            print("3D wake")
             import numpy
             from stl import mesh #this requires numpy-stl
 
@@ -183,13 +145,11 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             zero[3] = 0
             for elem in self.fluid_model_part.Elements:
                 elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, zero)
-                # elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, zero)
 
 
             mesh = mesh.Mesh.from_multi_file(self.stl_filename)
-
-            wake_mp = self.model.CreateModelPart("wake_stl")
-            wake_mp.AddNodalSolutionStepVariable(CompressiblePotentialFlow.WAKE_DISTANCE)
+            wake_mp = KratosMultiphysics.ModelPart("wake_stl")
+            wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
             wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
             prop = wake_mp.Properties[0]
 
@@ -210,23 +170,15 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     el = wake_mp.CreateNewElement("Element3D3N",elem_id,  [n1.Id, n2.Id, n3.Id], prop)
                     elem_id += 1
 
-
             #CHAPUZA! - to be removed
             #for node in wake_mp.Nodes:
                 #node.X = node.X - 1.0
                 #node.Y = node.Y -0.001
 
-            representation_mp = self.model.CreateModelPart("representation_mp")
+            representation_mp = KratosMultiphysics.ModelPart("representation_mp")
 
             distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(wake_mp, self.fluid_model_part)
             distance_calculator.Execute()
-
-            # KratosMultiphysics.VariableUtils().CopyScalarVar(CompressiblePotentialFlow.WAKE_DISTANCE,CompressiblePotentialFlow.WAKE_DISTANCE, self.fluid_model_part.Nodes)
-            # KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.ELEMENTAL_DISTANCES,KratosMultiphysics.ELEMENTAL_DISTANCES, self.fluid_model_part.Nodes)
-            # for elem in self.fluid_model_part.Elements:
-            #     d=elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-            #     # print(d)
-            #     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
 
             for elem in self.fluid_model_part.Elements:
                 if(elem.Is(KratosMultiphysics.TO_SPLIT)):
@@ -257,10 +209,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         #else:
                             #d[i] = 1.0
                         #i+=1
-                    #elem.SetValue(KratosMultiphysics.WAKE_ELEMENTAL_DISTANCES, d)
+                    #elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, d)
                     #elem.Set(KratosMultiphysics.MARKER,True)
 
-            CompressiblePotentialFlow.KuttaConditionProcess(self.fluid_model_part).Execute()
+            KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()
 
             for elem in self.fluid_model_part.Elements:
                 d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
@@ -271,11 +223,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         else:
                             d[i] = self.epsilon
                 elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
-                i=0
-                for node in elem.GetNodes():
-                    i=i+1
-                    node.SetSolutionStepValue(CompressiblePotentialFlow.WAKE_DISTANCE,d[i])
-
 
 
                 #if(len(d) == 4):
@@ -318,6 +265,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             #elem.Set(KratosMultiphysics.TO_SPLIT,True)
 
 
+
+
             #from here it is to output the wake
             distance_calculator.GenerateSkinModelPart(representation_mp);
 
@@ -343,7 +292,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
             from gid_output_process import GiDOutputProcess
             output_file = "representation_of_wake"
-            gid_output =  GiDOutputProcess(self.fluid_model_part,
+            gid_output =  GiDOutputProcess(representation_mp,
                                     output_file,
                                     KratosMultiphysics.Parameters("""
                                         {
@@ -361,7 +310,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                                 "node_output": false,
                                                 "skin_output": false,
                                                 "plane_output": [],
-                                                "nodal_results": ["DISTANCE"],
+                                                "nodal_results": [],
                                                 "nodal_nonhistorical_results": [],
                                                 "nodal_flags_results": [],
                                                 "gauss_point_results": [],
@@ -378,6 +327,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             gid_output.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalize()
 
+
+
+                    #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
+
     def ExecuteInitialize(self):
         self.Execute()
-
