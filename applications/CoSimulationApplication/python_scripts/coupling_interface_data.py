@@ -140,9 +140,9 @@ class CouplingInterfaceData(object):
             raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(new_data), self.Size()))
 
         if self.location == "node_historical":
-            data = self.__SetDataOnContainer(self.__GetDataContainer(), SetSolutionStepValue, new_data, solution_step_index)
+            self.__SetDataOnContainer(self.__GetDataContainer(), SetSolutionStepValue, new_data, solution_step_index)
         elif self.location in ["node_non_historical", "element", "condition"]:
-            data = self.__SetDataOnContainer(self.__GetDataContainer(), SetValue, new_data)
+            self.__SetDataOnContainer(self.__GetDataContainer(), SetValue, new_data)
         elif self.location == "process_info":
             if self.is_scalar_variable:
                 self.GetModelPart().ProcessInfo[self.variable] = new_data[0]
@@ -177,7 +177,7 @@ class CouplingInterfaceData(object):
 
     def __SetDataOnContainer(self, container, fct_ptr, data, *args):
         if self.is_scalar_variable:
-            return [fct_ptr(entity, self.variable, *args, value) for entity, value in zip(container, data)]
+            [fct_ptr(entity, self.variable, *args, value) for entity, value in zip(container, data)]
         else:
             if self.variable_type == "Array":
                 vec_value = [0.0, 0.0, 0.0] # Array values require three entries
