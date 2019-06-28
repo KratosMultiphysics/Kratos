@@ -20,8 +20,8 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
     objectives = optimization_settings["objectives"]
     constraints = optimization_settings["constraints"]
 
-    internal_objectives = _IdentifyInternalResponses(objectives)
-    internal_constraints = _IdentifyInternalResponses(constraints)
+    internal_objectives = _IdentifyInternalResponsesRecursively(objectives)
+    internal_constraints = _IdentifyInternalResponsesRecursively(constraints)
     internal_responses = internal_objectives + internal_constraints
 
     if len(internal_responses) > 0:
@@ -32,11 +32,16 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
     return Analyzer(internal_analyzer, model_part_controller, external_analyzer)
 
 # ------------------------------------------------------------------------------
-def _IdentifyInternalResponses(responses):
+def _IdentifyInternalResponsesRecursively(responses):
     internal_responses = []
 
     for itr in range(responses.size()):
         response_i = responses[itr]
+
+        if response_i.Has("is_combined"):
+            if response_i["is_combined"].GetBool():
+                internal_responses += _IdentifyInternalResponsesRecursively(response_i["combined_responses"])
+
         if response_i["use_kratos"].GetBool():
             identifier = response_i["identifier"].GetString()
             kratos_settings = response_i["kratos_response_settings"]

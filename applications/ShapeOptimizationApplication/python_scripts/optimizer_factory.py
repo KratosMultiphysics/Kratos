@@ -26,7 +26,7 @@ import algorithm_factory
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
-    ValidateSettings(optimization_settings)
+    _ValidateSettings(optimization_settings)
 
     model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
 
@@ -40,13 +40,13 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ------------------------------------------------------------------------------
-def ValidateSettings(optimization_settings):
-    ValidateTopLevelSettings(optimization_settings)
-    ValidateObjectives(optimization_settings["objectives"])
-    ValidateConstraints(optimization_settings["constraints"])
+def _ValidateSettings(optimization_settings):
+    _ValidateTopLevelSettings(optimization_settings)
+    _ValidateObjectivesRecursively(optimization_settings["objectives"])
+    _ValidateConstraints(optimization_settings["constraints"])
 
 # ------------------------------------------------------------------------------
-def ValidateTopLevelSettings(optimization_settings):
+def _ValidateTopLevelSettings(optimization_settings):
     default_settings = Parameters("""
     {
         "model_settings" : { },
@@ -64,7 +64,7 @@ def ValidateTopLevelSettings(optimization_settings):
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
 # ------------------------------------------------------------------------------
-def ValidateObjectives(objectives):
+def _ValidateObjectivesRecursively(objectives):
     for itr in range(objectives.size()):
         default_settings = Parameters("""
         {
@@ -73,12 +73,18 @@ def ValidateObjectives(objectives):
             "scaling_factor"                      : 1.0,
             "use_kratos"                          : false,
             "kratos_response_settings"            : {},
+            "is_combined"                         : false,
+            "combined_responses"                  : [],
+            "weights"                             : [],
             "project_gradient_on_surface_normals" : false
         }""")
         objectives[itr].ValidateAndAssignDefaults(default_settings)
 
+        if objectives[itr]["is_combined"].GetBool():
+            _ValidateObjectivesRecursively(objectives[itr]["combined_responses"])
+
 # ------------------------------------------------------------------------------
-def ValidateConstraints(constraints):
+def _ValidateConstraints(constraints):
     for itr in range(constraints.size()):
         default_settings = Parameters("""
         {
