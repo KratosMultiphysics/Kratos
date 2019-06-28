@@ -41,7 +41,8 @@
                         "maximum": 10
                     }
                 },
-                "convergence_criterion1" : {
+                "convergence_criterion1" :
+                {
                     "type" : "convergence_criteria.relative_norm",
                     "settings" :
                     {
