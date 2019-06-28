@@ -24,6 +24,11 @@ class Variable(object):
             raise TypeError('Only variables of type "Component" can be asked for their source-variable!')
         return globals()[self.__name[:-2]]
 
+    def GetComponentIndex(self):
+        if not self.__type == "Component":
+            raise TypeError('Only variables of type "Component" can be asked for their source-variable!')
+        return globals()[self.__name[:-2]]
+
     def __hash__(self):
         return hash(self.__name)
 
@@ -33,24 +38,41 @@ class Variable(object):
     def __str__(self):
         return 'Variable "{}" of type "{}"'.format(self.__name, self.__type)
 
+class VariableComponent(Variable):
+    def __init__(self, var_name, source_variable, component_index):
+        super(VariableComponent, self).__init__(var_name, "Component", 0.0)
+        self.__source_variable = source_variable
+        self.__component_index = component_index
+
+    def GetSourceVariable(self):
+        return self.__source_variable
+
+    def GetComponentIndex(self):
+        return self.__component_index
+
+    def __str__(self):
+        return 'Variable-Component "{}"'.format(self.__name)
+
+
 def CreateDoubleVariable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
     globals()[name] = Variable(name, "Double", 0.0)
 
-def CreateComponentVariable(name):
+def CreateComponentVariable(name, source_variable, component_index):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, "Component", 0.0)
+    globals()[name] = Variable(name, source_variable, component_index)
 
 def CreateArray3Variable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
 
-    for comp in ["X", "Y", "Z"]:
-        CreateComponentVariable(name + "_" + comp)
+    array_var = Variable(name, "Array", [0.0, 0.0, 0.0])
+    globals()[name] = array_var
 
-    globals()[name] = Variable(name, "Array", [0.0, 0.0, 0.0])
+    for i_comp, comp in enumerate(["X", "Y", "Z"]):
+        CreateComponentVariable(name + "_" + comp, array_var, component_index)
 
 def CreateVectorVariable(name):
     if name in globals():
