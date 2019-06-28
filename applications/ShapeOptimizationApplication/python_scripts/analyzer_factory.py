@@ -26,12 +26,12 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
 
 # --------------------------------------------------------------------------
 def _IsInternalAnalyzerRequired(optimization_settings):
-    for objective_number in range(optimization_settings["objectives"].size()):
-        if optimization_settings["objectives"][objective_number]["use_kratos"].GetBool():
+    for itr in range(optimization_settings["objectives"].size()):
+        if optimization_settings["objectives"][itr]["use_kratos"].GetBool():
             return True
 
-    for constraint_number in range(optimization_settings["constraints"].size()):
-        if optimization_settings["constraints"][constraint_number]["use_kratos"].GetBool():
+    for itr in range(optimization_settings["constraints"].size()):
+        if optimization_settings["constraints"][itr]["use_kratos"].GetBool():
             return True
     return False
 
