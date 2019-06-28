@@ -12,23 +12,23 @@ class ConvergenceCriterionAnd(CoSimulationComponent):
         super().__init__()
 
         settings = parameters["settings"]
-        self._convergence_criteria = []
+        self.convergence_criteria = []
         index = 0
         while True:
             key = "convergence_criterion" + str(index)
             if key in settings.keys():
-                self._convergence_criteria.append(cs_tools.CreateInstance(settings[key]))
+                self.convergence_criteria.append(cs_tools.CreateInstance(settings[key]))
                 index += 1
             else:
                 break
 
     def Update(self, r):
-        for convergence_criterion in self._convergence_criteria:
+        for convergence_criterion in self.convergence_criteria:
             convergence_criterion.Update(r)
 
     def IsSatisfied(self):
         is_satisfied = True
-        for convergence_criterion in self._convergence_criteria:
+        for convergence_criterion in self.convergence_criteria:
             is_satisfied = is_satisfied and convergence_criterion.IsSatisfied()
 
         return is_satisfied
@@ -36,5 +36,5 @@ class ConvergenceCriterionAnd(CoSimulationComponent):
     def PrintInfo(self):
         super().PrintInfo()
 
-        for convergence_criterion in self._convergence_criteria:
+        for convergence_criterion in self.convergence_criteria:
             convergence_criterion.PrintInfo()
