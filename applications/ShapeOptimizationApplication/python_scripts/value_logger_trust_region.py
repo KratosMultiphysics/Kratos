@@ -51,22 +51,22 @@ class ValueLoggerTrustRegion( ValueLogger ):
         print("\n-------------------------------------------------------")
 
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", round(self.history["response_value"][objective_id][self.current_iteration],12))
+        print("\n> Current value of objective = ", round(self.history["response_value"][objective_id][self.current_index],12))
 
-        print("> Absolut change of objective = ",round(self.history["abs_change_objective"][self.current_iteration],4)," [%]")
-        print("> Relative change of objective = ",round(self.history["rel_change_objective"][self.current_iteration],4)," [%]\n")
+        print("> Absolut change of objective = ",round(self.history["abs_change_objective"][self.current_index],4)," [%]")
+        print("> Relative change of objective = ",round(self.history["rel_change_objective"][self.current_index],4)," [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", round(self.history["response_value"][constraint_id][self.current_iteration],12))
+            print("> Value of C"+str(itr+1)+" = ", round(self.history["response_value"][constraint_id][self.current_index],12))
 
-        print("\nNormInf3D of dX = ", round(self.history["norm_dX"][self.current_iteration],6))
+        print("\nNormInf3D of dX = ", round(self.history["norm_dX"][self.current_index],6))
 
-        print("\nlen_bar_obj = ", round(self.history["len_bar_obj"][self.current_iteration],6))
-        print("adj_len_bar_obj = ", round(self.history["adj_len_bar_obj"][self.current_iteration],6))
+        print("\nlen_bar_obj = ", round(self.history["len_bar_obj"][self.current_index],6))
+        print("adj_len_bar_obj = ", round(self.history["adj_len_bar_obj"][self.current_index],6))
 
-        print("\nlen_bar_cons = ", [round(entry, 6) for entry in self.history["len_bar_cons"][self.current_iteration]])
-        print("adj_len_bar_cons = ", [round(entry, 6) for entry in self.history["adj_len_bar_cons"][self.current_iteration]])
+        print("\nlen_bar_cons = ", [round(entry, 6) for entry in self.history["len_bar_cons"][self.current_index]])
+        print("adj_len_bar_cons = ", [round(entry, 6) for entry in self.history["adj_len_bar_cons"][self.current_index]])
 
         print("\n-------------------------------------------------------")
 
@@ -75,25 +75,25 @@ class ValueLoggerTrustRegion( ValueLogger ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:>4d}".format(self.current_iteration))
+            row.append("{:>4d}".format(self.current_index))
 
             objective_id = self.objectives[0]["identifier"].GetString()
-            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_iteration]))
-            row.append("{:>12f}".format(self.history["abs_change_objective"][self.current_iteration]))
-            row.append("{:>12f}".format(self.history["rel_change_objective"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+            row.append("{:>12f}".format(self.history["abs_change_objective"][self.current_index]))
+            row.append("{:>12f}".format(self.history["rel_change_objective"][self.current_index]))
 
             for itr in range(self.constraints.size()):
                 constraint_id = self.constraints[itr]["identifier"].GetString()
-                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_iteration]))
+                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
-                row.append("{:>12f}".format(self.history["len_bar_cons"][self.current_iteration][itr]))
-                row.append("{:>12f}".format(self.history["adj_len_bar_cons"][self.current_iteration][itr]))
+                row.append("{:>12f}".format(self.history["len_bar_cons"][self.current_index][itr]))
+                row.append("{:>12f}".format(self.history["adj_len_bar_cons"][self.current_index][itr]))
 
-            row.append("{:>12d}".format(self.history["bi_itrs"][self.current_iteration]))
-            row.append("{:>12f}".format(self.history["bi_err"][self.current_iteration]))
-            row.append("{:>17f}".format(self.history["test_norm_dX_bar"][self.current_iteration]))
-            row.append("{:>12f}".format(self.history["norm_dX"][self.current_iteration]))
-            row.append(" {:>.5E}".format(self.history["step_length"][self.current_iteration]))
+            row.append("{:>12d}".format(self.history["bi_itrs"][self.current_index]))
+            row.append("{:>12f}".format(self.history["bi_err"][self.current_index]))
+            row.append("{:>17f}".format(self.history["test_norm_dX_bar"][self.current_index]))
+            row.append("{:>12f}".format(self.history["norm_dX"][self.current_index]))
+            row.append(" {:>.5E}".format(self.history["step_length"][self.current_index]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
