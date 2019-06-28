@@ -7,17 +7,17 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the base class
-from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
 
 def CreateSolver(model, custom_settings):
-    return ParticleMPMSolver(model, custom_settings)
+    return MPMImplicitDynamicSolver(model, custom_settings)
 
-class ParticleMPMSolver(PythonSolver):
+class MPMImplicitDynamicSolver(MPMSolver):
 
     ### Solver constructor
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(ParticleMPMSolver, self).__init__(model, custom_settings)
+        super(MPMImplicitDynamicSolver, self).__init__(model, custom_settings)
 
         # Add model part containers
         self._add_model_part_containers()
@@ -34,7 +34,7 @@ class ParticleMPMSolver(PythonSolver):
             self.block_builder = False
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Solver is constructed correctly.")
 
 
     @classmethod
@@ -94,7 +94,7 @@ class ParticleMPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
-        this_defaults.AddMissingParameters(super(ParticleMPMSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultSettings())
         return this_defaults
 
     ### Solver public functions
@@ -102,13 +102,13 @@ class ParticleMPMSolver(PythonSolver):
         # Add variables to different model parts
         self._add_variables_to_model_part(self.grid_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Variables are added.")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Variables are added.")
 
     def ImportModelPart(self):
         # Read model part
         self._model_part_reading()
 
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Models are imported.")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ","Models are imported.")
 
     def PrepareModelPart(self):
         # Set buffer size
@@ -117,7 +117,7 @@ class ParticleMPMSolver(PythonSolver):
         # Executes the check and prepare model process
         self._execute_check_and_prepare()
 
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "ModelPart prepared for Solver.")
 
     def GetComputingModelPart(self):
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
@@ -133,7 +133,7 @@ class ParticleMPMSolver(PythonSolver):
         # Add dofs to different model parts
         self._add_dofs_to_model_part(self.grid_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","DOFs are added.")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ","DOFs are added.")
 
     def Initialize(self):
         #TODO: implement solver_settings and change the input of the constructor in MPM_strategy.h
@@ -178,7 +178,7 @@ class ParticleMPMSolver(PythonSolver):
         # Check if everything is assigned correctly
         self._check()
 
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ","Solver is initialized correctly.")
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -286,7 +286,7 @@ class ParticleMPMSolver(PythonSolver):
         # Specific active node and element check for particle MPM solver
         for node in self.grid_model_part.Nodes:
             if (node.Is(KratosMultiphysics.ACTIVE)):
-                KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
+                KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
 
         # Setting active initial elements
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
@@ -297,9 +297,9 @@ class ParticleMPMSolver(PythonSolver):
         # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ","Constitutive law was successfully imported.")
         else:
-            KratosMultiphysics.Logger.PrintWarning("::[ParticleMPMSolver]:: ","Constitutive law was not imported.")
+            KratosMultiphysics.Logger.PrintWarning("::[MPMImplicitDynamicSolver]:: ","Constitutive law was not imported.")
 
         # Clone property of model_part2 to model_part3
         self.material_model_part.Properties = self.initial_material_model_part.Properties

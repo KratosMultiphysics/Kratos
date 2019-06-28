@@ -8,11 +8,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type in ["Dynamic", "dynamic", "Quasi-static", "quasi_static"]):
-
+        if (solver_type == "Dynamic" or solver_type == "dynamic"):
             time_integration_method = solver_settings["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
-                solver_module_name = "particle_mpm_solver"
+                solver_module_name = "mpm_implicit_dynamic_solver"
             #TODO: explicit time integration solver is to be implemented
             elif (time_integration_method == "explicit"):
                 err_msg =  time_integration_method + " time integration method is to be implemented, but not yet available."
@@ -22,8 +21,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"implicit\""
                 raise Exception(err_msg)
+        elif (solver_type == "Quasi-static" or solver_type == "quasi_static"):
+            solver_module_name = "mpm_quasi_static_solver"
         elif (solver_type == "Static" or solver_type == "static"):
-            solver_module_name = "particle_mpm_solver"
+            solver_module_name = "mpm_static_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\", \"quasi_static\""
