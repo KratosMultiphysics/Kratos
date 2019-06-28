@@ -333,6 +333,7 @@ class MultilevelMonteCarlo(object):
         # store_lower_levels_samples: flag to store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
+        # tolerance_absolute: safety tolerance (absolute). Useful if expected value (qoi) is zero
         # confidence: confidence on tolerance
         # cphi_confidence: CDF**-1 (confidence) where CDF**-1 is the inverse of the CDF of the standard normal distribution, the default value is computed for confidence = 0.9
         # number_samples_screening: number of samples for screening phase
@@ -355,12 +356,14 @@ class MultilevelMonteCarlo(object):
             "store_lower_levels_samples" : "False",
             "adaptive_number_samples"    : "False",
             "refinement_strategy"        : "concurrent_adaptive_refinement",
+            "convergence_criteria"       : "total_error_stopping_rule",
             "k0" : 0.1,
             "k1" : 0.1,
             "r1" : 1.25,
             "r2" : 1.15,
             "initial_tolerance" : 0.25,
             "tolerance" : 0.1,
+            "tolerance_absolute" : 1e-6,
             "confidence" : 0.9,
             "cphi_confidence" : 1.28155156554,
             "number_samples_screening" : 25,
@@ -940,8 +943,11 @@ class MultilevelMonteCarlo(object):
                 # check convergence
                 # convergence reached if: total_error < tolerance
                 # if not update current_iteration
-                if (self.total_error < self.settings["tolerance"].GetDouble()):
-                    self.convergence = True
+                if (self.settings["convergence_criteria"].GetString() == "total_error_stopping_rule"):
+                    if (self.total_error < self.settings["tolerance"].GetDouble()):
+                        self.convergence = True
+                elif (self.settings["convergence_criteria"].GetString() == "relative_total_error_stopping_rule"):
+                    factor =  self.settings["tolerance"].GetDouble() * self.mean_mlmc_QoI + self.settings["tolerance_absolute"].GetDouble()
                 # TODO: this is a workaround of a compss bug
                 # delete models and parameters no more used
                 for elem in self.objects_to_delete[batch]:
