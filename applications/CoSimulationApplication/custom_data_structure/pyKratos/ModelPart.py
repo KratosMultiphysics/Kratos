@@ -65,6 +65,10 @@ class ModelPart(DataValueContainer):
             if self.NumberOfNodes() > 0:
                 # this is forbidden since it creates problems with the memory management of historical variables
                 raise Exception("Variables can only be added before adding Nodes!")
+            if variable.Type() == "Component":
+                # TODO maybe add the source-var instead of throwing
+                raise TypeError('Variables of type "Component" cannot be used as SolutionStepVariables')
+
             self.__hist_variables.append(variable)
 
     def HasNodalSolutionStepVariable(self, variable):
