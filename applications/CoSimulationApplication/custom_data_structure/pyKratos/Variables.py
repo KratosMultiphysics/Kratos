@@ -19,16 +19,6 @@ class Variable(object):
         # copy to make sure that nothing is referenced wrong
         return deepcopy(self.__zero)
 
-    def GetSourceVariable(self):
-        if not self.__type == "Component":
-            raise TypeError('Only variables of type "Component" can be asked for their source-variable!')
-        return globals()[self.__name[:-2]]
-
-    def GetComponentIndex(self):
-        if not self.__type == "Component":
-            raise TypeError('Only variables of type "Component" can be asked for their source-variable!')
-        return globals()[self.__name[:-2]]
-
     def __hash__(self):
         return hash(self.__name)
 
@@ -54,6 +44,7 @@ class VariableComponent(Variable):
         return 'Variable-Component "{}"'.format(self.Name())
 
 
+# TODO maybe separate the class-declarations from the variable declarations?
 def CreateDoubleVariable(name):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))

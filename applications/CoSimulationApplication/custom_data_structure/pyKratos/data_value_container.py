@@ -46,7 +46,7 @@ class DataValueContainer(object):
         # this matches the Kratos behavior
         if isinstance(variable, VariableComponent):
             if not variable.GetSourceVariable() in self.__non_hist_variables:
-                # allocate all components and the source at the same time
+                # allocate all components and the source-variable at the same time
                 self.__non_hist_variables[variable.GetSourceVariable()] = variable.GetSourceVariable().Zero()
         else:
             if not variable in self.__non_hist_variables:

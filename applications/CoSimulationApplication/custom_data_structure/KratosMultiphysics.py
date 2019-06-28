@@ -13,6 +13,9 @@ pykratos = os.path.join(kratos_path, "applications", "CoSimulationApplication", 
 __path__.append(kratos_py_scripts) # adding the python-scripts from the core to the module
 __path__.append(pykratos) # adding the python-scripts from pyKratos to the module
 
+# bringing all classes to the scope of the Module
+# this way e.g. "from KratosMultiphysics import ModelPart" becomes possible
+# => this way pyKratos is fully compatible with the real Kratos
 from .Parameters import Parameters
 from .Model import Model
 from .ModelPart import ModelPart
