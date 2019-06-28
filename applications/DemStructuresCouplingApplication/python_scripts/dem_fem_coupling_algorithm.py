@@ -286,7 +286,8 @@ class Algorithm(object):
                 self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
             # Write SP data
-            self.sp_post_process_tool.WriteData()
+            if self.test_number:
+                self.sp_post_process_tool.WriteData()
 
     def ReadDemModelParts(self,
                                     starting_node_Id=0,
