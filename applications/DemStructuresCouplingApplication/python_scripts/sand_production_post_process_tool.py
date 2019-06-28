@@ -1,3 +1,6 @@
+# Import system python
+import os
+
 import numpy as np
 import h5py
 import KratosMultiphysics as Kratos
@@ -8,9 +11,25 @@ def Norm(vector):
     return np.sqrt(sum(v**2 for v in vector))
 
 class SandProductionPostProcessTool(object):
-    def __init__(self, parameters, fem_model_part, dem_model_part):
+    def __init__(self, fem_model_part, dem_model_part, test_number):
 
-        self.parameters = parameters
+        self.parameters = Kratos.Parameters( """
+        {
+            "file_name": "sp_data.hdf5",
+            "target_porosity" : 0.3,
+            "probe_height" : 0.2032
+        }  """ )
+
+        if test_number == 1: # CTW16
+            test_id = "CTW16"
+        elif test_number == 2: # CTW10
+            test_id = "CTW10"
+        else: # Blind test
+            test_id = "BlindTest"
+
+        self.parameters.AddEmptyValue("test_id")
+        self.parameters["test_id"].SetString(test_id)
+
         self.dem_model_part = dem_model_part
         self.fem_model_part = fem_model_part
 
@@ -21,7 +40,8 @@ class SandProductionPostProcessTool(object):
             self.density = elem.Properties[Dem.PARTICLE_DENSITY]
             break
         self.porosity = self.CalculatePorosity()
-        self.file_path = self.parameters["file_path"].GetString() + self.parameters["file_name"].GetString()
+        self.problem_path = os.getcwd()
+        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
         self.target_porosity = self.parameters["target_porosity"].GetDouble()
         self.real_probe_height = self.parameters["probe_height"].GetDouble()
 

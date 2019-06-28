@@ -80,18 +80,10 @@ class Algorithm(object):
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
         # Create Postprocess tool for SP
-        self.sand_production_post_process_parameters = Kratos.Parameters( """
-        {
-            "file_name": "sp_data.hdf5",
-            "file_path": "/home/ipouplana/Ara/DEM_FEM/bond_sp_counting/demfem_coarsedemtest/",
-            "test_id" : "CTW16",
-            "target_porosity" : 0.3,
-            "probe_height" : 0.2032
-        }  """ )
         import sand_production_post_process_tool
-        self.sp_post_process_tool = sand_production_post_process_tool.SandProductionPostProcessTool(self.sand_production_post_process_parameters,
-                                                                                                    self.structural_solution._GetSolver().GetComputingModelPart(),
-                                                                                                    self.dem_solution.spheres_model_part)
+        self.sp_post_process_tool = sand_production_post_process_tool.SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
+                                                                                                    self.dem_solution.spheres_model_part,
+                                                                                                    self.test_number)
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
