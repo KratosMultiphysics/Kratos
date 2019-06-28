@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(MOR_SECOND_ORDER_KRYLOV_STRATEGY)
-#define MOR_SECOND_ORDER_KRYLOV_STRATEGY
+#if !defined(MOR_SECOND_ORDER_IRKA_STRATEGY)
+#define MOR_SECOND_ORDER_IRKA_STRATEGY
 
 // System includes
 
@@ -52,17 +52,17 @@ namespace Kratos
 ///@{
 
 /**
- * @class MorSecondOrderKrylovStrategy
+ * @class MorSecondOrderIRKAStrategy
  * @ingroup KratosCore
- * @brief This is the linear MOR matrix output strategy
+ * @brief This is the Iterative Rational Krylov Algorithm
  * @details This strategy builds the K and M matrices and outputs them
- * @author Aditya Ghantasala
+ * @author Matthias Ebert, based on code of Aditya Ghantasala and Quirin Aumann
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class MorSecondOrderKrylovStrategy
+class MorSecondOrderIRKAStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
@@ -70,7 +70,7 @@ class MorSecondOrderKrylovStrategy
     ///@name Type Definitions
     ///@{
     // Counted pointer of ClassName
-    KRATOS_CLASS_POINTER_DEFINITION(MorSecondOrderKrylovStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(MorSecondOrderIRKAStrategy);
 
     // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MorOfflineSecondOrderStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -116,7 +116,7 @@ class MorSecondOrderKrylovStrategy
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    MorSecondOrderKrylovStrategy(
+    MorSecondOrderIRKAStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -137,7 +137,7 @@ class MorSecondOrderKrylovStrategy
         // Saving the linear solver        
         this->SetLinearSolver(pNewLinearSolver);
 
-        // Set flags to start correctly the calculations
+        // Set flags to correctly start the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -163,7 +163,7 @@ class MorSecondOrderKrylovStrategy
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~MorSecondOrderKrylovStrategy() override
+    ~MorSecondOrderIRKAStrategy() override
     {
         this->Clear();
     }
@@ -179,35 +179,121 @@ class MorSecondOrderKrylovStrategy
     bool SolveSolutionStep() override
     {
         KRATOS_TRY;
-        std::cout << "hello! this is where the second order krylov MOR magic happens" << std::endl;
+        std::cout << "hello! this is where the second order IRKA MOR magic happens" << std::endl;
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         
-        TSystemMatrixType& r_K = this->GetSystemMatrix();
-        TSystemMatrixType& r_M = this->GetMassMatrix();
-        TSystemMatrixType& r_D = this->GetDampingMatrix();
-        TSystemVectorType& r_RHS = this->GetSystemVector();
+        TSystemMatrixType& K_full = this->GetSystemMatrix();
+        TSystemMatrixType& M_full = this->GetMassMatrix();
+        TSystemMatrixType& D_full = this->GetDampingMatrix();
+        TSystemVectorType& b_full = this->GetSystemVector();
 
-        TSystemVectorType tmp(r_K.size1(), 0.0);
+        TSystemVectorType tmp(K_full.size1(), 0.0);
 
-        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_RHS);
+        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), b_full);
 
-        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_RHS);  
+        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), K_full, tmp);
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), K_full, tmp, b_full);  
 
-        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M);
+        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), M_full, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), M_full);
 
-        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D);
+        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), D_full, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), D_full);
 
         // EchoInfo(0);
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
         //sampling points
         KRATOS_WATCH(mSamplingPoints)
         const std::size_t n_sampling_points = mSamplingPoints.size();
-        const std::size_t reduced_system_size = 3 * n_sampling_points;
-        
+        const std::size_t reduced_system_size = n_sampling_points; //number of sampling points
+
+        KRATOS_WATCH(system_size)
+        KRATOS_WATCH(reduced_system_size)
+
+
+        auto Vrp_col = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& Vr_col = *Vrp_col;
+        SparseSpaceType::Resize(Vr_col,reduced_system_size);
+        SparseSpaceType::Set(Vr_col,0.0);
+
+        auto Vrp = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto& Vr = *Vrp;
+        SparseSpaceType::Resize(Vr,system_size, reduced_system_size);
+        //SparseSpaceType::Set(Vr,0.0);
+
+
+        //p_builder_and_solver->GetLinearSystemSolver()->Solve( mSamplingPoints[0]*mSamplingPoints[0]*M_full + mSamplingPoints[0]*D_full + K_full, Vr_col, b_full );
+        //KRATOS_WATCH(Vr_col)
+
+        auto M_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& M_reduced = *M_reduced_p;
+        DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
+
+        auto D_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& D_reduced = *D_reduced_p;
+        DenseSpaceType::Resize(D_reduced, reduced_system_size, reduced_system_size);
+
+        auto K_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& K_reduced = *K_reduced_p;
+        DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
+
+        // auto M_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
+        // auto& M_reduced = *M_reduced_p;
+        // DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
+
+
+        auto tmp_transfer_p = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto& tmp_transfer = *tmp_transfer_p;
+        SparseSpaceType::Resize(tmp_transfer, system_size, system_size);
+
+        for( size_t i = 0; i < n_sampling_points; ++i ){
+            double current_s = mSamplingPoints[i];
+            tmp_transfer = current_s*current_s*M_full + current_s*D_full + K_full;
+            auto p_builder_and_solver->GetLinearSystemSolver();
+            p_builder_and_solver->GetLinearSystemSolver()->Solve(tmp_transfer, Vr_col, b_full );
+            column( Vr, (i) ) = Vr_col;
+        }
+
+
+        unsigned int iter = 1;
+        double err = 1.0;
+        while((iter < 100)&&(err > 10e-6)){ // (err>tol){
+            vector<double> mSamplingPoints_old = mSamplingPoints;
+
+            M_reduced = prod(trans(Vr), prod(M_full,Vr));
+            D_reduced = prod(trans(Vr), prod(D_full,Vr));
+            K_reduced = prod(trans(Vr), prod(K_full,Vr));
+
+            for( size_t i = 0; i < n_sampling_points; ++i ){
+                double current_s = mSamplingPoints[i];
+                tmp_transfer = current_s*current_s*M_full + current_s*D_full + K_full;
+                // p_builder_and_solver->GetLinearSystemSolver()->Solve(tmp_transfer, Vr_col, b_full );
+                column( Vr, (i) ) = Vr_col;
+            }
+
+            // check convergence
+            err = norm_2(mSamplingPoints - mSamplingPoints_old)/norm_2(mSamplingPoints_old);
+            //KRATOS_WATCH(err)
+            iter++;
+
+        }
+
+        M_reduced = prod(trans(Vr), prod(M_full,Vr));
+        D_reduced = prod(trans(Vr), prod(D_full,Vr));
+        K_reduced = prod(trans(Vr), prod(K_full,Vr));
+        // C_reduced = C * Vr;
+
+
+        KRATOS_WATCH(M_reduced)
+
+
+
+
+
+
+        //KRATOS_WATCH(Vr)
+ /*      
         //initialize sb, As, AAs vectors
         auto s = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rs = *s;
@@ -238,13 +324,13 @@ class MorSecondOrderKrylovStrategy
         for( size_t i = 0; i < n_sampling_points; ++i )
         {
             KRATOS_WATCH( mSamplingPoints(i) )
-            r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M );    // Without Damping  
-            //r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M )-r_D;  With Damping
+            r_kdyn = K_full - ( std::pow( mSamplingPoints(i), 2.0 ) * M_full );    // Without Damping  
+            //r_kdyn = K_full - ( std::pow( mSamplingPoints(i), 2.0 ) * M_full )-D_full;  With Damping
             
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, r_RHS );
-            aux = prod( r_M, rs );
+            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, b_full );
+            aux = prod( M_full, rs );
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
-            aux = prod( r_M, rAs );
+            aux = prod( M_full, rAs );
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAAs, aux );
 
             column( r_tmp_basis, (i*3) ) = rs;
@@ -272,19 +358,19 @@ class MorSecondOrderKrylovStrategy
         auto& r_mass_matrix_reduced = this->GetMr();
         auto& r_damping_matrix_reduced = this->GetDr();
 
-        r_force_vector_reduced = prod( r_RHS, r_basis );
+        r_force_vector_reduced = prod( b_full, r_basis );
 
-        TSystemMatrixType T = prod( trans( r_basis ), r_K );
+        TSystemMatrixType T = prod( trans( r_basis ), K_full );
         r_stiffness_matrix_reduced = prod( T, r_basis );
 
-        T = prod( trans( r_basis ), r_M );
+        T = prod( trans( r_basis ), M_full );
         r_mass_matrix_reduced = prod( T, r_basis );
 
-        T = prod( trans( r_basis ), r_D );
+        T = prod( trans( r_basis ), D_full );
         r_damping_matrix_reduced = prod( T, r_basis );
         
         KRATOS_WATCH(r_mass_matrix_reduced)
-
+*/
         std::cout << "MOR offline solve finished" << std::endl;
         
 		return true;
@@ -311,7 +397,7 @@ class MorSecondOrderKrylovStrategy
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "MorSecondOrderKrylovStrategy";
+        return "MorSecondOrderIRKAStrategy";
     }
 
     ///@}
@@ -402,11 +488,11 @@ class MorSecondOrderKrylovStrategy
      * Copy constructor.
      */
 
-    MorSecondOrderKrylovStrategy(const MorSecondOrderKrylovStrategy &Other){};
+    MorSecondOrderIRKAStrategy(const MorSecondOrderIRKAStrategy &Other){};
 
     ///@}
 
-}; /* Class MorSecondOrderKrylovStrategy */
+}; /* Class MorSecondOrderIRKAStrategy */
 
 ///@}
 
@@ -417,4 +503,4 @@ class MorSecondOrderKrylovStrategy
 
 } /* namespace Kratos. */
 
-#endif /* MOR_SECOND_ORDER_KRYLOV_STRATEGY  defined */
+#endif /* MOR_SECOND_ORDER_IRKA_STRATEGY  defined */
