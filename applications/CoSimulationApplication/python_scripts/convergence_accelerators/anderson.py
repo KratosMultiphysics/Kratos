@@ -8,7 +8,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red, magenta, blue
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, red, magenta, blue
 
 # Other imports
 import numpy as np
