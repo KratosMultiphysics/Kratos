@@ -235,7 +235,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                     return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.data_logger.GetValue("rel_change_objective", self.optimization_iteration)
+            relativeChangeOfObjectiveValue = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
             if abs(relativeChangeOfObjectiveValue) < self.relative_tolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True

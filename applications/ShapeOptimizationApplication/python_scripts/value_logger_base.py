@@ -65,11 +65,7 @@ class ValueLogger():
         pass
 
     # --------------------------------------------------------------------------
-    def GetValue( self, key, iteration ):
-        return self.history[key][iteration]
-
-    # --------------------------------------------------------------------------
-    def GetValueHistory( self, key ):
+    def GetValues( self, key ):
         return self.history[key]
 
     # --------------------------------------------------------------------------
