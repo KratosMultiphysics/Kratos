@@ -6,10 +6,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return ConvergenceCriterionRelativeNorm(parameters)
+    return ConvergenceCriterionAbsoluteNorm(parameters)
 
 
-class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
+class ConvergenceCriterionAbsoluteNorm(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
@@ -17,16 +17,14 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
         self.tolerance = settings["tolerance"].GetDouble()
         self.order = settings["order"].GetInt()
 
-        self.initial_norm = 0.0
         self.last_norm = 0.0
-        self.is_initial_norm_set = False
+        self.is_updated = False
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        self.initial_norm = 0.0
         self.last_norm = 0.0
-        self.is_initial_norm_set = False
+        self.is_updated = False
 
     def PrintInfo(self):
         super().PrintInfo()
@@ -35,14 +33,10 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
 
     def Update(self, r):
         self.last_norm = np.linalg.norm(r.GetNumpyArray(), self.order)
-        if not self.is_initial_norm_set:
-            self.initial_norm = self.last_norm
-            self.is_initial_norm_set = True
-            if self.initial_norm < np.finfo(type(self.initial_norm)).eps:
-                raise Exception("Initial norm is too small")
+        self.is_updated = True
 
     def IsSatisfied(self):
-        if not self.is_initial_norm_set:
+        if not self.is_updated:
             return False
         else:
-            return self.last_norm/self.initial_norm < self.tolerance
+            return self.last_norm < self.tolerance

@@ -1,6 +1,7 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from convergence_accelerators.test_iqni import TestConvergenceAcceleratorIQNI
+from convergence_criteria.test_absolute_norm import TestConvergenceCriterionAbsoluteNorm
 from convergence_criteria.test_and import TestConvergenceCriterionAnd
 from convergence_criteria.test_iteration_limit import TestConvergenceCriterionIterationLimit
 from convergence_criteria.test_or import TestConvergenceCriterionOr
@@ -31,6 +32,7 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']  # These tests are executed by the continuous integration tool
     smallSuite.addTest(TestConvergenceAcceleratorIQNI("test_convergence_accelerator_iqni"))
+    smallSuite.addTest(TestConvergenceCriterionAbsoluteNorm("test_convergence_criterion_absolute_norm"))
     smallSuite.addTest(TestConvergenceCriterionAnd("test_convergence_criterion_and"))
     smallSuite.addTest(TestConvergenceCriterionIterationLimit("test_convergence_criterion_iteration_limit"))
     smallSuite.addTest(TestConvergenceCriterionOr("test_convergence_criterion_or"))
