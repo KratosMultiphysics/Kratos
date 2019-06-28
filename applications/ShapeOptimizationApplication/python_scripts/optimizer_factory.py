@@ -26,6 +26,27 @@ import algorithm_factory
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
+    ValidateSettings(optimization_settings)
+
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
+
+    communicator = communicator_factory.CreateCommunicator(optimization_settings)
+
+    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
+    else:
+        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+
+# ------------------------------------------------------------------------------
+def ValidateSettings(optimization_settings):
+    ValidateTopLevelSettings(optimization_settings)
+    ValidateObjectives(optimization_settings["objectives"])
+    ValidateConstraints(optimization_settings["constraints"])
+
+# ------------------------------------------------------------------------------
+def ValidateTopLevelSettings(optimization_settings):
     default_settings = Parameters("""
     {
         "model_settings" : { },
@@ -42,16 +63,35 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
 
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
-    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+# ------------------------------------------------------------------------------
+def ValidateObjectives(objectives):
+    for itr in range(objectives.size()):
+        default_settings = Parameters("""
+        {
+            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+            "type"                                : "minimization",
+            "scaling_factor"                      : 1.0,
+            "use_kratos"                          : false,
+            "kratos_response_settings"            : {},
+            "project_gradient_on_surface_normals" : false
+        }""")
+        objectives[itr].ValidateAndAssignDefaults(default_settings)
 
-    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
-
-    communicator = communicator_factory.CreateCommunicator(optimization_settings)
-
-    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
-    else:
-        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+# ------------------------------------------------------------------------------
+def ValidateConstraints(constraints):
+    for itr in range(constraints.size()):
+        default_settings = Parameters("""
+        {
+            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+            "type"                                : "<",
+            "scaling_factor"                      : 1.0,
+            "reference"                           : "initial_value",
+            "reference_value"                     : 1.0,
+            "use_kratos"                          : false,
+            "kratos_response_settings"            : {},
+            "project_gradient_on_surface_normals" : false
+        }""")
+        constraints[itr].ValidateAndAssignDefaults(default_settings)
 
 # ==============================================================================
 class VertexMorphingMethod:
