@@ -231,7 +231,7 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickl
     if (current_level > 0):
         print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
-
+    sys.stdout.flush()
     return mlmc_results,pickled_finer_model
 
 
@@ -506,6 +506,9 @@ class MultilevelMonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
+                sys.stdout.flush()
+                if (self.iteration_counter >= 20):
+                    self.convergence = True
             end_time_mlmc = time.time()
             print("[TIMER] mlmc phase MLMC (no screening phase):", end_time_mlmc-end_time_screening)
         else:
@@ -522,7 +525,7 @@ class MultilevelMonteCarlo(object):
                 self.batches_launched[batch] = True
                 self.objects_to_delete.append([])
                 # batch_results = []
-                for level in range(len(self.batches_number_samples[batch])):
+                for level in reversed(range(len(self.batches_number_samples[batch]))):
                     batch_results = []
                     for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
@@ -759,8 +762,10 @@ class MultilevelMonteCarlo(object):
                     self.difference_QoI.UpdateBatchesPassPowerSum(level,batch)
                     self.time_ML.UpdateBatchesPassPowerSum(level,batch)
                 self.batches_analysis_finished[batch] = True
+        continue_iterating = True
         for batch in range (len(self.batches_number_samples)):
-            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True): # consider batches completed, analysed and for which convergence has not been computed
+            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True and continue_iterating): # consider batches completed, analysed and for which convergence has not been computed
+                continue_iterating = False
                 # update working convergence batch
                 self.current_convergence_batch = batch
                 for level in range (len(self.batches_number_samples[batch])):
@@ -865,7 +870,8 @@ class MultilevelMonteCarlo(object):
             # compute theta splitting parameter according to the current_number_levels and tolerance_i
             self.ComputeTheta(self.current_number_levels)
             # add batch size per level: multiply by 2 current number samples and take the maximum between this integer and default batch size
-            self.batch_size = [max(self.number_samples[level]*2,self.settings["number_samples_screening"].GetInt()) for level in range (self.current_number_levels+1)]
+            # self.batch_size = [max(self.number_samples[level]*2,self.settings["number_samples_screening"].GetInt()) for level in range (self.current_number_levels+1)]
+            self.batch_size = [(self.current_number_levels + 1 - level)*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)]
         else:
             raise Exception ("Assign True or False to adaptive_number_samples setting.")
         for new_batch in range (new_number_batches):
@@ -883,8 +889,10 @@ class MultilevelMonteCarlo(object):
                     self.difference_QoI.UpdateBatchesPassPowerSum(level,batch)
                     self.time_ML.UpdateBatchesPassPowerSum(level,batch)
                 self.batches_analysis_finished[batch] = True
+        continue_iterating = True
         for batch in range (len(self.batches_number_samples)):
-            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True): # consider batches completed, analysed and for which convergence has not been computed
+            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True and continue_iterating): # consider batches completed, analysed and for which convergence has not been computed
+                continue_iterating = False
                 # update working convergence batch
                 self.current_convergence_batch = batch
                 for level in range (len(self.batches_number_samples[batch])):

@@ -398,9 +398,11 @@ class MonteCarlo(object):
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is not True): # consider batches completed and not already analysed
                 self.QoI.UpdateBatchesPassPowerSum(current_level,batch)
                 self.batches_analysis_finished[batch] = True
+        continue_iterating = True
         for batch in range (len(self.batches_number_samples)):
-            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True): # consider batches completed, analysed and
+            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True and continue_iterating): # consider batches completed, analysed and
                                                                                                                                                                             # for which convergence has not been computed
+                continue_iterating = False
                 # update working convergence batch
                 self.current_convergence_batch = batch
                 # update global power sums from batches power sums
