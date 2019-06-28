@@ -51,7 +51,7 @@ class VariableComponent(Variable):
         return self.__component_index
 
     def __str__(self):
-        return 'Variable-Component "{}"'.format(self.__name)
+        return 'Variable-Component "{}"'.format(self.Name())
 
 
 def CreateDoubleVariable(name):
@@ -62,7 +62,7 @@ def CreateDoubleVariable(name):
 def CreateComponentVariable(name, source_variable, component_index):
     if name in globals():
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, source_variable, component_index)
+    globals()[name] = VariableComponent(name, source_variable, component_index)
 
 def CreateArray3Variable(name):
     if name in globals():
