@@ -26,7 +26,7 @@
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 
 // Hardening law
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/mpm_hardening_law.hpp"
 
 namespace Kratos
 {

@@ -22,7 +22,7 @@
 #include "particle_mechanics_application_variables.h"
 
 // Hardening law
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/mpm_hardening_law.hpp"
 
 // Yields
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"

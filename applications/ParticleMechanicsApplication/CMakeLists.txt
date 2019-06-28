@@ -57,7 +57,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/cam_clay_hardening_law.cpp
 
 	###flow rules
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mpm_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.cpp

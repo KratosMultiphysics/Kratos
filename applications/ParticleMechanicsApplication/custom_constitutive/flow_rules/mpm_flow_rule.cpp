@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/mpm_flow_rule.hpp"
 
 namespace Kratos
 {

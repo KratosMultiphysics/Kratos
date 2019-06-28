@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/mpm_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 namespace Kratos

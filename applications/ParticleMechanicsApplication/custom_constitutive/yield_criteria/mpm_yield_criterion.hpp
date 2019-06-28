@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/mpm_hardening_law.hpp"
 
 namespace Kratos
 {
