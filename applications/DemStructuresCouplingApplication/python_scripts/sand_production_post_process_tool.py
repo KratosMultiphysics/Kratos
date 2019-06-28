@@ -13,6 +13,9 @@ def Norm(vector):
 class SandProductionPostProcessTool(object):
     def __init__(self, fem_model_part, dem_model_part, test_number):
 
+        if not test_number:
+            return
+
         self.parameters = Kratos.Parameters( """
         {
             "file_name": "sp_data.hdf5",
