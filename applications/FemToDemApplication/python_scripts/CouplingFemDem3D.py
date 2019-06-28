@@ -446,6 +446,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def InitializeIntegrationPointsVariables(self):
 
 		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.VOLUME_COUNTED, False, self.FEM_Solution.main_model_part.Elements)
 		utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, self.FEM_Solution.main_model_part.Elements)
 		utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, self.FEM_Solution.main_model_part.Elements)
 		utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, self.FEM_Solution.main_model_part.Elements)

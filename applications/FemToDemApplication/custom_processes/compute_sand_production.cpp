@@ -37,12 +37,11 @@ void ComputeSandProduction::Execute()
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
 
         auto it_elem = it_element_begin + i;
-        bool is_active = true;
-        if (it_elem->IsDefined(ACTIVE))
-            is_active = it_elem->Is(ACTIVE);
-
-        if (!is_active) { // it is going to be removed inside GenerateDEM
+        std::vector<double> damage;  
+        it_elem->GetValueOnIntegrationPoints(DAMAGE_ELEMENT, damage, r_process_info);
+        if (damage[0] >= 0.98 && !it_elem->GetValue(VOLUME_COUNTED)) {
             erased_volume += it_elem->GetGeometry().Volume();
+            it_elem->SetValue(VOLUME_COUNTED, true);
         }
     }
     r_process_info[ERASED_VOLUME] = erased_volume;
