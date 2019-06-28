@@ -148,13 +148,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.optimization_iteration, self.communicator)
 
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DFDX)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ComputeUnitSurfaceNormals()
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DFDX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(DFDX)
 
     # --------------------------------------------------------------------------
     def __adjustStepSize(self):
@@ -165,7 +165,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         for node in self.design_surface.Nodes:
             # The following variables are not yet updated and therefore contain the information from the previos step
             s1 = node.GetSolutionStepValue(SEARCH_DIRECTION)
-            dfds1 = node.GetSolutionStepValue(DF1DX_MAPPED)
+            dfds1 = node.GetSolutionStepValue(DFDX_MAPPED)
             dfda1 += s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
 
         f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
@@ -198,7 +198,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
-        self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+        self.mapper.InverseMap(DFDX, DFDX_MAPPED)
 
         self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
         self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
@@ -209,7 +209,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
+        self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DFDX_MAPPED)
 
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size

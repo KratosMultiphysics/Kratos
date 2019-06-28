@@ -55,9 +55,9 @@
         "output" : {
             "design_output_mode"      : "WriteDesignSurface",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "DF1DX",
-                                          "DF1DALPHA",
-                                          "DF1DALPHA_MAPPED",
+                                          "DFDX",
+                                          "DFDALPHA",
+                                          "DFDALPHA_MAPPED",
                                           "DPDALPHA",
                                           "ALPHA",
                                           "ALPHA_MAPPED",

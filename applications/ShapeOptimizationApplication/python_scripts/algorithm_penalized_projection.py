@@ -142,25 +142,25 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         conGradientDict = self.communicator.getStandardizedGradient(self.constraints[0]["identifier"].GetString())
 
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DFDX)
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, DC1DX)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool() or self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ComputeUnitSurfaceNormals()
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DFDX)
 
         if self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(DFDX)
         self.model_part_controller.DampNodalVariableIfSpecified(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
-        self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+        self.mapper.InverseMap(DFDX, DFDX_MAPPED)
         self.mapper.InverseMap(DC1DX, DC1DX_MAPPED)
 
         constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
