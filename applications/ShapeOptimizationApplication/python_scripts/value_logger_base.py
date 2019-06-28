@@ -29,22 +29,22 @@ class ValueLogger():
         self.current_iteration = 0
         self.previos_iteration = 0
 
-        self.history = { "value"                : {},
-                         "standardized_value"   : {},
-                         "abs_change_objective" : {},
-                         "rel_change_objective" : {} }
+        self.history = { "response_value"              : {},
+                         "standardized_response_value" : {},
+                         "abs_change_objective"        : {},
+                         "rel_change_objective"        : {} }
 
         for itr in range(self.objectives.size()):
             objective_id = self.objectives[itr]["identifier"].GetString()
-            self.history["value"][objective_id] = {}
-            self.history["standardized_value"][objective_id] = {}
+            self.history["response_value"][objective_id] = {}
+            self.history["standardized_response_value"][objective_id] = {}
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            self.history["value"][constraint_id] = {}
-            self.history["standardized_value"][constraint_id] = {}
+            self.history["response_value"][constraint_id] = {}
+            self.history["standardized_response_value"][constraint_id] = {}
 
-        self.fixed_keys = list(self.history.keys())
+        self.predefined_keys = list(self.history.keys())
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
@@ -88,10 +88,10 @@ class ValueLogger():
     # --------------------------------------------------------------------------
     def __LogObjectiveValuesToHistory( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        is_first_log = self.history["value"][objective_id] == {}
+        is_first_log = self.history["response_value"][objective_id] == {}
 
-        self.history["value"][objective_id][self.current_iteration] = self.communicator.getValue( objective_id )
-        self.history["standardized_value"][objective_id][self.current_iteration] = self.communicator.getStandardizedValue( objective_id )
+        self.history["response_value"][objective_id][self.current_iteration] = self.communicator.getValue( objective_id )
+        self.history["standardized_response_value"][objective_id][self.current_iteration] = self.communicator.getStandardizedValue( objective_id )
 
         if is_first_log:
             self.obj_reference_value = self.communicator.getValue( objective_id )
@@ -103,8 +103,8 @@ class ValueLogger():
             self.history["abs_change_objective"] = {self.current_iteration: 0.0}
             self.history["rel_change_objective"] = {self.current_iteration: 0.0}
         else:
-            current_obj_value = self.history["value"][objective_id][self.current_iteration]
-            previos_obj_value = self.history["value"][objective_id][self.previos_iteration]
+            current_obj_value = self.history["response_value"][objective_id][self.current_iteration]
+            previos_obj_value = self.history["response_value"][objective_id][self.previos_iteration]
             abs_change = 100*(current_obj_value-self.obj_reference_value) / abs(self.obj_reference_value)
             rel_change = 100*(current_obj_value-previos_obj_value) / abs(self.obj_reference_value)
 
@@ -115,14 +115,14 @@ class ValueLogger():
     def __LogConstraintValuesToHistory( self ):
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            self.history["value"][constraint_id][self.current_iteration] = self.communicator.getValue( constraint_id )
-            self.history["standardized_value"][constraint_id][self.current_iteration] = self.communicator.getStandardizedValue( constraint_id )
+            self.history["response_value"][constraint_id][self.current_iteration] = self.communicator.getValue( constraint_id )
+            self.history["standardized_response_value"][constraint_id][self.current_iteration] = self.communicator.getStandardizedValue( constraint_id )
 
     # --------------------------------------------------------------------------
     def __LogAdditionalValuesToHistory( self, additional_values_dictionary ):
         for key, value in additional_values_dictionary.items():
-            if key in self.fixed_keys:
-                raise NameError("ValueLogger: When logging additional values, the key \""+key+"\" is prohibited! Prohibitet keys are: "+str(self.fixed_keys))
+            if key in self.predefined_keys:
+                raise NameError("ValueLogger: The key \""+key+"\" is already predefined and may not be overwritten! Predefined keys are: "+str(self.predefined_keys))
 
             if key not in self.history.keys():
                 self.history[key] = {}

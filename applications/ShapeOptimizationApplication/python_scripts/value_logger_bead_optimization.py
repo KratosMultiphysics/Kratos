@@ -47,7 +47,7 @@ class ValueLoggerBeadOptimization( ValueLogger ):
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ","{:> .5E}".format(self.history["value"][objective_id][self.current_iteration]))
+        print("\n> Current value of objective = ","{:> .5E}".format(self.history["response_value"][objective_id][self.current_iteration]))
 
         print("> Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_iteration])," [%]")
         print("> Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_iteration])," [%]\n")
@@ -64,7 +64,7 @@ class ValueLoggerBeadOptimization( ValueLogger ):
             objective_id = self.objectives[0]["identifier"].GetString()
             row.append(" {:> .5E}".format(self.history["lagrange_value"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.history["lagrange_value_relative_change"][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.history["value"][objective_id][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_iteration]))
             row.append(" {:> .5E}".format(self.history["abs_change_objective"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.history["rel_change_objective"][self.current_iteration]))
             row.append("  {:> .5E}".format(self.history["max_norm_objective_gradient"][self.current_iteration]))

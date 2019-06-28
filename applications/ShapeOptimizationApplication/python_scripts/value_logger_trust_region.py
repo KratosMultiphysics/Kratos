@@ -51,14 +51,14 @@ class ValueLoggerTrustRegion( ValueLogger ):
         print("\n-------------------------------------------------------")
 
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", round(self.history["value"][objective_id][self.current_iteration],12))
+        print("\n> Current value of objective = ", round(self.history["response_value"][objective_id][self.current_iteration],12))
 
         print("> Absolut change of objective = ",round(self.history["abs_change_objective"][self.current_iteration],4)," [%]")
         print("> Relative change of objective = ",round(self.history["rel_change_objective"][self.current_iteration],4)," [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", round(self.history["value"][constraint_id][self.current_iteration],12))
+            print("> Value of C"+str(itr+1)+" = ", round(self.history["response_value"][constraint_id][self.current_iteration],12))
 
         print("\nNormInf3D of dX = ", round(self.history["norm_dX"][self.current_iteration],6))
 
@@ -78,13 +78,13 @@ class ValueLoggerTrustRegion( ValueLogger ):
             row.append("{:>4d}".format(self.current_iteration))
 
             objective_id = self.objectives[0]["identifier"].GetString()
-            row.append(" {:> .5E}".format(self.history["value"][objective_id][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_iteration]))
             row.append("{:>12f}".format(self.history["abs_change_objective"][self.current_iteration]))
             row.append("{:>12f}".format(self.history["rel_change_objective"][self.current_iteration]))
 
             for itr in range(self.constraints.size()):
                 constraint_id = self.constraints[itr]["identifier"].GetString()
-                row.append(" {:> .5E}".format(self.history["value"][constraint_id][self.current_iteration]))
+                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_iteration]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
                 row.append("{:>12f}".format(self.history["len_bar_cons"][self.current_iteration][itr]))
                 row.append("{:>12f}".format(self.history["adj_len_bar_cons"][self.current_iteration][itr]))

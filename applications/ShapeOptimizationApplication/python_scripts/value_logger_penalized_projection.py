@@ -45,14 +45,14 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", "{:> .5E}".format(self.history["value"][objective_id][self.current_iteration]))
+        print("\n> Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_iteration]))
 
         print("> Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_iteration])," [%]")
         print("> Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_iteration])," [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["value"][constraint_id][self.current_iteration]))
+            print("> Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["response_value"][constraint_id][self.current_iteration]))
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
@@ -62,13 +62,13 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             row.append("{:>4d}".format(self.current_iteration))
 
             objective_id = self.objectives[0]["identifier"].GetString()
-            row.append(" {:> .5E}".format(self.history["value"][objective_id][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_iteration]))
             row.append(" {:> .5E}".format(self.history["abs_change_objective"][self.current_iteration]))
             row.append(" {:> .5E}".format(self.history["rel_change_objective"][self.current_iteration]))
 
             for itr in range(self.constraints.size()):
                 constraint_id = self.constraints[itr]["identifier"].GetString()
-                row.append(" {:> .5E}".format(self.history["value"][constraint_id][self.current_iteration]))
+                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_iteration]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
 
             row.append(" {:> .5E}".format(self.history["correction_scaling"][self.current_iteration]))
