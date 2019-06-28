@@ -15,9 +15,9 @@ def Factory(settings, Model):
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
-    return ParticleMPMGiDOutputProcess(model_part, output_name, postprocess_parameters)
+    return MPMGiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
+class MPMGiDOutputProcess(KratosMultiphysics.Process):
     defaults = KratosMultiphysics.Parameters("""{
         "result_file_configuration": {
             "gidpost_flags": {
@@ -241,7 +241,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
 
     def _stop_time_measure(self, time_ip):
         time_fp = time.time()
-        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMGidOutputUtility]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMGidOutputUtility]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
 
     def _is_scalar(self,variable):
         is_scalar = False

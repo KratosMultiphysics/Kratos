@@ -65,7 +65,7 @@
             "python_module"   : "mpm_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "help"                  : "",
-            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
+            "process_name"          : "MPMFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_DISPLACEMENT","MP_VELOCITY","MP_ACCELERATION"],
                 "input_file_name"  : "gravity_tests/dynamic_gravity_application_test_results.json",
@@ -78,7 +78,7 @@
         "python_module"   : "mpm_json_output_process",
         "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
         "help"                  : "",
-        "process_name"          : "ParticleMPMJsonOutputProcess",
+        "process_name"          : "MPMJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables"  : ["MP_DISPLACEMENT","MP_VELOCITY","MP_ACCELERATION"],
             "output_file_name"               : "gravity_tests/dynamic_gravity_application_test_results.json",
