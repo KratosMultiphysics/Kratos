@@ -154,7 +154,7 @@ class Communicator:
                                                           "value"                : None,
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
-                                                          "reference_value"      : "waiting_for_initial_value" }
+                                                          "reference_value"      : None }
             else:
                 raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
 
@@ -174,10 +174,13 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __isResponseWaitingForInitialValueAsReference(self, response_id):
         response = self.list_of_responses[response_id]
-        if "reference_value" in response and response["reference_value"] == "waiting_for_initial_value":
-            return True
-        else:
-            return False
+        is_reference_defined = "reference" in response
+        if is_reference_defined:
+            is_reference_initial_value = (response["reference"].GetString() == "initial_value")
+            is_reference_value_missing = (response["reference_value"] is None)
+            if is_reference_initial_value and is_reference_value_missing:
+                return True
+        return False
 
     # --------------------------------------------------------------------------
     def __setValueAsReference(self, response_id, value):
