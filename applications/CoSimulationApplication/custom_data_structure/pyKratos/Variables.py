@@ -72,7 +72,7 @@ def CreateArray3Variable(name):
     globals()[name] = array_var
 
     for i_comp, comp in enumerate(["X", "Y", "Z"]):
-        CreateComponentVariable(name + "_" + comp, array_var, component_index)
+        CreateComponentVariable(name + "_" + comp, array_var, i_comp)
 
 def CreateVectorVariable(name):
     if name in globals():

@@ -14,11 +14,11 @@ class DataValueContainer(object):
         self.__InitializeVariable(variable)
 
         if isinstance(variable, VariableComponent):
-            return self.__non_hist_variables[variable][variable.GetComponentIndex()] = value
+            self.__non_hist_variables[variable][variable.GetComponentIndex()] = value
         else:
             # copy the value to match the behavior of Kratos (when used in python)
             # and to avoid unwanted references to wrong objects (for non-scalar types)
-            return self.__non_hist_variables[variable] = deepcopy(value)
+            self.__non_hist_variables[variable] = deepcopy(value)
 
     def GetValue(self, variable):
         self.__InitializeVariable(variable)
@@ -45,6 +45,7 @@ class DataValueContainer(object):
             # allocate this variable if it does not yet exist
             # this matches the Kratos behavior
             if isinstance(variable, VariableComponent):
+                # allocate all components and the source at the same time
                 self.__non_hist_variables[variable.GetSourceVariable()] = variable.GetSourceVariable().Zero()
             else:
                 self.__non_hist_variables[variable] = variable.Zero()
