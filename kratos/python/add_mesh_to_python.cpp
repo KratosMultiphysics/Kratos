@@ -448,11 +448,11 @@ void  AddMeshToPython(pybind11::module& m)
     //.def(self_ns::str(self))
     //      ;
 
-    py::class_<GeometricalObject, GeometricalObject::Pointer, GeometricalObject::BaseType/*, Flags*/  >(m,"GeometricalObject")
+    py::class_<GeometricalObject, GeometricalObject::Pointer, IndexedObject, Flags>(m,"GeometricalObject")
     .def(py::init<Kratos::GeometricalObject::IndexType>())
     ;
 
-    py::class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
+    py::class_<Element, Element::Pointer, Element::BaseType>(m,"Element")
     .def(py::init<Kratos::Element::IndexType>())
     .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("GetGeometry", GetGeometryFromObject<Element>, py::return_value_policy::reference_internal)
@@ -582,7 +582,7 @@ void  AddMeshToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
     ;
 
-    py::class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
+    py::class_<Condition, Condition::Pointer, Condition::BaseType>(m,"Condition")
     .def(py::init<Kratos::Condition::IndexType>())
     .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("GetGeometry", GetGeometryFromObject<Condition>, py::return_value_policy::reference_internal)

@@ -104,6 +104,9 @@ class FluidSolver(PythonSolver):
                 msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
                 KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
+            return is_converged
+        else:
+            return True
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -175,7 +178,7 @@ class FluidSolver(PythonSolver):
         else:
             element_num_nodes = 0
 
-        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        element_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(element_num_nodes)
         return element_num_nodes
 
     def _GetConditionNumNodes(self):
@@ -187,7 +190,7 @@ class FluidSolver(PythonSolver):
         else:
             condition_num_nodes = 0
 
-        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
 
     def _ExecuteCheckAndPrepare(self):

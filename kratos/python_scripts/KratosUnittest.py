@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division
-from unittest import *
+from KratosMultiphysics import Logger
+
+from unittest import * # needed to make all functions available to the tests using this file
 from contextlib import contextmanager
 
 import getopt
@@ -81,21 +83,28 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v verbosity]',
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
+        '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-
     for l in lines:
-        print(l)
+        Logger.PrintInfo(l) # using the logger to only print once in MPI
 
+def main():
+    # this deliberately overiddes the function "unittest.main",
+    # because it cannot parse extra command line arguments
+    if "--using-mpi" in sys.argv:
+        sys.argv.remove("--using-mpi") # has to be removed bcs unittest cannot parse it
+    import unittest
+    unittest.main()
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
+    level_values = ['all', 'small', 'nightly', 'validation']
 
     verbosity = 1
     level = 'all'
+    is_mpi = False
 
     # Parse Commandline
     try:
@@ -104,7 +113,8 @@ def runTests(tests):
             'hv:l:', [
                 'help',
                 'verbose=',
-                'level='
+                'level=',
+                'using-mpi'
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -129,8 +139,13 @@ def runTests(tests):
                 print('Error: {} is not a valid level.'.format(a))
                 Usage()
                 sys.exit()
+        elif o in ('--using-mpi'):
+            is_mpi = True
         else:
             assert False, 'unhandled option'
+
+    if is_mpi:
+        level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
         print(
@@ -142,13 +157,13 @@ def runTests(tests):
 
 
 KratosSuites = {
-    'small': TestSuite(),
-    'nightly': TestSuite(),
-    'all': TestSuite(),
-    'validation': TestSuite(),
-    'mpi_small': TestSuite(),
-    'mpi_nightly': TestSuite(),
-    'mpi_all': TestSuite(),
+    'small':          TestSuite(),
+    'nightly':        TestSuite(),
+    'all':            TestSuite(),
+    'validation':     TestSuite(),
+    'mpi_small':      TestSuite(),
+    'mpi_nightly':    TestSuite(),
+    'mpi_all':        TestSuite(),
     'mpi_validation': TestSuite(),
 }
 
@@ -162,7 +177,6 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 
 class WorkFolderScope:
     """ Helper-class to execute test in a specific target path
-
         Input
         -----
         - rel_path_work_folder: String

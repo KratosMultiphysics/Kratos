@@ -87,9 +87,8 @@ namespace Kratos
   It is intended to be used in combination with ASGS and VMS elements or their derived classes
   and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
   slip conditions.
-  This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-  non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-  according to the wall distance provided as Y_WALL.
+  This condition will add a wall stress term to all nodes identified with SLIP==true (in the
+  nodal flags). This stress term is determined according to the wall distance provided as Y_WALL.
   @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim >
@@ -100,7 +99,7 @@ public:
     ///@{
 
     /// Pointer definition of WallConditionDiscontinuous
-    KRATOS_CLASS_POINTER_DEFINITION(WallConditionDiscontinuous);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WallConditionDiscontinuous);
 
     typedef Node < 3 > NodeType;
 
@@ -206,18 +205,18 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<WallConditionDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<WallConditionDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
 
     Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
     }
 
 
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+    /// Calculate wall stress term for all nodes with SLIP set.
     /**
       @param rDampMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
@@ -259,7 +258,7 @@ public:
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-            if(this->GetValue(IS_STRUCTURE) == 0.0 )
+            if(!this->Is(SLIP) )
             {
                 const GeometryType& rGeom = this->GetGeometry();
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -308,7 +307,7 @@ public:
 //             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
 //             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 //
-//             if(this->GetValue(IS_STRUCTURE) == 0.0 )
+//             if (!this->Is(SLIP))
 //             {
 //                 const double N = 1.0 / static_cast<double>(TNumNodes);
 //                 array_1d<double,3> rNormal;
@@ -353,8 +352,6 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
             if(NORMAL.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
-                if(IS_STRUCTURE.Key() == 0)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
             if(Y_WALL.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
 
@@ -391,7 +388,7 @@ public:
     void ApplyInflowCondition(MatrixType& rLocalMatrix,
                               VectorType& rLocalVector)
     {
-        if (this->GetValue(IS_STRUCTURE) == 0.0)
+        if (!this->Is(SLIP))
         {
             const unsigned int LocalSize = TNumNodes;
             const GeometryType& rGeom = this->GetGeometry();

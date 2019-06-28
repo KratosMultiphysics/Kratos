@@ -21,7 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos
 {

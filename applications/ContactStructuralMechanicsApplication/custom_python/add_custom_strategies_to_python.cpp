@@ -208,6 +208,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
+        .def(py::init<bool, bool, bool, bool>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictional penalty case)
@@ -218,6 +219,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
+        .def(py::init<bool, bool, bool, bool>())
         ;
 
     // Displacement and lagrange multiplier Convergence Criterion
@@ -247,9 +249,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double  >())
-        .def(py::init< double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool, bool >())
         ;
 
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -269,9 +272,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierMixedFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double, bool >())
-        .def(py::init< double, double, double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, bool, bool, bool >())
         ;
 
     // Displacement residual Convergence Criterion
@@ -301,9 +305,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool, bool >())
         ;
 
     // Error mesh Convergence Criterion

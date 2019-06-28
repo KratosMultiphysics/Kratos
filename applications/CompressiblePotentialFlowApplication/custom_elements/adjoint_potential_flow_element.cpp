@@ -12,6 +12,7 @@
 //
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
+#include "compressible_potential_flow_element.h"
 #include "adjoint_potential_flow_element.h"
 
 namespace Kratos
@@ -20,7 +21,7 @@ namespace Kratos
     Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
     {
         KRATOS_TRY
-          return Kratos::make_shared<AdjointPotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+          return Kratos::make_intrusive<AdjointPotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -28,7 +29,7 @@ namespace Kratos
     Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const 
     {
         KRATOS_TRY
-            return Kratos::make_shared<AdjointPotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive<AdjointPotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -411,5 +412,6 @@ namespace Kratos
     // Template class instantiation
 
     template class AdjointPotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointPotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
 

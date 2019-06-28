@@ -22,7 +22,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Condition::Pointer(Kratos::make_shared<PotentialWallCondition>(
+    return Condition::Pointer(Kratos::make_intrusive<PotentialWallCondition>(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
@@ -32,7 +32,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(
-        Kratos::make_shared<PotentialWallCondition>(NewId, pGeom, pProperties));
+        Kratos::make_intrusive<PotentialWallCondition>(NewId, pGeom, pProperties));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -53,26 +53,20 @@ void PotentialWallCondition<TDim, TNumNodes>::Initialize()
 {
     KRATOS_TRY;
 
-    const array_1d<double, 3>& rNormal = this->GetValue(NORMAL);
-
-    KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
-        << "Error on condition -> " << this->Id() << "\n"
-        << "NORMAL must be calculated before using this condition." << std::endl;
-
     if (mInitializeWasPerformed)
         return;
 
     mInitializeWasPerformed = true;
 
     const GeometryType& rGeom = this->GetGeometry();
-    WeakPointerVector<Element> ElementCandidates;
+    GlobalPointersVector<Element> ElementCandidates;
     GetElementCandidates(ElementCandidates, rGeom);
 
     std::vector<IndexType> NodeIds, ElementNodeIds;
     GetSortedIds(NodeIds, rGeom);
     FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
 
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "error in condition # " << this->Id() << "\n"
         << "Condition cannot find parent element" << std::endl;
     KRATOS_CATCH("");
@@ -82,8 +76,32 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    VectorType RHS;
-    this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+    if (rLeftHandSideMatrix.size1() != TNumNodes)
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    rLeftHandSideMatrix.clear();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                                    ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != TNumNodes)
+        rRightHandSideVector.resize(TNumNodes, false);
+
+    array_1d<double, 3> An;
+    if (TDim == 2)
+        CalculateNormal2D(An);
+    else
+        CalculateNormal3D(An);
+
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    const PotentialWallCondition& r_this = *this;
+    const array_1d<double, 3>& v = r_this.GetValue(FREE_STREAM_VELOCITY);
+    const double value = free_stream_density*inner_prod(v, An) / static_cast<double>(TNumNodes);
+
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+        rRightHandSideVector[i] = value;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -92,24 +110,8 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-    if (rRightHandSideVector.size() != TNumNodes)
-        rRightHandSideVector.resize(TNumNodes, false);
     rLeftHandSideMatrix.clear();
-
-    array_1d<double, 3> An;
-    if (TDim == 2)
-        CalculateNormal2D(An);
-    else
-        CalculateNormal3D(An);
-
-    const double density_infinity = 1.0; //TODO: Read from rCurrentProcessInfo[DENSITY_INFINITY] once available
-
-    const PotentialWallCondition& r_this = *this;
-    const array_1d<double, 3>& v = r_this.GetValue(VELOCITY_INFINITY);
-    const double value = density_infinity*inner_prod(v, An) / static_cast<double>(TNumNodes);
-
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-        rRightHandSideVector[i] = value;
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -175,9 +177,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     std::vector<double> rValues;
-    ElementPointerType pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
-    this->SetValue(PRESSURE, rValues[0]);
+    GlobalPointer<Element> pElem = pGetElement();
+    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
+    this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,20 +254,20 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 // private operators
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
+inline GlobalPointer<Element> PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
-    KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "No element found for condition #" << this->Id() << std::endl;
-    return mpElement.lock();
+    return mpElement;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::GetElementCandidates(
-    WeakPointerVector<Element>& ElementCandidates, const GeometryType& rGeom) const
+    GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom) const
 {
     for (SizeType i = 0; i < TDim; i++)
     {
-        const WeakPointerVector<Element>& rNodeElementCandidates =
+        const GlobalPointersVector<Element>& rNodeElementCandidates =
             rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
         for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
             ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -286,7 +288,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FindParentElement(
     std::vector<IndexType>& NodeIds,
     std::vector<IndexType>& ElementNodeIds,
-    WeakPointerVector<Element> ElementCandidates)
+    GlobalPointersVector<Element> ElementCandidates)
 {
     for (SizeType i = 0; i < ElementCandidates.size(); i++)
     {

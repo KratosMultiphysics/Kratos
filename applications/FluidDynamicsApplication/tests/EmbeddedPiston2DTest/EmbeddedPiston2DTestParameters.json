@@ -31,7 +31,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","MESH_VELOCITY"],
-                        "gauss_point_results" : ["EMBEDDED_VELOCITY"]
+                        "nodal_nonhistorical_results": ["EMBEDDED_VELOCITY"]
                     },
                     "point_data_configuration"  : []
                 }
@@ -69,8 +69,11 @@
         },
         "fm_ale_settings": {
             "fm_ale_step_frequency": 1,
-            "structure_model_part_name": "Structure.Parts_Structure",
-            "search_radius" : 1.0
+            "mesh_movement": "explicit",
+            "fm_ale_solver_settings": {
+                "structure_model_part_name": "Structure.Parts_Structure",
+                "search_radius": 1.0
+            }
         },
         "linear_solver_settings": {
             "solver_type": "amgcl"

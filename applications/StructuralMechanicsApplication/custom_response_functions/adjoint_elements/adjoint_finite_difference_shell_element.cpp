@@ -160,7 +160,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckSpecificPropert
 
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingShellElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingShellElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
 {
     KRATOS_TRY;
 
@@ -205,7 +205,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::load(Serializer& rSe
 
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
 
 } // namespace Kratos
 

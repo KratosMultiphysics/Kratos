@@ -69,7 +69,7 @@ namespace Kratos
     typedef ConditionType::GeometryType       GeometryType;
 
     typedef ModelPart::ElementsContainerType     ElementsContainerType;
-    typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element>        ElementWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -226,7 +226,7 @@ namespace Kratos
 	      //std::cout<<" vertices "<<vertices[0].X()<<" "<<vertices[2].X()<<std::endl;
 	      //*******************************************************************
 
-	      NodeType::Pointer p_center = Kratos::make_shared< NodeType >( id, xc, yc, zc );
+	      NodeType::Pointer p_center = Kratos::make_intrusive< NodeType >( id, xc, yc, zc );
 
 	      //*******************************************************************
 	      //2) Create list_of_centers
