@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Other imports
+from copy import deepcopy
+
 class Variable(object):
     def __init__(self, var_name, var_type, zero_val):
         self.__name = var_name
@@ -13,7 +16,8 @@ class Variable(object):
         return self.__type
 
     def Zero(self):
-        return self.__zero
+        # copy to make sure that nothing is referenced wrong
+        return deepcopy(self.__zero)
 
     def __hash__(self):
         return hash(self.__name)
