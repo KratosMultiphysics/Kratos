@@ -54,7 +54,10 @@ class ValueLogger():
     def LogCurrentValues( self, current_iteration, additional_values_dictionary ):
         self.current_iteration = current_iteration
 
-        self.__LogValuesToHistory(additional_values_dictionary)
+        self.__LogObjectiveValuesToHistory()
+        self.__LogConstraintValuesToHistory()
+        self.__LogAdditionalValuesToHistory( additional_values_dictionary )
+
         self._WriteCurrentValuesToConsole()
         self._WriteCurrentValuesToFile()
 
@@ -74,12 +77,6 @@ class ValueLogger():
         resultsDirectory = optimization_settings["output"]["output_directory"].GetString()
         optimizationLogFilename = optimization_settings["output"]["optimization_log_filename"].GetString() + ".csv"
         return os.path.join( resultsDirectory, optimizationLogFilename )
-
-    # --------------------------------------------------------------------------
-    def __LogValuesToHistory( self, additional_values_dictionary ):
-        self.__LogObjectiveValuesToHistory()
-        self.__LogConstraintValuesToHistory()
-        self.__LogAdditionalValuesToHistory( additional_values_dictionary )
 
     # --------------------------------------------------------------------------
     def __LogObjectiveValuesToHistory( self ):
