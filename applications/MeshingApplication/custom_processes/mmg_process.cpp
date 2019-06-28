@@ -441,11 +441,11 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
-        NodesArrayType& old_nodes_array = r_old_model_part.Nodes();
+        NodesArrayType& r_old_nodes_array = r_old_model_part.Nodes();
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(old_nodes_array.size()); ++i) {
-            auto it_node = old_nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_old_nodes_array.size()); ++i) {
+            auto it_node = r_old_nodes_array.begin() + i;
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
         }
     }
