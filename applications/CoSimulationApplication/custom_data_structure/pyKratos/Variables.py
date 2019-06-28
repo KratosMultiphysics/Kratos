@@ -19,6 +19,11 @@ class Variable(object):
         # copy to make sure that nothing is referenced wrong
         return deepcopy(self.__zero)
 
+    def GetSourceVariable(self):
+        if not self.__type == "Component":
+            raise TypeError('Only variables of type "Component" can be asked for their source-variable!')
+        return globals()[self.__name[:-2]]
+
     def __hash__(self):
         return hash(self.__name)
 
