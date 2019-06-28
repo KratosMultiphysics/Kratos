@@ -44,7 +44,7 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
     def perturbedSolution(self, model, settings, perturbed_node_ids, perturbation_magnitude):
         model_part_name = settings["solver_settings"]["model_part_name"].GetString()
         input_file_name = settings["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-
+        objective_model_part_name = "HeatFlux2D_right" #settings["solver_settings"]["response_function_settings"]["custom_settings"]["model_part_name"].GetString()
         base_temp = model.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
 
         for node_id in perturbed_node_ids:
@@ -56,18 +56,24 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(input_file_name+"_x")
             self.primalSolution(model_x,settings)
             x_temp = model_x.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
-            # Y perturbation
+            #x_temp = 0
+            #for node in model_x.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
+            #    x_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
+			# Y perturbation
             perturbed_coord = [coord[0], coord[1]+perturbation_magnitude, coord[2]]
             self._writeNodalCoordinates(node_id,perturbed_coord,input_file_name,input_file_name+"_y")
             model_y = kratos.Model()
             settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(input_file_name+"_y")
             self.primalSolution(model_y,settings)
             y_temp = model_y.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
-
-        print(base_temp/perturbation_magnitude)
-        print(x_temp/perturbation_magnitude)
-        print(y_temp/perturbation_magnitude)
-        print([(x_temp-base_temp)/perturbation_magnitude, (y_temp-base_temp)/perturbation_magnitude])
+            #y_temp = 0
+            #for node in model_y.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
+            #    y_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
+			
+            print(base_temp/perturbation_magnitude)
+            print(x_temp/perturbation_magnitude)
+            print(y_temp/perturbation_magnitude)
+            print([(x_temp-base_temp)/perturbation_magnitude, (y_temp-base_temp)/perturbation_magnitude])
 
 
     # the following two functions are taken from applications/FluidDynamicsApplication/tests/adjoint_vms_sensitivity_2d.py

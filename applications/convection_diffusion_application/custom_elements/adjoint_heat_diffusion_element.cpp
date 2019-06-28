@@ -219,6 +219,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
+                const unsigned int l = deriv.NodeIndex * dimension + deriv.Direction;
                 double det_j_deriv;
                 GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
                 geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
@@ -228,7 +229,6 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                 // Calculation by product rule of d/dX_l ( w * J * dN_i/dx_k * dN_j/dx_k * Temperature_j )
                 for (unsigned int i = 0; i < num_nodes; i++)
                 {
-                    const unsigned int l = deriv.NodeIndex * dimension + deriv.Direction;
 
                     // partial derivative of the determinant of Jacobian w * dJ/dX * dN_i/dx_k * dN_j/dx_k * Temperature_j
                     double contribution_li = det_j_deriv * laplacian_rhs[i];

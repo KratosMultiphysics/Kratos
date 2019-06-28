@@ -38,6 +38,7 @@ public:
     /// Constructor.
     PointTemperatureResponseFunction(Parameters Settings, ModelPart& rModelPart)
     : mrModelPart(rModelPart)
+    , mNumNodes(0)
     {
         KRATOS_TRY;
 
@@ -48,6 +49,7 @@ public:
 			for (auto& r_node : rModelPart.Nodes())
 			{
 				r_node.Set(STRUCTURE);
+				++mNumNodes;
 			}
 		}
 		else if (rModelPart.HasSubModelPart(target_model_part))
@@ -56,12 +58,16 @@ public:
 			for (auto& r_node : r_submodelpart.Nodes())
 			{
 				r_node.Set(STRUCTURE);
+				++mNumNodes;
 			}
 		}
 		else
 		{
 			KRATOS_ERROR << "Unknown ModelPart " << target_model_part << "." << std::endl;
 		}
+
+		rModelPart.GetCommunicator().GetDataCommunicator().SumAll(mNumNodes);
+		KRATOS_ERROR_IF(mNumNodes == 0) << "No nodes found." << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -156,6 +162,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+	int mNumNodes;
 
     ///@}
     ///@name Private Operators
@@ -173,6 +180,7 @@ private:
 
         const unsigned int num_nodes = rNodes.size();
         const unsigned int dimension = rDerivativesOfResidual.size1() / num_nodes;
+		const double factor = 1.0 / mNumNodes;
 
         for (unsigned int i = 0; i < num_nodes; i++)
         {
@@ -180,7 +188,7 @@ private:
             {
                 for (unsigned int d = 0; d < dimension; d++)
                 {
-                    rLocalSensitivityContribution[i*dimension+d] = 1.0;
+                    rLocalSensitivityContribution[i*dimension+d] = factor;
                 }
             }
         }
