@@ -381,26 +381,47 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // First we empty the model part
     auto& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)
-        (r_nodes_array.begin() + i)->Set(TO_ERASE, true);
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_node->Set(TO_ERASE, true);
+        }
+    }
     r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     auto& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
-        (r_conditions_array.begin() + i)->Set(TO_ERASE, true);
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_cond->Set(TO_ERASE, true);
+        }
+    }
     r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     auto& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
-        (r_elements_array.begin() + i)->Set(TO_ERASE, true);
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_elem->Set(TO_ERASE, true);
+        }
+    }
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
@@ -489,6 +510,11 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     if (mFramework == FrameworkEulerLagrange::EULERIAN) {
         ClearConditionsDuplicatedGeometries();
     }
+
+    // We clear the OLD_ENTITY flag
+    VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Nodes());
+    VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Conditions());
+    VariableUtils().ResetFlag(OLD_ENTITY, mrThisModelPart.Elements());
 }
 
 /***********************************************************************************/
