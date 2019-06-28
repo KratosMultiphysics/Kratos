@@ -28,6 +28,9 @@ def GenerateSample():
 
     # Problem zero problem
     sample = []
+    uref = 10 # wind speed of 10 m/s
+    su = 1.0 #  a standard deviation of 10 % of the wind speed is considered
+    sample.append(np.random.normal(uref,su))
     alpha0 = 0.12 # corresponds to open terrain from annexure to Euro Code DIN EN 1991-1-4 NA
     salpha = 0.012 # a standard deviation of 10 % is considered
     sample.append(np.random.normal(alpha0,salpha))
