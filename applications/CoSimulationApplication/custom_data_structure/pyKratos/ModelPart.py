@@ -134,7 +134,7 @@ class ModelPart(DataValueContainer):
 
     def CreateNewNode(self, node_id, coord_x, coord_y, coord_z):
         if self.IsSubModelPart():
-            new_node = self.__parent_model_part.CreateNewNode(node_id, coord_x, coord_y, coord_z, self.__hist_variables, self.__buffer_size)
+            new_node = self.__parent_model_part.CreateNewNode(node_id, coord_x, coord_y, coord_z)
             self.__nodes[node_id] = new_node
             return new_node
         else:
