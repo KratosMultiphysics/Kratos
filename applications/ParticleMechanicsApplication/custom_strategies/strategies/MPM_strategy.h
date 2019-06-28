@@ -38,6 +38,7 @@
 
 // Custom includes
 #include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_utilities/mpm_search_element_utility.h"
 #include "custom_utilities/mpm_particle_generator_utility.h"
 
@@ -187,8 +188,6 @@ public:
             const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
 
-            pConvergenceCriteria->SetEchoLevel(0);
-
             bool reform_DOF_at_each_iteration = false;
 
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIteration,ComputeReaction,reform_DOF_at_each_iteration,MoveMeshFlag) );
@@ -215,8 +214,6 @@ public:
             const double ratio_tolerance = 0.0001;
             const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-
-            pConvergenceCriteria->SetEchoLevel(0);
 
             bool reform_DOF_at_each_iteration = false;
 
@@ -245,9 +242,6 @@ public:
             const double always_converged_norm = 1e-09;
 
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-
-            pConvergenceCriteria->SetEchoLevel(0);
-
             bool reform_DOF_at_each_iteration = false;
 
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIteration,ComputeReaction,reform_DOF_at_each_iteration,MoveMeshFlag) );
