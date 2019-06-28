@@ -451,8 +451,9 @@ private:
 
     /**
      * @brief This method extrudes the triangles elements into prisms
+     * @param rOldModelPart The old model part
      */
-    void ExtrudeTrianglestoPrisms();
+    void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
 
     /**
      * @brief This function removes the conditions with duplicated geometries

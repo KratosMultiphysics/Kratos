@@ -267,10 +267,11 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     ColorsMapType aux_ref_cond, aux_ref_elem;
 
     // We initialize the mesh data with the given modelpart
-    if (mThisParameters["collapse_prisms_elements"].GetBool()) {
+    const bool collapse_prisms_elements = mThisParameters["collapse_prisms_elements"].GetBool();
+    if (collapse_prisms_elements) {
         CollapsePrismsToTriangles();
     }
-    mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework);
+    mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
     // Iterate over components
     auto& r_nodes_array = mrThisModelPart.Nodes();
@@ -454,7 +455,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         mMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
         /* Now we can extrude */
-        ExtrudeTrianglestoPrisms();
+        ExtrudeTrianglestoPrisms(r_old_model_part);
 
         // Remove the auxiliar model part
         mrThisModelPart.RemoveSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
@@ -678,11 +679,11 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms()
+void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
 {
     // We look for the reference element
     Element::Pointer p_reference_element;
-    for(auto& r_elem : mrThisModelPart.Elements()){
+    for(auto& r_elem : rOldModelPart.Elements()){
         // We get the condition geometry
         const GeometryType& r_geometry = r_elem.GetGeometry();
 
@@ -706,7 +707,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms()
     // We iterate over nodes
     auto& r_nodes_array = r_auxiliar_model_part.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
+    const SizeType num_nodes = r_nodes_array.size();
 
     // Reset NORMAL
     VariableUtils().SetNonHistoricalVariableToZero(NORMAL, r_nodes_array);
@@ -736,7 +737,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms()
     }
 
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
+    for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
         auto it_node = it_node_begin + i;
 
         array_1d<double, 3>& r_normal = it_node->GetValue(NORMAL);
