@@ -445,48 +445,12 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         # automatic creation is not provided for this response
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
-        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters_fx = Parameters( parameter_file.read() )
-        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters_my = Parameters( parameter_file.read() )
-        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters_mz = Parameters( parameter_file.read() )
 
-        # information defining the traced stress
-        self.stress_position_y = adjoint_parameters["solver_settings"]["response_function_settings"]["yp"].GetDouble()
-        self.stress_position_z = adjoint_parameters["solver_settings"]["response_function_settings"]["zp"].GetDouble()
-        self.traced_element_id = adjoint_parameters["solver_settings"]["response_function_settings"]["traced_element_id"].GetInt()
-        self.A = None
-        self.I22 = None
-        self.I33 = None
-
-        # adjoint analysis for FX
-        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
-        adjoint_parameters_fx.RemoveValue("output_processes")
-        adjoint_model_fx = KratosMultiphysics.Model()
-        self.adjoint_model_part_fx = _GetModelPart(adjoint_model_fx, adjoint_parameters_fx["solver_settings"])
-        self.adjoint_analysis_fx = StructuralMechanicsAnalysis(adjoint_model_fx, adjoint_parameters_fx)
-        # adjoint analysis for MY
-        adjoint_parameters_my["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters_my["solver_settings"]["response_function_settings"]["stress_type"].SetString("MY")
-        adjoint_parameters_my.RemoveValue("output_processes")
-        adjoint_model_my = KratosMultiphysics.Model()
-        self.adjoint_model_part_my = _GetModelPart(adjoint_model_my, adjoint_parameters_my["solver_settings"])
-        self.adjoint_analysis_my = StructuralMechanicsAnalysis(adjoint_model_my, adjoint_parameters_my)
-        # adjoint analysis for MZ
-        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["stress_type"].SetString("MZ")
-        adjoint_parameters_mz.RemoveValue("output_processes")
-        adjoint_model_mz = KratosMultiphysics.Model()
-        self.adjoint_model_part_mz = _GetModelPart(adjoint_model_mz, adjoint_parameters_mz["solver_settings"])
-        self.adjoint_analysis_mz = StructuralMechanicsAnalysis(adjoint_model_mz, adjoint_parameters_mz)
-        # adjoint analysis for normal stress
-        adjoint_parameters["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
-        adjoint_parameters_fx.RemoveValue("output_processes")
+        self.__SetUpAdjointSubAnalysis()
 
         # use here c++ local stress response as meaningful dummy
+        adjoint_parameters["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
         self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
@@ -497,6 +461,14 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
             if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
                 self.primal_state_variables.append(KratosMultiphysics.ROTATION)
                 self.adjoint_state_variables.append(StructuralMechanicsApplication.ADJOINT_ROTATION)
+
+        # member variables defining the traced stress
+        self.stress_position_y = adjoint_parameters["solver_settings"]["response_function_settings"]["yp"].GetDouble()
+        self.stress_position_z = adjoint_parameters["solver_settings"]["response_function_settings"]["zp"].GetDouble()
+        self.traced_element_id = adjoint_parameters["solver_settings"]["response_function_settings"]["traced_element_id"].GetInt()
+        self.A = None
+        self.I22 = None
+        self.I33 = None
 
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -536,27 +508,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         startTime = timer.time()
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
 
-        # compute here all contributions to sensitivities and and influence funtions
-        self.adjoint_analysis_fx.RunSolutionLoop()
-        self.adjoint_analysis_my.RunSolutionLoop()
-        self.adjoint_analysis_mz.RunSolutionLoop()
-
-        # TODO are all this steps of analysis stage necessary?
-        self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
-        self.adjoint_analysis.InitializeSolutionStep()
-        self.adjoint_analysis._GetSolver().Predict()
-
-        # solve here adjoint problem by superposition TODO improve this
-        for variable in self.adjoint_state_variables:
-            for node, node_fx, node_my, node_mz in zip(self.adjoint_model_part.Nodes, self.adjoint_model_part_fx.Nodes, self.adjoint_model_part_my.Nodes, self.adjoint_model_part_mz.Nodes):
-                adj_disp_fx = node_fx.GetSolutionStepValue(variable)
-                adj_disp_my = node_my.GetSolutionStepValue(variable)
-                adj_disp_mz = node_mz.GetSolutionStepValue(variable)
-
-                adjoint_quantity = adj_disp_fx / self.A + adj_disp_my / self.I22 * self.stress_position_z + adj_disp_mz / self.I33 * self.stress_position_y # TODO evaluate signs of stress resultants
-                node.SetSolutionStepValue(variable, adjoint_quantity)
-
-        self.adjoint_analysis.FinalizeSolutionStep()
+        self._RunSolutionLoopAdjointSubProblems()
+        self._RunSolutionLoopMainProblem()
 
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
@@ -572,3 +525,56 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis_fx.Finalize()
         self.adjoint_analysis_my.Finalize()
         self.adjoint_analysis_mz.Finalize()
+
+    def _RunSolutionLoopAdjointSubProblems(self):
+        # compute here all contributions to sensitivities and and influence funtions
+        self.adjoint_analysis_fx.RunSolutionLoop()
+        self.adjoint_analysis_my.RunSolutionLoop()
+        self.adjoint_analysis_mz.RunSolutionLoop()
+
+    def _RunSolutionLoopMainProblem(self):
+        # TODO are all this steps of analysis stage necessary?
+        self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
+        self.adjoint_analysis.InitializeSolutionStep()
+        self.adjoint_analysis._GetSolver().Predict()
+        # solve here adjoint problem by superposition TODO improve this
+        for variable in self.adjoint_state_variables:
+            for node, node_fx, node_my, node_mz in zip(self.adjoint_model_part.Nodes, self.adjoint_model_part_fx.Nodes, self.adjoint_model_part_my.Nodes, self.adjoint_model_part_mz.Nodes):
+                adj_disp_fx = node_fx.GetSolutionStepValue(variable)
+                adj_disp_my = node_my.GetSolutionStepValue(variable)
+                adj_disp_mz = node_mz.GetSolutionStepValue(variable)
+                # TODO evaluate signs of stress resultants
+                adjoint_quantity = adj_disp_fx / self.A + adj_disp_my / self.I22 * self.stress_position_z + adj_disp_mz / self.I33 * self.stress_position_y
+                node.SetSolutionStepValue(variable, adjoint_quantity)
+
+        self.adjoint_analysis.FinalizeSolutionStep()
+
+    def __SetUpAdjointSubAnalysis(self):
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters_fx = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters_my = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters_mz = Parameters( parameter_file.read() )
+
+        # adjoint analysis for FX
+        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
+        adjoint_parameters_fx.RemoveValue("output_processes")
+        adjoint_model_fx = KratosMultiphysics.Model()
+        self.adjoint_model_part_fx = _GetModelPart(adjoint_model_fx, adjoint_parameters_fx["solver_settings"])
+        self.adjoint_analysis_fx = StructuralMechanicsAnalysis(adjoint_model_fx, adjoint_parameters_fx)
+        # adjoint analysis for MY
+        adjoint_parameters_my["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_my["solver_settings"]["response_function_settings"]["stress_type"].SetString("MY")
+        adjoint_parameters_my.RemoveValue("output_processes")
+        adjoint_model_my = KratosMultiphysics.Model()
+        self.adjoint_model_part_my = _GetModelPart(adjoint_model_my, adjoint_parameters_my["solver_settings"])
+        self.adjoint_analysis_my = StructuralMechanicsAnalysis(adjoint_model_my, adjoint_parameters_my)
+        # adjoint analysis for MZ
+        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["stress_type"].SetString("MZ")
+        adjoint_parameters_mz.RemoveValue("output_processes")
+        adjoint_model_mz = KratosMultiphysics.Model()
+        self.adjoint_model_part_mz = _GetModelPart(adjoint_model_mz, adjoint_parameters_mz["solver_settings"])
+        self.adjoint_analysis_mz = StructuralMechanicsAnalysis(adjoint_model_mz, adjoint_parameters_mz)
