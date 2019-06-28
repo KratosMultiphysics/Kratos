@@ -70,6 +70,7 @@ def ValidateObjectives(objectives):
         {
             "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
             "type"                                : "minimization",
+            "scaling_factor"                      : 1.0,
             "use_kratos"                          : false,
             "kratos_response_settings"            : {},
             "project_gradient_on_surface_normals" : false
@@ -83,6 +84,7 @@ def ValidateConstraints(constraints):
         {
             "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
             "type"                                : "<",
+            "scaling_factor"                      : 1.0,
             "reference"                           : "initial_value",
             "reference_value"                     : 1.0,
             "use_kratos"                          : false,

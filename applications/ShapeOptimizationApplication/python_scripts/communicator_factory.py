@@ -128,6 +128,7 @@ class Communicator:
 
             self.list_of_responses[objective_id] = { "type"                 : objective["type"].GetString(),
                                                      "value"                : None,
+                                                     "scaling_factor"       : objective["scaling_factor"].GetDouble(),
                                                      "standardized_value"   : None,
                                                      "standardized_gradient": None }
 
@@ -146,12 +147,14 @@ class Communicator:
             if  constraint["reference"].GetString() == "specified_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
+                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
                                                           "reference_value"      : constraint["reference_value"].GetDouble() }
             elif constraint["reference"].GetString() == "initial_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
+                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
                                                           "reference_value"      : None }
@@ -188,22 +191,29 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __translateValueToStandardForm(self, response_id, value):
-        response = self.list_of_responses[response_id]
-        response_type = response["type"]
+        response_type = self.list_of_responses[response_id]["type"]
+        factor = self.list_of_responses[response_id]["scaling_factor"]
+
         if response_type in self.supported_objective_types:
             if response_type == "maximization":
-                return -value
+                return -factor*value
             else:
-                return value
+                return factor*value
         else:
+            reference_value = self.list_of_responses[response_id]["reference_value"]
+
             if response_type == ">" or response_type == ">=":
-                return (response["reference_value"]-value)
+                return factor*(reference_value-value)
             else:
-                return (value-response["reference_value"])
+                return factor*(value-reference_value)
 
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm(self, response_id, gradient):
         response_type = self.list_of_responses[response_id]["type"]
+        factor = self.list_of_responses[response_id]["scaling_factor"]
+
+        gradient.update({key: [factor*value[0],factor*value[1],factor*value[2]] for key, value in gradient.items()})
+
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
             gradient.update({key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()})
         return gradient
