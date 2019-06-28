@@ -193,7 +193,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = ComputePressureCoefficient(rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
     }
     else if (rVariable == WAKE)
     {
@@ -233,8 +233,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     if (rVariable == VELOCITY)
     {
         array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocity(vaux);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -388,7 +387,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
 
@@ -430,8 +429,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
 
-    Vector split_element_values(2*NumNodes);
-    GetPotentialOnWakeElement(split_element_values,data.distances);
+    BoundedVector<double, 2*NumNodes> split_element_values;
+    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
@@ -554,20 +553,18 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
 {
     array_1d<double, Dim> upper_wake_velocity;
-    ComputeVelocityUpperWakeElement(upper_wake_velocity);
+    upper_wake_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
     const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
 
     array_1d<double, Dim> lower_wake_velocity;
-    ComputeVelocityLowerWakeElement(lower_wake_velocity);
+    lower_wake_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
     const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
-    if (std::abs(vupnorm - vlownorm) > 0.1)
-        std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id()
-                  << std::endl;
+    KRATOS_WARNING_IF("IncompressibleElement", std::abs(vupnorm - vlownorm) > 0.1) << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(ProcessInfo& rCurrentProcessInfo)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
@@ -602,131 +599,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        ComputeVelocityNormalElement(velocity);
+        velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
     else // Wake element
-        ComputeVelocityUpperWakeElement(velocity);
+        velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
-    Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
-{
-    array_1d<double, NumNodes> upper_phis;
-    GetPotentialOnUpperWakeElement(upper_phis, distances);
-
-    array_1d<double, NumNodes> lower_phis;
-    GetPotentialOnLowerWakeElement(lower_phis, distances);
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        split_element_values[i] = upper_phis[i];
-        split_element_values[NumNodes + i] = lower_phis[i];
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
-    array_1d<double, NumNodes>& upper_phis, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] > 0)
-            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
-    array_1d<double, NumNodes>& lower_phis, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] < 0)
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const IncompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityUpperWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    GetPotentialOnUpperWakeElement(data.potentials, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    GetPotentialOnLowerWakeElement(data.potentials, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const
-{
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double vinfinity_norm2 = inner_prod(free_stream_velocity, free_stream_velocity);
-
-    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-    array_1d<double, Dim> v;
-    ComputeVelocity(v);
-
-    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
-               vinfinity_norm2; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));
-    return pressure_coefficient;
 }
 
 // serializer

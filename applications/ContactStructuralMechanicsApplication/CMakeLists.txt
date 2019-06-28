@@ -21,6 +21,12 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/active_set_utilities.cpp
 
+    ## FRICTIONAL LAWS
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/frictional_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/frictional_law_with_derivative.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/tresca_frictional_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/coulomb_frictional_law.cpp
+
     ## PROCESSES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/aalm_adapt_penalty_value_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/master_slave_process.cpp
@@ -65,6 +71,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_linear_solvers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_frictional_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/process_factory_utility.cpp
 )
 

@@ -89,7 +89,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("ComputeAndPrintFluidInterfaceNorms", &PartitionedFSIUtilities<TSpace,double,3>::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &PartitionedFSIUtilities<TSpace,double,3>::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &PartitionedFSIUtilities<TSpace,double,3>::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace,double,3>::CheckCurrentCoordinatesStructure);
+        .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace,double,3>::CheckCurrentCoordinatesStructure)
+        .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace,double,3>::InitializeInterfaceVector)
+        .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace,double,3>::CreateCouplingElementBasedSkin)
+        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,double,3>::EmbeddedPressureToPositiveFacePressureInterpolator);
 
     py::class_<PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>, PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::Pointer>(m,"PartitionedFSIUtilitiesArray3D")
         .def(py::init<>())
@@ -102,7 +105,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("ComputeAndPrintFluidInterfaceNorms", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CheckCurrentCoordinatesStructure);
+        .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CheckCurrentCoordinatesStructure)
+        .def("InitializeInterfaceVector", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::InitializeInterfaceVector)
+        .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CreateCouplingElementBasedSkin)
+        .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::EmbeddedPressureToPositiveFacePressureInterpolator);
 
     py::class_<NodalUpdateBaseClass<2>>(m,"BaseNodalUpdate2D")
         .def(py::init<>())

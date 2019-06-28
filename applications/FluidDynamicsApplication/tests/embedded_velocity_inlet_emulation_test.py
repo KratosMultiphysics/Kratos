@@ -126,7 +126,8 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
                 else:
                     n_pos += 1
             if (n_neg != 0 and n_pos != 0):
-                elem.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, embedded_velocity)
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, embedded_velocity)
             elif (n_neg == len(elem.GetNodes()) and deactivate_negative_elems):
                 elem.Set(KratosMultiphysics.ACTIVE, False)
 

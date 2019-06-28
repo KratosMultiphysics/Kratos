@@ -450,14 +450,40 @@ public:
     {
         KRATOS_TRY
 
+        const auto it_cont_begin = rContainer.begin();
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
+            auto it_cont = it_cont_begin + k;
             it_cont->Set(rFlag, rFlagValue);
         }
 
         KRATOS_CATCH("")
 
+    }
+
+    /**
+     * @brief Flips a flag over a given container
+     * @param rFlag flag to be set
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType >
+    void ResetFlag(
+        const Flags& rFlag,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        const auto it_cont_begin = rContainer.begin();
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            auto it_cont = it_cont_begin + k;
+            it_cont->Reset(rFlag);
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -473,9 +499,11 @@ public:
     {
         KRATOS_TRY
 
+        const auto it_cont_begin = rContainer.begin();
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
+            auto it_cont = it_cont_begin + k;
             it_cont->Flip(rFlag);
         }
 
