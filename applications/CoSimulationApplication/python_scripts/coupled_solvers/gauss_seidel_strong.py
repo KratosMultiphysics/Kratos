@@ -115,8 +115,17 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
 
     def Check(self):
         super(GaussSeidelStrong, self).Check()
-        # TODO check if at least one conv-crit was specified?
+
+        if len(self.convergence_criteria_list) == 0:
+            raise Exception("At least one convergence criteria has to be specified")
+
         # TODO check if an accelerator was specified for a field that is manipulated in the input!
+
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.Check()
+
+        for conv_crit in self.convergence_accelerators_list:
+            conv_crit.Check()
 
     @classmethod
     def _GetDefaultSettings(cls):

@@ -130,7 +130,7 @@ class CouplingInterfaceData(object):
             else:
                 data = [var_val[i] for i in range(self.dimension)]
 
-        return np.asarray(data, dtype=self.dtype) # => https://docs.scipy.org/doc/numpy/user/basics.types.html
+        return np.asarray(data, dtype=self.dtype)
 
     def SetData(self, new_data, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
@@ -163,6 +163,10 @@ class CouplingInterfaceData(object):
                     self.GetModelPart()[self.variable] = vec_value
                 else:
                     self.GetModelPart()[self.variable] = new_data
+
+    def PrintToVTK(self):
+        raise NotImplementedError
+
 
     def __GetDataFromContainer(self, container, fct_ptr, *args):
         if self.is_scalar_variable:
@@ -223,6 +227,7 @@ def SetSolutionStepValue(entity, variable, solution_step_index, value):
     return entity.SetSolutionStepValue(variable, solution_step_index, value)
 
 def GetNumpyDataType(variable_type):
+    # https://docs.scipy.org/doc/numpy/user/basics.types.html
     dtype_map = {
         "Bool" : np.bool,
         "Integer" : np.intc,
