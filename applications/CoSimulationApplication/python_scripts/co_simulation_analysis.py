@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 
 class CoSimulationAnalysis(object):
@@ -14,7 +15,7 @@ class CoSimulationAnalysis(object):
         self.stop_step = self.settings["stop_step"].GetInt()
         self.step = self.start_step
 
-        self._coupled_solver = cs_tools.CreateInstance(self.parameters["coupled_solver"])
+        self.coupled_solver = cs_tools.CreateInstance(self.parameters["coupled_solver"])
 
     def Run(self):
         self.Initialize()
@@ -22,19 +23,19 @@ class CoSimulationAnalysis(object):
         self.Finalize()
 
     def Initialize(self):
-        self._coupled_solver.Initialize()
-        self._coupled_solver.Check()
-        self._coupled_solver.PrintInfo()
+        self.coupled_solver.Initialize()
+        self.coupled_solver.Check()
+        self.coupled_solver.PrintInfo()
 
     def RunSolutionLoop(self):
         for self.step in range(self.start_step, self.stop_step):
-            self._coupled_solver.InitializeSolutionStep()
-            self._coupled_solver.SolveSolutionStep()
-            self._coupled_solver.FinalizeSolutionStep()
-            self._coupled_solver.OutputSolutionStep()
+            self.coupled_solver.InitializeSolutionStep()
+            self.coupled_solver.SolveSolutionStep()
+            self.coupled_solver.FinalizeSolutionStep()
+            self.coupled_solver.OutputSolutionStep()
 
     def Finalize(self):
-        self._coupled_solver.Finalize()
+        self.coupled_solver.Finalize()
 
 
 if __name__ == '__main__':
