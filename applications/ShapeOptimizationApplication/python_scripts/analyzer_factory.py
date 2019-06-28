@@ -17,36 +17,32 @@ from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import Empty
 
 # ==============================================================================
 def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
+    objectives = optimization_settings["objectives"]
+    constraints = optimization_settings["constraints"]
 
-    interal_responses = _IdentifyInternalResponses(optimization_settings)
-    if len(interal_responses) > 0:
-        internal_analyzer = KratosInternalAnalyzer(interal_responses, model_part_controller)
+    internal_objectives = _IdentifyInternalResponses(objectives)
+    internal_constraints = _IdentifyInternalResponses(constraints)
+    internal_responses = internal_objectives + internal_constraints
+
+    if len(internal_responses) > 0:
+        internal_analyzer = KratosInternalAnalyzer(internal_responses, model_part_controller)
     else:
         internal_analyzer = EmptyAnalyzer()
 
     return Analyzer(internal_analyzer, model_part_controller, external_analyzer)
 
 # ------------------------------------------------------------------------------
-def _IdentifyInternalResponses(optimization_settings):
-    specified_response_functions = {}
+def _IdentifyInternalResponses(responses):
+    internal_responses = []
 
-    for itr in range(optimization_settings["objectives"].size()):
-        objective_settings = optimization_settings["objectives"][itr]
+    for itr in range(responses.size()):
+        response_i = responses[itr]
+        if response_i["use_kratos"].GetBool():
+            identifier = response_i["identifier"].GetString()
+            kratos_settings = response_i["kratos_response_settings"]
+            internal_responses.append([identifier, kratos_settings])
 
-        if objective_settings["use_kratos"].GetBool():
-            identifier = objective_settings["identifier"].GetString()
-            kratos_settings = objective_settings["kratos_response_settings"]
-            specified_response_functions[identifier] = kratos_settings
-
-    for itr in range(optimization_settings["constraints"].size()):
-        constraint_settings = optimization_settings["constraints"][itr]
-
-        if constraint_settings["use_kratos"].GetBool():
-            identifier = constraint_settings["identifier"].GetString()
-            kratos_settings = constraint_settings["kratos_response_settings"]
-            specified_response_functions[identifier] = kratos_settings
-
-    return specified_response_functions
+    return internal_responses
 
 # ==============================================================================
 class Analyzer:
