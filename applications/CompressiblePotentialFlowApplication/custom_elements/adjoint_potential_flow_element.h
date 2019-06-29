@@ -142,8 +142,6 @@ protected:
 
     Element::Pointer mpPrimalElement;
 
-    void GetWakeDistances(array_1d<double,NumNodes>& distances);
-
     void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
 
     double GetPerturbationSize();

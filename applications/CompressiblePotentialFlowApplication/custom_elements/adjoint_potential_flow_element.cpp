@@ -14,6 +14,7 @@
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
 #include "adjoint_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -99,8 +100,7 @@ namespace Kratos
             if(rValues.size() != 2*NumNodes)
                 rValues.resize(2*NumNodes, false);
 
-            array_1d<double,NumNodes> distances;
-            GetWakeDistances(distances);
+            array_1d<double,NumNodes> distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(r_this);
             GetValuesOnSplitElement(rValues,distances);
 
         }else{ // normal element
@@ -164,8 +164,7 @@ namespace Kratos
             if (rResult.size() != 2*NumNodes)
                 rResult.resize(2*NumNodes, false);
 
-            array_1d<double,NumNodes> distances;
-            GetWakeDistances(distances);
+            array_1d<double,NumNodes> distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(r_this);
 
             //positive part
             for (unsigned int i = 0; i < NumNodes; i++)
@@ -219,8 +218,7 @@ namespace Kratos
             if (rElementalDofList.size() != 2*NumNodes)
                 rElementalDofList.resize(2*NumNodes);
 
-            array_1d<double,NumNodes> distances;
-            GetWakeDistances(distances);
+            array_1d<double,NumNodes> distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(r_this);
 
             //positive part
             for (unsigned int i = 0; i < NumNodes; i++)
@@ -301,12 +299,6 @@ namespace Kratos
     }
 
     /*PROTECTED*/
-
-    template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::GetWakeDistances(array_1d<double,NumNodes>& distances)
-    {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
-    }
 
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances )
