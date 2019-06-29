@@ -2840,37 +2840,20 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     /* Nodes */
-    if (Framework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
-        #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
+    #pragma omp parallel for firstprivate(nodes_colors)
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
 
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
+            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], i + 1);
 
-                bool blocked = false;
-                if (it_node->IsDefined(BLOCKED))
-                    blocked = it_node->Is(BLOCKED);
-                if (blocked)
-                    BlockNode(i + 1);
-            }
-        }
-    } else {
-        #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
-
-                bool blocked = false;
-                if (it_node->IsDefined(BLOCKED))
-                    blocked = it_node->Is(BLOCKED);
-                if (blocked)
-                    BlockNode(i + 1);
-            }
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED))
+                blocked = it_node->Is(BLOCKED);
+            if (blocked)
+                BlockNode(i + 1);
         }
     }
 
