@@ -1552,9 +1552,8 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 {
     std::vector<std::string> SubModelPartsNames;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    for(auto& r_sub_model_part : mSubModelParts) {
+        SubModelPartsNames.push_back(r_sub_model_part.Name());
     }
 
     return SubModelPartsNames;
@@ -1566,8 +1565,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for(auto it_sub_model_part = mSubModelParts.begin(); it_sub_model_part != mSubModelParts.end(); ++it_sub_model_part) {
-        it_sub_model_part->SetBufferSizeSubModelParts(NewBufferSize);
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
@@ -1585,8 +1584,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 
 void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 {
-    for(auto it_sub_model_part = mSubModelParts.begin(); it_sub_model_part != mSubModelParts.end(); ++it_sub_model_part) {
-        it_sub_model_part->SetBufferSizeSubModelParts(NewBufferSize);
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
