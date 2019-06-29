@@ -81,7 +81,7 @@ public:
                bool PredictorCorrector):
         BaseType(rModelPart,rSolverConfig,PredictorCorrector)
     {
-        InitializeStrategy(rSolverConfig,PredictorCorrector);
+        this->InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
     /// Destructor.
@@ -210,15 +210,6 @@ protected:
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = BaseType::mpMomentumStrategy->Solve();
-
-//            // Compute projections (for stabilization)
-//            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
-//            ComputeSplitOssProjections(rModelPart);
-
-//            // Additional steps // Moved to end of step
-//            for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();
-//                 iExtraSteps != BaseType::mExtraIterationSteps.end(); ++iExtraSteps)
-//                (*iExtraSteps)->Execute();
 
             // Check convergence
             Converged = BaseType::CheckFractionalStepConvergence(NormDv);
@@ -742,12 +733,12 @@ private:
 
         // Initialize strategies for each step
         bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity,BaseType::mpMomentumStrategy);
-
+       
         if (HaveVelStrategy)
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,BaseType::mVelocityTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,BaseType::mMaxVelocityIter);
-            KRATOS_INFO("velcoity strategy")<<std::endl;
+            KRATOS_INFO("Velcoity strategy successfully set ! ")<<std::endl;
         }
         else
         {
@@ -761,7 +752,7 @@ private:
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,BaseType::mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,BaseType::mMaxPressureIter);
 
-            KRATOS_INFO("pressure strategy")<<std::endl;
+            KRATOS_INFO("Pressure strategy successfully set ! ")<<std::endl;
         }
         else
         {

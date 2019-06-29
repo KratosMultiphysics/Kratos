@@ -154,7 +154,6 @@ public:
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
                                                                         (r_fs_velocity_model_part, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
-
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
@@ -182,6 +181,15 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    bool FindStrategy(StrategyLabel const& rStrategyLabel,
+                              StrategyPointerType& pThisStrategy) override
+    {
+        pThisStrategy = BaseType::mStrategies[rStrategyLabel];
+        if(pThisStrategy != nullptr)
+            return true;
+        return false;
+    }
     /* void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
