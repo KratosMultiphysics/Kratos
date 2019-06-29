@@ -25,8 +25,11 @@ class Communicator:
         self.supported_constraint_types = ["=", "<", ">", "<=", ">="]
         self.supported_constraint_references = ["initial_value", "specified_value"]
 
-        self.__initializeListOfRequests()
-        self.__initializeListOfResponses()
+        self.list_of_requests = self.__initializeListOfRequestsRecursively(optimization_settings["objectives"])
+        self.list_of_requests.update(self.__initializeListOfRequestsRecursively(optimization_settings["constraints"]))
+
+        self.list_of_responses = self.__initializeListOfObjectivesRecursively(optimization_settings["objectives"])
+        self.list_of_responses.update(self.__initializeListOfConstraints(optimization_settings["constraints"]))
 
     # --------------------------------------------------------------------------
     def initializeCommunication(self):
@@ -100,43 +103,51 @@ class Communicator:
         return self.list_of_responses[response_id]["standardized_gradient"]
 
     # --------------------------------------------------------------------------
-    def __initializeListOfRequests(self):
-        self.list_of_requests = {}
+    @classmethod
+    def __initializeListOfRequestsRecursively(cls, responses):
+        list_of_requests = {}
 
-        for objective_number in range(self.optimization_settings["objectives"].size()):
-            objective_id = self.optimization_settings["objectives"][objective_number]["identifier"].GetString()
-            self.list_of_requests[objective_id] = {"calculateValue": False, "calculateGradient": False}
+        for itr in range(responses.size()):
+            response_i = responses[itr]
+            response_id = response_i["identifier"].GetString()
 
-        for constraint_number in range(self.optimization_settings["constraints"].size()):
-            constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
-            self.list_of_requests[constraint_id] = {"calculateValue": False, "calculateGradient": False}
+            if response_i.Has("is_combined"):
+                if response_i["is_combined"].GetBool():
+                    list_of_requests.update(cls.__initializeListOfRequestsRecursively(response_i["combined_responses"]))
+
+            list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False}
+
+        return list_of_requests
 
     # --------------------------------------------------------------------------
-    def __initializeListOfResponses(self):
-        self.list_of_responses = {}
-        self.__addObjectivesToListOfResponses()
-        self.__addConstraintsToListOfResponses()
+    def __initializeListOfObjectivesRecursively(self, specified_objectives):
+        list_of_objectives = {}
 
-    # --------------------------------------------------------------------------
-    def __addObjectivesToListOfResponses(self):
-        for objective_number in range(self.optimization_settings["objectives"].size()):
-            objective = self.optimization_settings["objectives"][objective_number]
+        for itr in range(specified_objectives.size()):
+            objective = specified_objectives[itr]
             objective_id =  objective["identifier"].GetString()
 
             if objective["type"].GetString() not in self.supported_objective_types:
                 raise RuntimeError("Unsupported type defined for the following objective: " + objective_id)
 
-            self.list_of_responses[objective_id] = { "type"                 : objective["type"].GetString(),
-                                                     "value"                : None,
-                                                     "scaling_factor"       : objective["scaling_factor"].GetDouble(),
-                                                     "standardized_value"   : None,
-                                                     "standardized_gradient": None }
+            if objective["is_combined"].GetBool():
+                list_of_objectives.update(self.__initializeListOfObjectivesRecursively(objective["combined_responses"]))
+
+            list_of_objectives[objective_id] = { "type"                 : objective["type"].GetString(),
+                                                 "value"                : None,
+                                                 "scaling_factor"       : objective["scaling_factor"].GetDouble(),
+                                                 "standardized_value"   : None,
+                                                 "standardized_gradient": None }
+
+        return list_of_objectives
 
     # --------------------------------------------------------------------------
-    def __addConstraintsToListOfResponses(self):
-        for constraint_number in range(self.optimization_settings["constraints"].size()):
-            constraint = self.optimization_settings["constraints"][constraint_number]
-            constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
+    def __initializeListOfConstraints(self, specified_constraints):
+        list_of_constraints = {}
+
+        for itr in range(specified_constraints.size()):
+            constraint = specified_constraints[itr]
+            constraint_id = constraint["identifier"].GetString()
 
             if constraint["type"].GetString() not in self.supported_constraint_types:
                 raise RuntimeError("Unsupported type defined for the following constraint: " + constraint_id)
@@ -160,6 +171,8 @@ class Communicator:
                                                           "reference_value"      : None }
             else:
                 raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
+
+        return list_of_constraints
 
     # --------------------------------------------------------------------------
     def __deleteAllRequests(self):
