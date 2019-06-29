@@ -322,20 +322,23 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
 
-        if (nonhistorical_variable) {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a non-historical variable " << std::endl;
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            if (nonhistorical_variable) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a non-historical variable " << std::endl;
 
-            // We get the isosurface value (non-historical variable)
-            isosurface_value = it_node->GetValue( r_scalar_variable );
-        } else {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a historical variable " << std::endl;
+                // We get the isosurface value (non-historical variable)
+                isosurface_value = it_node->GetValue( r_scalar_variable );
+            } else {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a historical variable " << std::endl;
 
-            // We get the isosurface value (historical variable)
-            isosurface_value = it_node->FastGetSolutionStepValue( r_scalar_variable );
+                // We get the isosurface value (historical variable)
+                isosurface_value = it_node->FastGetSolutionStepValue( r_scalar_variable );
+            }
+
+            // We set the isosurface variable
+            mMmmgUtilities.SetMetricScalar(isosurface_value, i + 1);
         }
-
-        // We set the isosurface variable
-        mMmmgUtilities.SetMetricScalar(isosurface_value, i + 1);
     }
 }
 
@@ -379,6 +382,20 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     Model& r_owner_model = mrThisModelPart.GetModel();
     ModelPart& r_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
+
+    // We clear the OLD_ENTITY flag
+    const bool collapse_prisms_elements = mThisParameters["collapse_prisms_elements"].GetBool();
+    if (collapse_prisms_elements) {
+        for(auto& r_elem : mrThisModelPart.Elements()){
+            // We get the element geometry
+            const GeometryType& r_geometry = r_elem.GetGeometry();
+            if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
+                r_elem.Reset(OLD_ENTITY);
+                for (auto& r_node : r_geometry)
+                    r_node.Reset(OLD_ENTITY);
+            }
+        }
+    }
 
     // First we empty the model part
     auto& r_nodes_array = mrThisModelPart.Nodes();
@@ -639,10 +656,15 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
     for(IndexType i = 0; i < r_elements_array.size(); ++i){
         const auto it_elem = it_elem_begin + i;
 
-        // We get the condition geometry
+        // We get the element geometry
         const GeometryType& r_geometry = it_elem->GetGeometry();
 
         if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
+
+            it_elem->Set(OLD_ENTITY, true); // This must be removed later
+            for (auto& r_node : r_geometry)
+                r_node.Set(OLD_ENTITY, true); // This must be removed later
+
             thickness_connectivity_map.insert({r_geometry[0].Id(), r_geometry[3].Id()});
             thickness_connectivity_map.insert({r_geometry[1].Id(), r_geometry[4].Id()});
             thickness_connectivity_map.insert({r_geometry[2].Id(), r_geometry[5].Id()});
