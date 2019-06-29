@@ -2847,13 +2847,13 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
         if (!old_entity) {
             const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
-            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], i + 1);
+            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
 
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
             if (blocked)
-                BlockNode(i + 1);
+                BlockNode(it_node->Id());
         }
     }
 
@@ -2864,13 +2864,13 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
         const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
+            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], it_cond->Id());
 
             bool blocked = false;
             if (it_cond->IsDefined(BLOCKED))
                 blocked = it_cond->Is(BLOCKED);
             if (blocked)
-                BlockCondition(i + 1);
+                BlockCondition(it_cond->Id());
         }
     }
 
@@ -2881,13 +2881,13 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
         const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
+            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], it_elem->Id());
 
             bool blocked = false;
             if (it_elem->IsDefined(BLOCKED))
                 blocked = it_elem->Is(BLOCKED);
             if (blocked)
-                BlockElement(i + 1);
+                BlockElement(it_elem->Id());
         }
     }
 
@@ -2974,7 +2974,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
             const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
             // We set the metric
-            SetMetricTensor(r_metric, i + 1);
+            SetMetricTensor(r_metric, it_node->Id());
         }
     }
 }
