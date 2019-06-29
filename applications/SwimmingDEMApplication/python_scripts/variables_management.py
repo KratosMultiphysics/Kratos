@@ -10,6 +10,21 @@ def Say(*args):
     Logger.Flush()
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
 
+def GetGlobalVariableByName(variable_name):
+    modules = [Kratos, DEM, SDEM]
+    for mod in modules:
+        try:
+            return getattr(mod, variable_name)
+        except Exception:
+            pass
+    names = [mod.__name__ for mod in modules]
+    error_message = ('No variable with name \''
+        + variable_name + '\' exists in either of the modules:\n')
+    for name in names[:-1]:
+        error_message += name + ', '
+    error_message += 'or ' + names[-1] + '.'
+    raise AttributeError(error_message)
+
 class VariablesManager:
     @staticmethod
     def EliminateRepeatedValuesFromList(redundant_list):
@@ -296,20 +311,20 @@ class VariablesManager:
         self.time_filtered_vars = []
 
         for variable in self.nodal_results:
-            self.fluid_printing_vars += [eval('Kratos.' + variable)]
+            self.fluid_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.dem_nodal_results:
-            self.dem_printing_vars += [eval('Kratos.' + variable)]
+            self.dem_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.clusters_nodal_results:
-            self.clusters_printing_vars += [eval('Kratos.' + variable)]
+            self.clusters_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.rigid_faces_nodal_results:
-            self.rigid_faces_printing_vars += [eval('Kratos.' + variable)]
+            self.rigid_faces_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.mixed_nodal_results:
-            self.dem_printing_vars += [eval('Kratos.' + variable)]
-            self.fluid_printing_vars += [eval('Kratos.' + variable)]
+            self.dem_printing_vars += [GetGlobalVariableByName(variable)]
+            self.fluid_printing_vars += [GetGlobalVariableByName(variable)]
 
         for var in self.mixed_nodal_results:
 

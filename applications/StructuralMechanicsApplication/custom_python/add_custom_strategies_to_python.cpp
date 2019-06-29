@@ -89,7 +89,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>(), py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("compute_model_decomposition")=false)
             ;
 
     py::class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")

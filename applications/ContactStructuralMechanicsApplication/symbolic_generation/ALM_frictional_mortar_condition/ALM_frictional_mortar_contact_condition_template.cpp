@@ -77,6 +77,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
 
     // We initailize the previous mortar operators
     mPreviousMortarOperators.Initialize();
+    mPreviousMortarOperatorsInitialized = false;
 
     KRATOS_CATCH( "" );
 }
@@ -110,8 +111,8 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
 
     BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
-    // Compute the previous mortar operators
-    ComputePreviousMortarOperators(rCurrentProcessInfo);
+    // Setting previous mortar operators flag
+    mPreviousMortarOperatorsInitialized = false;
 
     KRATOS_CATCH( "" );
 }

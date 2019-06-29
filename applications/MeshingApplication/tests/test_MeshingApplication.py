@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 from test_refine import TestRedistance                                     as TTestRedistance
+from test_remesh_rectangle import TestRemeshMMG2D                          as TTestRemeshMMG2D
 from test_remesh_sphere import TestRemeshMMG                               as TTestRemeshMMG
 from meshing_application_test_factory  import TwoDDynamicBeamTest          as TTwoDDynamicBeamTest
 from meshing_application_test_factory  import TwoDDynamicBeamLineLoadTest  as TTwoDDynamicBeamLineLoadTest
@@ -42,6 +43,7 @@ def AssembleTestSuites():
     else:
         KratosMultiphysics.Logger.PrintWarning("Unittests", "TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if hasattr(MeshingApplication,  "MmgProcess2D"):
+        smallSuite.addTest(TTestRemeshMMG2D('test_remesh_rectangle_hessian'))
         smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
         smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
