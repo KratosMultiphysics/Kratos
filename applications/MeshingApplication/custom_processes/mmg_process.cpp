@@ -363,6 +363,17 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     ////////* MMG LIBRARY CALL *////////
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "////////* MMG LIBRARY CALL *////////" << std::endl;
 
+    ////////* EMPTY AND BACKUP THE MODEL PART *////////
+    Model& r_owner_model = mrThisModelPart.GetModel();
+    ModelPart& r_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
+
+    const bool collapse_prisms_elements = mThisParameters["collapse_prisms_elements"].GetBool();
+    if (collapse_prisms_elements) {
+        ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+        ModelPart& r_old_auxiliar_model_part = r_old_model_part.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+        r_old_auxiliar_model_part.AddElements( r_auxiliar_model_part.ElementsBegin(), r_auxiliar_model_part.ElementsEnd() );
+    }
+
     // Calling the library functions
     if (mDiscretization == DiscretizationOption::STANDARD) {
         mMmmgUtilities.MMGLibCallMetric(mThisParameters);
@@ -379,12 +390,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
     mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
 
-    ////////* EMPTY AND BACKUP THE MODEL PART *////////
-    Model& r_owner_model = mrThisModelPart.GetModel();
-    ModelPart& r_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
-
     // We clear the OLD_ENTITY flag
-    const bool collapse_prisms_elements = mThisParameters["collapse_prisms_elements"].GetBool();
     if (collapse_prisms_elements) {
         for(auto& r_elem : mrThisModelPart.Elements()){
             // We get the element geometry
@@ -450,7 +456,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     mMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
     // In case of prism collapse we extrapolate now (and later extrude)
-    if (mThisParameters["collapse_prisms_elements"].GetBool()) {
+    if (collapse_prisms_elements) {
         /* We interpolate all the values */
         Parameters interpolate_parameters = Parameters(R"({})" );
         interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
@@ -463,6 +469,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
         interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
         interpolate_parameters["surface_elements"].SetBool(true);
+
         ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
         ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
         NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
