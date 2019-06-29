@@ -18,43 +18,19 @@
 namespace Kratos
 {
     template <class TPrimalElement>
-    Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
-    {
-        KRATOS_TRY
-          return Kratos::make_intrusive<AdjointPotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
-        KRATOS_CATCH("");
-    }
-
-    template <class TPrimalElement>
-    Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const 
-    {
-        KRATOS_TRY
-            return Kratos::make_intrusive<AdjointPotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
-        KRATOS_CATCH("");
-    }
-
-    template <class TPrimalElement>
-    Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const 
-    {
-        KRATOS_TRY
-        return Element::Pointer(new AdjointPotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
-        KRATOS_CATCH("");
-    }
-
-    template <class TPrimalElement>
-    Element::IntegrationMethod AdjointPotentialFlowElement<TPrimalElement>::GetIntegrationMethod() const 
+    Element::IntegrationMethod AdjointPotentialFlowElement<TPrimalElement>::GetIntegrationMethod() const
     {
         return mpPrimalElement->GetIntegrationMethod();
     }
-  
+
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::Initialize() 
-    {   
+    void AdjointPotentialFlowElement<TPrimalElement>::Initialize()
+    {
         mpPrimalElement->Initialize();
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
+    void AdjointPotentialFlowElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->Data() = this->Data();
         mpPrimalElement->Set(Flags(*this));
@@ -62,7 +38,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
+    void AdjointPotentialFlowElement<TPrimalElement>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
 
     }
@@ -70,7 +46,7 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) 
+                                      ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix,
                                               rRightHandSideVector,
@@ -79,16 +55,16 @@ namespace Kratos
 
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) 
+                                       ProcessInfo& rCurrentProcessInfo)
     {
         MatrixType tmp;
         mpPrimalElement->CalculateLeftHandSide(tmp, rCurrentProcessInfo);
-        rLeftHandSideMatrix = trans(tmp);                                    
+        rLeftHandSideMatrix = trans(tmp);
     }
 
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) 
+                                        ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
@@ -97,21 +73,21 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-    }
-    
-    template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
-            std::vector< array_1d<double,3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) 
+            const ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) 
+    void AdjointPotentialFlowElement<TPrimalElement>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+            std::vector< array_1d<double,3> >& rValues,
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+        mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    }
+
+    template <class TPrimalElement>
+    void AdjointPotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
     {
         KRATOS_TRY
         const AdjointPotentialFlowElement& r_this = *this;
@@ -126,7 +102,7 @@ namespace Kratos
             array_1d<double,NumNodes> distances;
             GetWakeDistances(distances);
             GetValuesOnSplitElement(rValues,distances);
-            
+
         }else{ // normal element
             if(rValues.size() != NumNodes)
                 rValues.resize(NumNodes, false);
@@ -149,48 +125,17 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) 
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-        const double delta = this->GetPerturbationSize();
-        ProcessInfo process_info = rCurrentProcessInfo;
 
-        Vector RHS;
-        Vector RHS_perturbed;
-
-        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
-
-        if (rOutput.size1() != NumNodes)
-            rOutput.resize(Dim*NumNodes, RHS.size(), false);
-
-        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                if ((GetGeometry()[i_node].Is(SOLID)) && (!GetGeometry()[i_node].GetValue(TRAILING_EDGE))){
-                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
-                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
-
-                    // compute LHS after perturbation
-                    pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
-
-                    //compute derivative of RHS w.r.t. design variable with finite differences
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
-
-                    // unperturb the design variable
-                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
-                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
-                }else{
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (i_dim + i_node*Dim), i) = 0.0;
-                }
-            }
-        }
+        KRATOS_ERROR << "Calling CalculateSensitivityMatrix from adjoint potential flow base element." << std::endl;
 
         KRATOS_CATCH("")
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) 
+    void AdjointPotentialFlowElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
     {
         const AdjointPotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
@@ -245,7 +190,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) 
+    void AdjointPotentialFlowElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
     {
         const AdjointPotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
@@ -298,7 +243,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    int AdjointPotentialFlowElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) 
+    int AdjointPotentialFlowElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
     {
 
         KRATOS_TRY
@@ -330,7 +275,7 @@ namespace Kratos
 
     /// Turn back information as a string.
     template <class TPrimalElement>
-    std::string AdjointPotentialFlowElement<TPrimalElement>::Info() const 
+    std::string AdjointPotentialFlowElement<TPrimalElement>::Info() const
     {
         std::stringstream buffer;
         buffer << "AdjointPotentialFlowElement #" << Id();
@@ -338,13 +283,13 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::PrintInfo(std::ostream& rOStream) const 
+    void AdjointPotentialFlowElement<TPrimalElement>::PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "AdjointPotentialFlowElement #" << Id();
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::PrintData(std::ostream& rOStream) const 
+    void AdjointPotentialFlowElement<TPrimalElement>::PrintData(std::ostream& rOStream) const
     {
         pGetGeometry()->PrintData(rOStream);
     }
@@ -396,14 +341,14 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::save(Serializer& rSerializer) const 
+    void AdjointPotentialFlowElement<TPrimalElement>::save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
         rSerializer.save("mpPrimalElement", mpPrimalElement);
     }
 
     template <class TPrimalElement>
-    void AdjointPotentialFlowElement<TPrimalElement>::load(Serializer& rSerializer) 
+    void AdjointPotentialFlowElement<TPrimalElement>::load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
         rSerializer.load("mpPrimalElement", mpPrimalElement);

@@ -90,12 +90,6 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
-
     IntegrationMethod GetIntegrationMethod() const override;
 
     void Initialize() override;
@@ -152,10 +146,9 @@ protected:
 
     void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
 
+    double GetPerturbationSize();
 
 private:
-
-    double GetPerturbationSize();
 
     friend class Serializer;
 
