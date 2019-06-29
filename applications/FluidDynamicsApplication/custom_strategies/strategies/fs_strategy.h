@@ -230,7 +230,7 @@ public:
     void Initialize() override
     {}
 
-    int Check() override
+    virtual int Check() override
     {
         KRATOS_TRY;
 
@@ -519,7 +519,7 @@ protected:
     /**
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
      */
-    void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
+    virtual void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -652,7 +652,7 @@ protected:
         return NormDp;
     }
 
-    bool CheckFractionalStepConvergence(const double NormDv)
+    virtual bool CheckFractionalStepConvergence(const double NormDv)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -691,7 +691,7 @@ protected:
             return false;
     }
 
-    bool CheckPressureConvergence(const double NormDp)
+    virtual bool CheckPressureConvergence(const double NormDp)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -865,7 +865,7 @@ protected:
      * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
      * @param rSlipWallFlag If Node.Is(rSlipWallFlag) == true, the node is in the wall.
      */
-    void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
+    virtual void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
