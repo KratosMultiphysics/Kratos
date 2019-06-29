@@ -32,17 +32,15 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
     else:
         internal_analyzer = EmptyAnalyzer()
 
-    response_combinations = {}
-    _IdentifyAndAddResponseCombinationsRecursively(objectives, response_combinations)
-    # response_combinations = { combination_1_id: [ (response_id_1a, weight_1a),
-    #                                               (response_id_1b, weight_1b),
-    #                                               ... ],
-    #                           combination_2_id, [ (response_id_2a, weight_2a),
-    #                                               (response_id_2b, weight_2b),
-    #                                               ... ],
-    #                           ... }
+    dependency_graph = _CreateDependencyGraphRecursively(objectives)
+    # dependency_graph = [ (response_id_1, [], weight_1),
+    #                      (response_id_2, [], weight_2),
+    #                      (response_id_3, [ (response_id_3a, [], weight_3a),
+    #                                        (response_id_3b, [], weight_3b),
+    #                                        (response_id_3c, [...], weight_3c) ], weight_3),
+    #                      ... ]
 
-    return Analyzer(internal_analyzer, model_part_controller, external_analyzer, response_combinations)
+    return Analyzer(internal_analyzer, model_part_controller, external_analyzer, dependency_graph)
 
 # ------------------------------------------------------------------------------
 def _IdentifyInternalResponsesRecursively(responses):
@@ -63,20 +61,22 @@ def _IdentifyInternalResponsesRecursively(responses):
     return internal_responses
 
 # ------------------------------------------------------------------------------
-def _IdentifyAndAddResponseCombinationsRecursively(responses, combinations):
+def _CreateDependencyGraphRecursively(responses):
+    dependency_graph = []
+
     for itr in range(responses.size()):
         response_i = responses[itr]
         identifier = response_i["identifier"].GetString()
+        weight = response_i["weight"].GetDouble()
 
         if response_i.Has("is_combined"):
             if response_i["is_combined"].GetBool():
-                combined_responses = response_i["combined_responses"]
+                sub_dependency_graph = _CreateDependencyGraphRecursively(response_i["combined_responses"])
+                dependency_graph.append((identifier, sub_dependency_graph, weight))
+            else:
+                dependency_graph.append((identifier, [], weight))
 
-                combi_list = []
-                for sub_itr in range(combined_responses.size()):
-                    sub_identifier = combined_responses[sub_itr]["identifier"].GetString()
-                    sub_weight = combined_responses[sub_itr]["weight"].GetDouble()
-                    combi_list.append((sub_identifier, sub_weight))
+    return dependency_graph
 
                 combinations[identifier] = combi_list
 
@@ -85,11 +85,11 @@ def _IdentifyAndAddResponseCombinationsRecursively(responses, combinations):
 # ==============================================================================
 class Analyzer:
     # --------------------------------------------------------------------------
-    def __init__(self, internal_analyzer, model_part_controller, external_analyzer, response_combinations = {}):
+    def __init__(self, internal_analyzer, model_part_controller, external_analyzer, dependency_graph = []):
         self.model_part_controller = model_part_controller
         self.internal_analyzer = internal_analyzer
         self.external_analyzer = external_analyzer
-        self.response_combinations = response_combinations
+        self.dependency_graph = dependency_graph
 
         if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
             raise RuntimeError("Neither an internal nor an external analyzer is defined!")
