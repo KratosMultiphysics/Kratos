@@ -2762,6 +2762,83 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     mmg_mesh_info.NumberOfNodes = remeshed_nodes.size();
     SetMeshSize(mmg_mesh_info);
 
+    // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
+    IndexType counter_to_remesh = 0;
+    #pragma omp parallel for reduction(+: counter_to_remesh)
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            ++counter_to_remesh;
+        }
+    }
+    // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+    IndexType counter_remesh = 1;
+    IndexType counter_not_remesh = counter_to_remesh + 1;
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_node->SetId(counter_remesh);
+            ++counter_remesh;
+        } else {
+            it_node->SetId(counter_not_remesh);
+            ++counter_not_remesh;
+        }
+    }
+    counter_to_remesh = 0;
+    #pragma omp parallel for reduction(+: counter_to_remesh)
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            ++counter_to_remesh;
+        }
+    }
+    // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
+    counter_remesh = 1;
+    counter_not_remesh = counter_to_remesh + 1;
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_cond->SetId(counter_remesh);
+            ++counter_remesh;
+        } else {
+            it_cond->SetId(counter_not_remesh);
+            ++counter_not_remesh;
+        }
+    }
+    counter_to_remesh = 0;
+    #pragma omp parallel for reduction(+: counter_to_remesh)
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            ++counter_to_remesh;
+        }
+    }
+    // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
+    counter_remesh = 1;
+    counter_not_remesh = counter_to_remesh + 1;
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_elem->SetId(counter_remesh);
+            ++counter_remesh;
+        } else {
+            it_elem->SetId(counter_not_remesh);
+            ++counter_not_remesh;
+        }
+    }
+
     /* Nodes */
     if (Framework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
         #pragma omp parallel for firstprivate(nodes_colors)
@@ -2778,9 +2855,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 if (blocked)
                     BlockNode(i + 1);
             }
-
-            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-            it_node->SetId(i + 1);
         }
     } else {
         #pragma omp parallel for firstprivate(nodes_colors)
@@ -2797,9 +2871,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 if (blocked)
                     BlockNode(i + 1);
             }
-
-            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-            it_node->SetId(i + 1);
         }
     }
 
@@ -2818,9 +2889,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             if (blocked)
                 BlockCondition(i + 1);
         }
-
-        // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
-        it_cond->SetId(i + 1);
     }
 
     /* Elements */
@@ -2838,9 +2906,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             if (blocked)
                 BlockElement(i + 1);
         }
-
-        // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
-        it_elem->SetId(i + 1);
     }
 
     // Create auxiliar colors maps
@@ -2918,13 +2983,16 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
-        // We get the metric
-        const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+            // We get the metric
+            const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
-        // We set the metric
-        SetMetricTensor(r_metric, i + 1);
+            // We set the metric
+            SetMetricTensor(r_metric, i + 1);
+        }
     }
 }
 
