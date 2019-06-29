@@ -739,7 +739,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     const SizeType total_number_of_elements = mrThisModelPart.GetRootModelPart().NumberOfElements(); // Elements must be ordered
 
     // Now we iterate over the elements to create a connectivity map
-    ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
     ElementsArrayType& r_elements_array = r_auxiliar_model_part.Elements();
     const SizeType num_elements = r_elements_array.size();
     const auto it_elem_begin = r_elements_array.begin();
