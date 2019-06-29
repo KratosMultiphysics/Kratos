@@ -176,11 +176,19 @@ public:
 
         if ( itStrategy != mStrategies.end() )
         {
-            pThisStrategy.swap(itStrategy->second);
-            return true;
+            if(itStrategy->second != nullptr)
+            {
+                pThisStrategy.swap(itStrategy->second);
+                return true;
+            } else {
+                KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+                return false;                
+            }
         }
-        else
+        else {
+            KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
             return false;
+        }
     }
 
     virtual bool FindTolerance(StrategyLabel const& rStrategyLabel,
