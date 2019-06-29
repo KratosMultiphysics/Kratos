@@ -101,7 +101,6 @@ class Analyzer:
         if len(self.dependency_graph) != 0:
             self.__RequestResponsesFromDependencies(communicator)
 
-        # Analyze design w.r.t to all given response functions
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.external_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
 
