@@ -49,19 +49,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    //typedef FSStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    //********************************************************************
+    typedef FSStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef FSStrategyForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType > FSSTrategyForChimeraType;
     //*************************STRATEGY CLASSES***************************
-    //********************************************************************
-    class_< FSStrategyForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >,
-                typename FSStrategyForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >::Pointer,
+    class_< FSSTrategyForChimeraType,
+                typename FSSTrategyForChimeraType::Pointer,
                 BaseSolvingStrategyType >
                 (m,"FSStrategyForChimera")
-                .def(init< ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
                 .def(init< ModelPart&, FractionalStepSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
-                .def(init< ModelPart&, FractionalStepSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool, const Kratos::Variable<int>& >() )
                 ;
+    //*************************B&S CLASSES***************************
     class_< ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
      typename ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                 ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera")
