@@ -75,7 +75,7 @@ def _ValidateObjectivesRecursively(objectives):
             "kratos_response_settings"            : {},
             "is_combined"                         : false,
             "combined_responses"                  : [],
-            "weights"                             : [],
+            "weight"                              : 1.0,
             "project_gradient_on_surface_normals" : false
         }""")
         objectives[itr].ValidateAndAssignDefaults(default_settings)
