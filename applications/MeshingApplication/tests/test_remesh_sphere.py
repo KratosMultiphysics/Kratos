@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os
 
-class TestRemeshMMG(KratosUnittest.TestCase):
+class TestRemeshMMG3D(KratosUnittest.TestCase):
 
     def test_remesh_sphere(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
