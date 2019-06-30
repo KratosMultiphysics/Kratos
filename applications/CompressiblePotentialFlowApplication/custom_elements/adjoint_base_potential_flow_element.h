@@ -134,11 +134,9 @@ public:
 
     void PrintData(std::ostream& rOStream) const override;
 
-   Element::Pointer pGetPrimalElement();
-
+    Element::Pointer pGetPrimalElement();
 
 protected:
-
 
     Element::Pointer mpPrimalElement;
 
