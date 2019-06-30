@@ -798,7 +798,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         const array_1d<double, 3> lower_coordinates = it_node->Coordinates() - 0.5 * thickness * r_normal;
         auto p_node1 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + it_node->Id(), upper_coordinates[0], upper_coordinates[1], upper_coordinates[2]);
         p_node1->Set(NEW_ENTITY, true);
-        auto p_node2 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + num_elements + it_node->Id(), lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
+        auto p_node2 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + num_nodes + it_node->Id(), lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
         p_node2->Set(NEW_ENTITY, true);
 
         // Setting the TO_ERASE flag
