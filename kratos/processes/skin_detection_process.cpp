@@ -67,8 +67,8 @@ void SkinDetectionProcess<TDim>::Execute()
         if (element_is_active) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
-            const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
             const auto r_boundary_geometries = r_geometry.GenerateBoundariesEntities();
+            const SizeType potential_number_neighbours = r_boundary_geometries.size();
 
             for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
@@ -111,8 +111,8 @@ void SkinDetectionProcess<TDim>::Execute()
         if (element_is_active) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
-            const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
             const auto r_boundary_geometries = r_geometry.GenerateBoundariesEntities();
+            const SizeType potential_number_neighbours = r_boundary_geometries.size();
 
             for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
@@ -288,16 +288,6 @@ void SkinDetectionProcess<TDim>::Execute()
     }
 
     KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim>
-SizeType SkinDetectionProcess<TDim>::ComputePotentialNeighboursSize(ElementsIteratorType itElem)
-{
-    const auto& r_geometry = itElem->GetGeometry();
-    return r_geometry.GenerateBoundariesEntities().size();
 }
 
 /***********************************************************************************/
