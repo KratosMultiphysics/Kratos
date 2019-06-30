@@ -2604,12 +2604,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
     }
 
-    // First we compute the colors
-    rColors.clear();
-    ColorsMapType nodes_colors, cond_colors, elem_colors;
-    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
-    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
-
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
 
@@ -2838,6 +2832,12 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+
+    // Now we compute the colors
+    rColors.clear();
+    ColorsMapType nodes_colors, cond_colors, elem_colors;
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
     /* Nodes */
     #pragma omp parallel for firstprivate(nodes_colors)
