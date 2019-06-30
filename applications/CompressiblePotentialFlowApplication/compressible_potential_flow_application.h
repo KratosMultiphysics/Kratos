@@ -26,7 +26,6 @@
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
 
-#include "custom_elements/adjoint_potential_flow_element.h"
 #include "custom_elements/adjoint_finite_difference_potential_flow_element.h"
 #include "custom_conditions/adjoint_potential_wall_condition.h"
 namespace Kratos {

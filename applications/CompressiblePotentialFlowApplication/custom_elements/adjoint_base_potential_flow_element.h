@@ -11,8 +11,8 @@
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
-#if !defined(KRATOS_ADJOINT_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
-#define KRATOS_ADJOINT_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_ADJOINT_BASE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
+#define KRATOS_ADJOINT_BASE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
 
 
 // Project includes
@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-class AdjointPotentialFlowElement : public Element
+class AdjointBasePotentialFlowElement : public Element
 {
 public:
 
@@ -35,8 +35,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointPotentialFlowElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointPotentialFlowElement);
+    /// Pointer definition of AdjointBasePotentialFlowElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointBasePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -45,19 +45,19 @@ public:
     /**
      * Constructor.
      */
-    AdjointPotentialFlowElement(IndexType NewId = 0)
+    AdjointBasePotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId))
     {};
 
-    AdjointPotentialFlowElement(IndexType NewId,
+    AdjointBasePotentialFlowElement(IndexType NewId,
                         GeometryType::Pointer pGeometry)
      : Element(NewId, pGeometry),
       mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry))
     {
     }
 
-    AdjointPotentialFlowElement(IndexType NewId,
+    AdjointBasePotentialFlowElement(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
      : Element(NewId, pGeometry, pProperties),
@@ -67,19 +67,19 @@ public:
     /**
      * Copy Constructor
      */
-    AdjointPotentialFlowElement(AdjointPotentialFlowElement const& rOther) {};
+    AdjointBasePotentialFlowElement(AdjointBasePotentialFlowElement const& rOther) {};
 
     /**
      * Destructor
      */
-    ~AdjointPotentialFlowElement() override {};
+    ~AdjointBasePotentialFlowElement() override {};
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AdjointPotentialFlowElement & operator=(AdjointPotentialFlowElement const& rOther)
+    AdjointBasePotentialFlowElement & operator=(AdjointBasePotentialFlowElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
@@ -154,7 +154,7 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class AdjointPotentialFlowElement
+}; // Class AdjointBasePotentialFlowElement
 
 
 } // namespace Kratos.

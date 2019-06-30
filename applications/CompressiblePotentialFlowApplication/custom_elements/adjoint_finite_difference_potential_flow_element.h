@@ -16,20 +16,20 @@
 
 
 // Project includes
-#include "adjoint_potential_flow_element.h"
+#include "adjoint_base_potential_flow_element.h"
 
 namespace Kratos
 {
 
 template <class TPrimalElement>
-class AdjointFiniteDifferencePotentialFlowElement : public AdjointPotentialFlowElement<TPrimalElement>
+class AdjointFiniteDifferencePotentialFlowElement : public AdjointBasePotentialFlowElement<TPrimalElement>
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    typedef AdjointPotentialFlowElement<TPrimalElement> BaseType;
+    typedef AdjointBasePotentialFlowElement<TPrimalElement> BaseType;
     static constexpr int NumNodes = TPrimalElement::TNumNodes;
     static constexpr int Dim = TPrimalElement::TDim;
     typedef typename BaseType::GeometryType GeometryType;
@@ -49,16 +49,16 @@ public:
      * Constructor.
      */
     AdjointFiniteDifferencePotentialFlowElement(IndexType NewId = 0)
-     : AdjointPotentialFlowElement<TPrimalElement>(NewId){};
+     : AdjointBasePotentialFlowElement<TPrimalElement>(NewId){};
 
     AdjointFiniteDifferencePotentialFlowElement(IndexType NewId,
                         typename GeometryType::Pointer pGeometry)
-     : AdjointPotentialFlowElement<TPrimalElement>(NewId, pGeometry){};
+     : AdjointBasePotentialFlowElement<TPrimalElement>(NewId, pGeometry){};
 
     AdjointFiniteDifferencePotentialFlowElement(IndexType NewId,
                         typename GeometryType::Pointer pGeometry,
                         typename PropertiesType::Pointer pProperties)
-     : AdjointPotentialFlowElement<TPrimalElement>(NewId, pGeometry, pProperties){};
+     : AdjointBasePotentialFlowElement<TPrimalElement>(NewId, pGeometry, pProperties){};
     /**
      * Copy Constructor
      */
