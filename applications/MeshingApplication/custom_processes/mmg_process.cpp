@@ -796,39 +796,55 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         const double thickness = it_node->GetValue(THICKNESS);
         const array_1d<double, 3> upper_coordinates = it_node->Coordinates() + 0.5 * thickness * r_normal;
         const array_1d<double, 3> lower_coordinates = it_node->Coordinates() - 0.5 * thickness * r_normal;
-        r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + it_node->Id(), upper_coordinates[0], upper_coordinates[1], upper_coordinates[2]);
-        r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + num_elements + it_node->Id(), lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
+        auto p_node1 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + it_node->Id(), upper_coordinates[0], upper_coordinates[1], upper_coordinates[2]);
+        p_node1->Set(NEW_ENTITY, true);
+        auto p_node2 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + num_elements + it_node->Id(), lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
+        p_node2->Set(NEW_ENTITY, true);
 
+        // Setting the TO_ERASE flag
+        it_node->Set(TO_ERASE);
     }
 
     // Iterate over elements
+    GeometryType::PointsArrayType element_nodes(6);
+    auto& r_pnodes_vector = element_nodes.GetContainer();
     for(IndexType i = 0; i < num_elements; ++i){
         const auto it_elem = it_elem_begin + i;
 
         // We get the condition geometry
         const GeometryType& r_geometry = it_elem->GetGeometry();
 
-        GeometryType::PointsArrayType element_nodes;
-        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[0].Id()));
-        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[1].Id()));
-        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[2].Id()));
-        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[0].Id()));
-        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[1].Id()));
-        element_nodes.push_back(mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[2].Id()));
+        r_pnodes_vector[0] = mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[0].Id());
+        r_pnodes_vector[1] = mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[1].Id());
+        r_pnodes_vector[2] = mrThisModelPart.pGetNode(total_number_of_nodes + r_geometry[2].Id());
+        r_pnodes_vector[3] = mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[0].Id());
+        r_pnodes_vector[4] = mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[1].Id());
+        r_pnodes_vector[5] = mrThisModelPart.pGetNode(total_number_of_nodes + num_elements + r_geometry[2].Id());
 
         auto p_new_elem = p_reference_element->Create(total_number_of_elements + i, element_nodes, it_elem->pGetProperties());
         p_new_elem->Set(NEW_ENTITY, true);
         mrThisModelPart.AddElement(p_new_elem);
+
+        // Setting the TO_ERASE flag
+        it_elem->Set(TO_ERASE);
+        for (auto& r_node : r_geometry) {
+            r_node.Set(TO_ERASE);
+        }
     }
 
     // Transfering to submodelparts
     for (auto& r_name_sub : sub_model_part_list) {
         ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(r_name_sub);
-        FastTransferBetweenModelPartsProcess(r_sub_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ELEMENTS, NEW_ENTITY).Execute();
+        FastTransferBetweenModelPartsProcess(r_sub_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS, NEW_ENTITY).Execute();
     }
 
     // Reset flag
+    VariableUtils().ResetFlag(NEW_ENTITY, mrThisModelPart.Nodes());
     VariableUtils().ResetFlag(NEW_ENTITY, mrThisModelPart.Elements());
+
+    // Remove auxiliar entities marked as TO_ERASE
+    mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/
