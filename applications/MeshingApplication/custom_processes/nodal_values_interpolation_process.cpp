@@ -146,13 +146,18 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
         ModelPart& r_sub_model_part = r_model.GetModelPart(r_model_part_name);
         auto& r_nodes_array = r_sub_model_part.Nodes();
         if (r_nodes_array.size() > 0) {
-            auto it_node = r_nodes_array.begin();
+            const auto it_node_begin = r_nodes_array.begin();
+            for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+                auto it_node = it_node_begin + i;
+                const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+                if (!old_entity) {
+                    auto& r_data = it_node->Data();
+                    for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
+                        mListVariables.insert((it_data->first)->Name());
+                    }
 
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-            if (!old_entity) {
-                auto& data = it_node->Data();
-                for(auto i = data.begin() ; i != data.end() ; ++i)
-                    mListVariables.insert((i->first)->Name());
+                    break;
+                }
             }
         }
     }
