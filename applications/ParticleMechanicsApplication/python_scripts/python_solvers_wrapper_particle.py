@@ -36,6 +36,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception(err_msg)
 
     # Remove settings that are not needed any more
+    solver_settings.RemoveValue("solver_type")
     solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
     module_full = 'KratosMultiphysics.ParticleMechanicsApplication.' + solver_module_name
