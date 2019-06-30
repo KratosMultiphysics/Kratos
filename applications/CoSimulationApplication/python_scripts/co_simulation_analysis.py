@@ -22,10 +22,10 @@ class CoSimulationAnalysis(AnalysisStage):
 
         self.cosim_settings = cosim_settings
 
+        # this contains only the optional parameters, not the ones that have to be specified
         problem_data_defaults = KM.Parameters("""{
             "problem_name" : "default_co_simulation",
             "print_colors" : false,
-            "flush_stdout" : false,
             "echo_level"   : 0
         }""")
 
@@ -34,8 +34,19 @@ class CoSimulationAnalysis(AnalysisStage):
         problem_data.AddMissingParameters(problem_data_defaults)
 
         colors.PRINT_COLORS = problem_data["print_colors"].GetBool()
-        self.flush_stdout = problem_data["flush_stdout"].GetBool()
         self.echo_level = problem_data["echo_level"].GetInt()
+
+        self.parallel_type = problem_data["parallel_type"].GetString()
+        if not self.parallel_type in ["OpenMP", "MPI"]:
+            raise Exception('The "parallel_type" can be either "OpenMP" or "MPI"')
+
+        if problem_data.Has("flush_stdout"):
+            self.flush_stdout = problem_data["flush_stdout"].GetBool()
+        else:
+            if self.parallel_type == "OpenMP":
+                self.flush_stdout = True
+            else:
+                self.flush_stdout = False
 
     def Initialize(self):
         self._GetSolver().Initialize()
@@ -50,7 +61,7 @@ class CoSimulationAnalysis(AnalysisStage):
         self.step = 0
 
         if self.flush_stdout:
-            sys.stdout.flush()
+            CoSimulationAnalysis.Flush()
 
     def Finalize(self):
         self._GetSolver().Finalize()
@@ -68,7 +79,12 @@ class CoSimulationAnalysis(AnalysisStage):
         self._GetSolver().OutputSolutionStep()
 
         if self.flush_stdout:
-            sys.stdout.flush()
+            CoSimulationAnalysis.Flush()
+
+    @staticmethod
+    def Flush():
+        sys.stdout.flush()
+        KM.Logger.Flush()
 
     def _CreateSolver(self):
         """Create the solver
