@@ -193,7 +193,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
+  #install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
+  kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
@@ -220,4 +221,5 @@ install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION "KratosMultiphysics/StructuralMechanicsApplication" RENAME "__init__.py")
+kratos_python_install(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py KratosMultiphysics/StructuralMechanicsApplication/__init__.py )
+#install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION "KratosMultiphysics/StructuralMechanicsApplication" RENAME "__init__.py")

@@ -2,7 +2,6 @@ project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
 
 
-
 # Setting some policies
 # No recursive dereferencing 
 if(POLICY CMP0054)
@@ -183,6 +182,9 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
+
+#include the file with custom installation properties
+include(${CMAKE_MODULE_PATH}/install_function.cmake)
 
 if(USE_COTIRE MATCHES ON)
     include(cotire)

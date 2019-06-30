@@ -130,11 +130,16 @@ install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication" RENAME "__init__.py")
+#install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication" RENAME "__init__.py")
+kratos_python_install(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+  #install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+  #current behaviour
+  #kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts applications/${CURRENT_DIR_NAME} )
+
+  kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
