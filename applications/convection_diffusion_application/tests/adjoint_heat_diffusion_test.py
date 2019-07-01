@@ -34,7 +34,7 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             adjoint_analysis = ConvectionDiffusionAnalysis(model,settings["adjoint_settings"])
             adjoint_analysis.Run()
 
-            self.perturbedSolution(model, settings["primal_settings"],[8],1e-6)
+            self.perturbedSolution(model, settings["primal_settings"],[9],1e-6)
 
     def primalSolution(self, model, settings):
 
@@ -45,7 +45,10 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
         model_part_name = settings["solver_settings"]["model_part_name"].GetString()
         input_file_name = settings["solver_settings"]["model_import_settings"]["input_filename"].GetString()
         objective_model_part_name = "HeatFlux2D_right" #settings["solver_settings"]["response_function_settings"]["custom_settings"]["model_part_name"].GetString()
-        base_temp = model.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
+        base_temp = 0
+        for node in model.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
+            base_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
+        base_temp /= len(model.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes)
 
         for node_id in perturbed_node_ids:
             coord = self._readNodalCoordinates(node_id,input_file_name)
@@ -55,21 +58,23 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             model_x = kratos.Model()
             settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(input_file_name+"_x")
             self.primalSolution(model_x,settings)
-            x_temp = model_x.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
-            #x_temp = 0
-            #for node in model_x.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
-            #    x_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
+            #x_temp = model_x.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
+            x_temp = 0
+            for node in model_x.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
+                x_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
+            x_temp /= len(model_x.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes)
 			# Y perturbation
             perturbed_coord = [coord[0], coord[1]+perturbation_magnitude, coord[2]]
             self._writeNodalCoordinates(node_id,perturbed_coord,input_file_name,input_file_name+"_y")
             model_y = kratos.Model()
             settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(input_file_name+"_y")
             self.primalSolution(model_y,settings)
-            y_temp = model_y.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
-            #y_temp = 0
-            #for node in model_y.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
-            #    y_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
-			
+            #y_temp = model_y.GetModelPart(model_part_name).Nodes[perturbed_node_ids[0]].GetSolutionStepValue(kratos.TEMPERATURE)
+            y_temp = 0
+            for node in model_y.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes:
+                y_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
+            y_temp /= len(model_y.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes)
+
             print(base_temp/perturbation_magnitude)
             print(x_temp/perturbation_magnitude)
             print(y_temp/perturbation_magnitude)
