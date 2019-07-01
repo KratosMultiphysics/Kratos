@@ -250,7 +250,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
         return solver_cosim_details
 
-    def __ApplyScaling(interface_data, data_configuration):
+    def __ApplyScaling(self, interface_data, data_configuration):
         # perform scaling of data if specified
         if data_configuration["scaling_factor"].IsString():
             from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
