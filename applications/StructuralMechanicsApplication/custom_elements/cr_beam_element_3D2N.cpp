@@ -129,8 +129,8 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 void CrBeamElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    mDeformationPrevious = mDeformationCurrent;
-    GetValuesVector(mDeformationCurrent, 0);
+    mDeformationPreviousIteration = mDeformationCurrentIteration;
+    GetValuesVector(mDeformationCurrentIteration, 0);
     KRATOS_CATCH("")
 }
 
@@ -723,7 +723,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
 Vector CrBeamElement3D2N::GetIncrementDeformation() const
 {
     KRATOS_TRY;
-    return mDeformationCurrent - mDeformationPrevious;
+    return mDeformationCurrentIteration - mDeformationPreviousIteration;
     KRATOS_CATCH("")
 }
 
@@ -1750,8 +1750,8 @@ void CrBeamElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessI
 void CrBeamElement3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    rSerializer.save("NodalDeformationCurrent", mDeformationCurrent);
-    rSerializer.save("NodalDeformationPrevious", mDeformationPrevious);
+    rSerializer.save("NodalDeformationCurrent", mDeformationCurrentIteration);
+    rSerializer.save("NodalDeformationPrevious", mDeformationPreviousIteration);
     rSerializer.save("QuaternionVecA", mQuaternionVEC_A);
     rSerializer.save("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.save("QuaternionScaA", mQuaternionSCA_A);
@@ -1761,8 +1761,8 @@ void CrBeamElement3D2N::save(Serializer& rSerializer) const
 void CrBeamElement3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    rSerializer.load("NodalDeformationCurrent", mDeformationCurrent);
-    rSerializer.load("NodalDeformationPrevious", mDeformationPrevious);
+    rSerializer.load("NodalDeformationCurrent", mDeformationCurrentIteration);
+    rSerializer.load("NodalDeformationPrevious", mDeformationPreviousIteration);
     rSerializer.load("QuaternionVecA", mQuaternionVEC_A);
     rSerializer.load("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.load("QuaternionScaA", mQuaternionSCA_A);

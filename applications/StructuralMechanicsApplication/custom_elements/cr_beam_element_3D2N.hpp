@@ -317,8 +317,8 @@ public:
 private:
 
 
-    Vector mDeformationCurrent = ZeroVector(msElementSize);
-    Vector mDeformationPrevious = ZeroVector(msElementSize);
+    Vector mDeformationCurrentIteration = ZeroVector(msElementSize);
+    Vector mDeformationPreviousIteration = ZeroVector(msElementSize);
     Vector mQuaternionVEC_A = ZeroVector(msDimension);
     Vector mQuaternionVEC_B = ZeroVector(msDimension);
     double mQuaternionSCA_A = 1.00;
