@@ -135,9 +135,6 @@ class MPMSolver(PythonSolver):
         # Generate material points
         self.generate_material_point()
 
-        # Check if everything is assigned correctly
-        particle_solution_strategy.Check()
-
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Solver is initialized correctly.")
 
     def AdvanceInTime(self, current_time):
@@ -167,6 +164,9 @@ class MPMSolver(PythonSolver):
         self.get_solution_strategy().FinalizeSolutionStep()
 
         self.get_solution_strategy().Clear()
+
+    def Check(self):
+        self.get_solution_strategy().Check()
 
     def Clear(self):
         self.get_solution_strategy().Clear()
@@ -205,6 +205,7 @@ class MPMSolver(PythonSolver):
         # Assigning extra information to the main model part
         self.material_model_part.SetNodes(self.grid_model_part.GetNodes())
         self.material_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
+        self.material_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
         # Generate MP Element and Condition
         KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_material_model_part, self.material_model_part, axis_symmetric_flag, pressure_dofs)
@@ -268,10 +269,6 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
-        # Add dynamic variables
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
@@ -293,6 +290,10 @@ class MPMSolver(PythonSolver):
             # add specific variables for the problem (pressure dofs)
             model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
+
+    def _add_dynamic_variables(self, model_part):
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
 
     def _model_part_reading(self):
         # reading the model part of the background grid

@@ -30,6 +30,11 @@ class MPMImplicitDynamicSolver(MPMSolver):
         this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultSettings())
         return this_defaults
 
+    def AddVariables(self):
+        super(MPMImplicitDynamicSolver, self).AddVariables()
+        self._add_dynamic_variables(self.grid_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Variables ADDED")
+
     #### Private functions ####
 
     def _create_solution_scheme(self):
