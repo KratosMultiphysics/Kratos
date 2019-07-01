@@ -119,24 +119,24 @@ class Analyzer:
         for response_id, dependencies, _ in self.dependency_graph:
             if len(dependencies) > 0:
                 if communicator.isRequestingValueOf(response_id):
-                    self.__RequestResponsesValuesRecursively(dependencies, communicator)
+                    self.__RequestValuesRecursively(dependencies, communicator)
 
                 if communicator.isRequestingGradientOf(response_id):
-                    self.__RequestResponsesGradientsRecursively(dependencies, communicator)
+                    self.__RequestGradientsRecursively(dependencies, communicator)
 
     # --------------------------------------------------------------------------
-    def __RequestResponsesValuesRecursively(self, dependencies, communicator):
+    def __RequestValuesRecursively(self, dependencies, communicator):
         for response_id, dependencies, _ in dependencies:
             if len(dependencies) > 0:
-                self.__RequestResponsesValuesRecursively(dependencies, communicator)
+                self.__RequestValuesRecursively(dependencies, communicator)
             else:
                 communicator.requestValueOf(response_id)
 
     # --------------------------------------------------------------------------
-    def __RequestResponsesGradientsRecursively(self, dependencies, communicator):
+    def __RequestGradientsRecursively(self, dependencies, communicator):
         for response_id, dependencies, _ in dependencies:
             if len(dependencies) > 0:
-                self.__RequestResponsesGradientsRecursively(dependencies, communicator)
+                self.__RequestGradientsRecursively(dependencies, communicator)
             else:
                 communicator.requestGradientOf(response_id)
 
@@ -145,22 +145,22 @@ class Analyzer:
         for response_id, dependencies, _ in self.dependency_graph:
             if len(dependencies) > 0:
                 if communicator.isRequestingValueOf(response_id):
-                    combined_value = self.__ComputeCombinationValueRecursively(dependencies, communicator)
+                    combined_value = self.__ComputeCombinedValuesRecursively(dependencies, communicator)
                     communicator.reportValue(response_id, combined_value)
 
         for response_id, dependencies, _ in self.dependency_graph:
             if len(dependencies) > 0:
                 if communicator.isRequestingGradientOf(response_id):
-                    combined_gradient = self.__ComputeCombinationGradientRecursively(dependencies, communicator)
+                    combined_gradient = self.__ComputeCombinedGradientsRecursively(dependencies, communicator)
                     communicator.reportGradient(response_id, combined_gradient)
 
     # --------------------------------------------------------------------------
-    def __ComputeCombinationValueRecursively(self, dependencies, communicator):
+    def __ComputeCombinedValuesRecursively(self, dependencies, communicator):
         combined_value = 0.0
 
         for response_id, dependencies, weight in dependencies:
             if len(dependencies) > 0:
-                value = self.__ComputeCombinationValueRecursively(dependencies, communicator)
+                value = self.__ComputeCombinedValuesRecursively(dependencies, communicator)
                 communicator.reportValue(response_id, value)
             else:
                 value = communicator.getStandardizedValue(response_id)
@@ -169,12 +169,12 @@ class Analyzer:
         return combined_value
 
     # --------------------------------------------------------------------------
-    def __ComputeCombinationGradientRecursively(self, dependencies, communicator):
+    def __ComputeCombinedGradientsRecursively(self, dependencies, communicator):
         combined_gradient = None
 
         for response_id, dependencies, weight in dependencies:
             if len(dependencies) > 0:
-                gradient = self.__ComputeCombinationGradientRecursively(dependencies, communicator)
+                gradient = self.__ComputeCombinedGradientsRecursively(dependencies, communicator)
                 communicator.reportGradient(response_id, gradient)
             else:
                 gradient = communicator.getStandardizedGradient(response_id)
