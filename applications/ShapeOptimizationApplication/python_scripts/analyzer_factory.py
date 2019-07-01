@@ -89,6 +89,11 @@ class Analyzer:
         self.external_analyzer = external_analyzer
         self.dependency_graph = dependency_graph
 
+        self.exist_dependencies = False
+        for _, dependencies, _ in dependency_graph:
+            if len(dependencies) > 0:
+                self.exist_dependencies = True
+
         self.response_values_filename = "response_values_from_analyzer.csv"
 
         if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
@@ -104,13 +109,13 @@ class Analyzer:
 
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, unique_iterator, communicator):
-        if len(self.dependency_graph) != 0:
-            self.__RequestResponsesFromDependencies(communicator)
+        if self.exist_dependencies:
+            self.__RequestResponsesAccordingDependencies(communicator)
 
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.external_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
 
-        if len(self.dependency_graph) != 0:
+        if self.exist_dependencies:
             self.__CombineResponsesAccordingDependencies(communicator)
             self.__WriteResultsOfCombinedResponses(unique_iterator,communicator)
 
@@ -133,7 +138,7 @@ class Analyzer:
             writer.writerow(row)
 
     # --------------------------------------------------------------------------
-    def __RequestResponsesFromDependencies(self, communicator):
+    def __RequestResponsesAccordingDependencies(self, communicator):
         for response_id, dependencies, _ in self.dependency_graph:
             if len(dependencies) > 0:
                 if communicator.isRequestingValueOf(response_id):
