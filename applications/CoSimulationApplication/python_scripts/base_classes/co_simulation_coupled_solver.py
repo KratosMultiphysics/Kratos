@@ -110,10 +110,9 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         for i in range(input_data_list.size()):
             i_input_data = input_data_list[i]
 
-            # interval_util = KM.IntervalUtility(i_input_data)
-            # current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            # if not interval_util.IsInInterval(current_time):
-            #     continue
+            # check if data-exchange is specified for current time
+            if not KM.IntervalUtility(i_input_data).IsInInterval(self.time):
+                continue
 
             # from solver
             from_solver = self.solver_wrappers[i_input_data["from_solver"].GetString()]
@@ -140,6 +139,10 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
         for i in range(output_data_list.size()):
             i_output_data = output_data_list[i]
+
+            # check if data-exchange is specified for current time
+            if not KM.IntervalUtility(i_output_data).IsInInterval(self.time):
+                continue
 
             # from solver
             from_solver_data = from_solver.GetInterfaceData(i_output_data["data"].GetString())
@@ -254,7 +257,7 @@ def GetInputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : []
+        "interval"                        : [0.0, 1e30]
     }""")
 
 def GetOutputDataDefaults():
@@ -266,5 +269,5 @@ def GetOutputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : []
+        "interval"                        : [0.0, 1e30]
     }""")
