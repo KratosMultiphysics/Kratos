@@ -26,7 +26,6 @@
 //---strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/mpm_residual_based_newton_raphson_strategy.hpp"
-#include "custom_strategies/strategies/MPM_strategy.h"
 
 //---convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -58,10 +57,6 @@ namespace Python{
         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
-        //custom strategy types
-        typedef MPMStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType,2> MPMStrategyType2D;
-        typedef MPMStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType,3> MPMStrategyType3D;
-
         typedef MPMResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMResidualBasedNewtonRaphsonStrategyType;
 
         //custom scheme types
@@ -73,17 +68,7 @@ namespace Python{
             .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
             ;
 
-        // Strategy Type
-        py::class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
-            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer, std::string, int, bool, bool, bool, bool>() )
-            .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
-            ;
-
-        py::class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
-            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer, std::string, int, bool, bool, bool, bool>() )
-            .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
-            ;
-
+        // MPM Residual Based Newton Raphson Strategy Type
         py::class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")
             .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >() )
             .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >() )

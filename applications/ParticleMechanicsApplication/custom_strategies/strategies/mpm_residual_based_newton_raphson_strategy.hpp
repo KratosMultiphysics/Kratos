@@ -28,6 +28,9 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
+// Application includes
+#include "particle_mechanics_application_variables.h"
+
 namespace Kratos
 {
 
@@ -381,27 +384,27 @@ public:
         // if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
         {
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing solving strategy" << std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy",this->GetEchoLevel() >1) << "Initializing solving strategy" << std::endl;
             KRATOS_ERROR_IF(mInitializeWasPerformed == true) << "Initialization was already performed " << mInitializeWasPerformed << std::endl;
 
             // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing scheme" << std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy",this->GetEchoLevel() >1) << "Initializing scheme" << std::endl;
             if (p_scheme->SchemeIsInitialized() == false)
                 p_scheme->Initialize(BaseType::GetModelPart());
 
             // Initialize The Elements - OPERATIONS TO BE DONE ONCE
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing elements" << std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy",this->GetEchoLevel() >1) << "Initializing elements" << std::endl;
             if (p_scheme->ElementsAreInitialized() == false)
                 p_scheme->InitializeElements(BaseType::GetModelPart());
 
             // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing conditions" << std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy",this->GetEchoLevel() >1) << "Initializing conditions" << std::endl;
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(BaseType::GetModelPart());
 
             // Initialisation of the convergence criteria
             typename TConvergenceCriteriaType::Pointer p_convergence_criteria = mpConvergenceCriteria;
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing convergence criteria"<<std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy",this->GetEchoLevel() >1) << "Initializing convergence criteria"<<std::endl;
             if (p_convergence_criteria->IsInitialized() == false)
                 p_convergence_criteria->Initialize(BaseType::GetModelPart());
 
@@ -423,7 +426,7 @@ public:
         // Prints informations about the current time
         if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            KRATOS_INFO("MPM_Strategy") << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+            KRATOS_INFO("MPMNewtonRaphsonStrategy") << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
         }
 
         KRATOS_CATCH( "" );
@@ -450,19 +453,19 @@ public:
         p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "PreCriteria:"
+        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "PreCriteria:"
             << "\tIs_converged: " << is_converged  << "\tmRebuildLevel: " << BaseType::mRebuildLevel
             << "\tmStiffnessMatrixIsBuilt: " << BaseType::mStiffnessMatrixIsBuilt << std::endl;
 
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
-            KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "SetToZero the matrix and vectors of the system"<<std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "SetToZero the matrix and vectors of the system"<<std::endl;
 
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Build and Solve"<<std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build and Solve"<<std::endl;
 
             p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
@@ -472,15 +475,15 @@ public:
             TSparseSpace::SetToZero(rb);
 
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
-            KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "BuildRHSAndSolve"<<std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "BuildRHSAndSolve"<<std::endl;
         }
 
 
         if (this->GetEchoLevel() == 3) // If it is needed to print the debug info
         {
-            KRATOS_INFO("MPM_Strategy") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("MPM_Strategy") << "solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("MPM_Strategy") << "RHS  = " << rb << std::endl;
+            KRATOS_INFO("MPMNewtonRaphsonStrategy") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("MPMNewtonRaphsonStrategy") << "solution obtained = " << rDx << std::endl;
+            KRATOS_INFO("MPMNewtonRaphsonStrategy") << "RHS  = " << rb << std::endl;
         }
         else if (this->GetEchoLevel() == 4) // Print to matrix market file
         {
@@ -516,7 +519,7 @@ public:
             is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         }
 
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Starting Nonlinear iteration"<<std::endl;
+        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Starting Nonlinear iteration"<<std::endl;
 
         // Iteration Loop
         while (is_converged == false &&
@@ -534,7 +537,7 @@ public:
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
                 {
-                    KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number <<std::endl;
+                    KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number <<std::endl;
 
                     if( GetKeepSystemConstantDuringIterations() == false)
                     {
@@ -542,7 +545,7 @@ public:
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
-                        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Build and Solve"<<std::endl;
+                        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build and Solve"<<std::endl;
                         p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
                     }
                     else
@@ -550,7 +553,7 @@ public:
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
-                        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" <<std::endl;
+                        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" <<std::endl;
                         p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
                     }
                 }
@@ -559,13 +562,13 @@ public:
                     TSparseSpace::SetToZero(rDx);
                     TSparseSpace::SetToZero(rb);
 
-                    KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" <<std::endl;
+                    KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" <<std::endl;
                     p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
                 }
             }
             else
             {
-                KRATOS_WARNING("MPM_Strategy") << "ATTENTION: no free DOFs!! " << std::endl;
+                KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "ATTENTION: no free DOFs!! " << std::endl;
             }
 
             // Updating the results stored in the database
@@ -834,7 +837,7 @@ protected:
             mSolutionStepIsInitialized = true;
         }
 
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Initialize Solution Step in strategy finished" <<std::endl;
+        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Initialize Solution Step in strategy finished" <<std::endl;
 
         KRATOS_CATCH( "" );
     }
@@ -868,7 +871,7 @@ protected:
          */
         if( mFinalizeSolutionStep )
         {
-            KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Calling FinalizeSolutionStep" <<std::endl;
+            KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Calling FinalizeSolutionStep" <<std::endl;
 
             p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
             p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
@@ -898,9 +901,9 @@ protected:
      */
     void MaxIterationsExceeded()
     {
-        KRATOS_WARNING("MPMStrategy") << "***************************************************" << std::endl;
-        KRATOS_WARNING("MPM_Strategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        KRATOS_WARNING("MPM_Strategy") << "***************************************************" << std::endl;
+        KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "***************************************************" << std::endl;
+        KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+        KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "***************************************************" << std::endl;
 
     }
 

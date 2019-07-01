@@ -79,7 +79,7 @@ namespace MPMParticleGeneratorUtility
                     else{
                         std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
                         warning_msg += "1 Particle per element is assumed.";
-                        KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                        KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                         particles_per_element = 1;
                     }
 
@@ -121,7 +121,7 @@ namespace MPMParticleGeneratorUtility
                                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                                 warning_msg += "The default number of particle: 3 is currently assumed.";
-                                KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                                 break;
                         }
                     }
@@ -146,7 +146,7 @@ namespace MPMParticleGeneratorUtility
                                 warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                                 warning_msg += "The default number of particle: 4 is currently assumed.";
-                                KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                                 break;
                         }
                     }
@@ -331,7 +331,7 @@ namespace MPMParticleGeneratorUtility
                         else{
                             std::string warning_msg = "PARTICLES_PER_CONDITION is not specified, ";
                             warning_msg += "Only using nodal position is assumed: 1 (Point), 2 (Line), 3 (Triangular), 4 (Quadrilateral)";
-                            KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                            KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                         }
 
                         // Get condition variables:
@@ -362,7 +362,7 @@ namespace MPMParticleGeneratorUtility
                                     warning_msg += " is not available for Point" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available option is: 1 (default).\n";
                                     warning_msg += "The default number of particle: 1 is currently assumed.";
-                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
 
@@ -413,7 +413,7 @@ namespace MPMParticleGeneratorUtility
                                     warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available options are: 2 (default), 3, 4, 5, 6, 7.\n";
                                     warning_msg += "The default number of particle: 2 is currently assumed.";
-                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
 
@@ -452,7 +452,7 @@ namespace MPMParticleGeneratorUtility
                                     warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available options are: 3 (default), 4, 6, 9, 15, 19 and 36.\n";
                                     warning_msg += "The default number of particle: 3 is currently assumed.";
-                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
 
@@ -485,7 +485,7 @@ namespace MPMParticleGeneratorUtility
                                     warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                                     warning_msg += "Available options are: 4 (default), 5, 8, 13, and 20.\n";
                                     warning_msg += "The default number of particle: 4 is currently assumed.";
-                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
 
