@@ -34,5 +34,8 @@ build windows:
         - cd cmake_build
         - call configure.bat
         - MSBuild.exe /m ALL_BUILD.vcxproj /p:TrackFileAccess=false /p:CLToolExe=clcache.exe /p:CLToolPath=%CLCACHE% /p:Configuration=Custom /p:Platform="x64"
-        - cd ../kratos/python_scripts
+        - MSBuild.exe /m INSTALL.vcxproj /p:TrackFileAccess=false /p:CLToolExe=clcache.exe /p:CLToolPath=%CLCACHE% /p:Configuration=Custom /p:Platform="x64"
+        - cd ..
+        - set pythonpath=%cd%;%cd%\libs
+        - cd kratos/python_scripts
         - "%PYTHON% run_tests.py -l small -c %PYTHON%"
