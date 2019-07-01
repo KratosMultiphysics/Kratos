@@ -1,15 +1,10 @@
-import KratosMultiphysics as km
-import KratosMultiphysics.FluidDynamicsApplication as kfd
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as UnitTest
 try:
     import KratosMultiphysics.ExternalSolversApplication
     have_external_solvers = True
 except ImportError:
     have_external_solvers = False
-
-from fluid_chimera_analysis import FluidChimeraAnalysis
-
-import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class ChimeraAnalysisBaseTest(UnitTest.TestCase):
@@ -20,12 +15,12 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
         self.print_output = False
 
     def _run_test(self,settings_file_name):
-        model = km.Model()
+        model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
-            settings = km.Parameters(settings_file.read())
+            settings = KratosMultiphysics.Parameters(settings_file.read())
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings.AddValue("output_processes", km.Parameters(r'''{
+            settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
                 "vtk_output" : [{
                     "python_module" : "vtk_output_process",
                     "kratos_module" : "KratosMultiphysics",

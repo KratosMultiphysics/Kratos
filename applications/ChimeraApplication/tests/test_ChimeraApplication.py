@@ -1,6 +1,5 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.ChimeraApplication import *
+import KratosMultiphysics
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -12,7 +11,7 @@ from chimera_analysis_test import FlowOverCylinderFractionalStep
 from chimera_analysis_test import FlowOverCrossFractionalStep
 from chimera_analysis_test import FlowOverCrossMonolithic
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
@@ -32,7 +31,7 @@ def AssambleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -51,4 +50,7 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

@@ -23,7 +23,7 @@ class FlowOverCylinderMonolithic(ChimeraAnalysisBaseTest):
 
         work_folder = "flow_over_cylinder_monolithic"
         settings_file_name = "flow_over_cylinder_monolithic.json"
-        with UnitTest.WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
         end = time.clock()
         print("Time taken for monolithic chimera simulation",end-start)
@@ -35,7 +35,7 @@ class FlowOverCylinderFractionalStep(ChimeraAnalysisBaseTest):
         # Set to true to get post-process files for the test
         work_folder = "flow_over_cylinder_fractionalstep"
         settings_file_name = "flow_over_cylinder_fractionalstep.json"
-        with UnitTest.WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
         end = time.clock()
         print("Time taken for fractional step chimera simulation",end-start)
@@ -47,7 +47,7 @@ class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
         # Set to true to get post-process files for the test
         work_folder = "chimera_multiple_overlapping_patch"
         settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
-        with UnitTest.WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using Monolithic solver ",end-start)
@@ -59,7 +59,7 @@ class FractionalStepMultiPatch(ChimeraAnalysisBaseTest):
         # Set to true to get post-process files for the test
         work_folder = "chimera_multiple_overlapping_patch"
         settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
-        with UnitTest.WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using fractional step solver ",end-start)
@@ -72,7 +72,7 @@ class FlowOverCrossMonolithic(ChimeraAnalysisBaseTest):
         # Set to true to get post-process files for the test
         work_folder = "flow_over_cross_monolithic"
         settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
-        with UnitTest.WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
         end = time.clock()
         print("Time taken for flow over cross using monolithic solver ",end-start)
@@ -84,7 +84,7 @@ class FlowOverCrossFractionalStep(ChimeraAnalysisBaseTest):
         # Set to true to get post-process files for the test
         work_folder = "flow_over_cross_fractional_step"
         settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
-        with UnitTest.WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
         end = time.clock()
         print("Time taken for flow over cross using fractionalstep solver ",end-start)
