@@ -1,9 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.ExaquteSandboxApplication as KratosExaqute
-try:
-    import KratosMultiphysics.MeshingApplication as KratosMeshing
-except ImportError:
-    raise ImportError("Meshing application not imported. Must be compiled in order to use divergencefree_refinement_process.")
+import KratosMultiphysics.MeshingApplication as KratosMeshing
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
