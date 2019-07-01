@@ -14,6 +14,8 @@ from __future__ import print_function, absolute_import, division
 # additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_internal import KratosInternalAnalyzer
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import EmptyAnalyzer
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+import csv
 
 # ==============================================================================
 def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
@@ -87,17 +89,21 @@ class Analyzer:
         self.external_analyzer = external_analyzer
         self.dependency_graph = dependency_graph
 
+        self.response_values_filename = "response_values_from_analyzer.csv"
+
         if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
             raise RuntimeError("Neither an internal nor an external analyzer is defined!")
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop(self):
+        if len(self.dependency_graph) != 0:
+            self.__InitializeOutputOfCombinedResponses()
+
         self.internal_analyzer.InitializeBeforeOptimizationLoop()
         self.external_analyzer.InitializeBeforeOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, unique_iterator, communicator):
-
         if len(self.dependency_graph) != 0:
             self.__RequestResponsesFromDependencies(communicator)
 
@@ -106,6 +112,7 @@ class Analyzer:
 
         if len(self.dependency_graph) != 0:
             self.__CombineResponsesAccordingDependencies(communicator)
+            self.__WriteResultsOfCombinedResponses(unique_iterator,communicator)
 
         self.__ResetPossibleShapeModificationsFromAnalysis()
 
@@ -113,6 +120,17 @@ class Analyzer:
     def FinalizeAfterOptimizationLoop(self):
         self.internal_analyzer.FinalizeAfterOptimizationLoop()
         self.external_analyzer.FinalizeAfterOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def __InitializeOutputOfCombinedResponses(self):
+        kratos_utilities.DeleteFileIfExisting(self.response_values_filename)
+
+        with open(self.response_values_filename, 'w') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',',quotechar='|',escapechar=' ',quoting=csv.QUOTE_MINIMAL)
+            identifiers = self.__ReadIdentifiersFromDependencyGraphRecursively(self.dependency_graph)
+
+            row = ["iteration"] + identifiers
+            writer.writerow(row)
 
     # --------------------------------------------------------------------------
     def __RequestResponsesFromDependencies(self, communicator):
@@ -188,6 +206,41 @@ class Analyzer:
                 combined_gradient.update( update )
 
         return combined_gradient
+
+    # --------------------------------------------------------------------------
+    def __WriteResultsOfCombinedResponses(self, iteration, communicator):
+        with open(self.response_values_filename, 'a') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',',quotechar='|',escapechar=' ',quoting=csv.QUOTE_MINIMAL)
+
+            values = self.__ReadValuesFromDependencyGraphRecursively(self.dependency_graph, communicator)
+            values = ["{:>.5E}".format(entry) for entry in values]
+
+            row = [iteration] + values
+            writer.writerow(row)
+
+    # --------------------------------------------------------------------------
+    def __ReadIdentifiersFromDependencyGraphRecursively(self, dependencies):
+        identifiers = []
+
+        for response_id, dependencies, weight in dependencies:
+            identifiers += [response_id]
+            if len(dependencies) > 0:
+                sub_identifiers = self.__ReadIdentifiersFromDependencyGraphRecursively(dependencies)
+                identifiers += sub_identifiers
+
+        return identifiers
+
+    # --------------------------------------------------------------------------
+    def __ReadValuesFromDependencyGraphRecursively(self, dependencies, communicator):
+        values = []
+
+        for response_id, dependencies, weight in dependencies:
+            values += [communicator.getValue(response_id)]
+            if len(dependencies) > 0:
+                sub_values = self.__ReadValuesFromDependencyGraphRecursively(dependencies, communicator)
+                values += sub_values
+
+        return values
 
     # --------------------------------------------------------------------------
     def __ResetPossibleShapeModificationsFromAnalysis( self ):
