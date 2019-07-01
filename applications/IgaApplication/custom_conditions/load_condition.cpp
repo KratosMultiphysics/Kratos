@@ -29,6 +29,8 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
+        KRATOS_WATCH("hererherherhe")
+
         const auto& r_geometry = GetGeometry();
         const int number_of_nodes = r_geometry.size();
 
@@ -53,6 +55,10 @@ namespace Kratos
         if (CalculateResidualVectorFlag) {
             // Integration
             const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+
+            Vector determinat_jacobian_vector(integration_points.size());
+            r_geometry.DeterminantOfJacobian(determinat_jacobian_vector);
+
             for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
                 const Matrix& r_N = r_geometry.ShapeFunctionsValues();
@@ -118,9 +124,8 @@ namespace Kratos
 
                 // Differential area
                 const double integration_weight = integration_points[point_number].Weight();
-                const double determinat_jacobian = r_geometry.DeterminantOfJacobian(point_number);
 
-                noalias(rRightHandSideVector) += f * integration_weight * determinat_jacobian;
+                noalias(rRightHandSideVector) += f * integration_weight * determinat_jacobian_vector[point_number];
             }
         }
         //if (this->Has(MOMENT))

@@ -72,6 +72,35 @@ namespace Kratos
                 pProperties);
         };
 
+        void CalculateRightHandSide(
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo) override
+        {
+            MatrixType left_hand_side_matrix = Matrix(0, 0);
+
+            CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+                rCurrentProcessInfo, false, true);
+        }
+
+        void CalculateLeftHandSide(
+            MatrixType& rLeftHandSideMatrix,
+            ProcessInfo& rCurrentProcessInfo) override
+        {
+            VectorType right_hand_side_vector = Vector(0);
+
+            CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
+                rCurrentProcessInfo, true, false);
+        }
+
+        void CalculateLocalSystem(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo) override
+        {
+            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo, true, true);
+        }
+
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom
         * @param rResult The vector containing the equation id
@@ -107,6 +136,11 @@ namespace Kratos
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag
         );
+
+        void Initialize() override
+        {
+            KRATOS_WATCH("bla bla alles bla bla")
+        }
 
         /// Turn back information as a string.
         std::string Info() const override
