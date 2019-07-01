@@ -1,11 +1,11 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: MeshingApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Tosi
 //                   Brendan Keith
