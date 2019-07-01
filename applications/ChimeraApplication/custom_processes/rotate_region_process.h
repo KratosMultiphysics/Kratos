@@ -62,17 +62,18 @@ public:
 
         mAngularVelocityRadians = mParameters["angular_velocity_radians"].GetDouble();
         mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
-        mAxisOfRoationVector = mParameters["axis_of_rotation"].GetVector();
+        mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector();
+        mAxisOfRoationVectorNormalized.resize(3);
 
         mTransformationMatrix.resize(4, 4, false);
 
         // normalizing the axis of roatation
         double norm = 0.0;
         for (std::size_t d = 0; d < 3; ++d)
-            norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
+            norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
         norm = sqrt(norm);
         for (std::size_t d = 0; d < 3; ++d)
-            mAxisOfRoationVectorNormalized[d] = (mAxisOfRoationVector[d] / norm);
+            mAxisOfRoationVectorNormalized[d] = (mAxisOfRotationVector[d] / norm);
 
         CalculateRotationMatrix(-1 * mAngularVelocityRadians, mTransformationMatrix);
         mTheta = 0.0;
@@ -123,12 +124,12 @@ public:
                 it_node->Z() = transformed_coordinates[2];
 
             // Computing the linear velocity at this it_node
-            DenseVector<double> r(3);
+            DenseVector<double> radius(3);
             DenseVector<double> linearVelocity(3);
             radius[0] = it_node->X() - mCenterOfRotation[0];
             radius[1] = it_node->Y() - mCenterOfRotation[1];
             radius[2] = it_node->Z() - mCenterOfRotation[2];
-            CalculateLinearVelocity(mAxisOfRoationVector, r, linearVelocity);
+            CalculateLinearVelocity(mAxisOfRotationVector, radius, linearVelocity);
 
             if (mParameters["is_ale"].GetBool())
             {
@@ -219,7 +220,6 @@ private:
     MatrixType mTransformationMatrix;
     DenseVector<double> mAxisOfRotationVector;
     DenseVector<double> mCenterOfRotation;
-    DenseVector<double> mAxisOfRoationVector;
     DenseVector<double> mAxisOfRoationVectorNormalized;
     double mTheta;
 
@@ -232,14 +232,14 @@ private:
      * Calculates the cross product of two vectors
      *  c = axb
      */
-    void CalculateLinearVelocity(const DenseVector<double> &mAxisOfRoationVector,
+    void CalculateLinearVelocity(const DenseVector<double> &mAxisOfRotationVector,
                                  const DenseVector<double> &rRadius,
                                  DenseVector<double> &rLinearVelocity)
     {
-        assert(a.size() == b.size());
-        rLinearVelocity[0] = mAxisOfRoationVector[1] * rRadius[2] - mAxisOfRoationVector[2] * rRadius[1];
-        rLinearVelocity[1] = mAxisOfRoationVector[2] * rRadius[0] - mAxisOfRoationVector[0] * rRadius[2];
-        rLinearVelocity[2] = mAxisOfRoationVector[0] * rRadius[1] - mAxisOfRoationVector[1] * rRadius[0];
+        assert(mAxisOfRotationVector.size() == rRadius.size());
+        rLinearVelocity[0] = mAxisOfRotationVector[1] * rRadius[2] - mAxisOfRotationVector[2] * rRadius[1];
+        rLinearVelocity[1] = mAxisOfRotationVector[2] * rRadius[0] - mAxisOfRotationVector[0] * rRadius[2];
+        rLinearVelocity[2] = mAxisOfRotationVector[0] * rRadius[1] - mAxisOfRotationVector[1] * rRadius[0];
     }
 
     void TransformNode(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
@@ -266,7 +266,7 @@ private:
 
     void TransformNodeWithQuaternion(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
     {
-        Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(mAxisOfRoationVector(1), mAxisOfRoationVector(2), mAxisOfRoationVector(3), mTheta);
+        Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(mAxisOfRotationVector(1), mAxisOfRotationVector(2), mAxisOfRotationVector(3), mTheta);
         mQuaternion.RotateVector3(rCoordinates, rTransformedCoordinates);
     }
 
