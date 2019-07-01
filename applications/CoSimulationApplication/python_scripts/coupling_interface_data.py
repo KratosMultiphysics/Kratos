@@ -110,6 +110,9 @@ class CouplingInterfaceData(object):
         else:
             return 1
 
+    def InplaceMultiply(self, factor):
+        self.SetData(factor*self.GetData())
+
     def GetData(self, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
 
@@ -163,9 +166,6 @@ class CouplingInterfaceData(object):
                     self.GetModelPart()[self.variable] = vec_value
                 else:
                     self.GetModelPart()[self.variable] = new_data
-
-    def InplaceMultiply(self, factor):
-        self.SetData(factor*self.GetData())
 
     def PrintToVTK(self):
         raise NotImplementedError
