@@ -56,7 +56,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
         # change the default value of penalty filtering to the filter radius of the mapper.
-        if self.algorithm_settings["filter_penalty_term"].GetBool()
+        if self.algorithm_settings["filter_penalty_term"].GetBool():
             if self.algorithm_settings["penalty_filter_radius"].GetDouble() == -1.0:
                 raise RuntimeError("The parameter `penalty_filter_radius` is missing in order to filter the penalty term!")
 
