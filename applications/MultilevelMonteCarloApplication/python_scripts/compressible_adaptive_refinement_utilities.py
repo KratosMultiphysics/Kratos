@@ -54,7 +54,7 @@ class AdaptiveRefinement(object):
 
             # problem dependent section
             if (problem_type == "body_fitted_ellipse"):
-                model_part_name = parameters_coarse["problem_data"]["model_part_name"].GetString()
+                model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
                 # set NODAL_AREA and NODAL_H as non historical variables
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
