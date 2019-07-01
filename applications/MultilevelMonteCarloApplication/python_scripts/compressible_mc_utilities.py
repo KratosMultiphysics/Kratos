@@ -81,7 +81,7 @@ input:  current_number_samples:                   current number of samples comp
 output: convergence_boolean: boolean setting if convergence is achieved
 """
 @ExaquteTask(returns=1,priority=True)
-def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
+def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_tol_absolute,current_delta,convergence_criteria):
     convergence_boolean = False
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
@@ -110,12 +110,21 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
         if (main_contribute + penalty_contribute < current_delta):
             convergence_boolean = True
     # TODO: check if this convergence criteria coincides with the first
+    elif(convergence_criteria == "relative_total_error_stopping_rule"):
+        cphi_confidence = norm.ppf(1.0 - current_delta) # this stopping criteria checks total error like MLMC, thus need to use confidence and not error probability
+        statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
+        bias = 0.0 # hypothesis bias = 0 since we can't compute it
+        total_error = bias + statistical_error
+        factor = current_tol * current_mean + current_tol_absolute
+        if (total_error<np.abs(factor)):
+            convergence_boolean = True
     elif(convergence_criteria == "total_error_stopping_rule"):
         cphi_confidence = norm.ppf(1.0 - current_delta) # this stopping criteria checks total error like MLMC, thus need to use confidence and not error probability
         statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
         bias = 0.0 # hypothesis bias = 0 since we can't compute it
         total_error = bias + statistical_error
-        if (total_error<current_tol):
+        factor = current_tol
+        if (total_error<np.abs(factor)):
             convergence_boolean = True
     else:
         convergence_boolean = False
@@ -192,7 +201,8 @@ class MonteCarlo(object):
         else:
             raise Exception ("Please provide the path of the project parameters json file")
         # default settings of the Monte Carlo algorithm
-        # tolerance:            tolerance
+        # tolerance:            relative tolerance
+        # tolerance_absolute:   safety tolerance (absolute). Useful if expected value (qoi) is zero
         # confidence:           confidence on tolerance
         # batch_size:           number of samples per batch size
         # convergence_criteria: convergence criteria to compute convergence
@@ -200,6 +210,7 @@ class MonteCarlo(object):
         {
             "run_monte_carlo" : "True",
             "tolerance"  : 1e-1,
+            "tolerance_absolute" : 1e-6,
             "confidence" : 9e-1,
             "batch_size" : 25,
             "initial_number_batches" : 1,
@@ -401,7 +412,7 @@ class MonteCarlo(object):
         continue_iterating = True
         for batch in range (len(self.batches_number_samples)):
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True and continue_iterating): # consider batches completed, analysed and
-                                                                                                                                                                            # for which convergence has not been computed
+                                                                                                                                                                                                   # for which convergence has not been computed
                 continue_iterating = False
                 # update working convergence batch
                 self.current_convergence_batch = batch
@@ -533,10 +544,11 @@ class MonteCarlo(object):
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
         current_h4 = self.QoI.h_statistics_4[level]
         current_tol = self.settings["tolerance"].GetDouble()
+        current_tol_absolute = self.settings["tolerance_absolute"].GetDouble()
         current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] in the convergence criteria is the error probability
         convergence_criteria = self.convergence_criteria
         convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
-            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_error_probability,convergence_criteria)
+            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_tol_absolute,current_error_probability,convergence_criteria)
         self.convergence = convergence_boolean
 
     """
@@ -565,7 +577,7 @@ class MonteCarlo(object):
     """
     def SetConvergenceCriteria(self):
         convergence_criteria = self.settings["convergence_criteria"].GetString()
-        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule" and convergence_criteria != "total_error_stopping_rule"):
+        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule" and convergence_criteria != "total_error_stopping_rule" and convergence_criteria != "relative_total_error_stopping_rule"):
             raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
         self.convergence_criteria = convergence_criteria
 
