@@ -23,8 +23,8 @@ class MPMImplicitDynamicSolver(MPMSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"   : "newmark",
-            "damp_factor_m" : 0.0,
+            "scheme_type"   : "bossak",
+            "damp_factor_m" : -0.3,
             "newmark_beta"  : 0.25
         }""")
         this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultSettings())

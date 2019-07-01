@@ -61,10 +61,11 @@ namespace Kratos
 
 /// Short class definition.
 
-/**   Detail class definition.
-
-
-
+/**
+ * @class MPMResidualBasedNewtonRaphsonStrategy
+ * @ingroup KratosParticle
+ * @brief Newton Raphson strategy suited for MPM simulations
+ * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is achieved) using a Newton Raphson algorithm
  */
 template<class TSparseSpace,
          class TDenseSpace,

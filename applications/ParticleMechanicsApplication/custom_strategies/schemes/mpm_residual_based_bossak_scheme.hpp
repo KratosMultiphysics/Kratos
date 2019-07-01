@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Bodhinanda Chandra, Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -90,6 +90,15 @@ public:
      * Constructor.
      * The MPM bossak scheme
      */
+    /**
+     * @brief Constructor.
+     * @detail The MPM bossak method
+     * @param rGridModelPart The background grid model part
+     * @param DomainSize Domain size or space dimension of the problems
+     * @param BlockSize Block size of DOF
+     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
+     * @param NewmarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
+     */
     MPMResidualBasedBossakScheme(ModelPart& rGridModelPart, unsigned int DomainSize,
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
@@ -104,7 +113,8 @@ public:
         mBlockSize  = BlockSize;
     }
 
-    /** Copy Constructor.
+    /**
+     * @brief Copy Constructor.
      */
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
@@ -114,7 +124,7 @@ public:
     }
 
     /**
-     * Clone
+     * @brief Clone method
      */
     BaseTypePointer Clone() override
     {
@@ -131,7 +141,13 @@ public:
     //***************************************************************************
 
     /**
-     * Performing the update of the solution
+     * @brief Performing the update of the solution
+     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Update(
         ModelPart& rModelPart,
@@ -177,11 +193,14 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
     /**
-     * Predicts the solution for the current step
+     * @brief Performing the prediction of the solution
+     * @details It predicts the solution for the current step x = xold + vold * Dt
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Predict(
         ModelPart& rModelPart,
@@ -245,11 +264,15 @@ public:
         KRATOS_CATCH( "" );
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
     /**
-     * Initializes time step solution
+     * @brief It initializes time step solution for MPM simulations.
+     * @details The initialize solution step here also perform the following procedures:
+     * 1. Loop over the grid nodes performed to clear all historical nodal information
+     * 2. Assign a new nodal variables by means of extrapolation from material points
+     * @param rModelPart The model of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
@@ -351,11 +374,14 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
-    /** This function is designed to be called in the builder and solver to introduce*/
-
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
+     * @param pCurrentElement The element to compute
+     * @param LHS_Contribution The LHS matrix contribution
+     * @param RHS_Contribution The RHS vector contribution
+     * @param EquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void CalculateSystemContributions(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -385,9 +411,13 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param pCurrentElement The element to compute
+     * @param rRHSContribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void Calculate_RHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -417,12 +447,14 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
-    /** Functions totally analogous to the precedent but applied to
-          the "condition" objects
-    */
+    /**
+     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
+     * @param pCurrentCondition The condition to compute
+     * @param rLHSContribution The LHS matrix contribution
+     * @param rRHSContribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -453,9 +485,13 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
+    /**
+     * @brief Functions that calculates the RHS of a "condition" object
+     * @param pCurrentCondition The condition to compute
+     * @param rRHSContribution The RHS vector contribution
+     * @param rEquationId The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
