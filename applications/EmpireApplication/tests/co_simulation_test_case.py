@@ -42,8 +42,17 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
 
     def runTestSteady(self):
-        CoSimulationSteadyAnalysis(self.cosim_parameters).Run()
+        steady_analysis = CoSimulationSteadyAnalysis(self.cosim_parameters)
+
+        steady_analysis.Run()
+        self._GetFluidSolver(steady_analysis)
+        
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
+
+    def _GetFluidSolver(self, analysis):
+        for solver_name in analysis._GetSolver().solver_names:
+            if solver_name == 'fluid':
+                self.fluid_solver = analysis._GetSolver().solvers[solver_name]
 
     # called only once for this class, opposed of tearDown()
     @classmethod

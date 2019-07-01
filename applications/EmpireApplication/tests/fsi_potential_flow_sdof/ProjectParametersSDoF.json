@@ -12,7 +12,7 @@
          "buffer_size": 1
      },
      "output_parameters":{
-        "file_name": "results_sdof.dat"
+        "file_name": "fsi_potential_flow_sdof/results_sdof.dat"
      }
 
 } 

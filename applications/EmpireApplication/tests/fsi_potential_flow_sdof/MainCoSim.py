@@ -6,7 +6,7 @@ import KratosMultiphysics.EmpireApplication
 from co_simulation_steady_analysis import CoSimulationSteadyAnalysis
 import json
 
-parameter_file_name = "project_paramters_cosim_naca0012_small_fsi.json"
+parameter_file_name = "fsi_potential_flow_sdof/project_cosim_naca0012_small_fsi_parameters.json"
 
 with open(parameter_file_name, 'r') as parameter_file:
     cosim_parameters = json.load(parameter_file)
