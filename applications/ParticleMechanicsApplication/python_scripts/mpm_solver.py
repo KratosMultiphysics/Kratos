@@ -239,7 +239,7 @@ class MPMSolver(PythonSolver):
 
     def _add_model_part_containers(self):
 
-        domain_size = self.settings["domain_size"].GetInt()
+        domain_size = self._get_domain_size()
         if domain_size not in [2,3]:
             err_msg  = "The input \"domain_size\" is wrong!"
             err_msg += "Available options are: \"2\" or \"3\""
@@ -316,9 +316,6 @@ class MPMSolver(PythonSolver):
         # Setting active initial elements
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
 
-        # Specify domain size
-        self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-
         # Read material property
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
@@ -360,6 +357,11 @@ class MPMSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
 
+    def _get_domain_size(self):
+        if not hasattr(self, '_domain_size'):
+            self._domain_size = self.settings["domain_size"].GetInt()
+        return self._domain_size
+
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
@@ -374,13 +376,13 @@ class MPMSolver(PythonSolver):
 
     def _create_convergence_criterion(self):
         convergence_criterion_parameters = self._get_convergence_criterion_settings()
-        if (convergence_criterion_parameters["convergence_criterion"] == "residual_criterion"):
+        if (convergence_criterion_parameters["convergence_criterion"].GetString() == "residual_criterion"):
             R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
         else:
-            err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"]
+            err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"].GetString()
             err_msg += "\" is not supported for ParticleMechanicsApplication!\n"
             err_msg += "Available options are: \"residual_criterion\""
             raise Exception(err_msg)
@@ -446,7 +448,7 @@ class MPMSolver(PythonSolver):
         convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         reform_dofs_at_each_step = False
-        return KratosMultiphysics.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
                                                                         linear_solver,
                                                                         convergence_criterion,
