@@ -102,8 +102,8 @@ class Analyzer:
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop(self):
-        if len(self.dependency_graph) != 0:
-            self.__InitializeOutputOfCombinedResponses()
+        if self.exist_dependencies:
+            self.__InitializeOutputOfResponses()
 
         self.internal_analyzer.InitializeBeforeOptimizationLoop()
         self.external_analyzer.InitializeBeforeOptimizationLoop()
@@ -129,14 +129,24 @@ class Analyzer:
         self.external_analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __InitializeOutputOfCombinedResponses(self):
+    def __InitializeOutputOfResponses(self):
         kratos_utilities.DeleteFileIfExisting(self.response_values_filename)
 
         with open(self.response_values_filename, 'w') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',',quotechar='|',escapechar=' ',quoting=csv.QUOTE_MINIMAL)
-            identifiers = self.__ReadIdentifiersFromDependencyGraphRecursively(self.dependency_graph)
+            writer = csv.writer(csvfile, delimiter=',')
+            identifiers = self.__GetIdentifiersRecursively(self.dependency_graph)
 
-            row = ["iteration"] + identifiers
+            writer.writerow(["---------------------------------"])
+            for itr, identifier in enumerate(identifiers):
+                writer.writerow(["f"+str(itr)+": "+identifier])
+            writer.writerow(["---------------------------------"])
+
+            row = []
+            row.append("{:>4s}".format("itr"))
+            for itr, identifier in enumerate(identifiers):
+                row.append("{:>13s}".format("f"+str(itr)+"_value"))
+            for itr, identifier in enumerate(identifiers):
+                row.append("{:>13s}".format("||df"+str(itr)+"dx_st||"))
             writer.writerow(row)
 
     # --------------------------------------------------------------------------
@@ -228,37 +238,45 @@ class Analyzer:
     # --------------------------------------------------------------------------
     def __WriteResultsOfCombinedResponses(self, iteration, communicator):
         with open(self.response_values_filename, 'a') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',',quotechar='|',escapechar=' ',quoting=csv.QUOTE_MINIMAL)
+            writer = csv.writer(csvfile, delimiter=',')
 
-            values = self.__ReadValuesFromDependencyGraphRecursively(self.dependency_graph, communicator)
-            values = ["{:>.5E}".format(entry) for entry in values]
+            identifers, values = self.__GetValuesRecursively(self.dependency_graph, communicator)
 
-            row = [iteration] + values
+            row = []
+            row.append("{:>4d}".format(iteration))
+            for identifer, value in zip(identifers, values):
+                row.append(" {:> .5E}".format(value))
+            for identifer, value in zip(identifers, values):
+                row.append(" {:> .5E}".format(self.gradients_norms[identifer]))
+
             writer.writerow(row)
 
     # --------------------------------------------------------------------------
-    def __ReadIdentifiersFromDependencyGraphRecursively(self, dependencies):
+    def __GetIdentifiersRecursively(self, dependencies):
         identifiers = []
 
         for response_id, dependencies, weight in dependencies:
             identifiers += [response_id]
             if len(dependencies) > 0:
-                sub_identifiers = self.__ReadIdentifiersFromDependencyGraphRecursively(dependencies)
+                sub_identifiers = self.__GetIdentifiersRecursively(dependencies)
                 identifiers += sub_identifiers
 
         return identifiers
 
     # --------------------------------------------------------------------------
-    def __ReadValuesFromDependencyGraphRecursively(self, dependencies, communicator):
+    def __GetValuesRecursively(self, dependencies, communicator):
+        identifiers = []
         values = []
 
         for response_id, dependencies, weight in dependencies:
+            identifiers += [response_id]
             values += [communicator.getValue(response_id)]
             if len(dependencies) > 0:
-                sub_values = self.__ReadValuesFromDependencyGraphRecursively(dependencies, communicator)
+                sub_identifiers, sub_values = self.__GetValuesRecursively(dependencies, communicator)
+                identifiers += sub_identifiers
                 values += sub_values
 
-        return values
+        return identifiers, values
 
     # --------------------------------------------------------------------------
     def __ResetPossibleShapeModificationsFromAnalysis( self ):
