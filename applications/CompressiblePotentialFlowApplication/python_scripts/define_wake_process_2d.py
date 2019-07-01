@@ -47,6 +47,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
+        ###REMOVING DUE TO PROBLEMS WITH MESHING APP###
+        if self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
+            self.fluid_model_part.RemoveSubModelPart("wake_sub_model_part")
+
         #self.__FindWakeElements()
 
     def __FindWakeElements(self):
@@ -97,6 +101,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
 
         for elem in self.fluid_model_part.Elements:
+            elem.Set(KratosMultiphysics.STRUCTURE,False)
+            elem.SetValue(CPFApp.WAKE,False)
+            elem.SetValue(CPFApp.KUTTA,False)
             # Mark and save the elements touching the trailing edge
             self.__MarkTrailingEdgeElement(elem)
 

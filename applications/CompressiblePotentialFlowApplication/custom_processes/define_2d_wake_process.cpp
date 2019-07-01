@@ -53,15 +53,17 @@ void Define2DWakeProcess::InitializeTrailingEdgeSubModelpart() const
         for (auto& r_element : trailing_edge_sub_model_part.Elements()){
             r_element.SetValue(TRAILING_EDGE, false);
             r_element.SetValue(KUTTA, false);
-            r_element.Reset(STRUCTURE);
-            r_element.Set(TO_ERASE, true);
+            r_element.Set(STRUCTURE,false);
+            // r_element.Set(TO_ERASE, true);
         }
-        trailing_edge_sub_model_part.RemoveElements(TO_ERASE);
+        root_model_part.RemoveSubModelPart("trailing_edge_sub_model_part");
+
+        // trailing_edge_sub_model_part.RemoveElements(TO_ERASE);
     }
-    else{
+    // else{
         // Creating the trailing_edge_sub_model_part
-        root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
-    }
+    root_model_part.CreateSubModelPart("trailing_edge_sub_model_part");
+    // }
 }
 
 // This function initializes the variables and removes all of the elements of
@@ -79,14 +81,15 @@ void Define2DWakeProcess::InitializeWakeSubModelpart() const
         for (auto& r_element : wake_sub_model_part.Elements()){
             r_element.SetValue(WAKE, false);
             r_element.SetValue(ELEMENTAL_DISTANCES, ZeroVector(3));
-            r_element.Set(TO_ERASE, true);
+            // r_element.Set(TO_ERASE, true);
         }
-        wake_sub_model_part.RemoveElements(TO_ERASE);
+        root_model_part.RemoveSubModelPart("wake_sub_model_part");
+        // wake_sub_model_part.RemoveElements(TO_ERASE);
     }
-    else{
+    // else{
         // Creating the wake_sub_model_part
-        root_model_part.CreateSubModelPart("wake_sub_model_part");
-    }
+    root_model_part.CreateSubModelPart("wake_sub_model_part");
+    // }
 }
 
 // This function sets the wake direction and normal for further computations
