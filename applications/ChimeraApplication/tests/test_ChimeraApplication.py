@@ -31,7 +31,7 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -45,7 +45,7 @@ def AssembleTestSuites():
     # in the list:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
-    allSuite.addTests(smallSuite)
+
 
     return suites
 
