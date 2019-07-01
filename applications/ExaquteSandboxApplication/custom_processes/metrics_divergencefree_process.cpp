@@ -116,7 +116,7 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
     KRATOS_DEBUG_ERROR_IF(elements_array.size() == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
     if (nodes_array.begin()->Has(tensor_variable) == false) {
-        const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
+        const TensorArrayType zero_array = ZeroVector(3 * (TDim - 1));
         // Iteration over the nodes
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
