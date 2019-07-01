@@ -41,6 +41,9 @@ def AssembleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
+    ## Validation suite. Big cases go here
+    validationSuite = suites['validation']
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
