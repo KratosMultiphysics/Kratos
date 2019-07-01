@@ -164,6 +164,9 @@ class CouplingInterfaceData(object):
                 else:
                     self.GetModelPart()[self.variable] = new_data
 
+    def InplaceMultiply(self, factor):
+        self.SetData(factor*self.GetData())
+
     def PrintToVTK(self):
         raise NotImplementedError
 
