@@ -1,18 +1,20 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.ChimeraApplication import *
+import KratosMultiphysics
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests to test_classes to create the suits
 #sys.path.insert(0, 'chimera_monolithic_simple_test')
-from test_chimera_monolithic_simple import TestChimeraMonolithicSimple
+from chimera_analysis_test import FlowOverCylinderMonolithic
+from chimera_analysis_test import FlowOverCylinderFractionalStep
+from chimera_analysis_test import FlowOverCrossFractionalStep
+from chimera_analysis_test import FlowOverCrossMonolithic
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
+    Populates the test suites to run. At least, it should populate the suites:
     "small", "nighlty" and "all"
 
     Return
@@ -28,7 +30,8 @@ def AssambleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestChimeraMonolithicSimple]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -38,12 +41,19 @@ def AssambleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
+    ## Validation suite. Big cases go here
+    validationSuite = suites['validation']
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
 
+
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
