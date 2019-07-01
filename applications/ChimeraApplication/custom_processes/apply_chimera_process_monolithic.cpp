@@ -48,7 +48,7 @@ ApplyChimeraProcessMonolithic<TDim>::ApplyChimeraProcessMonolithic(ModelPart &rM
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
     mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
-    mpCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+    mpCalculateDistanceProcess = typename DistanceCalculatorType::Pointer(new DistanceCalculatorType());
 }
 
 template <int TDim>
