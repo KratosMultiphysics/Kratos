@@ -105,7 +105,7 @@ public:
                            Vector& rResponseGradient,
                            const ProcessInfo& rProcessInfo) override
     {
-        noalias(rResponseGradient) = ZeroVector(rResidualGradient.size2());
+        noalias(rResponseGradient) = ZeroVector(rResidualGradient.size1());
     }
 
     void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
@@ -130,7 +130,9 @@ public:
                                      Vector& rSensitivityGradient,
                                      const ProcessInfo& rProcessInfo) override
     {
-        ComputePointTemperatureSensitivityContribution(rSensitivityMatrix, rAdjointElement.GetGeometry().Points(),rSensitivityGradient);
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+        noalias(rSensitivityGradient) = ZeroVector(rSensitivityMatrix.size1());
     }
 
     double CalculateValue(ModelPart& rModelPart) override
@@ -179,17 +181,13 @@ private:
         noalias(rLocalSensitivityContribution) = ZeroVector(rLocalSensitivityContribution.size());
 
         const unsigned int num_nodes = rNodes.size();
-        const unsigned int dimension = rDerivativesOfResidual.size1() / num_nodes;
-		const double factor = 1.0 / mNumNodes;
+		double factor = 1.0 / mNumNodes;
 
         for (unsigned int i = 0; i < num_nodes; i++)
         {
             if (rNodes[i].Is(STRUCTURE))
             {
-                for (unsigned int d = 0; d < dimension; d++)
-                {
-                    rLocalSensitivityContribution[i*dimension+d] = factor;
-                }
+                rLocalSensitivityContribution[i] = factor;
             }
         }
     }
