@@ -26,6 +26,7 @@
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/quaternion.h"
 
 // Application includes
 
@@ -34,41 +35,36 @@ namespace Kratos
 
 class RotateRegionProcess : public Process
 {
-  public:
+public:
     /// Pointer definition of MoveRotorProcess
     KRATOS_CLASS_POINTER_DEFINITION(RotateRegionProcess);
 
     typedef ModelPart::NodeIterator NodeIteratorType;
     typedef ProcessInfo ProcessInfoType;
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
 
     /// Constructor.
-    RotateRegionProcess(ModelPart &model_part,
-                        Parameters rParameters) : Process(Flags()), mr_model_part(model_part), m_parameters(rParameters)
+    RotateRegionProcess(ModelPart &rModelPart,
+                        Parameters rParameters) : Process(Flags()), mrModelPart(rModelPart), mParameters(rParameters)
     {
 
         Parameters default_parameters(R"(
             {
-                "movement_name":"default",
-                "sub_model_part_name":"default",
-                "sub_model_part_boundary_name":"default",
                 "center_of_rotation":[],
                 "angular_velocity_radians":0.0,
                 "axis_of_rotation":[],
                 "is_ale" : false
             }  )");
 
-        m_sub_model_part_name = m_parameters["sub_model_part_name"].GetString();
-        m_sub_model_part_boundary_name = m_parameters["sub_model_part_boundary_name"].GetString();
-        m_angular_velocity_radians = m_parameters["angular_velocity_radians"].GetDouble();
+        mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-        mCenterOfRotation.push_back(m_parameters["center_of_rotation"][0].GetDouble());
-        mCenterOfRotation.push_back(m_parameters["center_of_rotation"][1].GetDouble());
-        mCenterOfRotation.push_back(m_parameters["center_of_rotation"][2].GetDouble());
+        mAngularVelocityRadians = mParameters["angular_velocity_radians"].GetDouble();
+        mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
+        mAxisOfRoationVector = mParameters["axis_of_rotation"].GetVector();
 
-        mAxisOfRoationVector.push_back(m_parameters["axis_of_rotation"][0].GetDouble());
-        mAxisOfRoationVector.push_back(m_parameters["axis_of_rotation"][1].GetDouble());
-        mAxisOfRoationVector.push_back(m_parameters["axis_of_rotation"][2].GetDouble());
+        mTransformationMatrix.resize(4, 4, false);
 
         // normalizing the axis of roatation
         double norm = 0.0;
@@ -76,35 +72,10 @@ class RotateRegionProcess : public Process
             norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
         norm = sqrt(norm);
         for (std::size_t d = 0; d < 3; ++d)
-            mAxisOfRoationVectorNormalized.push_back(mAxisOfRoationVector[d] / norm);
+            mAxisOfRoationVectorNormalized[d] = (mAxisOfRoationVector[d] / norm);
 
+        CalculateRotationMatrix(-1 * mAngularVelocityRadians, mTransformationMatrix);
         mTheta = 0.0;
-    }
-
-    /**
-		Activates the constraint set or deactivates
-		@arg isActive true/false
-		*/
-    void SetActive(bool isActive = true)
-    {
-        mIsActive = isActive;
-    }
-
-    /**
-		Sets the name of the constraint set
-		@arg name
-		*/
-    void SetName(std::string name)
-    {
-        this->mName = name;
-    }
-
-    void SetCentreOfRotation(double x, double y, double z)
-    {
-
-        mCenterOfRotation[0] = x;
-        mCenterOfRotation[1] = y;
-        mCenterOfRotation[2] = z;
     }
 
     /// Destructor.
@@ -118,105 +89,88 @@ class RotateRegionProcess : public Process
 
         KRATOS_CATCH("");
     }
-    
-    void ChangeAngularVelocity(double ang_velocity) 
-    {
-        m_angular_velocity_radians = ang_velocity;
 
+    void SetAngularVelocity(const double NewAngularVelocity)
+    {
+        mAngularVelocityRadians = NewAngularVelocity;
     }
 
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-        ModelPart &sub_model_part = mr_model_part.GetSubModelPart(m_sub_model_part_name);
-        double delta_t;
-        int domain_size;
+        const auto &r_process_info = mrModelPart.GetProcessInfo();
+        const double dt = r_process_info[DELTA_TIME];
+        const int domain_size = r_process_info[DOMAIN_SIZE];
+        mTheta += mAngularVelocityRadians * dt;
 
-        ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
-        delta_t = (*info)[DELTA_TIME];
-        domain_size = (*info)[DOMAIN_SIZE];
-        mTheta += m_angular_velocity_radians * delta_t;
+        const int num_nodes = mrModelPart.NumberOfNodes();
+        const NodeIteratorType it_slave_node_begin = mrModelPart.NodesBegin();
 
-#pragma omp parallel for
-        for (NodeIteratorType node = sub_model_part.NodesBegin(); node < sub_model_part.NodesEnd(); node++)
+#pragma omp parallel for schedule(guided, 512)
+        for (int i_node = 0; i_node < num_nodes; ++i_node)
         {
+            NodeIteratorType it_node = it_slave_node_begin;
+            std::advance(it_node, i_node);
 
             /// Calculating the displacement of the current node
-            std::vector<double> node_cords = {node->X0(), node->Y0(), node->Z0()};
-            std::vector<double> rotatedNode = RotateNode2(node_cords, mTheta);
+            array_1d<double, 3> transformed_coordinates;
+            TransformNode(it_node->Coordinates(), transformed_coordinates);
+            //TransformNodeWithQuaternion(it_node->Coordinates(), transformed_coordinates);
 
-            node->X() = rotatedNode[0];
-            node->Y() = rotatedNode[1];
+            it_node->X() = transformed_coordinates[0];
+            it_node->Y() = transformed_coordinates[1];
             if (domain_size > 2)
-                node->Z() = rotatedNode[2];
+                it_node->Z() = transformed_coordinates[2];
 
-            // This is done for visualization
-            /*node->FastGetSolutionStepValue(MESH_DISPLACEMENT_X) = node->X() - node->X0();
-            node->FastGetSolutionStepValue(MESH_DISPLACEMENT_Y) = node->Y() - node->Y0();
-            if (domain_size > 2)
-                node->FastGetSolutionStepValue(MESH_DISPLACEMENT_Z) = node->Z() - node->Z0();*/
+            // Computing the linear velocity at this it_node
+            DenseVector<double> r(3);
+            DenseVector<double> linearVelocity(3);
+            radius[0] = it_node->X() - mCenterOfRotation[0];
+            radius[1] = it_node->Y() - mCenterOfRotation[1];
+            radius[2] = it_node->Z() - mCenterOfRotation[2];
+            CalculateLinearVelocity(mAxisOfRoationVector, r, linearVelocity);
 
-            // Computing the linear velocity at this node
-            std::vector<double> r(3);
-            std::vector<double> linearVelocity(3);
-            r[0] = node->X() - mCenterOfRotation[0];
-            r[1] = node->Y() - mCenterOfRotation[1];
-            r[2] = node->Z() - mCenterOfRotation[2];
-            CrossProduct(mAxisOfRoationVector, r, linearVelocity);
-
-            if (m_parameters["is_ale"].GetBool())
+            if (mParameters["is_ale"].GetBool())
             {
-                node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) += m_angular_velocity_radians * linearVelocity[0];
-                node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) += m_angular_velocity_radians * linearVelocity[1];
+                it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) += mAngularVelocityRadians * linearVelocity[0];
+                it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) += mAngularVelocityRadians * linearVelocity[1];
                 if (domain_size > 2)
-                    node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) += m_angular_velocity_radians * linearVelocity[2];
+                    it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) += mAngularVelocityRadians * linearVelocity[2];
+
+                if (it_node->IsFixed(VELOCITY_X))
+                    it_node->FastGetSolutionStepValue(VELOCITY_X, 0) = it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
+
+                if (it_node->IsFixed(VELOCITY_Y))
+                    it_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
+
+                if (domain_size > 2)
+                    if (it_node->IsFixed(VELOCITY_Z))
+                        it_node->FastGetSolutionStepValue(VELOCITY_Z, 0) = it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
             }
-
-            if (node->IsFixed(VELOCITY_X))
-                node->FastGetSolutionStepValue(VELOCITY_X, 0) = node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
-
-            if (node->IsFixed(VELOCITY_Y))
-                node->FastGetSolutionStepValue(VELOCITY_Y, 0) = node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
-
-            if (domain_size > 2)
-                if (node->IsFixed(VELOCITY_Z))
-                    node->FastGetSolutionStepValue(VELOCITY_Z, 0) = node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
         }
-
-        /*if (m_parameters["is_ale"].GetBool())
-        {
-
-            ModelPart &sub_model_part_boundary = mr_model_part.GetSubModelPart(m_sub_model_part_boundary_name);
-#pragma omp parallel for
-            for (NodeIteratorType node = sub_model_part_boundary.NodesBegin(); node < sub_model_part_boundary.NodesEnd(); node++)
-            {
-                node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) = 0;
-                node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) = 0;
-                if (domain_size > 2)
-                    node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) = 0;
-            }
-        }*/
 
         KRATOS_CATCH("");
     }
 
     void ExecuteFinalizeSolutionStep() override
     {
-        ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
+        const auto &r_process_info = mrModelPart.GetProcessInfo();
 
-        int domain_size = (*info)[DOMAIN_SIZE];
+        int domain_size = r_process_info[DOMAIN_SIZE];
+        const int num_nodes = mrModelPart.NumberOfNodes();
+        const NodeIteratorType it_slave_node_begin = mrModelPart.NodesBegin();
 
-        ModelPart &sub_model_part = mr_model_part.GetSubModelPart(m_sub_model_part_name);
-#pragma omp parallel for
-        for (NodeIteratorType node = sub_model_part.NodesBegin(); node < sub_model_part.NodesEnd(); node++)
+#pragma omp parallel for schedule(guided, 512)
+        for (int i_node = 0; i_node < num_nodes; ++i_node)
         {
-
-            if (m_parameters["is_ale"].GetBool())
+            NodeIteratorType it_node = it_slave_node_begin;
+            std::advance(it_node, i_node);
+            if (mParameters["is_ale"].GetBool())
             {
-                node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) = 0.0;
-                node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) = 0.0;
+                it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) = 0.0;
+                it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) = 0.0;
                 if (domain_size > 2)
-                    node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) = 0.0;
+                    it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) = 0.0;
             }
         }
     }
@@ -240,26 +194,26 @@ class RotateRegionProcess : public Process
     {
     }
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
     ///@}
     ///@name Protected member Variables
     ///@{
-    ModelPart &mr_model_part;
-    Parameters m_parameters;
-    std::string m_sub_model_part_name;
-    std::string m_sub_model_part_boundary_name;
-    double m_angular_velocity_radians;
-    std::string mName;
-    bool mIsActive;
-    std::vector<double> mCenterOfRotation;
-    std::vector<double> mAxisOfRoationVector;
-    std::vector<double> mAxisOfRoationVectorNormalized;
+    ModelPart &mrModelPart;
+    Parameters mParameters;
+    std::string mSubModelPartName;
+    double mAngularVelocityRadians;
+    MatrixType mTransformationMatrix;
+    DenseVector<double> mAxisOfRotationVector;
+    DenseVector<double> mCenterOfRotation;
+    DenseVector<double> mAxisOfRoationVector;
+    DenseVector<double> mAxisOfRoationVectorNormalized;
+
     double mTheta;
 
-  private:
+private:
     /// Assignment operator.
     RotateRegionProcess &operator=(RotateRegionProcess const &rOther) { return *this; }
 
@@ -267,120 +221,97 @@ class RotateRegionProcess : public Process
      * Calculates the cross product of two vectors
      *  c = axb
      */
-    void CrossProduct(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c)
+    void CalculateLinearVelocity(const DenseVector<double> &mAxisOfRoationVector, 
+                                 const DenseVector<double> &rRadius,
+                                 DenseVector<double> &rLinearVelocity)
     {
         assert(a.size() == b.size());
-        c[0] = a[1] * b[2] - a[2] * b[1];
-        c[1] = a[2] * b[0] - a[0] * b[2];
-        c[2] = a[0] * b[1] - a[1] * b[0];
+        rLinearVelocity[0] = mAxisOfRoationVector[1] * rRadius[2] - mAxisOfRoationVector[2] * rRadius[1];
+        rLinearVelocity[1] = mAxisOfRoationVector[2] * rRadius[0] - mAxisOfRoationVector[0] * rRadius[2];
+        rLinearVelocity[2] = mAxisOfRoationVector[0] * rRadius[1] - mAxisOfRoationVector[1] * rRadius[0];
     }
 
-    /*
-     * Rotates a given point(node_cords) in space around a given mAxisOfRoationVector by an angle thetha
-     */
-    std::vector<double> RotateNode(std::vector<double> node_cords, double theta)
+    void TransformNode(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
     {
-        std::vector<double> rotatedNode(4);
-        std::vector<double> U(3); // normalized axis of rotation
-        node_cords.push_back(1.0);
-        
-        // normalizing the axis of roatation
-        double norm = 0.0;
-        for (std::size_t d = 0; d < 3; ++d)
-            norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
-        norm = sqrt(norm);
-        for (std::size_t d = 0; d < 3; ++d)
-            U[d] = mAxisOfRoationVector[d] / norm;
+        DenseVector<double> original_node(4, 0.0);
+        DenseVector<double> transformed_node(4, 0.0);
 
-        // Constructing the transformation matrix
-        double A0[4][4];
-        double x1 = mCenterOfRotation[0];
-        double y1 = mCenterOfRotation[1];
-        double z1 = mCenterOfRotation[2];
-
-        double a = U[0];
-        double b = U[1];
-        double c = U[2];
-
-        double t2 = cos(theta);
-        double t3 = sin(theta);
-        double t4 = a * a;
-        double t5 = b * b;
-        double t6 = c * c;
-        double t7 = a * b;
-        double t8 = t5 + t6;
-        double t9 = 1.0 / t8;
-        double t10 = a * c;
-        double t11 = b * t3;
-        double t12 = a * t3 * t5;
-        double t13 = a * t3 * t6;
-        double t14 = b * c * t2;
-        A0[0][0] = t4 + t2 * t8;
-        A0[0][1] = t7 - c * t3 - a * b * t2;
-        A0[0][2] = t10 + t11 - a * c * t2;
-        A0[0][3] = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
-        A0[1][0] = t7 + c * t3 - a * b * t2;
-        A0[1][1] = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
-        A0[1][2] = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
-        A0[1][3] = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
-        A0[2][0] = t10 - t11 - a * c * t2;
-        A0[2][1] = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
-        A0[2][2] = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
-        A0[2][3] = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
-        A0[3][3] = 1.0;
-
+        original_node[0] = rCoordinates(0);
+        original_node[1] = rCoordinates(1);
+        original_node[2] = rCoordinates(2);
+        original_node[3] = 1.0;
         // Multiplying the point to get the rotated point
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 3; j++)
+            for (int j = 0; j < 4; j++)
             {
-                rotatedNode[i] += (A0[i][j] * node_cords[j]);
+                transformed_node[i] += mTransformationMatrix(i, j) * original_node[j];
             }
         }
-
-        return rotatedNode;
+        rTransformedCoordinates(0) = transformed_node[0];
+        rTransformedCoordinates(1) = transformed_node[1];
+        rTransformedCoordinates(2) = transformed_node[2];
     }
 
-    /*
-   Rotate a point p by angle theta around an arbitrary axis r
-   Return the rotated point.
-   Positive angles are anticlockwise looking down the axis
-   towards the origin.
-   Assume right hand coordinate system.
-*/
-    std::vector<double> RotateNode2(std::vector<double> p, double theta)
+    void TransformNodeWithQuaternion(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
     {
-        std::vector<double> q(3);
-        double costheta, sintheta;
-
-        std::vector<double> r = mAxisOfRoationVectorNormalized;
-        costheta = cos(theta);
-        sintheta = sin(theta);
-
-        p[0] -= mCenterOfRotation[0];
-        p[1] -= mCenterOfRotation[1];
-        p[2] -= mCenterOfRotation[2];
-
-        q[0] += (costheta + (1 - costheta) * r[0] * r[0]) * p[0];
-        q[0] += ((1 - costheta) * r[0] * r[1] - r[2] * sintheta) * p[1];
-        q[0] += ((1 - costheta) * r[0] * r[2] + r[1] * sintheta) * p[2];
-
-        q[1] += ((1 - costheta) * r[0] * r[1] + r[2] * sintheta) * p[0];
-        q[1] += (costheta + (1 - costheta) * r[1] * r[1]) * p[1];
-        q[1] += ((1 - costheta) * r[1] * r[2] - r[0] * sintheta) * p[2];
-
-        q[2] += ((1 - costheta) * r[0] * r[2] - r[1] * sintheta) * p[0];
-        q[2] += ((1 - costheta) * r[1] * r[2] + r[0] * sintheta) * p[1];
-        q[2] += (costheta + (1 - costheta) * r[2] * r[2]) * p[2];
-
-        q[0] += mCenterOfRotation[0];
-        q[1] += mCenterOfRotation[1];
-        q[2] += mCenterOfRotation[2];
-
-        return (q);
+        Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(mAxisOfRoationVector(1), mAxisOfRoationVector(2), mAxisOfRoationVector(3), mTheta);
+        mQuaternion.RotateVector3(rCoordinates, rTransformedCoordinates);
     }
 
+    void CalculateRotationMatrix(const double Theta, MatrixType &rMatrix)
+    {
+        DenseVector<double> U(3); // normalized axis of rotation
+        // normalizing the axis of rotation
+        double norm = 0.0;
+        for (IndexType d = 0; d < 3; ++d)
+            norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
+        norm = sqrt(norm);
+        KRATOS_ERROR_IF(norm < std::numeric_limits<double>::epsilon()) << "Norm of the provided axis of rotation is Zero !" << std::endl;
+        for (IndexType d = 0; d < 3; ++d)
+            U[d] = mAxisOfRotationVector[d] / norm;
+
+        // Constructing the transformation matrix
+        const double x1 = mCenterOfRotation[0];
+        const double y1 = mCenterOfRotation[1];
+        const double z1 = mCenterOfRotation[2];
+
+        const double a = U[0];
+        const double b = U[1];
+        const double c = U[2];
+
+        const double t2 = std::cos(Theta);
+        const double t3 = std::sin(Theta);
+        const double t4 = a * a;
+        const double t5 = b * b;
+        const double t6 = c * c;
+        const double t7 = a * b;
+        const double t8 = t5 + t6;
+        const double t9 = std::abs(t8) < std::numeric_limits<double>::epsilon() ? 1.0e8 : 1.0 / t8;
+        const double t10 = a * c;
+        const double t11 = b * t3;
+        const double t12 = a * t3 * t5;
+        const double t13 = a * t3 * t6;
+        const double t14 = b * c * t2;
+        rMatrix(0, 0) = t4 + t2 * t8;
+        rMatrix(0, 1) = t7 - c * t3 - a * b * t2;
+        rMatrix(0, 2) = t10 + t11 - a * c * t2;
+        rMatrix(0, 3) = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
+        rMatrix(1, 0) = t7 + c * t3 - a * b * t2;
+        rMatrix(1, 1) = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
+        rMatrix(1, 2) = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
+        rMatrix(1, 3) = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
+        rMatrix(2, 0) = t10 - t11 - a * c * t2;
+        rMatrix(2, 1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
+        rMatrix(2, 2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
+        rMatrix(2, 3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
+        rMatrix(3, 0) = 0.0;
+        rMatrix(3, 1) = 0.0;
+        rMatrix(3, 2) = 0.0;
+        rMatrix(3, 3) = 1.0;
+    }
 }; // Class MoveRotorProcess
+
 }; // namespace Kratos.
 
 #endif // KRATOS_MOVE_ROTOR_PROCESS_H
