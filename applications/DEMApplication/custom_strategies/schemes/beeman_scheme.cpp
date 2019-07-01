@@ -1,19 +1,19 @@
 // Project includes
-#include "gear_scheme.h"
+#include "beeman_scheme.h"
 
 namespace Kratos {
 
-    void GearScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) KRATOS_INFO("DEM") << "Assigning GearScheme to properties " << pProp->Id() << std::endl;
+    void BeemanScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning BeemanScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
-    void GearScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) KRATOS_INFO("DEM") << "Assigning GearScheme to properties " << pProp->Id() << std::endl;
+    void BeemanScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning BeemanScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
-    void GearScheme::UpdateTranslationalVariables(
+    void BeemanScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 >& i,
             array_1d<double, 3 >& coor,
@@ -28,7 +28,6 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
-        array_1d<double, 3> accel_est_pred;
 
         if(StepFlag == 1) //predict
         {
@@ -36,24 +35,15 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     delta_displ[k] = vel[k] * delta_t +
-                                     0.5 * force[k] * mass_inv * delta_t * delta_t +
-                                     0.166666*mDeltaAccel[k] * delta_t * delta_t * delta_t;
+                                     (0.66666666 * force[k] * mass_inv - 0.16666666 * mOldAcceleration[k]) * delta_t * delta_t;
 
-                    vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t +
-                             0.5 * mDeltaAccel[k] * delta_t * delta_t;
+                    mInterStepVel[k] = vel[k];
+                    vel[k] += (1.5 * force[k] * mass_inv - 0.5 * mOldAcceleration[k]) * delta_t;
 
-                    mOldAcceleration[k] = force[k] * mass_inv + mDeltaAccel[k] * delta_t;
+                    mInterStepAccel[k] = force[k] * mass_inv;
 
                     displ[k] += delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
-
-                    // if (k ==0 && i.Id()==1){
-                    //     KRATOS_WATCH("StepFlag == 1")
-                    //     KRATOS_WATCH(mDeltaAccel[k])
-                    //     KRATOS_WATCH(delta_displ[k])
-                    //     KRATOS_WATCH(vel[k])
-                    //     KRATOS_WATCH(mOldAcceleration[k])
-                    // }
 
                 } else {
                     delta_displ[k] = delta_t * vel[k];
@@ -67,33 +57,16 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    accel_est_pred[k] = force[k] * mass_inv - mOldAcceleration[k];
+                    vel[k] = mInterStepVel[k] + 0.41666666 * force[k] * mass_inv * delta_t +
+                              (0.6666666 * mInterStepAccel[k] - 0.0833333 * mOldAcceleration[k]) * delta_t;
 
-                    //delta_displ[k] += 1/12*mDeltaAccel[k] * delta_t * delta_t;
-
-                    vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t +
-                              0.4166666 * mDeltaAccel[k] * delta_t;
-                    //vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t;
-
-                    mDeltaAccel[k] += accel_est_pred[k]/delta_t;
-
-                    //displ[k] += delta_displ[k];
-                    //coor[k] = initial_coor[k] + displ[k];
-
-                    // if (k ==0 && i.Id()==1){
-                    //     KRATOS_WATCH("StepFlag == 2")
-                    //     KRATOS_WATCH(accel_est_pred[k])
-                    //     KRATOS_WATCH(mDeltaAccel[k])
-                    //     KRATOS_WATCH(delta_displ[k])
-                    //     KRATOS_WATCH(vel[k])
-                    //     KRATOS_WATCH(mOldAcceleration[k])
-                    // }
+                    mOldAcceleration[k] = mInterStepAccel[k];
                 }
             }
         } // dimensions
     }
 
-    void GearScheme::CalculateNewRotationalVariablesOfSpheres(
+    void BeemanScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
                 const double moment_of_inertia,
@@ -111,7 +84,7 @@ namespace Kratos {
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
-    void GearScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
+    void BeemanScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,
@@ -146,7 +119,7 @@ namespace Kratos {
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
-    void GearScheme::UpdateRotationalVariables(
+    void BeemanScheme::UpdateRotationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
                 array_1d<double, 3 >& rotated_angle,
@@ -180,7 +153,7 @@ namespace Kratos {
         }//CORRECT
     }
 
-    void GearScheme::CalculateLocalAngularAcceleration(
+    void BeemanScheme::CalculateLocalAngularAcceleration(
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
@@ -192,7 +165,7 @@ namespace Kratos {
         }
     }
 
-    void GearScheme::CalculateLocalAngularAccelerationByEulerEquations(
+    void BeemanScheme::CalculateLocalAngularAccelerationByEulerEquations(
                 const array_1d<double, 3 >& local_angular_velocity,
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,

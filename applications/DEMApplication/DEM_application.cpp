@@ -48,6 +48,7 @@
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
 #include "custom_strategies/schemes/cimne_scheme.h"
 #include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/beeman_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
 
@@ -894,6 +895,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
     Serializer::Register("CimneScheme", CimneScheme());
     Serializer::Register("GearScheme", GearScheme());
+    Serializer::Register("BeemanScheme", BeemanScheme());
     Serializer::Register("RungeKuttaScheme", RungeKuttaScheme());
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());

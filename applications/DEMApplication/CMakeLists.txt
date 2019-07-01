@@ -44,6 +44,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/velocity_verlet_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/cimne_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/gear_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/beeman_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/runge_kutta_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/quaternion_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/glued_to_wall_scheme.cpp

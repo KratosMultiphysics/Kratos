@@ -95,6 +95,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Gear_Scheme'):
             self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                                             self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Beeman_Scheme'):
+            self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
 
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,

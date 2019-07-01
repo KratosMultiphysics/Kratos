@@ -203,6 +203,8 @@ class DEMAnalysisStage(AnalysisStage):
             return CimneScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Gear_Scheme':
             return GearScheme()
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Beeman_Scheme':
+            return BeemanScheme()
 
         return None
 

@@ -7,8 +7,9 @@ import os
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Gear_Scheme"]
-        #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme"]
+        self.schemes_list = ["Beeman_Scheme"]
+        #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme", "Beeman_Scheme"]
+        #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme"]
         self.stable_time_steps_list = []
 
         gnuplot_data = open("gnuplot_file.dem", 'w+')
@@ -43,7 +44,7 @@ class TimeStepTester(object):
     def RunForACertainScheme(self, scheme):
         print("Computing stable time step for scheme: "+ scheme)
         tolerance = 1e-7
-        dt = 1e-3
+        dt = 1e-2
         previous_dt = 0.0
 
         gnuplot_data = open("gnuplot_file.dem", 'a')
@@ -61,6 +62,7 @@ class TimeStepTester(object):
 
         while dt > previous_dt + tolerance:
             try:
+                print("current dt: " + str(dt))
                 self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
 
             except SystemExit:
@@ -281,6 +283,9 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [17, 18, 11], self.rigid_face_model_part.GetProperties()[0])
         self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [18, 11, 12], self.rigid_face_model_part.GetProperties()[0])
 
+
+        initial_energy = self.ComputeEnergy()
+        print("initial_energy: ", initial_energy)
 
     def ComputeEnergy(self):
         this_test_total_energy = 0.0

@@ -304,6 +304,11 @@ class ExplicitStrategy(object):
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.search_strategy, self.solver_settings)
 
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Beeman_Scheme'):
+            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.search_strategy, self.solver_settings)
+
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
@@ -518,6 +523,8 @@ class ExplicitStrategy(object):
             class_name = 'CimneScheme'
         elif name == 'Gear_Scheme':
             class_name = 'GearScheme'
+        elif name == 'Beeman_Scheme':
+            class_name = 'BeemanScheme'
 
         return class_name
 
@@ -538,6 +545,8 @@ class ExplicitStrategy(object):
             class_name = 'CimneScheme'
         elif name_rotational == 'Gear_Scheme':
             class_name = 'GearScheme'
+        elif name_rotational == 'Beeman_Scheme':
+            class_name = 'BeemanScheme'
         elif name_rotational == 'Runge_Kutta':
             class_name = 'RungeKuttaScheme'
         elif name_rotational == 'Quaternion_Integration':
