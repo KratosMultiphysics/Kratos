@@ -221,7 +221,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             auto it_node = nodes_array.begin() + i_node;
 
             // Retrieve variable
-            double divergencefree_elem_value = divergence_nodal_values[i_node];
+            const double divergencefree_elem_value = divergence_nodal_values[i_node];
 
             // Estimate element size
             const double nodal_h = it_node->GetValue(NODAL_H);
