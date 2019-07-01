@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_internal import KratosInternalAnalyzer
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import EmptyAnalyzer
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-import csv
+import csv, math
 
 # ==============================================================================
 def CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer):
@@ -95,6 +95,7 @@ class Analyzer:
                 self.exist_dependencies = True
 
         self.response_values_filename = "response_values_from_analyzer.csv"
+        self.gradients_norms = {}
 
         if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
             raise RuntimeError("Neither an internal nor an external analyzer is defined!")
@@ -117,6 +118,7 @@ class Analyzer:
 
         if self.exist_dependencies:
             self.__CombineResponsesAccordingDependencies(communicator)
+            self.__ComputeGradientNormsRecursively(self.dependency_graph, communicator)
             self.__WriteResultsOfCombinedResponses(unique_iterator,communicator)
 
         self.__ResetPossibleShapeModificationsFromAnalysis()
@@ -210,6 +212,18 @@ class Analyzer:
                 combined_gradient = {key_a: [a+b for a, b in zip(list_a, list_b)] for ((key_a, list_a),(key_b, list_b)) in zip(combined_gradient.items(), gradient.items())}
 
         return combined_gradient
+
+    # --------------------------------------------------------------------------
+    def __ComputeGradientNormsRecursively(self, dependencies, communicator):
+        for response_id, dependencies, _ in dependencies:
+            gradient = communicator.getStandardizedGradient(response_id)
+
+            nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
+            max_norm = math.sqrt(max(nodal_norms))
+            self.gradients_norms[response_id] = max_norm
+
+            if len(dependencies) > 0:
+                self.__ComputeGradientNormsRecursively(dependencies, communicator)
 
     # --------------------------------------------------------------------------
     def __WriteResultsOfCombinedResponses(self, iteration, communicator):
