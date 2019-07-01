@@ -20,7 +20,7 @@ from analyzer_base import AnalyzerBaseClass
 class CustomAnalyzer(AnalyzerBaseClass):
     # --------------------------------------------------------------------------------------------------
     def __init__( self ):
-        self.measurement_node_id = 19
+        self.measurement_node_id = 5
 
     # --------------------------------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
@@ -33,7 +33,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
     # --------------------------------------------------------------------------
     def __CalculateValue( self, current_design ):
         node = current_design.GetNodes()[self.measurement_node_id]
-        return node.Z
+        return node.X
 
     # --------------------------------------------------------------------------
     def __CalculateGradient( self, current_design ):
@@ -44,9 +44,9 @@ class CustomAnalyzer(AnalyzerBaseClass):
             local_gradient = [0,0,0]
 
             if node.Id == self.measurement_node_id:
-                local_gradient[0] = 0.0
+                local_gradient[0] = 1.0
                 local_gradient[1] = 0.0
-                local_gradient[2] = 1.0
+                local_gradient[2] = 0.0
 
             response_gradient[node.Id] = local_gradient
 
@@ -83,9 +83,9 @@ with open(response_values_from_analyzer_filename, 'r') as csvfile:
     f3_value = float(last_line[4].strip())
     f4_value = float(last_line[5].strip())
 
-    TestCase().assertAlmostEqual(f1_value, 1.02969E-06, 4)
-    TestCase().assertAlmostEqual(f3_value, 7.96098E+01, 4)
-    TestCase().assertAlmostEqual(f4_value, 1.36673E-01, 4)
+    TestCase().assertAlmostEqual(f1_value, 5.03120E-01, 4)
+    TestCase().assertAlmostEqual(f3_value, 2.17232E+02, 4)
+    TestCase().assertAlmostEqual(f4_value, 1.20762E+00, 4)
 
 # 3) additionally checking some optimization output
 original_directory = os.getcwd()
@@ -104,11 +104,8 @@ with open(optimization_log_filename, 'r') as csvfile:
         else:
             last_line = line
 
-    resulting_iteration = float(last_line[0].strip())
     resulting_abs_improvement = float(last_line[2].strip())
-
-    TestCase().assertEqual(resulting_iteration, 5)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -1.00496E+01, 3)
+    TestCase().assertAlmostEqual(resulting_abs_improvement, -1.72389E+01, 4)
 
 os.chdir(original_directory)
 
