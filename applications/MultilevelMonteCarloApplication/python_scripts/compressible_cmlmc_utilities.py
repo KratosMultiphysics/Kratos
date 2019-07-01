@@ -595,7 +595,8 @@ class MultilevelMonteCarlo(object):
     def InitializeScreeningPhase(self):
         if (self.iteration_counter == 0):
             self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
-            self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            # self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_number_samples = [[((10**(self.settings["maximum_number_levels"].GetInt()-level)))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.running_number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
@@ -874,7 +875,7 @@ class MultilevelMonteCarlo(object):
             self.ComputeTheta(self.current_number_levels)
             # add batch size per level: multiply by 2 current number samples and take the maximum between this integer and default batch size
             # self.batch_size = [max(self.number_samples[level]*2,self.settings["number_samples_screening"].GetInt()) for level in range (self.current_number_levels+1)]
-            self.batch_size = [(self.current_number_levels + 1 - level)*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)]
+            self.batch_size = [(10**(self.settings["maximum_number_levels"].GetInt()-level))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)]
         else:
             raise Exception ("Assign True or False to adaptive_number_samples setting.")
         for new_batch in range (new_number_batches):
