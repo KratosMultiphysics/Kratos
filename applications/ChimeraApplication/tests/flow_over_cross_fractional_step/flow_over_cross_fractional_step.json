@@ -15,7 +15,7 @@
         "solver_type"                 : "fractional_step",
         "model_import_settings"       : {
             "input_type"     : "mdpa",
-            "input_filename" : "flow_over_cross"
+            "input_filename" : "../mdpa_for_tests/flow_over_cross"
         },
         "echo_level"                  : 2,
         "compute_reactions"           : false,
