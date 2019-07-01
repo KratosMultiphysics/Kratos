@@ -201,6 +201,17 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    ///@}
+
+private:
+    ///@name Private static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+
     ModelPart &mrModelPart;
     Parameters mParameters;
     std::string mSubModelPartName;
@@ -210,10 +221,10 @@ protected:
     DenseVector<double> mCenterOfRotation;
     DenseVector<double> mAxisOfRoationVector;
     DenseVector<double> mAxisOfRoationVectorNormalized;
-
     double mTheta;
 
-private:
+    ///@}
+
     /// Assignment operator.
     RotateRegionProcess &operator=(RotateRegionProcess const &rOther) { return *this; }
 
@@ -221,7 +232,7 @@ private:
      * Calculates the cross product of two vectors
      *  c = axb
      */
-    void CalculateLinearVelocity(const DenseVector<double> &mAxisOfRoationVector, 
+    void CalculateLinearVelocity(const DenseVector<double> &mAxisOfRoationVector,
                                  const DenseVector<double> &rRadius,
                                  DenseVector<double> &rLinearVelocity)
     {
