@@ -44,30 +44,41 @@ public:
 
         std::string target_model_part = Settings["model_part_name"].GetString();
 
-		if (rModelPart.Name() == target_model_part)
-		{
-			for (auto& r_node : rModelPart.Nodes())
-			{
-				r_node.Set(STRUCTURE);
-				++mNumNodes;
-			}
-		}
-		else if (rModelPart.HasSubModelPart(target_model_part))
-		{
-			auto& r_submodelpart = rModelPart.GetSubModelPart(target_model_part);
-			for (auto& r_node : r_submodelpart.Nodes())
-			{
-				r_node.Set(STRUCTURE);
-				++mNumNodes;
-			}
-		}
-		else
-		{
-			KRATOS_ERROR << "Unknown ModelPart " << target_model_part << "." << std::endl;
-		}
+        auto& r_target_model_part = GetTargetModelPart(rModelPart, target_model_part);
+        auto& r_nodes = r_target_model_part.Nodes();
+        mNumNodes = r_nodes.size();
 
-		rModelPart.GetCommunicator().GetDataCommunicator().SumAll(mNumNodes);
-		KRATOS_ERROR_IF(mNumNodes == 0) << "No nodes found." << std::endl;
+        //#pragma omp parallel for
+        for (int i = 0; i < mNumNodes; i++)
+        {
+            auto i_node = r_nodes.begin() + i;
+            i_node->Set(STRUCTURE);
+            i_node->SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0);
+        }
+
+        mNumNodes = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(mNumNodes);
+
+        auto& r_elements = rModelPart.Elements();
+        const int num_elements = r_elements.size();
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_elements; i++)
+        {
+            auto i_elem = r_elements.begin() + i;
+            auto& r_geom = i_elem->GetGeometry();
+            for (unsigned int i = 0; i < r_geom.PointsNumber(); i++)
+            {
+                auto& r_node = r_geom[i];
+                if (r_node.Is(STRUCTURE))
+                {
+                    r_node.SetLock();
+                    r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1;
+                    r_node.UnSetLock();
+                }
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
         KRATOS_CATCH("");
     }
@@ -181,15 +192,31 @@ private:
         noalias(rLocalSensitivityContribution) = ZeroVector(rLocalSensitivityContribution.size());
 
         const unsigned int num_nodes = rNodes.size();
-		double factor = 1.0 / mNumNodes;
 
         for (unsigned int i = 0; i < num_nodes; i++)
         {
             if (rNodes[i].Is(STRUCTURE))
             {
+                double factor = 1.0 / (rNodes[i].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS)*mNumNodes);
                 rLocalSensitivityContribution[i] = factor;
             }
         }
+    }
+
+    ModelPart& GetTargetModelPart(ModelPart& rModelPart, const std::string& rTargetModelPartName)
+    {
+        if (rModelPart.Name() == rTargetModelPartName)
+		{
+            return rModelPart;
+		}
+		else if (rModelPart.HasSubModelPart(rTargetModelPartName))
+		{
+			return rModelPart.GetSubModelPart(rTargetModelPartName);
+		}
+		else
+		{
+			KRATOS_ERROR << "Unknown ModelPart " << rTargetModelPartName << "." << std::endl;
+		}
     }
 
     ///@}
