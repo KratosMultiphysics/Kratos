@@ -605,7 +605,27 @@ public:
         return faces;
     }
 
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        // Check if faces have intersection
+        if(FaceType1(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType1(this->pGetPoint(3),this->pGetPoint(4), this->pGetPoint(5)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(1),this->pGetPoint(2), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(5), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(FaceType2(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(4), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
 
+        CoordinatesArrayType local_coordinates;
+        // If there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
+    }
 
     /**
      * Shape Function
