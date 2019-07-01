@@ -368,6 +368,10 @@ class ExplicitStrategy(object):
     def FinalizeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self._MoveAllMeshes(time, self.dt)
+        (self.cplusplus_strategy).FinalizeSolutionStep()
+
+    def InitializeSolutionStep(self):
+        (self.cplusplus_strategy).InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)

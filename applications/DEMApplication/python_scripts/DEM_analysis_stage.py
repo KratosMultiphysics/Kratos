@@ -436,7 +436,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
+        super(DEMAnalysisStage, self).InitializeSolutionStep()
         self._BeforeSolveOperations(self.time)
+        #self._GetSolver().InitializeSolutionStep()
 
     def _BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
@@ -460,6 +462,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
+        #self._GetSolver().FinalizeSolutionStep()
         self.AfterSolveOperations()
 
         ##### adding DEM elements by the inlet ######

@@ -447,12 +447,12 @@ namespace Kratos {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
-        InitializeSolutionStep();
+        //InitializeSolutionStep();
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
+        //FinalizeSolutionStep();
 
         return 0.00;
 
