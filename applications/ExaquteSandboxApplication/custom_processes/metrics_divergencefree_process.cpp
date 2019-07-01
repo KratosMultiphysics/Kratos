@@ -146,8 +146,9 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
         const int number_elements = static_cast<int>(elements_array.size());
         mDivergenceFreeMaxValue = -1;
         const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mReferenceVariable);
+        const auto it_elem_begin = elements_array.begin();
         for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
-            auto it_elem = elements_array.begin() + i_elem;
+            auto it_elem = it_elem_begin + i_elem;
             const double divergencefree_elem_value = abs(it_elem->GetValue(r_reference_var));
             if (divergencefree_elem_value > mDivergenceFreeMaxValue) {
                 mDivergenceFreeMaxValue = divergencefree_elem_value;
@@ -163,8 +164,9 @@ void MetricDivergenceFreeProcess<TDim>::InitializeRefinementStrategy()
 
         // Loop over elements for computing divergence value over the whole domain
         const int number_elements = static_cast<int>(elements_array.size());
+        const auto it_elem_begin = elements_array.begin();
         for(int i_elem = 0; i_elem < number_elements; ++i_elem) {
-            auto it_elem = elements_array.begin() + i_elem;
+            auto it_elem = it_elem_begin + i_elem;
             mMeanStrategyDivergenceFreeOverAllDomain += std::pow(it_elem->GetValue(r_reference_var),2);
         }
         mMeanStrategyDivergenceFreeOverAllDomain = std::sqrt(mMeanStrategyDivergenceFreeOverAllDomain);
@@ -200,8 +202,9 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         area_nodal_values[i_node] = 0;
     }
     // Weighted mean
+    const auto it_elem_begin = elements_array.begin();
     for (int i_elem = 0; i_elem < number_elements; ++i_elem) {
-        auto it_elem = elements_array.begin() + i_elem;
+        auto it_elem = it_elem_begin + i_elem;
         auto r_geometry = it_elem->GetGeometry();
         for (unsigned int i_node = 0; i_node < r_geometry.size(); ++i_node) {
             area_nodal_values[r_geometry[i_node].Id()-1] = area_nodal_values[r_geometry[i_node].Id()-1] + it_elem->GetGeometry().Area() / r_geometry.size();
@@ -216,9 +219,10 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
     // Maximum strategy
     if (mRefinementStrategy == MaximumStrategy) {
 
+        const auto it_nodes_begin = nodes_array.begin();
         #pragma omp parallel for
         for(int i_node = 0; i_node < number_nodes; ++i_node) {
-            auto it_node = nodes_array.begin() + i_node;
+            auto it_node = it_nodes_begin + i_node;
 
             // Retrieve variable
             double divergencefree_elem_value = divergence_nodal_values[i_node];
@@ -268,9 +272,10 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         // Reference norm
         const auto& r_reference_norm = KratosComponents<Variable<double>>::Get(mMeanStrategyReferenceNorm);
 
+        const auto it_nodes_begin = nodes_array.begin();
         #pragma omp parallel for
         for(int i_node = 0; i_node < number_nodes; ++i_node) {
-            auto it_node = nodes_array.begin() + i_node;
+            auto it_node = it_nodes_begin + i_node;
             // Retrieve variable
             double divergencefree_interp_value = divergence_nodal_values[i_node];
             // Estimate element size
@@ -339,9 +344,10 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             mGlobalErrorStrategyGlobalTolerance = std::numeric_limits<double>::epsilon();
         }
 
+        const auto it_nodes_begin = nodes_array.begin();
         #pragma omp parallel for
         for(int i_node = 0; i_node < number_nodes; ++i_node) {
-            auto it_node = nodes_array.begin() + i_node;
+            auto it_node = it_nodes_begin + i_node;
 
             // Initialize Divergence
             double divergencefree_interp_value = divergence_nodal_values[i_node];
