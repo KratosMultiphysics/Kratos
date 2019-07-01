@@ -133,6 +133,8 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
             self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
 
+            self.__ApplyScaling(to_solver_data, i_input_data)
+
     def _SynchronizeOutputData(self, solver_name):
         from_solver = self.solver_wrappers[solver_name]
         output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
@@ -160,7 +162,9 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
             self.__ExecuteCouplingOperations(i_output_data["after_data_transfer_operations"])
 
-            # Importing data from external solvers
+            self.__ApplyScaling(to_solver_data, i_output_data)
+
+            # Exporting data to external solvers
             from_solver.ExportCouplingInterfaceData(from_solver_data)
 
 
@@ -222,7 +226,18 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def __GetSolverCoSimulationDetails(self):
         def ValidateAndAssignDefaultsDataList(data_list, defaults):
             for i_data_list in range(data_list.size()):
-                data_list[i_data_list].ValidateAndAssignDefaults(defaults)
+                cur_data = data_list[i_data_list]
+
+                # doing some tricks since the type of "scaling_factor" can be double or string and hence would fail in the validation
+                scaling_function_string = None
+                if cur_data.Has("scaling_factor") and cur_data["scaling_factor"].IsString():
+                    scaling_function_string = cur_data["scaling_factor"].GetString()
+                    cur_data.RemoveValue("scaling_factor")
+
+                cur_data.ValidateAndAssignDefaults(defaults)
+
+                if scaling_function_string is not None:
+                    cur_data["scaling_factor"].SetString(scaling_function_string)
 
         solver_cosim_details = {}
         for i_solver_settings in range(self.settings["coupling_sequence"].size()):
@@ -234,6 +249,19 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             ValidateAndAssignDefaultsDataList(solver_settings["output_data_list"], GetOutputDataDefaults())
 
         return solver_cosim_details
+
+    def __ApplyScaling(interface_data, data_configuration):
+        # perform scaling of data if specified
+        if data_configuration["scaling_factor"].IsString():
+            from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
+            scaling_function_string = data_configuration["scaling_factor"].GetString()
+            scope_vars = {'t' : self.time} # make time useable in function
+            scaling_factor = GenericCallFunction(scaling_function_string, scope_vars) # evaluating function string
+        else:
+            scaling_factor = data_configuration["scaling_factor"].GetDouble()
+
+        if abs(scaling_factor-1.0) > 1E-15:
+            interface_data.InplaceMultiply(scaling_factor)
 
     @classmethod
     def _GetDefaultSettings(cls):
@@ -257,7 +285,8 @@ def GetInputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [0.0, 1e30]
+        "interval"                        : [0.0, 1e30],
+        "scaling_factor"                  : 1.0
     }""")
 
 def GetOutputDataDefaults():
@@ -269,5 +298,6 @@ def GetOutputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [0.0, 1e30]
+        "interval"                        : [0.0, 1e30],
+        "scaling_factor"                  : 1.0
     }""")
