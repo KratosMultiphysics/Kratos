@@ -22,6 +22,7 @@ from .Variables import *
 from .QuadriateralElement import QuadrilateralElement
 from .TriangleElement import TriangleElement
 from .Logger import Logger
+from .IntervalUtility import IntervalUtility
 
 class KratosGlobals(object):
     def HasVariable(var_name):
