@@ -779,6 +779,7 @@ class MultilevelMonteCarlo(object):
                     self.number_samples[level] = self.number_samples[level] + self.batches_number_samples[batch][level]
                     self.difference_QoI.ComputeHStatistics(level)
                     self.time_ML.ComputeHStatistics(level)
+                self.batches_convergence_finished[batch] = True
                 """
                 the functions executed in FinalizePhaseAux_Task are the followings:
                 self.ComputeRatesLS()
@@ -800,7 +801,6 @@ class MultilevelMonteCarlo(object):
                 = FinalizePhaseAux_Task(MultilevelMonteCarlo,
                 serial_settings,self.mesh_parameters,self.current_number_levels,\
                 self.iteration_counter,self.number_samples,*synchro_elements)
-                self.batches_convergence_finished[batch] = True
                 # synchronization point needed to compute the other functions of MLMC algorithm
                 # put as in the end as possible the synchronization point
                 self.difference_QoI.h_statistics_1 = get_value_from_remote(self.difference_QoI.h_statistics_1)
@@ -906,7 +906,7 @@ class MultilevelMonteCarlo(object):
                     self.number_samples[level] = self.number_samples[level] + self.batches_number_samples[batch][level]
                     self.difference_QoI.ComputeHStatistics(level)
                     self.time_ML.ComputeHStatistics(level)
-
+                self.batches_convergence_finished[batch] = True
                 """
                 the functions executed in FinalizePhaseAux_Task are the followings:
                 self.ComputeMeanMLMCQoI()
