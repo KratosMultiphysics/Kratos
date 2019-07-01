@@ -62,18 +62,18 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
-		KratosMultiphysics.Logger.PrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
-		KratosMultiphysics.Logger.PrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
-		KratosMultiphysics.Logger.PrintInfo("| $$      | $$      | $$$$  /$$$$|__/  \ $$| $$  \ $$| $$      | $$$$  /$$$$")
-		KratosMultiphysics.Logger.PrintInfo("| $$$$$   | $$$$$   | $$ $$/$$ $$  /$$$$$$/| $$  | $$| $$$$$   | $$ $$/$$ $$")
-		KratosMultiphysics.Logger.PrintInfo("| $$__/   | $$__/   | $$  $$$| $$ /$$____/ | $$  | $$| $$__/   | $$  $$$| $$")
-		KratosMultiphysics.Logger.PrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
-		KratosMultiphysics.Logger.PrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
-		KratosMultiphysics.Logger.PrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ 3D Application")
-		KratosMultiphysics.Logger.PrintInfo("")
+		self.FEM_Solution.KratosPrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
+		self.FEM_Solution.KratosPrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
+		self.FEM_Solution.KratosPrintInfo("| $$      | $$      | $$$$  /$$$$|__/  \ $$| $$  \ $$| $$      | $$$$  /$$$$")
+		self.FEM_Solution.KratosPrintInfo("| $$$$$   | $$$$$   | $$ $$/$$ $$  /$$$$$$/| $$  | $$| $$$$$   | $$ $$/$$ $$")
+		self.FEM_Solution.KratosPrintInfo("| $$__/   | $$__/   | $$  $$$| $$ /$$____/ | $$  | $$| $$__/   | $$  $$$| $$")
+		self.FEM_Solution.KratosPrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
+		self.FEM_Solution.KratosPrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
+		self.FEM_Solution.KratosPrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ 3D Application")
+		self.FEM_Solution.KratosPrintInfo("")
 
 		if self.echo_level > 0:
-			KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
 		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
 		utils = KratosMultiphysics.VariableUtils()
@@ -94,7 +94,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.PerformRemeshingIfNecessary()
 
 		if self.echo_level > 0:
-			KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 		self.FEM_Solution.InitializeSolutionStep()
 
 #============================================================================================================================
@@ -149,7 +149,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def GenerateDEM(self): # 3D version
 		if self.echo_level > 0:
-			KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: GenerateDEM")
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
 		self.CountErasedVolume()
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
 			dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
@@ -469,7 +469,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 	def ExtrapolatePressure(self):
 		if self.echo_level > 0:
-			KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: ExtrapolatePressureLoad")
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ExtrapolatePressureLoad")
 		if self.PressureLoad:
 			# we reconstruct the pressure load if necessary
 			if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
@@ -492,7 +492,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			if is_remeshing:
 				if self.echo_level > 0:
-					KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: ComputeNormalizedFreeEnergyOnNodesProcess")
+					self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNormalizedFreeEnergyOnNodesProcess")
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
 				parameters = self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]
 				KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, parameters).Execute()
@@ -505,7 +505,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			if is_remeshing:
 				if self.echo_level > 0:
-					KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: InitializeSolutionAfterRemeshing")
+					self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionAfterRemeshing")
 				self.RefineMappedVariables()
 				self.InitializeSolutionAfterRemeshing()
 				self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
@@ -518,7 +518,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 	def FindNeighboursIfNecessary(self):
 		if self.echo_level > 0:
-			KratosMultiphysics.Logger.PrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
 			self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
