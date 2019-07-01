@@ -764,7 +764,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
 	this->UpdateDataBase();
 
 	if (mDamage >= 0.98) {
-		this->Set(ACTIVE, false);
+		//this->Set(ACTIVE, false);
+		mDamage = 0.98;
 		// We set a "flag" to generate the DEM 
 		rCurrentProcessInfo[GENERATE_DEM] = true;
 	}
@@ -1342,12 +1343,12 @@ double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristic
 {
 	auto& r_geometry = pCurrentElement->GetGeometry();
 	const SizeType number_of_edges = r_geometry.EdgesNumber();
-	auto& edges = r_geometry.Edges();
+	const auto& r_edges = r_geometry.Edges();
 
 	double sum_of_lengths = 0.0;
 	for (IndexType i = 0; i < number_of_edges; ++i) {
-		auto& node_1 = edges[i][0];
-		auto& node_2 = edges[i][1];
+		auto& node_1 = r_edges[i][0];
+		auto& node_2 = r_edges[i][1];
 		auto coordinates_1 = node_1.GetInitialPosition();
 		auto coordinates_2 = node_2.GetInitialPosition();
 		sum_of_lengths += std::sqrt(std::pow(coordinates_1[0] - coordinates_2[0], 2) + 
