@@ -15,9 +15,9 @@ def Factory(settings, Model):
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
-    return MPMGiDOutputProcess(model_part, output_name, postprocess_parameters)
+    return ParticleGiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class MPMGiDOutputProcess(KratosMultiphysics.Process):
+class ParticleGiDOutputProcess(KratosMultiphysics.Process):
     defaults = KratosMultiphysics.Parameters("""{
         "result_file_configuration": {
             "gidpost_flags": {

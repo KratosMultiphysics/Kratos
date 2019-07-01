@@ -109,7 +109,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 gid_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
                                     self.project_parameters["grid_output_configuration"])
             elif parameter_name == "body_output":
-                from KratosMultiphysics.ParticleMechanicsApplication.mpm_gid_output_process import MPMGiDOutputProcess as OutputProcess
+                from KratosMultiphysics.ParticleMechanicsApplication.particle_gid_output_process import ParticleGiDOutputProcess as OutputProcess
                 mp_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Body"
                 gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(), mp_output_file_name,
                                     self.project_parameters["body_output_configuration"])
