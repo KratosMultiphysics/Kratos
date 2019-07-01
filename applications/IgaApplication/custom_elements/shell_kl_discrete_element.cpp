@@ -34,8 +34,7 @@ namespace Kratos
         KRATOS_TRY
         
         // if (m_phi1 == 1)
-        // KRATOS_WATCH("here: CalculateAllStart");
-
+        // KRATOS_WATCH("here: CalculateAllStart")
         
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
@@ -131,8 +130,6 @@ namespace Kratos
             // operation performed: rRightHandSideVector -= Weight*IntForce
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
-        
-            // KRATOS_WATCH(rRightHandSideVector)
         }
 
         //KRATOS_WATCH(rLeftHandSideMatrix)

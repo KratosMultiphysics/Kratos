@@ -1,5 +1,5 @@
-#if !defined(KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED)
-#define  KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED
+#if !defined(KRATOS_IGA_SHELL_5p_ELEMENT_STUTTGART_H_INCLUDED)
+#define  KRATOS_IGA_SHELL_5p_ELEMENT_STUTTGART_H_INCLUDED
 
 
 // System includes
@@ -20,32 +20,32 @@ namespace Kratos
 /// Short class definition.
 /** Reissner-Mindlin Shell with hierarchical shear vector. Optimized for Isogeometric Analysis by Oesterle et al..
 */
-class IgaShell5pElementPreInt
+class IgaShell5pElementStuttgart
     : public BaseDiscreteElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of IgaShell5pElementPreInt
-    KRATOS_CLASS_POINTER_DEFINITION(IgaShell5pElementPreInt);
+    /// Counted pointer of IgaShell5pElementStuttgart
+    KRATOS_CLASS_POINTER_DEFINITION(IgaShell5pElementStuttgart);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
     // Constructor using an array of nodes
-    IgaShell5pElementPreInt(IndexType NewId, GeometryType::Pointer pGeometry)
+    IgaShell5pElementStuttgart(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseDiscreteElement(NewId, pGeometry)
     {};
     // Constructor using an array of nodes with properties
-    IgaShell5pElementPreInt(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    IgaShell5pElementStuttgart(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseDiscreteElement(NewId, pGeometry, pProperties)
     {};
 
     // default constructor necessary for serialization
-    IgaShell5pElementPreInt() : BaseDiscreteElement() {};
+    IgaShell5pElementStuttgart() : BaseDiscreteElement() {};
 
     /// Destructor.
-    virtual ~IgaShell5pElementPreInt() override
+    virtual ~IgaShell5pElementStuttgart() override
     {};
 
     /**
@@ -61,7 +61,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared<IgaShell5pElementPreInt>(
+        return Kratos::make_shared<IgaShell5pElementStuttgart>(
             NewId, pGeom, pProperties);
     };
 
@@ -71,7 +71,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared< IgaShell5pElementPreInt >(
+        return Kratos::make_shared< IgaShell5pElementStuttgart >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -119,8 +119,8 @@ public:
     void GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
-    ) override;
-
+    ) override;    
+    
     /**
     * This function provides the place to perform checks on the completeness of the input.
     * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -160,6 +160,9 @@ private:
     ///@}
 	///@name Member Variables
 	///@{
+    // curvilinear coordinate zeta (theta3)
+    double mZeta;
+    
     /**
         * Internal variables used for metric transformation
         */
@@ -169,11 +172,11 @@ private:
         Vector gab_con; // contravariant metric
         Vector curvature; //
         Matrix J; //Jacobian
-        double  detJ;
-        Vector g1; //base vector 1
-        Vector g2; //base vector 2
-        Vector g3; //base vector 3
-        Vector g3_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        double  detJ;       // not used (ML)
+        Vector a1; //base vector 1 of the mid-surface
+        Vector a2; //base vector 2 of the mid-surface
+        Vector a3_KL; //base vector 3 of the mid-surface
+        Vector a3_KL_tilde; // unnormalized base vector 3 of the mid-surface, in Kiendl (2011) a_3_tilde
         double dA; //differential area
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
         Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
@@ -193,10 +196,10 @@ private:
             J = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
             detJ = 1.0;
 
-            g1 = ZeroVector(rWorkingSpaceDimension);
-            g2 = ZeroVector(rWorkingSpaceDimension);
-            g3 = ZeroVector(rWorkingSpaceDimension);
-            g3_tilde = ZeroVector(rWorkingSpaceDimension);
+            a1 = ZeroVector(rWorkingSpaceDimension);
+            a2 = ZeroVector(rWorkingSpaceDimension);
+            a3_KL = ZeroVector(rWorkingSpaceDimension);
+            a3_KL_tilde = ZeroVector(rWorkingSpaceDimension);
 
             dA = 1.0;
 
@@ -218,11 +221,11 @@ private:
         * The default constructor
         * @param StrainSize: The size of the strain vector in Voigt notation
         */
-        ConstitutiveVariables(const unsigned int& rStrainSize)
+        ConstitutiveVariables(const unsigned int& StrainSize)
         {
-            E = ZeroVector(rStrainSize);
-            S = ZeroVector(rStrainSize);
-            D = ZeroMatrix(rStrainSize, rStrainSize);
+            E = ZeroVector(StrainSize);
+            S = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 
@@ -234,45 +237,16 @@ private:
         Matrix B11;
         Matrix B22;
         Matrix B12;
-        Matrix B23;
-        Matrix B13;
 
         /**
         * The default constructor
         * @param StrainSize: The size of the strain vector in Voigt notation
         */
-        SecondVariations(const unsigned int& mat_size)
+        SecondVariations(const int& mat_size)
         {
             B11 = ZeroMatrix(mat_size, mat_size);
             B22 = ZeroMatrix(mat_size, mat_size);
             B12 = ZeroMatrix(mat_size, mat_size);
-            B23 = ZeroMatrix(mat_size, mat_size);
-            B13 = ZeroMatrix(mat_size, mat_size);
-        }
-
-        /**
-         * operator for addition (+)
-         */
-        SecondVariations operator+ (const SecondVariations& rSecondVariations)
-        {
-            KRATOS_TRY
-
-            if (B11.size1() != rSecondVariations.B11.size1()){
-                KRATOS_WATCH("Addition of SecondVariations of different size.")     // ML
-                KRATOS_ERROR << "Addition of SecondVariations of different size." << std::endl;
-            }
-            
-            unsigned int mat_size = B11.size1();
-            SecondVariations second_variations(mat_size);
-            second_variations.B11 = B11 + rSecondVariations.B11;
-            second_variations.B22 = B22 + rSecondVariations.B22;
-            second_variations.B12 = B12 + rSecondVariations.B12;
-            second_variations.B23 = B23 + rSecondVariations.B23;
-            second_variations.B13 = B13 + rSecondVariations.B13;
-
-            return second_variations;
-
-            KRATOS_CATCH("")
         }
     };
 
@@ -280,117 +254,50 @@ private:
     ///@}
     ///@name Operations
     ///@{
-    /**
-        * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
-        */
-    void CalculateAndAddKm(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& B,
-        const Matrix& D,
-        const double& rIntegrationWeight );
-
-    /**
-     * @brief The method calculates and adds the non-linear part of the stiffness matrix
-     * @param SecondVariationsStrain are seperated into a membrane and a curvature part
-     * @param SD = stress (bending or membrane stress respectively)
-     */
-    void CalculateAndAddNonlinearKm(
-        Matrix& rLeftHandSideMatrix,
-        const SecondVariations& SecondVariationsStrain,
-        const Vector& SD,
-        const double& rIntegrationWeight);
-
-    void CalculateMetric( MetricVariables& rMetric );
+    void CalculateMetric(MetricVariables& rMetric);
     
-    /**
-     * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
-     * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
-     */
-    void CalculateShearDifferenceVector(
-        Vector& rShearDifferenceVector,
-        Vector& rDw_D1,
-        Vector& rDw_D2,
-        Vector& rw_alpha,
-        Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric);
+    void calc_G_ref(
+        array_1d<double, 3>&      G1,            ///< erster Basisvektor (o)
+        array_1d<double, 3>&      G2,            ///< zweiter Basisvektor (o)
+        array_1d<double, 3>&      G3             ///< dritter Basisvektor (o)
+        );
 
-    /**
-    * This functions updates the constitutive variables
-    * @param rActualMetric: The actual metric
-    * @param rThisConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
-    void CalculateConstitutiveVariables(
+    void calc_g_act_linearisiert(
         const MetricVariables& rActualMetric,
-        const Vector& rShearDifferenceVector,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
-        const Vector& rDw_D1,
-        const Vector& rDw_D2,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
+        array_1d<double, 3>&      g1,            ///< erster Basisvektor (o)
+        array_1d<double, 3>&      g2,            ///< zweiter Basisvektor (o)
+        array_1d<double, 3>&      g3             ///< dritter Basisvektor (o)
+        );
 
-    void CalculateStrain(
-        Vector& rStrainVector,
-        const Vector& rgab);
-
-    void CalculateCurvature(
-        Vector& rCurvatureVector,
-        const Vector& rCurvature);
-
-    void CalculateStrainRM(
-        Vector& rStrainVectorRM,
-        const Vector& rShearDifferenceVector,
-        const Vector& rg1,
-        const Vector& rg2);
-
-    void CalculateCurvatureRM(
-        Vector& rCurvatureVectorRM,
-        const Vector& rDw_D1,
-        const Vector& rDw_D2,
-        const Vector& rg1,
-        const Vector& rg2);
+    void boperator_nln_linearisiert(
+        Matrix&              bop,                     ///< B-Operator (o)
+        array_1d<double, 5>&              Egl,                     ///< Green-Lagrange Verzerrungen (o)
+        const Vector&               funct,                   ///< Ansatzfunktionen ausgewertet an xi, eta (i)
+        const Matrix&               deriv,                   ///< erste Ableitungen der Ansatzfunktionen (i)
+        const Matrix&               s_deriv,                 ///< zweite Ableitungen der Ansatzfunktionen (i)
+        const MetricVariables& rActualMetric
+        );
+    
+    void kgeom_linearisiert(
+        Matrix&              IKg,                     ///< Integrand des geometrischen Steifigkeitsmatrix (o)
+        const Vector&               S,                       ///< Zweite Piola-Kirchhoff-Spannungen (i)
+        const Vector&               funct,                   ///< Ansatzfunktionen ausgewertet an xi, eta (i)
+        const Matrix&               deriv,                   ///< erste Ableitungen der Ansatzfunktionen (i)
+        const Matrix&               s_deriv,                 ///< zweite Ableitungen der Ansatzfunktionen (i)
+        const MetricVariables& rActualMetric
+        );
 
     void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
         const Vector rCurvilinearStrain,
         Vector& rCartesianStrain);
-
-	void CalculateBMembrane(
-		Matrix& rB,
-		const MetricVariables& rMetric);
-    
-	void CalculateBCurvature(
-		Matrix& rB,
-		const MetricVariables& rMetric);
-
-    void CalculateSecondVariationStrainCurvature(
-        SecondVariations& rSecondVariationsMembrane,
-        SecondVariations& rSecondVariationsCurvature,
-        const MetricVariables& rMetric);
-
-    void CalculateVariationsRM(        
-        Matrix& rBMembraneRM,
-        Matrix& rBCurvatureRM,
-        SecondVariations& rSecondVariationsMembraneRM,
-        SecondVariations& rSecondVariationsCurvatureRM,
-        const Vector& rShearDifferenceVector,
-        const Vector& rDw_D1,
-        const Vector& rDw_D2,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric,
-        const bool& rCalculateStiffnessMatrixFlag);
-    
+        
     /**
      * @brief Stress recovery
      */
     void Calculate(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo);
+        const Variable<double>& rVariable,
+        double& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
 
     ///@}
@@ -411,9 +318,9 @@ private:
 
     ///@}
 
-};     // Class IgaShell5pElementPreInt
+};     // Class IgaShell5pElementStuttgart
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED  defined
+#endif // KRATOS_IGA_SHELL_5p_ELEMENT_STUTTGART_H_INCLUDED  defined

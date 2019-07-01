@@ -30,6 +30,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaShell5pElementPreInt(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mIgaShell5pElementStuttgart(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
         
     , mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
@@ -52,6 +54,7 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_ELEMENT("IgaShell3pElement", mIgaShell3pElement)
     KRATOS_REGISTER_ELEMENT("IgaShell5pElement", mIgaShell5pElement)
     KRATOS_REGISTER_ELEMENT("IgaShell5pElementPreInt", mIgaShell5pElementPreInt)
+    KRATOS_REGISTER_ELEMENT("IgaShell5pElementStuttgart", mIgaShell5pElementStuttgart)
 
     KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)

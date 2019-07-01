@@ -228,11 +228,11 @@ namespace Kratos
         rMetric.g2[2] = rMetric.J(2, 1);
 
         //basis vector g3
-        MathUtils<double>::CrossProduct(rMetric.g3_notnorm, rMetric.g1, rMetric.g2);
+        MathUtils<double>::CrossProduct(rMetric.g3_tilde, rMetric.g1, rMetric.g2);
         //differential area dA
-        rMetric.dA = norm_2(rMetric.g3_notnorm);
+        rMetric.dA = norm_2(rMetric.g3_tilde);
         //normalized basis vector g3
-        rMetric.g3 = rMetric.g3_notnorm / rMetric.dA;
+        rMetric.g3 = rMetric.g3_tilde / rMetric.dA;
 
         //GetCovariantMetric
         rMetric.gab[0] = pow(rMetric.g1[0], 2) + pow(rMetric.g1[1], 2) + pow(rMetric.g1[2], 2);
@@ -574,11 +574,11 @@ namespace Kratos
 
                 for (unsigned int j = 0; j < 3; j++)
                 {
-                    double g3dg3lg3 = (rMetric.g3_notnorm[0] * dg3(j, 0) + rMetric.g3_notnorm[1] * dg3(j, 1) + rMetric.g3_notnorm[2] * dg3(j, 2))*inddA3;
+                    double g3dg3lg3 = (rMetric.g3_tilde[0] * dg3(j, 0) + rMetric.g3_tilde[1] * dg3(j, 1) + rMetric.g3_tilde[2] * dg3(j, 2))*inddA3;
 
-                    dn(j, 0) = dg3(j, 0)*invdA - rMetric.g3_notnorm[0] * g3dg3lg3;
-                    dn(j, 1) = dg3(j, 1)*invdA - rMetric.g3_notnorm[1] * g3dg3lg3;
-                    dn(j, 2) = dg3(j, 2)*invdA - rMetric.g3_notnorm[2] * g3dg3lg3;
+                    dn(j, 0) = dg3(j, 0)*invdA - rMetric.g3_tilde[0] * g3dg3lg3;
+                    dn(j, 1) = dg3(j, 1)*invdA - rMetric.g3_tilde[1] * g3dg3lg3;
+                    dn(j, 2) = dg3(j, 2)*invdA - rMetric.g3_tilde[2] * g3dg3lg3;
                 }
 
                 // b refers to curvilinear and rB to local cartesian coordinate system
@@ -688,12 +688,12 @@ namespace Kratos
                 S_dg3(1, r) = S_dg_1(2)*rMetric.g2(0) - S_dg_1(0)*rMetric.g2(2) + rMetric.g1(2)*S_dg_2(0) - rMetric.g1(0)*S_dg_2(2);
                 S_dg3(2, r) = S_dg_1(0)*rMetric.g2(1) - S_dg_1(1)*rMetric.g2(0) + rMetric.g1(0)*S_dg_2(1) - rMetric.g1(1)*S_dg_2(0);
 
-                S_g3dg3[r] = rMetric.g3_notnorm[0] * S_dg3(0, r) + rMetric.g3_notnorm[1] * S_dg3(1, r) + rMetric.g3_notnorm[2] * S_dg3(2, r);
+                S_g3dg3[r] = rMetric.g3_tilde[0] * S_dg3(0, r) + rMetric.g3_tilde[1] * S_dg3(1, r) + rMetric.g3_tilde[2] * S_dg3(2, r);
                 S_g3dg3lg3_3[r] = S_g3dg3[r] * inv_lg3_3;
 
-                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rMetric.g3_notnorm[0] * S_g3dg3lg3_3[r];
-                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rMetric.g3_notnorm[1] * S_g3dg3lg3_3[r];
-                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rMetric.g3_notnorm[2] * S_g3dg3lg3_3[r];
+                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rMetric.g3_tilde[0] * S_g3dg3lg3_3[r];
+                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rMetric.g3_tilde[1] * S_g3dg3lg3_3[r];
+                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rMetric.g3_tilde[2] * S_g3dg3lg3_3[r];
             }
 
             // second variation of strain and curvature w.r.t. dofs
@@ -736,16 +736,16 @@ namespace Kratos
                     else if (ddir == 1) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
                     else if (ddir == -2) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
 
-                    double c = -(ddg3[0] * rMetric.g3_notnorm[0] + ddg3[1] * rMetric.g3_notnorm[1] + ddg3[2] * rMetric.g3_notnorm[2]
+                    double c = -(ddg3[0] * rMetric.g3_tilde[0] + ddg3[1] * rMetric.g3_tilde[1] + ddg3[2] * rMetric.g3_tilde[2]
                         + S_dg3(0, r)*S_dg3(0, s) + S_dg3(1, r)*S_dg3(1, s) + S_dg3(2, r)*S_dg3(2, s)
                         )*inv_lg3_3;
 
                     double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
 
                     array_1d<double, 3> ddn = ZeroVector(3);
-                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rMetric.g3_notnorm[0];
-                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rMetric.g3_notnorm[1];
-                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.g3_notnorm[2];
+                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rMetric.g3_tilde[0];
+                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rMetric.g3_tilde[1];
+                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.g3_tilde[2];
 
                     array_1d<double, 3> ddK_cu = ZeroVector(3);
                     ddK_cu[0] = DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
