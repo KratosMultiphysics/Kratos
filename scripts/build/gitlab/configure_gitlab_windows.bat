@@ -6,17 +6,19 @@ powershell.exe -Command [Net.ServicePointManager]::SecurityProtocol = [Net.Secur
 %SEVEN_ZIP% e tetgen.zip -o"tetgen"
 cd ..\..\..\cmake_build
 
-%CMAKE% .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 	                        ^
--DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 		                        ^
+%CMAKE% .. -G "Visual Studio 15 2017 Win64"                                     ^
+-DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 	                    ^
+-DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 		                    ^
 -DBOOST_ROOT=%BOOST%                                                            ^
--DPYTHON_EXECUTABLE=%PYTHON%                          		 	                    ^
--DCMAKE_BUILD_TYPE="Custom"  							                                      ^
+-DLAPACK_LIBRARIES=%LAPACK%                                                     ^
+-DBLAS_LIBRARIES=%BLAS%                                                         ^
+-DPYTHON_EXECUTABLE=%PYTHON%                          		 	                ^
+-DCMAKE_BUILD_TYPE="Custom"  							                        ^
 -DDEM_APPLICATION=ON                                                            ^
--DEXTERNAL_SOLVERS_APPLICATION=OFF                                              ^
+-DEXTERNAL_SOLVERS_APPLICATION=ON                                               ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
--DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                  ^
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                   ^
 -DSWIMMING_DEM_APPLICATION=ON                                                   ^
 -DMESH_MOVING_APPLICATION=ON                                                    ^
 -DSOLID_MECHANICS_APPLICATION=ON                                                ^
