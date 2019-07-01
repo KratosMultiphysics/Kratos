@@ -5,6 +5,11 @@ message("**** configuring KratosExaquteSandboxApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
+
+if(NOT (${MESHING_APPLICATION} STREQUAL "ON"))
+    message(SEND_ERROR "The Meshing Application must be compiled before this one. Set MESHING_APPLICATION=ON in the configure file.")
+endif(NOT (${MESHING_APPLICATION} STREQUAL "ON"))
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
