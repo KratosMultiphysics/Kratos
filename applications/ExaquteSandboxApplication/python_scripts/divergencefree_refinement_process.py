@@ -51,7 +51,6 @@ class DivergenceFreeRefinementProcess(KratosMultiphysics.Process):
 
         # Metric construction process
         self.metric_divergencefree_parameters = settings["refinement_settings"]
-        print(self.metric_divergencefree_parameters)
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.fluid_model_part.ProcessInfo[KratosMultiphysics.TIME]
