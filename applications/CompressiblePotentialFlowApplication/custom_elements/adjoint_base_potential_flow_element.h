@@ -45,7 +45,7 @@ public:
     /**
      * Constructor.
      */
-    AdjointBasePotentialFlowElement(IndexType NewId = 0)
+    explicit AdjointBasePotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId))
     {};
@@ -141,8 +141,6 @@ protected:
     Element::Pointer mpPrimalElement;
 
     void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
-
-    double GetPerturbationSize();
 
 private:
 

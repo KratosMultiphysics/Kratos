@@ -88,6 +88,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    template <class TPrimalElement>
+    double AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::GetPerturbationSize()
+    {
+        const double delta = this->GetValue(SCALE_FACTOR);
+        KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+        return delta;
+    }
+
     /// Turn back information as a string.
     template <class TPrimalElement>
     std::string AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::Info() const
