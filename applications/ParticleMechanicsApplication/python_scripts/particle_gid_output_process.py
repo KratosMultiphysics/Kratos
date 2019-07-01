@@ -241,7 +241,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
     def _stop_time_measure(self, time_ip):
         time_fp = time.time()
-        KratosMultiphysics.Logger.PrintInfo("::[MPMGidOutputUtility]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
+        KratosMultiphysics.Logger.PrintInfo("::[Particle GiD Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
 
     def _is_scalar(self,variable):
         is_scalar = False

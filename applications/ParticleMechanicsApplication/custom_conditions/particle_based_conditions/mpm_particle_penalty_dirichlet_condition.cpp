@@ -89,6 +89,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             r_geometry[i].SetLock();
+            r_geometry[i].Set(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
             r_geometry[i].UnSetLock();
@@ -244,6 +245,7 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             r_geometry[i].SetLock();
+            r_geometry[i].Reset(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
             r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
             r_geometry[i].UnSetLock();
