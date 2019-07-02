@@ -6,8 +6,7 @@
         "start_time"      : 0.0,
         "end_time"        : 0.025
     },
-    "solver_settings"                  : {
-        "implementation"	      :"MPC",    
+    "solver_settings"                  : {    
         "solver_type"                 : "Monolithic",
         "domain_size"     : 2,
         "model_part_name" : "FluidModelPart",

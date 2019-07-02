@@ -9,7 +9,6 @@
     "output_processes" : {
     },
     "solver_settings"  : {
-        "implementation" : "MPC",
         "model_part_name"             : "FluidModelPart",
         "domain_size"                 : 2,
         "solver_type"                 : "fractional_step",
