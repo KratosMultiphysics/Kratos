@@ -121,7 +121,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         if self.filter_penalty_term:
             penalty_filter_radius = self.algorithm_settings["penalty_filter_radius"].GetDouble()
             filter_radius = self.mapper_settings["filter_radius"].GetDouble()
-            if abs(filter_radius - penalty_filter_radius) < 1e-9:
+            if abs(filter_radius - penalty_filter_radius) > 1e-9:
                 penalty_filter_settings = self.mapper_settings.Clone()
                 penalty_filter_settings["filter_radius"].SetDouble(self.algorithm_settings["penalty_filter_radius"].GetDouble())
                 self.penalty_filter = mapper_factory.CreateMapper(self.design_surface, self.design_surface, penalty_filter_settings)
