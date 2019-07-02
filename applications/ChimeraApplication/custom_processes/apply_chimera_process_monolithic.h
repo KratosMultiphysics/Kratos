@@ -65,18 +65,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    typedef ProcessInfo::Pointer ProcessInfoPointerType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
-    typedef std::size_t IndexType;
-    typedef Kratos::Variable<double> VariableType;
-    typedef std::vector<IndexType> ConstraintIdsVectorType;
-    typedef typename ModelPart::MasterSlaveConstraintType MasterSlaveConstraintType;
-    typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
-    typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
+    typedef ProcessInfo::Pointer                                                                    ProcessInfoPointerType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>  VariableComponentType;
+    typedef std::size_t                                                                             IndexType;
+    typedef Kratos::Variable<double>                                                                VariableType;
+    typedef std::vector<IndexType>                                                                  ConstraintIdsVectorType;
+    typedef typename ModelPart::MasterSlaveConstraintType                                           MasterSlaveConstraintType;
+    typedef typename ModelPart::MasterSlaveConstraintContainerType                                  MasterSlaveConstraintContainerType;
+    typedef std::vector<MasterSlaveConstraintContainerType>                                         MasterSlaveContainerVectorType;
 
-    typedef BinBasedFastPointLocator<TDim> PointLocatorType;
-    typedef CustomCalculateSignedDistanceProcess<TDim> DistanceCalculatorType;
-    typedef ChimeraHoleCuttingUtility HoleCuttingUtilityType;
+    typedef BinBasedFastPointLocator<TDim>                                                          PointLocatorType;
+    typedef TDistanceCalculatorType                                                                 DistanceCalculatorType;
+    typedef ChimeraHoleCuttingUtility                                                               HoleCuttingUtilityType;
 
     typedef typename PointLocatorType::Pointer PointLocatorPointerType;
 

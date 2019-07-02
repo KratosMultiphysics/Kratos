@@ -54,12 +54,12 @@ public:
     ///@name Pointer Definitions
     /// Pointer definition of ApplyChimeraProcessFractionalStep
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessFractionalStep);
-    typedef ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType> BaseType;
-    typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
-    typedef typename BaseType::PointLocatorType PointLocatorType;
-    typedef typename BaseType::PointLocatorPointerType PointLocatorPointerType;
-    typedef typename BaseType::MasterSlaveContainerVectorType MasterSlaveContainerVectorType;
-    typedef typename BaseType::ConstraintIdsVectorType ConstraintIdsVectorType;
+    typedef ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>            BaseType;
+    typedef typename BaseType::MasterSlaveConstraintContainerType                   MasterSlaveConstraintContainerType;
+    typedef typename BaseType::PointLocatorType                                     PointLocatorType;
+    typedef typename BaseType::PointLocatorPointerType                              PointLocatorPointerType;
+    typedef typename BaseType::MasterSlaveContainerVectorType                       MasterSlaveContainerVectorType;
+    typedef typename BaseType::ConstraintIdsVectorType                              ConstraintIdsVectorType;
 
     ///@}
     ///@name Life Cycle

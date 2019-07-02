@@ -19,7 +19,6 @@
 #include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-//#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_fractional_step.h"
 #include "custom_processes/rotate_region_process.h"
