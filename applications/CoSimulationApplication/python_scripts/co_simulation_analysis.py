@@ -43,10 +43,8 @@ class CoSimulationAnalysis(AnalysisStage):
         if problem_data.Has("flush_stdout"):
             self.flush_stdout = problem_data["flush_stdout"].GetBool()
         else:
-            if self.parallel_type == "OpenMP":
-                self.flush_stdout = True
-            else:
-                self.flush_stdout = False
+            # flush by default only in OpenMP, can decrease performance in MPI
+            self.flush_stdout = (self.parallel_type == "OpenMP")
 
     def Initialize(self):
         self._GetSolver().Initialize()
