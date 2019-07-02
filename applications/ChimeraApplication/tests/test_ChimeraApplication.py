@@ -45,7 +45,8 @@ def AssembleTestSuites():
 
     ## Validation suite. Big cases go here
     validationSuite = suites['validation']
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
+    #validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderMonolithic]))
+    #validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderFractionalStep]))
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
