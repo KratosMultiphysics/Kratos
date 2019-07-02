@@ -190,6 +190,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
     KRATOS_TRY
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int local_dimension = r_geom.LocalSpaceDimension();
     const unsigned int num_nodes = r_geom.PointsNumber();
     const unsigned int sensitivity_size = dimension * num_nodes;
 
@@ -210,8 +211,8 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
-        Matrix shape_function_local_gradients(num_nodes,dimension);
-        Matrix jacobian(dimension,dimension);
+        Matrix shape_function_local_gradients(num_nodes,local_dimension);
+        Matrix jacobian(dimension,local_dimension);
         Matrix jacobian_inv(dimension,dimension);
 
         Matrix shape_functions = r_geom.ShapeFunctionsValues(integration_method);
@@ -223,25 +224,18 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
             GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
 
             Vector N = row(shape_functions, g);
-            double q_gauss = prod(N,nodal_flux);
+            double q_gauss = inner_prod(N,nodal_flux);
 
             double det_j;
             MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
             const double weight = integration_points[g].Weight();
 
-            Vector primal_gradient = prod(trans(shape_function_global_gradients),primal_values);
-            Matrix laplacian_operator = prod(shape_function_global_gradients, trans(shape_function_global_gradients));
-            Vector laplacian_rhs = prod(laplacian_operator, primal_values);
-
             for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                const unsigned int l = deriv.NodeIndex * dimension + deriv.Direction;
                 double det_j_deriv;
                 GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
                 geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
-
-                Vector aux = prod(trans(shape_function_gradient_deriv), primal_values);
 
                 // d/dX_l (w * J * N_i * N_j * q_j) = w * N_i * N_j * q_j * dJ/dX_l
                 // Note that N_j * q_j = q_gauss
