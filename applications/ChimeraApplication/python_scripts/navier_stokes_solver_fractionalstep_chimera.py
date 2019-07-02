@@ -29,7 +29,6 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
             },
-            "implementation"    : "MPC",
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
             "maximum_pressure_iterations": 3,
@@ -155,30 +154,15 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
-            self.solver_settings = KratosCFD.FractionalStepSettingsPeriodic(self.computing_model_part,
-                                                                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                            self.settings.GetInt(),
-                                                                            self.settings["use_slip_conditions"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            KratosCFD.PATCH_INDEX)
-
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera Periodic conditions are not implemented in this case .")
+            raise NotImplementedError
         else:
-            if (self.settings["implementation"].GetString() == "MPC"):
-                print("fractional step chimera : MPC ")
-                self.solver_settings = KratosChimera.FractionalStepSettings(self.computing_model_part,
-                                                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                        self.settings["time_order"].GetInt(),
-                                                                        self.settings["use_slip_conditions"].GetBool(),
-                                                                        self.settings["move_mesh_flag"].GetBool(),
-                                                                        self.settings["reform_dofs_at_each_step"].GetBool())
-            else:
-                self.solver_settings = KratosChimera.FractionalStepSettings(self.computing_model_part,
-                                                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                        self.settings["time_order"].GetInt(),
-                                                                        self.settings["use_slip_conditions"].GetBool(),
-                                                                        self.settings["move_mesh_flag"].GetBool(),
-                                                                        self.settings["reform_dofs_at_each_step"].GetBool())
+            self.solver_settings = KratosChimera.FractionalStepSettings(self.computing_model_part,
+                                                                    self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                    self.settings["time_order"].GetInt(),
+                                                                    self.settings["use_slip_conditions"].GetBool(),
+                                                                    self.settings["move_mesh_flag"].GetBool(),
+                                                                    self.settings["reform_dofs_at_each_step"].GetBool())
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
