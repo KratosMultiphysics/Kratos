@@ -72,25 +72,18 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        print("qwe")
         self._GetSolver().ImportModelPart()
-        print("qwe0")
         self._GetSolver().PrepareModelPart()
-        print("qwe1")
         self._GetSolver().AddDofs()
-        
-        print("qwe2")
+
         self.ModifyInitialProperties()
-        print("qwe3")
         self.ModifyInitialGeometry()
-        print("qwe4")
 
         ##here we initialize user-provided processes
         self.__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
-            
-        print("qwe5")
+
         self._GetSolver().Initialize()
         self.Check()
 
