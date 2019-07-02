@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_application.h"
 
 namespace Kratos
 {
@@ -58,6 +59,13 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
 
 KRATOS_DEFINE_VARIABLE(double, PENALTY_FACTOR)
 
+//DEM variables
+KRATOS_DEFINE_VARIABLE(double, RADIUS)
+
+KRATOS_DEFINE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
+typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
+KRATOS_DEFINE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)
+KRATOS_DEFINE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_TOTAL_FORCES)
 } // namespace Kratos
 
 #endif // !defined(KRATOS_IGA_APPLICATION_VARIABLES_H_INCLUDED)

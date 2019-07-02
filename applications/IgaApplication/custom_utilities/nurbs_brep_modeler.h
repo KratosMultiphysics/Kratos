@@ -12,6 +12,7 @@
 #include "brep_topology/brep_model.h"
 
 #include "integration_utilities/iga_integration_utilities.h"
+#include "integration_utilities/iga_integration_point_utilities.h"
 
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_utilities/search_utilities/bins_iga_configure.h"
@@ -81,7 +82,7 @@ namespace Kratos
             ModelPart& rIgaModelPart,
             ModelPart& rInterfaceConditionsModelPart,
             const std::string& rConditionName,
-            const double ShapeFunctionDerivativesOrder,
+            const int ShapeFunctionDerivativesOrder,
             const double SearchRadius,
             const double Accuracy,
             const double Tolerance,

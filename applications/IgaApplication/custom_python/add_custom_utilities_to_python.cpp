@@ -839,6 +839,7 @@ namespace Kratos {
         .def(pybind11::init<ModelPart&>())
         .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
         .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
+        .def("GetInterfaceConditionsDEM", &NurbsBrepModeler::GetInterfaceConditionsDEM)
         ;
 }
 

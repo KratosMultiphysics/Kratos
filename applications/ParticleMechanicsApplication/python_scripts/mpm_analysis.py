@@ -26,36 +26,6 @@ class MpmAnalysis(AnalysisStage):
     This class is the analysis script for MPM of the ParticleMechanicsApplication
     """
 
-    #### Includes additional time checks ####
-    def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage"""
-        import time
-
-        ## Analysis timer start
-        analysis_start_time = time.time()
-
-        while self.time < self.end_time:
-            ## Solution loop timer start
-            start_solve_time = time.time()
-
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
-            ## Stop solution loop timer
-            end_solve_time = time.time()
-            if self.is_printing_rank:
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
-
-        ## Stop analysis timer
-        analysis_end_time = time.time()
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
-
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """

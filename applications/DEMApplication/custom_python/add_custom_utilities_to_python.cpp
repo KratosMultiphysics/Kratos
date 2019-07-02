@@ -355,6 +355,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
         ;
+
+    m.def("TranslateGridOfNodes", &GeometryFunctions::TranslateGridOfNodes);
+    m.def("RotateGridOfNodes", &GeometryFunctions::RotateGridOfNodes);
+    m.def("UpdateKinematicVariablesOfAGridOfNodes", &GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes);
     }
 
 

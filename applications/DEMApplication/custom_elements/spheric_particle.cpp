@@ -1068,8 +1068,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     auto& neighbour_point_faces_total_contact_force = this->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES);
 
     for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
-        Condition* wall = list_of_point_condition_pointers[i];
-        Node<3>& cond_node = wall->GetGeometry()[0];
+        Condition* wall_condition = list_of_point_condition_pointers[i];
 
         double RelVel[3]                         = {0.0};
         double LocalElasticContactForce[3]       = {0.0};
@@ -1079,13 +1078,13 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
 
-        array_1d<double, 3> wall_delta_disp_at_contact_point = cond_node.GetSolutionStepValue(DELTA_DISPLACEMENT);
-        array_1d<double, 3> wall_velocity_at_contact_point = cond_node.GetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> wall_delta_disp_at_contact_point = wall_condition->GetGeometry().FastGetSolutionStepValue(DELTA_DISPLACEMENT, 0);
+        array_1d<double, 3> wall_velocity_at_contact_point = wall_condition->GetGeometry().FastGetSolutionStepValue(VELOCITY, 0);
         bool sliding = false;
         double ini_delta = 0.0;
 
         array_1d<double, 3> cond_to_me_vect;
-        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - cond_node.Coordinates();
+        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_condition->GetGeometry().Coordinates(Point(), 0);
         double DistPToB = DEM_MODULUS_3(cond_to_me_vect);;
 
         double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
@@ -1102,7 +1101,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
         DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
-        data_buffer.mpOtherParticleNode = &cond_node;
+        Node<3>::Pointer other_particle_node = this->GetGeometry()[0].Clone();
+        other_particle_node->GetSolutionStepValue(DELTA_DISPLACEMENT) = wall_delta_disp_at_contact_point;
+        data_buffer.mpOtherParticleNode = &*other_particle_node;
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherToMeVector, cond_to_me_vect)
         data_buffer.mDistance = DistPToB;
         data_buffer.mDomainIsPeriodic = false;
@@ -1149,7 +1150,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                                                                 ViscoDampingLocalContactForce,
                                                                 cohesive_force,
                                                                 this,
-                                                                wall,
+                                                                wall_condition,
                                                                 sliding);
         }
 

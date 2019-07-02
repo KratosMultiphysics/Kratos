@@ -66,6 +66,8 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR)
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RADIUS)
+
     AddCustomUtilitiesToPython(m);
 }
 

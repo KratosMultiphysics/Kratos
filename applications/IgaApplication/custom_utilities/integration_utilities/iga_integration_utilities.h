@@ -390,7 +390,7 @@ namespace IgaIntegrationUtilities
                 DN_De_type[0] = DN_De;
 
                 Geometry<Node<3>>::IntegrationPointsArrayType ips(1);
-                ips[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], 1);
+                ips[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], integration_points[ip].weight);
 
                 IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType ips_container =
                 { { ips } };
@@ -540,11 +540,11 @@ namespace IgaIntegrationUtilities
                     Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients_master(1);
                     shape_function_gradients_master[0] = shape_function_derivative_master;
 
-                    Geometry<Node<3>>::IntegrationPointsArrayType integration_points(1);
-                    integration_points[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], 1);
+                    Geometry<Node<3>>::IntegrationPointsArrayType ips(1);
+                    ips[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], integration_points[ip].weight);
 
                     IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType IntegrationPointsArray =
-                    { { integration_points } };
+                    { { ips } };
                     IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer_master =
                     { { shape_function_master } };
                     IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType sfgcontainer_master =
@@ -617,11 +617,11 @@ namespace IgaIntegrationUtilities
                     Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients_slave(1);
                     shape_function_gradients_slave[0] = shape_function_derivative_slave;
 
-                    Geometry<Node<3>>::IntegrationPointsArrayType integration_points_slave(1);
-                    integration_points_slave[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], 1);
+                    Geometry<Node<3>>::IntegrationPointsArrayType ips_slave(1);
+                    ips_slave[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(local_coordinates[0], local_coordinates[1], integration_points[ip].weight);
 
                     IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType IntegrationPointsArray_slave =
-                    { { integration_points_slave } };
+                    { { ips_slave } };
                     IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer_slave =
                     { { shape_function_slave } };
                     IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType sfgcontainer_slave =

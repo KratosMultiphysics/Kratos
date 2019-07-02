@@ -39,7 +39,6 @@ namespace Kratos
         CalculateMetric(initial_metric);
         mInitialMetric = initial_metric;
 
-
         KRATOS_CATCH("")
     }
 

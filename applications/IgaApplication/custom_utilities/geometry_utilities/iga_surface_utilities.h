@@ -107,38 +107,40 @@ namespace IgaSurfaceUtilities
         const array_1d<double, 3>& rPoint,
         const double Accuracy,
         const double Tolerance,
-        const double NumberOfIterations,
+        const double MaxIterations,
         array_1d<double, 2>& rNewLocalCoordinates
     )
     {
-        return true;
-        //return IgaSurfaceUtilities::NewtonRaphson(
-        //    pSurface,
-        //    rPoint,
-        //    rLocalCoordinates[0],
-        //    rLocalCoordinates[1],
-        //    rNewLocalCoordinates[0],
-        //    rNewLocalCoordinates[1],
-        //    Accuracy,
-        //    Tolerance,
-        //    NumberOfIterations
-        //);
-    }
+    //    //return true;
+    //    NewtonRaphson(
+    //        pSurface,
+    //        rPoint,
+    //        rLocalCoordinates[0],
+    //        rLocalCoordinates[1],
+    //        rNewLocalCoordinates[0],
+    //        rNewLocalCoordinates[1],
+    //        Accuracy,
+    //        Tolerance,
+    //        NumberOfIterations
+    //    );
 
-    static bool NewtonRaphson(
-        const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
-        const array_1d<double, 3>& rPoint,
-        const double InitialU,
-        const double InitialV,
-        double& rU,
-        double& rV,
-        const double Accuracy,
-        const double Tolerance,
-        const double MaxIterations
-    )
-    {
-        rU = InitialU;
-        rV = InitialV;
+    //    return true;
+    //}
+
+    //static bool NewtonRaphson(
+    //    const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
+    //    const array_1d<double, 3>& rPoint,
+    //    const double InitialU,
+    //    const double InitialV,
+    //    double& rU,
+    //    double& rV,
+    //    const double Accuracy,
+    //    const double Tolerance,
+    //    const double MaxIterations
+    //)
+    //{
+        double rU = rLocalCoordinates[0];
+        double rV = rLocalCoordinates[1];
 
         //ScalarType eps1 = 0.00001;
         //ScalarType eps2 = 0.000005;
@@ -156,6 +158,9 @@ namespace IgaSurfaceUtilities
             const double c1v = norm_2(distance);
 
             if (c1v < Accuracy) {
+                rNewLocalCoordinates[0] = rU;
+                rNewLocalCoordinates[1] = rV;
+
                 return true;
             }
 
@@ -172,6 +177,9 @@ namespace IgaSurfaceUtilities
             double c2bv = c2bn / c2bd;
 
             if (c2av < Tolerance && c2bv < Tolerance) {
+                rNewLocalCoordinates[0] = rU;
+                rNewLocalCoordinates[1] = rV;
+
                 return true;
             }
 
@@ -191,6 +199,8 @@ namespace IgaSurfaceUtilities
             rV += d_v;
         }
 
+        rNewLocalCoordinates[0] = rU;
+        rNewLocalCoordinates[1] = rV;
         return false;
     }
 }

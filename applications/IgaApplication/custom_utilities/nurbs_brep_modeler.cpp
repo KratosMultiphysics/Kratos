@@ -454,14 +454,14 @@ namespace Kratos
         ModelPart& rIgaModelPart,
         ModelPart& rInterfaceConditionsModelPart,
         const std::string& rConditionName,
-        const double ShapeFunctionDerivativesOrder,
+        const int ShapeFunctionDerivativesOrder,
         const double SearchRadius,
         const double Accuracy,
         const double Tolerance,
         const double NumberOfIterations)
     {
         const Condition& ReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
-        ModelPart::ConditionsContainerType new_condition_list;
+
 
         BinsIgaConfigure::ContainerType BinsIgaObjects;
         BinsIgaObjects.resize(rIgaModelPart.NumberOfElements());
@@ -486,7 +486,15 @@ namespace Kratos
             particle_element_ptr != rExternalModelPart.ElementsEnd();
             ++particle_element_ptr)
         {
-            double radius = particle_element_ptr->GetGeometry()[0].FastGetSolutionStepValue(PRESTRESS_CAUCHY);
+            ModelPart::ConditionsContainerType new_condition_list;
+
+            std::vector<Condition*> new_conditions;
+            std::vector<array_1d<double, 3>> new_elastic_forces;
+            std::vector<array_1d<double, 3>> new_total_forces;
+
+
+
+            double radius = particle_element_ptr->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
             auto results_itr = neighbor_results.begin();
             auto distance_itr = neighbor_distances.begin();
@@ -494,6 +502,8 @@ namespace Kratos
             //update coordinates of extern
             array_1d<double, 3> coords = particle_element_ptr->GetGeometry()[0].Coordinates();
             particle_object->UpdateCoordinates(coords);
+
+            KRATOS_WATCH(coords)
 
             const std::size_t number_of_results = iga_bins_structure.SearchObjectsInRadius(
                 particle_object,
@@ -503,12 +513,12 @@ namespace Kratos
                 num_interface_obj_bin);
 
             // todo: neglect bad solutions
-
+            KRATOS_WATCH(number_of_results)
             if (number_of_results > 0)
             {
                 Element::Pointer p_closest_element;
                 double distance_to_node = 1e10;
-                std::vector<array_1d<double, 2>> new_locations;
+                std::vector<Geometry<Node<3>>::Pointer> new_contact_geometries;
                 for (int i = 0; i < number_of_results; ++i)
                 {
                     int brep_id = neighbor_results[i]->pGetBaseElement()->GetValue(BREP_ID);
@@ -516,6 +526,10 @@ namespace Kratos
                     auto surface = GetBrepFace(brep_id).GetSurface();
 
                     array_1d<double, 2> new_location(0.0);
+
+                    KRATOS_WATCH(neighbor_results[i]->pGetBaseElement()->GetValue(LOCAL_COORDINATES))
+                    KRATOS_WATCH(particle_element_ptr->GetGeometry()[0].Coordinates())
+
                     if (IgaSurfaceUtilities::ProjectNodeOnSurface(
                         surface,
                         neighbor_results[i]->pGetBaseElement()->GetValue(LOCAL_COORDINATES),
@@ -527,47 +541,85 @@ namespace Kratos
                     {
                         // TODO: Check inside
 
-                        array_1d<double, 2> point = surface->PointAt(new_location[0], new_location[1]);
+                        array_1d<double, 3> point = surface->PointAt(new_location[0], new_location[1]);
 
-                        if (new_locations.size() > 0)
+                        // check if new location is already existant
+                        for (int locations_itr = 0; locations_itr < new_contact_geometries.size(); ++locations_itr)
                         {
-                            for (int locations_itr = 0; locations_itr < new_locations.size(); ++locations_itr)
+                            double distance_to_existant_point = norm_2(point - new_contact_geometries[locations_itr]->Center());
+                            if (distance_to_existant_point < Tolerance)
                             {
-                                double distance = norm_2(new_location - new_locations[locations_itr]);
-                                if (distance > Tolerance)
-                                {
-                                    new_locations.push_back(new_location);
-                                }
+                                goto cnt;
                             }
                         }
+
+                        double distance_particle_to_contact = norm_2(point - particle_element_ptr->GetGeometry()[0].Coordinates());
+                        if (distance_particle_to_contact <= radius)
+                        {
+                            auto new_geometry = IgaIntegrationPointUtilities::GetIntegrationPointSurface(
+                                surface,
+                                new_location,
+                                ShapeFunctionDerivativesOrder
+                            );
+                            new_contact_geometries.push_back(new_geometry);
+                        }
                     }
+
+                    cnt:;
                 }
 
+                for (auto contact_geometry : new_contact_geometries)
+                {
+                    for ( int i = 0; i < rInterfaceConditionsModelPart.NumberOfConditions(); ++i)
+                    {
+                        array_1d<double, 3> distance_vector = contact_geometry->Center() - rInterfaceConditionsModelPart.Conditions()[i].GetGeometry().Center();
+                        if (norm_2(distance_vector) < Tolerance)
+                        {
+                            auto p_condition = ReferenceCondition.Create(
+                                rInterfaceConditionsModelPart.Conditions()[i].Id(),
+                                contact_geometry,
+                                particle_element_ptr->pGetProperties());
 
-        //        //Create new tolerances
-        //        if (rTolerance > distance_to_node)
-        //        {
-        //            auto p_condition = ReferenceCondition.Create(
-        //                rIdCounter,
-        //                p_closest_element->pGetGeometry(),
-        //                p_closest_element->pGetProperties());
+                            new_elastic_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i]);
+                            new_total_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i]);
 
-        //            // Deep copy elemental data and flags
-        //            p_condition->Data() = p_closest_element->Data();
-        //            p_condition->Set(Flags(*p_closest_element));
+                            new_condition_list.push_back(p_condition);
+                            new_conditions.push_back(&*p_condition);
 
-        //            new_condition_list.push_back(p_condition);
+                            break;
+                        }
+                    }
 
-        //            rIdCounter++;
-        //            continue;
-        //        }
-        //        KRATOS_ERROR << "No projected point found within tolerance!" << std::endl;
-        //    }
-        //    else
-        //    {
-        //        KRATOS_ERROR << "No Iga element in search radius found!" << std::endl;
+                    int id = 1;
+                    if (rInterfaceConditionsModelPart.GetRootModelPart().Conditions().size() > 0)
+                        id = rInterfaceConditionsModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+
+                    auto p_condition = ReferenceCondition.Create(
+                        id,
+                        contact_geometry,
+                        particle_element_ptr->pGetProperties());
+
+                    new_elastic_forces.push_back(ZeroVector(3));
+                    new_total_forces.push_back(ZeroVector(3));
+
+                    new_condition_list.push_back(p_condition);
+                    new_conditions.push_back(&*p_condition);
+                }
+
+                int condition_length = particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size();
+                std::vector<Vector> coords;
+                ProcessInfo emptyProcessInfo = ProcessInfo();
+                for (int i = 0; i < condition_length; ++i)
+                {
+                    rInterfaceConditionsModelPart.RemoveConditionFromAllLevels(*(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[i]));
+                }
+
+                rInterfaceConditionsModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+                particle_element_ptr->SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, new_elastic_forces);
+                particle_element_ptr->SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, new_total_forces);
+                particle_element_ptr->SetValue(WALL_POINT_CONDITION_POINTERS, new_conditions);
             }
-            rInterfaceConditionsModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
         }
     }
 
