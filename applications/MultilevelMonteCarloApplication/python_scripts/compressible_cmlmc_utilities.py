@@ -480,10 +480,10 @@ class MultilevelMonteCarlo(object):
         # splitting_parameter_min : min value parameter splitting discretization and statistical errors
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "run_multilevel_monte_carlo" : "True",
-            "adaptive_refinement"        : "True",
-            "store_lower_levels_samples" : "False",
-            "adaptive_number_samples"    : "False",
+            "run_multilevel_monte_carlo" : true,
+            "adaptive_refinement"        : true,
+            "store_lower_levels_samples" : false,
+            "adaptive_number_samples"    : false,
             "refinement_strategy"        : "concurrent_adaptive_refinement",
             "convergence_criteria"       : "total_error_stopping_rule",
             "tasks_refinement_sample_all_at_once" : false,
@@ -519,7 +519,7 @@ class MultilevelMonteCarlo(object):
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # warning if store_lower_levels_samples is True
-        if (self.settings["store_lower_levels_samples"].GetString() == "True"):
+        if (self.settings["store_lower_levels_samples"].GetBool()):
             print("\n ######## WARNING: store_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
         # current_number_levels: number of levels of current iteration
         self.current_number_levels = self.settings["levels_screening"].GetInt()
@@ -620,7 +620,7 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def Run(self):
-        if (self.settings["run_multilevel_monte_carlo"].GetString() == "True"):
+        if (self.settings["run_multilevel_monte_carlo"].GetBool()):
             start_time = time.time()
             self.SerializeRefinementParameters()
             self.SerializeModelParameters()
@@ -734,8 +734,8 @@ class MultilevelMonteCarlo(object):
     def InitializeScreeningPhase(self):
         if (self.iteration_counter == 0):
             self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
-            # self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
-            self.batches_number_samples = [[((10**(self.settings["maximum_number_levels"].GetInt()-level)))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            # self.batches_number_samples = [[((10**(self.settings["maximum_number_levels"].GetInt()-level)))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.running_number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
@@ -999,7 +999,7 @@ class MultilevelMonteCarlo(object):
     def UpdateBatches(self):
         # set here number of batches to append
         new_number_batches = 1
-        if (self.settings["adaptive_number_samples"].GetString() == "True"):
+        if (self.settings["adaptive_number_samples"].GetBool() is True):
             # compute optimal number of levels
             self.ComputeLevels()
             # compute theta splitting parameter according to the current_number_levels and tolerance_i
@@ -1007,7 +1007,7 @@ class MultilevelMonteCarlo(object):
             # compute number of samples according to bayesian_variance and theta_i parameters
             # TODO: rename UpdateBatchSize this function
             self.ComputeNumberSamples()
-        elif (self.settings["adaptive_number_samples"].GetString() == "False"):
+        elif (self.settings["adaptive_number_samples"].GetBool() is False):
             #  add one level per time
             self.current_number_levels = min(self.current_number_levels+1,self.settings["maximum_number_levels"].GetInt())
             # compute theta splitting parameter according to the current_number_levels and tolerance_i
@@ -1164,7 +1164,7 @@ class MultilevelMonteCarlo(object):
         # store MultilevelMonteCarloResult class of working branch in a list
         simulation_results = list(map(lambda x: x[0], simulation_results))
         # check if storing lower levels samples or not and prepare for loop
-        if (self.settings["store_lower_levels_samples"].GetString() == "True"):
+        if (self.settings["store_lower_levels_samples"].GetBool()):
             start_level = 0
         else:
             start_level = np.maximum(0,current_level)

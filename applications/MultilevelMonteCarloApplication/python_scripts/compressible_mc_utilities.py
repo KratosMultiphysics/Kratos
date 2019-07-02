@@ -208,7 +208,7 @@ class MonteCarlo(object):
         # convergence_criteria: convergence criteria to compute convergence
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "run_monte_carlo" : "True",
+            "run_monte_carlo" : true,
             "tolerance"  : 1e-1,
             "tolerance_absolute" : 1e-6,
             "confidence" : 9e-1,
@@ -282,7 +282,7 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def Run(self):
-        if (self.settings["run_monte_carlo"].GetString() == "True"):
+        if (self.settings["run_monte_carlo"].GetBool()):
             self.SerializeModelParameters()
             self.InitializeMCPhase()
             self.ScreeningInfoInitializeMCPhase()
