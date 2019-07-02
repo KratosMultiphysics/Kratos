@@ -212,9 +212,7 @@ endif()
 
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
-# add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
-# set_target_properties(Kratos PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
@@ -238,24 +236,9 @@ if(USE_COTIRE MATCHES ON)
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
 
-## Changing the .dll suffix to .pyd (For Windows)
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#     if(${KRATOS_BUILD_TESTING} MATCHES ON)
-#         set_target_properties(KratosTests PROPERTIES SUFFIX .pyd)
-#     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-#     set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
-# endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#
-# ## Changing the .dylib suffix to .so (For MacOS)
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#     if(${KRATOS_BUILD_TESTING} MATCHES ON)
-#         set_target_properties(KratosTests PROPERTIES SUFFIX .so)
-#     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-#     set_target_properties(Kratos PROPERTIES SUFFIX .so)
-# endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-install(TARGETS Kratos DESTINATION libs )
-install(TARGETS KratosCore DESTINATION libs)
+# Install python scripts
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/ )
 
 # Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
@@ -268,10 +251,6 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-# Install python scripts
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    #kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts kratos/ )
-    kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/ )
-    #install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Install targets
+install(TARGETS Kratos DESTINATION libs )
+install(TARGETS KratosCore DESTINATION libs)

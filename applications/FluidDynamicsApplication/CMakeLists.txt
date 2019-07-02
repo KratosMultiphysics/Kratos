@@ -123,6 +123,9 @@ if(USE_COTIRE MATCHES ON)
     cotire(KratosFluidDynamicsApplication)
 endif(USE_COTIRE MATCHES ON)
 
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
+
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
@@ -140,6 +143,3 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${C
 # Install targets
 install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
-
-# Add to the KratosMultiphisics Python module
-kratos_python_install(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
