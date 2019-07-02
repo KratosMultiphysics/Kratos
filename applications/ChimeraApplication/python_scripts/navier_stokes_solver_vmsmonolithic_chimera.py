@@ -88,7 +88,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.formulation.SetProcessInfo(self.computing_model_part)
-       
+
         (self.solver).Initialize()
 
         self.solver.Check()
