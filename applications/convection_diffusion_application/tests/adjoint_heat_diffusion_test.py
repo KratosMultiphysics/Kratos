@@ -34,7 +34,7 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             adjoint_analysis = ConvectionDiffusionAnalysis(model,settings["adjoint_settings"])
             adjoint_analysis.Run()
 
-            self.perturbedSolution(model, settings["primal_settings"],[9],1e-6)
+            self.perturbedSolution(model, settings["primal_settings"],[6],1e-6)
 
     def primalSolution(self, model, settings):
 
@@ -75,9 +75,6 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
                 y_temp += node.GetSolutionStepValue(kratos.TEMPERATURE)
             y_temp /= len(model_y.GetModelPart(model_part_name+"."+objective_model_part_name).Nodes)
 
-            print(base_temp/perturbation_magnitude)
-            print(x_temp/perturbation_magnitude)
-            print(y_temp/perturbation_magnitude)
             print([(x_temp-base_temp)/perturbation_magnitude, (y_temp-base_temp)/perturbation_magnitude])
 
 
