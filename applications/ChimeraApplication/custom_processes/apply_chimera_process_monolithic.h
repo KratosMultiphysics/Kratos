@@ -145,12 +145,6 @@ protected:
     std::vector<int> mLevelTable;
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
-
-    std::string mBackgroundModelPartName;
-    std::string mDomainBoundaryModelPartName;
-    std::string mPatchModelPartName;
-    std::string mPatchInsideBoundaryModelPartName;
-
     ///@}
     ///@name Protected Operators
     ///@{
