@@ -31,8 +31,8 @@
             "tolerance": 1e-9,
             "verbosity": 3,
             "scaling": false
-        }
-
+        },
+        "auxiliary_variables_list" : ["NODAL_H","GEOMETRY_DISTANCE"]
     },
     "processes"            : {
         "initial_conditions_process_list"  : [],
