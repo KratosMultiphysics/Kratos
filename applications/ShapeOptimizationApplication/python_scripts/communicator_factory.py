@@ -212,10 +212,10 @@ class Communicator:
         response_type = self.list_of_responses[response_id]["type"]
         scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
 
-        gradient.update({key: [factor*value[0],factor*value[1],factor*value[2]] for key, value in gradient.items()})
+        gradient = {key: [scaling_factor*value[0],scaling_factor*value[1],scaling_factor*value[2]] for key, value in gradient.items()}
 
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
-            gradient.update({key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()})
+            gradient = {key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()}
         return gradient
 
     # --------------------------------------------------------------------------
