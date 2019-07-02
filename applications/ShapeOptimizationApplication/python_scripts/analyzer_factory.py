@@ -258,7 +258,7 @@ class Analyzer:
     def __GetIdentifiersRecursively(self, dependencies):
         identifiers = []
 
-        for response_id, dependencies, weight in dependencies:
+        for response_id, dependencies, _ in dependencies:
             identifiers += [response_id]
             if len(dependencies) > 0:
                 sub_identifiers = self.__GetIdentifiersRecursively(dependencies)
@@ -271,7 +271,7 @@ class Analyzer:
         identifiers = []
         values = []
 
-        for response_id, dependencies, weight in dependencies:
+        for response_id, dependencies, _ in dependencies:
             identifiers += [response_id]
             values += [communicator.getValue(response_id)]
             if len(dependencies) > 0:
