@@ -39,7 +39,7 @@ void ComputeSandProduction::Execute()
         auto it_elem = it_element_begin + i;
         std::vector<double> damage;  
         it_elem->GetValueOnIntegrationPoints(DAMAGE_ELEMENT, damage, r_process_info);
-        if (damage[0] >= 0.98 && !it_elem->GetValue(VOLUME_COUNTED)) {
+        if (damage[0] >= 0.7 && !it_elem->GetValue(VOLUME_COUNTED)) {
             erased_volume += it_elem->GetGeometry().Volume();
             it_elem->SetValue(VOLUME_COUNTED, true);
         }
