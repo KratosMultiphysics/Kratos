@@ -214,6 +214,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
     KRATOS_CATCH("")
 }
 
-template class AdjointFluxCondition<FluxCondition>;
+template class AdjointFluxCondition<FluxCondition<2>>;
+template class AdjointFluxCondition<FluxCondition<3>>;
 
 }
