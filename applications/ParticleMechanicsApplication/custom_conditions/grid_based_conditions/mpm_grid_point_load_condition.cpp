@@ -75,11 +75,11 @@ void MPMGridPointLoadCondition::CalculateAll(
 {
     KRATOS_TRY
 
-    const unsigned int NumberOfNodes = GetGeometry().size();
+    const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int matrix_size = NumberOfNodes * Dimension;
+    const unsigned int matrix_size = number_of_nodes * Dimension;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
@@ -109,7 +109,7 @@ void MPMGridPointLoadCondition::CalculateAll(
         noalias(PointLoad) = this->GetValue( POINT_LOAD );
     }
 
-    for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+    for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
     {
         const unsigned int base = ii*Dimension;
 

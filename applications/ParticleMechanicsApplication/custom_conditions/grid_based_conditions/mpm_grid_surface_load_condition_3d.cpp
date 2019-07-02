@@ -217,8 +217,8 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
     // Reading integration points and local gradients
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(integration_method);
-    const Matrix& Ncontainer = r_geometry.ShapeFunctionsValues(integration_method);
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Calculating actual jacobian
     GeometryType::JacobiansType J;
@@ -267,7 +267,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
     {
         const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
-        const auto& N = row(Ncontainer, point_number);
+        const auto& N = row(r_N, point_number);
 
         ge[0] = J[point_number](0, 0);
         gn[0] = J[point_number](0, 1);
@@ -291,7 +291,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         {
             if (std::abs(pressure) > std::numeric_limits<double>::epsilon())
             {
-                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, DN_DeContainer[point_number], N, pressure, integration_weight);
+                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, r_DN_De[point_number], N, pressure, integration_weight);
             }
         }
 

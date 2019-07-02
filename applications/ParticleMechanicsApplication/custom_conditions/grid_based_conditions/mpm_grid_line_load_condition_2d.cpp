@@ -120,7 +120,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
 
-    const Matrix& Ncontainer = r_geometry.ShapeFunctionsValues(integration_method);
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Sizing work matrices
     Vector pressure_on_nodes = ZeroVector( number_of_nodes );
@@ -187,14 +187,14 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         double gauss_pressure = 0.0;
         for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
         {
-            gauss_pressure += Ncontainer( point_number, ii ) * pressure_on_nodes[ii];
+            gauss_pressure += r_N( point_number, ii ) * pressure_on_nodes[ii];
         }
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
             if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
-                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[point_number], row( Ncontainer, point_number ), gauss_pressure, integration_weight );
+                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[point_number], row( r_N, point_number ), gauss_pressure, integration_weight );
             }
         }
         // Adding contributions to the residual vector
@@ -202,7 +202,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         {
             if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
-                CalculateAndAddPressureForce( rRightHandSideVector, row( Ncontainer, point_number ), normal, gauss_pressure, integration_weight );
+                CalculateAndAddPressureForce( rRightHandSideVector, row( r_N, point_number ), normal, gauss_pressure, integration_weight );
             }
         }
 
@@ -211,7 +211,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         {
             if( r_geometry[ii].SolutionStepsDataHas( LINE_LOAD ) )
             {
-                noalias(gauss_load) += ( Ncontainer( point_number, ii )) * r_geometry[ii].FastGetSolutionStepValue( LINE_LOAD );
+                noalias(gauss_load) += ( r_N( point_number, ii )) * r_geometry[ii].FastGetSolutionStepValue( LINE_LOAD );
             }
         }
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
@@ -220,7 +220,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
             for(unsigned int k = 0; k < dimension; ++k)
             {
-                rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
+                rRightHandSideVector[base + k] += integration_weight * r_N( point_number, ii ) * gauss_load[k];
             }
         }
     }

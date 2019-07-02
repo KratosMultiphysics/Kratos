@@ -31,18 +31,18 @@ void MPMParticleBaseCondition::EquationIdVector(
     KRATOS_TRY
 
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int NumberOfNodes = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    if (rResult.size() != dim * NumberOfNodes)
+    if (rResult.size() != dim * number_of_nodes)
     {
-        rResult.resize(dim*NumberOfNodes,false);
+        rResult.resize(dim*number_of_nodes,false);
     }
 
     const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
     if(dim == 2)
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             const unsigned int index = i * 2;
             rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
@@ -51,7 +51,7 @@ void MPMParticleBaseCondition::EquationIdVector(
     }
     else
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             const unsigned int index = i * 3;
             rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
@@ -72,14 +72,14 @@ void MPMParticleBaseCondition::GetDofList(
     KRATOS_TRY
 
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int NumberOfNodes = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dim =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(dim * NumberOfNodes);
+    rElementalDofList.reserve(dim * number_of_nodes);
 
     if(dim == 2)
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
@@ -87,7 +87,7 @@ void MPMParticleBaseCondition::GetDofList(
     }
     else
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
@@ -106,16 +106,16 @@ void MPMParticleBaseCondition::GetValuesVector(
     )
 {
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int NumberOfNodes = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int MatSize = NumberOfNodes * dim;
+    const unsigned int MatSize = number_of_nodes * dim;
 
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
     }
 
-    for (unsigned int i = 0; i < NumberOfNodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
         unsigned int index = i * dim;
@@ -135,16 +135,16 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
     )
 {
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int NumberOfNodes = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int MatSize = NumberOfNodes * dim;
+    const unsigned int MatSize = number_of_nodes * dim;
 
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
     }
 
-    for (unsigned int i = 0; i < NumberOfNodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         const unsigned int index = i * dim;
@@ -164,16 +164,16 @@ void MPMParticleBaseCondition::GetSecondDerivativesVector(
     )
 {
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int NumberOfNodes = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int MatSize = NumberOfNodes * dim;
+    const unsigned int MatSize = number_of_nodes * dim;
 
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
     }
 
-    for (unsigned int i = 0; i < NumberOfNodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
         const unsigned int index = i * dim;

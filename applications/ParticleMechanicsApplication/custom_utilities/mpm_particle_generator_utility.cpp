@@ -84,13 +84,13 @@ namespace MPMParticleGeneratorUtility
                     }
 
                     // Get geometry and dimension of the background grid
-                    const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                    const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
                     const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
-                    const GeometryData::KratosGeometryType geotype = r_geometry.GetGeometryType();
+                    const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                     Matrix shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    if (geotype == GeometryData::Kratos_Tetrahedra3D4  || geotype == GeometryData::Kratos_Triangle2D3)
+                    if (geo_type == GeometryData::Kratos_Tetrahedra3D4  || geo_type == GeometryData::Kratos_Triangle2D3)
                     {
                         switch (particles_per_element)
                         {
@@ -125,7 +125,7 @@ namespace MPMParticleGeneratorUtility
                                 break;
                         }
                     }
-                    else if(geotype == GeometryData::Kratos_Hexahedra3D8  || geotype == GeometryData::Kratos_Quadrilateral2D4)
+                    else if(geo_type == GeometryData::Kratos_Hexahedra3D8  || geo_type == GeometryData::Kratos_Quadrilateral2D4)
                     {
                         switch (particles_per_element)
                         {
@@ -154,7 +154,7 @@ namespace MPMParticleGeneratorUtility
                     // Check element type
                     std::string element_type_name;
                     if (domain_size==2){
-                        if (background_geotype == GeometryData::Kratos_Triangle2D3){
+                        if (background_geo_type == GeometryData::Kratos_Triangle2D3){
                             if (IsMixedFormulation)
                                 element_type_name = "UpdatedLagrangianUP2D3N";
                             else{
@@ -164,7 +164,7 @@ namespace MPMParticleGeneratorUtility
                                     element_type_name = "UpdatedLagrangian2D3N";
                             }
                         }
-                        else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4){
+                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4){
                             if (IsMixedFormulation)
                                 KRATOS_ERROR << "Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented." << std::endl;
                             else{
@@ -176,13 +176,13 @@ namespace MPMParticleGeneratorUtility
                         }
                     }
                     else if (domain_size==3){
-                        if (background_geotype == GeometryData::Kratos_Tetrahedra3D4){
+                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4){
                             if (IsMixedFormulation)
                                 KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented." << std::endl;
                             else
                                 element_type_name = "UpdatedLagrangian3D4N";
                         }
-                        else if (background_geotype == GeometryData::Kratos_Hexahedra3D8){
+                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8){
                             if (IsMixedFormulation)
                                 KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented." << std::endl;
                             else
@@ -341,15 +341,15 @@ namespace MPMParticleGeneratorUtility
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& r_geometry = i->GetGeometry(); // current condition's geometry
-                        const GeometryData::KratosGeometryType geotype = r_geometry.GetGeometryType();
+                        const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                         Matrix shape_functions_values;
 
                         // Get geometry and dimension of the background grid
                         std::string condition_type_name;
-                        const GeometryData::KratosGeometryType background_geotype = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                        const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                         const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-                        if (geotype == GeometryData::Kratos_Point2D  || geotype == GeometryData::Kratos_Point3D)
+                        if (geo_type == GeometryData::Kratos_Point2D  || geo_type == GeometryData::Kratos_Point3D)
                         {
                             switch (particles_per_condition)
                             {
@@ -368,15 +368,15 @@ namespace MPMParticleGeneratorUtility
 
                             if(is_neumann_condition){
                                 if (domain_size==2){
-                                    if (background_geotype == GeometryData::Kratos_Triangle2D3)
+                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePointLoadCondition2D3N";
-                                    else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
+                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePointLoadCondition2D4N";
                                 }
                                 else if (domain_size==3){
-                                    if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
+                                    if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePointLoadCondition3D4N";
-                                    else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
+                                    else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
                                         condition_type_name = "MPMParticlePointLoadCondition3D8N";
                                 }
 
@@ -385,7 +385,7 @@ namespace MPMParticleGeneratorUtility
                             }
 
                         }
-                        else if (geotype == GeometryData::Kratos_Line2D2  || geotype == GeometryData::Kratos_Line3D2)
+                        else if (geo_type == GeometryData::Kratos_Line2D2  || geo_type == GeometryData::Kratos_Line3D2)
                         {
                             switch (particles_per_condition)
                             {
@@ -421,7 +421,7 @@ namespace MPMParticleGeneratorUtility
                                 KRATOS_ERROR << "Particle line load condition is not yet implemented." << std::endl;
 
                         }
-                        else if(geotype == GeometryData::Kratos_Triangle3D3)
+                        else if(geo_type == GeometryData::Kratos_Triangle3D3)
                         {
                             switch (particles_per_condition)
                             {
@@ -460,7 +460,7 @@ namespace MPMParticleGeneratorUtility
                                 KRATOS_ERROR << "Particle surface load condition is not yet implemented." << std::endl;
 
                         }
-                        else if(geotype == GeometryData::Kratos_Quadrilateral3D4)
+                        else if(geo_type == GeometryData::Kratos_Quadrilateral3D4)
                         {
                             switch (particles_per_condition)
                             {
@@ -527,29 +527,29 @@ namespace MPMParticleGeneratorUtility
                         if (!is_neumann_condition){
                             if(!is_interface){
                                 if (domain_size==2){
-                                    if (background_geotype == GeometryData::Kratos_Triangle2D3)
+                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
-                                    else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
+                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
                                 }
                                 else if (domain_size==3){
-                                    if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
+                                    if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
-                                    else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
+                                    else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
                                         condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
                                 }
                             }
                             else{
                                 if (domain_size==2){
-                                    if (background_geotype == GeometryData::Kratos_Triangle2D3)
+                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
-                                    else if (background_geotype == GeometryData::Kratos_Quadrilateral2D4)
+                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
                                 }
                                 else if (domain_size==3){
-                                    if (background_geotype == GeometryData::Kratos_Tetrahedra3D4)
+                                    if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
-                                    else if (background_geotype == GeometryData::Kratos_Hexahedra3D8)
+                                    else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
                                         condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D8N";
                                 }
                             }

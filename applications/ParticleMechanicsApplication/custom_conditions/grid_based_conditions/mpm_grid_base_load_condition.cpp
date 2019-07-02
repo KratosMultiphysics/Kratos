@@ -30,18 +30,18 @@ namespace Kratos
         KRATOS_TRY
 
         GeometryType& r_geometry = GetGeometry();
-        const unsigned int NumberOfNodes = r_geometry.size();
+        const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        if (rResult.size() != dim * NumberOfNodes)
+        if (rResult.size() != dim * number_of_nodes)
         {
-            rResult.resize(dim*NumberOfNodes,false);
+            rResult.resize(dim*number_of_nodes,false);
         }
 
         const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
         if(dim == 2)
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 const unsigned int index = i * 2;
                 rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
@@ -50,7 +50,7 @@ namespace Kratos
         }
         else
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 const unsigned int index = i * 3;
                 rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
@@ -71,14 +71,14 @@ namespace Kratos
         KRATOS_TRY
 
         GeometryType& r_geometry = GetGeometry();
-        const unsigned int NumberOfNodes = r_geometry.size();
+        const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dim =  r_geometry.WorkingSpaceDimension();
         ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim * NumberOfNodes);
+        ElementalDofList.reserve(dim * number_of_nodes);
 
         if(dim == 2)
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
@@ -86,7 +86,7 @@ namespace Kratos
         }
         else
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
@@ -105,16 +105,16 @@ namespace Kratos
         )
     {
         GeometryType& r_geometry = GetGeometry();
-        const unsigned int NumberOfNodes = r_geometry.size();
+        const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
 
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             unsigned int index = i * dim;
@@ -134,16 +134,16 @@ namespace Kratos
         )
     {
         GeometryType& r_geometry = GetGeometry();
-        const unsigned int NumberOfNodes = r_geometry.size();
+        const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
 
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
             const unsigned int index = i * dim;
@@ -163,16 +163,16 @@ namespace Kratos
         )
     {
         GeometryType& r_geometry = GetGeometry();
-        const unsigned int NumberOfNodes = r_geometry.size();
+        const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
 
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
             const unsigned int index = i * dim;
