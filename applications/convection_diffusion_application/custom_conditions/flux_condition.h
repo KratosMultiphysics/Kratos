@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -58,11 +58,11 @@ public:
 
         mShapeFunctionValues.resize(NumGauss,TNodeNumber);
         mIntegrationWeights.resize(NumGauss);
-        
+
         noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-            
+
         const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            
+
         for (unsigned int g = 0; g < NumGauss; g++)
         {
             mIntegrationWeights[g] = DetJ[g]*IntegrationPoints[g].Weight();
@@ -158,7 +158,7 @@ public:
 
     /// Destructor.
     ~FluxCondition() override;
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -167,7 +167,7 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         Properties::Pointer pProperties) const override;
-        
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -218,7 +218,7 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override;
-    
+
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
 
@@ -228,7 +228,14 @@ public:
     ///@}
 
 protected:
-    
+
+    ///@name Protected Life cycle
+    ///@{
+
+    // Default constructor necessary for serialization
+    FluxCondition();
+
+    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -241,18 +248,15 @@ protected:
     ///@}
 
 private:
-      
+
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-    FluxCondition();
-
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
