@@ -193,14 +193,14 @@ protected:
                 if(constraint.Is(ACTIVE))
                     count_vel_constraints++;
         }
-        std::cout<<" ######### :: count_vel_constraints :: "<<count_vel_constraints<<std::endl;
+        KRATOS_INFO("FSStrategyForChimera")<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
 
         // Activate Constraints for VELOCITY and deactivate PRESSURE
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
         SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, false);
 
 
-        KRATOS_INFO("before Momentum iteration ") <<std::endl;
+        KRATOS_INFO("FSStrategyForChimera")<<" before Momentum iteration "<<std::endl;
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
@@ -253,12 +253,12 @@ protected:
         int count_pre_constraints = 0;
         for(auto& constraint : r_constraints_container)
         {
-            //std::cout<<"#### "<<constraint.Is(FS_CHIMERA_VEL_CONSTRAINT)<<" , ";
             if(constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
                 if(constraint.Is(ACTIVE))
                     count_pre_constraints++;
         }
-        std::cout<<" ######### :: count_pre_constraints :: "<<count_pre_constraints<<std::endl;
+
+        KRATOS_INFO("FSStrategyForChimera")<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
 
 
 
