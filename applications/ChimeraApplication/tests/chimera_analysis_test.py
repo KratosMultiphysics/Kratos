@@ -41,8 +41,8 @@ class FlowOverCylinderFractionalStep(ChimeraAnalysisBaseTest):
 class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
     def test_MultipleOverlappingPatchMonolithic(self):
         start = time.clock()
-        work_folder = "chimera_multiple_overlapping_patch"
-        settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
+        work_folder = "multiple_over_lapping_patches_monolithic"
+        settings_file_name = "multiple_overlapping_patches_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
             self.DeleteResults()
@@ -52,7 +52,7 @@ class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
 class FractionalStepMultiPatch(ChimeraAnalysisBaseTest):
     def test_MultipleOverlappingPatchFractionalStep(self): #TODO: Check and correct this
         start = time.clock()
-        work_folder = "chimera_multiple_overlapping_patch"
+        work_folder = "multiple_over_lapping_patches_fractionalstep"
         settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
