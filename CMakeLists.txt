@@ -177,6 +177,7 @@ endif(NOT DEFINED KRATOS_BUILD_TESTING)
 # If install prefix is set, install all the files.
 SET(INSTALL_TESTING_FILES ON)
 SET(INSTALL_PYTHON_FILES ON)
+SET(INSTALL_LINK OFF)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
@@ -195,9 +196,14 @@ include(pybind11Tools)
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
-######################################################################################
-######################################################################################
-######################################################################################
+# Set installation directory
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install path" FORCE)
+    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
 
