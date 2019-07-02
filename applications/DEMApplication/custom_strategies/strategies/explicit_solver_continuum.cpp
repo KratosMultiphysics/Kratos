@@ -149,12 +149,12 @@ namespace Kratos {
         VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
         if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
 
-        InitializeSolutionStep();
+        //InitializeSolutionStep();
         SearchDEMOperations(r_model_part, has_mpi);
         SearchFEMOperations(r_model_part, has_mpi);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
+        //FinalizeSolutionStep();
 
         KRATOS_CATCH("")
 
