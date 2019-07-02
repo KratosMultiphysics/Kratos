@@ -59,11 +59,22 @@ void AdjointFluxCondition<PrimalCondition>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    // Delegating LHS matrix to base class (the adjoint system matrix is also a laplacian)
-    PrimalCondition::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    const Geometry<Node<3>>& r_geom = this->GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
 
-    // Setting the RHS vector to zero
-    noalias(rRightHandSideVector) = ZeroVector(rLeftHandSideMatrix.size2());
+    if (rLeftHandSideMatrix.size1() != num_nodes || rLeftHandSideMatrix.size2() != num_nodes)
+    {
+        rLeftHandSideMatrix.resize(num_nodes,num_nodes,0);
+    }
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes,num_nodes);
+
+    if (rRightHandSideVector.size() != num_nodes)
+    {
+        rRightHandSideVector.resize(num_nodes,false);
+    }
+
+    noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 }
 
 template<class PrimalCondition>
@@ -191,19 +202,54 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
     const auto integration_method = this->GetIntegrationMethod();
     const auto integration_points = r_geom.IntegrationPoints(integration_method);
     const unsigned int num_integration_points = integration_points.size();
-    Vector primal_values = ZeroVector(num_nodes);
-    PrimalCondition::GetValuesVector(primal_values);
+    Vector nodal_flux = ZeroVector(num_nodes);
+    for (unsigned int i = 0; i < num_nodes; i++)
+    {
+        nodal_flux[i] = r_geom[i].FastGetSolutionStepValue(HEAT_FLUX);
+    }
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
         Matrix shape_function_local_gradients(num_nodes,dimension);
-        Matrix shape_function_global_gradients(num_nodes,dimension);
         Matrix jacobian(dimension,dimension);
         Matrix jacobian_inv(dimension,dimension);
 
+        Matrix shape_functions = r_geom.ShapeFunctionsValues(integration_method);
+
         for (unsigned int g = 0; g < num_integration_points; g++)
         {
+            noalias(shape_function_local_gradients) = r_geom.ShapeFunctionLocalGradient(g, integration_method);
+            r_geom.Jacobian(jacobian, g, integration_method);
+            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
 
+            Vector N = row(shape_functions, g);
+            double q_gauss = prod(N,nodal_flux);
+
+            double det_j;
+            MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
+            const double weight = integration_points[g].Weight();
+
+            Vector primal_gradient = prod(trans(shape_function_global_gradients),primal_values);
+            Matrix laplacian_operator = prod(shape_function_global_gradients, trans(shape_function_global_gradients));
+            Vector laplacian_rhs = prod(laplacian_operator, primal_values);
+
+            for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
+            {
+                const auto& deriv = s.CurrentValue();
+                const unsigned int l = deriv.NodeIndex * dimension + deriv.Direction;
+                double det_j_deriv;
+                GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
+                geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
+
+                Vector aux = prod(trans(shape_function_gradient_deriv), primal_values);
+
+                // d/dX_l (w * J * N_i * N_j * q_j) = w * N_i * N_j * q_j * dJ/dX_l
+                // Note that N_j * q_j = q_gauss
+                for (unsigned int i = 0; i < num_nodes; i++)
+                {
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * N[i] * q_gauss * det_j_deriv;
+                }
+            }
         }
     }
     else
