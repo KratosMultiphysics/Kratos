@@ -62,6 +62,11 @@ public:
     ///@{
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    static Parameters GetDefaultParameters();
+
+    /**
      * @brief Prints mrModelPart in VTK format together with the results
      */
     void PrintOutput();
@@ -385,11 +390,6 @@ private:
      * @param rModelPart modelpart which is beging output
      */
     void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
 };

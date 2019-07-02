@@ -91,40 +91,40 @@ namespace Python{
     {
         // Linear Elastic laws
         py::class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsLinearElastic3DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropic3DLaw").def(py::init<>() )
         ;
 
         py::class_< LinearElasticPlaneStress2DLaw, typename LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsLinearElasticPlaneStress2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicPlaneStress2DLaw").def(py::init<>() )
         ;
 
         py::class_< LinearElasticPlaneStrain2DLaw, typename LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsLinearElasticPlaneStrain2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicPlaneStrain2DLaw").def(py::init<>() )
         ;
 
         py::class_< LinearElasticAxisym2DLaw, typename LinearElasticAxisym2DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsLinearElasticAxisym2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicAxisym2DLaw").def(py::init<>() )
         ;
 
         // Hyperelastic laws
         py::class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsHyperElastic3DLaw").def(py::init<>() )
+        (m, "HyperElasticNeoHookean3DLaw").def(py::init<>() )
         ;
 
         py::class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsHyperElasticPlaneStrain2DLaw").def(py::init<>() )
+        (m, "HyperElasticNeoHookeanPlaneStrain2DLaw").def(py::init<>() )
         ;
 
         py::class_< HyperElasticAxisym2DLaw, typename HyperElasticAxisym2DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsHyperElasticAxisym2DLaw").def(py::init<>() )
+        (m, "HyperElasticNeoHookeanAxisym2DLaw").def(py::init<>() )
         ;
 
         py::class_< HyperElasticUP3DLaw, typename HyperElasticUP3DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsHyperElasticUP3DLaw").def(py::init<>() )
+        (m, "HyperElasticNeoHookeanUP3DLaw").def(py::init<>() )
         ;
 
         py::class_< HyperElasticPlaneStrainUP2DLaw, typename HyperElasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
-        (m, "ParticleMechanicsHyperElasticPlaneStrainUP2DLaw").def(py::init<>() )
+        (m, "HyperElasticPlaneStrainUP2DLaw").def(py::init<>() )
         ;
 
         // Hencky Mohr Coulomb
