@@ -153,8 +153,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
     p_pointer_locator_on_patch->UpdateSearchDatabase();
 
     const double eps = 1e-12;
-    if (over_lap_distance < eps)
-        KRATOS_THROW_ERROR("", "Overlap distance should be a positive and non-zero number \n", "");
+    KRATOS_ERROR_IF(over_lap_distance<eps)<<"Overlap distance should be a positive and non-zero number."<<std::endl;
 
     if (over_lap_distance > eps)
     {
@@ -181,7 +180,8 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
 
         //for multipatch
         const unsigned int n_elements = r_hole_model_part.NumberOfElements();
-        for (unsigned int i_elem = 0; i_elem < n_elements; ++i_elem)
+        #pragma omp parallel for
+        for (IndexType i_elem = 0; i_elem < n_elements; ++i_elem)
         {
             ModelPart::ElementsContainerType::iterator it_elem = r_hole_model_part.ElementsBegin() + i_elem;
             it_elem->Set(VISITED, true);
