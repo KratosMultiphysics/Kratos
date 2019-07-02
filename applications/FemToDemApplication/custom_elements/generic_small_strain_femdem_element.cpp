@@ -105,7 +105,11 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+	if (this->GetValue(RECOMPUTE_NEIGHBOURS)) {
+		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+		this->SetValue(RECOMPUTE_NEIGHBOURS, false);		
+	}
+
 	this->InitializeInternalVariablesAfterMapping();
 }
 
@@ -439,19 +443,18 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMech
     double initial_threshold;
     this->GetInitialUniaxialThreshold(rValues, initial_threshold);
 
-    double damage_parameter; // A parameter
-    this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
-
 	if (rThreshold < tolerance) {
 		rThreshold = initial_threshold; // 1st iteration sets threshold as c_max
 	}  else if (initial_threshold > rThreshold) { // remeshing stuff
 		rThreshold = initial_threshold;
 	}
 
-    const double F = uniaxial_stress - rThreshold;
+	const double F = uniaxial_stress - rThreshold;
 	if (F <= 0.0) { // Elastic region --> Damage is constant
 		rDamage = mDamages[Edge];
 	} else {
+		double damage_parameter; // A parameter
+		this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
 		this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);
 		rThreshold = uniaxial_stress;
 		rIsDamaging = true;
