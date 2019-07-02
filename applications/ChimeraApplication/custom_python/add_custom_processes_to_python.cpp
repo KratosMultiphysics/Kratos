@@ -23,6 +23,8 @@
 #include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_fractional_step.h"
 #include "custom_processes/rotate_region_process.h"
+#include "custom_processes/custom_calculate_signed_distance_process.h"
+
 namespace Kratos
 {
 
@@ -33,17 +35,25 @@ void AddCustomProcessesToPython(pybind11::module &m)
 {
 
     namespace py = pybind11;
+    typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
+    typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
 
-    py::class_<ApplyChimeraProcessMonolithic<2>, ApplyChimeraProcessMonolithic<2>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic2d")
+    typedef ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType> ApplyChimeraMonolithic2DType;
+    typedef ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType> ApplyChimeraMonolithic3DType;
+
+    typedef ApplyChimeraProcessFractionalStep<2, DistanceCalculator2DType> ApplyChimeraFractionalStep2DType;
+    typedef ApplyChimeraProcessFractionalStep<3, DistanceCalculator3DType> ApplyChimeraFractionalStep3DType;
+
+    py::class_<ApplyChimeraMonolithic2DType, ApplyChimeraMonolithic2DType::Pointer, Process>(m, "ApplyChimeraProcessMonolithic2d")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraProcessMonolithic<3>, ApplyChimeraProcessMonolithic<3>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
+    py::class_<ApplyChimeraMonolithic3DType, ApplyChimeraMonolithic3DType::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, ApplyChimeraProcessMonolithic<2>>(m, "ApplyChimeraProcessFractionalStep2d")
+    py::class_<ApplyChimeraFractionalStep2DType, ApplyChimeraFractionalStep2DType::Pointer, ApplyChimeraMonolithic2DType>(m, "ApplyChimeraProcessFractionalStep2d")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraProcessFractionalStep<3>, ApplyChimeraProcessFractionalStep<3>::Pointer, ApplyChimeraProcessMonolithic<3>>(m, "ApplyChimeraProcessFractionalStep3d")
+    py::class_<ApplyChimeraFractionalStep3DType, ApplyChimeraFractionalStep3DType::Pointer, ApplyChimeraMonolithic3DType>(m, "ApplyChimeraProcessFractionalStep3d")
         .def(py::init<ModelPart &, Parameters>());
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")

@@ -56,7 +56,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <int TDim>
+template <int TDim, class TDistanceCalculatorType>
 class ApplyChimeraProcessMonolithic : public Process
 {
 public:

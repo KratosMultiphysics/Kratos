@@ -18,8 +18,8 @@
 namespace Kratos
 {
 
-template <int TDim>
-ApplyChimeraProcessMonolithic<TDim>::ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters) : Process(), mrMainModelPart(rMainModelPart), mParameters(iParameters)
+template <int TDim, class TDistanceCalculatorType>
+ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters) : Process(), mrMainModelPart(rMainModelPart), mParameters(iParameters)
 {
     Parameters default_parameters(R"(
             {
@@ -51,13 +51,13 @@ ApplyChimeraProcessMonolithic<TDim>::ApplyChimeraProcessMonolithic(ModelPart &rM
     mpCalculateDistanceProcess = typename DistanceCalculatorType::Pointer(new DistanceCalculatorType());
 }
 
-template <int TDim>
-ApplyChimeraProcessMonolithic<TDim>::~ApplyChimeraProcessMonolithic()
+template <int TDim, class TDistanceCalculatorType>
+ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::~ApplyChimeraProcessMonolithic()
 {
 }
 
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::ExecuteInitializeSolutionStep()
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
     // Actual execution of the functionality of this class
@@ -67,8 +67,8 @@ void ApplyChimeraProcessMonolithic<TDim>::ExecuteInitializeSolutionStep()
     KRATOS_CATCH("");
 }
 
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::ExecuteFinalizeSolutionStep()
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ExecuteFinalizeSolutionStep()
 {
     Clear();
     //for multipatch
@@ -81,8 +81,8 @@ void ApplyChimeraProcessMonolithic<TDim>::ExecuteFinalizeSolutionStep()
     mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 }
 
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::DoChimeraLoop() //selecting patch and background combination for chimera method
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop() //selecting patch and background combination for chimera method
 {
     for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
     {
@@ -133,8 +133,8 @@ void ApplyChimeraProcessMonolithic<TDim>::DoChimeraLoop() //selecting patch and 
 }
 
 //Apply Chimera with or without overlap
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChimera(int MainDomainOrNot)
 {
     ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
     ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
@@ -192,8 +192,8 @@ void ApplyChimeraProcessMonolithic<TDim>::FormulateChimera(int MainDomainOrNot)
     KRATOS_INFO("End of Formulate Chimera") << std::endl;
 }
 
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired)
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired)
 {
     IndexType max_constraint_id = 0;
     // Get current maximum constraint ID
@@ -210,8 +210,8 @@ void ApplyChimeraProcessMonolithic<TDim>::CreateConstraintIds(std::vector<int> &
     std::iota(std::begin(rIdVector), std::end(rIdVector), max_constraint_id); // Fill with consecutive integers
 }
 
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator)
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator)
 {
     //loop over nodes and find the triangle in which it falls, then do interpolation
     MasterSlaveContainerVectorType master_slave_container_vector;
@@ -305,8 +305,8 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart &rBo
     KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
 }
 
-template <int TDim>
-void ApplyChimeraProcessMonolithic<TDim>::GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint)
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint)
 {
     double rLowPoint0 = 1e10;
     double rLowPoint1 = 1e10;
@@ -345,8 +345,8 @@ void ApplyChimeraProcessMonolithic<TDim>::GetBoundingBox(ModelPart &rModelPart, 
     rLowPoint[2] = rLowPoint2;
 }
 
-template <int TDim>
-bool ApplyChimeraProcessMonolithic<TDim>::BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB) //background A and Patch B
+template <int TDim, class TDistanceCalculatorType>
+bool ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB) //background A and Patch B
 {
     std::vector<double> min_cornerA(3), max_cornerA(3), min_cornerB(3), max_cornerB(3);
     GetBoundingBox(rModelPartA, min_cornerA, max_cornerA);
@@ -366,9 +366,9 @@ bool ApplyChimeraProcessMonolithic<TDim>::BoundingBoxTest(ModelPart &rModelPartA
     return true;
 }
 
-template <int TDim>
+template <int TDim, class TDistanceCalculatorType>
 template <typename TVariableType>
-void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
                                                                      Node<3> &rBoundaryNode,
                                                                      Vector &rShapeFuncWeights,
                                                                      TVariableType& rVariable,
@@ -392,9 +392,9 @@ void ApplyChimeraProcessMonolithic<TDim>::ApplyContinuityWithElement(Geometry<No
 
 
 
-template <int TDim>
+template <int TDim, class TDistanceCalculatorType>
 template <typename TVariableType>
-void ApplyChimeraProcessMonolithic<TDim>::AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
                                     const LinearMasterSlaveConstraint &rCloneConstraint,
                                     unsigned int ConstraintId,
                                     Node<3> &rMasterNode,
@@ -411,8 +411,11 @@ void ApplyChimeraProcessMonolithic<TDim>::AddMasterSlaveRelation(MasterSlaveCons
     rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 }
 
-template class ApplyChimeraProcessMonolithic<2>;
-template class ApplyChimeraProcessMonolithic<3>;
+typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
+typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
+
+template class ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType>;
+template class ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType>;
 
 } // namespace Kratos.
 

@@ -22,8 +22,8 @@
 namespace Kratos
 {
 
-template <int TDim>
-void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator)
+template <int TDim, class TDistanceCalculatorType>
+void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator)
 {
     //loop over nodes and find the triangle in which it falls, then do interpolation
     MasterSlaveContainerVectorType velocity_ms_container_vector;
@@ -143,8 +143,10 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart 
 }
 
 
+typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
+typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
 
-template class ApplyChimeraProcessFractionalStep<2>;
-template class ApplyChimeraProcessFractionalStep<3>;
+template class ApplyChimeraProcessFractionalStep<2, DistanceCalculator2DType>;
+template class ApplyChimeraProcessFractionalStep<3, DistanceCalculator3DType>;
 
 } // namespace Kratos.

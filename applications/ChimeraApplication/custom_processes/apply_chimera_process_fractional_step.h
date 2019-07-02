@@ -43,8 +43,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <int TDim>
-class ApplyChimeraProcessFractionalStep : public ApplyChimeraProcessMonolithic<TDim>
+template <int TDim, class TDistanceCalculatorType>
+class ApplyChimeraProcessFractionalStep : public ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>
 {
 public:
     ///@name Type Definitions
@@ -54,7 +54,7 @@ public:
     ///@name Pointer Definitions
     /// Pointer definition of ApplyChimeraProcessFractionalStep
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessFractionalStep);
-    typedef ApplyChimeraProcessMonolithic<TDim> BaseType;
+    typedef ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType> BaseType;
     typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef typename BaseType::PointLocatorType PointLocatorType;
     typedef typename BaseType::PointLocatorPointerType PointLocatorPointerType;
