@@ -36,3 +36,6 @@ class KratosGlobals(object):
         if not KratosGlobals.HasVariable(var_name):
             return "None"
         return KratosGlobals.GetVariable(var_name).Type()
+
+def IsDistributedRun():
+    return False # pyKratos cannot be run in MPI
