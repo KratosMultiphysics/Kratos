@@ -55,7 +55,7 @@ class AdjointDiffusionSolver(PythonSolver):
             "sensitivity_settings" : {},
             "element_replace_settings" : {
                 "element_name" : "AdjointHeatDiffusionElement",
-                "condition_name" : ""
+                "condition_name" : "AdjointFluxCondition"
             },
             "time_stepping" : {
                 "time_step" : 0.0
