@@ -488,11 +488,10 @@ class MultilevelMonteCarlo(object):
 
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # run_multilevel_monte_carlo: flag to run or not the algorithm
-        # adaptive_refinement: flag to refine from mesh level 0 each time a different random variable is used
         # adaptive_number_samples: if False, each level is number_samples_screening and increased multiplying by 2. Add one level per iteration, if possible. If True, automatic computation of number of levels and number of samples per level
         # refinement_strategy: set how to perform refinement for MLMC algorithms. Options: concurrent_adaptive_refinement: refine each time at task level
         #                                                                                  single_refinement:              refine once in SerializeModelParameters()
-        # store_lower_levels_samples: flag to store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
+        # use_lower_levels_samples: flag to store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
         # tolerance_absolute: safety tolerance (absolute). Useful if expected value (qoi) is zero
@@ -514,8 +513,7 @@ class MultilevelMonteCarlo(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "run_multilevel_monte_carlo" : true,
-            "adaptive_refinement"        : true,
-            "store_lower_levels_samples" : false,
+            "use_lower_levels_samples"   : false,
             "adaptive_number_samples"    : false,
             "refinement_strategy"        : "concurrent_adaptive_refinement",
             "convergence_criteria"       : "total_error_stopping_rule",
@@ -551,9 +549,9 @@ class MultilevelMonteCarlo(object):
 
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
-        # warning if store_lower_levels_samples is True
-        if (self.settings["store_lower_levels_samples"].GetBool()):
-            print("\n ######## WARNING: store_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
+        # warning if use_lower_levels_samples is True
+        if (self.settings["use_lower_levels_samples"].GetBool()):
+            print("\n ######## WARNING: use_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
         # current_number_levels: number of levels of current iteration
         self.current_number_levels = self.settings["levels_screening"].GetInt()
 
@@ -1200,7 +1198,7 @@ class MultilevelMonteCarlo(object):
         # store MultilevelMonteCarloResult class of working branch in a list
         simulation_results = list(map(lambda x: x[0], simulation_results))
         # check if storing lower levels samples or not and prepare for loop
-        if (self.settings["store_lower_levels_samples"].GetBool()):
+        if (self.settings["use_lower_levels_samples"].GetBool()):
             start_level = 0
         else:
             start_level = np.maximum(0,current_level)
