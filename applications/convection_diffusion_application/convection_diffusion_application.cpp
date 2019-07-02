@@ -51,7 +51,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mThermalFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mFluxCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
+      mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mAdjointFluxCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+      mAdjointFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
 void KratosConvectionDiffusionApplication::Register() {
     // calling base class register to register Kratos components
@@ -105,6 +107,9 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
+
+    KRATOS_REGISTER_CONDITION("AdjointFluxCondition2D2N", mAdjointFluxCondition2D2N);
+    KRATOS_REGISTER_CONDITION("AdjointFluxCondition3D3N", mAdjointFluxCondition3D3N);
 }
 
 }  // namespace Kratos.
