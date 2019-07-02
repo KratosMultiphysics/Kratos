@@ -105,9 +105,9 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop
     }
 
     int i_current_level = 0;
-    int is_main_background = 1;
     for(const auto& current_level : mParameters)
     {
+        int is_main_background = 1;
         for(const auto& background_patch_param : current_level)
         { // Gives the current background patch
             for(IndexType i_slave_level=i_current_level+1; i_slave_level<mNumberOfLevels; ++i_slave_level)
@@ -243,7 +243,6 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
     {
         ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
         Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-
         mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
     }
 
@@ -274,8 +273,11 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
             constrainIds_for_the_node = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
             for (auto const &constraint_id : constrainIds_for_the_node)
             {
-                mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
-                removed_counter++;
+                #pragma omp critical
+                {
+                    mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
+                    removed_counter++;
+                }
             }
             p_boundary_node->Set(VISITED, false);
         }
@@ -386,6 +388,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
     for (std::size_t i = 0; i < rGeometry.size(); i++)
     {
         //Interpolation of rVariable
+        //TODO: Check if this is a problem with openmp parallelization.
         rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) += rGeometry[i].GetDof(rVariable).GetSolutionStepValue(0) * rShapeFuncWeights[i];
         AddMasterSlaveRelation(rMsContainer, r_clone_constraint, ConstraintIdVector[StartId++], rGeometry[i], rVariable, rBoundaryNode, rVariable, rShapeFuncWeights[i]);
     } // end of loop over host element nodes
