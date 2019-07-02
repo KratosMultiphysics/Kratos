@@ -37,7 +37,7 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
                         "model_part_name"                    : "FluidModelPart",
                         "output_control_type"                : "step",
                         "output_frequency"                   : 1,
-                        "file_format"                        : "ascii",
+                        "file_format"                        : "binary",
                         "output_precision"                   : 14,
                         "output_sub_model_parts"             : false,
                         "folder_name"                        : "test_vtk_output",
@@ -55,7 +55,8 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
         analysis.Run()
 
     def DeleteResults(self):
-        kratos_utilities.DeleteDirectoryIfExisting("test_vtk_output")
+        #kratos_utilities.DeleteDirectoryIfExisting("test_vtk_output")
+        pass
 
     def _Check(self,output_file,reference_file):
         import KratosMultiphysics.compare_two_files_check_process as compare_process
