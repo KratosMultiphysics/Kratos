@@ -25,13 +25,6 @@ class FSIAnalysis(AnalysisStage):
         self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
 
-        # If this is an MPI run, load the distributed memory modules
-        if (self.parallel_type == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            self.is_printing_rank = (mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
         # Deprecation warnings
         # This makes possible the FSI solver derivation from the core base python_solver.py
         # if not self.project_parameters.Has("echo_level"):
@@ -104,12 +97,11 @@ class FSIAnalysis(AnalysisStage):
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
-        if self.is_printing_rank and self.echo_level > 1:
+        if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
 
     def InitializeSolutionStep(self):
 
@@ -122,9 +114,8 @@ class FSIAnalysis(AnalysisStage):
             err_msg += 'No substepping has been implemented yet. Fluid and structure step must match.'
             raise Exception(err_msg)
 
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
-            Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
+        Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
+        Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
