@@ -193,8 +193,8 @@ class AdjointDiffusionSolver(PythonSolver):
         num_nodes_conditions = comm.MaxAll(num_nodes_conditions)
 
         if condition_name == "AdjointFluxCondition":
-            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
-            self.settings["element_replace_settings"]["element_name"].SetString(name_string)
+            name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
+            self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
 
         ## Call the replace elements and conditions process
         kratos.ReplaceElementsAndConditionsProcess(self.model_part, self.settings["element_replace_settings"]).Execute()
