@@ -42,8 +42,8 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
 # ------------------------------------------------------------------------------
 def ValidateSettings(optimization_settings):
     ValidateTopLevelSettings(optimization_settings)
-    ValidateObjectives(optimization_settings["objectives"])
-    ValidateConstraints(optimization_settings["constraints"])
+    ValidateObjectiveSettings(optimization_settings["objectives"])
+    ValidateConstraintSettings(optimization_settings["constraints"])
 
 # ------------------------------------------------------------------------------
 def ValidateTopLevelSettings(optimization_settings):
@@ -64,34 +64,34 @@ def ValidateTopLevelSettings(optimization_settings):
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
 # ------------------------------------------------------------------------------
-def ValidateObjectives(objectives):
-    for itr in range(objectives.size()):
-        default_settings = Parameters("""
-        {
-            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
-            "type"                                : "minimization",
-            "scaling_factor"                      : 1.0,
-            "use_kratos"                          : false,
-            "kratos_response_settings"            : {},
-            "project_gradient_on_surface_normals" : false
-        }""")
-        objectives[itr].ValidateAndAssignDefaults(default_settings)
+def ValidateObjectiveSettings(settings):
+    default_settings = Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "minimization",
+        "scaling_factor"                      : 1.0,
+        "use_kratos"                          : false,
+        "kratos_response_settings"            : {},
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(settings.size()):
+        settings[itr].ValidateAndAssignDefaults(default_settings)
 
 # ------------------------------------------------------------------------------
-def ValidateConstraints(constraints):
-    for itr in range(constraints.size()):
-        default_settings = Parameters("""
-        {
-            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
-            "type"                                : "<",
-            "scaling_factor"                      : 1.0,
-            "reference"                           : "initial_value",
-            "reference_value"                     : 1.0,
-            "use_kratos"                          : false,
-            "kratos_response_settings"            : {},
-            "project_gradient_on_surface_normals" : false
-        }""")
-        constraints[itr].ValidateAndAssignDefaults(default_settings)
+def ValidateConstraintSettings(settings):
+    default_settings = Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "<",
+        "scaling_factor"                      : 1.0,
+        "reference"                           : "initial_value",
+        "reference_value"                     : 1.0,
+        "use_kratos"                          : false,
+        "kratos_response_settings"            : {},
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(settings.size()):
+        settings[itr].ValidateAndAssignDefaults(default_settings)
 
 # ==============================================================================
 class VertexMorphingMethod:
