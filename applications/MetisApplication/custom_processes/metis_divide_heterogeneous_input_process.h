@@ -698,15 +698,6 @@ protected:
                   }
                 }
               }
-
-            //   for (SizeType i=0; i<NumElements; i++)
-            //   {
-            //       if ( std::includes(ElementsSorted[i].begin(), ElementsSorted[i].end(), tmp.begin(), tmp.end()) )
-            //       {
-            //           *itPart = rElemPartition[i];
-            //           break;
-            //       }
-            //   }
           }
 
           // Advance to next condition in connectivities array
