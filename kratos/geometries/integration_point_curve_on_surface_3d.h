@@ -67,27 +67,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    //IntegrationPointCurveOnSurface3d(
-    //    const PointsArrayType& ThisPoints,
-    //    const CoordinatesArrayType& rLocalCoordinates,
-    //    const LocalTangentsArray2dType& rLocalTangents2d,
-    //    const double rIntegrationWeight,
-    //    Matrix& rShapeFunctionValues,
-    //    ShapeFunctionsGradientsType& rShapeFunctionsDerivativesVector)
-    //    : BaseType(ThisPoints, &mGeometryData)
-    //    , mLocalTangents2d(rLocalTangents2d)
-    //{
-    //    IntegrationPointsArrayType IntegrationPoints = IntegrationPointsArrayType(1);
-    //    IntegrationPoints[0] = IntegrationPointType(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
-
-    //    mGeometryData = GeometryData(
-    //        3,3,3,//msGeometryDimension,
-    //        GeometryData::GI_GAUSS_1,
-    //        IntegrationPoints,
-    //        rShapeFunctionValues,
-    //        rShapeFunctionsDerivativesVector);
-    //}
-
     IntegrationPointCurveOnSurface3d(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
@@ -219,14 +198,14 @@ public:
     */
     double Length() const override
     {
-        //Vector temp;
-        //DeterminantOfJacobian(temp);
+        Vector temp;
+        temp = DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
         const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
         double length = 0.0;
 
-        //for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-        //    length += temp[i] * r_integration_points[i].Weight();
-        //}
+        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
+            length += temp[i] * r_integration_points[i].Weight();
+        }
 
         return length;
     }
@@ -236,7 +215,7 @@ public:
     */
     double DomainSize() const override
     {
-        return Length();
+        return this->Length();
     }
 
     /** Calculates global location of this integration point.
@@ -317,10 +296,29 @@ public:
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
-        array_1d<double, 3> a1 = row(J, 0);
-        array_1d<double, 3> a2 = row(J, 1);
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
 
-        return norm_2(a1 * mLocalTangents2d[0] + a2 * mLocalTangents2d[1]);
+        return norm_2(a_1 * mLocalTangents2d[0] + a_2 * mLocalTangents2d[1]);
+    }
+
+    /**
+    * @brief TO BE DONE
+    */
+    array_1d<double, 3> Normal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const override
+    {
+        Matrix J;
+        this->Jacobian(J, IntegrationPointIndex, ThisMethod);
+
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
+
+        rResult = a_2 * mLocalTangents2d[0] - a_1 * mLocalTangents2d[1];
+
+        return rResult;
     }
 
     /** Tangents in global space of the curve defined on the surface.
@@ -331,20 +329,18 @@ public:
     @see Jacobian
     @see InverseOfJacobian
     */
-    virtual Matrix Tangent(
-        Matrix& rResult,
+    virtual array_1d<double, 3> Tangent(
+        array_1d<double, 3>& rResult,
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
-        array_1d<double, 3> a_1 = row(J, 0);
-        array_1d<double, 3> a_2 = row(J, 1);
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
 
-        Matrix Tangents = ZeroMatrix(3, 2);
-        // row(Tangents, 0) = Tangents(1)*a_1 + Tangents(0)*a_2;
-        // row(Tangents, 1) = Tangents(0)*a_1 + Tangents(1)*a_2;
+        rResult = a_1 * mLocalTangents2d[0] + a_2 * mLocalTangents2d[1];
 
         return rResult;
     }

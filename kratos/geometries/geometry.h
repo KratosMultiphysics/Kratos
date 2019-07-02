@@ -948,6 +948,86 @@ namespace Kratos
             return result;
         }
 
+
+        /**
+        */
+        virtual Kratos::DenseVector<Point> Coordinates(
+            Kratos::DenseVector<Point>& rResult,
+            const CoordinatesArrayType& rPointLocalCoordinates) const
+        {
+            return Coordinates(
+                rResult,
+                mpGeometryData->DefaultIntegrationMethod());
+        }
+        /**
+        */
+        virtual Kratos::DenseVector<Point> Coordinates(
+            Kratos::DenseVector<Point>& rResult,
+            IntegrationMethod ThisMethod) const
+        {
+            if (rResult.size() != this->IntegrationPointsNumber(ThisMethod))
+                rResult.resize(this->IntegrationPointsNumber(ThisMethod), false);
+
+            for (unsigned int pnt = 0; pnt < this->IntegrationPointsNumber(ThisMethod); pnt++)
+            {
+                this->Coordinates(rResult[pnt], pnt, ThisMethod);
+            }
+
+            return rResult;
+        }
+
+        /**
+        */
+        virtual Point Coordinates(
+            Point& rResult,
+            const IndexType IntegrationPointIndex) const
+        {
+            return Coordinates(
+                rResult,
+                IntegrationPointIndex,
+                mpGeometryData->DefaultIntegrationMethod());
+        }
+
+        /**
+        */
+        virtual Point Coordinates(
+            Point& rResult,
+            const IndexType IntegrationPointIndex,
+            IntegrationMethod ThisMethod) const
+        {
+            const SizeType points_number = PointsNumber();
+
+            rResult = Point(0.0, 0.0, 0.0);
+            const Matrix& N = this->ShapeFunctionsValues(ThisMethod);
+
+            KRATOS_DEBUG_ERROR_IF(N.size1() > points_number)
+                << "Geometry::Coordinates(): IntegrationPointIndex higher than umber of integration points."
+                << std::endl;
+
+            for (IndexType i = 0; i < points_number; ++i) {
+                rResult += (*this)[i] * N(IntegrationPointIndex, i);
+            }
+
+            return rResult;
+        }
+
+        /**
+        */
+        template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, const IndexType IntegrationPointIndex)
+        {
+            const SizeType points_number = PointsNumber();
+            const Matrix& N = this->ShapeFunctionsValues(mpGeometryData->DefaultIntegrationMethod());
+
+            TVariableType::Type rResult;
+
+            for (IndexType i = 0; i < points_number; ++i) {
+                rResult += (*this)[i].FastGetSolutionStepValue(rThisVariable) * N(IntegrationPointIndex, i);
+            }
+
+            return rResult;
+        }
+
+
         /**
         * @brief It returns a vector that is normal to its corresponding geometry in the given local point
         * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
@@ -1005,7 +1085,7 @@ namespace Kratos
             const unsigned int local_space_dimension = this->LocalSpaceDimension();
             const unsigned int dimension = this->WorkingSpaceDimension();
 
-            KRATOS_ERROR_IF(dimension == local_space_dimension)
+            KRATOS_DEBUG_ERROR_IF(dimension == local_space_dimension)
                 << "Remember the normal can be computed just in geometries with a local dimension: "
                 << this->LocalSpaceDimension() << "smaller than the spatial dimension: "
                 << this->WorkingSpaceDimension() << std::endl;

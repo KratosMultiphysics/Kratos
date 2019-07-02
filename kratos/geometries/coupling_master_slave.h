@@ -94,8 +94,11 @@ public:
         : BaseType(PointsArrayType(), &(pMasterGeometry->GetGeometryData())),
         mIsGeometryDataInitialized(IsGeometryDataInitialized)
     {
-        KRATOS_ERROR_IF(pMasterGeometry->Dimension() != pSlaveGeometry->Dimension())
+        KRATOS_DEBUG_ERROR_IF(pMasterGeometry->Dimension() != pSlaveGeometry->Dimension())
             << "Geometries of different dimensional size!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(pMasterGeometry->WorkingSpaceDimension() != pSlaveGeometry->Dimension())
+            << "Geometries of different dimensional size!" << std::endl;
+
 
         mpGeometries.resize(2);
 
