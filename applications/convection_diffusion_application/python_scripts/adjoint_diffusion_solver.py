@@ -182,13 +182,17 @@ class AdjointDiffusionSolver(PythonSolver):
             break
         num_nodes_elements = comm.MaxAll(num_nodes_elements)
 
-        #num_nodes_conditions = 0
-        #for cond in self.model_part.Conditions:
-        #    num_nodes_conditions = len(cond.GetNodes())
-        #    break
-        #num_nodes_conditions = comm.MaxAll(num_nodes_conditions)
-
         if element_name == "AdjointHeatDiffusionElement":
+            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
+            self.settings["element_replace_settings"]["element_name"].SetString(name_string)
+
+        num_nodes_conditions = 0
+        for cond in self.model_part.Conditions:
+            num_nodes_conditions = len(cond.GetNodes())
+            break
+        num_nodes_conditions = comm.MaxAll(num_nodes_conditions)
+
+        if condition_name == "AdjointFluxCondition":
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
