@@ -43,7 +43,8 @@ ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyChimeraProces
             })");
 
     mNumberOfLevels = mParameters.size();
-    for (int i = 0; i < mNumberOfLevels; i++)
+    KRATOS_ERROR_IF(mNumberOfLevels<2)<<"Chimera requires atleast two levels !. Put Background in one level and the patch in second one."<<std::endl;
+    for (IndexType i = 0; i < mNumberOfLevels; i++)
         mLevelTable.push_back(mParameters[i].size());
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
@@ -84,49 +85,48 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ExecuteFinali
 template <int TDim, class TDistanceCalculatorType>
 void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop() //selecting patch and background combination for chimera method
 {
-    for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
+    const unsigned int num_elements = mrMainModelPart.NumberOfElements();
+    const auto elem_begin =  mrMainModelPart.ElementsBegin();
+
+#pragma omp parallel for
+    for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
     {
-        if (!it->Is(VISITED)) //for multipatch
-            it->Set(ACTIVE, true);
+        auto i_elem = elem_begin + i_be;
+        if (!i_elem->Is(VISITED)) //for multipatch
+            i_elem->Set(ACTIVE, true);
     }
 
-    for (ModelPart::NodesContainerType::iterator it = mrMainModelPart.NodesBegin(); it != mrMainModelPart.NodesEnd(); ++it)
-        it->Set(VISITED, false);
+    const unsigned int num_nodes = mrMainModelPart.NumberOfNodes();
+    const auto nodes_begin =  mrMainModelPart.ElementsBegin();
 
-    int MainDomainOrNot = 1;
-
-    for (int BG_i = 0; BG_i < mNumberOfLevels; BG_i++) // Iteration for selecting background
+#pragma omp parallel for
+    for (unsigned int i_bn = 0; i_bn < num_nodes; ++i_bn)
     {
-        for (int BG_j = 0; BG_j < mLevelTable[BG_i]; BG_j++) //TODO change the names
-        {
-            for (int patch_i = BG_i + 1; patch_i < mNumberOfLevels; patch_i++) // Iteration for selecting patch
+        auto i_node = nodes_begin + i_bn;
+        i_node->Set(VISITED, false);
+    }
+
+    int i_current_level = 0;
+    int is_main_background = 1;
+    for(const auto& current_level : mParameters)
+    {
+        for(const auto& background_patch_param : current_level)
+        { // Gives the current background patch
+            for(IndexType i_slave_level=i_current_level+1; i_slave_level<mNumberOfLevels; ++i_slave_level)
             {
-                for (int patch_j = 0; patch_j < mLevelTable[patch_i]; patch_j++)
+                for(const auto& slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
                 {
-                    m_background_model_part_name = mParameters[BG_i][BG_j]["model_part_name"].GetString();
-                    m_domain_boundary_model_part_name = mParameters[BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
-                    m_patch_model_part_name = mParameters[patch_i][patch_j]["model_part_name"].GetString();
-                    m_patch_inside_boundary_model_part_name = mParameters[patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
-
-                    double mesh_size_1 = mParameters[BG_i][BG_j]["overlap_distance"].GetDouble();
-                    double mesh_size_2 = mParameters[patch_i][patch_j]["overlap_distance"].GetDouble();
-
-                    if (mesh_size_1 > mesh_size_2)
-                        mOverlapDistance = mesh_size_1;
-                    else
-                        mOverlapDistance = mesh_size_2;
-
-                    KRATOS_INFO("Formulating Chimera for the combination \n background::") << m_background_model_part_name << "  \t Patch::" << m_patch_model_part_name << std::endl;
-
-                    MainDomainOrNot = 1;
-                    if (BG_i == 0) // a check to identify computational Domain boundary
-                        MainDomainOrNot = -1;
-
-                    FormulateChimera(MainDomainOrNot);
+                    if (i_current_level == 0) // a check to identify computational Domain boundary
+                        is_main_background = -1;
+                    FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
+                    KRATOS_INFO("Formulating Chimera for the combination :: \n") <<"Background" <<background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                 }
             }
         }
+        ++i_current_level;
     }
+
+
     KRATOS_INFO("End of chimera loop") << std::endl;
 
     KRATOS_INFO("Total number of constraints created so far") << mrMainModelPart.NumberOfMasterSlaveConstraints() << std::endl;
@@ -134,12 +134,18 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop
 
 //Apply Chimera with or without overlap
 template <int TDim, class TDistanceCalculatorType>
-void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChimera(int MainDomainOrNot)
+void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot)
 {
-    ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
-    ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
-    ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
-    ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
+    ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart( BackgroundParam["model_part_name"].GetString() );
+    ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart( BackgroundParam["model_part_inside_boundary_name"].GetString() );
+
+    ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart( PatchParameters["model_part_name"].GetString() );
+    ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart( PatchParameters["model_part_inside_boundary_name"].GetString() );
+
+    const double overlap_bg = BackgroundParam["overlap_distance"].GetDouble();
+    const double overlap_pt = PatchParameters["overlap_distance"].GetDouble();
+
+    const double over_lap_distance = (overlap_bg > overlap_pt) ? overlap_bg : overlap_pt;
 
     PointLocatorPointerType p_point_locator_on_background = PointLocatorPointerType(new PointLocatorType(r_background_model_part));
     p_point_locator_on_background->UpdateSearchDatabase();
@@ -147,10 +153,10 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
     p_pointer_locator_on_patch->UpdateSearchDatabase();
 
     const double eps = 1e-12;
-    if (mOverlapDistance < eps)
+    if (over_lap_distance < eps)
         KRATOS_THROW_ERROR("", "Overlap distance should be a positive and non-zero number \n", "");
 
-    if (mOverlapDistance > eps)
+    if (over_lap_distance > eps)
     {
         Model &current_model = mrMainModelPart.GetModel();
         ModelPart &r_hole_model_part = current_model.CreateModelPart("HoleModelpart");
@@ -171,7 +177,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
         mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
         mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
         //DistanceCalculatorType(r_background_model_part, r_modified_patch_boundary_model_part).Execute();
-        mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
+        mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
         //for multipatch
         const unsigned int n_elements = r_hole_model_part.NumberOfElements();
