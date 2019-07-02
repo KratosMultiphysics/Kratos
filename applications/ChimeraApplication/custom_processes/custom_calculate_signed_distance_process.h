@@ -236,26 +236,19 @@ class CustomCalculateSignedDistanceProcess
 	{
 
 		if (TDim == 2)
-		{
-			// Implemented in the custom_processes
+		{	// Implemented in the custom_processes
 			auto p2DSignedDistanceCalculator = CalculateSignedDistanceTo2DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo2DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 			p2DSignedDistanceCalculator->Execute();
-		}
-
-		if (TDim == 3)
-		{
-			// From Core ?? Improve performance and algorithm based on CalculateSignedDistanceToSkinProcess
+		}else if (TDim == 3)
+		{   // From Core ?? Improve performance and algorithm based on CalculateSignedDistanceToSkinProcess
 			auto p3DSignedDistanceCalculator = CalculateSignedDistanceTo3DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo3DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
-
-
 			p3DSignedDistanceCalculator->Execute();
-
 		}
 
 		std::size_t max_level = 100;
 		double max_distance = 200;
 		//CorrectSign(toBackgroundModelPart);
-
+        //if(pDistanceCalculator != nullptr)
 		pDistanceCalculator->CalculateDistances(toBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 	}
 
