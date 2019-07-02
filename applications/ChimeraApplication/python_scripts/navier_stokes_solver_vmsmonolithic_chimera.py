@@ -18,12 +18,6 @@ def CreateSolver(main_model_part, custom_settings):
 
 class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
     def __init__(self, model, custom_settings):
-        if custom_settings.Has("implementation"):
-            self.implementation = custom_settings["implementation"].GetString()
-            custom_settings.RemoveValue("implementation")
-        else:
-            raise Exception('No "implementation" specified!')
-
         super(NavierStokesSolverMonolithicChimera,self).__init__(model,custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", "Construction of NavierStokesSolverMonolithic finished.")
@@ -76,13 +70,10 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
             raise Exception("Turbulence models are not added yet.")
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
-                                                                                KratosCFD.PATCH_INDEX)
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera Periodic conditions are not implemented in this case .")
+            raise NotImplementedError
         else:
-            if (self.implementation == "MPC"):
-                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.linear_solver)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.linear_solver)
 
         self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
                                                                             self.time_scheme,
