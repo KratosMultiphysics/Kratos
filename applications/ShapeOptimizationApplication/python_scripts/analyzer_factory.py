@@ -83,22 +83,25 @@ def _CreateDependencyGraphRecursively(responses):
 # ==============================================================================
 class Analyzer:
     # --------------------------------------------------------------------------
-    def __init__(self, internal_analyzer, model_part_controller, external_analyzer, dependency_graph = []):
+    def __init__(self, internal_analyzer, model_part_controller, external_analyzer, dependency_graph=None):
         self.model_part_controller = model_part_controller
         self.internal_analyzer = internal_analyzer
         self.external_analyzer = external_analyzer
-        self.dependency_graph = dependency_graph
-
-        self.exist_dependencies = False
-        for _, dependencies, _ in dependency_graph:
-            if len(dependencies) > 0:
-                self.exist_dependencies = True
-
-        self.response_values_filename = "response_values_from_analyzer.csv"
-        self.gradients_norms = {}
 
         if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
             raise RuntimeError("Neither an internal nor an external analyzer is defined!")
+
+        self.exist_dependencies = False
+        if dependency_graph is not None:
+            self.dependency_graph = dependency_graph
+            for _, dependencies, _ in dependency_graph:
+                if len(dependencies) > 0:
+                    self.exist_dependencies = True
+                    break
+
+        if self.exist_dependencies:
+            self.response_combination_filename = "response_combination.csv"
+            self.gradients_norms = {}
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop(self):
