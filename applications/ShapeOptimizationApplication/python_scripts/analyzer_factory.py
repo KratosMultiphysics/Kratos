@@ -133,9 +133,9 @@ class Analyzer:
 
     # --------------------------------------------------------------------------
     def __InitializeOutputOfResponses(self):
-        kratos_utilities.DeleteFileIfExisting(self.response_values_filename)
+        kratos_utilities.DeleteFileIfExisting(self.response_combination_filename)
 
-        with open(self.response_values_filename, 'w') as csvfile:
+        with open(self.response_combination_filename, 'w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             identifiers = self.__GetIdentifiersRecursively(self.dependency_graph)
 
@@ -240,7 +240,7 @@ class Analyzer:
 
     # --------------------------------------------------------------------------
     def __WriteResultsOfCombinedResponses(self, iteration, communicator):
-        with open(self.response_values_filename, 'a') as csvfile:
+        with open(self.response_combination_filename, 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
 
             identifers, values = self.__GetValuesRecursively(self.dependency_graph, communicator)

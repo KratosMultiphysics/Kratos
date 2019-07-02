@@ -67,9 +67,9 @@ optimizer.Optimize()
 # 1) using the "json_output_process" & "json_check_process" within the structural analysis
 
 # 2) checking values of response function combinations
-response_values_from_analyzer_filename = "response_values_from_analyzer.csv"
+response_combination_filename = "response_combination.csv"
 
-with open(response_values_from_analyzer_filename, 'r') as csvfile:
+with open(response_combination_filename, 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     last_line = None
     for line in reader:
@@ -113,6 +113,6 @@ kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 kratos_utilities.DeleteDirectoryIfExisting(output_directory)
 kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
 kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
-kratos_utilities.DeleteFileIfExisting(response_values_from_analyzer_filename)
+kratos_utilities.DeleteFileIfExisting(response_combination_filename)
 
 # =======================================================================================================
