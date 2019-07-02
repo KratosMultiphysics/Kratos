@@ -134,6 +134,135 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     auxiliary_MLMC_object.total_error,auxiliary_MLMC_object.number_samples
 
 
+def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnce_Wrapper(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    if (current_MLMC_level == 0):
+        mlmc_results = ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 1):
+        mlmc_results = ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 2):
+        mlmc_results = ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results)
+    else:
+        raise Exception("Level not supported")
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0")
+@ExaquteTask(returns=1)
+def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    for current_level in range(current_MLMC_level+1):
+        mlmc_results,pickled_current_model = \
+            ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
+        del(pickled_coarse_model)
+        pickled_coarse_model = pickled_current_model
+        del(pickled_current_model)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1")
+@ExaquteTask(returns=1)
+def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    for current_level in range(current_MLMC_level+1):
+        mlmc_results,pickled_current_model = \
+            ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
+        del(pickled_coarse_model)
+        pickled_coarse_model = pickled_current_model
+        del(pickled_current_model)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2")
+@ExaquteTask(returns=1)
+def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    for current_level in range(current_MLMC_level+1):
+        mlmc_results,pickled_current_model = \
+            ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
+        del(pickled_coarse_model)
+        pickled_coarse_model = pickled_current_model
+        del(pickled_current_model)
+    return mlmc_results
+
+
+def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis_stage,mlmc_results):
+    time_0 = time.time()
+    # unpickle model and build Kratos Model object
+    serialized_model = pickle.loads(pickled_coarse_model)
+    current_model = KratosMultiphysics.Model()
+    serialized_model.Load("ModelSerialization",current_model)
+    del(serialized_model)
+    # unpickle parameters and build Kratos Parameters object
+    serialized_project_parameters = pickle.loads(pickled_coarse_project_parameters)
+    current_project_parameters = KratosMultiphysics.Parameters()
+    serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
+    del(serialized_project_parameters)
+    time_1 = time.time()
+    # start time
+    start_MLMC_time = time.time()
+    # refine if current current_level > 0, adaptive refinement based on the solution of previous level
+    if (current_level > 0):
+        time_2 = time.time()
+        # unpickle metric and remesh refinement parameters and build Kratos Parameters objects
+        serialized_custom_metric_refinement_parameters = pickle.loads(pickled_custom_metric_refinement_parameters)
+        serialized_custom_remesh_refinement_parameters = pickle.loads(pickled_custom_remesh_refinement_parameters)
+        current_custom_metric_refinement_parameters = KratosMultiphysics.Parameters()
+        current_custom_remesh_refinement_parameters = KratosMultiphysics.Parameters()
+        serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
+        serialized_custom_remesh_refinement_parameters.Load("RemeshRefinementParametersSerialization",current_custom_remesh_refinement_parameters)
+        del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
+        time_3 = time.time()
+        # refine the model Kratos object
+        adaptive_refinement_manager = AdaptiveRefinement(current_level,current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+        refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
+        current_model = refined_model
+        del(refined_project_parameters,refined_model)
+        time_4 = time.time()
+        time_5 = time.time()
+    time_6 = time.time()
+    simulation = current_analysis_stage(current_model,current_project_parameters,sample)
+    print("[CHECK OUTPUT]: sample value:", str(sample))
+    sys.stdout.flush()
+    simulation.Run()
+    QoI = simulation.EvaluateQuantityOfInterest()
+    print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
+    sys.stdout.flush()
+    time_7 = time.time()
+    # save model and parameters as StreamSerializer Kratos objects
+    serialized_finer_model = KratosMultiphysics.StreamSerializer()
+    serialized_finer_model.Save("ModelSerialization",simulation.model)
+    # pickle model and parameters
+    pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    del(simulation)
+    time_8 = time.time()
+    end_MLMC_time = time.time()
+    # register results of the current level in the MultilevelMonteCarloResults class
+    mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+    mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+
+    # post process times of the task
+    print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
+    deserialization_time = time_1 - time_0
+    if (current_level > 0):
+        mmg_refinement_time = time_4 - time_3
+    refinement_time = time_6 - time_1
+    Kratos_run_time = time_7 - time_6
+    serialization_time = time_8 - time_7
+    total_task_time = time_8 - time_0
+    print("[LEVEL] current level:",current_level)
+    print("[TIMER] total task time:", total_task_time)
+    print("[TIMER] Kratos Run time:",Kratos_run_time)
+    print("[TIMER] Deserialization time:",deserialization_time)
+    print("[TIMER] Serialization time:",serialization_time)
+    print("[TIMER] Refinement time:",refinement_time)
+    if (current_level > 0):
+        print("[TIMER] mmg refinement time",mmg_refinement_time)
+    print("RATIOs: time of interest / total task time")
+    print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
+    print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
+    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+    print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
+    if (current_level > 0):
+        print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
+    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+    sys.stdout.flush()
+    return mlmc_results,pickled_finer_model
+
+
 """
 function evaluating the QoI and the cost of the simulation, computing the mesh of current level (current_MLMC_level)
 refining recursively from the coarsest mesh
@@ -357,6 +486,7 @@ class MultilevelMonteCarlo(object):
             "adaptive_number_samples"    : "False",
             "refinement_strategy"        : "concurrent_adaptive_refinement",
             "convergence_criteria"       : "total_error_stopping_rule",
+            "tasks_refinement_sample_all_at_once" : false,
             "k0" : 0.1,
             "k1" : 0.1,
             "r1" : 1.25,
@@ -528,7 +658,8 @@ class MultilevelMonteCarlo(object):
                 self.batches_launched[batch] = True
                 self.objects_to_delete.append([])
                 # batch_results = []
-                for level in reversed(range(len(self.batches_number_samples[batch]))):
+                for level in (range(len(self.batches_number_samples[batch]))):
+                # for level in reversed(range(len(self.batches_number_samples[batch]))):
                     batch_results = []
                     for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
@@ -555,6 +686,7 @@ class MultilevelMonteCarlo(object):
         pickled_custom_metric_refinement_parameters = self.pickled_custom_metric_refinement_parameters
         pickled_custom_remesh_refinement_parameters = self.pickled_custom_remesh_refinement_parameters
         current_analysis = self.analysis
+        different_tasks = not self.settings["tasks_refinement_sample_all_at_once"].GetBool()
         # generate the sample
         sample = generator.GenerateSample()
         # initialize the MultilevelMonteCarloResults class
@@ -564,16 +696,23 @@ class MultilevelMonteCarlo(object):
             mlmc_results,pickled_current_model = \
                 ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
         else:
-            for current_level in range(current_MLMC_level+1):
-                mlmc_results,pickled_current_model = \
-                    ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
-                if (current_level > 0):
-                    self.objects_to_delete[-1].append(pickled_coarse_model)
-                if (current_level > 0 and current_level == current_MLMC_level):
-                    self.objects_to_delete[-1].append(pickled_current_model)
-                del(pickled_coarse_model)
-                pickled_coarse_model = pickled_current_model
-                del(pickled_current_model)
+            if (different_tasks is True):
+                for current_level in range(current_MLMC_level+1):
+                    mlmc_results,pickled_current_model = \
+                        ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
+                        # ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
+                    if (current_level > 0):
+                        self.objects_to_delete[-1].append(pickled_coarse_model)
+                    if (current_level > 0 and current_level == current_MLMC_level):
+                        self.objects_to_delete[-1].append(pickled_current_model)
+                    del(pickled_coarse_model)
+                    pickled_coarse_model = pickled_current_model
+                    del(pickled_current_model)
+            elif (different_tasks is False):
+                mlmc_results = \
+                    ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnce_Wrapper(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results)
+            else:
+                raise Exception ("boolean variable different task is not a boolean, instead is equal to",different_tasks)
         return mlmc_results,current_MLMC_level
 
     def ExecuteInstanceSingleRefinement(self,current_MLMC_level):
@@ -595,8 +734,8 @@ class MultilevelMonteCarlo(object):
     def InitializeScreeningPhase(self):
         if (self.iteration_counter == 0):
             self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
-            # self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
-            self.batches_number_samples = [[((10**(self.settings["maximum_number_levels"].GetInt()-level)))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            # self.batches_number_samples = [[((10**(self.settings["maximum_number_levels"].GetInt()-level)))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.running_number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
