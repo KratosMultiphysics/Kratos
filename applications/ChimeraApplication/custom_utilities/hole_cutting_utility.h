@@ -147,7 +147,7 @@ public:
     void RemoveOutOfDomainElements(ModelPart &rModelPart,
                                    ModelPart &rModifiedModelPart,
                                    const int MainDomainOrNot,
-                                   const double Distance=0.0,
+                                   const double OverLapDistance=0.0,
                                    const bool GetInside=false)
     {
         KRATOS_TRY;
@@ -156,19 +156,19 @@ public:
 
         int count = 0;
 
-        for (ModelPart::ElementsContainerType::iterator i_element = rModelPart.ElementsBegin(); i_element != rModelPart.ElementsEnd(); ++i_element)
+        for (auto& i_element :rModelPart.Elements())
         {
             double element_distance = 0.0;
             std::size_t numPointsOutside = 0;
             std::size_t j = 0;
-            Geometry<Node<3>> &geom = i_element->GetGeometry();
+            Geometry<Node<3>> &geom = i_element.GetGeometry();
 
             for (j = 0; j < geom.size(); j++)
             {
-                element_distance = i_element->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+                element_distance = i_element.GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
                 element_distance = element_distance * MainDomainOrNot;
-                if (element_distance < -1*Distance)
+                if (element_distance < -1*OverLapDistance)
                 {
                     numPointsOutside++;
                 }
@@ -178,36 +178,34 @@ public:
 			 wont find any nodes on background */
             if (numPointsOutside > 0)
             {
-                i_element->Set(ACTIVE, false);
-                Element::Pointer p_elem = *(i_element.base());
-                std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber();
+                i_element.Set(ACTIVE, false);
+                std::size_t num_nodes_per_elem = i_element.GetGeometry().PointsNumber();
                 if(GetInside)
-                    rModifiedModelPart.Elements().push_back(p_elem);
+                    rModifiedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));
                 for (j = 0; j < num_nodes_per_elem; j++)
                 {
-                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+                    i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+                    i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
                     if (num_nodes_per_elem - 1 > 2)
-                        p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
-                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
+                        i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+                    i_element.GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+                    i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
+                    i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
                     if (num_nodes_per_elem - 1 > 2)
-                        p_elem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
-                    p_elem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+                        i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
+                    i_element.GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
                     if(GetInside)
-                        vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
+                        vector_of_node_ids.push_back(i_element.GetGeometry()[j].Id());
                 }
             }
             else
             {
                 if(!GetInside){
                     count++;
-                    Element::Pointer p_elem = *(i_element.base());
-                    std::size_t num_nodes_per_elem = p_elem->GetGeometry().PointsNumber(); // Size()
-                    rModifiedModelPart.Elements().push_back(p_elem);                   //AddElement()
+                    std::size_t num_nodes_per_elem = i_element.GetGeometry().PointsNumber(); // Size()
+                    rModifiedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));//AddElement()
                     for (j = 0; j < num_nodes_per_elem; j++)
-                        vector_of_node_ids.push_back(p_elem->GetGeometry()[j].Id());
+                        vector_of_node_ids.push_back(i_element.GetGeometry()[j].Id());
                 }
             }
         }
