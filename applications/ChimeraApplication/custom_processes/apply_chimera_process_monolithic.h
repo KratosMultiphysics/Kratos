@@ -138,19 +138,18 @@ protected:
     ///@{
 
     ChimeraHoleCuttingUtility::Pointer mpHoleCuttingUtility;
-    typename CustomCalculateSignedDistanceProcess<TDim>::Pointer mpCalculateDistanceProcess;
+    typename DistanceCalculatorType::Pointer mpCalculateDistanceProcess;
     ModelPart &mrMainModelPart;
     double mOverlapDistance;
-    int mNumberOfLevels;
+    IndexType mNumberOfLevels;
     std::vector<int> mLevelTable;
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
 
-    std::string m_background_model_part_name;
-    std::string m_patch_boundary_model_part_name;
-    std::string m_domain_boundary_model_part_name;
-    std::string m_patch_inside_boundary_model_part_name;
-    std::string m_patch_model_part_name;
+    std::string mBackgroundModelPartName;
+    std::string mDomainBoundaryModelPartName;
+    std::string mPatchModelPartName;
+    std::string mPatchInsideBoundaryModelPartName;
 
     ///@}
     ///@name Protected Operators
@@ -167,9 +166,11 @@ protected:
 
     /**
      * @brief Formulates the Chimera conditions with a given set of background and patch combination.
+     * @param BackgroundParam Parameters/Settings for the background
+     * @param PatchParameters Parameters/Settings for the Patch
      * @param MainDomainOrNot Flag specifying if the background is the main bg or not
      */
-    virtual void FormulateChimera(int MainDomainOrNot);
+    virtual void FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot);
 
     /**
      * @brief Creates a vector of unique constraint ids based on how many required and how many are already present in the mrModelPart.
