@@ -53,8 +53,15 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._runTest(settings_file_name_adjoint)
 
             for file_name in os.listdir(os.getcwd()):
-                if file_name.endswith(".h5") or file_name.endswith(".time"):
+                if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+
+    def test_EmbeddedCircleNoWake(self):
+        settings_file_name = "embedded_circle_no_wake_parameters.json"
+        work_folder = "embedded_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
 
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
@@ -70,7 +77,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                     "help"          : "This process writes postprocessing files for GiD",
                     "Parameters"    : {
                         "model_part_name"        : "MainModelPart",
-                        "output_name"            : "naca0012",
+                        "output_name"            : "output",
                         "postprocess_parameters" : {
                             "result_file_configuration" : {
                                 "gidpost_flags"       : {

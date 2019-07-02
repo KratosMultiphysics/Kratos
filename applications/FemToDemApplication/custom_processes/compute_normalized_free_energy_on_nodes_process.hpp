@@ -193,7 +193,10 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
-        return SumB / SumA;
+        if (SumA > tolerance)
+            return SumB / SumA;
+        else 
+            return 0.0;
     }
 
     double ComputeTensionFactor3D(const Vector& rStressVector)
@@ -206,7 +209,10 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
-        return SumB / SumA;
+        if (SumA > tolerance)
+            return SumB / SumA;
+        else 
+            return 0.0;
     }
 
     void CalculatePrincipalStresses2D(const Vector& rStressVector, Vector& rPrincipalStressVector)
