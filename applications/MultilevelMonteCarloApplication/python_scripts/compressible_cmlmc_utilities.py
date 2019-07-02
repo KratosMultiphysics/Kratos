@@ -658,8 +658,8 @@ class MultilevelMonteCarlo(object):
                 self.batches_launched[batch] = True
                 self.objects_to_delete.append([])
                 # batch_results = []
-                for level in (range(len(self.batches_number_samples[batch]))):
-                # for level in reversed(range(len(self.batches_number_samples[batch]))):
+                # for level in (range(len(self.batches_number_samples[batch]))):
+                for level in reversed(range(len(self.batches_number_samples[batch]))):
                     batch_results = []
                     for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
