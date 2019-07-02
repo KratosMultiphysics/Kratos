@@ -11,6 +11,7 @@ from chimera_analysis_test import FlowOverCylinderFractionalStep
 from chimera_analysis_test import FlowOverCrossFractionalStep
 from chimera_analysis_test import FlowOverCrossMonolithic
 from rotate_region_test import ChimeraRotateRegionTest
+from chimera_analysis_test import MonolithicMultiPatch
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -31,9 +32,10 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ChimeraRotateRegionTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
