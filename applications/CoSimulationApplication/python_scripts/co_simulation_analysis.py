@@ -37,7 +37,14 @@ class CoSimulationAnalysis(AnalysisStage):
         self.echo_level = problem_data["echo_level"].GetInt()
 
         self.parallel_type = problem_data["parallel_type"].GetString()
-        if not self.parallel_type in ["OpenMP", "MPI"]:
+        is_distributed_run = KM.IsDistributedRun()
+        if self.parallel_type == "OpenMP":
+            if is_distributed_run:
+                cs_tools.cs_print_warning("Parallel Type", 'Specified "OpenMP" as "parallel_type", but Kratos is running in "MPI", please check your setup!')
+        elif self.parallel_type == "MPI":
+            if not is_distributed_run:
+                cs_tools.cs_print_warning("Parallel Type", 'Specified "MPI" as "parallel_type", but Kratos is running in "OpenMP", please check your setup!')
+        else:
             raise Exception('The "parallel_type" can be either "OpenMP" or "MPI"')
 
         if problem_data.Has("flush_stdout"):
