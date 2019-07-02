@@ -31,6 +31,12 @@ class AnalysisStage(object):
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+        is_distributed_run = KratosMultiphysics.IsDistributedRun()
+
+        if self.parallel_type == "OpenMP" and is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
+        if self.parallel_type == "MPI" and not is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
 
