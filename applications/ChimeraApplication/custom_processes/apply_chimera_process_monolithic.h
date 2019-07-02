@@ -27,12 +27,15 @@
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "includes/linear_master_slave_constraint.h"
+#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
+
 
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_utilities/hole_cutting_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
+#include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 
 namespace Kratos
 {

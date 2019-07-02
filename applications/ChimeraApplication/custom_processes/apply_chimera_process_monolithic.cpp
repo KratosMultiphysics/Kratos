@@ -163,12 +163,14 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
         {
             KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
             mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
+            //DistanceCalculatorType(r_patch_model_part, r_domain_boundary_model_part).Execute();
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
             mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
         }
 
         mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
         mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
+        //DistanceCalculatorType(r_background_model_part, r_modified_patch_boundary_model_part).Execute();
         mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, mOverlapDistance);
 
         //for multipatch
@@ -180,8 +182,6 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
         }
 
         ApplyContinuityWithMpcs(r_modified_patch_boundary_model_part, p_point_locator_on_background);
-        KRATOS_INFO("") << std::endl;
-        KRATOS_INFO("") << std::endl;
         ApplyContinuityWithMpcs(r_hole_boundary_model_part, p_pointer_locator_on_patch);
 
         current_model.DeleteModelPart("HoleModelpart");
@@ -413,6 +413,9 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::AddMasterSlav
 
 typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
 typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
+
+//typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
+//typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
 
 template class ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType>;
 template class ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType>;
