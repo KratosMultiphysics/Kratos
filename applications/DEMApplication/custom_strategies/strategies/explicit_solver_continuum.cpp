@@ -154,7 +154,6 @@ namespace Kratos {
         SearchFEMOperations(r_model_part, has_mpi);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        //FinalizeSolutionStep();
 
         KRATOS_CATCH("")
 
