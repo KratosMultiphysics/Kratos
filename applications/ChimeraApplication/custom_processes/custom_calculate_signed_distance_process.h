@@ -86,9 +86,6 @@ class CustomCalculateSignedDistanceProcess
 	{
 		this->pBinLocator = NULL;
 		this->pDistanceCalculator = NULL;
-
-		p2DSignedDistanceCalculator = NULL;
-		p3DSignedDistanceCalculator = NULL;
 	}
 
 	/// Destructor.
@@ -241,14 +238,14 @@ class CustomCalculateSignedDistanceProcess
 		if (TDim == 2)
 		{
 			// Implemented in the custom_processes
-			p2DSignedDistanceCalculator = CalculateSignedDistanceTo2DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo2DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
+			auto p2DSignedDistanceCalculator = CalculateSignedDistanceTo2DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo2DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 			p2DSignedDistanceCalculator->Execute();
 		}
 
 		if (TDim == 3)
 		{
 			// From Core ?? Improve performance and algorithm based on CalculateSignedDistanceToSkinProcess
-			p3DSignedDistanceCalculator = CalculateSignedDistanceTo3DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo3DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
+			auto p3DSignedDistanceCalculator = CalculateSignedDistanceTo3DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo3DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 
 
 			p3DSignedDistanceCalculator->Execute();
@@ -381,8 +378,6 @@ class CustomCalculateSignedDistanceProcess
 	//ModelPart &mrBackGroundModelPart;
 	//ModelPart &mrPatchSurfaceModelPart;
 	typename BinBasedFastPointLocator<TDim>::Pointer pBinLocator; // Template argument 3 stands for 3D case
-	CalculateSignedDistanceTo2DConditionSkinProcess::Pointer p2DSignedDistanceCalculator;
-	CalculateSignedDistanceTo3DConditionSkinProcess::Pointer p3DSignedDistanceCalculator;
 
 	///@}
 	///@name Private Operators
