@@ -42,8 +42,8 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
 # ------------------------------------------------------------------------------
 def _ValidateSettings(optimization_settings):
     _ValidateTopLevelSettings(optimization_settings)
-    _ValidateObjectivesRecursively(optimization_settings["objectives"])
-    _ValidateConstraints(optimization_settings["constraints"])
+    _ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
+    _ValidateConstraintSettings(optimization_settings["constraints"])
 
 # ------------------------------------------------------------------------------
 def _ValidateTopLevelSettings(optimization_settings):
@@ -64,40 +64,40 @@ def _ValidateTopLevelSettings(optimization_settings):
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
 # ------------------------------------------------------------------------------
-def _ValidateObjectivesRecursively(objectives):
-    for itr in range(objectives.size()):
-        default_settings = Parameters("""
-        {
-            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
-            "type"                                : "minimization",
-            "scaling_factor"                      : 1.0,
-            "use_kratos"                          : false,
-            "kratos_response_settings"            : {},
-            "is_combined"                         : false,
-            "combined_responses"                  : [],
-            "weight"                              : 1.0,
-            "project_gradient_on_surface_normals" : false
-        }""")
-        objectives[itr].ValidateAndAssignDefaults(default_settings)
+def _ValidateObjectiveSettingsRecursively(objective_settings):
+    default_settings = Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "minimization",
+        "scaling_factor"                      : 1.0,
+        "use_kratos"                          : false,
+        "kratos_response_settings"            : {},
+        "is_combined"                         : false,
+        "combined_responses"                  : [],
+        "weight"                              : 1.0,
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(objective_settings.size()):
+        objective_settings[itr].ValidateAndAssignDefaults(default_settings)
 
-        if objectives[itr]["is_combined"].GetBool():
-            _ValidateObjectivesRecursively(objectives[itr]["combined_responses"])
+        if objective_settings[itr]["is_combined"].GetBool():
+            _ValidateObjectiveSettingsRecursively(objective_settings[itr]["combined_responses"])
 
 # ------------------------------------------------------------------------------
-def _ValidateConstraints(constraints):
-    for itr in range(constraints.size()):
-        default_settings = Parameters("""
-        {
-            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
-            "type"                                : "<",
-            "scaling_factor"                      : 1.0,
-            "reference"                           : "initial_value",
-            "reference_value"                     : 1.0,
-            "use_kratos"                          : false,
-            "kratos_response_settings"            : {},
-            "project_gradient_on_surface_normals" : false
-        }""")
-        constraints[itr].ValidateAndAssignDefaults(default_settings)
+def _ValidateConstraintSettings(constraint_settings):
+    default_settings = Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "<",
+        "scaling_factor"                      : 1.0,
+        "reference"                           : "initial_value",
+        "reference_value"                     : 1.0,
+        "use_kratos"                          : false,
+        "kratos_response_settings"            : {},
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(constraint_settings.size()):
+        constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
 
 # ==============================================================================
 class VertexMorphingMethod:
