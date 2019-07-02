@@ -16,7 +16,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "../mdpa_for_tests/flow_over_cross"
         },
-        "echo_level"                  : 2,
+        "echo_level"                  : 0,
         "compute_reactions"           : false,
         "volume_model_part_name"      : "Parts_both_surfaces",
         "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_cross","NoSlip2D_top","NoSlip2D_bottom"],
