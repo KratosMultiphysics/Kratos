@@ -1524,8 +1524,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         myfile.open ("quadtree.post.msh");
         mpQuadtree->PrintGiDMeshNew(myfile);
         myfile.close();*/
-
-       KRATOS_INFO()<< "Generating the Quadtree finished" << std::endl;
     }
 
     ///******************************************************************************************************************
