@@ -359,6 +359,8 @@ class ExplicitStrategy(object):
         self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, is_time_to_print)
         self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
 
+        self._MoveAllMeshes(time, self.dt)
+
     def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = self.dt
@@ -367,7 +369,6 @@ class ExplicitStrategy(object):
 
     def FinalizeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
-        self._MoveAllMeshes(time, self.dt)
         (self.cplusplus_strategy).FinalizeSolutionStep()
 
     def InitializeSolutionStep(self):
