@@ -36,8 +36,7 @@ add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_A
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 
-###############################################################
-## define library Kratos which defines the basic python interface
+# Define library Kratos which defines the basic python interface
 pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosStructuralMechanicsApplication PRIVATE KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
@@ -52,31 +51,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
-if(${INSTALL_TESTING_FILES} MATCHES ON )
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-        PATTERN "*.git" EXCLUDE
-        PATTERN "*.c" EXCLUDE
-        PATTERN "*.h" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
-        PATTERN "*.hpp" EXCLUDE
-  )
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
-
+# Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosStructuralMechanicsCore)
     cotire(KratosStructuralMechanicsApplication)
 endif(USE_COTIRE MATCHES ON)
 
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+)
+
+# Install targets
 install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py KratosMultiphysics/StructuralMechanicsApplication/__init__.py )
-#install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION "KratosMultiphysics/StructuralMechanicsApplication" RENAME "__init__.py")
