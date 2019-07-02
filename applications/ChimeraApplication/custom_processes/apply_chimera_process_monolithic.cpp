@@ -44,8 +44,6 @@ ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyChimeraProces
 
     mNumberOfLevels = mParameters.size();
     KRATOS_ERROR_IF(mNumberOfLevels<2)<<"Chimera requires atleast two levels !. Put Background in one level and the patch in second one."<<std::endl;
-    for (IndexType i = 0; i < mNumberOfLevels; i++)
-        mLevelTable.push_back(mParameters[i].size());
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
     mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());

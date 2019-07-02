@@ -142,7 +142,6 @@ protected:
     ModelPart &mrMainModelPart;
     double mOverlapDistance;
     IndexType mNumberOfLevels;
-    std::vector<int> mLevelTable;
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     ///@}
