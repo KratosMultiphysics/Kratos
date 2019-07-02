@@ -205,27 +205,27 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __translateValueToStandardForm(self, response_id, value):
         response_type = self.list_of_responses[response_id]["type"]
-        factor = self.list_of_responses[response_id]["scaling_factor"]
+        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
 
         if response_type in self.supported_objective_types:
             if response_type == "maximization":
-                return -factor*value
+                return -scaling_factor*value
             else:
-                return factor*value
+                return scaling_factor*value
         else:
             reference_value = self.list_of_responses[response_id]["reference_value"]
 
             if response_type == ">" or response_type == ">=":
-                return factor*(reference_value-value)
+                return scaling_factor*(reference_value-value)
             else:
-                return factor*(value-reference_value)
+                return scaling_factor*(value-reference_value)
 
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm(self, response_id, gradient):
         response_type = self.list_of_responses[response_id]["type"]
-        factor = self.list_of_responses[response_id]["scaling_factor"]
+        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
 
-        gradient = {key: [factor*value[0],factor*value[1],factor*value[2]] for key, value in gradient.items()}
+        gradient = {key: [scaling_factor*value[0],scaling_factor*value[1],scaling_factor*value[2]] for key, value in gradient.items()}
 
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
             gradient = {key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()}
