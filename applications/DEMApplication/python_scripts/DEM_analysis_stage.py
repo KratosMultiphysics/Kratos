@@ -265,6 +265,7 @@ class DEMAnalysisStage(AnalysisStage):
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
+        self.is_printing_rank = False
 
         self.ReadModelParts()
 

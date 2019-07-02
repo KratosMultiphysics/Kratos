@@ -368,7 +368,6 @@ class ExplicitStrategy(object):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
-        time = self.spheres_model_part.ProcessInfo[TIME]
         (self.cplusplus_strategy).FinalizeSolutionStep()
 
     def InitializeSolutionStep(self):
