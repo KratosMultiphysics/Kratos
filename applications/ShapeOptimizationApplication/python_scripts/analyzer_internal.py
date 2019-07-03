@@ -28,7 +28,7 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):
-        for response in self.response_functions.values():
+        for _, response in self.response_functions:
             response.Initialize()
 
     # --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
         step_before_analysis = optimization_model_part.ProcessInfo.GetValue(km.STEP)
         delta_time_before_analysis = optimization_model_part.ProcessInfo.GetValue(km.DELTA_TIME)
 
-        for identifier, response in self.response_functions.items():
+        for identifier, response in self.response_functions:
 
             # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
             optimization_model_part.ProcessInfo.SetValue(km.STEP, step_before_analysis-1)
@@ -70,7 +70,7 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
-        for response in self.response_functions.values():
+        for _, response in self.response_functions:
             response.Finalize()
 
     # --------------------------------------------------------------------------
@@ -78,16 +78,19 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         available_csm_response_functions = ["strain_energy", "mass", "eigenfrequency"]
 
-        response_functions = {}
+        response_functions = []
+        response_ids = []
 
-        for (response_id, response_settings) in specified_responses:
-            if response_id in response_functions.keys():
+        for response_id, response_settings in specified_responses:
+            if response_id in response_ids:
                 raise NameError("There are multiple response functions with the following identifier: " + response_id)
 
-            if response_settings["response_type"].GetString() in available_csm_response_functions:
-                response_functions[response_id] = csm_response_factory.CreateResponseFunction(response_id, response_settings, model)
-            else:
+            if response_settings["response_type"].GetString() not in available_csm_response_functions:
                 raise NameError("The following structural response function is not available: " + response_id)
+
+            response_ids.append(response_id)
+            response = csm_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            response_functions.append((response_id, response))
 
         return response_functions
 
