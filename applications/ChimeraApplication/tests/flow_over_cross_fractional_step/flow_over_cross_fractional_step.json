@@ -80,7 +80,21 @@
                 "direction"       : [0.0,-1.0,0.0]
             }
         }],
-        "auxiliar_process_list"            : []
+        "auxiliary_process_list"            : [],
+        "json_check_process" : [
+            {
+                "python_module"   : "from_json_check_result_process",
+                "kratos_module" : "KratosMultiphysics",
+                "help"                  : "",
+                "process_name"          : "FromJsonCheckResultProcess",
+                "Parameters"            : {
+                    "check_variables"  : ["VELOCITY_X","VELOCITY_X","PRESSURE"],
+                    "input_file_name"  : "flow_over_cross_fractionalstep_results.json",
+                    "model_part_name"  : "GENERIC_background_surface",
+                    "time_frequency"   : 1.0
+                }
+            }
+        ]
     },
 "chimera" :[
         [{ "model_part_name" :"GENERIC_background_surface",
@@ -90,6 +104,21 @@
         [{ "model_part_name" :"GENERIC_patch_surface",
            "model_part_inside_boundary_name" :"NoSlip2D_cross",
            "overlap_distance" :0.7
-        }] 
-     ]    
+        }]
+     ],
+
+    "_json_output_process" : [
+        {
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables" : ["VELOCITY_X","VELOCITY_X","PRESSURE"],
+                "output_file_name" : "flow_over_cross_fractionalstep_results.json",
+                "model_part_name"  : "GENERIC_background_surface",
+                "time_frequency"   : 1.0
+            }
+        }
+    ]
 }
