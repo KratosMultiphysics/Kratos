@@ -6,8 +6,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
-//                   Philipp Bucher
+//  Main authors:    Philipp Bucher
 //
 
 #if !defined(KRATOS_COSIM_IO_PYTHON_H_INCLUDED)

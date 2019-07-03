@@ -6,8 +6,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
-//                   Philipp Bucher
+//  Main authors:    Philipp Bucher
 //
 
 // System includes
@@ -16,6 +15,7 @@
 
 // Project includes
 #include "custom_python/add_custom_io_to_python.h"
+#include "includes/model_part.h"
 
 // IO
 #include "custom_io/co_sim_EMPIRE_API.h"
@@ -54,6 +54,47 @@ void Wrapper_ReceiveArray(char* name, int sizeOfArray, pybind11::list signal)
     }
 }
 
+void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
+{
+    // extract information from ModelPart
+    const int numNodes = rModelPart.NumberOfNodes();
+    const int numElems = rModelPart.NumberOfElements();
+
+    std::vector<double> nodes(numNodes*3);
+    std::vector<int> nodeIDs(numNodes);
+    std::size_t node_counter = 0;
+    for (const auto& r_node : rModelPart.Nodes()) {
+        const auto& r_coords = r_node.GetInitialPosition();
+        nodes[node_counter*3]   = r_coords[0];
+        nodes[node_counter*3+1] = r_coords[0];
+        nodes[node_counter*3+2] = r_coords[0];
+        nodeIDs[node_counter] = r_node.Id();
+
+        node_counter++;
+    }
+
+    std::vector<int> numNodesPerElem(numElems);
+    std::vector<int> elems;
+    elems.reserve(numElems*3);
+    std::size_t elem_counter = 0;
+    for (const auto& r_elem : rModelPart.Elements()) {
+        const auto& r_geom = r_elem.GetGeometry();
+        numNodesPerElem[elem_counter] = r_geom.PointsNumber();
+        for (const auto& r_node : r_geom) {
+            elems.push_back(r_node.Id());
+        }
+
+        elem_counter++;
+    }
+
+    CoSimEMPIRE_API::EMPIRE_API_sendMesh(const_cast<char*>(rModelPart.Name().c_str()), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
+}
+
+void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
+{
+
+}
+
 void  AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -65,8 +106,8 @@ void  AddCustomIOToPython(pybind11::module& m)
 
     mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", CoSimEMPIRE_API::EMPIRE_API_getUserDefinedText);
 
-    mEMPIREAPI.def("EMPIRE_API_sendMesh", CoSimEMPIRE_API::EMPIRE_API_sendMesh);
-    // mEMPIREAPI.def("EMPIRE_API_recvMesh", CoSimEMPIRE_API::EMPIRE_API_recvMesh); // TODO check how to handle double**
+    mEMPIREAPI.def("EMPIRE_API_sendMesh", Wrapper_EMPIRE_API_sendMesh);
+    mEMPIREAPI.def("EMPIRE_API_recvMesh", Wrapper_EMPIRE_API_recvMesh);
 
     mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_SendArray<true>);
     mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_ReceiveArray<true>);
