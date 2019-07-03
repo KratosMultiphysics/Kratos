@@ -66,8 +66,8 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
     for (const auto& r_node : rModelPart.Nodes()) {
         const auto& r_coords = r_node.GetInitialPosition();
         nodes[node_counter*3]   = r_coords[0];
-        nodes[node_counter*3+1] = r_coords[0];
-        nodes[node_counter*3+2] = r_coords[0];
+        nodes[node_counter*3+1] = r_coords[1];
+        nodes[node_counter*3+2] = r_coords[2];
         nodeIDs[node_counter] = r_node.Id();
 
         node_counter++;
