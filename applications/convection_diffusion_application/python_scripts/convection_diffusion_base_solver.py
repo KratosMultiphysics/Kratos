@@ -501,6 +501,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 num_nodes_elements = len(elem.GetNodes())
                 break
 
+        num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
 
         if domain_size not in (2,3):
@@ -522,16 +524,23 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
         ## Conditions
-        num_nodes_conditions = 0
-        if (len(self.main_model_part.Conditions) > 0):
-            for cond in self.main_model_part.Conditions:
-                num_nodes_conditions = len(cond.GetNodes())
-                break
+        num_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().SumAll(len(self.main_model_part.Conditions))
 
-        condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-        if condition_name in ("FluxCondition","ThermalFace","Condition"):
-            name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
-            self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
+        if num_conditions > 0:
+            num_nodes_conditions = 0
+            if (len(self.main_model_part.Conditions) > 0):
+                for cond in self.main_model_part.Conditions:
+                    num_nodes_conditions = len(cond.GetNodes())
+                    break
+
+            num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+
+            condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+            if condition_name in ("FluxCondition","ThermalFace","Condition"):
+                name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
+                self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
+        else:
+            self.settings["element_replace_settings"]["condition_name"].SetString("")
 
         return self.settings["element_replace_settings"]
 
