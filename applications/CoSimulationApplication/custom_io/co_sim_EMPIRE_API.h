@@ -16,8 +16,18 @@
 /*
 This file has the same API as EMPIRE (defined in "EMPIRE_API.h"), hence it can be included instead of EMPIRE
 It used FileIO for data-exchange, in VTK-format
-Note that this file cannot have Kratos-includes, because it is also included in other codes!
+Note:
+- This file cannot have Kratos-includes, because it is also included in other codes!
+- This file is intended to be header-only, such that other codes do not have to link against a library
+
 */
+
+// System includes
+#include <iostream>
+#include <fstream>
+#include <stdexcept>
+
+//#define VTK_USE_BINARY // comment this for using binary for the files
 
 #ifdef __cplusplus // TODO check if this is needed
 extern "C" { // Define extern C if C++ compiler is used
@@ -39,7 +49,7 @@ void EMPIRE_API_Connect(char* inputFileName)
 char *EMPIRE_API_getUserDefinedText(char *elementName)
 {
     std::cout << "Called \"EMPIRE_API_getUserDefinedText\" with \"" << elementName << "\" which is no longer working and can be removed" << std::endl;
-    return "";
+    return ""; // TODO this gives a warning, find better solution
 }
 
 /***********************************************************************************************
@@ -55,6 +65,7 @@ char *EMPIRE_API_getUserDefinedText(char *elementName)
 void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
 {
 
+    // rename file after writing such that it becomes visible
 }
 
 /***********************************************************************************************
@@ -69,6 +80,9 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  ***********/
 void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
 {
+    // wait for file
+
+    // delete file after reading? // TODO
 
 }
 
@@ -81,6 +95,7 @@ void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **node
 void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
 {
 
+    // rename file after writing such that it becomes visible
 }
 
 /***********************************************************************************************
@@ -91,6 +106,9 @@ void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
  ***********/
 void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 {
+    // wait for file
+
+    // delete file after reading? // TODO
 
 }
 
@@ -103,6 +121,7 @@ void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
 {
 
+    // rename file after writing such that it becomes visible
 }
 
 /***********************************************************************************************
@@ -113,6 +132,9 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
 {
+    // wait for file
+
+    // delete file after reading? // TODO
 
 }
 
@@ -122,6 +144,9 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 int EMPIRE_API_recvConvergenceSignal()
 {
+    // wait for file
+
+    // delete file after reading? // TODO
 
 }
 
@@ -131,7 +156,20 @@ int EMPIRE_API_recvConvergenceSignal()
  ***********/
 void EMPIRE_API_sendConvergenceSignal(int signal)
 {
+    if (!(signal == 0 || signal == 1)) {
+        std::stringstream err_msg;
+        err_msg << "Input can only be 0 non-convergence or 1 convergence";
+        err_msg << ", called with: " << signal;
+        throw std::runtime_error(err_msg.str());
+    }
 
+    std::ofstream output_file;
+    output_file.open(".EMPIRE_convergence_signal.dat");
+    output_file << signal;
+    output_file.close();
+
+    // rename file after writing such that it becomes visible
+    std::rename(".EMPIRE_convergence_signal.dat", "EMPIRE_convergence_signal.dat");
 }
 
 /***********************************************************************************************
