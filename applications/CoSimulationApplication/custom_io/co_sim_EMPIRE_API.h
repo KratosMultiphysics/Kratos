@@ -176,8 +176,22 @@ void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
  ***********/
 void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
 {
+    const std::string file_name("EMPIRE_signal_" + std::string(name));
 
-    // rename file after writing such that it becomes visible
+    std::ofstream output_file;
+    output_file.open(helpers::GetTempFileName(file_name));
+    helpers::CheckStream(output_file, file_name);
+
+    // TODO write size in first line?
+
+    for (int i=0; i<sizeOfArray-1; ++i) {
+        output_file << signal[i] << " ";
+    }
+    output_file << signal[sizeOfArray-1]; // outside to not have trailing whitespace
+
+    output_file.close();
+
+    helpers::MakeFileVisible(file_name);
 }
 
 /***********************************************************************************************
@@ -231,10 +245,8 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
         throw std::runtime_error(err_msg.str());
     }
 
-    const std::string temp_file_name = helpers::GetTempFileName(helpers::ConvergenceSignalFileName);
-
     std::ofstream output_file;
-    output_file.open(temp_file_name);
+    output_file.open(helpers::GetTempFileName(helpers::ConvergenceSignalFileName));
     helpers::CheckStream(output_file, helpers::ConvergenceSignalFileName);
 
     output_file << signal;
