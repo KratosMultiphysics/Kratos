@@ -288,7 +288,7 @@ private:
                 // Set the modified shape functions for the parent element
                 const auto p_elem_geom = p_elem->pGetGeometry();
                 const auto elem_dist = this->SetDistancesVector(*p_elem);
-                const auto p_mod_sh_func = SetModifiedShapeFunctionsPointer(p_elem_geom, elem_dist);
+                const auto p_mod_sh_func = pCreateModifiedShapeFunctions(p_elem_geom, elem_dist);
 
                 // Get interface modified shape function values
                 const auto edge_sh_func = this->GetModifiedShapeFunctionsValuesOnEdge(
@@ -340,17 +340,17 @@ private:
         const Vector &rNodalDistances);
 
     /**
-     * Sets the new interface condition geometry
+     * Creates the new interface condition geometry
      * @param rOriginGeometryType Interface subgeometry type
      * @param rNewNodesArray Nodes that conform the new interface geometry
      * @return A pointer to the new geometry
      */
-    Geometry< Node<3> >::Pointer SetNewConditionGeometry(
+    Geometry< Node<3> >::Pointer pCreateNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray);
 
     /**
-     * @brief Sets a pointer to a new skin condition
+     * @brief Creates a pointer to a new skin condition
      * From the split pattern of an intersected element, this method
      * creates and returns a pointer to a new skin condition.
      * @param rOriginGeometryType GeometryType of the condition to be created
@@ -360,7 +360,7 @@ private:
      * @param pConditionProperties pointer to the new condition properties
      * @return Condition::Pointer pointer to a new skin condition
      */
-    Condition::Pointer SetNewConditionPointer(
+    Condition::Pointer pCreateNewCondition(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray,
         const unsigned int &rConditionId,
@@ -383,14 +383,14 @@ private:
     Properties::Pointer SetSkinEntitiesProperties();
 
     /**
-     * @brief Set the Modified Shape Functions Pointer object
+     * @brief Creates a pointer to the Modified Shape Functions
      * For an intersected element, sets the modified shape functions utility
      * @param pGeometry Pointer to the intersected element geometry
      * @param rNodalDistances Vector containing the nodal distances
      * @return ModifiedShapeFunctions::UniquePointer Unique pointer
      * to the current element modified shape functions utility
      */
-    ModifiedShapeFunctions::UniquePointer SetModifiedShapeFunctionsPointer(
+    ModifiedShapeFunctions::UniquePointer pCreateModifiedShapeFunctions(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector& rNodalDistances);
 

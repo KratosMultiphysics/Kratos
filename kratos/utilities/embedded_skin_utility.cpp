@@ -165,7 +165,7 @@ namespace Kratos
             }
 
             // Set the new condition pointer
-            auto p_new_cond = this->SetNewConditionPointer(
+            auto p_new_cond = this->pCreateNewCondition(
                 p_int_sub_geom_type,
                 sub_int_geom_nodes_array,
                 rTempCondId,
@@ -227,7 +227,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    Geometry< Node<3> >::Pointer EmbeddedSkinUtility<TDim>::SetNewConditionGeometry(
+    Geometry< Node<3> >::Pointer EmbeddedSkinUtility<TDim>::pCreateNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray)
     {
@@ -242,14 +242,14 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    Condition::Pointer EmbeddedSkinUtility<TDim>::SetNewConditionPointer(
+    Condition::Pointer EmbeddedSkinUtility<TDim>::pCreateNewCondition(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray,
         const unsigned int &rConditionId,
         const Properties::Pointer pConditionProperties)
     {
         const auto &r_condition = KratosComponents<Condition>::Get(this->GetConditionType());
-        auto p_new_geom = this->SetNewConditionGeometry(rOriginGeometryType, rNewNodesArray);
+        auto p_new_geom = this->pCreateNewConditionGeometry(rOriginGeometryType, rNewNodesArray);
         return r_condition.Create(rConditionId, p_new_geom, pConditionProperties);
     }
 
@@ -340,7 +340,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    ModifiedShapeFunctions::UniquePointer EmbeddedSkinUtility<TDim>::SetModifiedShapeFunctionsPointer(
+    ModifiedShapeFunctions::UniquePointer EmbeddedSkinUtility<TDim>::pCreateModifiedShapeFunctions(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector& rNodalDistances)
     {
