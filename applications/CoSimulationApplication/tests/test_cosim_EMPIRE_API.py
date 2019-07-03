@@ -71,16 +71,17 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         pass
 
     def test_EMPIRE_API_sendSignal_double(self):
-        signal_name = "dummy_signal"
+        signal_name = "dummy_signal_send"
+        signal_file_name = GetSignalFileName(signal_name)
+
         signal = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5]
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendSignal_double(signal_name, len(signal), signal)
 
-        signal_file_name = GetSignalFileName(signal_name)
 
         self.assertTrue(os.path.isfile(signal_file_name))
 
-        with open(signal_file_name, 'r') as conv_signal_file:
-            content = conv_signal_file.read()
+        with open(signal_file_name, 'r') as signal_file:
+            content = signal_file.read()
             vals = [float(v) for v in content.split(' ')]
             for v, v_exp in zip(vals, signal):
                 self.assertAlmostEqual(v, v_exp)
@@ -89,8 +90,28 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
 
     def test_EMPIRE_API_recvSignal_double(self):
-        pass
+        signal_name = "dummy_signal_recv"
+        signal_file_name = GetSignalFileName(signal_name)
 
+        exp_signal = [13.0, -21.5, 3.555, -99.114, 0.02, 565.5, 10.0, 78.44]
+
+        with open(signal_file_name, 'w') as signal_file:
+            for i_v, v in enumerate(exp_signal):
+                signal_file.write(str(v))
+                # doing this extra to not have a trailing whitespace in the file
+                if i_v < len(exp_signal)-1:
+                    signal_file.write(" ")
+
+        signal = [0.0] * len(exp_signal)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvSignal_double(signal_name, len(signal), signal)
+
+        # check the received signal
+        for v, v_exp in zip(signal, exp_signal):
+            self.assertAlmostEqual(v, v_exp)
+
+        # make sure that the file was deleted
+        self.assertFalse(os.path.isfile(signal_file_name))
 
     def __CheckConvergenceSignalFile(self, signal):
         self.assertTrue(os.path.isfile(conv_signal_file_name))
