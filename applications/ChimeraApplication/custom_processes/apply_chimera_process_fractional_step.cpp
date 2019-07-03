@@ -90,7 +90,7 @@ void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyCont
             {
                 #pragma omp critical
                 {
-                    mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
+                    BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
                     removed_counter++;
                 }
             }
