@@ -64,8 +64,13 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         model = KM.Model()
         model_part = model.CreateModelPart("For_Sending")
 
+        severity = KM.Logger.GetDefaultOutput().GetSeverity()
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
+
         model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
         model_part_io.ReadModelPart(model_part)
+
+        KM.Logger.GetDefaultOutput().SetSeverity(severity)
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(model_part)
 
