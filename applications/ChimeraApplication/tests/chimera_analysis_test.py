@@ -45,7 +45,6 @@ class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
         settings_file_name = "multiple_overlapping_patches_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self._Check(os.path.join("test_vtk_output","FluidModelPart_0_11.vtk"),"reference_results_vtk/multiple_over_lapping_patches_monolithic_11.ref_result")
             self.DeleteResults()
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using Monolithic solver ",end-start)
@@ -67,8 +66,7 @@ class FlowOverCrossMonolithic(ChimeraAnalysisBaseTest):
         work_folder = "flow_over_cross_monolithic"
         settings_file_name = "flow_over_cross_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._run_test(settings_file_name)
-            self._Check(os.path.join("test_vtk_output","FluidModelPart_0_11.vtk"),"reference_results_vtk/flow_over_cross_monolithic_result_11.ref_result")
+            model_part = self._run_test(settings_file_name)
             self.DeleteResults()
         end = time.clock()
         print("Time taken for flow over cross using monolithic solver ",end-start)
@@ -80,7 +78,6 @@ class FlowOverCrossFractionalStep(ChimeraAnalysisBaseTest):
         settings_file_name = "flow_over_cross_fractional_step.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self._Check(os.path.join("test_vtk_output","FluidModelPart_0_101.vtk"),"reference_results_vtk/flow_over_cross_fractionalstep_result_101.ref_result")
             self.DeleteResults()
         end = time.clock()
         print("Time taken for flow over cross using fractionalstep solver ",end-start)
