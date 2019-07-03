@@ -46,7 +46,7 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
 
         steady_analysis.Run()
         self._GetFluidSolver(steady_analysis)
-        
+
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
 
     def _GetFluidSolver(self, analysis):
