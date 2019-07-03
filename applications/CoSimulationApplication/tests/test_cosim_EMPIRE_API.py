@@ -59,7 +59,14 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         os.remove(conv_signal_file_name)
 
     def test_EMPIRE_API_sendMesh(self):
-        pass
+        model = KM.Model()
+        model_part = model.CreateModelPart("For_Sending")
+
+        for i in range(50):
+            model_part.CreateNewNode(i+1, i*1.1, i*1.2, i*1.3)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(model_part)
+
 
     def test_EMPIRE_API_recvMesh(self):
         pass
@@ -147,10 +154,10 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
 
 def GetSignalFileName(signal_name):
-    return "EMPIRE_signal_" + signal_name # this is hardcoded in C++
+    return "EMPIRE_signal_" + signal_name + ".dat" # this is hardcoded in C++
 
 def GetDataFieldFileName(data_field_name):
-    return "EMPIRE_datafield_" + data_field_name # this is hardcoded in C++
+    return "EMPIRE_datafield_" + data_field_name + ".dat" # this is hardcoded in C++
 
 
 if __name__ == '__main__':

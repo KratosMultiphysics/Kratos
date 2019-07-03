@@ -167,7 +167,7 @@ char *EMPIRE_API_getUserDefinedText(char *elementName)
  ***********/
 void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
 {
-    const std::string file_name("EMPIRE_mesh_" + std::string(name));
+    const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     std::ofstream output_file;
     output_file.open(helpers::GetTempFileName(file_name));
@@ -228,7 +228,7 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  ***********/
 void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
 {
-    const std::string file_name("EMPIRE_mesh_" + std::string(name));
+    const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     helpers::WaitForFile(file_name);
 
@@ -248,7 +248,7 @@ void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **node
  ***********/
 void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
 {
-    const std::string file_name("EMPIRE_datafield_" + std::string(name));
+    const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
     helpers::SendArray(file_name, sizeOfArray, dataField);
 }
@@ -261,7 +261,7 @@ void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
  ***********/
 void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 {
-    const std::string file_name("EMPIRE_datafield_" + std::string(name));
+    const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
     helpers::ReceiveArray(file_name, sizeOfArray, dataField);
 }
@@ -274,7 +274,7 @@ void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
  ***********/
 void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
 {
-    const std::string file_name("EMPIRE_signal_" + std::string(name));
+    const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
     helpers::SendArray(file_name, sizeOfArray, signal);
 }
@@ -287,7 +287,7 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
 {
-    const std::string file_name("EMPIRE_signal_" + std::string(name));
+    const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
     helpers::ReceiveArray(file_name, sizeOfArray, signal);
 }
