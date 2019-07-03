@@ -28,6 +28,7 @@
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 
+// TODO: make this include work
 //#include "EigenSolversApplication/costum_solvers/eigensystem_solver.h"
 
 namespace Kratos
@@ -226,12 +227,6 @@ class MorSecondOrderIRKAStrategy
         //SparseSpaceType::Set(Vr,0.0);  // only works with vectors
 
 
-        //auto Vrp_orth = SparseSpaceType::CreateEmptyMatrixPointer();
-        //auto& r_Vr_orth = *Vrp_orth;
-        //SparseSpaceType::Resize(r_Vr_orth,system_size, reduced_system_size);  // n x r
-
-
-
         // temporal helper
         auto V_h = SparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_V_h = *V_h;
@@ -274,12 +269,16 @@ class MorSecondOrderIRKAStrategy
         auto& r_M_reduced = this->GetMr(); // r x r
         auto& r_D_reduced = this->GetDr(); // r x r
         TSystemMatrixType T; // temp
+        vector<double> mSamplingPoints_old; // for convergence check; TODO: make complex (also in offline_strategy)
 
 
         int iter = 1;
         int err  = 1;
         // TODO: adapt max iter and tol; additional parameters, settings?
         while(iter<10 && err > 1e-4){
+
+            mSamplingPoints_old = mSamplingPoints;
+
             // step 4 a)
             // B_r, reduced right hand side
             r_b_reduced = prod( trans(r_Vr), r_b_size_n );
@@ -331,13 +330,15 @@ class MorSecondOrderIRKAStrategy
             }
             // step 4 e) finished
 
+
+            // check convergence
+            // TODO: uncomment; leave it out for the moment, until eigensolver works (i.e. new sampling points are calculated)
+            //err = norm_2(mSamplingPoints - mSamplingPoints_old)/norm_2(mSamplingPoints_old);
+            //KRATOS_WATCH(iter)
+            //KRATOS_WATCH(err)
+
             iter++;
         }
-
-
-
-
-
 
 
         
@@ -347,161 +348,6 @@ class MorSecondOrderIRKAStrategy
 
 
 
-
-
-
-
-
-
-        //p_builder_and_solver->GetLinearSystemSolver()->Solve( mSamplingPoints[0]*mSamplingPoints[0]*M_full + mSamplingPoints[0]*D_full + K_full, Vr_col, b_full );
-        //KRATOS_WATCH(Vr_col)
-/* 
-        auto M_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
-        auto& M_reduced = *M_reduced_p;
-        DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
-
-        auto D_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
-        auto& D_reduced = *D_reduced_p;
-        DenseSpaceType::Resize(D_reduced, reduced_system_size, reduced_system_size);
-
-        auto K_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
-        auto& K_reduced = *K_reduced_p;
-        DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
-
-        // auto M_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
-        // auto& M_reduced = *M_reduced_p;
-        // DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
-
-
-        auto tmp_transfer_p = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& tmp_transfer = *tmp_transfer_p;
-        SparseSpaceType::Resize(tmp_transfer, system_size, system_size);
-
-        for( size_t i = 0; i < n_sampling_points; ++i ){
-            double current_s = mSamplingPoints[i];
-            tmp_transfer = current_s*current_s*M_full + current_s*D_full + K_full;
-            // auto aaa = p_builder_and_solver->GetLinearSystemSolver();
-            p_builder_and_solver->GetLinearSystemSolver()->Solve(tmp_transfer, Vr_col, b_full );
-            column( Vr, (i) ) = Vr_col;
-        }
-
-
-        unsigned int iter = 1;
-        double err = 1.0;
-        while((iter < 100)&&(err > 10e-6)){ // (err>tol){
-            vector<double> mSamplingPoints_old = mSamplingPoints;
-
-            M_reduced = prod(trans(Vr), prod(M_full,Vr));
-            D_reduced = prod(trans(Vr), prod(D_full,Vr));
-            K_reduced = prod(trans(Vr), prod(K_full,Vr));
-
-            for( size_t i = 0; i < n_sampling_points; ++i ){
-                double current_s = mSamplingPoints[i];
-                tmp_transfer = current_s*current_s*M_full + current_s*D_full + K_full;
-                // p_builder_and_solver->GetLinearSystemSolver()->Solve(tmp_transfer, Vr_col, b_full );
-                column( Vr, (i) ) = Vr_col;
-            }
-
-            // check convergence
-            err = norm_2(mSamplingPoints - mSamplingPoints_old)/norm_2(mSamplingPoints_old);
-            //KRATOS_WATCH(err)
-            iter++;
-
-        }
-
-        // M_reduced = prod(prod(trans(Vr), M_full), Vr);
-        // D_reduced = prod(trans(Vr), prod(D_full,Vr));
-        // K_reduced = prod(trans(Vr), prod(K_full,Vr));
-        // C_reduced = C * Vr;
-
-
-        KRATOS_WATCH(M_reduced)
-        */
-
-
-
-
-
-
-        //KRATOS_WATCH(Vr)
- /*      
-        //initialize sb, As, AAs vectors
-        auto s = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rs = *s;
-        SparseSpaceType::Resize(rs,system_size);
-        SparseSpaceType::Set(rs,0.0);
-        auto As = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rAs = *As;
-        SparseSpaceType::Resize(rAs,system_size);
-        SparseSpaceType::Set(rAs,0.0);
-        auto AAs = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rAAs = *AAs;
-        SparseSpaceType::Resize(rAAs,system_size);
-        SparseSpaceType::Set(rAAs,0.0);
-
-        auto kdyn = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_kdyn = *kdyn;
-        SparseSpaceType::Resize(r_kdyn, system_size, system_size);
-
-        auto tmp_basis = DenseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_tmp_basis = *tmp_basis;
-        DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);
-
-        auto& r_basis = this->GetBasis(); 
-        SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
-
-        TSystemVectorType aux;
-        
-        for( size_t i = 0; i < n_sampling_points; ++i )
-        {
-            KRATOS_WATCH( mSamplingPoints(i) )
-            r_kdyn = K_full - ( std::pow( mSamplingPoints(i), 2.0 ) * M_full );    // Without Damping  
-            //r_kdyn = K_full - ( std::pow( mSamplingPoints(i), 2.0 ) * M_full )-D_full;  With Damping
-            
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, b_full );
-            aux = prod( M_full, rs );
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
-            aux = prod( M_full, rAs );
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAAs, aux );
-
-            column( r_tmp_basis, (i*3) ) = rs;
-            column( r_tmp_basis, (i*3)+1 ) = rAs;
-            column( r_tmp_basis, (i*3)+2 ) = rAAs;
-        }
-
-        //orthogonalize the basis -> basis_r
-        // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_basis)(0,0) );
-        mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
-        mQR_decomposition.compute_q();
-        
-        for( size_t i = 0; i < system_size; ++i )
-        {
-            for( size_t j = 0; j < (3*n_sampling_points); ++j )
-            {
-                r_basis(i,j) = mQR_decomposition.Q(i,j);
-                
-            }
-        }
-
-        // project the system matrices onto the Krylov subspace
-        auto& r_force_vector_reduced = this->GetRHSr();
-        auto& r_stiffness_matrix_reduced = this->GetKr();
-        auto& r_mass_matrix_reduced = this->GetMr();
-        auto& r_damping_matrix_reduced = this->GetDr();
-
-        r_force_vector_reduced = prod( b_full, r_basis );
-
-        TSystemMatrixType T = prod( trans( r_basis ), K_full );
-        r_stiffness_matrix_reduced = prod( T, r_basis );
-
-        T = prod( trans( r_basis ), M_full );
-        r_mass_matrix_reduced = prod( T, r_basis );
-
-        T = prod( trans( r_basis ), D_full );
-        r_damping_matrix_reduced = prod( T, r_basis );
-        
-        KRATOS_WATCH(r_mass_matrix_reduced)
-*/
         std::cout << "MOR offline solve finished" << std::endl;
         
 		return true;
