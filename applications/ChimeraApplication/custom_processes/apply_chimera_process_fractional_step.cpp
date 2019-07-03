@@ -47,12 +47,12 @@ void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyCont
     BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
     const int max_results = 10000;
-    const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+    const IndexType n_boundary_nodes = rBoundaryModelPart.Nodes().size();
     std::size_t counter = 0;
     std::size_t removed_counter = 0;
     std::size_t not_found_counter = 0;
 
-    for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+    for (IndexType i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
         ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
         Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
@@ -62,7 +62,7 @@ void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyCont
 
 #pragma omp parallel for shared(constraints_id_vector, velocity_ms_container_vector, pressure_ms_container_vector, pBinLocator) reduction(+:not_found_counter) reduction(+:removed_counter) reduction(+ \
                                                                                                                                            : counter)
-    for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+    for (IndexType i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
 
         Vector shape_fun_weights;
@@ -73,7 +73,7 @@ void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyCont
         ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
         Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
         ConstraintIdsVectorType constrainIds_for_the_node;
-        unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
+        IndexType start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
         bool node_coupled = false;
         if ((p_boundary_node)->IsDefined(VISITED))
             node_coupled = (p_boundary_node)->Is(VISITED);
@@ -88,8 +88,11 @@ void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyCont
             constrainIds_for_the_node = BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
             for (auto const &constraint_id : constrainIds_for_the_node)
             {
-                BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
-                removed_counter++;
+                #pragma omp critical
+                {
+                    mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
+                    removed_counter++;
+                }
             }
             p_boundary_node->Set(VISITED, false);
         }
