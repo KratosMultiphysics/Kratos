@@ -14,6 +14,7 @@ from __future__ import print_function, absolute_import, division
 # additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_internal import KratosInternalAnalyzer
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import EmptyAnalyzer
+from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
 
@@ -34,7 +35,7 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
     else:
         internal_analyzer = EmptyAnalyzer()
 
-    dependency_graph = _CreateDependencyGraphRecursively(objectives)
+    dependency_graph, exist_dependencies = _CreateDependencyGraphRecursively(objectives)
     # dependency_graph = [ (response_id_1, [], weight_1),
     #                      (response_id_2, [], weight_2),
     #                      (response_id_3, [ (response_id_3a, [], weight_3a),
@@ -42,7 +43,10 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
     #                                        (response_id_3c, [...], weight_3c) ], weight_3),
     #                      ... ]
 
-    return Analyzer(internal_analyzer, model_part_controller, external_analyzer, dependency_graph)
+    if exist_dependencies:
+        return AnalyzerWithDependencies(internal_analyzer, model_part_controller, external_analyzer, dependency_graph)
+    else:
+        return Analyzer(internal_analyzer, model_part_controller, external_analyzer)
 
 # ------------------------------------------------------------------------------
 def _IdentifyInternalResponsesRecursively(responses):
@@ -65,6 +69,7 @@ def _IdentifyInternalResponsesRecursively(responses):
 # ------------------------------------------------------------------------------
 def _CreateDependencyGraphRecursively(responses):
     dependency_graph = []
+    exist_dependencies = False
 
     for itr in range(responses.size()):
         response_i = responses[itr]
@@ -73,17 +78,18 @@ def _CreateDependencyGraphRecursively(responses):
 
         if response_i.Has("is_combined"):
             if response_i["is_combined"].GetBool():
-                sub_dependency_graph = _CreateDependencyGraphRecursively(response_i["combined_responses"])
+                exist_dependencies = True
+                sub_dependency_graph, _ = _CreateDependencyGraphRecursively(response_i["combined_responses"])
                 dependency_graph.append((identifier, sub_dependency_graph, weight))
             else:
                 dependency_graph.append((identifier, [], weight))
 
-    return dependency_graph
+    return dependency_graph, exist_dependencies
 
 # ==============================================================================
-class Analyzer:
+class Analyzer(AnalyzerBaseClass):
     # --------------------------------------------------------------------------
-    def __init__(self, internal_analyzer, model_part_controller, external_analyzer, dependency_graph=None):
+    def __init__(self, internal_analyzer, model_part_controller, external_analyzer):
         self.model_part_controller = model_part_controller
         self.internal_analyzer = internal_analyzer
         self.external_analyzer = external_analyzer
@@ -91,38 +97,15 @@ class Analyzer:
         if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
             raise RuntimeError("Neither an internal nor an external analyzer is defined!")
 
-        self.exist_dependencies = False
-        if dependency_graph is not None:
-            self.dependency_graph = dependency_graph
-            for _, dependencies, _ in dependency_graph:
-                if len(dependencies) > 0:
-                    self.exist_dependencies = True
-                    break
-
-        if self.exist_dependencies:
-            self.response_combination_filename = "response_combination.csv"
-            self.gradients_norms = {}
-
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop(self):
-        if self.exist_dependencies:
-            self.__InitializeOutputOfResponses()
-
         self.internal_analyzer.InitializeBeforeOptimizationLoop()
         self.external_analyzer.InitializeBeforeOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, unique_iterator, communicator):
-        if self.exist_dependencies:
-            self.__RequestResponsesAccordingDependencies(communicator)
-
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.external_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
-
-        if self.exist_dependencies:
-            self.__CombineResponsesAccordingDependencies(communicator)
-            self.__ComputeGradientNormsRecursively(self.dependency_graph, communicator)
-            self.__WriteResultsOfCombinedResponses(unique_iterator,communicator)
 
         self.__ResetPossibleShapeModificationsFromAnalysis()
 
@@ -130,6 +113,37 @@ class Analyzer:
     def FinalizeAfterOptimizationLoop(self):
         self.internal_analyzer.FinalizeAfterOptimizationLoop()
         self.external_analyzer.FinalizeAfterOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def __ResetPossibleShapeModificationsFromAnalysis( self ):
+        self.model_part_controller.SetMeshToReferenceMesh()
+        self.model_part_controller.SetDeformationVariablesToZero()
+
+# ==============================================================================
+class AnalyzerWithDependencies(Analyzer):
+    # --------------------------------------------------------------------------
+    def __init__(self, internal_analyzer, model_part_controller, external_analyzer, dependency_graph):
+        super().__init__(internal_analyzer, model_part_controller, external_analyzer)
+
+        self.dependency_graph = dependency_graph
+        self.response_combination_filename = "response_combination.csv"
+        self.gradients_norms = {}
+
+    # --------------------------------------------------------------------------
+    def InitializeBeforeOptimizationLoop(self):
+        super().InitializeBeforeOptimizationLoop()
+
+        self.__InitializeOutputOfResponses()
+
+    # --------------------------------------------------------------------------
+    def AnalyzeDesignAndReportToCommunicator(self, current_design, unique_iterator, communicator):
+        self.__RequestResponsesAccordingDependencies(communicator)
+
+        super().AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
+
+        self.__CombineResponsesAccordingDependencies(communicator)
+        self.__ComputeGradientNormsRecursively(self.dependency_graph, communicator)
+        self.__WriteResultsOfCombinedResponses(unique_iterator,communicator)
 
     # --------------------------------------------------------------------------
     def __InitializeOutputOfResponses(self):
@@ -280,10 +294,5 @@ class Analyzer:
                 values += sub_values
 
         return identifiers, values
-
-    # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsFromAnalysis( self ):
-        self.model_part_controller.SetMeshToReferenceMesh()
-        self.model_part_controller.SetDeformationVariablesToZero()
 
 # ==============================================================================
