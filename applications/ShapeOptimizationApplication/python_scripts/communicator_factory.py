@@ -25,11 +25,13 @@ class Communicator:
         self.supported_constraint_types = ["=", "<", ">", "<=", ">="]
         self.supported_constraint_references = ["initial_value", "specified_value"]
 
-        self.list_of_requests = self.__initializeListOfRequestsRecursively(optimization_settings["objectives"])
-        self.list_of_requests.update(self.__initializeListOfRequestsRecursively(optimization_settings["constraints"]))
+        objective_settings = self.__ExtractResponseSettingsRecursively(optimization_settings["objectives"])
+        constraint_settings = self.__ExtractResponseSettingsRecursively(optimization_settings["constraints"])
+        all_response_settings = objective_settings + constraint_settings
 
-        self.list_of_responses = self.__initializeListOfObjectivesRecursively(optimization_settings["objectives"])
-        self.list_of_responses.update(self.__initializeListOfConstraints(optimization_settings["constraints"]))
+        self.list_of_requests = self.__initializeListOfRequests(all_response_settings)
+        self.list_of_responses = self.__initializeListOfObjectives(objective_settings)
+        self.list_of_responses.update(self.__initializeListOfConstraints(constraint_settings))
 
     # --------------------------------------------------------------------------
     def initializeCommunication(self):
@@ -104,34 +106,39 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     @classmethod
-    def __initializeListOfRequestsRecursively(cls, responses):
-        list_of_requests = {}
+    def __ExtractResponseSettingsRecursively(cls, response_settings):
+        list_of_settings = []
 
-        for itr in range(responses.size()):
-            response_i = responses[itr]
-            response_id = response_i["identifier"].GetString()
-
+        for itr in range(response_settings.size()):
+            response_i = response_settings[itr]
             if response_i.Has("is_combined"):
                 if response_i["is_combined"].GetBool():
-                    list_of_requests.update(cls.__initializeListOfRequestsRecursively(response_i["combined_responses"]))
+                    list_of_settings += cls.__ExtractResponseSettingsRecursively(response_i["combined_responses"])
 
+            list_of_settings += [response_i]
+
+        return list_of_settings
+
+    # --------------------------------------------------------------------------
+    @classmethod
+    def __initializeListOfRequests(cls, response_settings):
+        list_of_requests = {}
+
+        for response in response_settings:
+            response_id = response["identifier"].GetString()
             list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False}
 
         return list_of_requests
 
     # --------------------------------------------------------------------------
-    def __initializeListOfObjectivesRecursively(self, specified_objectives):
+    def __initializeListOfObjectives(self, objective_settings):
         list_of_objectives = {}
 
-        for itr in range(specified_objectives.size()):
-            objective = specified_objectives[itr]
+        for objective in objective_settings:
             objective_id =  objective["identifier"].GetString()
 
             if objective["type"].GetString() not in self.supported_objective_types:
                 raise RuntimeError("Unsupported type defined for the following objective: " + objective_id)
-
-            if objective["is_combined"].GetBool():
-                list_of_objectives.update(self.__initializeListOfObjectivesRecursively(objective["combined_responses"]))
 
             list_of_objectives[objective_id] = { "type"                 : objective["type"].GetString(),
                                                  "value"                : None,
@@ -142,11 +149,10 @@ class Communicator:
         return list_of_objectives
 
     # --------------------------------------------------------------------------
-    def __initializeListOfConstraints(self, specified_constraints):
+    def __initializeListOfConstraints(self, constraint_settings):
         list_of_constraints = {}
 
-        for itr in range(specified_constraints.size()):
-            constraint = specified_constraints[itr]
+        for constraint in constraint_settings:
             constraint_id = constraint["identifier"].GetString()
 
             if constraint["type"].GetString() not in self.supported_constraint_types:
