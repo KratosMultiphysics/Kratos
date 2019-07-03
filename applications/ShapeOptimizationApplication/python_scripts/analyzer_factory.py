@@ -127,7 +127,7 @@ class AnalyzerWithDependencies(Analyzer):
 
         self.dependency_graph = dependency_graph
         self.response_combination_filename = "response_combination.csv"
-        self.gradients_norms = {}
+        self.gradients_max_norms = {}
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop(self):
@@ -254,7 +254,7 @@ class AnalyzerWithDependencies(Analyzer):
 
             nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
             max_norm = math.sqrt(max(nodal_norms))
-            self.gradients_norms[response_id] = max_norm
+            self.gradients_max_norms[response_id] = max_norm
 
             if len(dependencies) > 0:
                 self.__ComputeGradientNormsRecursively(dependencies, communicator)
@@ -271,7 +271,7 @@ class AnalyzerWithDependencies(Analyzer):
             for identifer, value in zip(identifers, values):
                 row.append(" {:> .5E}".format(value))
             for identifer, value in zip(identifers, values):
-                row.append(" {:> .5E}".format(self.gradients_norms[identifer]))
+                row.append(" {:> .5E}".format(self.gradients_max_norms[identifer]))
 
             writer.writerow(row)
 
