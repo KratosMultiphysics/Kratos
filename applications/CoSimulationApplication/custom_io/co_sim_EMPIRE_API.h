@@ -6,8 +6,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
-//                   Philipp Bucher
+//  Main authors:    Philipp Bucher
 //
 
 #ifndef KRATOS_CO_SIM_EMPIRE_API_H_INCLUDED
@@ -118,6 +117,23 @@ void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
     helpers::RemoveFile(rFileName);
 }
 
+int GetVtkCellType(const int NumberOfNodes)
+{
+    if (NumberOfNodes == 1) {
+        return 1;
+    } else if (NumberOfNodes == 2) {
+        return 3;
+    } else if (NumberOfNodes == 3) {
+        return 5;
+    } else if (NumberOfNodes == 4) {
+        return 9;
+    } else {
+        std::stringstream err_msg;
+        err_msg << "Unsupported number of nodes/element: " << NumberOfNodes;
+        throw std::runtime_error(err_msg.str());
+    }
+}
+
 } // namespace helpers
 
 /***********************************************************************************************
@@ -165,10 +181,36 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     } else {
         output_file << "ASCII\n";
     }
-    output_file << "DATASET UNSTRUCTURED_GRID\n";
+    output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
+    // write nodes
+    output_file << "POINTS " << numNodes << " float\n";
+    for (int i=0; i<numNodes; ++i) {
+        output_file << nodes[i*3] << " " << nodes[i*3+1] << " " << nodes[i*3+2] << "\n";
+    }
+    output_file << "\n";
 
+    // write cells connectivity
+    int counter=0;
+    output_file << "CELLS " << numElems << " \n";
+    for (int i=0; i<numElems; ++i) {
+        const int num_nodes_elem = numNodesPerElem[i];
+        output_file << num_nodes_elem << " ";
+        for (int j=0; j<num_nodes_elem; ++j) {
+            output_file << elems[counter++] << " ";
+        }
+        output_file << "\n";
+    }
 
+    output_file << "\n";
+
+    // write cell types
+    output_file << "CELL_TYPES " << numElems << "\n";
+    for (int i=0; i<numElems; ++i) {
+        output_file << helpers::GetVtkCellType(numNodesPerElem[i]) << "\n";
+    }
+
+    output_file << "\n";
 
     output_file.close();
     helpers::MakeFileVisible(file_name);
