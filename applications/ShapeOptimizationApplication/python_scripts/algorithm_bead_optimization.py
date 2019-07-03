@@ -93,8 +93,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(ALPHA)
         self.optimization_model_part.AddNodalSolutionStepVariable(ALPHA_MAPPED)
-        self.optimization_model_part.AddNodalSolutionStepVariable(DFDALPHA)
-        self.optimization_model_part.AddNodalSolutionStepVariable(DFDALPHA_MAPPED)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DF1DALPHA)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DF1DALPHA_MAPPED)
         self.optimization_model_part.AddNodalSolutionStepVariable(DPDALPHA)
         self.optimization_model_part.AddNodalSolutionStepVariable(DPDALPHA_MAPPED)
         self.optimization_model_part.AddNodalSolutionStepVariable(DLDALPHA)
@@ -228,23 +228,23 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
                 objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-                WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DFDX)
+                WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
 
-                self.model_part_controller.DampNodalVariableIfSpecified(DFDX)
+                self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
 
                 # Compute sensitivities w.r.t. scalar design variable alpha
                 for node in self.design_surface.Nodes:
-                    raw_gradient = node.GetSolutionStepValue(DFDX)
+                    raw_gradient = node.GetSolutionStepValue(DF1DX)
                     bead_dir = node.GetValue(BEAD_DIRECTION)
 
                     dF1dalpha_i = self.bead_height*(raw_gradient[0]*bead_dir[0] + raw_gradient[1]*bead_dir[1] + raw_gradient[2]*bead_dir[2])
-                    node.SetSolutionStepValue(DFDALPHA, dF1dalpha_i)
+                    node.SetSolutionStepValue(DF1DALPHA, dF1dalpha_i)
 
                 # Map gradient of objective
-                self.mapper.InverseMap(DFDALPHA, DFDALPHA_MAPPED)
+                self.mapper.InverseMap(DF1DALPHA, DF1DALPHA_MAPPED)
 
                 # Compute scaling
-                max_norm_objective_gradient = self.optimization_utilities.ComputeMaxNormOfNodalVariable(DFDALPHA_MAPPED)
+                max_norm_objective_gradient = self.optimization_utilities.ComputeMaxNormOfNodalVariable(DF1DALPHA_MAPPED)
 
                 if outer_iteration == 1 and inner_iteration == min(3,self.max_inner_iterations):
                     if self.bead_side == "positive" or self.bead_side == "negative":
@@ -300,7 +300,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 else:
                     penalty_gradient_variable = DPDALPHA
                 for node in self.design_surface.Nodes:
-                    dLdalpha_i = node.GetSolutionStepValue(DFDALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(penalty_gradient_variable)
+                    dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(penalty_gradient_variable)
                     node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
 
                 # Normalization using infinity norm

@@ -198,7 +198,7 @@ public:
         // search direction is negative of filtered gradient
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(DFDX_MAPPED);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
         }
 
         KRATOS_CATCH("");
@@ -231,7 +231,7 @@ public:
         double dot_dFds_dCds = 0.0;
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d dFds_i = node_i.FastGetSolutionStepValue(DFDX_MAPPED);
+        	array_3d dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
         	array_3d dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
             dot_dFds_dCds += inner_prod(dFds_i,(dCds_i / norm_2_dCds_i));
         }
@@ -239,7 +239,7 @@ public:
         // Compute and assign projected search direction
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(DFDX_MAPPED);
+        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
         	array_3d& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
 
         	array_3d projection_term = dot_dFds_dCds * (dCds_i / norm_2_dCds_i);

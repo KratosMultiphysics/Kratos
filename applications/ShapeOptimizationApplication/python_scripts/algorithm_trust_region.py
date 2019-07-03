@@ -169,7 +169,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         obj_gradients_dict = self.communicator.getStandardizedGradient(obj_id)
 
-        nodal_variable = KratosGlobals.GetVariable("DFDX")
+        nodal_variable = KratosGlobals.GetVariable("DF1DX")
         WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
         # Projection on surface normals
@@ -180,7 +180,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
         # Mapping
-        nodal_variable_mapped = KratosGlobals.GetVariable("DFDX_MAPPED")
+        nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
         self.mapper.Update()
         self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
         self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
@@ -219,8 +219,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         obj = self.objectives[0]
         obj_id = obj["identifier"].GetString()
 
-        nodal_variable = KratosGlobals.GetVariable("DFDX")
-        nodal_variable_mapped = KratosGlobals.GetVariable("DFDX_MAPPED")
+        nodal_variable = KratosGlobals.GetVariable("DF1DX")
+        nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
 
         obj_value = self.communicator.getStandardizedValue(obj_id)
         obj_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)

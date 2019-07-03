@@ -116,9 +116,9 @@ class VertexMorphingMethod:
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
-        nodal_variable = KratosGlobals.GetVariable("DFDX")
+        nodal_variable = KratosGlobals.GetVariable("DF1DX")
         model_part.AddNodalSolutionStepVariable(nodal_variable)
-        nodal_variable = KratosGlobals.GetVariable("DFDX_MAPPED")
+        nodal_variable = KratosGlobals.GetVariable("DF1DX_MAPPED")
         model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
