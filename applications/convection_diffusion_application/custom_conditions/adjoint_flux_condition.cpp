@@ -237,7 +237,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
                 // Note that N_j * q_j = q_gauss
                 for (unsigned int i = 0; i < num_nodes; i++)
                 {
-                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * N[i] * q_gauss * jacobian_sensitivity;
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) -= weight * N[i] * q_gauss * jacobian_sensitivity;
                 }
             }
         }
