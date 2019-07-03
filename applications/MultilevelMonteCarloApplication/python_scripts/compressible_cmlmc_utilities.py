@@ -498,7 +498,6 @@ class MultilevelMonteCarlo(object):
         # confidence: confidence on tolerance
         # cphi_confidence: CDF**-1 (confidence) where CDF**-1 is the inverse of the CDF of the standard normal distribution, the default value is computed for confidence = 0.9
         # number_samples_screening: number of samples for screening phase
-        # number_levels_screening: number of levels for screening phase
         # maximum_number_levels: maximum number of levels
         # mesh_refinement_coefficient: coefficient of mesh refinement
         # initial_mesh_size: size of coarsest/initial mesh
@@ -527,8 +526,7 @@ class MultilevelMonteCarlo(object):
             "tolerance_absolute" : 1e-6,
             "confidence" : 0.9,
             "cphi_confidence" : 1.28155156554,
-            "number_samples_screening" : 25,
-            "levels_screening" : 2,
+            "number_samples_screening" : [25,25,25],
             "initial_number_batches" : 1,
             "maximum_number_levels" : 4,
             "minimum_samples_add_level" : 6.0,
@@ -553,7 +551,7 @@ class MultilevelMonteCarlo(object):
         if (self.settings["use_lower_levels_samples"].GetBool()):
             print("\n ######## WARNING: use_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
         # current_number_levels: number of levels of current iteration
-        self.current_number_levels = self.settings["levels_screening"].GetInt()
+        self.current_number_levels = len(self.settings["number_samples_screening"].GetVector())-1
 
         # batches_number_samples: total number of samples, organized in level and batches
         # batches_number_samples = [ [ [level0_batch1] [level1_batch1] .. ] [ [level0_batch2] [level1_batch2] ..] .. ]
@@ -663,7 +661,6 @@ class MultilevelMonteCarlo(object):
             end_time_screening = time.time()
             print("[TIMER] screening phase MLMC:",end_time_screening-start_time)
             # start MLMC phase
-            self.convergence=True
             while self.convergence is not True:
                 self.InitializeMLMCPhase()
                 self.ScreeningInfoInitializeMLMCPhase()
@@ -673,6 +670,7 @@ class MultilevelMonteCarlo(object):
                 sys.stdout.flush()
                 if (self.iteration_counter >= 20):
                     self.convergence = True
+                self.convergence=True
             end_time_mlmc = time.time()
             print("[TIMER] mlmc phase MLMC (no screening phase):", end_time_mlmc-end_time_screening)
         else:
@@ -765,9 +763,8 @@ class MultilevelMonteCarlo(object):
 
     def InitializeScreeningPhase(self):
         if (self.iteration_counter == 0):
-            self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
-            # self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
-            self.batches_number_samples = [[((10**(self.settings["maximum_number_levels"].GetInt()-level)))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batch_size = [self.settings["number_samples_screening"][level].GetInt() for level in range (self.current_number_levels+1)]
+            self.batches_number_samples = [[self.settings["number_samples_screening"][level].GetInt() for level in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.running_number_samples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
             self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
@@ -1046,9 +1043,8 @@ class MultilevelMonteCarlo(object):
             self.current_number_levels = min(self.current_number_levels+1,self.settings["maximum_number_levels"].GetInt())
             # compute theta splitting parameter according to the current_number_levels and tolerance_i
             self.ComputeTheta(self.current_number_levels)
-            # add batch size per level: multiply by 2 current number samples and take the maximum between this integer and default batch size
-            # self.batch_size = [max(self.number_samples[level]*2,self.settings["number_samples_screening"].GetInt()) for level in range (self.current_number_levels+1)]
-            self.batch_size = [(10**(self.settings["maximum_number_levels"].GetInt()-level))*self.settings["number_samples_screening"].GetInt() for level in range (self.current_number_levels+1)]
+            # add batch size per level: multiply by 1 current number samples and take the maximum between this integer and default batch size
+            self.batch_size = [max(self.number_samples[level],self.settings["number_samples_screening"][level].GetInt()) for level in range (self.current_number_levels+1)]
         else:
             raise Exception ("Assign True or False to adaptive_number_samples setting.")
         for new_batch in range (new_number_batches):
