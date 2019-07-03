@@ -37,8 +37,8 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
                         "model_part_name"                    : "FluidModelPart",
                         "output_control_type"                : "step",
                         "output_frequency"                   : 1,
-                        "file_format"                        : "binary",
-                        "output_precision"                   : 14,
+                        "file_format"                        : "ascii",
+                        "output_precision"                   : 3,
                         "output_sub_model_parts"             : false,
                         "folder_name"                        : "test_vtk_output",
                         "save_output_files_in_folder"        : true,
@@ -55,31 +55,4 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
         analysis.Run()
 
     def DeleteResults(self):
-        #kratos_utilities.DeleteDirectoryIfExisting("test_vtk_output")
-        pass
-
-    def _Check(self,output_file,reference_file):
-        import KratosMultiphysics.compare_two_files_check_process as compare_process
-
-        ## Settings string in json format
-        params = KratosMultiphysics.Parameters("""{
-            "reference_file_name" : "",
-            "dimension": 2,
-            "output_file_name"    : "",
-            "relative_tolerance": 1e-01,
-            "remove_output_file": false,
-            "tolerance": 1e-02
-
-        }""")
-        params["reference_file_name"].SetString(GetFilePath(reference_file))
-        params["output_file_name"].SetString(output_file)
-
-        cmp_process = compare_process.CompareTwoFilesCheckProcess(params)
-
-        cmp_process.ExecuteInitialize()
-        cmp_process.ExecuteBeforeSolutionLoop()
-        cmp_process.ExecuteInitializeSolutionStep()
-        cmp_process.ExecuteFinalizeSolutionStep()
-        cmp_process.ExecuteBeforeOutputStep()
-        cmp_process.ExecuteAfterOutputStep()
-        cmp_process.ExecuteFinalize()
+        kratos_utilities.DeleteDirectoryIfExisting("test_vtk_output")
