@@ -1,8 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Importing the Kratos Library
-import KratosMultiphysics
 
 import math
+
+# Importing the Kratos Library
+import KratosMultiphysics
+from KratosMultiphysics import assign_scalar_variable_to_entities_process
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -153,8 +155,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
             z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+modulus+")")
 
         # Construct a AssignScalarToNodesProcess for each component
-        import assign_scalar_variable_to_entities_process
-
         self.aux_processes = []
         self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, x_params) )
         self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, y_params) )

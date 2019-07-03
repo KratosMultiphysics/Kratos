@@ -1,3 +1,5 @@
+import importlib
+
 import KratosMultiphysics
 
 ################# Please do not change the following class:
@@ -28,16 +30,16 @@ class KratosProcessFactory(object):
 
                 try:
                     full_module_name = kratos_module_name + "." + python_module_name
-                    python_module = __import__(full_module_name,fromlist=[python_module_name])
+                    python_module = importlib.import_module(full_module_name)
                 except ImportError: # old import mechanism for backwards-compatibility
-                    __import__(kratos_module_name)
-                    python_module = __import__(python_module_name)
+                    importlib.import_module(kratos_module_name)
+                    python_module = importlib.import_module(python_module_name)
 
                 p = python_module.Factory(item, self.Model)
                 constructed_processes.append( p )
 
             else: # for user-defined processes
-                python_module = __import__(python_module_name)
+                python_module = importlib.import_module(python_module_name)
                 p = python_module.Factory(item, self.Model)
                 constructed_processes.append( p )
 

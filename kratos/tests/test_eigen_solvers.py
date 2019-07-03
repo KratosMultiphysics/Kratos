@@ -1,7 +1,10 @@
 from __future__ import print_function, absolute_import, division
+
+import os
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import os
+import KratosMultiphysics.eigen_solver_factory as eigen_solver_factory
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -36,7 +39,6 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
         # Construct the solver
-        import eigen_solver_factory
         eigen_solver = eigen_solver_factory.ConstructSolver(settings)
 
         # Solve

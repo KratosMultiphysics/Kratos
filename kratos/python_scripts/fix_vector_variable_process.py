@@ -3,12 +3,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-import fix_scalar_variable_process
-
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return FixVectorVariableProcess(model, settings["Parameters"])
+
+from KratosMultiphysics import fix_scalar_variable_process
 
 class FixVectorVariableProcess(KratosMultiphysics.Process):
     """ This process fixes the selected components of a given vector variable

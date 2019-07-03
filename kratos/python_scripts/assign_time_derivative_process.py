@@ -1,6 +1,7 @@
-import KratosMultiphysics
-import assign_vector_variable_process
 from math import *
+
+import KratosMultiphysics
+from KratosMultiphysics import assign_vector_variable_process
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):

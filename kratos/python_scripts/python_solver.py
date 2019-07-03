@@ -188,7 +188,7 @@ class PythonSolver(object):
 
         elif (input_type == "rest"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
-            from restart_utility import RestartUtility
+            from KratosMultiphysics.restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 

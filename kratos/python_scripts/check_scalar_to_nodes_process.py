@@ -2,14 +2,13 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.check_scalar_base_process import CheckScalarBaseProcess
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckScalarToNodesProcess(Model, settings["Parameters"])
 
-
-from check_scalar_base_process import CheckScalarBaseProcess
 class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase):
     """This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart
 

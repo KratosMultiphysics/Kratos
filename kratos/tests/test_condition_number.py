@@ -1,7 +1,10 @@
 ﻿from __future__ import print_function, absolute_import, division
+
+import os
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import os
+import KratosMultiphysics.eigen_solver_factory as eigen_solver_factory
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -22,7 +25,6 @@ class TestConditionNumber(KratosUnittest.TestCase):
         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm"),K)
 
         # Construct the solver
-        import eigen_solver_factory
         settings_max = KratosMultiphysics.Parameters("""
         {
             "solver_type"             : "power_iteration_highest_eigenvalue_solver",

@@ -2,9 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# other imports
-from point_output_process import PointOutputProcess
+from KratosMultiphysics.point_output_process import PointOutputProcess
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
