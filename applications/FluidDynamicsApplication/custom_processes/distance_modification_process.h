@@ -59,6 +59,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : publi
 public:
     ///@name Type Definitions
     ///@{
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>> > ComponentType;
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
@@ -159,6 +160,8 @@ private:
     std::vector<unsigned int>              mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
+    std::vector<const Variable<double>*>    mDoubleVariablesList;
+    std::vector<const ComponentType*>    mComponentVariablesList;
 
     ///@}
     ///@name Protected Operators
@@ -214,6 +217,14 @@ private:
     void SetContinuousDistanceToSplitFlag();
 
     void SetDiscontinuousDistanceToSplitFlag();
+
+    /**
+     * @brief Reads the variables list specified in the Parameters to be fixed in the elements
+     * that are fully negative, storing them in mDoubleVariablesList and mComponentVariablesList.
+     * It also checks that the variables and the DOFs are defined in the rmModelPart.
+     * @param rVariableStringArray Array containing the variables to be fixed in the full negative elements
+    */
+    void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
 
     ///@}
     ///@name Private  Access

@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.ParticleMechanicsApplication.python_solvers_wrapper_particle import CreateSolver
 
 class ParticleMechanicsAnalysis(AnalysisStage):
