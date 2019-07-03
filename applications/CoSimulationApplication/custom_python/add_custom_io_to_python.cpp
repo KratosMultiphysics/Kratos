@@ -18,6 +18,7 @@
 #include "custom_python/add_custom_io_to_python.h"
 
 // IO
+#include "custom_io/co_sim_EMPIRE_API.h"
 
 namespace Kratos {
 namespace Python {
@@ -25,6 +26,25 @@ namespace Python {
 void  AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    auto mEMPIREAPI = m.def_submodule("EMPIRE_API");
+
+    mEMPIREAPI.def("EMPIRE_API_Connect", EMPIRE_API_Connect);
+    mEMPIREAPI.def("EMPIRE_API_Disconnect", EMPIRE_API_Disconnect);
+
+    mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", EMPIRE_API_getUserDefinedText);
+
+    mEMPIREAPI.def("EMPIRE_API_sendMesh", EMPIRE_API_sendMesh);
+    // mEMPIREAPI.def("EMPIRE_API_recvMesh", EMPIRE_API_recvMesh); // TODO check how to handle double**
+
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", EMPIRE_API_sendDataField);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", EMPIRE_API_recvDataField);
+
+    mEMPIREAPI.def("EMPIRE_API_sendSignal_double", EMPIRE_API_sendSignal_double);
+    mEMPIREAPI.def("EMPIRE_API_recvSignal_double", EMPIRE_API_recvSignal_double);
+
+    mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", EMPIRE_API_recvConvergenceSignal);
+    mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", EMPIRE_API_sendConvergenceSignal);
 }
 
 }  // namespace Python.
