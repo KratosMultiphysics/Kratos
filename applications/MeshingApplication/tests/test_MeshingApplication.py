@@ -45,6 +45,9 @@ def AssembleTestSuites():
     if hasattr(MeshingApplication,  "MmgProcess2D"):
         smallSuite.addTest(TTestRemeshMMG2D('test_remesh_rectangle_hessian'))
         smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_remesh_sphere_skin_prisms'))
+        smallSuite.addTest(TTestRemeshMMG3D('test_isosurface_remesh_sphere'))
         smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
         smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
         smallSuite.addTest(TThreeDShellTest('test_execution'))
