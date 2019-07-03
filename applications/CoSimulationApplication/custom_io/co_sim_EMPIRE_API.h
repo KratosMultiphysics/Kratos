@@ -14,7 +14,7 @@
 
 /*
 This file has the same API as EMPIRE (defined in "EMPIRE_API.h"), hence it can be included instead of EMPIRE
-It used FileIO for data-exchange, in VTK-format
+It is used FileIO for data-exchange, in VTK-format
 Note:
 - This file cannot have Kratos-includes, because it is also included in other codes!
 - This file is intended to be header-only, such that other codes do not have to link against a library
@@ -204,7 +204,8 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
         const int num_nodes_elem = numNodesPerElem[i];
         output_file << num_nodes_elem << " ";
         for (int j=0; j<num_nodes_elem; ++j) {
-            output_file << node_vtk_id_map.at(elems[counter++]) << " ";
+            output_file << node_vtk_id_map.at(elems[counter++]);
+            if (j<num_nodes_elem-1) output_file << " ";
         }
         output_file << "\n";
     }

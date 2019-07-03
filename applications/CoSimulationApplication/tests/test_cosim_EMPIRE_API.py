@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
-import os
+import os, filecmp
 
 conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
 
@@ -74,9 +74,14 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(model_part)
 
+        # can directly use filecmp because there are no decimal-number issues
+        self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
 
     def test_EMPIRE_API_recvMesh(self):
-        pass
+        model = KM.Model()
+        model_part = model.CreateModelPart("For_Receiving")
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part)
 
     def test_EMPIRE_API_sendDataField(self):
         fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField
