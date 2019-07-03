@@ -68,6 +68,7 @@ class AdjointDiffusionSolver(PythonSolver):
     def AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(kratos.TEMPERATURE)
         self.model_part.AddNodalSolutionStepVariable(kratos.HEAT_FLUX) # needed by primal element RHS
+        self.model_part.AddNodalSolutionStepVariable(kratos.FACE_HEAT_FLUX) # needed by Neumann condition terms
         self.model_part.AddNodalSolutionStepVariable(convdiff.ADJOINT_HEAT_TRANSFER)
         self.model_part.AddNodalSolutionStepVariable(kratos.SHAPE_SENSITIVITY)
 
@@ -97,6 +98,7 @@ class AdjointDiffusionSolver(PythonSolver):
             primal_model_part = self.model.GetModelPart(self.primal_model_part_name)
             variable_utils = kratos.VariableUtils()
             variable_utils.CopyModelPartNodalVar(kratos.TEMPERATURE, primal_model_part, self.model_part, 0)
+            variable_utils.CopyModelPartNodalVar(kratos.FACE_HEAT_FLUX, primal_model_part, self.model_part, 0)
 
 
     def GetComputingModelPart(self):
