@@ -823,7 +823,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
         r_pnodes_vector[4] = mrThisModelPart.pGetNode(total_number_of_nodes + num_nodes + r_geometry[1].Id());
         r_pnodes_vector[5] = mrThisModelPart.pGetNode(total_number_of_nodes + num_nodes + r_geometry[2].Id());
 
-        auto p_new_elem = p_reference_element->Create(total_number_of_elements + i, element_nodes, it_elem->pGetProperties());
+        auto p_new_elem = p_reference_element->Create(total_number_of_elements + i + 1, element_nodes, it_elem->pGetProperties());
         p_new_elem->Set(NEW_ENTITY, true);
         mrThisModelPart.AddElement(p_new_elem);
 
