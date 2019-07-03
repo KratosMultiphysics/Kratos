@@ -49,7 +49,11 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) FlowStationarityCheck
 
     /// Default constructor.
     FlowStationarityCheck(ModelPart& rFluidModelPart, const double tolerance)
-        : mrModelPart(rFluidModelPart), mAveragingStep(0), mTolerance(tolerance), mCharacteristicPressureRate(1.0){}
+        : mrModelPart(rFluidModelPart),
+          mAveragingStep(0),
+          mTolerance(tolerance),
+          mCharacteristicPressureRate(1.0),
+          mCurrentPressureRate(2.0){}
 
     /// Copy constructor.
     FlowStationarityCheck(FlowStationarityCheck const& rOther) = delete;
@@ -74,6 +78,10 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) FlowStationarityCheck
      *  @return true if the stationary state has been reached according to the chosen tolerance
      */
     bool AssessStationarity();
+    double GetCharacteristicPressureDerivative();
+    double GetCurrentPressureDerivative();
+    double GetTolerance();
+    double GetTransienceMeasure();
 
     ///@}
     ///@name Input and output
@@ -101,10 +109,9 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) FlowStationarityCheck
   protected:
     ///@name Protected Operations
     ///@{
-
     ///@}
 
-private:
+  private:
     ///@name Member Variables
     ///@{
 
@@ -112,6 +119,7 @@ private:
     int mAveragingStep;
     double mTolerance;
     double mCharacteristicPressureRate;
+    double mCurrentPressureRate;
 
     ///@}
     ///@name Private Operations

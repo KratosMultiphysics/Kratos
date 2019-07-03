@@ -38,7 +38,11 @@ bool FlowStationarityCheck::AssessStationarity()
         average_pressure_change_rate += time_step_reciprocal * std::abs(pressure - old_pressure);
     }
 
-    if (average_pressure_change_rate < mTolerance * mCharacteristicPressureRate){
+    mCurrentPressureRate = average_pressure_change_rate;
+
+    if (this->GetTransienceMeasure() < mTolerance){
+        mCharacteristicPressureRate = (mAveragingStep * mCharacteristicPressureRate + average_pressure_change_rate) / (mAveragingStep + 1);
+        ++mAveragingStep;
         return true;
     }
 
@@ -47,7 +51,26 @@ bool FlowStationarityCheck::AssessStationarity()
         ++mAveragingStep;
         return false;
     }
+}
 
+double FlowStationarityCheck::GetCharacteristicPressureDerivative()
+{
+    return mCharacteristicPressureRate;
+}
+
+double FlowStationarityCheck::GetCurrentPressureDerivative()
+{
+    return mCurrentPressureRate;
+}
+
+double FlowStationarityCheck::GetTolerance()
+{
+    return mTolerance;
+}
+
+double FlowStationarityCheck::GetTransienceMeasure()
+{
+    return mCurrentPressureRate / mCharacteristicPressureRate;
 }
 
 }  // namespace Kratos.
