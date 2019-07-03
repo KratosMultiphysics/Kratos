@@ -19,36 +19,39 @@ namespace CSharpKratosWrapper {
 	typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SpaceType;
 	typedef boost::numeric::ublas::matrix<double> Matrix;
 	typedef Kratos::UblasSpace<double, Matrix, Vector> LocalSpaceType;
-	typedef Kratos::Reorderer<SpaceType, LocalSpaceType > ReordererType;
-	typedef Kratos::SkylineLUFactorizationSolver<SpaceType, LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
+	typedef Kratos::Reorderer<SpaceType, LocalSpaceType> ReordererType;
+	typedef Kratos::SkylineLUFactorizationSolver<SpaceType, LocalSpaceType, ReordererType> SkylineLUFactorizationSolverType;
 
 	typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef Kratos::LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-	typedef Kratos::ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
+	typedef Kratos::LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+	typedef Kratos::ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
 
 	typedef Kratos::ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
 
-	typedef Kratos::ResidualCriteria<SparseSpaceType, LocalSpaceType > ResidualCriteriaType;
+	typedef Kratos::ResidualCriteria<SparseSpaceType, LocalSpaceType> ResidualCriteriaType;
 
-	typedef Kratos::ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
-
-
+	typedef Kratos::ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedNewtonRaphsonStrategyType;
 
 
 	class KratosInternals {
 
 	public:
 		void initInternals();
-		void loadMDPA(std::string mdpaPath);
+
+		void loadMDPA(const std::string &mdpaPath);
+
 		void initSolver();
+
 		void solve();
-		Kratos::ModelPart::Pointer pGetMainModelPart();
-		Kratos::ModelPart::Pointer pGetSkinModelPart();
+
+		Kratos::ModelPart &rGetMainModelPart();
+
+		Kratos::ModelPart &rGetSkinModelPart();
 
 	private:
 		Kratos::Kernel mKernel;
 		Kratos::KratosStructuralMechanicsApplication mApplication;
-		Kratos::ModelPart::Pointer pmMainModelPart;
+		std::shared_ptr<Kratos::Model> pmModel;
 		ResidualBasedNewtonRaphsonStrategyType::Pointer pmStrategy;
 	};
 }

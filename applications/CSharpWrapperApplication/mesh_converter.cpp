@@ -13,22 +13,23 @@ using namespace std;
 
 struct element {
 	int nodes[4];
-	Kratos::shared_ptr<Kratos::Element> pKratosElement;
+	Kratos::Element pKratosElement;
 };
 
 struct node {
 	std::vector<element> elements;
 };
 
-void convert(std::vector<element>& elements, std::vector<node>& nodes, std::vector<Kratos::shared_ptr<Kratos::Element>>& kratosElements) {
-	for (auto& kratosElement : kratosElements) {
-		Kratos::GeometricalObject::GeometryType* pElementGeometry = &kratosElement->GetGeometry();
+void convert(std::vector<element> &elements, std::vector<node> &nodes,
+			 Kratos::ModelPart::ElementsContainerType::ContainerType &kratosElements) {
+	for (auto &kratosElement : kratosElements) {
+		Kratos::GeometricalObject::GeometryType *pElementGeometry = &kratosElement->GetGeometry();
 		struct element e = {
-			{ static_cast<int>(pElementGeometry->GetPoint(0).GetId()),
-				static_cast<int>(pElementGeometry->GetPoint(1).GetId()),
-				static_cast<int>(pElementGeometry->GetPoint(2).GetId()),
-				static_cast<int>(pElementGeometry->GetPoint(3).GetId())
-			}, kratosElement
+				{static_cast<int>(pElementGeometry->GetPoint(0).GetId()),
+				 static_cast<int>(pElementGeometry->GetPoint(1).GetId()),
+				 static_cast<int>(pElementGeometry->GetPoint(2).GetId()),
+				 static_cast<int>(pElementGeometry->GetPoint(3).GetId())
+				}, *kratosElement
 		};
 		std::sort(std::begin(e.nodes), std::end(e.nodes));
 		for (int i = 0; i < 4; i++) {
@@ -41,8 +42,8 @@ void convert(std::vector<element>& elements, std::vector<node>& nodes, std::vect
 	}
 }
 
-bool checkContains(element& e, int(&face)[4]) {
-	
+bool checkContains(element &e, int(&face)[4]) {
+
 	int f = 0;
 	for (int i = 0; i < 4; i++) {
 		if (e.nodes[i] == face[f]) {
@@ -57,14 +58,14 @@ bool checkContains(element& e, int(&face)[4]) {
 }
 
 //Ensure, that node order is clockwise
-void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
+void fixFace(face &face, Kratos::Element &kratosElement) {
 	Kratos::array_1d<double, 3> points[4];
 
 	//assign coordinates
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			if (face.nodes[i] == kratosElement->pGetGeometry()->pGetPoint(j)->Id()) {
-				points[i] = kratosElement->pGetGeometry()->pGetPoint(j)->Coordinates();
+			if (face.nodes[i] == kratosElement.pGetGeometry()->pGetPoint(j)->Id()) {
+				points[i] = kratosElement.pGetGeometry()->pGetPoint(j)->Coordinates();
 				break;
 			}
 		}
@@ -73,16 +74,16 @@ void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 
 	//Given tertrahedra ABCD, check sign([ABxBC]*AD)
 
-	Vector3* AB = new Vector3(points[1][0], points[1][1], points[1][2]);
+	auto *AB = new Vector3(points[1][0], points[1][1], points[1][2]);
 	AB->sub(points[0][0], points[0][1], points[0][2]);
 
-	Vector3* BC = new Vector3(points[2][0], points[2][1], points[2][2]);
+	auto *BC = new Vector3(points[2][0], points[2][1], points[2][2]);
 	BC->sub(points[1][0], points[1][1], points[1][2]);
 
-	Vector3* AD = new Vector3(points[3][0], points[3][1], points[3][2]);
+	auto *AD = new Vector3(points[3][0], points[3][1], points[3][2]);
 	AD->sub(points[0][0], points[0][1], points[0][2]);
 
-	Vector3* normal = AB->cross(*BC);
+	auto normal = AB->cross(*BC);
 
 	double dot = normal->dot(*AD);
 	delete AB;
@@ -97,49 +98,50 @@ void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 	}
 }
 
-void process(std::vector<element>& elements, std::vector<node>& nodes, std::vector<face>& result) {
-	for (auto& e : elements) {
-		
+void process(std::vector<element> &elements, std::vector<node> &nodes, std::vector<face> &result) {
+	for (auto &e : elements) {
+
 		//Four faces of given tetrahedra
 		int faces[4][4] = {
-			{ e.nodes[0], e.nodes[1], e.nodes[2], e.nodes[3] },
-		{ e.nodes[0], e.nodes[1], e.nodes[3], e.nodes[2] },
-		{ e.nodes[0], e.nodes[2], e.nodes[3], e.nodes[1] },
-		{ e.nodes[1], e.nodes[2], e.nodes[3], e.nodes[0] },
+				{e.nodes[0], e.nodes[1], e.nodes[2], e.nodes[3]},
+				{e.nodes[0], e.nodes[1], e.nodes[3], e.nodes[2]},
+				{e.nodes[0], e.nodes[2], e.nodes[3], e.nodes[1]},
+				{e.nodes[1], e.nodes[2], e.nodes[3], e.nodes[0]},
 		};
 
 
-		for (int f = 0; f < 4; f++) {
+		for (auto &f : faces) {
 
 			//For each element containing first node of a face, check if that element contains given face
 			bool contains = false;
-			for (auto& toCheck : nodes[faces[f][0]].elements) {
+			for (auto &toCheck : nodes[f[0]].elements) {
 				if (toCheck.pKratosElement != e.pKratosElement)
-					contains = checkContains(toCheck, faces[f]);
+					contains = checkContains(toCheck, f);
 				if (contains) break;
 			}
 			if (!contains) {
-				face resultFace = { { faces[f][0], faces[f][1], faces[f][2], faces[f][3] } };
+				face resultFace = {{f[0], f[1], f[2], f[3]}};
 				fixFace(resultFace, e.pKratosElement);
 				result.push_back(resultFace);
 			}
 		}
 	}
 }
-int findMaxNode(std::vector<element>& elements) {
+
+int findMaxNode(std::vector<element> &elements) {
 	int max = -1;
-	for (auto& element : elements)
+	for (auto &element : elements)
 		if (element.nodes[3] > max) max = element.nodes[3];
 	return max;
 }
 
 //Create sorted vector of surface node IDs
-void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode) {
-	bool* nodeFlags = new bool[maxNode + 1];
+void extractNodes(std::vector<face> &faces, std::vector<int> &nodes, int maxNode) {
+	bool *nodeFlags = new bool[maxNode + 1];
 	for (int i = 0; i < maxNode + 1; i++)nodeFlags[i] = false;
 
 	//mark nodes that are used at least once
-	for (auto& face : faces) {
+	for (auto &face : faces) {
 		for (int i = 0; i < 3; i++)
 			nodeFlags[face.nodes[i]] = true;
 	}
@@ -152,11 +154,10 @@ void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode
 	delete[] nodeFlags;
 }
 
-int findNode(int toFind, std::vector<int>& nodes) {
+int findNode(int toFind, std::vector<int> &nodes) {
 	int start = 0;
 	int end = nodes.size() - 1;
-	while (start <= end)
-	{
+	while (start <= end) {
 		int mid = start + ((end - start) >> 1);
 
 		if (nodes[mid] == toFind)
@@ -170,13 +171,13 @@ int findNode(int toFind, std::vector<int>& nodes) {
 }
 
 //Translate node IDs into Unity format
-void translateFaces(std::vector<face>& faces, std::vector<int>& nodes) {
-	for (auto& f : faces) {
+void translateFaces(std::vector<face> &faces, std::vector<int> &nodes) {
+	for (auto &f : faces) {
 		for (int i = 0; i < 3; i++)f.nodes[i] = findNode(f.nodes[i], nodes);
 	}
 }
 
-void MeshConverter::ProcessMesh(std::vector<Kratos::shared_ptr<Kratos::Element>>& kratosElements) {
+void MeshConverter::ProcessMesh(Kratos::ModelPart::ElementsContainerType::ContainerType &kratosElements) {
 	std::vector<element> elements;
 	std::vector<node> nodes;
 	convert(elements, nodes, kratosElements);
@@ -187,11 +188,10 @@ void MeshConverter::ProcessMesh(std::vector<Kratos::shared_ptr<Kratos::Element>>
 }
 
 
-
-std::vector<face>& MeshConverter::GetFaces() {
+std::vector<face> &MeshConverter::GetFaces() {
 	return mFaces;
 }
 
-std::vector<int>& MeshConverter::GetNodes() {
+std::vector<int> &MeshConverter::GetNodes() {
 	return mNodes;
 }
