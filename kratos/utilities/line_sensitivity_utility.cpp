@@ -19,7 +19,9 @@ namespace Kratos
 LineSensitivityUtility::LineSensitivityUtility(
     const JacobianType& rJ, const ShapeFunctionsLocalGradientType& rDN_De)
     : mrJ(rJ), mrDN_De(rDN_De)
-{}
+{
+    this->Initialize();
+}
 
 void LineSensitivityUtility::CalculateSensitivity(
     const ShapeParameter Deriv, double& rIntegrationWeightSensitivity) const
@@ -29,7 +31,7 @@ void LineSensitivityUtility::CalculateSensitivity(
     MatrixType derivatives_of_jacobian(physical_dimension, parameter_dimension);
     noalias(derivatives_of_jacobian) = ZeroMatrix(physical_dimension, parameter_dimension);
 
-    for (unsigned int i = 0; i < physical_dimension; i++)
+    for (unsigned int i = 0; i < parameter_dimension; i++)
     {
         derivatives_of_jacobian(Deriv.Direction,i) = mrDN_De(Deriv.NodeIndex, i);
     }
