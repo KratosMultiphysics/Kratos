@@ -13,7 +13,7 @@
 #if !defined(MOR_SECOND_ORDER_IRKA_STRATEGY)
 #define MOR_SECOND_ORDER_IRKA_STRATEGY
 
-// System includes
+// System includesEeigenvalue problem
 
 // External includes
 
@@ -27,6 +27,8 @@
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
+
+//#include "EigenSolversApplication/costum_solvers/eigensystem_solver.h"
 
 namespace Kratos
 {
@@ -183,23 +185,23 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         
-        TSystemMatrixType& K_full = this->GetSystemMatrix();
-        TSystemMatrixType& M_full = this->GetMassMatrix();
-        TSystemMatrixType& D_full = this->GetDampingMatrix();
-        TSystemVectorType& b_full = this->GetSystemVector();
+        TSystemMatrixType& r_K_size_n = this->GetSystemMatrix();  // n x n
+        TSystemMatrixType& r_M_size_n = this->GetMassMatrix();  // n x n
+        TSystemMatrixType& r_D_size_n = this->GetDampingMatrix();  // n x n
+        TSystemVectorType& r_b_size_n = this->GetSystemVector();  // n x 1
 
-        TSystemVectorType tmp(K_full.size1(), 0.0);
+        TSystemVectorType tmp(r_K_size_n.size1(), 0.0);
 
-        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), b_full);
+        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_b_size_n);
 
-        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), K_full, tmp);
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), K_full, tmp, b_full);  
+        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K_size_n, tmp);
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K_size_n, tmp, r_b_size_n);  
 
-        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), M_full, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), M_full);
+        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M_size_n, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M_size_n);
 
-        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), D_full, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), D_full);
+        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D_size_n, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D_size_n);
 
         // EchoInfo(0);
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
@@ -208,24 +210,152 @@ class MorSecondOrderIRKAStrategy
         const std::size_t n_sampling_points = mSamplingPoints.size();
         const std::size_t reduced_system_size = n_sampling_points; //number of sampling points
 
-        KRATOS_WATCH(system_size)
-        KRATOS_WATCH(reduced_system_size)
+        KRATOS_WATCH(system_size) // n
+        KRATOS_WATCH(reduced_system_size) // r
 
 
-        auto Vrp_col = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& Vr_col = *Vrp_col;
-        SparseSpaceType::Resize(Vr_col,reduced_system_size);
-        SparseSpaceType::Set(Vr_col,0.0);
+        // initialize V (=W, due to symmetry in FEM application)
+        auto Vrp_col = DenseSpaceType::CreateEmptyVectorPointer();
+        auto& r_Vr_col = *Vrp_col;
+        DenseSpaceType::Resize(r_Vr_col, system_size);  // n x 1
+        DenseSpaceType::Set(r_Vr_col,0.0);
 
-        auto Vrp = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& Vr = *Vrp;
-        SparseSpaceType::Resize(Vr,system_size, reduced_system_size);
-        //SparseSpaceType::Set(Vr,0.0);
+        auto Vrp = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_Vr = *Vrp;
+        DenseSpaceType::Resize(r_Vr,system_size, reduced_system_size);  // n x r
+        //SparseSpaceType::Set(Vr,0.0);  // only works with vectors
+
+
+        //auto Vrp_orth = SparseSpaceType::CreateEmptyMatrixPointer();
+        //auto& r_Vr_orth = *Vrp_orth;
+        //SparseSpaceType::Resize(r_Vr_orth,system_size, reduced_system_size);  // n x r
+
+
+
+        // temporal helper
+        auto V_h = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_V_h = *V_h;
+        SparseSpaceType::Resize(r_V_h, system_size, system_size); // n x n
+
+
+        // step 2 as described in Wyatt 2012, Alg. 5.3.2     
+        // TODO: put this in a function, since this also present in the while loop   
+        for( size_t i = 0; i < n_sampling_points; ++i )
+        {
+            KRATOS_WATCH( mSamplingPoints(i) )
+            r_V_h = std::pow( mSamplingPoints(i), 2.0 ) * r_M_size_n + mSamplingPoints(i) * r_D_size_n + r_K_size_n;
+            
+            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h, r_Vr_col, r_b_size_n );
+            // multiply here with tangential direction b1, ..., br? Or postpone to QR later?
+            column(r_Vr, i) = r_Vr_col;
+
+        }
+
+        mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr)(0,0) );
+        mQR_decomposition.compute_q();
+
+        
+        for( size_t i = 0; i < system_size; ++i )
+        {
+            for( size_t j = 0; j < reduced_system_size; ++j )
+            {
+                r_Vr(i,j) = mQR_decomposition.Q(i,j);
+                
+            }
+        }
+        // step 2 finished
+
+
+
+        // step 4 as described in Wyatt 2012, Alg. 5.3.2  
+        // iterative projection onto the Krylov subspace
+        auto& r_b_reduced = this->GetRHSr(); // r x 1
+        auto& r_K_reduced = this->GetKr(); // r x r
+        auto& r_M_reduced = this->GetMr(); // r x r
+        auto& r_D_reduced = this->GetDr(); // r x r
+        TSystemMatrixType T; // temp
+
+
+        int iter = 1;
+        int err  = 1;
+        // TODO: adapt max iter and tol; additional parameters, settings?
+        while(iter<10 && err > 1e-4){
+            // step 4 a)
+            // B_r, reduced right hand side
+            r_b_reduced = prod( trans(r_Vr), r_b_size_n );
+
+            // K_r, reduced stiffness matrix
+            T = prod( trans( r_Vr ), r_K_size_n );
+            r_K_reduced = prod( T, r_Vr );
+            
+            // M_r, reduced mass matrix
+            T = prod( trans( r_Vr ), r_M_size_n );
+            r_M_reduced = prod( T, r_Vr );
+
+            // D_r, reduced damping matrix
+            T = prod( trans( r_Vr ), r_D_size_n );
+            r_D_reduced = prod( T, r_Vr );
+            // step 4 a) finished
+
+
+            // step 4 c) polyeig from Matlab
+            // generalized or FEAST solver? no special quadratic solver in KRATOS as it seems
+
+            // step 4 d) shift selection step
+            // first r eigenvalues
+
+            // step 4 e) as described in Wyatt 2012, Alg. 5.3.2     
+            // TODO: put this in a function, since this the same as step 2
+            for( size_t i = 0; i < n_sampling_points; ++i )
+            {
+                //KRATOS_WATCH( mSamplingPoints(i) )
+                r_V_h = std::pow( mSamplingPoints(i), 2.0 ) * r_M_size_n + mSamplingPoints(i) * r_D_size_n + r_K_size_n;
+                
+                p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h, r_Vr_col, r_b_size_n );
+                // multiply here with tangential direction b1, ..., br? Or postpone to QR later?
+                column(r_Vr, i) = r_Vr_col;
+
+            }
+
+            mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr)(0,0) );
+            mQR_decomposition.compute_q();
+
+            
+            for( size_t i = 0; i < system_size; ++i )
+            {
+                for( size_t j = 0; j < reduced_system_size; ++j )
+                {
+                    r_Vr(i,j) = mQR_decomposition.Q(i,j);
+                    
+                }
+            }
+            // step 4 e) finished
+
+            iter++;
+        }
+
+
+
+
+
+
+
+        
+        KRATOS_WATCH(r_M_reduced)
+
+
+
+
+
+
+
+
+
 
 
         //p_builder_and_solver->GetLinearSystemSolver()->Solve( mSamplingPoints[0]*mSamplingPoints[0]*M_full + mSamplingPoints[0]*D_full + K_full, Vr_col, b_full );
         //KRATOS_WATCH(Vr_col)
-
+/* 
         auto M_reduced_p = DenseSpaceType::CreateEmptyMatrixPointer();
         auto& M_reduced = *M_reduced_p;
         DenseSpaceType::Resize(M_reduced, reduced_system_size, reduced_system_size);
@@ -250,7 +380,7 @@ class MorSecondOrderIRKAStrategy
         for( size_t i = 0; i < n_sampling_points; ++i ){
             double current_s = mSamplingPoints[i];
             tmp_transfer = current_s*current_s*M_full + current_s*D_full + K_full;
-            auto p_builder_and_solver->GetLinearSystemSolver();
+            // auto aaa = p_builder_and_solver->GetLinearSystemSolver();
             p_builder_and_solver->GetLinearSystemSolver()->Solve(tmp_transfer, Vr_col, b_full );
             column( Vr, (i) ) = Vr_col;
         }
@@ -279,13 +409,14 @@ class MorSecondOrderIRKAStrategy
 
         }
 
-        M_reduced = prod(trans(Vr), prod(M_full,Vr));
-        D_reduced = prod(trans(Vr), prod(D_full,Vr));
-        K_reduced = prod(trans(Vr), prod(K_full,Vr));
+        // M_reduced = prod(prod(trans(Vr), M_full), Vr);
+        // D_reduced = prod(trans(Vr), prod(D_full,Vr));
+        // K_reduced = prod(trans(Vr), prod(K_full,Vr));
         // C_reduced = C * Vr;
 
 
         KRATOS_WATCH(M_reduced)
+        */
 
 
 

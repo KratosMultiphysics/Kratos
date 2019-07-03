@@ -207,7 +207,7 @@ class MorSecondOrderKrylovStrategy
         KRATOS_WATCH(mSamplingPoints)
         const std::size_t n_sampling_points = mSamplingPoints.size();
         const std::size_t reduced_system_size = 3 * n_sampling_points;
-        
+       
         //initialize sb, As, AAs vectors
         auto s = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rs = *s;
