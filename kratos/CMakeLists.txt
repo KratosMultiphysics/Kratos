@@ -238,7 +238,7 @@ endif(USE_COTIRE MATCHES ON)
 
 # Install python scripts
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/ )
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/ )
 
 # Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )

@@ -176,8 +176,8 @@ endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
 # If install prefix is set, install all the files.
 SET(INSTALL_TESTING_FILES ON)
-SET(INSTALL_PYTHON_FILES ON)
-SET(INSTALL_LINK OFF)
+SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are ported
+SET(INSTALL_PYTHON_USING_LINKS OFF)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
@@ -416,11 +416,11 @@ endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
 
 # Set installation directory
 if(DEFINED KRATOS_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
-  message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
+    set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
+    message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
 else(DEFINED KRATOS_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
-  message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
+    message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Clean the Module and libs install directories

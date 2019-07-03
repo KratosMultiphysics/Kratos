@@ -124,11 +124,11 @@ if(USE_COTIRE MATCHES ON)
 endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-kratos_python_install(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-kratos_python_install_directory(${INSTALL_LINK} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
