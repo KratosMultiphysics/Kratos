@@ -7,9 +7,10 @@ import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
 class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
-    def test_connect_fcts(self):
+    def test_unused_fcts(self):
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect("dummy.xml")
         KratosCoSim.EMPIRE_API.EMPIRE_API_Disconnect()
+        KratosCoSim.EMPIRE_API.EMPIRE_API_getUserDefinedText("dummy_element")
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -16,11 +16,13 @@
 /*
 This file has the same API as EMPIRE (defined in "EMPIRE_API.h"), hence it can be included instead of EMPIRE
 It used FileIO for data-exchange, in VTK-format
+Note that this file cannot have Kratos-includes, because it is also included in other codes!
 */
 
 #ifdef __cplusplus // TODO check if this is needed
-extern "C" { ///Define extern C if C++ compiler is used
+extern "C" { // Define extern C if C++ compiler is used
 #endif
+
 /***********************************************************************************************
  * \brief Establishes the necessary connection with the Emperor
  ***********/
@@ -36,7 +38,8 @@ void EMPIRE_API_Connect(char* inputFileName)
  ***********/
 char *EMPIRE_API_getUserDefinedText(char *elementName)
 {
-
+    std::cout << "Called \"EMPIRE_API_getUserDefinedText\" with \"" << elementName << "\" which is no longer working and can be removed" << std::endl;
+    return "";
 }
 
 /***********************************************************************************************
