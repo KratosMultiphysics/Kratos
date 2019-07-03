@@ -7,7 +7,7 @@
 		},
 		"enforce_current"                   : true,
 		"anisotropy_remeshing"              : true,
-		"anisotropy_parameters":{
+		"enforced_anisotropy_parameters":{
 			"reference_variable_name"          : "TEMPERATURE",
 			"hmin_over_hmax_anisotropic_ratio" : 0.01,
 			"boundary_layer_max_distance"      : 10.0,
