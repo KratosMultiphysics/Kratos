@@ -7,7 +7,9 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Volodymyr Bilonenko (This a port of https://github.com/delfrrr/delaunator-cpp)
+//                   Vicente Mataix Ferrandiz
+//
 //
 
 // System includes
