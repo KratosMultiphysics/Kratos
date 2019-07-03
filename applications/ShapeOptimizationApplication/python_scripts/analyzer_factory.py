@@ -230,12 +230,20 @@ class AnalyzerWithDependencies(Analyzer):
             else:
                 gradient = communicator.getStandardizedGradient(response_id)
 
-            gradient = {key: [weight*value[0],weight*value[1],weight*value[2]] for key, value in gradient.items()}
+            for vector in gradient.values():
+                vector[0] *= weight
+                vector[1] *= weight
+                vector[2] *= weight
+
             if combined_gradient is None:
                 combined_gradient = gradient
             else:
                 # Perform nodal sum
-                combined_gradient = {key_a: [a+b for a, b in zip(list_a, list_b)] for ((key_a, list_a),(key_b, list_b)) in zip(combined_gradient.items(), gradient.items())}
+                for key_a, vector_a in gradient.items():
+                    vector_b = combined_gradient[key_a]
+                    vector_b[0] += vector_a[0]
+                    vector_b[1] += vector_a[1]
+                    vector_b[2] += vector_a[2]
 
         return combined_gradient
 
