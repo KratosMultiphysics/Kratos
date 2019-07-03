@@ -28,8 +28,8 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):
-        for function in self.response_functions.values():
-            function.Initialize()
+        for response in self.response_functions.values():
+            response.Initialize()
 
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
@@ -39,26 +39,26 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
         step_before_analysis = optimization_model_part.ProcessInfo.GetValue(km.STEP)
         delta_time_before_analysis = optimization_model_part.ProcessInfo.GetValue(km.DELTA_TIME)
 
-        for identifier, function in self.response_functions.items():
+        for identifier, response in self.response_functions.items():
 
             # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
             optimization_model_part.ProcessInfo.SetValue(km.STEP, step_before_analysis-1)
             optimization_model_part.ProcessInfo.SetValue(km.TIME, time_before_analysis-1)
             optimization_model_part.ProcessInfo.SetValue(km.DELTA_TIME, 0)
 
-            function.InitializeSolutionStep()
+            response.InitializeSolutionStep()
 
-            # function values
+            # response values
             if communicator.isRequestingValueOf(identifier):
-                function.CalculateValue()
-                communicator.reportValue(identifier, function.GetValue())
+                response.CalculateValue()
+                communicator.reportValue(identifier, response.GetValue())
 
-            # function gradients
+            # response gradients
             if communicator.isRequestingGradientOf(identifier):
-                function.CalculateGradient()
-                communicator.reportGradient(identifier, function.GetShapeGradient())
+                response.CalculateGradient()
+                communicator.reportGradient(identifier, response.GetShapeGradient())
 
-            function.FinalizeSolutionStep()
+            response.FinalizeSolutionStep()
 
             # Clear results or modifications on model part
             optimization_model_part.ProcessInfo.SetValue(km.STEP, step_before_analysis)
@@ -70,8 +70,8 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
-        for function in self.response_functions.values():
-            function.Finalize()
+        for response in self.response_functions.values():
+            response.Finalize()
 
     # --------------------------------------------------------------------------
     @staticmethod
