@@ -26,16 +26,12 @@ class ConvergenceCriterionAbsoluteNorm(CoSimulationComponent):
         self.last_norm = 0.0
         self.is_updated = False
 
-    def PrintInfo(self):
-        super().PrintInfo()
-
-        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
-
     def Update(self, r):
         self.last_norm = np.linalg.norm(r.GetNumpyArray(), self.order)
         self.is_updated = True
 
     def IsSatisfied(self):
+        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
         if not self.is_updated:
             return False
         else:

@@ -28,11 +28,6 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
         self.last_norm = 0.0
         self.is_initial_norm_set = False
 
-    def PrintInfo(self):
-        super().PrintInfo()
-
-        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
-
     def Update(self, r):
         self.last_norm = np.linalg.norm(r.GetNumpyArray(), self.order)
         if not self.is_initial_norm_set:
@@ -42,6 +37,7 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
                 raise Exception("Initial norm is too small")
 
     def IsSatisfied(self):
+        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
         if not self.is_initial_norm_set:
             return False
         else:

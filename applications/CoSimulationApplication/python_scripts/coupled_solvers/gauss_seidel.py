@@ -63,7 +63,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             r = xt - self.x
             self.convergence_accelerator.Update(self.x, xt)
             self.convergence_criterion.Update(r)
-            self.convergence_criterion.PrintInfo()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
