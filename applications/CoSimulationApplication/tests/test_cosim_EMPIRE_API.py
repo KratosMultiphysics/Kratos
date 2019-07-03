@@ -71,7 +71,22 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         pass
 
     def test_EMPIRE_API_sendSignal_double(self):
-        pass
+        signal_name = "dummy_signal"
+        signal = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5]
+        KratosCoSim.EMPIRE_API.EMPIRE_API_sendSignal_double(signal_name, len(signal), signal)
+
+        signal_file_name = GetSignalFileName(signal_name)
+
+        self.assertTrue(os.path.isfile(signal_file_name))
+
+        with open(signal_file_name, 'r') as conv_signal_file:
+            content = conv_signal_file.read()
+            vals = [float(v) for v in content.split(' ')]
+            for v, v_exp in zip(vals, signal):
+                self.assertAlmostEqual(v, v_exp)
+
+        os.remove(signal_file_name)
+
 
     def test_EMPIRE_API_recvSignal_double(self):
         pass
@@ -84,6 +99,8 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
             content = conv_signal_file.read()
             self.assertEqual(content, str(signal))
 
+def GetSignalFileName(signal_name):
+    return "EMPIRE_signal_" + signal_name # this is hardcoded in C++
 
 if __name__ == '__main__':
     KratosUnittest.main()
