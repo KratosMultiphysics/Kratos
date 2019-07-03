@@ -36,11 +36,11 @@ void LineSensitivityUtility::CalculateSensitivity(
         derivatives_of_jacobian(Deriv.Direction,i) = mrDN_De(Deriv.NodeIndex, i);
     }
 
-    MatrixType jt_j_partial = prod(derivatives_of_jacobian, trans(mrJ));
-    jt_j_partial += prod(mrJ, trans(derivatives_of_jacobian));
+    MatrixType jt_j_partial = prod(trans(derivatives_of_jacobian), mrJ);
+    jt_j_partial += prod(trans(mrJ), derivatives_of_jacobian);
 
     double det_jt_j_partial = 0.0;
-    for (unsigned int i = 0; i < physical_dimension; i++)
+    for (unsigned int i = 0; i < parameter_dimension; i++)
     {
         for (unsigned int j = 0; j < parameter_dimension; j++)
         {
