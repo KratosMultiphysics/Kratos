@@ -2,7 +2,7 @@
 from co_simulation_solvers.gauss_seidel_strong_coupling_solver import GaussSeidelStrongCouplingSolver
 
 # Other imports
-from co_simulation_tools import couplingsolverprint, red
+from co_simulation_tools import couplingsolverprint
 
 
 def CreateSolver(cosim_solver_settings, level):

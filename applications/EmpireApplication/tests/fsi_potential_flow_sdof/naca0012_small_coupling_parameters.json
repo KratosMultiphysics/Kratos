@@ -34,7 +34,8 @@
             },
             "volume_model_part_name" : "Parts_Parts_Auto1",
             "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
-            "no_skin_parts"          : []
+            "no_skin_parts"          : [],
+            "auxiliary_variables_list": ["GEOMETRY_DISTANCE", "FLAG_VARIABLE", "DISTANCE", "REACTION", "DISTANCE_GRADIENT", "NODAL_H", "VELOCITY", "PRESSURE"]
         }
     },
     "processes" : {

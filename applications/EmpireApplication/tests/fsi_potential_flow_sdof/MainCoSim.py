@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the base class
-from co_simulation_steady_analysis import CoSimulationSteadyAnalysis
+from KratosMultiphysics.EmpireApplication.co_simulation_steady_analysis import CoSimulationSteadyAnalysis
 import json
 
 parameter_file_name = "fsi_potential_flow_sdof/project_cosim_naca0012_small_fsi_parameters.json"
