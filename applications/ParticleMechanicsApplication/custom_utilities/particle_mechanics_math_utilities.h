@@ -662,9 +662,11 @@ public:
      * @brief Normalises a vector. Vector is scaled by \f$ V_{norm} = \frac{V}{|V|} \f$
      * @param[in/out] v Vector to be normalized
      */
-    static inline void Normalize( VectorType& v )
+    template< class TVectorType >
+    static inline void Normalize( TVectorType& v )
     {
-        v *= 1.0/(MathUtilsType::Norm( v ));
+        if (MathUtilsType::Norm( v ) > std::numeric_limits<double>::epsilon())
+            v *= 1.0/(MathUtilsType::Norm( v ));
     }
 
 
