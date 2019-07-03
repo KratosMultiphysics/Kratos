@@ -10,6 +10,7 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -92,7 +93,44 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
 
 void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
 {
+    KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
+    KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed() > 0) << "ModelPart cannot be distributed!" << std::endl;
 
+    int numNodes;
+    int numElems;
+    double** nodes;
+    int** nodeIDs;
+    int** numNodesPerElem;
+    int** elem;
+
+    EMPIRE_API_recvMesh(const_cast<char*>(rModelPart.Name().c_str()), &numNodes, &numElems, nodes, nodeIDs, numNodesPerElem, elem);
+
+    const std::unordered_map<int, std::string> element_name_map = {
+        // {1 : "Element2D1N"}, // does not yet exist
+        {2 , "Element2D2N"},
+        {3 , "Element2D3N"},
+        {4 , "Element2D4N"}
+    };
+
+    // fill ModelPart with received entities
+    for (int i=0; i<numNodes; ++i) {
+        rModelPart.CreateNewNode(*nodeIDs[i], *nodes[i*3], *nodes[i*3+1], *nodes[i*3+2]);
+    }
+
+    auto p_props = rModelPart.CreateNewProperties(0);
+
+    int counter=0;
+    for (int i=0; i<numElems; ++i) {
+        const int num_nodes_elem = *numNodesPerElem[i];
+        std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
+        for (int j=0; j<numElems; ++j) {
+            elem_node_ids[j] = *elem[counter++];
+        }
+        rModelPart.CreateNewElement(element_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
+    }
+
+    // TODO deallocate memory!
 }
 
 void  AddCustomIOToPython(pybind11::module& m)
