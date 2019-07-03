@@ -82,6 +82,8 @@ public:
     ComputeBDFCoefficientsProcess(ModelPart& model_part, unsigned int time_order)
         : mr_model_part(model_part), mtime_order(time_order)
     {
+        KRATOS_ERROR_IF(mtime_order == 0 || mtime_order > 2) << "Time order must be either \'1\' or \'2\'. Got " << mtime_order << std::endl;
+        mr_model_part.GetProcessInfo()[BDF_COEFFICIENTS] = ZeroVector(mtime_order + 1);
     }
 
     /// Destructor.
@@ -108,15 +110,15 @@ public:
     void Execute() override
     {
         KRATOS_TRY
-        
+
         ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
-        
+
         if (mtime_order == 2)
         {
             //calculate the BDF coefficients
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-            
+
             if(OldDt > 1e-10*Dt) //this should always be the case!!
             {
                 double Rho = OldDt / Dt;
@@ -308,6 +310,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_BDF_COEFFICIENTS_PROCESS_INCLUDED  defined 
-
-
+#endif // KRATOS_COMPUTE_BDF_COEFFICIENTS_PROCESS_INCLUDED  defined
