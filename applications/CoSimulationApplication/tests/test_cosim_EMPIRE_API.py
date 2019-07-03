@@ -9,6 +9,8 @@ import os
 
 conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
@@ -62,8 +64,8 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         model = KM.Model()
         model_part = model.CreateModelPart("For_Sending")
 
-        for i in range(50):
-            model_part.CreateNewNode(i+1, i*1.1, i*1.2, i*1.3)
+        model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
+        model_part_io.ReadModelPart(model_part)
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(model_part)
 
