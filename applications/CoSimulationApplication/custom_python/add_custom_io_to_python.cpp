@@ -12,32 +12,21 @@
 
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
-#include "co_simulation_application.h"
 #include "custom_python/add_custom_io_to_python.h"
+
+// IO
 
 namespace Kratos {
 namespace Python {
 
-PYBIND11_MODULE(KratosCoSimulationApplication,m)
+void  AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-    py::class_<KratosCoSimulationApplication,
-        KratosCoSimulationApplication::Pointer,
-        KratosApplication>(m, "KratosCoSimulationApplication")
-        .def(py::init<>())
-        ;
-
-    AddCustomIOToPython(m);
 }
 
-} // namespace Python.
-} // namespace Kratos.
+}  // namespace Python.
+} // Namespace Kratos
 
-#endif // KRATOS_PYTHON defined
