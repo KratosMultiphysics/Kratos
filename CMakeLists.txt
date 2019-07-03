@@ -196,6 +196,11 @@ include(pybind11Tools)
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
+# Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
+if(DEFINED KRATOS_INSTALL_PREFIX)
+    set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
+endif(DEFINED KRATOS_INSTALL_PREFIX)
+
 # Set installation directory
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
@@ -413,15 +418,6 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
   add_subdirectory(embedded_python)
 endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
-
-# Set installation directory
-if(DEFINED KRATOS_INSTALL_PREFIX)
-    set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
-    message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
-else(DEFINED KRATOS_INSTALL_PREFIX)
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
-    message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
-endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Clean the Module and libs install directories
 install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
