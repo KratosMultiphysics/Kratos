@@ -23,6 +23,12 @@
 namespace Kratos {
 namespace Python {
 
+void Wrapper_EMPIRE_API_sendSignal_double(char* name, int sizeOfArray, std::vector<double> signal)
+{
+    // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
+    CoSimEMPIRE_API::EMPIRE_API_sendSignal_double(name, sizeOfArray, &signal[0]);
+}
+
 void  AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -40,7 +46,7 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_sendDataField", CoSimEMPIRE_API::EMPIRE_API_sendDataField);
     mEMPIREAPI.def("EMPIRE_API_recvDataField", CoSimEMPIRE_API::EMPIRE_API_recvDataField);
 
-    mEMPIREAPI.def("EMPIRE_API_sendSignal_double", CoSimEMPIRE_API::EMPIRE_API_sendSignal_double);
+    mEMPIREAPI.def("EMPIRE_API_sendSignal_double", Wrapper_EMPIRE_API_sendSignal_double);
     mEMPIREAPI.def("EMPIRE_API_recvSignal_double", CoSimEMPIRE_API::EMPIRE_API_recvSignal_double);
 
     mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", CoSimEMPIRE_API::EMPIRE_API_recvConvergenceSignal);
