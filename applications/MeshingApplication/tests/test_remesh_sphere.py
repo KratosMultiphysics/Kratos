@@ -343,52 +343,52 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         mmg_process = MeshingApplication.MmgProcess3DSurfaces(main_model_part, mmg_parameters)
 
         # We remesh
-        #mmg_process.Execute()
+        mmg_process.Execute()
 
-        # Finally we export to GiD
-        from gid_output_process import GiDOutputProcess
-        gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISTANCE"]
-                                            }
-                                        }
-                                        """)
-                                    )
+        ## Finally we export to GiD
+        #from gid_output_process import GiDOutputProcess
+        #gid_output = GiDOutputProcess(main_model_part,
+                                    #"gid_output",
+                                    #KratosMultiphysics.Parameters("""
+                                        #{
+                                            #"result_file_configuration" : {
+                                                #"gidpost_flags": {
+                                                    #"GiDPostMode": "GiD_PostBinary",
+                                                    #"WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    #"WriteConditionsFlag": "WriteConditions",
+                                                    #"MultiFileFlag": "SingleFile"
+                                                #},
+                                                #"nodal_results"       : ["DISTANCE"]
+                                            #}
+                                        #}
+                                        #""")
+                                    #)
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        #gid_output.ExecuteInitialize()
+        #gid_output.ExecuteBeforeSolutionLoop()
+        #gid_output.ExecuteInitializeSolutionStep()
+        #gid_output.PrintOutput()
+        #gid_output.ExecuteFinalizeSolutionStep()
+        #gid_output.ExecuteFinalize()
 
-        #from compare_two_files_check_process import CompareTwoFilesCheckProcess
-        #check_parameters = KratosMultiphysics.Parameters("""
-                            #{
-                                #"reference_file_name"   : "mmg_eulerian_test/coarse_sphere_skin_prisms_test_result.sol",
-                                #"output_file_name"      : "mmg_eulerian_test/coarse_sphere_skin_prisms_test_step=0.sol",
-                                #"dimension"             : 3,
-                                #"comparison_type"       : "sol_file"
-                            #}
-                            #""")
-        #check_parameters["reference_file_name"].SetString(file_path + "/" + check_parameters["reference_file_name"].GetString())
-        #check_parameters["output_file_name"].SetString(file_path + "/" + check_parameters["output_file_name"].GetString())
-        #check_files = CompareTwoFilesCheckProcess(check_parameters)
+        from compare_two_files_check_process import CompareTwoFilesCheckProcess
+        check_parameters = KratosMultiphysics.Parameters("""
+                            {
+                                "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_skin_prisms_test_result.sol",
+                                "output_file_name"      : "mmg_eulerian_test/coarse_sphere_skin_prisms_test_step=0.sol",
+                                "dimension"             : 3,
+                                "comparison_type"       : "sol_file"
+                            }
+                            """)
+        check_parameters["reference_file_name"].SetString(file_path + "/" + check_parameters["reference_file_name"].GetString())
+        check_parameters["output_file_name"].SetString(file_path + "/" + check_parameters["output_file_name"].GetString())
+        check_files = CompareTwoFilesCheckProcess(check_parameters)
 
-        #check_files.ExecuteInitialize()
-        #check_files.ExecuteBeforeSolutionLoop()
-        #check_files.ExecuteInitializeSolutionStep()
-        #check_files.ExecuteFinalizeSolutionStep()
-        #check_files.ExecuteFinalize()
+        check_files.ExecuteInitialize()
+        check_files.ExecuteBeforeSolutionLoop()
+        check_files.ExecuteInitializeSolutionStep()
+        check_files.ExecuteFinalizeSolutionStep()
+        check_files.ExecuteFinalize()
 
     def test_isosurface_remesh_sphere(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
