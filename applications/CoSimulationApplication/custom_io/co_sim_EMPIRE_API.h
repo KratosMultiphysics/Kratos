@@ -28,6 +28,7 @@ Note:
 #include <stdio.h>
 #include <chrono>
 #include <thread>
+#include <unordered_map>
 
 namespace CoSimEMPIRE_API {
 
@@ -184,9 +185,12 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
     // write nodes
+    int vtk_id = 0;
+    std::unordered_map<int, int> node_vtk_id_map;
     output_file << "POINTS " << numNodes << " float\n";
     for (int i=0; i<numNodes; ++i) {
         output_file << nodes[i*3] << " " << nodes[i*3+1] << " " << nodes[i*3+2] << "\n";
+        node_vtk_id_map[nodeIDs[i]] = vtk_id++;
     }
     output_file << "\n";
 
@@ -202,7 +206,7 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
         const int num_nodes_elem = numNodesPerElem[i];
         output_file << num_nodes_elem << " ";
         for (int j=0; j<num_nodes_elem; ++j) {
-            output_file << elems[counter++] << " ";
+            output_file << node_vtk_id_map.at(elems[counter++]) << " ";
         }
         output_file << "\n";
     }
