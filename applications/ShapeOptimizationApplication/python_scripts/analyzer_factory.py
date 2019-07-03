@@ -169,12 +169,11 @@ class AnalyzerWithDependencies(Analyzer):
     # --------------------------------------------------------------------------
     def __RequestResponsesAccordingDependencies(self, communicator):
         for response_id, dependencies, _ in self.dependency_graph:
-            if len(dependencies) > 0:
-                if communicator.isRequestingValueOf(response_id):
-                    self.__RequestValuesRecursively(dependencies, communicator)
+            if communicator.isRequestingValueOf(response_id):
+                self.__RequestValuesRecursively(dependencies, communicator)
 
-                if communicator.isRequestingGradientOf(response_id):
-                    self.__RequestGradientsRecursively(dependencies, communicator)
+            if communicator.isRequestingGradientOf(response_id):
+                self.__RequestGradientsRecursively(dependencies, communicator)
 
     # --------------------------------------------------------------------------
     def __RequestValuesRecursively(self, dependencies, communicator):
