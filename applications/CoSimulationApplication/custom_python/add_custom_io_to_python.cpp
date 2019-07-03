@@ -29,6 +29,18 @@ void Wrapper_EMPIRE_API_sendSignal_double(char* name, int sizeOfArray, std::vect
     CoSimEMPIRE_API::EMPIRE_API_sendSignal_double(name, sizeOfArray, &signal[0]);
 }
 
+void Wrapper_EMPIRE_API_recvSignal_double(char* name, int sizeOfArray, pybind11::list signal)
+{
+    // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
+    // also the list can only be modified in place otherwise the references are not working
+    std::vector<double> vec_signal(sizeOfArray);
+    CoSimEMPIRE_API::EMPIRE_API_recvSignal_double(name, sizeOfArray, &vec_signal[0]);
+
+    for (int i=0; i<sizeOfArray; ++i) {
+        signal[i] = vec_signal[i];
+    }
+}
+
 void  AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -47,7 +59,7 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_recvDataField", CoSimEMPIRE_API::EMPIRE_API_recvDataField);
 
     mEMPIREAPI.def("EMPIRE_API_sendSignal_double", Wrapper_EMPIRE_API_sendSignal_double);
-    mEMPIREAPI.def("EMPIRE_API_recvSignal_double", CoSimEMPIRE_API::EMPIRE_API_recvSignal_double);
+    mEMPIREAPI.def("EMPIRE_API_recvSignal_double", Wrapper_EMPIRE_API_recvSignal_double);
 
     mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", CoSimEMPIRE_API::EMPIRE_API_recvConvergenceSignal);
     mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", CoSimEMPIRE_API::EMPIRE_API_sendConvergenceSignal);
