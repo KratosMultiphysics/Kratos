@@ -65,56 +65,37 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         pass
 
     def test_EMPIRE_API_sendDataField(self):
-        pass
+        fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField
+        file_name_fct_ptr = GetDataFieldFileName
+
+        array = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5, -99.114, 0.02, 565.5, 10.0, 78.44]
+
+        self.__TestArraySend(fct_to_test, file_name_fct_ptr, array)
 
     def test_EMPIRE_API_recvDataField(self):
-        pass
+        fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField
+        file_name_fct_ptr = GetDataFieldFileName
+
+        array = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5, -99.114, -99.11, -0.02, 555.5, 0.02, 565.5, 10.0, 78.44]
+
+        self.__TestArrayReceive(fct_to_test, file_name_fct_ptr, array)
 
     def test_EMPIRE_API_sendSignal_double(self):
-        signal_name = "dummy_signal_send"
-        signal_file_name = GetSignalFileName(signal_name)
+        fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_sendSignal_double
+        file_name_fct_ptr = GetSignalFileName
 
-        signal = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5]
-        KratosCoSim.EMPIRE_API.EMPIRE_API_sendSignal_double(signal_name, len(signal), signal)
+        array = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5, -99.114, 0.02, 565.5, 10.0, 78.44]
 
-
-        self.assertTrue(os.path.isfile(signal_file_name))
-
-        with open(signal_file_name, 'r') as signal_file:
-            content = signal_file.read()
-            vals = [float(v) for v in content.split(' ')]
-            for v, v_exp in zip(vals, signal):
-                self.assertAlmostEqual(v, v_exp)
-
-        os.remove(signal_file_name)
-
+        self.__TestArraySend(fct_to_test, file_name_fct_ptr, array)
 
     def test_EMPIRE_API_recvSignal_double(self):
-        signal_name = "dummy_signal_recv"
-        signal_file_name = GetSignalFileName(signal_name)
+        fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_recvSignal_double
+        file_name_fct_ptr = GetSignalFileName
 
-        exp_signal = [13.0, -21.5, 3.555, -99.114, 0.02, 565.5, 10.0, 78.44]
+        array = [1.0, 2.5, 3.5, -99.11, -0.02, 555.5, -99.114, -99.11, -0.02, 555.5, 0.02, 565.5, 10.0, 78.44]
 
-        with open(signal_file_name, 'w') as signal_file:
-            for i_v, v in enumerate(exp_signal):
-                signal_file.write(str(v))
-                # doing this extra to not have a trailing whitespace in the file
-                if i_v < len(exp_signal)-1:
-                    signal_file.write(" ")
+        self.__TestArrayReceive(fct_to_test, file_name_fct_ptr, array)
 
-        signal = [0.0] * len(exp_signal)
-
-        KratosCoSim.EMPIRE_API.EMPIRE_API_recvSignal_double(signal_name, len(signal), signal)
-
-        # check the received signal
-        for v, v_exp in zip(signal, exp_signal):
-            self.assertAlmostEqual(v, v_exp)
-
-        # make sure that the file was deleted
-        self.assertFalse(os.path.isfile(signal_file_name))
-
-        with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of 10, current size: 8"):
-            KratosCoSim.EMPIRE_API.EMPIRE_API_recvSignal_double(signal_name, len(signal)+2, signal)
 
     def __CheckConvergenceSignalFile(self, signal):
         self.assertTrue(os.path.isfile(conv_signal_file_name))
@@ -123,8 +104,54 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
             content = conv_signal_file.read()
             self.assertEqual(content, str(signal))
 
+    def __TestArraySend(self, fct_ptr_to_test, file_name_fct_ptr, array_to_test):
+        array_name = "dummy_array_send"
+        array_file_name = file_name_fct_ptr(array_name)
+
+        fct_ptr_to_test(array_name, len(array_to_test), array_to_test)
+
+        self.assertTrue(os.path.isfile(array_file_name))
+
+        with open(array_file_name, 'r') as array_file:
+            content = array_file.read()
+            vals = [float(v) for v in content.split(' ')]
+            for v, v_exp in zip(vals, array_to_test):
+                self.assertAlmostEqual(v, v_exp)
+
+        os.remove(array_file_name)
+
+    def __TestArrayReceive(self, fct_ptr_to_test, file_name_fct_ptr, array_to_test):
+        array_name = "dummy_array_recv"
+        array_file_name = file_name_fct_ptr(array_name)
+
+        with open(array_file_name, 'w') as array_file:
+            for i_v, v in enumerate(array_to_test):
+                array_file.write(str(v))
+                # doing this extra to not have a trailing whitespace in the file
+                if i_v < len(array_to_test)-1:
+                    array_file.write(" ")
+
+        array_to_receive = [0.0] * len(array_to_test)
+
+        fct_ptr_to_test(array_name, len(array_to_receive), array_to_receive)
+
+        # check the received signal
+        for v, v_exp in zip(array_to_receive, array_to_test):
+            self.assertAlmostEqual(v, v_exp)
+
+        # make sure that the file was deleted
+        self.assertFalse(os.path.isfile(array_file_name))
+
+        with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of {}, current size: {}".format(len(array_to_test)+2, len(array_to_test))):
+            fct_ptr_to_test(array_name, len(array_to_test)+2, array_to_test)
+
+
 def GetSignalFileName(signal_name):
     return "EMPIRE_signal_" + signal_name # this is hardcoded in C++
+
+def GetDataFieldFileName(data_field_name):
+    return "EMPIRE_datafield_" + data_field_name # this is hardcoded in C++
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
