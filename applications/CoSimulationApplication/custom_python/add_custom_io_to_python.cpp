@@ -31,11 +31,14 @@ void Wrapper_EMPIRE_API_sendSignal_double(char* name, int sizeOfArray, std::vect
 
 void Wrapper_EMPIRE_API_recvSignal_double(char* name, int sizeOfArray, pybind11::list signal)
 {
+    KRATOS_ERROR_IF(static_cast<int>(signal.size()) != sizeOfArray) << "The size of the list has to be specified before, expected size of " << sizeOfArray << ", current size: " << signal.size() << std::endl;
+
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     // also the list can only be modified in place otherwise the references are not working
     std::vector<double> vec_signal(sizeOfArray);
     CoSimEMPIRE_API::EMPIRE_API_recvSignal_double(name, sizeOfArray, &vec_signal[0]);
 
+    // copy back the received values
     for (int i=0; i<sizeOfArray; ++i) {
         signal[i] = vec_signal[i];
     }

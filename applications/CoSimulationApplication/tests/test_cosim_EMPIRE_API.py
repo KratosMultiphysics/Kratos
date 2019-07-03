@@ -113,6 +113,9 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # make sure that the file was deleted
         self.assertFalse(os.path.isfile(signal_file_name))
 
+        with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of 10, current size: 8"):
+            KratosCoSim.EMPIRE_API.EMPIRE_API_recvSignal_double(signal_name, len(signal)+2, signal)
+
     def __CheckConvergenceSignalFile(self, signal):
         self.assertTrue(os.path.isfile(conv_signal_file_name))
 
