@@ -39,6 +39,8 @@
 // Custom includes
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
+#include "custom_utilities/mpm_search_element_utility.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 // Core includes
 #include "solving_strategies/schemes/scheme.h"
@@ -51,7 +53,6 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "linear_solvers/linear_solver.h"
-#include "custom_utilities/mpm_search_element_utility.h"
 
 namespace Kratos
 {
@@ -586,8 +587,12 @@ public:
         array_1d<double,3> mpc_xg = ZeroVector(3);
         array_1d<double,3> mpc_normal = ZeroVector(3);
         array_1d<double,3> mpc_displacement = ZeroVector(3);
+        array_1d<double,3> mpc_imposed_displacement = ZeroVector(3);
         array_1d<double,3> mpc_velocity = ZeroVector(3);
+        array_1d<double,3> mpc_imposed_velocity = ZeroVector(3);
         array_1d<double,3> mpc_acceleration = ZeroVector(3);
+        array_1d<double,3> mpc_imposed_acceleration = ZeroVector(3);
+        array_1d<double,3> mpc_contact_force = ZeroVector(3);
         array_1d<double, 3 > point_load = ZeroVector(3);
 
         double mpc_area = 0.0;
@@ -648,10 +653,9 @@ public:
                         }
 
                         // Get condition variables:
-                        // Normal vector (normalized)
+                        // Normal vector
                         if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
-                        const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
-                        if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
+                        ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
@@ -819,34 +823,53 @@ public:
 
                         // Evaluation of geometric length/area
                         const double area = rGeom.Area();
-                        mpc_area = area / (rGeom.size() + integration_point_per_conditions);
+                        mpc_area = area / (1 + integration_point_per_conditions);
+                        const double mpc_nodal_area = mpc_area / rGeom.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
-                            mpc_displacement = i->GetValue(DISPLACEMENT);
+                            mpc_imposed_displacement = i->GetValue(DISPLACEMENT);
                         if (i->Has(VELOCITY))
-                            mpc_velocity = i->GetValue(VELOCITY);
+                            mpc_imposed_velocity = i->GetValue(VELOCITY);
                         if (i->Has(ACCELERATION))
-                            mpc_acceleration = i->GetValue(ACCELERATION);
+                            mpc_imposed_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
+
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
+                        const bool is_interface = i->Is(INTERFACE);
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
-                        // If dirichlet boundary
+                        // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
-                            if (TDim==2){
-                                if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
-                                else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                            if(!is_interface){
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                                }
                             }
-                            else if (TDim==3){
-                                if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
-                                else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                            else{
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D8N";
+                                }
                             }
                         }
 
@@ -880,8 +903,11 @@ public:
                             p_condition->SetValue(MPC_AREA, mpc_area);
                             p_condition->SetValue(MPC_NORMAL, mpc_normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
+                            p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, mpc_imposed_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
+                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
                             p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
+                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
 
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
@@ -891,6 +917,11 @@ public:
                                     p_condition->Set(SLIP);
                                 if (is_contact)
                                     p_condition->Set(CONTACT);
+                                if (is_interface)
+                                {
+                                    p_condition->Set(INTERFACE);
+                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
+                                }
                             }
 
                             // Add the MP Condition to the model part
@@ -923,11 +954,14 @@ public:
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
                             p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_area);
+                            p_condition->SetValue(MPC_AREA, mpc_nodal_area);
                             p_condition->SetValue(MPC_NORMAL, mpc_normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
+                            p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, mpc_imposed_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
+                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
                             p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
+                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
 
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
@@ -937,6 +971,11 @@ public:
                                     p_condition->Set(SLIP);
                                 if (is_contact)
                                     p_condition->Set(CONTACT);
+                                if (is_interface)
+                                {
+                                    p_condition->Set(INTERFACE);
+                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
+                                }
                             }
 
                             // Add the MP Condition to the model part

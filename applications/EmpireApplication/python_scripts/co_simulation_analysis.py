@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 import co_simulation_tools as cs_tools
-from co_simulation_tools import csprint, bold, CheckCoSimulationSettingsAndAssignDefaults
+from co_simulation_tools import csprint, bold, red, CheckCoSimulationSettingsAndAssignDefaults
 
 import sys
 
@@ -34,6 +34,8 @@ class CoSimulationAnalysis(object):
 
         self.flush_stdout = problem_data["flush_stdout"]
         self.echo_level = problem_data["echo_level"]
+
+        print(red("DEPRECATION-WARNING:"), "The CoSimulation-features in the EmpireApplication have been moved to the CoSimulationApplication.\nThe EmpireApplication-CoSimulation will be supported for some time, but it will be removed eventually.\nPlease update your code.")
 
     def Run(self):
         self.Initialize()
