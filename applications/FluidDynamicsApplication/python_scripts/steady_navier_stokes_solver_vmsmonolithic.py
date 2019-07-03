@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 ## Import base class file
-import navier_stokes_solver_vmsmonolithic
+import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic
 
 def CreateSolver(model, custom_settings):
     return SteadyNavierStokesSolver_VMSMonolithic(model, custom_settings)

@@ -8,8 +8,8 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
-from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
-import trilinos_import_model_part_utility
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
+import KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility
 
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)

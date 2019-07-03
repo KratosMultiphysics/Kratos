@@ -4,8 +4,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # other imports
-from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as fluid_solvers_wrapper
+
+try:
+    from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
+except Exception:
+    raise("Unable to load MeshMovingApplication")
 
 
 def CreateSolver(model, solver_settings, parallelism):

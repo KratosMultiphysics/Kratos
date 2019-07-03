@@ -4,7 +4,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-import vms_monolithic_solver
+import KratosMultiphysics.FluidDynamicsApplication.vms_monolithic_solver
 
 class FluidElementTest(UnitTest.TestCase):
 

@@ -3,6 +3,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication.vms_monolithic_solver
 
 class DarcyChannelTest(UnitTest.TestCase):
 
@@ -192,7 +193,6 @@ class DarcyChannelTest(UnitTest.TestCase):
     def setUpSolver(self):
         oss_switch = 0
 
-        import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
         self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
         self.fluid_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)

@@ -10,8 +10,8 @@ import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solver
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
 # Import base class file
-import navier_stokes_solver_fractionalstep
-import trilinos_import_model_part_utility
+import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_fractionalstep
+import KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility
 
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverFractionalStep(model, custom_settings)

@@ -2,6 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication.vms_monolithic_solver
 
 have_convection_diffusion = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
 if have_convection_diffusion:
@@ -81,7 +82,6 @@ class VolumeSourceTest(UnitTest.TestCase):
     def setUpSolvers(self):
         oss_switch = 0
 
-        import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.model_part)
 
         if self.convection_diffusion_solver == 'bfecc':

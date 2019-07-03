@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverFractionalStep(model, custom_settings)

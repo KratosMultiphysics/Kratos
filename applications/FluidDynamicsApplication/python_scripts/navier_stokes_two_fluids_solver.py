@@ -12,7 +12,7 @@ except ImportError:
     have_conv_diff = False
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 
 def CreateSolver(model, custom_settings):

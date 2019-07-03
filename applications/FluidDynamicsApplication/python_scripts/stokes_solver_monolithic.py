@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics as kratoscore
 import KratosMultiphysics.FluidDynamicsApplication as cfd
-import KratosMultiphysics.IncompressibleFluidApplication
+# import KratosMultiphysics.IncompressibleFluidApplication
 
 def CreateSolver(main_model_part, custom_settings):
     return StokesSolver(main_model_part, custom_settings)
