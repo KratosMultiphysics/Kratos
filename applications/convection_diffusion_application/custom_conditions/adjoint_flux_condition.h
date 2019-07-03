@@ -194,6 +194,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    // Note: the Jacobian should come from the geometry, but non-square ones are often wrongly implemented at the moment :(
+    MatrixType GetJacobian(GeometryData::IntegrationMethod QuadratureOrder, unsigned int IntegrationPointIndex) const;
 
     ///@}
     ///@name Private  Access

@@ -15,7 +15,7 @@
 #include "convection_diffusion_application_variables.h"
 
 #include "includes/checks.h"
-#include "utilities/geometrical_sensitivity_utility.h"
+#include "utilities/line_sensitivity_utility.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -206,42 +206,38 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
     Vector nodal_flux = ZeroVector(num_nodes);
     for (unsigned int i = 0; i < num_nodes; i++)
     {
-        nodal_flux[i] = r_geom[i].FastGetSolutionStepValue(HEAT_FLUX);
+        nodal_flux[i] = r_geom[i].FastGetSolutionStepValue(FACE_HEAT_FLUX);
     }
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
         Matrix shape_function_local_gradients(num_nodes,local_dimension);
         Matrix jacobian(dimension,local_dimension);
-        Matrix jacobian_inv(dimension,dimension);
 
         Matrix shape_functions = r_geom.ShapeFunctionsValues(integration_method);
 
         for (unsigned int g = 0; g < num_integration_points; g++)
         {
             noalias(shape_function_local_gradients) = r_geom.ShapeFunctionLocalGradient(g, integration_method);
-            r_geom.Jacobian(jacobian, g, integration_method);
-            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
+            noalias(jacobian) = this->GetJacobian(integration_method, g);
+            LineSensitivityUtility sensitivity_utility(jacobian,shape_function_local_gradients);
 
             Vector N = row(shape_functions, g);
             double q_gauss = inner_prod(N,nodal_flux);
 
-            double det_j;
-            MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
             const double weight = integration_points[g].Weight();
 
             for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                double det_j_deriv;
-                GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
-                geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
+                double jacobian_sensitivity;
+                sensitivity_utility.CalculateSensitivity(deriv, jacobian_sensitivity);
 
                 // d/dX_l (w * J * N_i * N_j * q_j) = w * N_i * N_j * q_j * dJ/dX_l
                 // Note that N_j * q_j = q_gauss
                 for (unsigned int i = 0; i < num_nodes; i++)
                 {
-                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * N[i] * q_gauss * det_j_deriv;
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * N[i] * q_gauss * jacobian_sensitivity;
                 }
             }
         }
@@ -253,6 +249,30 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
 
     KRATOS_CATCH("")
 }
+
+template<class PrimalCondition>
+typename AdjointFluxCondition<PrimalCondition>::MatrixType AdjointFluxCondition<PrimalCondition>::GetJacobian(
+    GeometryData::IntegrationMethod QuadratureOrder,
+    unsigned int IntegrationPointIndex) const
+{
+    const auto& r_geometry = this->GetGeometry();
+    const auto& rDN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex, QuadratureOrder);
+    MatrixType jacobian(r_geometry.WorkingSpaceDimension(), r_geometry.LocalSpaceDimension());
+    MatrixType coordinates(r_geometry.WorkingSpaceDimension(), r_geometry.PointsNumber());
+
+    for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++)
+    {
+        const auto& r_coordinates = r_geometry[i].Coordinates();
+        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
+        {
+            coordinates(d,i) = r_coordinates[d];
+        }
+    }
+
+    noalias(jacobian) = prod(coordinates,rDN_De);
+    return jacobian;
+}
+
 
 template class AdjointFluxCondition<FluxCondition<2>>;
 template class AdjointFluxCondition<FluxCondition<3>>;
