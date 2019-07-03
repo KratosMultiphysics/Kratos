@@ -77,33 +77,13 @@ public:
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     // The size_t types
-    typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
 
     /// Definition of the classes from the base class
     typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TDataType TDataType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-    /// Additional definitions
-    typedef typename BaseType::ElementsContainerType ElementsContainerType;
-    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef typename BaseType::DofsVectorType DofsVectorType;
-    typedef typename BaseType::CompressedMatrixType CompressedMatrixType;
-
-    /// DoF types definition
-    typedef typename BaseType::NodeType NodeType;
-    typedef typename BaseType::DofType DofType;
-    typedef typename BaseType::Pointer DofPointerType;
 
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera);
 
@@ -257,7 +237,6 @@ protected:
                 const IndexType slave_equation_id = BaseType::mSlaveIds[i];
                 if (BaseType::mInactiveSlaveDofs.find(slave_equation_id) == BaseType::mInactiveSlaveDofs.end())
                 {
-                    //std::cout<<"slave_equation_id : "<<slave_equation_id<<std::endl;
                     rA(slave_equation_id, slave_equation_id) = max_diag;
                     rb[slave_equation_id] = 0.0;
                 }
