@@ -39,6 +39,7 @@ namespace helpers {
 
 const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
 const std::string TempFilePreString = ".";
+const int EchoLevel = 0;
 
 bool FileExists(const std::string& rFileName)
 {
@@ -54,10 +55,12 @@ std::string GetTempFileName(const std::string& rFileName)
 
 void WaitForFile(const std::string& rFileName)
 {
+    if (EchoLevel>0) std::cout << "Waiting for file: \"" << rFileName << "\"" << std::endl;
     while(!FileExists(rFileName)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        std::cout << "Waiting" << std::endl;
+        if (EchoLevel>1) std::cout << "Waiting" << std::endl;
     }
+    if (EchoLevel>0) std::cout << "Found file: \"" << rFileName << "\"" << std::endl;
 }
 
 void RemoveFile(const std::string& rFileName)
@@ -71,6 +74,16 @@ void MakeFileVisible(const std::string& rFinalFileName)
 {
     if (std::rename(GetTempFileName(rFinalFileName).c_str(), rFinalFileName.c_str()) != 0) {
         std::cout << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
+    }
+}
+
+template <typename T>
+void CheckStream(const T& rStream, const std::string& rFileName)
+{
+    if (!rStream.is_open()) {
+        std::stringstream err_msg;
+        err_msg << rFileName << " could not be opened!";
+        throw std::runtime_error(err_msg.str());
     }
 }
 
@@ -187,17 +200,23 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 int EMPIRE_API_recvConvergenceSignal()
 {
-    // std::ifstream infile(materials_filename);
-    // KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
-    // std::stringstream buffer;
-    // buffer << infile.rdbuf();
-    // Parameters materials(buffer.str());
-
     helpers::WaitForFile(helpers::ConvergenceSignalFileName);
 
-    // ... read file
+    std::ifstream input_file(helpers::ConvergenceSignalFileName);
+    helpers::CheckStream(input_file, helpers::ConvergenceSignalFileName);
+
+    int signal;
+    input_file >> signal;
+
+    if (!(signal == 0 || signal == 1)) {
+        std::stringstream err_msg;
+        err_msg << "Read an invalid convergence signal: " << signal << ", can only be 0 for non-convergence or 1 for convergence";
+        throw std::runtime_error(err_msg.str());
+    }
 
     helpers::RemoveFile(helpers::ConvergenceSignalFileName);
+
+    return signal;
 }
 
 /***********************************************************************************************
@@ -208,8 +227,7 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
 {
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;
-        err_msg << "Input can only be 0 for non-convergence or 1 for convergence";
-        err_msg << ", called with: " << signal;
+        err_msg << "Input can only be 0 for non-convergence or 1 for convergence, called with: " << signal;
         throw std::runtime_error(err_msg.str());
     }
 
@@ -217,6 +235,8 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
 
     std::ofstream output_file;
     output_file.open(temp_file_name);
+    helpers::CheckStream(output_file, helpers::ConvergenceSignalFileName);
+
     output_file << signal;
     output_file.close();
 
