@@ -58,6 +58,24 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # manually deleting since the call above throws
         os.remove(conv_signal_file_name)
 
+    def test_EMPIRE_API_sendMesh(self):
+        pass
+
+    def test_EMPIRE_API_recvMesh(self):
+        pass
+
+    def test_EMPIRE_API_sendDataField(self):
+        pass
+
+    def test_EMPIRE_API_recvDataField(self):
+        pass
+
+    def test_EMPIRE_API_sendSignal_double(self):
+        pass
+
+    def test_EMPIRE_API_recvSignal_double(self):
+        pass
+
 
     def __CheckConvergenceSignalFile(self, signal):
         self.assertTrue(os.path.isfile(conv_signal_file_name))
@@ -65,8 +83,6 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         with open(conv_signal_file_name, 'r') as conv_signal_file:
             content = conv_signal_file.read()
             self.assertEqual(content, str(signal))
-
-
 
 
 if __name__ == '__main__':
