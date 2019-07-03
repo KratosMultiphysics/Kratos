@@ -142,7 +142,7 @@ class AnalyzerWithDependencies(Analyzer):
         super().AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
 
         self.__CombineResponsesAccordingDependencies(communicator)
-        self.__ComputeGradientNormsRecursively(self.dependency_graph, communicator)
+        self.__ComputeGradientNorms(communicator)
         self.__WriteResultsOfCombinedResponses(unique_iterator,communicator)
 
     # --------------------------------------------------------------------------
@@ -151,45 +151,45 @@ class AnalyzerWithDependencies(Analyzer):
 
         with open(self.response_combination_filename, 'w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            identifiers = self.__GetIdentifiersRecursively(self.dependency_graph)
+            response_ids = self.__GetIdentifiersRecursively(self.dependency_graph)
 
             writer.writerow(["---------------------------------"])
-            for itr, identifier in enumerate(identifiers):
+            for itr, identifier in enumerate(response_ids):
                 writer.writerow(["f"+str(itr)+": "+identifier])
             writer.writerow(["---------------------------------"])
 
             row = []
             row.append("{:>4s}".format("itr"))
-            for itr, identifier in enumerate(identifiers):
+            for itr, identifier in enumerate(response_ids):
                 row.append("{:>13s}".format("f"+str(itr)+"_value"))
-            for itr, identifier in enumerate(identifiers):
+            for itr, identifier in enumerate(response_ids):
                 row.append("{:>13s}".format("||df"+str(itr)+"dx_st||"))
             writer.writerow(row)
 
     # --------------------------------------------------------------------------
+    def __GetIdentifiersRecursively(self, dependencies):
+        response_ids = []
+
+        for response_id, dependencies, _ in dependencies:
+            response_ids += [response_id]
+            if len(dependencies) > 0:
+                sub_identifiers = self.__GetIdentifiersRecursively(dependencies)
+                response_ids += sub_identifiers
+
+        return response_ids
+
+    # --------------------------------------------------------------------------
     def __RequestResponsesAccordingDependencies(self, communicator):
         for response_id, dependencies, _ in self.dependency_graph:
+            sub_response_ids = self.__GetIdentifiersRecursively(dependencies)
+
             if communicator.isRequestingValueOf(response_id):
-                self.__RequestValuesRecursively(dependencies, communicator)
+                for sub_response_id in sub_response_ids:
+                    communicator.requestValueOf(sub_response_id)
 
             if communicator.isRequestingGradientOf(response_id):
-                self.__RequestGradientsRecursively(dependencies, communicator)
-
-    # --------------------------------------------------------------------------
-    def __RequestValuesRecursively(self, dependencies, communicator):
-        for response_id, dependencies, _ in dependencies:
-            if len(dependencies) > 0:
-                self.__RequestValuesRecursively(dependencies, communicator)
-            else:
-                communicator.requestValueOf(response_id)
-
-    # --------------------------------------------------------------------------
-    def __RequestGradientsRecursively(self, dependencies, communicator):
-        for response_id, dependencies, _ in dependencies:
-            if len(dependencies) > 0:
-                self.__RequestGradientsRecursively(dependencies, communicator)
-            else:
-                communicator.requestGradientOf(response_id)
+                for sub_response_id in sub_response_ids:
+                    communicator.requestGradientOf(sub_response_id)
 
     # --------------------------------------------------------------------------
     def __CombineResponsesAccordingDependencies(self, communicator):
@@ -248,23 +248,25 @@ class AnalyzerWithDependencies(Analyzer):
         return combined_gradient
 
     # --------------------------------------------------------------------------
-    def __ComputeGradientNormsRecursively(self, dependencies, communicator):
-        for response_id, dependencies, _ in dependencies:
+    def __ComputeGradientNorms(self, communicator):
+        response_ids = self.__GetIdentifiersRecursively(self.dependency_graph)
+
+        for response_id in response_ids:
             gradient = communicator.getStandardizedGradient(response_id)
 
             nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
             max_norm = math.sqrt(max(nodal_norms))
             self.gradients_max_norms[response_id] = max_norm
 
-            if len(dependencies) > 0:
-                self.__ComputeGradientNormsRecursively(dependencies, communicator)
-
     # --------------------------------------------------------------------------
     def __WriteResultsOfCombinedResponses(self, iteration, communicator):
         with open(self.response_combination_filename, 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
 
-            identifers, values = self.__GetValuesRecursively(self.dependency_graph, communicator)
+            identifers = self.__GetIdentifiersRecursively(self.dependency_graph)
+            values = []
+            for response_id in identifers:
+                values.append(communicator.getValue(response_id))
 
             row = []
             row.append("{:>4d}".format(iteration))
@@ -274,32 +276,5 @@ class AnalyzerWithDependencies(Analyzer):
                 row.append(" {:> .5E}".format(self.gradients_max_norms[identifer]))
 
             writer.writerow(row)
-
-    # --------------------------------------------------------------------------
-    def __GetIdentifiersRecursively(self, dependencies):
-        identifiers = []
-
-        for response_id, dependencies, _ in dependencies:
-            identifiers += [response_id]
-            if len(dependencies) > 0:
-                sub_identifiers = self.__GetIdentifiersRecursively(dependencies)
-                identifiers += sub_identifiers
-
-        return identifiers
-
-    # --------------------------------------------------------------------------
-    def __GetValuesRecursively(self, dependencies, communicator):
-        identifiers = []
-        values = []
-
-        for response_id, dependencies, _ in dependencies:
-            identifiers += [response_id]
-            values += [communicator.getValue(response_id)]
-            if len(dependencies) > 0:
-                sub_identifiers, sub_values = self.__GetValuesRecursively(dependencies, communicator)
-                identifiers += sub_identifiers
-                values += sub_values
-
-        return identifiers, values
 
 # ==============================================================================
