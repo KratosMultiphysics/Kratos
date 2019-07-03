@@ -30,9 +30,7 @@ Note:
 #include <thread>
 #include <unordered_map>
 
-namespace CoSimEMPIRE_API {
-
-namespace helpers {
+namespace EMPIRE_API_helpers {
 
 // Some options that can be configured
 const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
@@ -90,8 +88,8 @@ void CheckStream(const T& rStream, const std::string& rFileName)
 void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
     std::ofstream output_file;
-    output_file.open(helpers::GetTempFileName(rFileName));
-    helpers::CheckStream(output_file, rFileName);
+    output_file.open(EMPIRE_API_helpers::GetTempFileName(rFileName));
+    EMPIRE_API_helpers::CheckStream(output_file, rFileName);
 
     // TODO write size in first line?
 
@@ -101,21 +99,21 @@ void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
     output_file << data[sizeOfArray-1]; // outside to not have trailing whitespace
 
     output_file.close();
-    helpers::MakeFileVisible(rFileName);
+    EMPIRE_API_helpers::MakeFileVisible(rFileName);
 }
 
 void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
-    helpers::WaitForFile(rFileName);
+    EMPIRE_API_helpers::WaitForFile(rFileName);
 
     std::ifstream input_file(rFileName);
-    helpers::CheckStream(input_file, rFileName);
+    EMPIRE_API_helpers::CheckStream(input_file, rFileName);
 
     for (int i=0; i<sizeOfArray; ++i) {
         input_file >> data[i];
     }
 
-    helpers::RemoveFile(rFileName);
+    EMPIRE_API_helpers::RemoveFile(rFileName);
 }
 
 int GetVtkCellType(const int NumberOfNodes)
@@ -135,7 +133,7 @@ int GetVtkCellType(const int NumberOfNodes)
     }
 }
 
-} // namespace helpers
+} // namespace EMPIRE_API_helpers
 
 /***********************************************************************************************
  * \brief Establishes the necessary connection with the Emperor
@@ -171,13 +169,13 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     std::ofstream output_file;
-    output_file.open(helpers::GetTempFileName(file_name));
-    helpers::CheckStream(output_file, file_name);
+    output_file.open(EMPIRE_API_helpers::GetTempFileName(file_name));
+    EMPIRE_API_helpers::CheckStream(output_file, file_name);
 
     // write file header
     output_file << "# vtk DataFile Version 4.0\n";
     output_file << "vtk output\n";
-    if (helpers::VtkUseBinary) {
+    if (EMPIRE_API_helpers::VtkUseBinary) {
         output_file << "BINARY\n";
     } else {
         output_file << "ASCII\n";
@@ -216,11 +214,11 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     // write cell types
     output_file << "CELL_TYPES " << numElems << "\n";
     for (int i=0; i<numElems; ++i) {
-        output_file << helpers::GetVtkCellType(numNodesPerElem[i]) << "\n";
+        output_file << EMPIRE_API_helpers::GetVtkCellType(numNodesPerElem[i]) << "\n";
     }
 
     output_file.close();
-    helpers::MakeFileVisible(file_name);
+    EMPIRE_API_helpers::MakeFileVisible(file_name);
 }
 
 /***********************************************************************************************
@@ -237,14 +235,14 @@ void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **node
 {
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
-    helpers::WaitForFile(file_name);
+    EMPIRE_API_helpers::WaitForFile(file_name);
 
     std::ifstream input_file(file_name);
-    helpers::CheckStream(input_file, file_name);
+    EMPIRE_API_helpers::CheckStream(input_file, file_name);
 
     // read file
 
-    helpers::RemoveFile(file_name);
+    EMPIRE_API_helpers::RemoveFile(file_name);
 }
 
 /***********************************************************************************************
@@ -257,7 +255,7 @@ void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
-    helpers::SendArray(file_name, sizeOfArray, dataField);
+    EMPIRE_API_helpers::SendArray(file_name, sizeOfArray, dataField);
 }
 
 /***********************************************************************************************
@@ -270,7 +268,7 @@ void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
-    helpers::ReceiveArray(file_name, sizeOfArray, dataField);
+    EMPIRE_API_helpers::ReceiveArray(file_name, sizeOfArray, dataField);
 }
 
 /***********************************************************************************************
@@ -283,7 +281,7 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
-    helpers::SendArray(file_name, sizeOfArray, signal);
+    EMPIRE_API_helpers::SendArray(file_name, sizeOfArray, signal);
 }
 
 /***********************************************************************************************
@@ -296,7 +294,7 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
-    helpers::ReceiveArray(file_name, sizeOfArray, signal);
+    EMPIRE_API_helpers::ReceiveArray(file_name, sizeOfArray, signal);
 }
 
 /***********************************************************************************************
@@ -305,10 +303,10 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 int EMPIRE_API_recvConvergenceSignal()
 {
-    helpers::WaitForFile(helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::WaitForFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
 
-    std::ifstream input_file(helpers::ConvergenceSignalFileName);
-    helpers::CheckStream(input_file, helpers::ConvergenceSignalFileName);
+    std::ifstream input_file(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::CheckStream(input_file, EMPIRE_API_helpers::ConvergenceSignalFileName);
 
     int signal;
     input_file >> signal;
@@ -319,7 +317,7 @@ int EMPIRE_API_recvConvergenceSignal()
         throw std::runtime_error(err_msg.str());
     }
 
-    helpers::RemoveFile(helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::RemoveFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
 
     return signal;
 }
@@ -337,13 +335,13 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
     }
 
     std::ofstream output_file;
-    output_file.open(helpers::GetTempFileName(helpers::ConvergenceSignalFileName));
-    helpers::CheckStream(output_file, helpers::ConvergenceSignalFileName);
+    output_file.open(EMPIRE_API_helpers::GetTempFileName(EMPIRE_API_helpers::ConvergenceSignalFileName));
+    EMPIRE_API_helpers::CheckStream(output_file, EMPIRE_API_helpers::ConvergenceSignalFileName);
 
     output_file << signal;
 
     output_file.close();
-    helpers::MakeFileVisible(helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::MakeFileVisible(EMPIRE_API_helpers::ConvergenceSignalFileName);
 }
 
 /***********************************************************************************************
@@ -353,7 +351,5 @@ void EMPIRE_API_Disconnect()
 {
     std::cout << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
 }
-
-} // namespace CoSimEMPIRE_API
 
 #endif /* KRATOS_CO_SIM_EMPIRE_API_H_INCLUDED */

@@ -28,9 +28,9 @@ void Wrapper_SendArray(char* name, int sizeOfArray, std::vector<double> signal)
 {
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     if (TIsDataField) {
-        CoSimEMPIRE_API::EMPIRE_API_sendDataField(name, sizeOfArray, &signal[0]);
+        EMPIRE_API_sendDataField(name, sizeOfArray, &signal[0]);
     } else {
-        CoSimEMPIRE_API::EMPIRE_API_sendSignal_double(name, sizeOfArray, &signal[0]);
+        EMPIRE_API_sendSignal_double(name, sizeOfArray, &signal[0]);
     }
 }
 
@@ -43,9 +43,9 @@ void Wrapper_ReceiveArray(char* name, int sizeOfArray, pybind11::list signal)
     // also the list can only be modified in place otherwise the references are not working
     std::vector<double> vec_signal(sizeOfArray);
     if (TIsDataField) {
-        CoSimEMPIRE_API::EMPIRE_API_recvDataField(name, sizeOfArray, &vec_signal[0]);
+        EMPIRE_API_recvDataField(name, sizeOfArray, &vec_signal[0]);
     } else {
-        CoSimEMPIRE_API::EMPIRE_API_recvSignal_double(name, sizeOfArray, &vec_signal[0]);
+        EMPIRE_API_recvSignal_double(name, sizeOfArray, &vec_signal[0]);
     }
 
     // copy back the received values
@@ -87,7 +87,7 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
         elem_counter++;
     }
 
-    CoSimEMPIRE_API::EMPIRE_API_sendMesh(const_cast<char*>(rModelPart.Name().c_str()), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
+    EMPIRE_API_sendMesh(const_cast<char*>(rModelPart.Name().c_str()), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
 }
 
 void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
@@ -101,10 +101,10 @@ void  AddCustomIOToPython(pybind11::module& m)
 
     auto mEMPIREAPI = m.def_submodule("EMPIRE_API");
 
-    mEMPIREAPI.def("EMPIRE_API_Connect", CoSimEMPIRE_API::EMPIRE_API_Connect);
-    mEMPIREAPI.def("EMPIRE_API_Disconnect", CoSimEMPIRE_API::EMPIRE_API_Disconnect);
+    mEMPIREAPI.def("EMPIRE_API_Connect", EMPIRE_API_Connect);
+    mEMPIREAPI.def("EMPIRE_API_Disconnect", EMPIRE_API_Disconnect);
 
-    mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", CoSimEMPIRE_API::EMPIRE_API_getUserDefinedText);
+    mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", EMPIRE_API_getUserDefinedText);
 
     mEMPIREAPI.def("EMPIRE_API_sendMesh", Wrapper_EMPIRE_API_sendMesh);
     mEMPIREAPI.def("EMPIRE_API_recvMesh", Wrapper_EMPIRE_API_recvMesh);
@@ -115,8 +115,8 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_sendSignal_double", Wrapper_SendArray<false>);
     mEMPIREAPI.def("EMPIRE_API_recvSignal_double", Wrapper_ReceiveArray<false>);
 
-    mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", CoSimEMPIRE_API::EMPIRE_API_recvConvergenceSignal);
-    mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", CoSimEMPIRE_API::EMPIRE_API_sendConvergenceSignal);
+    mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", EMPIRE_API_recvConvergenceSignal);
+    mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", EMPIRE_API_sendConvergenceSignal);
 }
 
 }  // namespace Python.
