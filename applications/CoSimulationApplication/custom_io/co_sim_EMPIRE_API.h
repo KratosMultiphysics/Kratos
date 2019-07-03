@@ -19,6 +19,7 @@ It used FileIO for data-exchange, in VTK-format
 Note:
 - This file cannot have Kratos-includes, because it is also included in other codes!
 - This file is intended to be header-only, such that other codes do not have to link against a library
+- Requires c++11 to compile
 
 */
 
@@ -26,12 +27,54 @@ Note:
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <stdio.h>
+#include <chrono>
+#include <thread>
 
 //#define VTK_USE_BINARY // comment this for using binary for the files
 
-#ifdef __cplusplus // TODO check if this is needed
-extern "C" { // Define extern C if C++ compiler is used
-#endif
+namespace CoSimEMPIRE_API {
+
+namespace helpers {
+
+const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
+const std::string TempFilePreString = ".";
+
+bool FileExists(const std::string& rFileName)
+{
+    std::ifstream infile(rFileName);
+    return infile.good(); // no need to close manually
+}
+
+std::string GetTempFileName(const std::string& rFileName)
+{
+    // wrapped in a function such that it could be changed easily (e.g. if files are in a folder)
+    return TempFilePreString + rFileName;
+}
+
+void WaitForFile(const std::string& rFileName)
+{
+    while(!FileExists(rFileName)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::cout << "Waiting" << std::endl;
+    }
+}
+
+void RemoveFile(const std::string& rFileName)
+{
+    if (std::remove(rFileName.c_str()) != 0) {
+        std::cout << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
+    }
+}
+
+void MakeFileVisible(const std::string& rFinalFileName)
+{
+    if (std::rename(GetTempFileName(rFinalFileName).c_str(), rFinalFileName.c_str()) != 0) {
+        std::cout << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
+    }
+}
+
+} // namespace helpers
 
 /***********************************************************************************************
  * \brief Establishes the necessary connection with the Emperor
@@ -144,10 +187,17 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 int EMPIRE_API_recvConvergenceSignal()
 {
-    // wait for file
+    // std::ifstream infile(materials_filename);
+    // KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
+    // std::stringstream buffer;
+    // buffer << infile.rdbuf();
+    // Parameters materials(buffer.str());
 
-    // delete file after reading? // TODO
+    helpers::WaitForFile(helpers::ConvergenceSignalFileName);
 
+    // ... read file
+
+    helpers::RemoveFile(helpers::ConvergenceSignalFileName);
 }
 
 /***********************************************************************************************
@@ -158,18 +208,19 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
 {
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;
-        err_msg << "Input can only be 0 non-convergence or 1 convergence";
+        err_msg << "Input can only be 0 for non-convergence or 1 for convergence";
         err_msg << ", called with: " << signal;
         throw std::runtime_error(err_msg.str());
     }
 
+    const std::string temp_file_name = helpers::GetTempFileName(helpers::ConvergenceSignalFileName);
+
     std::ofstream output_file;
-    output_file.open(".EMPIRE_convergence_signal.dat");
+    output_file.open(temp_file_name);
     output_file << signal;
     output_file.close();
 
-    // rename file after writing such that it becomes visible
-    std::rename(".EMPIRE_convergence_signal.dat", "EMPIRE_convergence_signal.dat");
+    helpers::MakeFileVisible(helpers::ConvergenceSignalFileName);
 }
 
 /***********************************************************************************************
@@ -180,8 +231,6 @@ void EMPIRE_API_Disconnect()
     std::cout << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
 }
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace CoSimEMPIRE_API
 
 #endif /* KRATOS_CO_SIM_EMPIRE_API_H_INCLUDED */
