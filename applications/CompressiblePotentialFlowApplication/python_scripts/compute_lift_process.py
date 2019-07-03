@@ -23,7 +23,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "reference_area": 1.0,
             "moment_reference_point" : [0.0,0.0,0.0]
         }''')
 
@@ -31,8 +30,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.reference_area =  settings["reference_area"].GetDouble()
+        self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
+
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.REFERENCE_CHORD,self.reference_area)
 
         if not self.reference_area > 0.0:
             raise Exception('The reference area should be larger than 0.')

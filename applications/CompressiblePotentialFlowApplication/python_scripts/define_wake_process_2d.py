@@ -18,7 +18,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "epsilon": 1e-9
+            "epsilon": 1e-9,
+            "reference_chord": 1.0
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -30,8 +31,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.body_model_part = Model[body_model_part_name]
 
         self.epsilon = settings["epsilon"].GetDouble()
+        self.reference_chord =  settings["reference_chord"].GetDouble()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.REFERENCE_CHORD,self.reference_chord)
 
         # Find nodal neigbours util call
         avg_elem_num = 10
