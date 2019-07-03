@@ -31,14 +31,15 @@ Note:
 #include <chrono>
 #include <thread>
 
-//#define VTK_USE_BINARY // comment this for using binary for the files
-
 namespace CoSimEMPIRE_API {
 
 namespace helpers {
 
+// Some options that can be configured
 const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
 const std::string TempFilePreString = ".";
+const bool VtkUseBinary = false;
+const bool PrintTiming = false;
 const int EchoLevel = 0;
 
 bool FileExists(const std::string& rFileName)
