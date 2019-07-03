@@ -202,10 +202,18 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
  ***********/
 void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
 {
-    // wait for file
+    const std::string file_name("EMPIRE_signal_" + std::string(name));
 
-    // delete file after reading? // TODO
+    helpers::WaitForFile(file_name);
 
+    std::ifstream input_file(file_name);
+    helpers::CheckStream(input_file, file_name);
+
+    for (int i=0; i<sizeOfArray; ++i) {
+        input_file >> signal[i];
+    }
+
+    helpers::RemoveFile(file_name);
 }
 
 /***********************************************************************************************
