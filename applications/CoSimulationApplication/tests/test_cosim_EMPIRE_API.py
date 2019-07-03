@@ -41,6 +41,8 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         is_converged = KratosCoSim.EMPIRE_API.EMPIRE_API_recvConvergenceSignal()
 
         self.assertEqual(signal, is_converged)
+        # make sure that the file was deleted
+        self.assertFalse(os.path.isfile(conv_signal_file_name))
 
         # now check with an invalid signal
         invalid_signal = 15 # invalid
@@ -53,8 +55,9 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Read an invalid convergence signal: {}, can only be 0 for non-convergence or 1 for convergence".format(invalid_signal)):
             KratosCoSim.EMPIRE_API.EMPIRE_API_recvConvergenceSignal()
 
-        # make sure that the file was deleted
-        self.assertFalse(os.path.isfile(conv_signal_file_name))
+        # manually deleting since the call above throws
+        os.remove(conv_signal_file_name)
+
 
     def __CheckConvergenceSignalFile(self, signal):
         self.assertTrue(os.path.isfile(conv_signal_file_name))
