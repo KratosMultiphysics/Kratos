@@ -22,7 +22,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kratos_parameters.h"
 
 namespace Kratos {
 namespace Testing {
