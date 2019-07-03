@@ -17,7 +17,7 @@ The application includes tests to check the proper functioning of the applicatio
  
     * Frictionless formulation
 
-    * Frictional formulation (WIP)
+    * Frictional formulation
 
 - Penalty contact conditions based in mortar formulation
 
@@ -28,3 +28,7 @@ The application includes tests to check the proper functioning of the applicatio
 - Strategies, processes, solvers and convergence criterias used by the contact formulation
  
 - The application includes search utilities in order to create the contact conditions
+
+- Frictional laws (WIP) in order to consider different types of frictional behaviour 
+
+- +100 tests, including Validation tests and cpp tests

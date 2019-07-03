@@ -38,7 +38,7 @@ namespace Kratos {
       free_stream_velocity(0) = 10.0;
 
       rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
-      pElemProp->SetValue(FREE_STREAM_DENSITY,1.0);
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -59,6 +59,7 @@ namespace Kratos {
       // Set the element properties
       rModelPart.CreateNewProperties(0);
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
