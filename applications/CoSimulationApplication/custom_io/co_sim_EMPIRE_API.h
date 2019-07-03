@@ -210,8 +210,6 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
         output_file << helpers::GetVtkCellType(numNodesPerElem[i]) << "\n";
     }
 
-    output_file << "\n";
-
     output_file.close();
     helpers::MakeFileVisible(file_name);
 }
