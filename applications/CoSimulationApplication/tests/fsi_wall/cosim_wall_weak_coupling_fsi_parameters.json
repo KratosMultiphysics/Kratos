@@ -4,7 +4,8 @@
         "start_time" : 0.0,
         "end_time" : 3.0,
         "echo_level" : 0,
-        "print_colors" : true
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {

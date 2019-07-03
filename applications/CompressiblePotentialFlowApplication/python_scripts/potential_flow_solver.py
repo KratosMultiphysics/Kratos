@@ -88,7 +88,8 @@ class PotentialFlowSolver(FluidSolver):
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
             "no_skin_parts": [""],
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "auxiliary_variables_list" : []
         }''')
 
         settings.ValidateAndAssignDefaults(default_settings)

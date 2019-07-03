@@ -118,7 +118,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     counter=0
                     self.wake_element_id_list.append(elem.Id)
                     for node in elem.GetNodes():
-                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
+                        node.SetValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
         self.wake_sub_model_part.AddElements(self.wake_element_id_list)
         self.__SaveTrailingEdgeElements()
