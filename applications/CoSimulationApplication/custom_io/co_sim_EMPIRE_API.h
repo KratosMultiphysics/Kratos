@@ -120,8 +120,16 @@ char *EMPIRE_API_getUserDefinedText(char *elementName)
  ***********/
 void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
 {
+    const std::string file_name("EMPIRE_mesh_" + std::string(name));
 
-    // rename file after writing such that it becomes visible
+    std::ofstream output_file;
+    output_file.open(helpers::GetTempFileName(file_name));
+    helpers::CheckStream(output_file, file_name);
+
+    // write file
+
+    output_file.close();
+    helpers::MakeFileVisible(file_name);
 }
 
 /***********************************************************************************************
@@ -136,10 +144,16 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  ***********/
 void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
 {
-    // wait for file
+    const std::string file_name("EMPIRE_mesh_" + std::string(name));
 
-    // delete file after reading? // TODO
+    helpers::WaitForFile(file_name);
 
+    std::ifstream input_file(file_name);
+    helpers::CheckStream(input_file, file_name);
+
+    // read file
+
+    helpers::RemoveFile(file_name);
 }
 
 /***********************************************************************************************
@@ -150,8 +164,16 @@ void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **node
  ***********/
 void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
 {
+    const std::string file_name("EMPIRE_datafield_" + std::string(name));
 
-    // rename file after writing such that it becomes visible
+    std::ofstream output_file;
+    output_file.open(helpers::GetTempFileName(file_name));
+    helpers::CheckStream(output_file, file_name);
+
+    // write file
+
+    output_file.close();
+    helpers::MakeFileVisible(file_name);
 }
 
 /***********************************************************************************************
@@ -162,10 +184,16 @@ void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
  ***********/
 void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 {
-    // wait for file
+    const std::string file_name("EMPIRE_datafield_" + std::string(name));
 
-    // delete file after reading? // TODO
+    helpers::WaitForFile(file_name);
 
+    std::ifstream input_file(file_name);
+    helpers::CheckStream(input_file, file_name);
+
+    // read file
+
+    helpers::RemoveFile(file_name);
 }
 
 /***********************************************************************************************
@@ -190,7 +218,6 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
     output_file << signal[sizeOfArray-1]; // outside to not have trailing whitespace
 
     output_file.close();
-
     helpers::MakeFileVisible(file_name);
 }
 
@@ -258,8 +285,8 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
     helpers::CheckStream(output_file, helpers::ConvergenceSignalFileName);
 
     output_file << signal;
-    output_file.close();
 
+    output_file.close();
     helpers::MakeFileVisible(helpers::ConvergenceSignalFileName);
 }
 
