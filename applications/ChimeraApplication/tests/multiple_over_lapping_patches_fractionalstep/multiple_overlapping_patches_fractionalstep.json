@@ -1,17 +1,17 @@
 {
    "problem_data":{
-      "problem_name":"test_chimera_multiple_overlapping_simple",
+      "problem_name":"fractional_step_multi_patch",
       "parallel_type":"OpenMP",
       "echo_level"    : 0,
       "start_time":0.0,
-      "end_time":0.1
+      "end_time":1.5
    },
    "output_processes":{
    },
    "solver_settings":{
       "model_part_name":"FluidModelPart",
       "domain_size":2,
-      "solver_type":"Monolithic",
+      "solver_type":"fractional_step",
       "model_import_settings":{
          "input_type":"mdpa",
          "input_filename":"../mdpa_for_tests/multiple_overlapping_patches"
@@ -20,21 +20,6 @@
       "compute_reactions":true,
       "dynamic_tau":1.0,
       "oss_switch":0,
-      "maximum_iterations":10,
-      "relative_velocity_tolerance":1e-5,
-      "absolute_velocity_tolerance":1e-7,
-      "relative_pressure_tolerance":1e-5,
-      "absolute_pressure_tolerance":1e-7,
-      "linear_solver_settings":{
-         "solver_type":"AMGCL",
-         "max_iteration":200,
-         "tolerance":1e-7,
-         "provide_coordinates":false,
-         "smoother_type":"ilu0",
-         "krylov_type":"gmres",
-         "coarsening_type":"aggregation",
-         "scaling":false
-      },
       "volume_model_part_name":"Parts_all",
       "skin_parts":[
          "AutomaticInlet2D_inlet",

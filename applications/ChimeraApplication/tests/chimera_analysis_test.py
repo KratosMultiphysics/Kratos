@@ -45,6 +45,7 @@ class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
         settings_file_name = "multiple_overlapping_patches_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
+            self._Check(os.path.join("test_vtk_output","FluidModelPart_0_11.vtk"),"reference_results_vtk/multiple_over_lapping_patches_monolithic_11.ref_result")
             self.DeleteResults()
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using Monolithic solver ",end-start)
@@ -53,10 +54,9 @@ class FractionalStepMultiPatch(ChimeraAnalysisBaseTest):
     def test_MultipleOverlappingPatchFractionalStep(self): #TODO: Check and correct this
         start = time.clock()
         work_folder = "multiple_over_lapping_patches_fractionalstep"
-        settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
+        settings_file_name = "multiple_overlapping_patches_fractionalstep.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            #self.Check()
             self.DeleteResults()
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using fractional step solver ",end-start)
