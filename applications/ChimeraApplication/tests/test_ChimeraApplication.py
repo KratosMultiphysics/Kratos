@@ -33,10 +33,10 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ChimeraRotateRegionTest]))
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepMultiPatch]))
 
     # Create a test suit with the selected tests
