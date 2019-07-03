@@ -33,8 +33,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
 
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.REFERENCE_CHORD,self.reference_area)
-
         if not self.reference_area > 0.0:
             raise Exception('The reference area should be larger than 0.')
 
