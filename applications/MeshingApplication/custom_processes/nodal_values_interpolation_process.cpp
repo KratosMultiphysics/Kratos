@@ -134,30 +134,13 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 {
-    // Getting the Model
-    Model& r_model = mrOriginMainModelPart.GetModel();
-
-    // Getting the list of model parts
-    std::vector<std::string> model_part_names = mrOriginMainModelPart.GetSubModelPartNames();
-    model_part_names.push_back(mrOriginMainModelPart.Name());
-
-    // We iterate over the model parts (in order to have the most extended possible list of variables)
-    for (auto& r_model_part_name : model_part_names) {
-        ModelPart& r_sub_model_part = r_model.GetModelPart(r_model_part_name);
-        auto& r_nodes_array = r_sub_model_part.Nodes();
-        if (r_nodes_array.size() > 0) {
-            const auto it_node_begin = r_nodes_array.begin();
-            for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                auto it_node = it_node_begin + i;
-                const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-                if (!old_entity) {
-                    auto& r_data = it_node->Data();
-                    for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
-                        mListVariables.insert((it_data->first)->Name());
-                    }
-
-                    break;
-                }
+    // We iterate over the model part
+    for (auto& r_node : mrOriginMainModelPart.Nodes()) {
+        const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            auto& r_data = r_node.Data();
+            for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
+                mListVariables.insert((it_data->first)->Name());
             }
         }
     }
