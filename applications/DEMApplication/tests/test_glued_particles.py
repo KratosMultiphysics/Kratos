@@ -47,7 +47,7 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage):
 
                 if time > 0.499999 and time < 0.5000001:
                     self.CheckValue("X Coordinate at time 0.5", node.X, -1.0,     tolerance)
-                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6638445208099379, tolerance)
+                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6634116060768411, tolerance)
                     self.CheckValue("Z Coordinate at time 0.5", node.Z,  0.21679366644461678, tolerance)
 
                 if time > 0.999999 and time < 1.0000001:
