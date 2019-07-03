@@ -35,7 +35,7 @@
             "volume_model_part_name" : "Parts_Parts_Auto1",
             "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
             "no_skin_parts"          : [],
-            "auxiliary_variables_list": ["GEOMETRY_DISTANCE", "FLAG_VARIABLE", "DISTANCE", "REACTION", "DISTANCE_GRADIENT", "NODAL_H", "VELOCITY", "PRESSURE"]
+            "auxiliary_variables_list": ["GEOMETRY_DISTANCE", "FLAG_VARIABLE", "DISTANCE", "REACTION", "DISTANCE_GRADIENT", "NODAL_H"]
         }
     },
     "processes" : {
@@ -175,9 +175,9 @@
                         "node_output"         : true,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["MESH_DISPLACEMENT","REACTION","VELOCITY","PRESSURE", "VELOCITY_POTENTIAL"],
+                        "nodal_results"       : ["MESH_DISPLACEMENT","REACTION", "VELOCITY_POTENTIAL"],
                         "nodal_nonhistorical_results": [],
-                        "gauss_point_results" : ["PRESSURE","VELOCITY"]
+                        "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
                 }
