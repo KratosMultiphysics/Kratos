@@ -1,10 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 
 if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
     has_hdf5_application = True

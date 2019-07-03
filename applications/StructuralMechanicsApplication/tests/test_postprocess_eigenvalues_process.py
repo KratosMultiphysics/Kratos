@@ -1,13 +1,15 @@
 from __future__ import print_function, absolute_import, division
+
+import os
+
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import postprocess_eigenvalues_process
-from compare_two_files_check_process import CompareTwoFilesCheckProcess
+import KratosMultiphysics.StructuralMechanicsApplication.postprocess_eigenvalues_process as postprocess_eigenvalues_process
 
-import os
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

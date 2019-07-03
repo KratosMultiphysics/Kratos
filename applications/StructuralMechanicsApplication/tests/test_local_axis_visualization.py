@@ -1,12 +1,14 @@
 from __future__ import print_function, absolute_import, division
+
+import os, math
+
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-import os, math
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -37,7 +39,7 @@ def CreateShellElements(mp,element_name):
         mp.CreateNewElement(element_name, 4, [4,1,5], mp.GetProperties()[1])
 
 def WriteGiDOutput(model_part):
-    from gid_output_process import GiDOutputProcess
+    from KratosMultiphysics.gid_output_process import GiDOutputProcess
     gid_output = GiDOutputProcess(model_part,
         "local_axis_"+model_part.Name,
         KratosMultiphysics.Parameters("""
