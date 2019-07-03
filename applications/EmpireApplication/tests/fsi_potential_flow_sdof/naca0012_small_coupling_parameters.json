@@ -174,7 +174,7 @@
                         "node_output"         : true,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["LIFT_COEFFICIENT","MESH_DISPLACEMENT","REACTION","VELOCITY","PRESSURE", "VELOCITY_POTENTIAL"],
+                        "nodal_results"       : ["MESH_DISPLACEMENT","REACTION","VELOCITY","PRESSURE", "VELOCITY_POTENTIAL"],
                         "nodal_nonhistorical_results": [],
                         "gauss_point_results" : ["PRESSURE","VELOCITY"]
                     },
@@ -183,4 +183,4 @@
             }
         }]
     }
-} 
+}

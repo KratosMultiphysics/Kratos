@@ -36,7 +36,7 @@ class TestSmallCoSimulationPotentialCase(co_simulation_test_case.CoSimulationTes
         with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.createTest("fsi_potential_flow_sdof", "project_cosim_naca0012_small_fsi")
             self.runTestSteady()
-            self._check_results(self.fluid_solver.lift_process.fluid_model_part.ProcessInfo.GetValue(CPFApp.LIFT_COEFFICIENT), 0.4919547597104221, 0.0, 1e-9)
+            self._check_results(self.fluid_solver.lift_process.fluid_model_part.ProcessInfo.GetValue(CPFApp.LIFT_COEFFICIENT), 0.32782398801832946, 0.0, 1e-9)
 
 class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "full" CoSimulation-Cases, too large for the nightly suite and therefore
