@@ -80,8 +80,25 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
     def test_EMPIRE_API_recvMesh(self):
         model = KM.Model()
         model_part = model.CreateModelPart("For_Receiving")
+        model_part_ref = model.CreateModelPart("For_Checking")
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part)
+
+        # reading reference ModelPart (with which the ref-vtk was created)
+        severity = KM.Logger.GetDefaultOutput().GetSeverity()
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
+        model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
+        model_part_io.ReadModelPart(model_part_ref)
+        KM.Logger.GetDefaultOutput().SetSeverity(severity)
+
+        self.assertEqual(model_part.NumberOfNodes(), model_part_ref.NumberOfNodes())
+        self.assertEqual(model_part.NumberOfElements(), model_part_ref.NumberOfElements())
+
+        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes())
+
+        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements()):
+            self.assertEqual(elem.Id, elem_ref.Id)
+            self.__CompareNodes(elem.GetNodes(), elem_ref.GetNodes())
 
     def test_EMPIRE_API_sendDataField(self):
         fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField
@@ -163,6 +180,18 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of {}, current size: {}".format(len(array_to_test)+2, len(array_to_test))):
             fct_ptr_to_test(array_name, len(array_to_test)+2, array_to_test)
+
+    def __CompareNodes(self, nodes, nodes_ref):
+        for node, node_ref in zip(nodes, nodes_ref):
+            self.assertEqual(node.Id, node_ref.Id)
+
+            self.assertAlmostEqual(node.X(), node_ref.X())
+            self.assertAlmostEqual(node.Y(), node_ref.Y())
+            self.assertAlmostEqual(node.Z(), node_ref.Z())
+
+            self.assertAlmostEqual(node.X0(), node_ref.X0())
+            self.assertAlmostEqual(node.Y0(), node_ref.Y0())
+            self.assertAlmostEqual(node.Z0(), node_ref.Z0())
 
 
 def GetSignalFileName(signal_name):
