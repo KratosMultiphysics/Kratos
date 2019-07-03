@@ -14,7 +14,7 @@
 #define KRATOS_CO_SIM_EMPIRE_API_H_INCLUDED
 
 /*
-This file has the same API as EMPIRE, hence it can be included instead of EMPIRE
+This file has the same API as EMPIRE (defined in "EMPIRE_API.h"), hence it can be included instead of EMPIRE
 It used FileIO for data-exchange, in VTK-format
 */
 
@@ -26,7 +26,7 @@ extern "C" { ///Define extern C if C++ compiler is used
  ***********/
 void EMPIRE_API_Connect(char* inputFileName)
 {
-
+    std::cout << "Called \"EMPIRE_API_Connect\" which is no longer necessary and can be removed" << std::endl;
 }
 
 /***********************************************************************************************
@@ -134,9 +134,9 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
 /***********************************************************************************************
  * \brief Performs disconnection and finalization operations to the Emperor
  ***********/
-void EMPIRE_API_Disconnect(void)
+void EMPIRE_API_Disconnect()
 {
-
+    std::cout << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
 }
 
 #ifdef __cplusplus
