@@ -20,7 +20,6 @@ Note:
 - This file cannot have Kratos-includes, because it is also included in other codes!
 - This file is intended to be header-only, such that other codes do not have to link against a library
 - Requires c++11 to compile
-
 */
 
 // System includes
@@ -58,7 +57,7 @@ void WaitForFile(const std::string& rFileName)
 {
     if (EchoLevel>0) std::cout << "Waiting for file: \"" << rFileName << "\"" << std::endl;
     while(!FileExists(rFileName)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
         if (EchoLevel>1) std::cout << "Waiting" << std::endl;
     }
     if (EchoLevel>0) std::cout << "Found file: \"" << rFileName << "\"" << std::endl;
@@ -86,6 +85,37 @@ void CheckStream(const T& rStream, const std::string& rFileName)
         err_msg << rFileName << " could not be opened!";
         throw std::runtime_error(err_msg.str());
     }
+}
+
+void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
+{
+    std::ofstream output_file;
+    output_file.open(helpers::GetTempFileName(rFileName));
+    helpers::CheckStream(output_file, rFileName);
+
+    // TODO write size in first line?
+
+    for (int i=0; i<sizeOfArray-1; ++i) {
+        output_file << data[i] << " ";
+    }
+    output_file << data[sizeOfArray-1]; // outside to not have trailing whitespace
+
+    output_file.close();
+    helpers::MakeFileVisible(rFileName);
+}
+
+void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
+{
+    helpers::WaitForFile(rFileName);
+
+    std::ifstream input_file(rFileName);
+    helpers::CheckStream(input_file, rFileName);
+
+    for (int i=0; i<sizeOfArray; ++i) {
+        input_file >> data[i];
+    }
+
+    helpers::RemoveFile(rFileName);
 }
 
 } // namespace helpers
@@ -127,7 +157,18 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     output_file.open(helpers::GetTempFileName(file_name));
     helpers::CheckStream(output_file, file_name);
 
-    // write file
+    // write file header
+    output_file << "# vtk DataFile Version 4.0\n";
+    output_file << "vtk output\n";
+    if (helpers::VtkUseBinary) {
+        output_file << "BINARY\n";
+    } else {
+        output_file << "ASCII\n";
+    }
+    output_file << "DATASET UNSTRUCTURED_GRID\n";
+
+
+
 
     output_file.close();
     helpers::MakeFileVisible(file_name);
@@ -167,14 +208,7 @@ void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name));
 
-    std::ofstream output_file;
-    output_file.open(helpers::GetTempFileName(file_name));
-    helpers::CheckStream(output_file, file_name);
-
-    // write file
-
-    output_file.close();
-    helpers::MakeFileVisible(file_name);
+    helpers::SendArray(file_name, sizeOfArray, dataField);
 }
 
 /***********************************************************************************************
@@ -187,14 +221,7 @@ void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name));
 
-    helpers::WaitForFile(file_name);
-
-    std::ifstream input_file(file_name);
-    helpers::CheckStream(input_file, file_name);
-
-    // read file
-
-    helpers::RemoveFile(file_name);
+    helpers::ReceiveArray(file_name, sizeOfArray, dataField);
 }
 
 /***********************************************************************************************
@@ -207,19 +234,7 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name));
 
-    std::ofstream output_file;
-    output_file.open(helpers::GetTempFileName(file_name));
-    helpers::CheckStream(output_file, file_name);
-
-    // TODO write size in first line?
-
-    for (int i=0; i<sizeOfArray-1; ++i) {
-        output_file << signal[i] << " ";
-    }
-    output_file << signal[sizeOfArray-1]; // outside to not have trailing whitespace
-
-    output_file.close();
-    helpers::MakeFileVisible(file_name);
+    helpers::SendArray(file_name, sizeOfArray, signal);
 }
 
 /***********************************************************************************************
@@ -232,16 +247,7 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name));
 
-    helpers::WaitForFile(file_name);
-
-    std::ifstream input_file(file_name);
-    helpers::CheckStream(input_file, file_name);
-
-    for (int i=0; i<sizeOfArray; ++i) {
-        input_file >> signal[i];
-    }
-
-    helpers::RemoveFile(file_name);
+    helpers::ReceiveArray(file_name, sizeOfArray, signal);
 }
 
 /***********************************************************************************************
