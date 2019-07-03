@@ -191,8 +191,13 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
     output_file << "\n";
 
     // write cells connectivity
+    int cell_list_size = 0;
+    for (int i=0; i<numElems; ++i) {
+        cell_list_size += numNodesPerElem[i] + 1;
+    }
+
     int counter=0;
-    output_file << "CELLS " << numElems << " \n";
+    output_file << "CELLS " << numElems << " " << cell_list_size << "\n";
     for (int i=0; i<numElems; ++i) {
         const int num_nodes_elem = numNodesPerElem[i];
         output_file << num_nodes_elem << " ";
