@@ -793,13 +793,14 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     for(IndexType i = 0; i < num_nodes; ++i){
         const auto it_node = it_node_begin + i;
 
+        const IndexType index_node = it_node->Id();
         const auto& r_normal = it_node->GetValue(NORMAL);
         const double thickness = it_node->GetValue(THICKNESS);
         const array_1d<double, 3> upper_coordinates = it_node->Coordinates() + 0.5 * thickness * r_normal;
         const array_1d<double, 3> lower_coordinates = it_node->Coordinates() - 0.5 * thickness * r_normal;
-        auto p_node1 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + it_node->Id(), upper_coordinates[0], upper_coordinates[1], upper_coordinates[2]);
+        auto p_node1 = mrThisModelPart.CreateNewNode(total_number_of_nodes + index_node, upper_coordinates[0], upper_coordinates[1], upper_coordinates[2]);
         p_node1->Set(NEW_ENTITY, true);
-        auto p_node2 = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + num_nodes + it_node->Id(), lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
+        auto p_node2 = mrThisModelPart.CreateNewNode(total_number_of_nodes + num_nodes + index_node, lower_coordinates[0], lower_coordinates[1], lower_coordinates[2]);
         p_node2->Set(NEW_ENTITY, true);
 
         // Setting the TO_ERASE flag
