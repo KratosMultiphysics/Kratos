@@ -3,8 +3,8 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
 
-from analysis_stage import AnalysisStage
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''

@@ -13,7 +13,7 @@ except ImportError:
 
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 class EmbeddedFormulation(object):
     """Helper class to define embedded-dependent parameters."""

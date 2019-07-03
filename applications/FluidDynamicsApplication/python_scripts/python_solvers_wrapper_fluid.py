@@ -1,17 +1,22 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import importlib
+
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
     if solver_type == "ale_fluid":
-        import navier_stokes_ale_fluid_solver
+        # This include NEEDS to be here or it will break everything.
+        import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_ale_fluid_solver
         return navier_stokes_ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
+        solver_module = "KratosMultiphysics.FluidDynamicsApplication"
         if (solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic"
 
@@ -35,6 +40,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
+        solver_module = "KratosMultiphysics.TrilinosApplication"
         if (solver_type == "Monolithic"):
             solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic"
 
@@ -53,7 +59,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
 
-    solver_module = __import__(solver_module_name)
+    full_module_name = solver_module + '.' + solver_module_name
+    solver_module = importlib.import_module(full_module_name)
     solver = solver_module.CreateSolver(model, solver_settings)
 
     return solver

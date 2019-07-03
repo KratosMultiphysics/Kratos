@@ -5,7 +5,7 @@ import sys
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-import KratosFluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.KratosFluidDynamicsApplication as KratosCFD
 
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)

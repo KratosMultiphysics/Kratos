@@ -6,7 +6,7 @@ from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 # import base class
-from trilinos_strategy_python import SolvingStrategyPython
+from KratosMultiphysics.TrilinosApplication.trilinos_strategy_python import SolvingStrategyPython
 
 
 class SolvingStrategyPeriodic(SolvingStrategyPython):

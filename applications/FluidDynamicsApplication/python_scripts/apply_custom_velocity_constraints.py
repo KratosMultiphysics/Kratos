@@ -1,5 +1,5 @@
 from KratosMultiphysics import *
-from FluidDynamicsApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 
 def Factory(settings, Model):
     if(type(settings) != Parameters):

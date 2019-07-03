@@ -13,8 +13,8 @@ except ImportError:
     have_required_applications = False
     missing_applications_message.append("HDF5Application")
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
