@@ -69,9 +69,7 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
         nodes[node_counter*3]   = r_coords[0];
         nodes[node_counter*3+1] = r_coords[1];
         nodes[node_counter*3+2] = r_coords[2];
-        nodeIDs[node_counter] = r_node.Id();
-
-        node_counter++;
+        nodeIDs[node_counter++] = r_node.Id();
     }
 
     std::vector<int> numNodesPerElem(numElems);
@@ -80,12 +78,10 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
     std::size_t elem_counter = 0;
     for (const auto& r_elem : rModelPart.Elements()) {
         const auto& r_geom = r_elem.GetGeometry();
-        numNodesPerElem[elem_counter] = r_geom.PointsNumber();
+        numNodesPerElem[elem_counter++] = r_geom.PointsNumber();
         for (const auto& r_node : r_geom) {
             elems.push_back(r_node.Id());
         }
-
-        elem_counter++;
     }
 
     EMPIRE_API_sendMesh(const_cast<char*>(rModelPart.Name().c_str()), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
