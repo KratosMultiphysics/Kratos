@@ -90,5 +90,7 @@ The Particle Mechanics Application is OPEN SOURCE. The main code and program str
 ## Contact
 
 * **Antonia Larese** - *Group Leader* - [antonia.larese@unipd.it](mailto:antonia.larese@unipd.it)
-* **Bodhinanda Chandra** - *Developer* - [bodhinanda.chandra@tum.de](mailto:bodhinanda.chandra@tum.de)
+* **Bodhinanda Chandra** - *Developer* - [bchandra@berkeley.edu](mailto:bchandra@berkeley.edu)
 * **Veronika Singer** - *Developer* - [veronika.singer@tum.de](mailto:veronika.singer@tum.de)
+* **Tobias Teschemacher** - *Developer* - [tobias.teschemacher@tum.de ](mailto:tobias.teschemacher@tum.de )
+* **Peter Wilson** - *Developer* - [peter.wilson@uq.edu.au ](mailto:peter.wilson@uq.edu.au )
