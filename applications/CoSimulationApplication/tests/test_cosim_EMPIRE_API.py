@@ -140,6 +140,43 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         self.__TestArrayReceive(fct_to_test, file_name_fct_ptr, array)
 
+    def test_SendRecv_scalar_datafield(self):
+        model = KM.Model()
+        model_part_send = model.CreateModelPart("For_Sending")
+        model_part_recv = model.CreateModelPart("For_Receiving")
+        FillModelPart(model_part_send)
+        InitializeModelPart(model_part_recv)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(model_part_send, KM.PRESSURE)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(model_part_recv, KM.PRESSURE)
+
+        self.__CompareScalarNodalValues(model_part_recv.Nodes, model_part_send.Nodes, KM.PRESSURE)
+
+    def test_SendRecv_vector_datafield(self):
+        model = KM.Model()
+        model_part_send = model.CreateModelPart("For_Sending")
+        model_part_recv = model.CreateModelPart("For_Receiving")
+        FillModelPart(model_part_send)
+        InitializeModelPart(model_part_recv)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(model_part_send, KM.DISPLACEMENT)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(model_part_recv, KM.DISPLACEMENT)
+
+        self.__CompareVectorNodalValues(model_part_recv.Nodes, model_part_send.Nodes, KM.DISPLACEMENT)
+
+    def test_SendRecv_doubleVector_datafield(self):
+        model = KM.Model()
+        model_part_send = model.CreateModelPart("For_Sending")
+        model_part_recv = model.CreateModelPart("For_Receiving")
+        FillModelPart(model_part_send)
+        InitializeModelPart(model_part_recv)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(model_part_send, KM.DISPLACEMENT, KM.ROTATION)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(model_part_recv, KM.DISPLACEMENT, KM.ROTATION)
+
+        self.__CompareVectorNodalValues(model_part_recv.Nodes, model_part_send.Nodes, KM.DISPLACEMENT)
+        self.__CompareVectorNodalValues(model_part_recv.Nodes, model_part_send.Nodes, KM.ROTATION)
+
 
     def __CheckConvergenceSignalFile(self, signal):
         self.assertTrue(os.path.isfile(conv_signal_file_name))
@@ -160,7 +197,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
             content = array_file.read()
             vals = [float(v) for v in content.split(' ')]
             for v, v_exp in zip(vals, array_to_test):
-                self.assertAlmostEqual(v, v_exp)
+                self.assertAlmostEqual(v, v_exp, 10)
 
         os.remove(array_file_name)
 
@@ -181,7 +218,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         # check the received signal
         for v, v_exp in zip(array_to_receive, array_to_test):
-            self.assertAlmostEqual(v, v_exp)
+            self.assertAlmostEqual(v, v_exp, 10)
 
         # make sure that the file was deleted
         self.assertFalse(os.path.isfile(array_file_name))
@@ -193,14 +230,52 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         for node, node_ref in zip(nodes, nodes_ref):
             self.assertEqual(node.Id, node_ref.Id)
 
-            self.assertAlmostEqual(node.X, node_ref.X, 5)
-            self.assertAlmostEqual(node.Y, node_ref.Y, 5)
-            self.assertAlmostEqual(node.Z, node_ref.Z, 5)
+            self.assertAlmostEqual(node.X, node_ref.X)
+            self.assertAlmostEqual(node.Y, node_ref.Y)
+            self.assertAlmostEqual(node.Z, node_ref.Z)
 
-            self.assertAlmostEqual(node.X0, node_ref.X0, 5)
-            self.assertAlmostEqual(node.Y0, node_ref.Y0, 5)
-            self.assertAlmostEqual(node.Z0, node_ref.Z0, 5)
+            self.assertAlmostEqual(node.X0, node_ref.X0)
+            self.assertAlmostEqual(node.Y0, node_ref.Y0)
+            self.assertAlmostEqual(node.Z0, node_ref.Z0)
 
+    def __CompareScalarNodalValues(self, nodes, nodes_ref, var):
+        for node, node_ref in zip(nodes, nodes_ref):
+            self.assertAlmostEqual(node.GetSolutionStepValue(var), node_ref.GetSolutionStepValue(var), 10)
+
+    def __CompareVectorNodalValues(self, nodes, nodes_ref, var):
+        for node, node_ref in zip(nodes, nodes_ref):
+            val = node.GetSolutionStepValue(var)
+            val_ref = node_ref.GetSolutionStepValue(var)
+            for v, v_ref in zip(val, val_ref):
+                self.assertAlmostEqual(v, v_ref, 10)
+
+
+def GetPRESUREValue(node_id):
+    return node_id * 10.458
+
+def GetDISPLACEMENTValue(node_id):
+    return [node_id*0.0001458, node_id+6, node_id-8569]
+
+def GetROTATIONValue(node_id):
+    return [node_id*0.00000005561458, node_id+613.9, node_id-0.0008569]
+
+def InitializeModelPart(model_part):
+    model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+    model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KM.ROTATION)
+
+    for i in range(50):
+        node_id = i+1
+        node = model_part.CreateNewNode(i+1, i*1.1, i*1.2, i*1.3)
+
+def FillModelPart(model_part):
+    InitializeModelPart(model_part)
+
+    for node in model_part.Nodes:
+        node_id = node.Id
+        node.SetSolutionStepValue(KM.PRESSURE, GetPRESUREValue(node_id))
+        node.SetSolutionStepValue(KM.DISPLACEMENT, GetDISPLACEMENTValue(node_id))
+        node.SetSolutionStepValue(KM.ROTATION, GetROTATIONValue(node_id))
 
 def GetSignalFileName(signal_name):
     return "EMPIRE_signal_" + signal_name + ".dat" # this is hardcoded in C++
