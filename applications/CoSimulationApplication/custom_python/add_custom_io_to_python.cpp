@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "custom_python/add_custom_io_to_python.h"
 #include "includes/model_part.h"
+#include "custom_python/add_custom_io_to_python.h"
 
 // IO
 #include "custom_io/co_sim_EMPIRE_API.h"
@@ -266,7 +266,12 @@ void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart, const bool UseConditions
         }
     }
 
-    // TODO deallocate memory!
+    // deallocating memory
+    // TODO what abt the memory that was allocated inside "EMPIRE_API_recvMesh"?
+    delete [] nodes;
+    delete [] nodeIDs;
+    delete [] numNodesPerElem;
+    delete [] elem;
 }
 
 void  AddCustomIOToPython(pybind11::module& m)
