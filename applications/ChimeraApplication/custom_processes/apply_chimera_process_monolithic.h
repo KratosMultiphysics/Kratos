@@ -15,6 +15,7 @@
 
 // System includes
 #include <algorithm>
+#include <numeric>
 #include <unordered_map>
 #include "omp.h"
 
