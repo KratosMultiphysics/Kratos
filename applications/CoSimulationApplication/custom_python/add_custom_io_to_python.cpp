@@ -187,7 +187,7 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart, const bool UseCond
     std::vector<int> nodeIDs(numNodes);
     std::size_t node_counter = 0;
     for (const auto& r_node : rModelPart.Nodes()) {
-        const auto& r_coords = r_node.GetInitialPosition();
+        const auto& r_coords = r_node.GetInitialPosition(); // TODO or current coords?
         nodes[node_counter*3]   = r_coords[0];
         nodes[node_counter*3+1] = r_coords[1];
         nodes[node_counter*3+2] = r_coords[2];
