@@ -119,6 +119,7 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
         # Embedded variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE) # Required for modify_distance_process
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) # Required for modify_distance_process
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
