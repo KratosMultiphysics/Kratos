@@ -1,4 +1,5 @@
 #include "includes/kernel.h"
+#include "containers/model.h"
 #include "structural_mechanics_application.h"
 #include "includes/model_part_io.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
@@ -14,41 +15,41 @@
 namespace CSharpKratosWrapper {
 
 
-	typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrix;
-	typedef boost::numeric::ublas::vector<double> Vector;
-	typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-	typedef boost::numeric::ublas::matrix<double> Matrix;
-	typedef Kratos::UblasSpace<double, Matrix, Vector> LocalSpaceType;
-	typedef Kratos::Reorderer<SpaceType, LocalSpaceType > ReordererType;
-	typedef Kratos::SkylineLUFactorizationSolver<SpaceType, LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
+    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrix;
+    typedef boost::numeric::ublas::vector<double> Vector;
+    typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef boost::numeric::ublas::matrix<double> Matrix;
+    typedef Kratos::UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef Kratos::Reorderer<SpaceType, LocalSpaceType > ReordererType;
+    typedef Kratos::SkylineLUFactorizationSolver<SpaceType, LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
 
-	typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef Kratos::LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-	typedef Kratos::ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
+    typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef Kratos::LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef Kratos::ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
 
-	typedef Kratos::ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
+    typedef Kratos::ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
 
-	typedef Kratos::ResidualCriteria<SparseSpaceType, LocalSpaceType > ResidualCriteriaType;
+    typedef Kratos::ResidualCriteria<SparseSpaceType, LocalSpaceType > ResidualCriteriaType;
 
-	typedef Kratos::ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
-
-
+    typedef Kratos::ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
 
-	class KratosInternals {
 
-	public:
-		void initInternals();
-		void loadMDPA(std::string mdpaPath);
-		void initSolver();
-		void solve();
-		Kratos::ModelPart::Pointer pGetMainModelPart();
-		Kratos::ModelPart::Pointer pGetSkinModelPart();
 
-	private:
-		Kratos::Kernel mKernel;
-		Kratos::KratosStructuralMechanicsApplication mApplication;
-		Kratos::ModelPart::Pointer pmMainModelPart;
-		ResidualBasedNewtonRaphsonStrategyType::Pointer pmStrategy;
-	};
+    class KratosInternals {
+
+    public:
+        void initInternals();
+        void loadMDPA(std::string mdpaPath);
+        void initSolver();
+        void solve();
+        Kratos::ModelPart* pGetMainModelPart();
+        Kratos::ModelPart* pGetSkinModelPart();
+
+    private:
+        Kratos::Kernel mKernel;
+        Kratos::KratosStructuralMechanicsApplication mApplication;
+        Kratos::ModelPart* pmMainModelPart;
+        ResidualBasedNewtonRaphsonStrategyType::Pointer pmStrategy;
+    };
 }
