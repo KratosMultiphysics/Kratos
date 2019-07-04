@@ -46,9 +46,12 @@ namespace Kratos
             if (!KratosComponents<Element>::Has("SmallDisplacementElement3D4N"))
                 return void();
 
+            // Import mdpa
             CreateMDPAFile();
             const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
             CSharpKratosWrapper::CSharpInterface::init(file_name.c_str());
+
+            // Get some API info
             float *x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
             float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
             float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
@@ -56,12 +59,14 @@ namespace Kratos
 
             const float float_epsilon = std::numeric_limits<float>::epsilon();
 
+            // Non-initialized (calculated)
             for (int i = 0; i < n; i++) {
                 KRATOS_CHECK_NEAR(x[i], 0.0, float_epsilon);
                 KRATOS_CHECK_NEAR(y[i], 0.0, float_epsilon);
                 KRATOS_CHECK_NEAR(z[i], 0.0, float_epsilon);
             }
 
+            // None fixed
             CSharpKratosWrapper::CSharpInterface::calculate();
             x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
             y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
@@ -80,16 +85,52 @@ namespace Kratos
             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, 0.0, 1.0e-6, 0.0);
+            // All fixed
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(3, x[3], y[3], z[3]);
 
             CSharpKratosWrapper::CSharpInterface::calculate();
             x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
             y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
             z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
 
-            for (int i = 0; i < n; i++) {
-                std::cout << x[i] << " " << y[i] << " " << z[i] << std::endl;
-            }
+            KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[2], 1.0e-8, float_epsilon);
+            KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+
+            // Partially fixed
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+
+            CSharpKratosWrapper::CSharpInterface::calculate();
+            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
+            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
+            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+
+            KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[2], 2.0e-8, float_epsilon);
+            KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             remove((OSUtilities::GetCurrentWorkingDir() + "/file.mdpa").c_str());
         }
