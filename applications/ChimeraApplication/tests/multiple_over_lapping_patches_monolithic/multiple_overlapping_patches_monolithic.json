@@ -18,7 +18,6 @@
       },
       "echo_level":0,
       "compute_reactions":true,
-      "dynamic_tau":1.0,
       "volume_model_part_name":"Parts_all",
       "skin_parts":[
          "AutomaticInlet2D_inlet",
@@ -155,7 +154,7 @@
                 "time_frequency"   : 0.1
             }
         }
-    ]
+        ]
    },
    "chimera":[
       [

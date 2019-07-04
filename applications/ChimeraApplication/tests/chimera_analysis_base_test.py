@@ -42,8 +42,8 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
                         "output_sub_model_parts"             : false,
                         "folder_name"                        : "test_vtk_output",
                         "save_output_files_in_folder"        : true,
-                        "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE"],
-                        "nodal_data_value_variables"         : ["DISTANCE"],
+                        "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","DISTANCE"],
+                        "nodal_data_value_variables"         : [],
                         "element_flags"                      : ["ACTIVE"],
                         "element_data_value_variables"       : [],
                         "condition_data_value_variables"     : []
