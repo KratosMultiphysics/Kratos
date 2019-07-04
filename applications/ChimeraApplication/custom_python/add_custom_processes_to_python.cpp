@@ -25,8 +25,6 @@
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 
-#include "custom_processes/custom_calculate_signed_distance_process.h"
-
 namespace Kratos
 {
 
@@ -37,10 +35,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
 {
 
     namespace py = pybind11;
-    //typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
-    //typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
-    typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
-    typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
+    typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
+    typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
 
     typedef ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType> ApplyChimeraMonolithic2DType;
     typedef ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType> ApplyChimeraMonolithic3DType;

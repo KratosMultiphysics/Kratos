@@ -47,7 +47,6 @@ ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyChimeraProces
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
     mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
-    mpCalculateDistanceProcess = typename DistanceCalculatorType::Pointer(new DistanceCalculatorType());
 }
 
 template <int TDim, class TDistanceCalculatorType>
@@ -164,15 +163,13 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
         if (has_overlap)
         {
             KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-            mpCalculateDistanceProcess->CalculateSignedDistance(r_patch_model_part, r_domain_boundary_model_part);
-            //DistanceCalculatorType(r_patch_model_part, r_domain_boundary_model_part).Execute();
+            DistanceCalculatorType(r_domain_boundary_model_part, r_patch_model_part).Execute();
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
             mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
         }
 
         mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
-        mpCalculateDistanceProcess->CalculateSignedDistance(r_background_model_part, r_modified_patch_boundary_model_part);
-        //DistanceCalculatorType(r_background_model_part, r_modified_patch_boundary_model_part).Execute();
+        DistanceCalculatorType(r_modified_patch_boundary_model_part, r_background_model_part).Execute(); //TODO: Think about smoothening the distance after this step
         mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
         //for multipatch
@@ -419,11 +416,11 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::AddMasterSlav
     rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 }
 
-typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
-typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
+//typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
+//typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
 
-//typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
-//typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
+typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
+typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
 
 template class ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType>;
 template class ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType>;

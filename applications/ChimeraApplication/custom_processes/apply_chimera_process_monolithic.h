@@ -32,7 +32,6 @@
 
 // Application includes
 #include "chimera_application_variables.h"
-#include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_utilities/hole_cutting_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
@@ -138,7 +137,6 @@ protected:
     ///@{
 
     ChimeraHoleCuttingUtility::Pointer mpHoleCuttingUtility;
-    typename DistanceCalculatorType::Pointer mpCalculateDistanceProcess;
     ModelPart &mrMainModelPart;
     double mOverlapDistance;
     IndexType mNumberOfLevels;

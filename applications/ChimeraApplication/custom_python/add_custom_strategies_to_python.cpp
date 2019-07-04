@@ -31,9 +31,8 @@
 // Builder and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
-// Convergence criteria
+// Linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos
 {
