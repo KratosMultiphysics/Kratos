@@ -16,7 +16,7 @@
          "input_type":"mdpa",
          "input_filename":"../mdpa_for_tests/multiple_overlapping_patches"
       },
-      "echo_level":2,
+      "echo_level":0,
       "compute_reactions":true,
       "dynamic_tau":1.0,
       "oss_switch":0,
@@ -153,20 +153,20 @@
       "auxiliar_process_list":[
 
       ],
-      "_json_output_process" : [
+      "json_check_process" : [
         {
-            "python_module"   : "json_output_process",
+            "python_module"   : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",
-            "process_name"          : "JsonOutputProcess",
+            "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "output_variables" : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
-                "output_file_name" : "multiple_overlapping_patches_monolithic_results.json",
+                "check_variables"  : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
+                "input_file_name"  : "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name"  : "GENERIC_background",
                 "time_frequency"   : 0.1
             }
         }
-        ]
+    ]
    },
    "chimera":[
       [
