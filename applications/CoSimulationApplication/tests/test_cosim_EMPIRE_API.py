@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
 import os, filecmp
+from shutil import copyfile
 
 conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
 
@@ -78,11 +79,18 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
 
     def test_EMPIRE_API_recvMesh(self):
+        mp_name = "For_Receiving"
+        mesh_file_name = GetMeshFileName(mp_name)
         model = KM.Model()
-        model_part = model.CreateModelPart("For_Receiving")
+        model_part = model.CreateModelPart(mp_name)
         model_part_ref = model.CreateModelPart("For_Checking")
 
+        copyfile("reference_files/EMPIRE_mesh_For_Sending.vtk_ref", mesh_file_name)
+
         KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part)
+
+        # make sure that the file was deleted
+        self.assertFalse(os.path.isfile(mesh_file_name))
 
         # reading reference ModelPart (with which the ref-vtk was created)
         severity = KM.Logger.GetDefaultOutput().GetSeverity()
@@ -94,9 +102,9 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(), model_part_ref.NumberOfNodes())
         self.assertEqual(model_part.NumberOfElements(), model_part_ref.NumberOfElements())
 
-        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes())
+        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes)
 
-        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements()):
+        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements):
             self.assertEqual(elem.Id, elem_ref.Id)
             self.__CompareNodes(elem.GetNodes(), elem_ref.GetNodes())
 
@@ -185,13 +193,13 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         for node, node_ref in zip(nodes, nodes_ref):
             self.assertEqual(node.Id, node_ref.Id)
 
-            self.assertAlmostEqual(node.X(), node_ref.X())
-            self.assertAlmostEqual(node.Y(), node_ref.Y())
-            self.assertAlmostEqual(node.Z(), node_ref.Z())
+            self.assertAlmostEqual(node.X, node_ref.X, 5)
+            self.assertAlmostEqual(node.Y, node_ref.Y, 5)
+            self.assertAlmostEqual(node.Z, node_ref.Z, 5)
 
-            self.assertAlmostEqual(node.X0(), node_ref.X0())
-            self.assertAlmostEqual(node.Y0(), node_ref.Y0())
-            self.assertAlmostEqual(node.Z0(), node_ref.Z0())
+            self.assertAlmostEqual(node.X0, node_ref.X0, 5)
+            self.assertAlmostEqual(node.Y0, node_ref.Y0, 5)
+            self.assertAlmostEqual(node.Z0, node_ref.Z0, 5)
 
 
 def GetSignalFileName(signal_name):
@@ -199,6 +207,9 @@ def GetSignalFileName(signal_name):
 
 def GetDataFieldFileName(data_field_name):
     return "EMPIRE_datafield_" + data_field_name + ".dat" # this is hardcoded in C++
+
+def GetMeshFileName(mesh_name):
+    return "EMPIRE_mesh_" + mesh_name + ".vtk" # this is hardcoded in C++
 
 
 if __name__ == '__main__':
