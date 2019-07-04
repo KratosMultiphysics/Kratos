@@ -44,11 +44,12 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
+
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
         #self.__FindWakeElements()
 
-    def _FindWakeElements(self):
+    def __FindWakeElements(self):
 
         if not self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
