@@ -97,14 +97,14 @@ namespace Testing
         MPMEnergyCalculationUtility::CalculateTotalEnergy(r_model_part);
 
         const std::size_t element_id = 1;
-        double & MP_PotentialEnergy = r_model_part.pGetElement(element_id)->GetValue(MP_POTENTIAL_ENERGY);
-        double & MP_KineticEnergy   = r_model_part.pGetElement(element_id)->GetValue(MP_KINETIC_ENERGY);
-        double & MP_StrainEnergy    = r_model_part.pGetElement(element_id)->GetValue(MP_STRAIN_ENERGY);
-        double & MP_TotalEnergy     = r_model_part.pGetElement(element_id)->GetValue(MP_TOTAL_ENERGY);
-        KRATOS_CHECK_NEAR(MP_PotentialEnergy, 7.35 , tolerance);
-        KRATOS_CHECK_NEAR(MP_KineticEnergy  ,10.50 , tolerance);
-        KRATOS_CHECK_NEAR(MP_StrainEnergy   ,11.375, tolerance);
-        KRATOS_CHECK_NEAR(MP_TotalEnergy    ,29.225, tolerance);
+        const double & r_MP_PotentialEnergy = r_model_part.pGetElement(element_id)->GetValue(MP_POTENTIAL_ENERGY);
+        const double & r_MP_KineticEnergy   = r_model_part.pGetElement(element_id)->GetValue(MP_KINETIC_ENERGY);
+        const double & r_MP_StrainEnergy    = r_model_part.pGetElement(element_id)->GetValue(MP_STRAIN_ENERGY);
+        const double & r_MP_TotalEnergy     = r_model_part.pGetElement(element_id)->GetValue(MP_TOTAL_ENERGY);
+        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy, 7.35 , tolerance);
+        KRATOS_CHECK_NEAR(r_MP_KineticEnergy  ,10.50 , tolerance);
+        KRATOS_CHECK_NEAR(r_MP_StrainEnergy   ,11.375, tolerance);
+        KRATOS_CHECK_NEAR(r_MP_TotalEnergy    ,29.225, tolerance);
     }
 
 } // namespace Testing
