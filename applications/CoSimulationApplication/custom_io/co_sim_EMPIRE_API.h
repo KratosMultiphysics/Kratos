@@ -35,9 +35,11 @@ namespace EMPIRE_API_helpers {
 // Some options that can be configured
 static const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
 static const std::string TempFilePreString = ".";
-static const bool VtkUseBinary = false;
-static const bool PrintTiming = false;
-static const int EchoLevel = 0;
+static int VtkUseBinary = 0;
+static int PrintTiming = 0;
+static int EchoLevel = 0;
+
+#define EMPIRE_API_LOG(level) if(EMPIRE_API_helpers::EchoLevel>=level) std::cout << "[EMPIRE_API] "
 
 static bool FileExists(const std::string& rFileName)
 {
@@ -53,25 +55,25 @@ static std::string GetTempFileName(const std::string& rFileName)
 
 static void WaitForFile(const std::string& rFileName)
 {
-    if (EchoLevel>0) std::cout << "Waiting for file: \"" << rFileName << "\"" << std::endl;
+    EMPIRE_API_LOG(2) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
     while(!FileExists(rFileName)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
-        if (EchoLevel>1) std::cout << "    Waiting" << std::endl;
+        EMPIRE_API_LOG(3) << "    Waiting" << std::endl;
     }
-    if (EchoLevel>0) std::cout << "Found file: \"" << rFileName << "\"" << std::endl;
+    EMPIRE_API_LOG(2) << "Found file: \"" << rFileName << "\"" << std::endl;
 }
 
 static void RemoveFile(const std::string& rFileName)
 {
     if (std::remove(rFileName.c_str()) != 0) {
-        std::cout << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
+        EMPIRE_API_LOG(0) << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
     }
 }
 
 static void MakeFileVisible(const std::string& rFinalFileName)
 {
     if (std::rename(GetTempFileName(rFinalFileName).c_str(), rFinalFileName.c_str()) != 0) {
-        std::cout << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
+        EMPIRE_API_LOG(0) << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
     }
 }
 
@@ -88,8 +90,8 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
 static void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
     std::ofstream output_file;
-    output_file.open(EMPIRE_API_helpers::GetTempFileName(rFileName));
-    EMPIRE_API_helpers::CheckStream(output_file, rFileName);
+    output_file.open(GetTempFileName(rFileName));
+    CheckStream(output_file, rFileName);
 
     // TODO write size in first line?
 
@@ -99,21 +101,21 @@ static void SendArray(const std::string& rFileName, int sizeOfArray, double *dat
     output_file << data[sizeOfArray-1]; // outside to not have trailing whitespace
 
     output_file.close();
-    EMPIRE_API_helpers::MakeFileVisible(rFileName);
+    MakeFileVisible(rFileName);
 }
 
 static void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
-    EMPIRE_API_helpers::WaitForFile(rFileName);
+    WaitForFile(rFileName);
 
     std::ifstream input_file(rFileName);
-    EMPIRE_API_helpers::CheckStream(input_file, rFileName);
+    CheckStream(input_file, rFileName);
 
     for (int i=0; i<sizeOfArray; ++i) {
         input_file >> data[i];
     }
 
-    EMPIRE_API_helpers::RemoveFile(rFileName);
+    RemoveFile(rFileName);
 }
 
 static int GetVtkCellType(const int NumberOfNodes)
@@ -133,6 +135,18 @@ static int GetVtkCellType(const int NumberOfNodes)
     }
 }
 
+static bool StringEndsWith(const std::string& rString, const std::string& rSuffix)
+{
+    return (rString.size() >= rSuffix.size() && rString.compare(rString.size() - rSuffix.size(), rSuffix.size(), rSuffix) == 0);
+}
+
+static void ReadNumberAfterKeyword(const std::string& rKeyWord, const std::string& rCurrentLine, int& rNumber)
+{
+    std::string current_line_substr = rCurrentLine.substr(rCurrentLine.find(rKeyWord) + rKeyWord.length());
+    std::istringstream line_stream(current_line_substr);
+    line_stream >> rNumber;
+}
+
 } // namespace EMPIRE_API_helpers
 
 /***********************************************************************************************
@@ -140,7 +154,40 @@ static int GetVtkCellType(const int NumberOfNodes)
  ***********/
 static void EMPIRE_API_Connect(char* inputFileName)
 {
-    std::cout << "Called \"EMPIRE_API_Connect\" which is no longer necessary and can be removed" << std::endl;
+    const std::string file_name(inputFileName);
+
+    if (EMPIRE_API_helpers::StringEndsWith(file_name, ".xml")) {
+        EMPIRE_API_LOG(0) << "Called \"EMPIRE_API_Connect\" with an xml-file, which is no longer supported.\nPlease pass a config file instead" << std::endl;
+    } else {
+        if (EMPIRE_API_helpers::FileExists(file_name)) {
+            // reading config-file
+            std::ifstream input_file(file_name);
+            EMPIRE_API_helpers::CheckStream(input_file, file_name);
+
+            // reading file
+            std::string current_line;
+
+            while (std::getline(input_file, current_line)) {
+                if (current_line.find("EchoLevel") != std::string::npos) {
+                    EMPIRE_API_helpers::ReadNumberAfterKeyword("EchoLevel", current_line, EMPIRE_API_helpers::EchoLevel);
+                }
+                if (current_line.find("PrintTiming") != std::string::npos) {
+                    EMPIRE_API_helpers::ReadNumberAfterKeyword("PrintTiming", current_line, EMPIRE_API_helpers::PrintTiming);
+                }
+                // not yet implemented
+                // if (current_line.find("VtkUseBinary") != std::string::npos) {
+                //     EMPIRE_API_helpers::ReadNumberAfterKeyword("VtkUseBinary", current_line, EMPIRE_API_helpers::VtkUseBinary);
+                // }
+            }
+        } else {
+            EMPIRE_API_LOG(0) << "Config-file \"" << file_name << "\" not found!" << std::endl;
+        }
+    }
+
+    EMPIRE_API_LOG(0) << "Configuration:\n"
+                      << "    EchoLevel: " << EMPIRE_API_helpers::EchoLevel << "\n"
+                      << "    PrintTiming: " << EMPIRE_API_helpers::PrintTiming << "\n"
+                      << "    VtkUseBinary: " << EMPIRE_API_helpers::VtkUseBinary << std::endl;
 }
 
 /***********************************************************************************************
@@ -150,8 +197,8 @@ static void EMPIRE_API_Connect(char* inputFileName)
  ***********/
 static char *EMPIRE_API_getUserDefinedText(char *elementName)
 {
-    std::cout << "Called \"EMPIRE_API_getUserDefinedText\" with \"" << elementName << "\" which is no longer working and can be removed" << std::endl;
-    return ""; // TODO this gives a warning, find better solution
+    EMPIRE_API_LOG(0) << "Called \"EMPIRE_API_getUserDefinedText\" with \"" << elementName << "\" which is no longer supported and can be removed" << std::endl;
+    return const_cast<char*>("");
 }
 
 /***********************************************************************************************
@@ -251,9 +298,7 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
             if (nodes_read) throw std::runtime_error("The nodes were read already!");
             nodes_read = true;
 
-            current_line = current_line.substr(current_line.find("POINTS") + 6); // removing "POINTS"
-            std::istringstream line_stream(current_line);
-            line_stream >> *numNodes;
+            EMPIRE_API_helpers::ReadNumberAfterKeyword("POINTS", current_line, *numNodes);
 
             // allocating memory for nodes
             // note that this has to be deleted by the client!
@@ -404,7 +449,7 @@ static void EMPIRE_API_sendConvergenceSignal(int signal)
  ***********/
 static void EMPIRE_API_Disconnect()
 {
-    std::cout << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
+    EMPIRE_API_LOG(0) << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
 }
 
 #endif /* KRATOS_CO_SIM_EMPIRE_API_H_INCLUDED */
