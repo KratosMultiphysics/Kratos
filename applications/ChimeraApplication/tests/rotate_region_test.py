@@ -10,7 +10,7 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
         pass
 
     def test_RotateRegionProcess(self):
-        current_model = KratosMultiphysics.Model()        
+        current_model = KratosMultiphysics.Model()
         model_part_name = "Main"
         model_part = current_model.CreateModelPart(model_part_name)
         self.__MakeModelPart(model_part)
