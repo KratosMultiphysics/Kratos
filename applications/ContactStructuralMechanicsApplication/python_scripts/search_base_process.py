@@ -642,8 +642,8 @@ class SearchBaseProcess(KM.Process):
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
-
-                if self.main_model_part.Is(KM.MODIFIED):
+                
+                if self.main_model_part.Is(KM.MODIFIED) or self.computing_model_part.Is(KM.MODIFIED):
                     KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
                     partial_model_part.RemoveConditions(KM.TO_ERASE)
 

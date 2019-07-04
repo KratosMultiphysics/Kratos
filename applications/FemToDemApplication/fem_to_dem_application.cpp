@@ -23,11 +23,30 @@
 namespace Kratos {
 
 KratosFemToDemApplication::KratosFemToDemApplication(): KratosApplication("FemToDemApplication"),
-mFemDem2DElement(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mFemDem3DElement(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mRomFemDem3DElement(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mFemDem3DLargeDisplacementElement(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mFemDem3DHexahedronElement(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8))))
+mSmallStrainModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mLargeDisplacementModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mLargeDisplacementModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mLargeDisplacementRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mLargeDisplacementRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mLargeDisplacementSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mLargeDisplacementSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mLargeDisplacementDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mLargeDisplacementDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mLargeDisplacementVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mLargeDisplacementVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mLargeDisplacementTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mLargeDisplacementTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {}
 
 void KratosFemToDemApplication::Register() 
@@ -110,11 +129,31 @@ void KratosFemToDemApplication::Register()
 	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD);
 	
 	//Register element
-	KRATOS_REGISTER_ELEMENT("FemDem2DElement", mFemDem2DElement)
-	KRATOS_REGISTER_ELEMENT("FemDem3DElement", mFemDem3DElement)
-	KRATOS_REGISTER_ELEMENT("RomFemDem3DElement", mRomFemDem3DElement)
-	KRATOS_REGISTER_ELEMENT("FemDem3DLargeDisplacementElement", mFemDem3DLargeDisplacementElement)
-	KRATOS_REGISTER_ELEMENT("FemDem3DHexahedronElement", mFemDem3DHexahedronElement)
+	KRATOS_REGISTER_ELEMENT("SmallStrainModifiedMohrCoulombFemDemElement2D", mSmallStrainModifiedMohrCoulombFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainModifiedMohrCoulombFemDemElement3D", mSmallStrainModifiedMohrCoulombFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainRankineFemDemElement2D", mSmallStrainRankineFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainRankineFemDemElement3D", mSmallStrainRankineFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainSimoJuFemDemElement2D", mSmallStrainSimoJuFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainSimoJuFemDemElement3D", mSmallStrainSimoJuFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainDruckerPragerFemDemElement2D", mSmallStrainDruckerPragerFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainDruckerPragerFemDemElement3D", mSmallStrainDruckerPragerFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainVonMisesFemDemElement2D", mSmallStrainVonMisesFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainVonMisesFemDemElement3D", mSmallStrainVonMisesFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainTrescaFemDemElement2D", mSmallStrainTrescaFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("SmallStrainTrescaFemDemElement3D", mSmallStrainTrescaFemDemElement3D)
+
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementModifiedMohrCoulombFemDemElement2D", mLargeDisplacementModifiedMohrCoulombFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementModifiedMohrCoulombFemDemElement3D", mLargeDisplacementModifiedMohrCoulombFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementRankineFemDemElement2D", mLargeDisplacementRankineFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementRankineFemDemElement3D", mLargeDisplacementRankineFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementSimoJuFemDemElement2D", mLargeDisplacementSimoJuFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementSimoJuFemDemElement3D", mLargeDisplacementSimoJuFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementDruckerPragerFemDemElement2D", mLargeDisplacementDruckerPragerFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementDruckerPragerFemDemElement3D", mLargeDisplacementDruckerPragerFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementVonMisesFemDemElement2D", mLargeDisplacementVonMisesFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementVonMisesFemDemElement3D", mLargeDisplacementVonMisesFemDemElement3D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementTrescaFemDemElement2D", mLargeDisplacementTrescaFemDemElement2D)
+	KRATOS_REGISTER_ELEMENT("LargeDisplacementTrescaFemDemElement3D", mLargeDisplacementTrescaFemDemElement3D)
 	
 	//Register Constitutive Laws
 	Serializer::Register("ZarateLaw", mZarateLaw);

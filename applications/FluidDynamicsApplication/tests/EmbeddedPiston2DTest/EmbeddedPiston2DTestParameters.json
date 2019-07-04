@@ -31,7 +31,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","MESH_VELOCITY"],
-                        "gauss_point_results" : ["EMBEDDED_VELOCITY"]
+                        "nodal_nonhistorical_results": ["EMBEDDED_VELOCITY"]
                     },
                     "point_data_configuration"  : []
                 }
