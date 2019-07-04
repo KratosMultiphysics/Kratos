@@ -153,15 +153,15 @@
       "auxiliar_process_list":[
 
       ],
-      "json_check_process" : [
+      "_json_output_process" : [
         {
-            "python_module"   : "from_json_check_result_process",
+            "python_module"   : "json_output_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
+            "process_name"          : "JsonOutputProcess",
             "Parameters"            : {
-                "check_variables"  : ["VELOCITY_X","VELOCITY_X","PRESSURE"],
-                "input_file_name"  : "multiple_overlapping_patches_monolithic_results.json",
+                "output_variables" : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
+                "output_file_name" : "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name"  : "GENERIC_background",
                 "time_frequency"   : 0.1
             }
@@ -198,7 +198,7 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables" : ["VELOCITY_X","VELOCITY_X","PRESSURE"],
+            "output_variables" : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
             "output_file_name" : "multiple_overlapping_patches_monolithic_results.json",
             "model_part_name"  : "GENERIC_background",
             "time_frequency"   : 0.1
@@ -212,7 +212,7 @@
             "help"                  : "",
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "check_variables"  : ["VELOCITY_X","VELOCITY_X","PRESSURE"],
+                "check_variables"  : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
                 "input_file_name"  : "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name"  : "GENERIC_background",
                 "time_frequency"   : 0.1
