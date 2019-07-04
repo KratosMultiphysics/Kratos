@@ -102,6 +102,8 @@ static void SendArray(const std::string& rFileName, int sizeOfArray, double *dat
     output_file.open(GetTempFileName(rFileName));
     CheckStream(output_file, rFileName);
 
+    output_file << std::scientific << std::setprecision(12); // TODO maybe this should be configurable
+
     // TODO write size in first line?
 
     for (int i=0; i<sizeOfArray-1; ++i) {
@@ -239,6 +241,8 @@ static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *
     std::ofstream output_file;
     output_file.open(EMPIRE_API_helpers::GetTempFileName(file_name));
     EMPIRE_API_helpers::CheckStream(output_file, file_name);
+
+    output_file << std::scientific << std::setprecision(7); // TODO maybe this should be configurable
 
     // write file header
     output_file << "# vtk DataFile Version 4.0\n";
