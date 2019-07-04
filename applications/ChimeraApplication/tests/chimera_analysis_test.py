@@ -23,7 +23,7 @@ class FlowOverCylinderMonolithic(ChimeraAnalysisBaseTest):
         settings_file_name = "flow_over_cylinder_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self.DeleteResults()
+
         end = time.clock()
         print("Time taken for monolithic chimera simulation",end-start)
 
@@ -34,7 +34,7 @@ class FlowOverCylinderFractionalStep(ChimeraAnalysisBaseTest):
         settings_file_name = "flow_over_cylinder_fractionalstep.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self.DeleteResults()
+
         end = time.clock()
         print("Time taken for fractional step chimera simulation",end-start)
 
@@ -45,7 +45,7 @@ class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
         settings_file_name = "multiple_overlapping_patches_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self.DeleteResults()
+
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using Monolithic solver ",end-start)
 
@@ -56,7 +56,7 @@ class FractionalStepMultiPatch(ChimeraAnalysisBaseTest):
         settings_file_name = "multiple_overlapping_patches_fractionalstep.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self.DeleteResults()
+
         end = time.clock()
         print("Time taken for Multiple overlapping chimera simulation using fractional step solver ",end-start)
 
@@ -67,7 +67,7 @@ class FlowOverCrossMonolithic(ChimeraAnalysisBaseTest):
         settings_file_name = "flow_over_cross_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             model_part = self._run_test(settings_file_name)
-            self.DeleteResults()
+
         end = time.clock()
         print("Time taken for flow over cross using monolithic solver ",end-start)
 
@@ -78,6 +78,6 @@ class FlowOverCrossFractionalStep(ChimeraAnalysisBaseTest):
         settings_file_name = "flow_over_cross_fractional_step.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(settings_file_name)
-            self.DeleteResults()
+
         end = time.clock()
         print("Time taken for flow over cross using fractionalstep solver ",end-start)
