@@ -33,25 +33,25 @@ Note:
 namespace EMPIRE_API_helpers {
 
 // Some options that can be configured
-const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
-const std::string TempFilePreString = ".";
-const bool VtkUseBinary = false;
-const bool PrintTiming = false;
-const int EchoLevel = 0;
+static const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
+static const std::string TempFilePreString = ".";
+static const bool VtkUseBinary = false;
+static const bool PrintTiming = false;
+static const int EchoLevel = 0;
 
-bool FileExists(const std::string& rFileName)
+static bool FileExists(const std::string& rFileName)
 {
     std::ifstream infile(rFileName);
     return infile.good(); // no need to close manually
 }
 
-std::string GetTempFileName(const std::string& rFileName)
+static std::string GetTempFileName(const std::string& rFileName)
 {
     // wrapped in a function such that it could be changed easily (e.g. if files are in a folder)
     return TempFilePreString + rFileName;
 }
 
-void WaitForFile(const std::string& rFileName)
+static void WaitForFile(const std::string& rFileName)
 {
     if (EchoLevel>0) std::cout << "Waiting for file: \"" << rFileName << "\"" << std::endl;
     while(!FileExists(rFileName)) {
@@ -61,14 +61,14 @@ void WaitForFile(const std::string& rFileName)
     if (EchoLevel>0) std::cout << "Found file: \"" << rFileName << "\"" << std::endl;
 }
 
-void RemoveFile(const std::string& rFileName)
+static void RemoveFile(const std::string& rFileName)
 {
     if (std::remove(rFileName.c_str()) != 0) {
         std::cout << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
     }
 }
 
-void MakeFileVisible(const std::string& rFinalFileName)
+static void MakeFileVisible(const std::string& rFinalFileName)
 {
     if (std::rename(GetTempFileName(rFinalFileName).c_str(), rFinalFileName.c_str()) != 0) {
         std::cout << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
@@ -76,7 +76,7 @@ void MakeFileVisible(const std::string& rFinalFileName)
 }
 
 template <typename T>
-void CheckStream(const T& rStream, const std::string& rFileName)
+static void CheckStream(const T& rStream, const std::string& rFileName)
 {
     if (!rStream.is_open()) {
         std::stringstream err_msg;
@@ -85,7 +85,7 @@ void CheckStream(const T& rStream, const std::string& rFileName)
     }
 }
 
-void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
+static void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
     std::ofstream output_file;
     output_file.open(EMPIRE_API_helpers::GetTempFileName(rFileName));
@@ -102,7 +102,7 @@ void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
     EMPIRE_API_helpers::MakeFileVisible(rFileName);
 }
 
-void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
+static void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
     EMPIRE_API_helpers::WaitForFile(rFileName);
 
@@ -116,7 +116,7 @@ void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
     EMPIRE_API_helpers::RemoveFile(rFileName);
 }
 
-int GetVtkCellType(const int NumberOfNodes)
+static int GetVtkCellType(const int NumberOfNodes)
 {
     if (NumberOfNodes == 1) {
         return 1;
@@ -138,7 +138,7 @@ int GetVtkCellType(const int NumberOfNodes)
 /***********************************************************************************************
  * \brief Establishes the necessary connection with the Emperor
  ***********/
-void EMPIRE_API_Connect(char* inputFileName)
+static void EMPIRE_API_Connect(char* inputFileName)
 {
     std::cout << "Called \"EMPIRE_API_Connect\" which is no longer necessary and can be removed" << std::endl;
 }
@@ -148,7 +148,7 @@ void EMPIRE_API_Connect(char* inputFileName)
  * \param[in] elementName name of the XML element
  * \return user defined text
  ***********/
-char *EMPIRE_API_getUserDefinedText(char *elementName)
+static char *EMPIRE_API_getUserDefinedText(char *elementName)
 {
     std::cout << "Called \"EMPIRE_API_getUserDefinedText\" with \"" << elementName << "\" which is no longer working and can be removed" << std::endl;
     return ""; // TODO this gives a warning, find better solution
@@ -164,7 +164,7 @@ char *EMPIRE_API_getUserDefinedText(char *elementName)
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
+static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
 {
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
@@ -232,7 +232,7 @@ void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, 
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
+static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
 {
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
@@ -306,7 +306,7 @@ void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **node
  * \param[in] sizeOfArray size of the array (data field)
  * \param[in] dataField the data field to be sent
  ***********/
-void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -319,7 +319,7 @@ void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
  * \param[in] sizeOfArray size of the array (data field)
  * \param[out] dataField the data field to be received
  ***********/
-void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -332,7 +332,7 @@ void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -345,7 +345,7 @@ void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -356,7 +356,7 @@ void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
  * \brief Receive the convergence signal of an loop
  * \return 1 means convergence, 0 means non-convergence
  ***********/
-int EMPIRE_API_recvConvergenceSignal()
+static int EMPIRE_API_recvConvergenceSignal()
 {
     EMPIRE_API_helpers::WaitForFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
 
@@ -381,7 +381,7 @@ int EMPIRE_API_recvConvergenceSignal()
  * \brief Send the convergence signal of an loop
  * \param[in] signal 1 means convergence, 0 means non-convergence
  ***********/
-void EMPIRE_API_sendConvergenceSignal(int signal)
+static void EMPIRE_API_sendConvergenceSignal(int signal)
 {
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;
@@ -402,7 +402,7 @@ void EMPIRE_API_sendConvergenceSignal(int signal)
 /***********************************************************************************************
  * \brief Performs disconnection and finalization operations to the Emperor
  ***********/
-void EMPIRE_API_Disconnect()
+static void EMPIRE_API_Disconnect()
 {
     std::cout << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
 }
