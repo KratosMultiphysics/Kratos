@@ -1118,6 +1118,8 @@ class MultilevelMonteCarlo(object):
                         self.convergence = True
                 elif (self.settings["convergence_criteria"].GetString() == "relative_total_error_stopping_rule"):
                     factor =  self.settings["tolerance"].GetDouble() * self.mean_mlmc_QoI + self.settings["tolerance_absolute"].GetDouble()
+                    if (self.total_error < factor):
+                        self.convergence = True
                 # TODO: this is a workaround of a compss bug
                 # delete models and parameters no more used
                 for elem in self.objects_to_delete[batch]:
