@@ -32,15 +32,15 @@ void MPMParticleBaseCondition::EquationIdVector(
 
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    if (rResult.size() != dim * number_of_nodes)
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    if (rResult.size() != dimension * number_of_nodes)
     {
-        rResult.resize(dim*number_of_nodes,false);
+        rResult.resize(dimension*number_of_nodes,false);
     }
 
     const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
-    if(dim == 2)
+    if(dimension == 2)
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
@@ -73,11 +73,11 @@ void MPMParticleBaseCondition::GetDofList(
 
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dim =  r_geometry.WorkingSpaceDimension();
+    const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(dim * number_of_nodes);
+    rElementalDofList.reserve(dimension * number_of_nodes);
 
-    if(dim == 2)
+    if(dimension == 2)
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
@@ -107,19 +107,19 @@ void MPMParticleBaseCondition::GetValuesVector(
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int MatSize = number_of_nodes * dim;
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int matrix_size = number_of_nodes * dimension;
 
-    if (rValues.size() != MatSize)
+    if (rValues.size() != matrix_size)
     {
-        rValues.resize(MatSize, false);
+        rValues.resize(matrix_size, false);
     }
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        unsigned int index = i * dim;
-        for(unsigned int k = 0; k < dim; ++k)
+        unsigned int index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Displacement[k];
         }
@@ -136,19 +136,19 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int MatSize = number_of_nodes * dim;
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int matrix_size = number_of_nodes * dimension;
 
-    if (rValues.size() != MatSize)
+    if (rValues.size() != matrix_size)
     {
-        rValues.resize(MatSize, false);
+        rValues.resize(matrix_size, false);
     }
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-        const unsigned int index = i * dim;
-        for(unsigned int k = 0; k<dim; ++k)
+        const unsigned int index = i * dimension;
+        for(unsigned int k = 0; k<dimension; ++k)
         {
             rValues[index + k] = Velocity[k];
         }
@@ -165,19 +165,19 @@ void MPMParticleBaseCondition::GetSecondDerivativesVector(
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int MatSize = number_of_nodes * dim;
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int matrix_size = number_of_nodes * dimension;
 
-    if (rValues.size() != MatSize)
+    if (rValues.size() != matrix_size)
     {
-        rValues.resize(MatSize, false);
+        rValues.resize(matrix_size, false);
     }
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        const unsigned int index = i * dim;
-        for(unsigned int k = 0; k < dim; ++k)
+        const unsigned int index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Acceleration[k];
         }

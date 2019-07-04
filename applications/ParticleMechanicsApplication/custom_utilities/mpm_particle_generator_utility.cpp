@@ -221,11 +221,11 @@ namespace MPMParticleGeneratorUtility
                         xg.clear();
 
                         // Loop over the nodes of the grid element
-                        for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++)
+                        for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++)
                         {
                             for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                             {
-                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dim];
+                                xg[dimension] = xg[dimension] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dimension];
                             }
                         }
 
@@ -569,9 +569,9 @@ namespace MPMParticleGeneratorUtility
                             mpc_xg.clear();
 
                             // Loop over the nodes of the grid condition
-                            for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++){
+                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
                                 for ( unsigned int j = 0; j < r_geometry.size(); j ++){
-                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dim];
+                                    mpc_xg[dimension] = mpc_xg[dimension] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dimension];
                                 }
                             }
 
@@ -628,8 +628,8 @@ namespace MPMParticleGeneratorUtility
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
-                            for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++){
-                                mpc_xg[dim] = r_geometry[j].Coordinates()[dim];
+                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
+                                mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
                             }
 
                             // Setting particle condition's initial condition

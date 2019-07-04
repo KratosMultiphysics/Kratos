@@ -68,7 +68,7 @@ The following features are currently available and subject to development within
         * Modified Cam-Clay - finite strain, plane strain, axis-symmetric, and 3D
 
 - Strategies and schemes:
-    * Implicit - Newmark prediction and correction scheme for static, quasi-static, and dynamic problems
+    * Implicit - Newmark/Bossak prediction and correction scheme for static, quasi-static, and dynamic problems
 
 - Other features:
     * Staggered coupling with Finite Element Method - weak and strong coupling of nonconforming discretization

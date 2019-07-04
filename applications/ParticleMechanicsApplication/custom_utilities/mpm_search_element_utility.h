@@ -43,7 +43,7 @@ namespace MPMSearchElementUtility
      * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
      *
      */
-    template<std::size_t TDim>
+    template<std::size_t TDimension>
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
@@ -65,10 +65,10 @@ namespace MPMSearchElementUtility
 
         #pragma omp parallel
         {
-            BinBasedFastPointLocator<TDim> SearchStructure(rBackgroundGridModelPart);
+            BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
+            typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
             #pragma omp for
@@ -77,7 +77,7 @@ namespace MPMSearchElementUtility
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
                 const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
 
@@ -110,7 +110,7 @@ namespace MPMSearchElementUtility
 
                 if (condition_itr->Has(MPC_COORD)){
                     const array_1d<double,3>& xg = condition_itr->GetValue(MPC_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                    typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
