@@ -33,7 +33,7 @@ namespace Kratos
             std::filebuf buffer;
             buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.mdpa",std::ios::out);
             std::ostream os(&buffer);
-            os << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  1\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0                               //node number, coord x, cord y, coord z\n        2        1.0        0.0         0.0                               //node number, coord x, cord y, coord z\n        3        1.0        1.0         0.0                               //node number, coord x, cord y, coord z\n        4        0.0        1.0         1.0                               //node number, coord x, cord y, coord z\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 1 1 2 3 4\nEnd Elements\n\nBegin Conditions SurfaceLoadCondition3D3N\n    1 1 1 2 3\n    2 1 3 4 1\nEnd Conditions\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n        Begin SubModelPartConditions\n            1\n        End SubModelPartConditions\n    End SubModelPart\nEnd SubModelPart";
+            os << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  0\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0                               //node number, coord x, cord y, coord z\n        2        1.0        0.0         0.0                               //node number, coord x, cord y, coord z\n        3        1.0        1.0         0.0                               //node number, coord x, cord y, coord z\n        4        0.0        1.0         1.0                               //node number, coord x, cord y, coord z\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 0 1 2 3 4\nEnd Elements\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n    End SubModelPart\nEnd SubModelPart";
             buffer.close();
         }
 
@@ -53,6 +53,7 @@ namespace Kratos
             float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
             float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
             int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
+
             for (int i = 0; i < n; i++) {
                 std::cout << x[i] << " " << y[i] << " " << z[i] << std::endl;
             }
