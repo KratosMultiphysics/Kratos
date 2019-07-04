@@ -239,11 +239,11 @@ class AnalyzerWithDependencies(Analyzer):
                 combined_gradient = gradient
             else:
                 # Perform nodal sum
-                for key_a, vector_a in gradient.items():
-                    vector_b = combined_gradient[key_a]
-                    vector_b[0] += vector_a[0]
-                    vector_b[1] += vector_a[1]
-                    vector_b[2] += vector_a[2]
+                for key_a, vector_a in combined_gradient.items():
+                    vector_b = gradient[key_a]
+                    vector_a[0] += vector_b[0]
+                    vector_a[1] += vector_b[1]
+                    vector_a[2] += vector_b[2]
 
         return combined_gradient
 
