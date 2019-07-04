@@ -54,6 +54,10 @@ def AssembleTestSuites():
 
     ### BEGIN VALIDATION SUITE ###
 
+    # For very long tests that should not be in nighly and you can use to validate
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightlySuite)
+
     ### END VALIDATION ###
 
     # Create a test suit that contains all the tests:
