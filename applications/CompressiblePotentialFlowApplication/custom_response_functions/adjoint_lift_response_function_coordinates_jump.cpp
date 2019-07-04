@@ -29,6 +29,12 @@ namespace Kratos
         const int domain_size = r_current_process_info[DOMAIN_SIZE];
         KRATOS_ERROR_IF(domain_size != 2) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
+        // Reading the reference chord from the parameters
+        mReferenceChord = ResponseSettings["reference_chord"].GetDouble();
+        const double eps = std::numeric_limits<double>::epsilon();
+        KRATOS_ERROR_IF(mReferenceChord < eps)
+            << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
+
         // Get pointer to element that contains the traced node
         this->GetNeighboringElementPointer();
     }
@@ -41,10 +47,6 @@ namespace Kratos
 
         Element tracedElem = rModelPart.GetElement(mpNeighboringElement->Id());
         const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
-        const double chord = rModelPart.GetProcessInfo().GetValue(REFERENCE_CHORD);
-        const double eps = std::numeric_limits<double>::epsilon();
-        KRATOS_ERROR_IF(chord < eps)
-            << "The reference chord should be larger than 0." << chord << std::endl;
         double free_stream_velocity_norm = norm_2(v_inf);
         unsigned int NumNodes = tracedElem.GetGeometry().size();
         double lift_coefficient=0.0;
@@ -56,7 +58,7 @@ namespace Kratos
                 double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
                 double potential_jump = std::abs(potential - aux_potential);
 
-                lift_coefficient = 2.0 * potential_jump / (free_stream_velocity_norm * chord);
+                lift_coefficient = 2.0 * potential_jump / (free_stream_velocity_norm * mReferenceChord);
             }
         }
 
@@ -78,12 +80,8 @@ namespace Kratos
         if( rAdjointElement.Id() == mpNeighboringElement->Id() )
         {
             const array_1d<double, 3> v_inf = rProcessInfo.GetValue(FREE_STREAM_VELOCITY);
-            const double chord = rProcessInfo.GetValue(REFERENCE_CHORD);
-            const double eps = std::numeric_limits<double>::epsilon();
-            KRATOS_ERROR_IF(chord < eps)
-                << "The reference chord should be larger than 0." << chord << std::endl;
             double v_norm = norm_2(v_inf);
-            double derivative = 2.0 / (v_norm * chord);
+            double derivative = 2.0 / (v_norm * mReferenceChord);
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();
             for(IndexType i = 0; i < NumNodes; ++i)
             {
