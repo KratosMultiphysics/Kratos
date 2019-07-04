@@ -13,7 +13,7 @@ namespace CSharpKratosWrapper {
 
     public:
         static void init(const char* mdpaPath);
-        static void updateNodePos(int nodeId, float x, float y, float z);
+        static void updateNodePos(const int nodeId, const float x, const float y, const float z);
         static void calculate();
         static float* getXCoordinates();
         static float* getYCoordinates();

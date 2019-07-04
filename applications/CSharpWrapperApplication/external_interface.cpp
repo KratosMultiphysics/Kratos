@@ -53,16 +53,18 @@ void CSharpInterface::saveNodes(MeshConverter& meshConverter) {
 
 //Save recalculated surface nodes positions
 void CSharpInterface::retrieveNodesPos() {
-    ModelPart& skin_part = mKratosInternals.GetSkinModelPart();
+    ModelPart& r_skin_part = mKratosInternals.GetSkinModelPart();
+    auto& r_nodes_array = r_skin_part.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     #pragma omp parallel for
-    for (int i = 0; i<static_cast<int>(skin_part.Nodes().size()); ++i)
-    {
-        auto currentNode = skin_part.NodesBegin() + i;
-        int currentNodeUnityId = idTranslator.getUnityId(currentNode->Id());
-        pmXCoordinates[currentNodeUnityId] = currentNode->X();
-        pmYCoordinates[currentNodeUnityId] = currentNode->Y();
-        pmZCoordinates[currentNodeUnityId] = currentNode->Z();
+    for (int i = 0; i<static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin+ i;
+        const Kratos::array_1d<double, 3>& r_coordinates = it_node->Coordinates();
+        int current_node_id = idTranslator.getUnityId(it_node->Id());
+        pmXCoordinates[current_node_id] = r_coordinates[0];
+        pmYCoordinates[current_node_id] = r_coordinates[1];
+        pmZCoordinates[current_node_id] = r_coordinates[2];
     }
 }
 
@@ -89,17 +91,33 @@ void CSharpInterface::init(const char* mdpaPath) {
 }
 
 //Update DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
-void CSharpInterface::updateNodePos(int nodeId, float x, float y, float z) {
-    NodeType::Pointer node =  mKratosInternals.GetMainModelPart().pGetNode(idTranslator.getKratosId(nodeId));
-    node->Fix(Kratos::DISPLACEMENT_X);
-    node->Fix(Kratos::DISPLACEMENT_Y);
-    node->Fix(Kratos::DISPLACEMENT_Z);
-    Kratos::array_1d<double, 3>& displacement = node->FastGetSolutionStepValue(Kratos::DISPLACEMENT);
+void CSharpInterface::updateNodePos(const int nodeId, const float x, const float y, const float z) {
 
-    displacement[0] = x - node->X0();
-    displacement[1] = y - node->Y0();
-    displacement[2] = z - node->Z0();
-    mFixedNodes.push_back(node);
+    // Get node
+    NodeType::Pointer p_node =  mKratosInternals.GetMainModelPart().pGetNode(idTranslator.getKratosId(nodeId));
+
+    // Fix nodes
+    p_node->Fix(Kratos::DISPLACEMENT_X);
+    p_node->Fix(Kratos::DISPLACEMENT_Y);
+    p_node->Fix(Kratos::DISPLACEMENT_Z);
+
+    // Arrays
+    Kratos::array_1d<double, 3>& r_displacement = p_node->FastGetSolutionStepValue(Kratos::DISPLACEMENT);
+    const Kratos::array_1d<double, 3>& r_initial_coordinates = p_node->GetInitialPosition().Coordinates();
+
+    // Update coordinates
+    Kratos::array_1d<double, 3>& r_coordinates = p_node->Coordinates();
+    r_coordinates[0] = x;
+    r_coordinates[1] = y;
+    r_coordinates[2] = z;
+
+    // Update displacement
+    r_displacement[0] = x - r_initial_coordinates[0];
+    r_displacement[1] = y - r_initial_coordinates[1];
+    r_displacement[2] = z - r_initial_coordinates[2];
+
+    // Adding to the database of fixed nodes
+    mFixedNodes.push_back(p_node);
 }
 
 void CSharpInterface::calculate() {
