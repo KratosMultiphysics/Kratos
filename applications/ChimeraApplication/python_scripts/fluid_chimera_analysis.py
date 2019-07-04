@@ -12,6 +12,11 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
         # Deprecation warnings
         self.parameters = parameters
+        if self.parameters["solver_settings"].Has("chimera_parts"):
+            self.chimera_params = self.parameters["solver_settings"]["chimera_parts"].Clone()
+            self.parameters["solver_settings"].RemoveValue("chimera_parts")
+        else:
+            raise Exception("The \"solver_settings\" should have the entry \"chimera_parts\" ")
 
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
@@ -30,21 +35,21 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             else:
                 self.solver_settings = self.parameters["solver_settings"]
 
-            chimera_params = self.project_parameters["chimera"]
             main_model_part = self.model[self.solver_settings["model_part_name"].GetString()]
             domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
             solver_type = self.parameters["solver_settings"]["solver_type"].GetString()
 
+
             if domain_size == 2:
                 if(solver_type == "Monolithic" or solver_type == "monolithic"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,chimera_params)
+                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_params)
                 elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,chimera_params)
+                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,self.chimera_params)
             else:
                 if(solver_type == "Monolithic" or solver_type == "monolithic"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,chimera_params)
+                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_params)
                 elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,chimera_params)
+                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
 
         return list_of_processes
 
