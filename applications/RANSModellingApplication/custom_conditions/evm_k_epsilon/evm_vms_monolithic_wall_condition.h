@@ -330,10 +330,6 @@ protected:
                 r_geometry, RANS_Y_PLUS, gauss_shape_functions);
             const double rho = rans_calculation_utilities.EvaluateInPoint(
                 r_geometry, DENSITY, gauss_shape_functions);
-            const double nu = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-            const double wall_distance = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, DISTANCE, gauss_shape_functions);
 
             if (wall_velocity_magnitude > eps)
             {
