@@ -48,7 +48,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 
 		# defining the number of threads:
 		num_threads =  self.GetParallelSize()
-		self.KratosPrintInfo("::[KSM Simulation]:: [OMP USING" + str(  num_threads  ) +"THREADS ]")
+		self.KratosPrintInfo("::[KSM Simulation]:: [OMP USING " + str(num_threads) +" THREADS ]")
 		#parallel.PrintOMPInfo()
 
 		#### Model_part settings start ####
