@@ -259,7 +259,7 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
-    //verify that the dofs exist
+    // Verify that variables and dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )

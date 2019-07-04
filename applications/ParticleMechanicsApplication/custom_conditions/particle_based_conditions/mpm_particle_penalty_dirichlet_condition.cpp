@@ -255,6 +255,22 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
     KRATOS_CATCH( "" )
 }
 
+int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
+
+    // Verify that the dofs exist
+    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+    {
+        if ( this->GetGeometry()[i].SolutionStepsDataHas( NORMAL ) == false )
+        {
+            KRATOS_ERROR << "missing variable NORMAL on node " << this->GetGeometry()[i].Id() << std::endl;
+        }
+    }
+
+    return 0;
+}
+
 } // Namespace Kratos
 
 

@@ -231,6 +231,22 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
 }
 
+int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    MPMParticlePenaltyDirichletCondition::Check(rCurrentProcessInfo);
+
+    // Verify that the dofs exist
+    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+    {
+        if ( this->GetGeometry()[i].SolutionStepsDataHas( NODAL_AREA ) == false )
+        {
+            KRATOS_ERROR << "missing variable NODAL_AREA on node " << this->GetGeometry()[i].Id() << std::endl;
+        }
+    }
+
+    return 0;
+}
+
 
 } // Namespace Kratos
 
