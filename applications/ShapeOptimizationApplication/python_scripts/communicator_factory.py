@@ -128,6 +128,7 @@ class Communicator:
 
             self.list_of_responses[objective_id] = { "type"                 : objective["type"].GetString(),
                                                      "value"                : None,
+                                                     "scaling_factor"       : objective["scaling_factor"].GetDouble(),
                                                      "standardized_value"   : None,
                                                      "standardized_gradient": None }
 
@@ -140,18 +141,23 @@ class Communicator:
             if constraint["type"].GetString() not in self.supported_constraint_types:
                 raise RuntimeError("Unsupported type defined for the following constraint: " + constraint_id)
 
+            if constraint["reference"].GetString() not in self.supported_constraint_references:
+                raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
+
             if  constraint["reference"].GetString() == "specified_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
+                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
                                                           "reference_value"      : constraint["reference_value"].GetDouble() }
             elif constraint["reference"].GetString() == "initial_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
+                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
-                                                          "reference_value"      : "waiting_for_initial_value" }
+                                                          "reference_value"      : None }
             else:
                 raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
 
@@ -171,10 +177,13 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __isResponseWaitingForInitialValueAsReference(self, response_id):
         response = self.list_of_responses[response_id]
-        if "reference_value" in response and response["reference_value"] == "waiting_for_initial_value":
-            return True
-        else:
-            return False
+        is_reference_defined = "reference" in response
+        if is_reference_defined:
+            is_reference_initial_value = (response["reference"].GetString() == "initial_value")
+            is_reference_value_missing = (response["reference_value"] is None)
+            if is_reference_initial_value and is_reference_value_missing:
+                return True
+        return False
 
     # --------------------------------------------------------------------------
     def __setValueAsReference(self, response_id, value):
@@ -182,24 +191,31 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __translateValueToStandardForm(self, response_id, value):
-        response = self.list_of_responses[response_id]
-        response_type = response["type"]
+        response_type = self.list_of_responses[response_id]["type"]
+        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
+
         if response_type in self.supported_objective_types:
             if response_type == "maximization":
-                return -value
+                return -scaling_factor*value
             else:
-                return value
+                return scaling_factor*value
         else:
+            reference_value = self.list_of_responses[response_id]["reference_value"]
+
             if response_type == ">" or response_type == ">=":
-                return (response["reference_value"]-value)
+                return scaling_factor*(reference_value-value)
             else:
-                return (value-response["reference_value"])
+                return scaling_factor*(value-reference_value)
 
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm(self, response_id, gradient):
         response_type = self.list_of_responses[response_id]["type"]
+        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
+
+        gradient = {key: [scaling_factor*value[0],scaling_factor*value[1],scaling_factor*value[2]] for key, value in gradient.items()}
+
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
-            gradient.update({key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()})
+            gradient = {key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()}
         return gradient
 
     # --------------------------------------------------------------------------

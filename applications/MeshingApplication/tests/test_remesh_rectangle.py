@@ -16,7 +16,7 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
 
         # We create the model part
         current_model = KratosMultiphysics.Model()
-        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part = current_model.CreateModelPart("MainModelPart", 2)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
