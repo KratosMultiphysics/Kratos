@@ -120,7 +120,7 @@ void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
     for (int i=0; i<numElems; ++i) {
         const int num_nodes_elem = (*numNodesPerElem)[i];
         std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
-        for (int j=0; j<numElems; ++j) {
+        for (int j=0; j<num_nodes_elem; ++j) {
             elem_node_ids[j] = (*elem)[counter++];
         }
         rModelPart.CreateNewElement(element_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
