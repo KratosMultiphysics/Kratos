@@ -43,7 +43,7 @@ ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyChimeraProces
             })");
 
     mNumberOfLevels = mParameters.size();
-    KRATOS_ERROR_IF(mNumberOfLevels<2)<<"Chimera requires atleast two levels !. Put Background in one level and the patch in second one."<<std::endl;
+    KRATOS_ERROR_IF(mNumberOfLevels < 2) << "Chimera requires atleast two levels !. Put Background in one level and the patch in second one." << std::endl;
 
     ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
     mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
@@ -84,7 +84,7 @@ template <int TDim, class TDistanceCalculatorType>
 void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop() //selecting patch and background combination for chimera method
 {
     const unsigned int num_elements = mrMainModelPart.NumberOfElements();
-    const auto elem_begin =  mrMainModelPart.ElementsBegin();
+    const auto elem_begin = mrMainModelPart.ElementsBegin();
 
 #pragma omp parallel for
     for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
@@ -95,7 +95,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop
     }
 
     const unsigned int num_nodes = mrMainModelPart.NumberOfNodes();
-    const auto nodes_begin =  mrMainModelPart.ElementsBegin();
+    const auto nodes_begin = mrMainModelPart.ElementsBegin();
 
 #pragma omp parallel for
     for (unsigned int i_bn = 0; i_bn < num_nodes; ++i_bn)
@@ -105,25 +105,24 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop
     }
 
     int i_current_level = 0;
-    for(const auto& current_level : mParameters)
+    for (const auto &current_level : mParameters)
     {
         int is_main_background = 1;
-        for(const auto& background_patch_param : current_level)
+        for (const auto &background_patch_param : current_level)
         { // Gives the current background patch
-            for(IndexType i_slave_level=i_current_level+1; i_slave_level<mNumberOfLevels; ++i_slave_level)
+            for (IndexType i_slave_level = i_current_level + 1; i_slave_level < mNumberOfLevels; ++i_slave_level)
             {
-                for(const auto& slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
+                for (const auto &slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
                 {
                     if (i_current_level == 0) // a check to identify computational Domain boundary
                         is_main_background = -1;
                     FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
-                    KRATOS_INFO("Formulating Chimera for the combination :: \n") <<"Background" <<background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
+                    KRATOS_INFO("Formulating Chimera for the combination :: \n") << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                 }
             }
         }
         ++i_current_level;
     }
-
 
     KRATOS_INFO("End of chimera loop") << std::endl;
 
@@ -134,11 +133,11 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::DoChimeraLoop
 template <int TDim, class TDistanceCalculatorType>
 void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot)
 {
-    ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart( BackgroundParam["model_part_name"].GetString() );
-    ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart( BackgroundParam["model_part_inside_boundary_name"].GetString() );
+    ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(BackgroundParam["model_part_name"].GetString());
+    ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(BackgroundParam["model_part_inside_boundary_name"].GetString());
 
-    ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart( PatchParameters["model_part_name"].GetString() );
-    ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart( PatchParameters["model_part_inside_boundary_name"].GetString() );
+    ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_name"].GetString());
+    ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_inside_boundary_name"].GetString());
 
     const double overlap_bg = BackgroundParam["overlap_distance"].GetDouble();
     const double overlap_pt = PatchParameters["overlap_distance"].GetDouble();
@@ -151,7 +150,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
     p_pointer_locator_on_patch->UpdateSearchDatabase();
 
     const double eps = 1e-12;
-    KRATOS_ERROR_IF(over_lap_distance<eps)<<"Overlap distance should be a positive and non-zero number."<<std::endl;
+    KRATOS_ERROR_IF(over_lap_distance < eps) << "Overlap distance should be a positive and non-zero number." << std::endl;
 
     if (over_lap_distance > eps)
     {
@@ -178,7 +177,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
 
         //for multipatch
         const unsigned int n_elements = r_hole_model_part.NumberOfElements();
-        #pragma omp parallel for
+#pragma omp parallel for
         for (IndexType i_elem = 0; i_elem < n_elements; ++i_elem)
         {
             ModelPart::ElementsContainerType::iterator it_elem = r_hole_model_part.ElementsBegin() + i_elem;
@@ -246,14 +245,15 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
         mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
     }
 
-#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) reduction(+:not_found_counter) reduction(+:removed_counter) reduction(+ \
-                                                                                                                                           : counter)
+#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) reduction(+                                                             \
+                                                                                                             : not_found_counter) reduction(+                              \
+                                                                                                                                            : removed_counter) reduction(+ \
+                                                                                                                                                                         : counter)
     for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
-
         Vector shape_fun_weights;
         typename PointLocatorType::ResultContainerType results(max_results);
-        auto &ms_container = master_slave_container_vector[omp_get_thread_num()]; //TODO: change this to out of loop.
+        auto &ms_container = master_slave_container_vector[omp_get_thread_num()];
 
         ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
         Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
@@ -273,7 +273,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
             constrainIds_for_the_node = mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
             for (auto const &constraint_id : constrainIds_for_the_node)
             {
-                #pragma omp critical
+#pragma omp critical
                 {
                     mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
                     removed_counter++;
@@ -285,20 +285,26 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
         if (is_found == true)
         {
             Geometry<Node<3>> &r_geom = p_element->GetGeometry();
-            int init_index = 0;
-            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id+init_index, constraints_id_vector, ms_container);
-            init_index+=3;
-            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Y, start_constraint_id+init_index, constraints_id_vector, ms_container);
-            init_index+=3;
-            if(TDim == 3){
-                ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Z, start_constraint_id+init_index, constraints_id_vector, ms_container);
-                init_index+=3;
+#pragma omp critical
+            {
+                int init_index = 0;
+                ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                init_index += 3;
+                ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Y, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                init_index += 3;
+                if (TDim == 3)
+                {
+                    ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Z, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                    init_index += 3;
+                }
+                ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                init_index += 3;
+                counter += 1;
             }
-            ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id+init_index, constraints_id_vector, ms_container);
-            init_index+=3;
-            counter += 1;
-        }else{
-            not_found_counter+=1;
+        }
+        else
+        {
+            not_found_counter += 1;
         }
         p_boundary_node->Set(VISITED, true);
     } // end of loop over boundary nodes
@@ -307,7 +313,7 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
         mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
 
     KRATOS_INFO("Number of boundary nodes in : ") << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
-    KRATOS_INFO("Number of Boundary nodes found : ") << counter<<". Number of constraints : "<<counter*9<< std::endl;
+    KRATOS_INFO("Number of Boundary nodes found : ") << counter << ". Number of constraints : " << counter * 9 << std::endl;
     KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
 }
 
@@ -375,12 +381,12 @@ bool ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::BoundingBoxTe
 template <int TDim, class TDistanceCalculatorType>
 template <typename TVariableType>
 void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
-                                                                     Node<3> &rBoundaryNode,
-                                                                     Vector &rShapeFuncWeights,
-                                                                     TVariableType& rVariable,
-                                                                     unsigned int StartId,
-                                                                     std::vector<int> &ConstraintIdVector,
-                                                                     MasterSlaveConstraintContainerType &rMsContainer)
+                                                                                              Node<3> &rBoundaryNode,
+                                                                                              Vector &rShapeFuncWeights,
+                                                                                              TVariableType &rVariable,
+                                                                                              unsigned int StartId,
+                                                                                              std::vector<int> &ConstraintIdVector,
+                                                                                              MasterSlaveConstraintContainerType &rMsContainer)
 {
     const auto &r_clone_constraint = (LinearMasterSlaveConstraint)KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
     // Initialise the boundary nodes dofs to 0 at ever time steps
@@ -397,19 +403,17 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
     rBoundaryNode.FastGetSolutionStepValue(rVariable, 1) = rBoundaryNode.FastGetSolutionStepValue(rVariable, 0);
 }
 
-
-
 template <int TDim, class TDistanceCalculatorType>
 template <typename TVariableType>
 void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
-                                    const LinearMasterSlaveConstraint &rCloneConstraint,
-                                    unsigned int ConstraintId,
-                                    Node<3> &rMasterNode,
-                                    TVariableType &rMasterVariable,
-                                    Node<3> &rSlaveNode,
-                                    TVariableType &rSlaveVariable,
-                                    const double Weight,
-                                    const double Constant)
+                                                                                          const LinearMasterSlaveConstraint &rCloneConstraint,
+                                                                                          unsigned int ConstraintId,
+                                                                                          Node<3> &rMasterNode,
+                                                                                          TVariableType &rMasterVariable,
+                                                                                          Node<3> &rSlaveNode,
+                                                                                          TVariableType &rSlaveVariable,
+                                                                                          const double Weight,
+                                                                                          const double Constant)
 {
     rSlaveNode.Set(SLAVE);
     ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
@@ -428,4 +432,3 @@ template class ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType>;
 template class ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType>;
 
 } // namespace Kratos.
-
