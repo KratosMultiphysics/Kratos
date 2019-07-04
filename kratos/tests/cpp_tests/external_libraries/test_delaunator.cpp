@@ -26,7 +26,7 @@
 namespace Kratos {
 namespace Testing {
 
-constexpr double TOLERANCE = 1.0e-6;
+constexpr double DELAUNATOR_TOLERANCE = 1.0e-6;
 
 inline void validate(
     const std::vector<double>& rCoordinates,
@@ -60,7 +60,7 @@ inline void validate(
 }
 
 inline void validate(const std::vector<double>& rCoordinates) {
-    validate(rCoordinates, TOLERANCE);
+    validate(rCoordinates, DELAUNATOR_TOLERANCE);
 }
 
 struct multiply {
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(DelaunatorRoubustness, KratosExternalLibrariesFastSuit
     validate(coords_result);
 
     std::transform(coordinates.begin(), coordinates.end(), coords_result.begin(), multiply{ 1e2 });
-    validate(coords_result, TOLERANCE * 2.0); //TODO: missing triangle?
+    validate(coords_result, DELAUNATOR_TOLERANCE * 2.0); //TODO: missing triangle?
 
     std::transform(coordinates.begin(), coordinates.end(), coords_result.begin(), multiply{ 1e9 });
     validate(coords_result);
