@@ -14,7 +14,11 @@ set( KRATOS_WRAPPER_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/id_translator.cpp
 )
 
-add_library(KratosWrapper SHARED ${KRATOS_WRAPPER_SOURCES})
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_WRAPPER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+add_library(KratosWrapper SHARED ${KRATOS_WRAPPER_SOURCES} ${KRATOS_WRAPPER_TESTING_SOURCES})
 target_link_libraries(KratosWrapper PUBLIC KratosCore KratosStructuralMechanicsCore)
 
 
