@@ -19,7 +19,7 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
     def setUp(self):
         self.check_tolerance = 1e-6
         # Set to true to get post-process files for the test
-        self.print_output = True
+        self.print_output = False
 
     def _run_test(self,settings_file_name):
         model = KratosMultiphysics.Model()
@@ -53,6 +53,3 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
 
         analysis = FluidChimeraAnalysis(model,settings)
         analysis.Run()
-
-    def DeleteResults(self):
-        kratos_utilities.DeleteDirectoryIfExisting("test_vtk_output")
