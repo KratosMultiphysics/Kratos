@@ -175,11 +175,11 @@ void Wrapper_EMPIRE_API_recvDataField_doubleVector(ModelPart& rModelPart, const 
     }
 }
 
-void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
+void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart, const bool UseConditions)
 {
     // extract information from ModelPart
     const int numNodes = rModelPart.NumberOfNodes();
-    const int numElems = rModelPart.NumberOfElements();
+    const int numElems = (UseConditions) ? (rModelPart.NumberOfConditions()) : (rModelPart.NumberOfElements());
 
     std::vector<double> nodes(numNodes*3);
     std::vector<int> nodeIDs(numNodes);
@@ -196,18 +196,28 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
     std::vector<int> elems;
     elems.reserve(numElems*3);
     std::size_t elem_counter = 0;
-    for (const auto& r_elem : rModelPart.Elements()) {
-        const auto& r_geom = r_elem.GetGeometry();
-        numNodesPerElem[elem_counter++] = r_geom.PointsNumber();
-        for (const auto& r_node : r_geom) {
-            elems.push_back(r_node.Id());
+    if (UseConditions) {
+        for (const auto& r_elem : rModelPart.Conditions()) {
+            const auto& r_geom = r_elem.GetGeometry();
+            numNodesPerElem[elem_counter++] = r_geom.PointsNumber();
+            for (const auto& r_node : r_geom) {
+                elems.push_back(r_node.Id());
+            }
+        }
+    } else {
+        for (const auto& r_elem : rModelPart.Elements()) {
+            const auto& r_geom = r_elem.GetGeometry();
+            numNodesPerElem[elem_counter++] = r_geom.PointsNumber();
+            for (const auto& r_node : r_geom) {
+                elems.push_back(r_node.Id());
+            }
         }
     }
 
     EMPIRE_API_sendMesh(const_cast<char*>(rModelPart.Name().c_str()), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
 }
 
-void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
+void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart, const bool UseConditions)
 {
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
@@ -223,10 +233,16 @@ void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
     EMPIRE_API_recvMesh(const_cast<char*>(rModelPart.Name().c_str()), &numNodes, &numElems, nodes, nodeIDs, numNodesPerElem, elem);
 
     const std::unordered_map<int, std::string> element_name_map = {
-        // {1 : "Element2D1N"}, // does not yet exist
-        {2 , "Element2D2N"},
-        {3 , "Element2D3N"},
-        {4 , "Element2D4N"}
+        // {1 , "Element3D1N"}, // does not yet exist
+        {2 , "Element3D2N"},
+        {3 , "Element3D3N"},
+        {4 , "Element3D4N"}
+    };
+    const std::unordered_map<int, std::string> condition_name_map = {
+        {1 , "PointCondition3D1N"},
+        {2 , "LineCondition3D2N"},
+        {3 , "SurfaceCondition3D3N"},
+        {4 , "SurfaceCondition3D4N"}
     };
 
     // fill ModelPart with received entities
@@ -243,7 +259,11 @@ void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
         for (int j=0; j<num_nodes_elem; ++j) {
             elem_node_ids[j] = (*elem)[counter++];
         }
-        rModelPart.CreateNewElement(element_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
+        if (UseConditions) {
+            rModelPart.CreateNewCondition(condition_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
+        } else {
+            rModelPart.CreateNewElement(element_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
+        }
     }
 
     // TODO deallocate memory!
@@ -260,8 +280,8 @@ void  AddCustomIOToPython(pybind11::module& m)
 
     mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", EMPIRE_API_getUserDefinedText);
 
-    mEMPIREAPI.def("EMPIRE_API_sendMesh", Wrapper_EMPIRE_API_sendMesh);
-    mEMPIREAPI.def("EMPIRE_API_recvMesh", Wrapper_EMPIRE_API_recvMesh);
+    mEMPIREAPI.def("EMPIRE_API_sendMesh", Wrapper_EMPIRE_API_sendMesh, py::arg("model_part"), py::arg("use_conditions")=false);
+    mEMPIREAPI.def("EMPIRE_API_recvMesh", Wrapper_EMPIRE_API_recvMesh, py::arg("model_part"), py::arg("use_conditions")=false);
 
     mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_SendArray<true>);
     mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_ReceiveArray<true>);
