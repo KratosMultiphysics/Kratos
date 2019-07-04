@@ -11,25 +11,25 @@ void KratosInternals::initInternals() {
 }
 
 void KratosInternals::loadMDPA(std::string mdpaPath) {
-    Kratos::Model current_model;
-    pmMainModelPart = &current_model.CreateModelPart("Main", 2);
-    pmMainModelPart->AddNodalSolutionStepVariable(Kratos::DISPLACEMENT);
-    pmMainModelPart->AddNodalSolutionStepVariable(Kratos::REACTION);
-    pmMainModelPart->AddNodalSolutionStepVariable(Kratos::VOLUME_ACCELERATION);
+    mModel.Reset();
+    auto& r_model_part = mModel.CreateModelPart("Main", 2);
+    r_model_part.AddNodalSolutionStepVariable(Kratos::DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(Kratos::REACTION);
+    r_model_part.AddNodalSolutionStepVariable(Kratos::VOLUME_ACCELERATION);
 
     Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
     pFile->open(mdpaPath, std::fstream::in);
-    Kratos::ModelPartIO(pFile).ReadModelPart(*pmMainModelPart);
+    Kratos::ModelPartIO(pFile).ReadModelPart(r_model_part);
     pFile->close();
 
     Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::HyperElasticIsotropicNeoHookean3D>();
-    pmMainModelPart->GetProperties(0).SetValue(Kratos::CONSTITUTIVE_LAW, pCl);
+    r_model_part.GetProperties(0).SetValue(Kratos::CONSTITUTIVE_LAW, pCl);
 
-    Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_X, Kratos::REACTION_X, *pmMainModelPart);
-    Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Y, Kratos::REACTION_Y, *pmMainModelPart);
-    Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Z, Kratos::REACTION_Z, *pmMainModelPart);
+    Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_X, Kratos::REACTION_X, r_model_part);
+    Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Y, Kratos::REACTION_Y, r_model_part);
+    Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Z, Kratos::REACTION_Z, r_model_part);
 
-    pmMainModelPart->CreateSubModelPart(SKIN_SUBMODEL_PART_NAME);
+    r_model_part.CreateSubModelPart(SKIN_SUBMODEL_PART_NAME);
 }
 
 void KratosInternals::initSolver() {
@@ -45,7 +45,7 @@ void KratosInternals::initSolver() {
     bool moveMeshFlag = true;
 
     pmStrategy = Kratos::make_shared < ResidualBasedNewtonRaphsonStrategyType >(
-        *pmMainModelPart,
+        GetMainModelPart(),
         pScheme,
         pSolver,
         pConvergenceCriterion,
@@ -63,10 +63,10 @@ void KratosInternals::solve() {
     pmStrategy->Solve();
 }
 
-Kratos::ModelPart* KratosInternals::pGetMainModelPart() {
-    return pmMainModelPart;
+Kratos::ModelPart& KratosInternals::GetMainModelPart() {
+    return mModel.GetModelPart("Main");
 }
 
-Kratos::ModelPart* KratosInternals::pGetSkinModelPart() {
-    return pmMainModelPart->pGetSubModelPart(SKIN_SUBMODEL_PART_NAME);
+Kratos::ModelPart& KratosInternals::GetSkinModelPart() {
+    return GetMainModelPart().GetSubModelPart(SKIN_SUBMODEL_PART_NAME);
 }

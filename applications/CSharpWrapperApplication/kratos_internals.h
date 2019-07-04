@@ -43,13 +43,13 @@ namespace CSharpKratosWrapper {
         void loadMDPA(std::string mdpaPath);
         void initSolver();
         void solve();
-        Kratos::ModelPart* pGetMainModelPart();
-        Kratos::ModelPart* pGetSkinModelPart();
+        Kratos::ModelPart& GetMainModelPart();
+        Kratos::ModelPart& GetSkinModelPart();
 
     private:
         Kratos::Kernel mKernel;
         Kratos::KratosStructuralMechanicsApplication mApplication;
-        Kratos::ModelPart* pmMainModelPart;
+        Kratos::Model mModel;
         ResidualBasedNewtonRaphsonStrategyType::Pointer pmStrategy;
     };
 }

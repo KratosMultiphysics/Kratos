@@ -17,9 +17,9 @@ IdTranslator CSharpInterface::idTranslator;
 //Fetch faces from mesh converter and create skin model part
 void CSharpInterface::saveTriangles(MeshConverter& meshConverter) {
 
-    ModelPart* pSkinModelPart = mKratosInternals.pGetSkinModelPart();
-    ModelPart* pMainModelPart = mKratosInternals.pGetMainModelPart();
-    int lastId = pMainModelPart->Elements().back().Id();
+    ModelPart& r_skin_model_part = mKratosInternals.GetSkinModelPart();
+    ModelPart& r_main_model_part = mKratosInternals.GetMainModelPart();
+    int lastId = r_main_model_part.Elements().back().Id();
 
     std::vector<face> faces = meshConverter.GetFaces();
 
@@ -31,10 +31,10 @@ void CSharpInterface::saveTriangles(MeshConverter& meshConverter) {
         for (int j = 0; j < 3; j++) {
             pmTriangles[3 * i + j] = faces.at(i).nodes[j];
             nodes.push_back(idTranslator.getKratosId(faces.at(i).nodes[j]));
-            pSkinModelPart->AddNode(pMainModelPart->pGetNode(idTranslator.getKratosId(faces.at(i).nodes[j])));
+            r_skin_model_part.AddNode(r_main_model_part.pGetNode(idTranslator.getKratosId(faces.at(i).nodes[j])));
         }
         lastId++;
-        pSkinModelPart->CreateNewCondition("SurfaceCondition3D3N", lastId, nodes, pMainModelPart->pGetProperties(0));
+        r_skin_model_part.CreateNewCondition("SurfaceCondition3D3N", lastId, nodes, r_main_model_part.pGetProperties(0));
     }
 }
 
@@ -53,12 +53,12 @@ void CSharpInterface::saveNodes(MeshConverter& meshConverter) {
 
 //Save recalculated surface nodes positions
 void CSharpInterface::retrieveNodesPos() {
-    ModelPart* skin_part = mKratosInternals.pGetSkinModelPart();
+    ModelPart& skin_part = mKratosInternals.GetSkinModelPart();
 
     #pragma omp parallel for
-    for (int i = 0; i<static_cast<int>(skin_part->Nodes().size()); ++i)
+    for (int i = 0; i<static_cast<int>(skin_part.Nodes().size()); ++i)
     {
-        auto currentNode = skin_part->NodesBegin() + i;
+        auto currentNode = skin_part.NodesBegin() + i;
         int currentNodeUnityId = idTranslator.getUnityId(currentNode->Id());
         pmXCoordinates[currentNodeUnityId] = currentNode->X();
         pmYCoordinates[currentNodeUnityId] = currentNode->Y();
@@ -78,10 +78,11 @@ void CSharpInterface::freeNodes() {
 void CSharpInterface::init(const char* mdpaPath) {
     mKratosInternals.initInternals();
     mKratosInternals.loadMDPA(std::string(mdpaPath));
+
     mKratosInternals.initSolver();
 
     MeshConverter meshConverter;
-    meshConverter.ProcessMesh(mKratosInternals.pGetMainModelPart()->ElementsArray());
+    meshConverter.ProcessMesh(mKratosInternals.GetMainModelPart().ElementsArray());
 
     saveNodes(meshConverter);
     saveTriangles(meshConverter);
@@ -89,7 +90,7 @@ void CSharpInterface::init(const char* mdpaPath) {
 
 //Update DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
 void CSharpInterface::updateNodePos(int nodeId, float x, float y, float z) {
-    NodeType::Pointer node =  mKratosInternals.pGetMainModelPart()->pGetNode(idTranslator.getKratosId(nodeId));
+    NodeType::Pointer node =  mKratosInternals.GetMainModelPart().pGetNode(idTranslator.getKratosId(nodeId));
     node->Fix(Kratos::DISPLACEMENT_X);
     node->Fix(Kratos::DISPLACEMENT_Y);
     node->Fix(Kratos::DISPLACEMENT_Z);
