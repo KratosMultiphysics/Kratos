@@ -140,7 +140,7 @@ output: QoI: Quantity of Interest
 """
 @constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=1)
-def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
+def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,sample,current_analysis_stage,current_level):
 # def ExecuteInstanceAux_Task(serialized_model,serialized_project_parameters,current_analysis_stage,current_level):
     time_0 = time.time()
     # overwrite the old model serializer with the unpickled one
@@ -156,7 +156,6 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
     time_1 = time.time()
     # initialize the MonteCarloResults class
     mc_results_class = MonteCarloResults(current_level)
-    sample = generator.GenerateSample()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
     simulation.Run()
     QoI = simulation.EvaluateQuantityOfInterest()
@@ -329,10 +328,11 @@ class MonteCarlo(object):
     def ExecuteInstance(self):
         # ensure working level is level 0
         current_level = self.current_level
+        sample = generator.GenerateSample(self.problem_name)
         if (current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
-        return (ExecuteInstanceAux_Task(self.pickled_model,self.pickled_project_parameters,self.GetAnalysis(),self.current_level),current_level)
-        # return (ExecuteInstanceAux_Task(self.serialized_model,self.serialized_project_parameters,self.GetAnalysis(),self.current_level),current_level)
+        return (ExecuteInstanceAux_Task(self.pickled_model,self.pickled_project_parameters,sample,self.GetAnalysis(),self.current_level),current_level)
+        # return (ExecuteInstanceAux_Task(self.serialized_model,self.serialized_project_parameters,sample,self.GetAnalysis(),self.current_level),current_level)
 
     """
     function initializing the MC phase
@@ -475,6 +475,8 @@ class MonteCarlo(object):
     def SerializeModelParameters(self):
         with open(self.project_parameters_path,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # save problem name
+        self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         # serialize parmeters (to avoid adding new data dependent on the application)
         parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
@@ -484,7 +486,7 @@ class MonteCarlo(object):
         parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
-        fake_sample = generator.GenerateSample() # only used to serialize
+        fake_sample = generator.GenerateSample(self.problem_name) # only used to serialize
         simulation = self.analysis(model,parameters,fake_sample)
         simulation.Initialize()
         # reset general flags
