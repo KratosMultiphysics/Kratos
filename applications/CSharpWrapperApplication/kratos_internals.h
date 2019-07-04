@@ -3,6 +3,7 @@
 #include "structural_mechanics_application.h"
 #include "includes/model_part_io.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "linear_solvers/amgcl_solver.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -21,6 +22,7 @@ namespace CSharpKratosWrapper {
     typedef boost::numeric::ublas::matrix<double> Matrix;
     typedef Kratos::UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Kratos::Reorderer<SpaceType, LocalSpaceType > ReordererType;
+    typedef Kratos::AMGCLSolver<SpaceType, LocalSpaceType, ReordererType > AMGCLSolverType;
     typedef Kratos::SkylineLUFactorizationSolver<SpaceType, LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
 
     typedef Kratos::UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;

@@ -33,7 +33,8 @@ void KratosInternals::loadMDPA(std::string mdpaPath) {
 }
 
 void KratosInternals::initSolver() {
-    SkylineLUFactorizationSolverType::Pointer pSolver = Kratos::make_shared< SkylineLUFactorizationSolverType>();
+    AMGCLSolverType::Pointer pSolver = Kratos::make_shared< AMGCLSolverType>(); // This one is more robust
+//     SkylineLUFactorizationSolverType::Pointer pSolver = Kratos::make_shared< SkylineLUFactorizationSolverType>();
     ResidualBasedEliminationBuilderAndSolverType::Pointer pBuilderAndSolver = Kratos::make_shared<ResidualBasedEliminationBuilderAndSolverType>(pSolver);
     ResidualBasedIncrementalUpdateStaticSchemeType::Pointer pScheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
     ResidualCriteriaType::Pointer pConvergenceCriterion = Kratos::make_shared<ResidualCriteriaType>(1e-14, 1e-20);
