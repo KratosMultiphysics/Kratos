@@ -285,8 +285,6 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
         if (is_found == true)
         {
             Geometry<Node<3>> &r_geom = p_element->GetGeometry();
-#pragma omp critical
-            {
                 int init_index = 0;
                 ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id + init_index, constraints_id_vector, ms_container);
                 init_index += 3;
@@ -300,7 +298,6 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::ApplyContinui
                 ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id + init_index, constraints_id_vector, ms_container);
                 init_index += 3;
                 counter += 1;
-            }
         }
         else
         {
