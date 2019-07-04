@@ -93,6 +93,26 @@ void InterpolateMeshVariableToSkinArray(
     rEmbeddedSkinUtility.InterpolateMeshVariableToSkin(rVariable, rEmbeddedVariable);
 }
 
+template<std::size_t TDim>
+void InterpolateDiscontinuousMeshVariableToSkinDouble(
+    EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
+    const Variable<double> &rVariable,
+    const Variable<double> &rEmbeddedVariable,
+    const std::string &rInterfaceSide)
+{
+    rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
+}
+
+template<std::size_t TDim>
+void InterpolateDiscontinuousMeshVariableToSkinArray(
+    EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
+    const Variable<array_1d<double,3>> &rVariable,
+    const Variable<array_1d<double,3>> &rEmbeddedVariable,
+    const std::string &rInterfaceSide)
+{
+    rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
+}
+
 // Auxiliar ModelPart Utility
 void ModelPartRemoveElementAndBelongings1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag)
 {
@@ -633,6 +653,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinArray< 2 > )
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 2 > )
+        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinArray< 2 > )
+        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinDouble< 2 > )
         ;
 
     py::class_< EmbeddedSkinUtility <3 > >(m,"EmbeddedSkinUtility3D")
@@ -640,6 +662,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("GenerateSkin", &EmbeddedSkinUtility < 3 > ::GenerateSkin)
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinArray< 3 > )
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 3 > )
+        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinArray< 3 > )
+        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinDouble< 3 > )
         ;
 
     py::class_< GeometryTesterUtility>(m,"GeometryTesterUtility")
