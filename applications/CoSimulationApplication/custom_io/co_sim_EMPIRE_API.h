@@ -247,11 +247,11 @@ static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *
     // write file header
     output_file << "# vtk DataFile Version 4.0\n";
     output_file << "vtk output\n";
-    if (EMPIRE_API_helpers::VtkUseBinary) {
-        output_file << "BINARY\n";
-    } else {
+    // if (EMPIRE_API_helpers::VtkUseBinary) {
+    //     output_file << "BINARY\n";
+    // } else {
         output_file << "ASCII\n";
-    }
+    // }
     output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
     // write nodes
