@@ -263,17 +263,17 @@ class AnalyzerWithDependencies(Analyzer):
         with open(self.response_combination_filename, 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
 
-            identifers = self.__GetIdentifiersRecursively(self.dependency_graph)
+            identifiers = self.__GetIdentifiersRecursively(self.dependency_graph)
             values = []
-            for response_id in identifers:
+            for response_id in identifiers:
                 values.append(communicator.getValue(response_id))
 
             row = []
             row.append("{:>4d}".format(iteration))
-            for identifer, value in zip(identifers, values):
+            for identifier, value in zip(identifiers, values):
                 row.append(" {:> .5E}".format(value))
-            for identifer, value in zip(identifers, values):
-                row.append(" {:> .5E}".format(self.gradients_max_norms[identifer]))
+            for identifier, value in zip(identifiers, values):
+                row.append(" {:> .5E}".format(self.gradient_max_norms[identifier]))
 
             writer.writerow(row)
 
