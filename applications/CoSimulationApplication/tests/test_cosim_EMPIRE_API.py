@@ -265,8 +265,7 @@ def InitializeModelPart(model_part):
     model_part.AddNodalSolutionStepVariable(KM.ROTATION)
 
     for i in range(50):
-        node_id = i+1
-        node = model_part.CreateNewNode(i+1, i*1.1, i*1.2, i*1.3)
+        model_part.CreateNewNode(i+1, i*1.1, i*1.2, i*1.3)
 
 def FillModelPart(model_part):
     InitializeModelPart(model_part)
