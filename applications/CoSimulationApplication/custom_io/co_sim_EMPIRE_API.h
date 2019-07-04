@@ -29,6 +29,7 @@ Note:
 #include <chrono>
 #include <thread>
 #include <unordered_map>
+#include <chrono>
 
 namespace EMPIRE_API_helpers {
 
@@ -40,6 +41,12 @@ static int PrintTiming = 0;
 static int EchoLevel = 0;
 
 #define EMPIRE_API_LOG(level) if(EMPIRE_API_helpers::EchoLevel>=level) std::cout << "[EMPIRE_API] "
+
+static double ElapsedSeconds(const std::chrono::steady_clock::time_point& rStartTime)
+{
+    using namespace std::chrono;
+    return duration_cast<duration<double>>(steady_clock::now() - rStartTime).count();
+}
 
 static bool FileExists(const std::string& rFileName)
 {
@@ -89,6 +96,8 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
 
 static void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
+    const auto start_time(std::chrono::steady_clock::now());
+
     std::ofstream output_file;
     output_file.open(GetTempFileName(rFileName));
     CheckStream(output_file, rFileName);
@@ -102,11 +111,17 @@ static void SendArray(const std::string& rFileName, int sizeOfArray, double *dat
 
     output_file.close();
     MakeFileVisible(rFileName);
+
+    if (PrintTiming) {
+        EMPIRE_API_LOG(0) << "Sending Array \"" << rFileName << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 }
 
 static void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
 {
     WaitForFile(rFileName);
+
+    const auto start_time(std::chrono::steady_clock::now());
 
     std::ifstream input_file(rFileName);
     CheckStream(input_file, rFileName);
@@ -116,6 +131,10 @@ static void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *
     }
 
     RemoveFile(rFileName);
+
+    if (PrintTiming) {
+        EMPIRE_API_LOG(0) << "Receiving Array \"" << rFileName << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 }
 
 static int GetVtkCellType(const int NumberOfNodes)
@@ -213,6 +232,8 @@ static char *EMPIRE_API_getUserDefinedText(char *elementName)
  ***********/
 static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
 {
+    const auto start_time(std::chrono::steady_clock::now());
+
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     std::ofstream output_file;
@@ -267,6 +288,10 @@ static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *
 
     output_file.close();
     EMPIRE_API_helpers::MakeFileVisible(file_name);
+
+    if (EMPIRE_API_helpers::PrintTiming) {
+        EMPIRE_API_LOG(0) << "Sending Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 }
 
 /***********************************************************************************************
@@ -284,6 +309,8 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     EMPIRE_API_helpers::WaitForFile(file_name);
+
+    const auto start_time(std::chrono::steady_clock::now());
 
     std::ifstream input_file(file_name);
     EMPIRE_API_helpers::CheckStream(input_file, file_name);
@@ -343,6 +370,10 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
     }
 
     EMPIRE_API_helpers::RemoveFile(file_name);
+
+    if (EMPIRE_API_helpers::PrintTiming) {
+        EMPIRE_API_LOG(0) << "Sending Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 }
 
 /***********************************************************************************************
