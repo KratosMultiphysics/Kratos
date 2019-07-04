@@ -89,7 +89,8 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "no_skin_parts": [""],
             "move_mesh_flag": false,
-            "reference_chord": 1.0
+            "reference_chord": 1.0,
+            "auxiliary_variables_list" : []
         }''')
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -119,15 +120,12 @@ class PotentialFlowSolver(FluidSolver):
         # Degrees of freedom
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-        # Embedded variables
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.GEOMETRY_DISTANCE)
-        # Kratos variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE) # Required for variational_distance_process
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Required for modify_distance_process
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) # Required for modify_distance_process
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE) # Required for modify_distance_process
+
+        # Add variables that the user defined in the ProjectParameters
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowSolver]:: ", "Variables ADDED")
 
