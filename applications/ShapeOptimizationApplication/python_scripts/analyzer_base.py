@@ -29,9 +29,4 @@ class AnalyzerBaseClass:
     def FinalizeAfterOptimizationLoop(self):
         pass
 
-    # --------------------------------------------------------------------------
-    @staticmethod
-    def IsEmpty():
-        return False
-
 # ==============================================================================

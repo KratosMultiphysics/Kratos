@@ -94,7 +94,7 @@ class Analyzer(AnalyzerBaseClass):
         self.internal_analyzer = internal_analyzer
         self.external_analyzer = external_analyzer
 
-        if internal_analyzer.IsEmpty() and external_analyzer.IsEmpty():
+        if isinstance(internal_analyzer, EmptyAnalyzer) and  isinstance(external_analyzer, EmptyAnalyzer):
             raise RuntimeError("Neither an internal nor an external analyzer is defined!")
 
     # --------------------------------------------------------------------------
