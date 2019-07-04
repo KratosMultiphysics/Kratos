@@ -55,6 +55,126 @@ void Wrapper_ReceiveArray(char* name, int sizeOfArray, pybind11::list signal)
     }
 }
 
+void Wrapper_EMPIRE_API_sendDataField_scalar(const ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+
+    const int size = rModelPart.NumberOfNodes();
+    std::vector<double> values(size);
+
+    std::size_t counter=0;
+    for (const auto& r_node : rModelPart.Nodes()) {
+        values[counter++] = r_node.FastGetSolutionStepValue(rVariable);
+    }
+
+    EMPIRE_API_sendDataField(const_cast<char*>(rVariable.Name().c_str()), size, &values[0]);
+}
+
+void Wrapper_EMPIRE_API_recvDataField_scalar(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+
+    const int size = rModelPart.NumberOfNodes();
+    std::vector<double> values(size);
+
+    EMPIRE_API_recvDataField(const_cast<char*>(rVariable.Name().c_str()), size, &values[0]);
+
+    std::size_t counter=0;
+    for (auto& r_node : rModelPart.Nodes()) {
+        r_node.FastGetSolutionStepValue(rVariable) = values[counter++];
+    }
+}
+
+void Wrapper_EMPIRE_API_sendDataField_vector(const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
+{
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+
+    const int size = rModelPart.NumberOfNodes()*3;
+    std::vector<double> values(size);
+
+    std::size_t counter=0;
+    for (const auto& r_node : rModelPart.Nodes()) {
+        const array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+        values[counter++] = r_val[0];
+        values[counter++] = r_val[1];
+        values[counter++] = r_val[2];
+    }
+
+    EMPIRE_API_sendDataField(const_cast<char*>(rVariable.Name().c_str()), size, &values[0]);
+}
+
+void Wrapper_EMPIRE_API_recvDataField_vector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
+{
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+
+    const int size = rModelPart.NumberOfNodes()*3;
+    std::vector<double> values(size);
+
+    EMPIRE_API_recvDataField(const_cast<char*>(rVariable.Name().c_str()), size, &values[0]);
+
+    std::size_t counter=0;
+    for (auto& r_node : rModelPart.Nodes()) {
+        array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+        r_val[0] = values[counter++];
+        r_val[1] = values[counter++];
+        r_val[2] = values[counter++];
+    }
+}
+
+void Wrapper_EMPIRE_API_sendDataField_doubleVector(const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
+{
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable1)) << "Missing nodal solutionstepvariable: " << rVariable1.Name() << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable2)) << "Missing nodal solutionstepvariable: " << rVariable2.Name() << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+
+    const int size = rModelPart.NumberOfNodes()*6;
+    std::vector<double> values(size);
+
+    std::size_t counter=0;
+    for (const auto& r_node : rModelPart.Nodes()) {
+        const array_1d<double, 3>& r_val_1 = r_node.FastGetSolutionStepValue(rVariable1);
+        const array_1d<double, 3>& r_val_2 = r_node.FastGetSolutionStepValue(rVariable2);
+        values[counter++] = r_val_1[0];
+        values[counter++] = r_val_1[1];
+        values[counter++] = r_val_1[2];
+        values[counter++] = r_val_2[0];
+        values[counter++] = r_val_2[1];
+        values[counter++] = r_val_2[2];
+    }
+
+    const std::string name = rVariable1.Name() + rVariable2.Name();
+    EMPIRE_API_sendDataField(const_cast<char*>(name.c_str()), size, &values[0]);
+}
+
+void Wrapper_EMPIRE_API_recvDataField_doubleVector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
+{
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable1)) << "Missing nodal solutionstepvariable: " << rVariable1.Name() << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable2)) << "Missing nodal solutionstepvariable: " << rVariable2.Name() << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
+
+    const int size = rModelPart.NumberOfNodes()*6;
+    std::vector<double> values(size);
+
+    const std::string name = rVariable1.Name() + rVariable2.Name();
+    EMPIRE_API_sendDataField(const_cast<char*>(name.c_str()), size, &values[0]);
+
+    std::size_t counter=0;
+    for (auto& r_node : rModelPart.Nodes()) {
+        array_1d<double, 3>& r_val_1 = r_node.FastGetSolutionStepValue(rVariable1);
+        array_1d<double, 3>& r_val_2 = r_node.FastGetSolutionStepValue(rVariable2);
+        r_val_1[0] = values[counter++];
+        r_val_1[1] = values[counter++];
+        r_val_1[2] = values[counter++];
+        r_val_2[0] = values[counter++];
+        r_val_2[1] = values[counter++];
+        r_val_2[2] = values[counter++];
+    }
+}
+
 void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart)
 {
     // extract information from ModelPart
@@ -91,7 +211,7 @@ void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart)
 {
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
-    KRATOS_ERROR_IF(rModelPart.IsDistributed() > 0) << "ModelPart cannot be distributed!" << std::endl;
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
     int numNodes;
     int numElems;
@@ -145,6 +265,15 @@ void  AddCustomIOToPython(pybind11::module& m)
 
     mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_SendArray<true>);
     mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_ReceiveArray<true>);
+
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_EMPIRE_API_sendDataField_scalar);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_EMPIRE_API_recvDataField_scalar);
+
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_EMPIRE_API_sendDataField_vector);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_EMPIRE_API_recvDataField_vector);
+
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_EMPIRE_API_sendDataField_doubleVector);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_EMPIRE_API_recvDataField_doubleVector);
 
     mEMPIREAPI.def("EMPIRE_API_sendSignal_double", Wrapper_SendArray<false>);
     mEMPIREAPI.def("EMPIRE_API_recvSignal_double", Wrapper_ReceiveArray<false>);
