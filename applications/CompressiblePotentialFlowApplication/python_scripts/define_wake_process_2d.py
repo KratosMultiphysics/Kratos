@@ -32,16 +32,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.epsilon = settings["epsilon"].GetDouble()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        if not self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
-            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
-        else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
-
-        if not self.fluid_model_part.HasSubModelPart("wake__elements"):
-            self.wake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake__elements")
-        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake__elements")
-        #List to store trailing edge elements id and wake elements id
-        self.trailing_edge_element_id_list = []
-        self.wake_element_id_list = []
 
         # Find nodal neigbours util call
         avg_elem_num = 10
@@ -53,10 +43,24 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
 
-    def ExecuteBeforeSolutionLoop(self):
-        self._FindWakeElements()
+    def ExecuteInitialize(self):
+        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+
+        #self.__FindWakeElements()
 
     def _FindWakeElements(self):
+
+        if not self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
+
+        if not self.fluid_model_part.HasSubModelPart("wake__elements"):
+            self.wake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake__elements")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake__elements")
+        #List to store trailing edge elements id and wake elements id
+        self.trailing_edge_element_id_list = []
+        self.wake_element_id_list = []
+
         self.__SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
         self.__SaveTrailingEdgeNode()

@@ -43,9 +43,8 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
     def SolveSolutionStep(self):
-        self.wake_process._CleanMarking()
 
-        self.wake_process.ExecuteBeforeSolutionLoop()
+        self.wake_process.ExecuteInitialize()
         self._GetAnalysisStage()._GetSolver().fluid_solver.solver.Clear()
         self._GetAnalysisStage()._GetSolver().fluid_solver.solver.InitializeSolutionStep()
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
