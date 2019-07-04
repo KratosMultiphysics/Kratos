@@ -15,7 +15,6 @@
 
 #include "includes/define.h"
 
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -32,7 +31,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DefineEmbeddedWakeProcess);
 
     // Constructor for DefineEmbeddedWakeProcess Process
-    DefineEmbeddedWakeProcess(ModelPart& rModelPart, Parameters ThisParameters);
+    DefineEmbeddedWakeProcess(ModelPart& rModelPart, ModelPart& rWakeModelPart);
 
     /// Destructor.
     ~DefineEmbeddedWakeProcess() = default;
@@ -79,10 +78,12 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Vector mOrigin;
-    Vector mRotationPoint;
-    double mRotationAngle;
-    double mSizingMultiplier;
+    ModelPart& mrWakeModelPart;
+
+
+    void ComputeDistanceToWake();
+    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
+
 
 }; // Class Process
 } // namespace Kratos

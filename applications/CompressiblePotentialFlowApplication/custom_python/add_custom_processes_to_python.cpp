@@ -56,7 +56,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<DefineEmbeddedWakeProcess, DefineEmbeddedWakeProcess::Pointer, Process >
         (m, "DefineEmbeddedWakeProcess")
-        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&>())
         ;
 
     // HESSIAN PROCESS

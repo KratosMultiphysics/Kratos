@@ -104,7 +104,10 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             It also rotates the skin model part around the origin point according to the rotation_angle'''
         self.skin_model_part=self.model.CreateModelPart("skin")
         self.wake_model_part=self.model.CreateModelPart("wake")
-        KratosMultiphysics.ModelPartIO('wake').ReadModelPart(self.wake_model_part)
+        KratosMultiphysics.ModelPartIO('wake2').ReadModelPart(self.wake_model_part)
+
+        for node in self.wake_model_part.Nodes:
+            node.X=20*node.X
 #
 
         ini_time=time.time()

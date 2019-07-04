@@ -12,65 +12,142 @@
 
 
 #include "define_embedded_wake_process.h"
+#include "move_model_part_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "compressible_potential_flow_application_variables.h"
+
 
 namespace Kratos
 {
 // Constructor for DefineEmbeddedWakeProcess Process
 DefineEmbeddedWakeProcess::DefineEmbeddedWakeProcess(ModelPart& rModelPart,
-                    Parameters ThisParameters
+                    ModelPart& rWakeModelPart
                 ):
     Process(),
-    mrModelPart(rModelPart)
-{
-    Parameters default_parameters = Parameters(R"(
-    {
-        "origin"                        : [0.0,0.0,0.0],
-        "rotation_point"                : [0.0,0.0,0.0],
-        "rotation_angle"                : 0.0,
-        "sizing_multiplier"             : 1.0
-
-    })" );
-    bool assign_rotation_point = false;
-    if (ThisParameters.Has("rotation_point")) {
-        assign_rotation_point = true;
-    }
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-
-    mOrigin = ThisParameters["origin"].GetVector();
-    if (assign_rotation_point){
-        mRotationPoint = ThisParameters["rotation_point"].GetVector();
-    }
-    else{
-        mRotationPoint = mOrigin;
-    }
-    mRotationAngle = ThisParameters["rotation_angle"].GetDouble();
-    mSizingMultiplier = ThisParameters["sizing_multiplier"].GetDouble();
-}
+    mrModelPart(rModelPart),
+    mrWakeModelPart(rWakeModelPart)
+{}
 
 void DefineEmbeddedWakeProcess::Execute()
 {
     KRATOS_TRY;
 
-    #pragma omp parallel for
-    for(std::size_t i = 0; i < mrModelPart.Nodes().size(); ++i) {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        auto &r_coordinates = it_node->Coordinates();
-
-        for (std::size_t i_dim = 0; i_dim<3;i_dim++){
-            r_coordinates[i_dim] = mSizingMultiplier*r_coordinates[i_dim]+mOrigin[i_dim];
-        }
-
-        if (mRotationAngle != 0.0){
-            array_1d<double, 3> old_coordinates = r_coordinates;
-            // X-Y plane rotation
-            r_coordinates[0] = mRotationPoint[0]+cos(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
-                            sin(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
-            r_coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
-                            cos(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
-        }
-    }
+    ComputeDistanceToWake();
 
     KRATOS_CATCH("");
 }
+
+
+void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
+
+    CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
+    distance_calculator.Execute();
+
+    ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
+    std::vector<std::size_t> deactivated_ids;
+
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
+        // Check if the element is touching the trailing edge
+        // CheckIfTrailingEdgeElement(*it_elem);
+
+        // Elements downstream the trailing edge can be wake elements
+        // bool potentially_wake = CheckIfPotentiallyWakeElement(*it_elem);
+
+        // if (potentially_wake) {
+            // Compute the nodal distances of the element to the wake
+            BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
+
+            // Selecting the cut (wake) elements
+            bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
+
+            // Mark wake element and save their nodal distances to the wake
+            if (is_wake_element) {
+                if (it_elem->Is(BOUNDARY)){
+                    deactivated_ids.push_back(it_elem->Id());
+                    it_elem->Set(ACTIVE, false);
+                    it_elem->Set(BOUNDARY, false);
+                }
+                else{
+                    it_elem->SetValue(WAKE, true);
+                    // it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+                    // #pragma omp critical
+                    // {
+                    //     wake_elements_ordered_ids.push_back(it_elem->Id());
+                    // }
+                    auto r_geometry = it_elem->GetGeometry();
+                    for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                        r_geometry[i].SetLock();
+                        r_geometry[i].FastGetSolutionStepValue(DISTANCE) = nodal_distances_to_wake(i);
+                        r_geometry[i].UnSetLock();
+                    }
+                }
+
+            }
+    }
+
+    deactivated_model_part.AddElements(deactivated_ids);
+
+    double max_distance = 0.0;
+
+    Node<3>::Pointer p_max_node;
+
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
+        ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
+
+        auto wake_origin = mrWakeModelPart.pGetNode(1);
+
+        for (unsigned int i_node= 0; i_node < it_elem->GetGeometry().size(); i_node++) {
+            // Compute the distance from the trailing edge to the node
+
+            Vector distance_vector(2);
+            distance_vector(0) = wake_origin -> X() - it_elem->GetGeometry()[i_node].X();
+            distance_vector(1) = wake_origin -> Y() - it_elem->GetGeometry()[i_node].Y();
+            double norm = norm_2(distance_vector);
+            if(norm>max_distance){
+                max_distance = norm;
+                p_max_node = mrModelPart.pGetNode(it_elem->GetGeometry()[i_node].Id());
+            }
+        }
+    }
+    p_max_node->SetValue(TRAILING_EDGE,true);
+    mrModelPart.RemoveSubModelPart("deactivated_model_part");
+
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
+        if (it_elem->GetValue(WAKE)){
+            for (unsigned int i_node= 0; i_node < it_elem->GetGeometry().size(); i_node++) {
+                if(it_elem->GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
+                    it_elem->Set(STRUCTURE);
+                }
+            }
+        }
+
+    }
+}
+// This function checks whether the element is cut by the wake
+const bool DefineEmbeddedWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const
+{
+    // Initialize counters
+    unsigned int number_of_nodes_with_positive_distance = 0;
+    unsigned int number_of_nodes_with_negative_distance = 0;
+
+    // Count how many element nodes are above and below the wake
+    for (unsigned int i = 0; i < rNodalDistancesToWake.size(); i++) {
+        if (rNodalDistancesToWake(i) < 0.0) {
+            number_of_nodes_with_negative_distance += 1;
+        }
+        else {
+            number_of_nodes_with_positive_distance += 1;
+        }
+    }
+
+    // Elements with nodes above and below the wake are wake elements
+    return number_of_nodes_with_negative_distance > 0 &&
+           number_of_nodes_with_positive_distance > 0;
+}
+
 }// Namespace Kratos
