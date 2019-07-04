@@ -35,7 +35,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "bead_direction"                : [],
             "bead_side"                     : "both",
             "fix_boundaries"                : [],
-            "filter_penalty_term"           : false,
             "estimated_lagrange_multiplier" : 1.0,
             "max_total_iterations"          : 10000,
             "max_outer_iterations"          : 10000,
@@ -46,7 +45,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
                 "step_size"                  : 1.0
-            }
+            },
+            "filter_penalty_term"           : false,
+            "penalty_filter_radius"         : -1.0
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -54,12 +55,17 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.optimization_settings = optimization_settings
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
+        if self.algorithm_settings["filter_penalty_term"].GetBool():
+            if self.algorithm_settings["penalty_filter_radius"].GetDouble() == -1.0:
+                raise RuntimeError("The parameter `penalty_filter_radius` is missing in order to filter the penalty term!")
+
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
 
         self.design_surface = None
         self.mapper = None
+        self.penalty_filter = None
         self.data_logger = None
         self.optimization_utilities = None
 
@@ -111,6 +117,17 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+
+        if self.filter_penalty_term:
+            penalty_filter_radius = self.algorithm_settings["penalty_filter_radius"].GetDouble()
+            filter_radius = self.mapper_settings["filter_radius"].GetDouble()
+            if abs(filter_radius - penalty_filter_radius) > 1e-9:
+                penalty_filter_settings = self.mapper_settings.Clone()
+                penalty_filter_settings["filter_radius"].SetDouble(self.algorithm_settings["penalty_filter_radius"].GetDouble())
+                self.penalty_filter = mapper_factory.CreateMapper(self.design_surface, self.design_surface, penalty_filter_settings)
+                self.penalty_filter.Initialize()
+            else:
+                self.penalty_filter = self.mapper
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
@@ -268,7 +285,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Filter penalty term if specified
                 if self.filter_penalty_term:
-                    self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
+                    self.penalty_filter.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
 
                 # Compute value of Lagrange function
                 L = objective_value + current_lambda*penalty_value + 0.5*penalty_factor*penalty_value**2
@@ -346,7 +363,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 if inner_iteration >= self.min_inner_iterations and inner_iteration >1:
                     # In the first outer iteration, the constraint is not yet active and properly scaled. Therefore, the objective is used to check the relative improvement
                     if outer_iteration == 1:
-                        if abs(self.data_logger.GetValue("rel_change_obj", total_iteration)) < self.inner_iteration_tolerance:
+                        if abs(self.data_logger.GetValues("rel_change_objective")[total_iteration]) < self.inner_iteration_tolerance:
                             break
                     else:
                         if abs(dL_relative) < self.inner_iteration_tolerance:
