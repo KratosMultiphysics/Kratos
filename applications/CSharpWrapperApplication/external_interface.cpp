@@ -75,7 +75,7 @@ void CSharpInterface::freeNodes() {
     mFixedNodes.clear();
 }
 
-void CSharpInterface::init(char* mdpaPath) {
+void CSharpInterface::init(const char* mdpaPath) {
     mKratosInternals.initInternals();
     mKratosInternals.loadMDPA(std::string(mdpaPath));
     mKratosInternals.initSolver();

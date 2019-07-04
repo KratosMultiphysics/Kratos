@@ -12,7 +12,7 @@ namespace CSharpKratosWrapper {
     class CSharpInterface {
 
     public:
-        static void init(char* mdpaPath);
+        static void init(const char* mdpaPath);
         static void updateNodePos(int nodeId, float x, float y, float z);
         static void calculate();
         static float* getXCoordinates();
