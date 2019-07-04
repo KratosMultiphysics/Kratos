@@ -4,7 +4,7 @@
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//                   license: CoSimulationApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
 //
@@ -56,7 +56,7 @@ void WaitForFile(const std::string& rFileName)
     if (EchoLevel>0) std::cout << "Waiting for file: \"" << rFileName << "\"" << std::endl;
     while(!FileExists(rFileName)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
-        if (EchoLevel>1) std::cout << "Waiting" << std::endl;
+        if (EchoLevel>1) std::cout << "    Waiting" << std::endl;
     }
     if (EchoLevel>0) std::cout << "Found file: \"" << rFileName << "\"" << std::endl;
 }
@@ -241,7 +241,61 @@ void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **node
     std::ifstream input_file(file_name);
     EMPIRE_API_helpers::CheckStream(input_file, file_name);
 
-    // read file
+    // reading file
+    std::string current_line;
+    bool nodes_read = false;
+
+    while (std::getline(input_file, current_line)) {
+        // reading nodes
+        if (current_line.find("POINTS") != std::string::npos) {
+            if (nodes_read) throw std::runtime_error("The nodes were read already!");
+            nodes_read = true;
+
+            current_line = current_line.substr(current_line.find("POINTS") + 6); // removing "POINTS"
+            std::istringstream line_stream(current_line);
+            line_stream >> *numNodes;
+
+            // allocating memory for nodes
+            // note that this has to be deleted by the client!
+            *nodes = new double[(*numNodes) * 3];
+            *nodeIDs = new int[*numNodes];
+
+            for (int i=0; i<*numNodes*3; ++i) {
+                input_file >> (*nodes)[i];
+            }
+
+            for (int i=0; i<*numNodes; ++i) {
+                (*nodeIDs)[i] = i+1; // Node Ids have an offset of 1 from Kratos to VTK
+            }
+        }
+
+        // reading elements
+        if (current_line.find("CELLS") != std::string::npos) {
+            if (!nodes_read) throw std::runtime_error("The nodes were not yet read!");
+
+            int num_nodes_per_elem, node_id, cell_list_size;
+            current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
+            std::istringstream line_stream(current_line);
+            line_stream >> *numElems;
+            line_stream >> cell_list_size;
+
+            // allocating memory for elements
+            // note that this has to be deleted by the client!
+            *numNodesPerElem = new int[*numElems];
+            *elem = new int[cell_list_size-*numElems];
+
+            int counter=0;
+            for (int i=0; i<*numElems; ++i) {
+                input_file >> num_nodes_per_elem;
+                (*numNodesPerElem)[i] = num_nodes_per_elem;
+                for (int j=0; j<num_nodes_per_elem; ++j) {
+                    input_file >> node_id;
+                    (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
+                }
+            }
+            break; // no further information reading required => CELL_TYPES are not used here
+        }
+    }
 
     EMPIRE_API_helpers::RemoveFile(file_name);
 }
