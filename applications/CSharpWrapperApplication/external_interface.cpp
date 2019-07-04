@@ -55,8 +55,8 @@ void CSharpInterface::saveNodes(MeshConverter& meshConverter) {
 void CSharpInterface::retrieveNodesPos() {
     ModelPart* skin_part = mKratosInternals.pGetSkinModelPart();
 
-#pragma omp parallel for
-    for (int i = 0; i<skin_part->Nodes().size(); ++i)
+    #pragma omp parallel for
+    for (int i = 0; i<static_cast<int>(skin_part->Nodes().size()); ++i)
     {
         auto currentNode = skin_part->NodesBegin() + i;
         int currentNodeUnityId = idTranslator.getUnityId(currentNode->Id());

@@ -12,7 +12,7 @@ void KratosInternals::initInternals() {
 
 void KratosInternals::loadMDPA(std::string mdpaPath) {
     Kratos::Model current_model;
-    pmMainModelPart = &current_model.CreateModelPart("Main");
+    pmMainModelPart = &current_model.CreateModelPart("Main", 2);
     pmMainModelPart->AddNodalSolutionStepVariable(Kratos::DISPLACEMENT);
     pmMainModelPart->AddNodalSolutionStepVariable(Kratos::REACTION);
     pmMainModelPart->AddNodalSolutionStepVariable(Kratos::VOLUME_ACCELERATION);
@@ -24,7 +24,6 @@ void KratosInternals::loadMDPA(std::string mdpaPath) {
 
     Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::HyperElasticIsotropicNeoHookean3D>();
     pmMainModelPart->GetProperties(0).SetValue(Kratos::CONSTITUTIVE_LAW, pCl);
-    pmMainModelPart->SetBufferSize(2);
 
     Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_X, Kratos::REACTION_X, *pmMainModelPart);
     Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Y, Kratos::REACTION_Y, *pmMainModelPart);
