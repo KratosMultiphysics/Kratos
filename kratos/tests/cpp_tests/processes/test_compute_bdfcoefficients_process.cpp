@@ -38,13 +38,11 @@ namespace Kratos {
         const auto &r_bdf_coefs_1 = r_model_part.GetProcessInfo()[BDF_COEFFICIENTS];
         KRATOS_CHECK_NEAR(r_bdf_coefs_1[0], 0.0, tolerance);
         KRATOS_CHECK_NEAR(r_bdf_coefs_1[1], 0.0, tolerance);
-        KRATOS_CHECK_NEAR(r_bdf_coefs_1[2], 0.0, tolerance);
 
         // Check 1st order results
         bdf_coefs_proc_1.Execute();
         KRATOS_CHECK_NEAR(r_bdf_coefs_1[0],  5.0, tolerance);
         KRATOS_CHECK_NEAR(r_bdf_coefs_1[1], -5.0, tolerance);
-        KRATOS_CHECK_NEAR(r_bdf_coefs_1[2],  0.0, tolerance);
 
         // Set second order BDF coefficients process
         ComputeBDFCoefficientsProcess bdf_coefs_proc_2(r_model_part, 2);
