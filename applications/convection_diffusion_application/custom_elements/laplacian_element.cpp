@@ -84,9 +84,11 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     Vector temp(number_of_points);
 
     Vector heat_flux_local(number_of_points);
+    Vector nodal_conductivity(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         heat_flux_local[node_element] = r_geometry[node_element].FastGetSolutionStepValue(HEAT_FLUX);
+        nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(CONDUCTIVITY);
     }
 
     r_geometry.Jacobian(J0);
@@ -100,11 +102,12 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
 
+        auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
-        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
+        const double conductivity_gauss = inner_prod(N, nodal_conductivity);
+        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity_gauss * prod(DN_DX, trans(DN_DX)); //
 
         // Calculating the local RHS
-        auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
         const double qgauss = inner_prod(N, heat_flux_local);
 
         noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
