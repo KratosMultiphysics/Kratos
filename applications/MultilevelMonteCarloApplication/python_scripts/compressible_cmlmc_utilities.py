@@ -717,7 +717,7 @@ class MultilevelMonteCarlo(object):
         current_analysis = self.analysis
         different_tasks = not self.settings["tasks_refinement_sample_all_at_once"].GetBool()
         # generate the sample
-        sample = generator.GenerateSample()
+        sample = generator.GenerateSample(self.problem_name)
         # initialize the MultilevelMonteCarloResults class
         mlmc_results = MultilevelMonteCarloResults(current_MLMC_level)
         if (current_MLMC_level == 0):
@@ -748,7 +748,7 @@ class MultilevelMonteCarlo(object):
     def ExecuteInstanceSingleRefinement(self,current_MLMC_level):
         current_analysis = self.analysis
         # generate the sample
-        sample = generator.GenerateSample()
+        sample = generator.GenerateSample(self.problem_name)
         # initialize the MultilevelMonteCarloResults class
         mlmc_results = MultilevelMonteCarloResults(current_MLMC_level)
         if (current_MLMC_level == 0):
@@ -809,6 +809,8 @@ class MultilevelMonteCarlo(object):
     def SerializeModelParametersConcurrentAdaptiveRefinement(self):
         with open(self.project_parameters_path,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # save problem name
+        self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         # serialize parmeters (to avoid adding new data dependent on the application)
         parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
@@ -818,7 +820,7 @@ class MultilevelMonteCarlo(object):
         parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
-        fake_sample = generator.GenerateSample() # only used to serialize
+        fake_sample = generator.GenerateSample(self.problem_name) # only used to serialize
         simulation = self.analysis(model,parameters,fake_sample)
         simulation.Initialize()
         # reset general flags
@@ -844,7 +846,7 @@ class MultilevelMonteCarlo(object):
         pickled_custom_remesh_refinement_parameters = self.pickled_custom_remesh_refinement_parameters
         current_analysis = self.analysis
         # generate the sample and prepare mlmc result class
-        fake_sample = generator.GenerateSample()
+        fake_sample = generator.GenerateSample(self.problem_name)
         fake_mlmc_results = MultilevelMonteCarloResults(number_levels_to_serialize)
         for current_level in range(number_levels_to_serialize+1):
             fake_mlmc_results,pickled_current_model = \
