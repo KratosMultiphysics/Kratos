@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "custom_elements/laplacian_element.h"
 
@@ -157,6 +158,24 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
     {
         ElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
     }
+}
+
+//************************************************************************************
+//************************************************************************************
+int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geom = GetGeometry();
+    for (unsigned int i = 0; i < r_geom.PointsNumber(); i++)
+    {
+        const auto& r_node = r_geom[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEAT_FLUX, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(CONDUCTIVITY, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE, r_node);
+    }
+
+    return Element::Check(rCurrentProcessInfo);
 }
 
 } // Namespace Kratos
