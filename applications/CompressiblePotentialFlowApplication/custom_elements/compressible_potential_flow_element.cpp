@@ -151,7 +151,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Proce
     if (wake != 0 && active == true)
     {
         CheckWakeCondition();
-        ComputePotentialJump(rCurrentProcessInfo);
+        // ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
 }

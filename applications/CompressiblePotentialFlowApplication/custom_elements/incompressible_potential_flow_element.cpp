@@ -149,7 +149,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
     if (wake != 0 && active == true)
     {
         CheckWakeCondition();
-        ComputePotentialJump(rCurrentProcessInfo);
+        // ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
 }
