@@ -24,6 +24,8 @@
 namespace Kratos {
 namespace Python {
 
+namespace { // helpers namespace
+
 template<bool TIsDataField>
 void Wrapper_SendArray(char* name, int sizeOfArray, std::vector<double> signal)
 {
@@ -273,6 +275,8 @@ void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart, const bool UseConditions
     delete [] numNodesPerElem;
     delete [] elem;
 }
+
+} // helpers namespace
 
 void  AddCustomIOToPython(pybind11::module& m)
 {
