@@ -160,7 +160,7 @@ void Wrapper_EMPIRE_API_recvDataField_doubleVector(ModelPart& rModelPart, const 
     std::vector<double> values(size);
 
     const std::string name = rVariable1.Name() + rVariable2.Name();
-    EMPIRE_API_sendDataField(const_cast<char*>(name.c_str()), size, &values[0]);
+    EMPIRE_API_recvDataField(const_cast<char*>(name.c_str()), size, &values[0]);
 
     std::size_t counter=0;
     for (auto& r_node : rModelPart.Nodes()) {
