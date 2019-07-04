@@ -53,7 +53,7 @@ for normalvar in range(normal_combs):
         normalvarstring = "true"
 
     if normalvar == 1:
-        lhs_template_begin_string += "   const array_1d<BoundedMatrix<double, TNumNodes, TDim>,  (TNumNodes * TDim)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;\n\n"
+        lhs_template_begin_string += "    const array_1d<BoundedMatrix<double, TNumNodes, TDim>, SIZEDERIVATIVES1>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;\n\n"
 
     for dim, nnodes, nnodes_master in zip(dim_combinations, nnodes_combinations, nnodes_master_combinations):
 
@@ -141,7 +141,7 @@ for normalvar in range(normal_combs):
             Dw1Mw2 = DOperator * w1 - MOperator * w2
 
             for node in range(nnodes):
-                NormalGap[node] = Dx1Mx2.row(node).dot(NormalSlave.row(node))
+                NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
 
             # Define dofs & test function vector
             dofs = sympy.Matrix( sympy.zeros(number_dof, 1) )
@@ -178,7 +178,7 @@ for normalvar in range(normal_combs):
                 if active == 1:
                     augmented_lm = (ScaleFactor * LM.row(node) + PenaltyParameter[node] * NormalGap[node] * NormalSlave.row(node))
                     rv_galerkin += DynamicFactor[node] * (augmented_lm).dot(Dw1Mw2.row(node))
-                    rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
+                    rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
                     rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
                 else:
                     rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
@@ -227,6 +227,7 @@ for normalvar in range(normal_combs):
             lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
             lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
             lhs_string = lhs_string.replace("TNormalVariation", normalvarstring)
+            lhs_string = lhs_string.replace("SIZEDERIVATIVES1", str(((nnodes) * dim)))
             lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(((nnodes + nnodes_master) * dim)))
 
             rhs_string = rhs_string.replace("TDim", str(dim))
