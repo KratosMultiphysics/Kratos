@@ -248,18 +248,19 @@ namespace Kratos
         const unsigned int &rConditionId,
         const Properties::Pointer pConditionProperties)
     {
-        const auto &r_condition = KratosComponents<Condition>::Get(this->GetConditionType());
         auto p_new_geom = this->pCreateNewConditionGeometry(rOriginGeometryType, rNewNodesArray);
-        return r_condition.Create(rConditionId, p_new_geom, pConditionProperties);
+        return mrConditionPrototype.Create(rConditionId, p_new_geom, pConditionProperties);
     }
 
     template<>
-    const std::string EmbeddedSkinUtility<2>::GetConditionType() const {
+    const std::string EmbeddedSkinUtility<2>::GetConditionType()
+    {
         return "Condition2D2N";
     }
 
     template<>
-    const std::string EmbeddedSkinUtility<3>::GetConditionType() const {
+    const std::string EmbeddedSkinUtility<3>::GetConditionType()
+    {
         return "SurfaceCondition3D3N";
     }
 
@@ -305,16 +306,16 @@ namespace Kratos
         const auto &r_geom = rElement.GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
 
-        if (mLevelSetType == "continuous"){
+        if (mLevelSetType == LevelSetTypeEnum::Continuous) {
             // Continuous nodal distance function case
             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                 nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
             }
-        } else if (mLevelSetType == "discontinuous") {
+        } else if (mLevelSetType == LevelSetTypeEnum::Discontinuous) {
             // Discontinuous elemental distance function case
             nodal_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
         } else {
-            KRATOS_ERROR << "Level set type must be either 'continuous' or 'discontinuous'. Got " << mLevelSetType;
+            KRATOS_ERROR << "Level set type must be either \'continuous\' or \'discontinuous\'";
         }
 
         return nodal_distances;
@@ -348,8 +349,8 @@ namespace Kratos
         const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
 
         // Return the modified shape functions utility
-        if (mLevelSetType == "continuous"){
-            switch (geometry_type){
+        if (mLevelSetType == LevelSetTypeEnum::Continuous) {
+            switch (geometry_type) {
                 case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
                     return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
                 case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
@@ -357,8 +358,8 @@ namespace Kratos
                 default:
                     KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
             }
-        } else if (mLevelSetType == "discontinuous"){
-            switch (geometry_type){
+        } else if (mLevelSetType == LevelSetTypeEnum::Discontinuous) {
+            switch (geometry_type) {
                 case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
                     return Kratos::make_unique<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
                 case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
@@ -367,7 +368,7 @@ namespace Kratos
                     KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
             }
         } else {
-            KRATOS_ERROR << "Level set type must be either 'continuous' or 'discontinuous'. Got " << mLevelSetType;
+            KRATOS_ERROR << "Level set type must be either \'continuous\' or \'discontinuous\'.";
         }
     }
 

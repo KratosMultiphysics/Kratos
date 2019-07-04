@@ -78,6 +78,16 @@ public:
         SharedPointerComparator<Node<3>::Pointer> > EdgeNodesMapType;
 
     ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum LevelSetTypeEnum
+    {
+        Continuous = 1,
+        Discontinuous = 2
+    };
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -89,11 +99,12 @@ public:
         const std::vector<std::string> InterpolatedSkinVariables = {}) :
         mrModelPart(rModelPart),
         mrSkinModelPart(rSkinModelPart),
-        mLevelSetType(LevelSetType),
+        mLevelSetType(LevelSetType == "continuous" ? Continuous : Discontinuous),
+        mrConditionPrototype(KratosComponents<Condition>::Get(this->GetConditionType())),
         mInterpolatedSkinVariables(InterpolatedSkinVariables) {};
 
     /// Destructor.
-    virtual ~EmbeddedSkinUtility() {};
+    virtual ~EmbeddedSkinUtility() = default;
 
     ///@}
     ///@name Operators
@@ -191,7 +202,8 @@ private:
     ModelPart &mrModelPart;
     ModelPart &mrSkinModelPart;
     EdgeNodesMapType mEdgeNodesMap;
-    const std::string mLevelSetType;
+    const LevelSetTypeEnum mLevelSetType;
+    const Condition &mrConditionPrototype;
     std::vector<std::string> mInterpolatedSkinVariables;
 
     ///@}
@@ -372,7 +384,7 @@ private:
      * the condition type name (Condition2D2N or SurfaceCondition3D3N)
      * @return std::sting condition type name
      */
-    const inline std::string GetConditionType() const;
+    static const std::string GetConditionType();
 
     /**
      * @brief Set the Skin Entities Properties
@@ -439,7 +451,6 @@ private:
     EmbeddedSkinUtility(EmbeddedSkinUtility const& rOther) = delete;
 
     ///@}
-
 }; // Class EmbeddedSkinUtility
 
 ///@}
