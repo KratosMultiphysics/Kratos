@@ -5,9 +5,10 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 
+from KratosMultiphysics.IncompressibleFluidApplication import new_restart_utilities
+
 def WriteFluidMdpa( filename, model_part, element_name, condition_name):
         restart_file = open(filename + ".mdpa", 'w')
-        import new_restart_utilities
         new_restart_utilities.PrintProperties(restart_file)
         new_restart_utilities.PrintNodes(model_part.Nodes, restart_file)
         new_restart_utilities.PrintElements(element_name,model_part.Elements, restart_file)
