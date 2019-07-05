@@ -29,12 +29,6 @@ namespace Kratos
         const int domain_size = r_current_process_info[DOMAIN_SIZE];
         KRATOS_ERROR_IF(domain_size != 2) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
-        // Reading the reference chord from the parameters
-        mReferenceChord = ResponseSettings["reference_chord"].GetDouble();
-        const double eps = std::numeric_limits<double>::epsilon();
-        KRATOS_ERROR_IF(mReferenceChord < eps)
-            << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
-
         // Get pointer to element that contains the traced node
         this->GetNeighboringElementPointer();
     }
@@ -56,9 +50,8 @@ namespace Kratos
             {
                 double potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-                double potential_jump = std::abs(potential - aux_potential);
 
-                lift_coefficient = 2.0 * potential_jump / (free_stream_velocity_norm * mReferenceChord);
+                lift_coefficient = 2.0 / free_stream_velocity_norm * std::abs(potential - aux_potential);
             }
         }
 
@@ -81,7 +74,7 @@ namespace Kratos
         {
             const array_1d<double, 3> v_inf = rProcessInfo.GetValue(FREE_STREAM_VELOCITY);
             double v_norm = norm_2(v_inf);
-            double derivative = 2.0 / (v_norm * mReferenceChord);
+            double derivative = 2.0/v_norm;
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();
             for(IndexType i = 0; i < NumNodes; ++i)
             {

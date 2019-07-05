@@ -95,12 +95,11 @@ def GetDefaultInputParameters():
         "stationarity" : {
             "stationary_problem_option" : false,
             "stationary_problem_option_comment" : " stationary, stop calculating the fluid after it reaches the stationary state",
-            "tolerance" : 1e-3,
-            "tolerance_comment": " fraction of the historically-averaged, spatial-averaged time derivative of the pressure that is considered significant",
+            "max_pressure_variation_rate_tol" : 1e-3,
+            "max_pressure_variation_rate_tol_comment": " for stationary problems, criterion to stop the fluid calculations",
             "time_steps_per_stationarity_step" : 15,
-            "time_steps_per_stationarity_step_comment" : " number of fluid time steps between consecutive assessment of stationarity steps",
-            "time_steps_per_analytic_processing_step" : 1,
-            "time_steps_before_first_assessment" : 4
+            "time_steps_per_stationarity_step_comment": " number of fluid time steps between consecutive assessment of stationarity steps",
+            "time_steps_per_analytic_processing_step": 1
         },
 
         "debug_tool_cycle" : 10,

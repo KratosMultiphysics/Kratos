@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-# This module contains the class AndersonConvergenceAccelerator
+# This module contains the class Anderson
 # Author: Andreas Winterstein
 # Date: Jul. 2018
 
@@ -15,12 +15,10 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
-    cs_tools.SettingsTypeCheck(settings)
-    raise NotImplementedError("This class needs some updates see MVQN and Aitken")
-    return AndersonConvergenceAccelerator(settings, solver_wrapper)
+def Create(settings, solvers, cosim_solver_details):
+    return Anderson(settings, solvers, cosim_solver_details)
 
-class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
+class Anderson(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param iteration_horizon number of values to be stored of last iterations.
     # @param alpha Relaxation factor for computing the update.
@@ -28,7 +26,7 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
     # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
     def __init__( self, settings, solvers, cosim_solver_details ):
-        super(AndersonConvergenceAccelerator, self).__init__(settings, solvers, cosim_solver_details)
+        super(Anderson, self).__init__(settings, solvers, cosim_solver_details)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:

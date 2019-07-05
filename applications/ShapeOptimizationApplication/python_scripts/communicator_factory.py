@@ -25,13 +25,8 @@ class Communicator:
         self.supported_constraint_types = ["=", "<", ">", "<=", ">="]
         self.supported_constraint_references = ["initial_value", "specified_value"]
 
-        objective_settings = self.__ExtractResponseSettingsRecursively(optimization_settings["objectives"])
-        constraint_settings = self.__ExtractResponseSettingsRecursively(optimization_settings["constraints"])
-        all_response_settings = objective_settings + constraint_settings
-
-        self.list_of_requests = self.__initializeListOfRequests(all_response_settings)
-        self.list_of_responses = self.__initializeListOfObjectives(objective_settings)
-        self.list_of_responses.update(self.__initializeListOfConstraints(constraint_settings))
+        self.__initializeListOfRequests()
+        self.__initializeListOfResponses()
 
     # --------------------------------------------------------------------------
     def initializeCommunication(self):
@@ -105,80 +100,60 @@ class Communicator:
         return self.list_of_responses[response_id]["standardized_gradient"]
 
     # --------------------------------------------------------------------------
-    @classmethod
-    def __ExtractResponseSettingsRecursively(cls, response_settings):
-        list_of_settings = []
+    def __initializeListOfRequests(self):
+        self.list_of_requests = {}
 
-        for itr in range(response_settings.size()):
-            response_i = response_settings[itr]
-            if response_i.Has("is_combined"):
-                if response_i["is_combined"].GetBool():
-                    list_of_settings += cls.__ExtractResponseSettingsRecursively(response_i["combined_responses"])
+        for objective_number in range(self.optimization_settings["objectives"].size()):
+            objective_id = self.optimization_settings["objectives"][objective_number]["identifier"].GetString()
+            self.list_of_requests[objective_id] = {"calculateValue": False, "calculateGradient": False}
 
-            list_of_settings += [response_i]
-
-        return list_of_settings
+        for constraint_number in range(self.optimization_settings["constraints"].size()):
+            constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
+            self.list_of_requests[constraint_id] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
-    @classmethod
-    def __initializeListOfRequests(cls, response_settings):
-        list_of_requests = {}
-
-        for response in response_settings:
-            response_id = response["identifier"].GetString()
-            list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False}
-
-        return list_of_requests
+    def __initializeListOfResponses(self):
+        self.list_of_responses = {}
+        self.__addObjectivesToListOfResponses()
+        self.__addConstraintsToListOfResponses()
 
     # --------------------------------------------------------------------------
-    def __initializeListOfObjectives(self, objective_settings):
-        list_of_objectives = {}
-
-        for objective in objective_settings:
+    def __addObjectivesToListOfResponses(self):
+        for objective_number in range(self.optimization_settings["objectives"].size()):
+            objective = self.optimization_settings["objectives"][objective_number]
             objective_id =  objective["identifier"].GetString()
 
             if objective["type"].GetString() not in self.supported_objective_types:
                 raise RuntimeError("Unsupported type defined for the following objective: " + objective_id)
 
-            list_of_objectives[objective_id] = { "type"                 : objective["type"].GetString(),
-                                                 "value"                : None,
-                                                 "scaling_factor"       : objective["scaling_factor"].GetDouble(),
-                                                 "standardized_value"   : None,
-                                                 "standardized_gradient": None }
-
-        return list_of_objectives
+            self.list_of_responses[objective_id] = { "type"                 : objective["type"].GetString(),
+                                                     "value"                : None,
+                                                     "standardized_value"   : None,
+                                                     "standardized_gradient": None }
 
     # --------------------------------------------------------------------------
-    def __initializeListOfConstraints(self, constraint_settings):
-        list_of_constraints = {}
-
-        for constraint in constraint_settings:
-            constraint_id = constraint["identifier"].GetString()
+    def __addConstraintsToListOfResponses(self):
+        for constraint_number in range(self.optimization_settings["constraints"].size()):
+            constraint = self.optimization_settings["constraints"][constraint_number]
+            constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
 
             if constraint["type"].GetString() not in self.supported_constraint_types:
                 raise RuntimeError("Unsupported type defined for the following constraint: " + constraint_id)
 
-            if constraint["reference"].GetString() not in self.supported_constraint_references:
-                raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
-
             if  constraint["reference"].GetString() == "specified_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
-                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
                                                           "reference_value"      : constraint["reference_value"].GetDouble() }
             elif constraint["reference"].GetString() == "initial_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
                                                           "value"                : None,
-                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
                                                           "standardized_value"   : None,
                                                           "standardized_gradient": None,
-                                                          "reference_value"      : None }
+                                                          "reference_value"      : "waiting_for_initial_value" }
             else:
                 raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
-
-        return list_of_constraints
 
     # --------------------------------------------------------------------------
     def __deleteAllRequests(self):
@@ -196,13 +171,10 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __isResponseWaitingForInitialValueAsReference(self, response_id):
         response = self.list_of_responses[response_id]
-        is_reference_defined = "reference" in response
-        if is_reference_defined:
-            is_reference_initial_value = (response["reference"].GetString() == "initial_value")
-            is_reference_value_missing = (response["reference_value"] is None)
-            if is_reference_initial_value and is_reference_value_missing:
-                return True
-        return False
+        if "reference_value" in response and response["reference_value"] == "waiting_for_initial_value":
+            return True
+        else:
+            return False
 
     # --------------------------------------------------------------------------
     def __setValueAsReference(self, response_id, value):
@@ -210,35 +182,24 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __translateValueToStandardForm(self, response_id, value):
-        response_type = self.list_of_responses[response_id]["type"]
-        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
-
+        response = self.list_of_responses[response_id]
+        response_type = response["type"]
         if response_type in self.supported_objective_types:
             if response_type == "maximization":
-                return -scaling_factor*value
+                return -value
             else:
-                return scaling_factor*value
+                return value
         else:
-            reference_value = self.list_of_responses[response_id]["reference_value"]
-
             if response_type == ">" or response_type == ">=":
-                return scaling_factor*(reference_value-value)
+                return (response["reference_value"]-value)
             else:
-                return scaling_factor*(value-reference_value)
+                return (value-response["reference_value"])
 
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm(self, response_id, gradient):
         response_type = self.list_of_responses[response_id]["type"]
-        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
-
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
-            scaling_factor *= -1
-
-        for vector in gradient.values():
-            vector[0] *= scaling_factor
-            vector[1] *= scaling_factor
-            vector[2] *= scaling_factor
-
+            gradient.update({key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()})
         return gradient
 
     # --------------------------------------------------------------------------

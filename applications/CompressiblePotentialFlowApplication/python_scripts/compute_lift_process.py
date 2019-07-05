@@ -23,6 +23,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
+            "reference_area": 1.0,
             "moment_reference_point" : [0.0,0.0,0.0]
         }''')
 
@@ -30,7 +31,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
+        self.reference_area =  settings["reference_area"].GetDouble()
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
 
         if not self.reference_area > 0.0:
@@ -68,7 +69,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' RZ = ', force_coefficient[2])
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient[2])
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = ( 2 * DPhi ) / ( U_inf * c )')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
@@ -91,7 +92,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
-        self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/ ( u_inf * self.reference_area )
+        self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/u_inf
 
     def __CalculateWakeTangentAndNormalDirections(self):
         self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)

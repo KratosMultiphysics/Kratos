@@ -93,26 +93,6 @@ void InterpolateMeshVariableToSkinArray(
     rEmbeddedSkinUtility.InterpolateMeshVariableToSkin(rVariable, rEmbeddedVariable);
 }
 
-template<std::size_t TDim>
-void InterpolateDiscontinuousMeshVariableToSkinDouble(
-    EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
-    const Variable<double> &rVariable,
-    const Variable<double> &rEmbeddedVariable,
-    const std::string &rInterfaceSide)
-{
-    rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
-}
-
-template<std::size_t TDim>
-void InterpolateDiscontinuousMeshVariableToSkinArray(
-    EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
-    const Variable<array_1d<double,3>> &rVariable,
-    const Variable<array_1d<double,3>> &rEmbeddedVariable,
-    const std::string &rInterfaceSide)
-{
-    rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
-}
-
 // Auxiliar ModelPart Utility
 void ModelPartRemoveElementAndBelongings1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag)
 {
@@ -227,30 +207,7 @@ void VariableUtilsUpdateCurrentPositionWithVariable(
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
 }
 
-template<class TVarType>
-void VariableUtilsCopyModelPartNodalVar(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartNodalVar(rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
-}
-
-template<class TVarType>
-void VariableUtilsCopyModelPartNodalVarWithDestination(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TVarType &rDestinationVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
-}
-
-void AddUtilitiesToPython(pybind11::module &m)
+void AddUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
@@ -300,22 +257,14 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<bool>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<double>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,3>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,4>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,6>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,9>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Vector>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Matrix>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<bool>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<double>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,3>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,4>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,6>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,9>>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<Vector>>)
-        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<Matrix>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<bool>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<double>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,3>>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,4>>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,6>>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,9>>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<Vector>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<Matrix>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<bool>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<double>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<array_1d<double,3>>>)
@@ -684,8 +633,6 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinArray< 2 > )
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 2 > )
-        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinArray< 2 > )
-        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinDouble< 2 > )
         ;
 
     py::class_< EmbeddedSkinUtility <3 > >(m,"EmbeddedSkinUtility3D")
@@ -693,8 +640,6 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("GenerateSkin", &EmbeddedSkinUtility < 3 > ::GenerateSkin)
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinArray< 3 > )
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 3 > )
-        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinArray< 3 > )
-        .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinDouble< 3 > )
         ;
 
     py::class_< GeometryTesterUtility>(m,"GeometryTesterUtility")

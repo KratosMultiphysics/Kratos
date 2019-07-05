@@ -67,20 +67,26 @@ void SkinDetectionProcess<TDim>::Execute()
         if (element_is_active) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
-            const auto r_boundary_geometries = r_geometry.GenerateBoundariesEntities();
-            const SizeType potential_number_neighbours = r_boundary_geometries.size();
+            const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
 
             for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
                 /* FACES/EDGES */
-                const SizeType number_nodes = r_boundary_geometries[i_face].size();
+                const SizeType number_nodes = TDim == 2 ? r_geometry.Edges()[i_face].size() : r_geometry.Faces()[i_face].size();
                 VectorIndexType vector_ids(number_nodes);
                 VectorIndexType ordered_vector_ids(number_nodes);
 
                 /* FACE/EDGE */
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = r_boundary_geometries[i_face][i_node].Id();
-                    ordered_vector_ids[i_node] = vector_ids[i_node];
+                if (TDim == 2) {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Edges()[i_face][i_node].Id();
+                        ordered_vector_ids[i_node] = vector_ids[i_node];
+                    }
+                } else {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Faces()[i_face][i_node].Id();
+                        ordered_vector_ids[i_node] = vector_ids[i_node];
+                    }
                 }
 
                 /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
@@ -111,18 +117,23 @@ void SkinDetectionProcess<TDim>::Execute()
         if (element_is_active) {
             GeometryType& r_geometry = it_elem->GetGeometry();
 
-            const auto r_boundary_geometries = r_geometry.GenerateBoundariesEntities();
-            const SizeType potential_number_neighbours = r_boundary_geometries.size();
+            const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
 
             for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
                 /* FACES/EDGES */
-                const SizeType number_nodes = r_boundary_geometries[i_face].size();
+                const SizeType number_nodes = TDim == 2 ? r_geometry.Edges()[i_face].size() : r_geometry.Faces()[i_face].size();
                 VectorIndexType vector_ids(number_nodes);
 
                 /* FACE/EDGE */
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = r_boundary_geometries[i_face][i_node].Id();
+                if (TDim == 2) {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Edges()[i_face][i_node].Id();
+                    }
+                } else {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Faces()[i_face][i_node].Id();
+                    }
                 }
 
                 /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
@@ -288,6 +299,26 @@ void SkinDetectionProcess<TDim>::Execute()
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType SkinDetectionProcess<2>::ComputePotentialNeighboursSize(ElementsIteratorType itElem)
+{
+    const auto& geometry = itElem->GetGeometry();
+    return geometry.EdgesNumber();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType SkinDetectionProcess<3>::ComputePotentialNeighboursSize(ElementsIteratorType itElem)
+{
+    const auto& geometry = itElem->GetGeometry();
+    return geometry.FacesNumber();
 }
 
 /***********************************************************************************/

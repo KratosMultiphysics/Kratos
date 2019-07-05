@@ -56,12 +56,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @brief Auxiliary class to compute the BDF coefficients
- * This class computes the BDF coefficients for the time step values stored
- * in the ProcessInfo. It is valid for 1st and 2nd order BDF schemes and for
- * non-constant delta time values.
- */
+/// Short class definition.
+/** Detail class definition.
+	calculate the nodal H for all the nodes depending on the min distance
+	of the neighbouring nodes.
+
+	lonely nodes are given the average value of the H
+*/
+
 class ComputeBDFCoefficientsProcess
     : public Process
 {
@@ -80,18 +82,13 @@ public:
     ComputeBDFCoefficientsProcess(ModelPart& model_part, unsigned int time_order)
         : mr_model_part(model_part), mtime_order(time_order)
     {
-        KRATOS_ERROR_IF(mtime_order == 0 || mtime_order > 2) << "Time order must be either \'1\' or \'2\'. Got " << mtime_order << std::endl;
-        mr_model_part.GetProcessInfo()[BDF_COEFFICIENTS] = ZeroVector(mtime_order + 1);
     }
 
     /// Destructor.
-    ~ComputeBDFCoefficientsProcess() = default;
+    ~ComputeBDFCoefficientsProcess() override
+    {
+    }
 
-    /// Assignment operator.
-    ComputeBDFCoefficientsProcess &operator=(ComputeBDFCoefficientsProcess const &rOther) = delete;
-
-    /// Copy constructor.
-    ComputeBDFCoefficientsProcess(ComputeBDFCoefficientsProcess const& rOther) = delete;
 
     ///@}
     ///@name Operators
@@ -102,6 +99,7 @@ public:
         Execute();
     }
 
+
     ///@}
     ///@name Operations
     ///@{
@@ -110,15 +108,15 @@ public:
     void Execute() override
     {
         KRATOS_TRY
-
+        
         ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
-
+        
         if (mtime_order == 2)
         {
             //calculate the BDF coefficients
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
+            
             if(OldDt > 1e-10*Dt) //this should always be the case!!
             {
                 double Rho = OldDt / Dt;
@@ -158,6 +156,7 @@ public:
         KRATOS_CATCH("")
     }
 
+
     ///@}
     ///@name Access
     ///@{
@@ -184,12 +183,56 @@ public:
         rOStream << "ComputeBDFCoefficientsProcess";
     }
 
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+
     ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -198,14 +241,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
     ModelPart& mr_model_part;
     const unsigned int mtime_order;
 
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -226,8 +267,15 @@ private:
     ///@name Un accessible methods
     ///@{
 
+    /// Assignment operator.
+    ComputeBDFCoefficientsProcess& operator=(ComputeBDFCoefficientsProcess const& rOther);
+
+    /// Copy constructor.
+    //ComputeBDFCoefficientsProcess(ComputeBDFCoefficientsProcess const& rOther);
+
 
     ///@}
+
 }; // Class ComputeBDFCoefficientsProcess
 
 ///@}
@@ -260,4 +308,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_BDF_COEFFICIENTS_PROCESS_INCLUDED  defined
+#endif // KRATOS_COMPUTE_BDF_COEFFICIENTS_PROCESS_INCLUDED  defined 
+
+
