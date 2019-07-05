@@ -20,8 +20,8 @@
 
 // Project includes
 #include "containers/array_1d.h"
-#include "includes/ublas_interface.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -61,7 +61,8 @@ inline void CalculateStabilizationTau(double& rTau,
                                       const double EffectiveKinematicViscosity,
                                       const double Alpha,
                                       const double Gamma,
-                                      const double DeltaTime)
+                                      const double DeltaTime,
+                                      const double DynamicTau)
 {
     unsigned int dim = rContravariantMetricTensor.size2();
     const Vector& velocity = RansCalculationUtilities().GetVector(rVelocity, dim);
@@ -85,7 +86,8 @@ inline void CalculateStabilizationTau(double& rTau,
     const double stab_convection = std::pow(2.0 * norm_2(rVelocity) / rElementLength, 2);
     const double stab_diffusion = std::pow(
         12.0 * EffectiveKinematicViscosity / (rElementLength * rElementLength), 2);
-    const double stab_dynamics = std::pow((1 - Alpha) / (Gamma * DeltaTime), 2);
+    const double stab_dynamics =
+        std::pow(DynamicTau * (1 - Alpha) / (Gamma * DeltaTime), 2);
     const double stab_reaction = std::pow(Reaction, 2);
 
     rTau = 1.0 / std::sqrt(stab_dynamics + stab_convection + stab_diffusion + stab_reaction);
@@ -101,9 +103,11 @@ inline void CalculateCrossWindDiffusionParameters(double& rChi,
                                                   const double Alpha,
                                                   const double Gamma,
                                                   const double DeltaTime,
-                                                  const double ElementLength)
+                                                  const double ElementLength,
+                                                  const double DynamicTau)
 {
-    const double reaction_dynamics = Reaction + (1 - Alpha) / (Gamma * DeltaTime);
+    const double reaction_dynamics =
+        Reaction + DynamicTau * (1 - Alpha) / (Gamma * DeltaTime);
 
     rChi = 2.0 / (std::abs(reaction_dynamics) * ElementLength + 2.0 * VelocityMagnitude);
 
