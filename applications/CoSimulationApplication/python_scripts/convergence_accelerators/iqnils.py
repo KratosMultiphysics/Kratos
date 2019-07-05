@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 ## @module iqnils
-# This module contains the class IQNILS
+# This module contains the class IQNILSConvergenceAccelerator
 # Author: Wei He
 # Date: Feb. 20, 2017
 
@@ -18,19 +18,20 @@ from copy import deepcopy
 from collections import deque
 
 def Create(settings, solver_wrapper):
-    raise NotImplementedError("FIXME_needs_some_minor_updates_see_aitken_and_MVQN")
-    return IQNILS(settings, solver_wrapper)
+    cs_tools.SettingsTypeCheck(settings)
+    raise NotImplementedError("This class needs some updates see MVQN and Aitken")
+    return IQNILSConvergenceAccelerator(settings, solver_wrapper)
 
-## Class IQNILS.
+## Class IQNILSConvergenceAccelerator.
 # This class contains the implementation of the IQN-ILS method and helper functions.
 # Reference: Joris Degroote, PhD thesis "Development of algorithms for the partitioned simulation of strongly coupled fluid-structure interaction problems", 84-91.
-class IQNILS(CoSimulationConvergenceAccelerator):
+class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings, solver_wrapper):
-        super(IQNILS, self).__init__(settings, solver_wrapper)
+        super(IQNILSConvergenceAccelerator, self).__init__(settings, solver_wrapper)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:
