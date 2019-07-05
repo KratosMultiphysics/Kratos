@@ -12,7 +12,8 @@ namespace CSharpKratosWrapper {
     class CSharpInterface {
 
     public:
-        static void init(const char* mdpaPath);
+        static void init(const char* MDPAFilePath, const char* JSONFilePath = NULL);
+        static void initWithSettings(const char* JSONFilePath = NULL);
         static void updateNodePos(const int nodeId, const float x, const float y, const float z);
         static void calculate();
         static float* getXCoordinates();

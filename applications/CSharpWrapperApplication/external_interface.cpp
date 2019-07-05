@@ -77,15 +77,67 @@ void CSharpInterface::freeNodes() {
     mFixedNodes.clear();
 }
 
-void CSharpInterface::init(const char* mdpaPath) {
+void CSharpInterface::init(const char* MDPAFilePath, const char* JSONFilePath) {
+    // Init internals
     mKratosInternals.initInternals();
-    mKratosInternals.loadMDPA(std::string(mdpaPath));
 
+    // Load settings
+    const std::string json_file_name = JSONFilePath != NULL ? std::string(JSONFilePath) : "";
+    mKratosInternals.loadSettingsParameters(json_file_name);
+
+    // Init model part
+    mKratosInternals.initModelPart();
+
+    // Load MDPA file
+    mKratosInternals.loadMDPA(std::string(MDPAFilePath));
+
+    // Init dofs
+    mKratosInternals.initDofs();
+
+    // Read properties and materials
+    mKratosInternals.initProperties();
+
+    // Init solver
     mKratosInternals.initSolver();
 
+    // Calling mesh converted
     MeshConverter meshConverter;
     meshConverter.ProcessMesh(mKratosInternals.GetMainModelPart().ElementsArray());
 
+    // Save mesh
+    saveNodes(meshConverter);
+    saveTriangles(meshConverter);
+}
+
+void CSharpInterface::initWithSettings(const char* JSONFilePath) {
+    // Init internals
+    mKratosInternals.initInternals();
+
+    // Load settings
+    const std::string json_file_name = JSONFilePath != NULL ? std::string(JSONFilePath) : "";
+    mKratosInternals.loadSettingsParameters(json_file_name);
+
+    // Init model part
+    mKratosInternals.initModelPart();
+
+    // Load MDPA file
+    const auto setting = mKratosInternals.GetSettings();
+    mKratosInternals.loadMDPA(setting["solver_settings"]["model_import_settings"]["input_filename"].GetString());
+
+    // Init dofs
+    mKratosInternals.initDofs();
+
+    // Read properties and materials
+    mKratosInternals.initProperties();
+
+    // Init solver
+    mKratosInternals.initSolver();
+
+    // Calling mesh converted
+    MeshConverter meshConverter;
+    meshConverter.ProcessMesh(mKratosInternals.GetMainModelPart().ElementsArray());
+
+    // Save mesh
     saveNodes(meshConverter);
     saveTriangles(meshConverter);
 }
