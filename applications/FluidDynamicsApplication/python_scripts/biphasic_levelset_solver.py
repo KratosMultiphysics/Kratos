@@ -2,12 +2,12 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # -*- coding: utf-8 -*-
 # importing the Kratos Library
 from KratosMultiphysics import *
-# from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 
+import KratosMultiphysics.ConvectionDiffusionApplication
 import pureconvection_solver
 import thermal_solver
 import monolithic_solver_eulerian
