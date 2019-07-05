@@ -31,10 +31,10 @@ class CoSimulationConvergenceCriteria(object):
     def FinalizeSolutionStep(self):
         pass
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         pass
 
-    def FinalizeCouplingIteration(self):
+    def FinalizeNonLinearIteration(self):
         pass
 
     def IsConverged(self):
