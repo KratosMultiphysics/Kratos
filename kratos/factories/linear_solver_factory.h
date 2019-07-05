@@ -98,7 +98,7 @@ public:
      * @brief This method creates a new solver
      * @return The pointer to the solver of interest
      */
-    virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer Create(Kratos::Parameters Settings)
+    virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer Create(Kratos::Parameters Settings) const
     {
         std::string solver_name = Settings["solver_type"].GetString();
         // remove name of the application (if passed)
