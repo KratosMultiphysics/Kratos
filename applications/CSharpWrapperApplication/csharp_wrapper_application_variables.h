@@ -26,7 +26,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
