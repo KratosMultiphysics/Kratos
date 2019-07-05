@@ -46,5 +46,6 @@ class CoSimulationCouplingOperation(object):
     @classmethod
     def _GetDefaultSettings(cls):
         return KM.Parameters("""{
+            "type"       : "UNSPECIFIED",
             "echo_level" : 0
         }""")
