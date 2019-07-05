@@ -89,7 +89,7 @@ public:
      * @brief This method checks if the linear solver is registered
      * @return True if registered, false otherwise
      */
-    virtual bool Has(const std::string SolverType)
+    virtual bool Has(const std::string SolverType) const
     {
         return KratosComponents< FactoryType >::Has( SolverType );
     }
