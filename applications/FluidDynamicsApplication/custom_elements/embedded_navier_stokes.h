@@ -802,32 +802,6 @@ protected:
                 }
             }
         }
-
-        // if (this->Has(EMBEDDED_VELOCITY)) {
-        //     auxLeftHandSideMatrix.clear();
-
-        //     const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        //     array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-        //     for (unsigned int i=0; i<TNumNodes; i++) {
-        //         aux_embedded_vel(i*BlockSize) = embedded_vel(0);
-        //         aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
-        //         aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
-        //     }
-
-        //     // Asemble the RHS f_gamma contribution
-        //     for (unsigned int i=0; i<rData.n_neg; i++) {
-        //         unsigned int out_node_row_id = rData.out_vec_identifiers[i];
-
-        //         for (unsigned int j=0; j<TNumNodes; j++) {
-        //             for (unsigned int comp = 0; comp<TDim; comp++) {
-        //                 auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
-        //             }
-        //         }
-        //     }
-
-        //     noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
-        // }
     }
 
     /**
