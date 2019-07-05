@@ -280,7 +280,7 @@ static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *
         output_file << num_nodes_elem << " ";
         for (int j=0; j<num_nodes_elem; ++j) {
             output_file << node_vtk_id_map.at(elems[counter++]);
-            if (j<num_nodes_elem-1) output_file << " ";
+            if (j<num_nodes_elem-1) output_file << " "; // not adding a whitespace after last number
         }
         output_file << "\n";
     }
