@@ -47,6 +47,11 @@ namespace Kratos
 		return Element::Pointer(new MonolithicPFEM22D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 	}
 
+    Element::Pointer MonolithicPFEM22D::Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const
+    {
+        return Element::Pointer(new MonolithicPFEM22D(NewId, pGeometry, pProperties));
+    }
+
 	MonolithicPFEM22D::~MonolithicPFEM22D()
 	{
 	}
