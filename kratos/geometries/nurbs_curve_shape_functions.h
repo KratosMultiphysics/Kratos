@@ -16,7 +16,6 @@
 #define  KRATOS_NURBS_CURVE_SHAPE_FUNCTIONS_H_INCLUDED
 
 #include "nurbs_utility.h"
-#include "includes/ublas_interface.h"
 
 #include <vector>
 
