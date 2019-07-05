@@ -59,6 +59,7 @@
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
+#include "utilities/delaunator_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -744,6 +745,9 @@ void AddUtilitiesToPython(pybind11::module& m)
     m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
+
+    // Delaunator utilities
+    m.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
