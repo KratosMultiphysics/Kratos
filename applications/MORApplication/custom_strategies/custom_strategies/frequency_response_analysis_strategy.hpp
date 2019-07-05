@@ -56,10 +56,13 @@ namespace Kratos
 
 /**
  * @class FrequencyResponseAnalysisStrategy
- * @ingroup KratosCore
- * @brief This is the linear MOR matrix output strategy
- * @details This strategy builds the K and M matrices and outputs them
- * @author Srikkanth Varadharajan
+ * @ingroup MORApplication
+ * @brief This is the harmonic frequency response strategy
+ * @details This strategy performs a harmonic analysis and outputs the absolute values of the solution to the dofs.
+ *      Rayleigh damping is enabled by default. Modal damping (i.e. complex stiffness damping) can be enabled using
+ *      the UseModalDamping flag. The property RAYLEIGH_BETA is then treated as the modal damping factor. RAYLEIGH_ALPHA
+ *      has to be set to zero if modal damping is to be used!
+ * @author Quirin Aumann
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
@@ -135,13 +138,12 @@ class FrequencyResponseAnalysisStrategy
     FrequencyResponseAnalysisStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        // typename TLinearSolver::Pointer pNewLinearSolver,
         typename ComplexLinearSolverType::Pointer pNewcomplexLinearSolver,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false,
+        bool UseModalDamping = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY;
-        // typename ComplexLinearSolverType::Pointer pNewComplexLinearSolver = PastixComplexSolver<ComplexSpaceType,ComplexLocalSpaceType>())
 
         // Saving the scheme
         mpScheme = pScheme;
@@ -151,10 +153,7 @@ class FrequencyResponseAnalysisStrategy
 
         // Setting up the default builder and solver
          mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(mpLinearSolver)); 
-
-        // Saving the linear solver
-        // mpLinearSolver = pNewLinearSolver;            
+            new TBuilderAndSolverType(mpLinearSolver));   
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -174,9 +173,8 @@ class FrequencyResponseAnalysisStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(0);
 
-        // Damping is included and the results will be complex
-        mUseDamping = true;
-        // KRATOS_WATCH(TSolutionSpace)
+        // Set member variables
+        mUseModalDamping = UseModalDamping;
         mpComplexLinearSolver = pNewcomplexLinearSolver;
         
         mpA = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
@@ -526,7 +524,7 @@ class FrequencyResponseAnalysisStrategy
 
         //Building the dynamic stiffnes matrix
         rA = - (std::pow(excitation_frequency, 2.0) * rM);
-        rA += excitation_frequency*rC;
+        mUseModalDamping ? rA += rC : rA += excitation_frequency*rC;
         rA += rK;
         
         //Solve the system
@@ -675,7 +673,7 @@ class FrequencyResponseAnalysisStrategy
 
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
-    bool mUseDamping;
+    bool mUseModalDamping;
 
     ///@}
     ///@name Private Operators
