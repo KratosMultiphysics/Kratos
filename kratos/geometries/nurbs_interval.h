@@ -15,6 +15,7 @@
 #if !defined(KRATOS_NURBS_INTERVAL_H_INCLUDED )
 #define  KRATOS_NURBS_INTERVAL_H_INCLUDED
 
+#include <algorithm>
 #include <limits>
 #include <sstream>
 
