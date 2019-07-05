@@ -4,6 +4,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 import co_simulation_test_case
 
 try:
@@ -14,15 +15,20 @@ except ImportError:
 
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "ExternalSolversApplication")
 
+using_pykratos = UsingPyKratos()
+
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
     def test_MokFSI_mvqn(self):
-        self.name = "mvqn"
         if not numpy_available:
             self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
+
+        self.name = "mvqn"
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateSettings()
@@ -31,11 +37,14 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._runTest()
 
     def test_MokFSI_aitken(self):
-        self.name = "aitken"
         if not numpy_available:
             self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
+
+        self.name = "aitken"
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateSettings()
@@ -95,8 +104,11 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     def test_WallFSI(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
+
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
             self._runTest()
