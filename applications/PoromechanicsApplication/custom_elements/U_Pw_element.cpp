@@ -575,15 +575,38 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    if( rVariable == CAUCHY_STRESS_TENSOR || rVariable == TOTAL_STRESS_TENSOR || rVariable == GREEN_LAGRANGE_STRAIN_TENSOR || rVariable == PERMEABILITY_MATRIX )
-    {
+    if( rVariable == CAUCHY_STRESS_TENSOR ||
+        rVariable == TOTAL_STRESS_TENSOR ||
+        rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
+        rVariable == PERMEABILITY_MATRIX ) {
+
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
+
+    } else if(rVariable == INITIAL_STRESS_TENSOR) {
+
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize(mConstitutiveLawVector.size());
+
+        unsigned int voigt_size;
+        if(TDim==2) {
+            voigt_size = 3;
+        } else {
+            voigt_size = 6;
+        }
+        Vector InitialStressVector(voigt_size);
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+        {
+            rValues[i].resize(TDim,TDim,false);
+            noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
+            noalias(InitialStressVector) = mConstitutiveLawVector[i]->GetValue( INITIAL_STRESS_VECTOR, InitialStressVector );
+            rValues[i] = MathUtils<double>::StressVectorToTensor(InitialStressVector);
+        }
+
+    } else {
+
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
@@ -593,6 +616,7 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matr
             noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
             rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
         }
+
     }
 }
 
