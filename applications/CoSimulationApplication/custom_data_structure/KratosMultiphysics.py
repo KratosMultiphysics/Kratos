@@ -23,6 +23,20 @@ from .QuadriateralElement import QuadrilateralElement
 from .TriangleElement import TriangleElement
 from .Logger import Logger
 
+print("""              _  __          _
+  _ __  _   _| |/ /_ __ __ _| |_ ___  ___
+ | '_ \| | | | ' /| '__/ _` | __/ _ \/ __|
+ | |_) | |_| | . \| | | (_| | || (_) \__ \\
+ | .__/ \__, |_|\_\_|  \__,_|\__\___/|___/
+ |_|    |___/
+""", end='')
+print("""
+    KRATOS  / ___|___/ ___|(_)_ __ ___  _   _| | __ _| |_(_) ___  _ __
+           | |   / _ \___ \| | '_ ` _ \| | | | |/ _` | __| |/ _ \| '_ \\
+           | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
+            \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
+""")
+
 class KratosGlobals(object):
     def HasVariable(var_name):
         return var_name in globals()

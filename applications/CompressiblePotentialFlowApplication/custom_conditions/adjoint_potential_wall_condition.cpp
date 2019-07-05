@@ -160,14 +160,14 @@ void AdjointPotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationI
 
     bool is_kutta=false;
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
+        if (GetGeometry()[i].GetValue(DISTANCE)<0.0){
             is_kutta=true;
             break;
         }
     }
     for(unsigned int i=0; i<TNumNodes; i++){
         if(is_kutta){
-            if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
+            if(GetGeometry()[i].GetValue(DISTANCE)<0.0)
                 rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
             else
                 rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
@@ -186,14 +186,14 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType&
 
     bool is_kutta=false;
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
+        if (GetGeometry()[i].GetValue(DISTANCE)<0.0){
             is_kutta=true;
             break;
         }
     }
     for(unsigned int i=0; i<TNumNodes; i++){
         if(is_kutta){
-            if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
+            if(GetGeometry()[i].GetValue(DISTANCE)<0.0)
                 ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
             else
                 ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
