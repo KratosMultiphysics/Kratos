@@ -141,6 +141,13 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
             self.fluid_model_part.ProcessInfo[
                 KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
+            if (self.fluid_model_part.ProcessInfo[Kratos.DYNAMIC_TAU] != 0.0):
+                Kratos.Logger.PrintWarning(
+                    self.__class__.__name__,
+                    "Steady solution doesn't have zero DYNAMIC_TAU [ DYNAMIC_TAU = "
+                    + str(
+                        self.fluid_model_part.ProcessInfo[Kratos.DYNAMIC_TAU])
+                    + " ].")
         else:
             raise Exception("Unknown scheme_type = \"" +
                             scheme_settings["scheme_type"] + "\"")
@@ -177,7 +184,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                                           Kratos.KINEMATIC_VISCOSITY,
                                           self.fluid_model_part.Nodes)
         rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
-                                         self.nu_t_max,
+                                         self.nu_t_min,
                                          self.fluid_model_part.Nodes)
 
         self.PrepareSolvingStrategy()
