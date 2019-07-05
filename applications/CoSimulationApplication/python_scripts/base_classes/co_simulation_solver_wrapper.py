@@ -95,7 +95,7 @@ class CoSimulationSolverWrapper(object):
         try:
             return self.data_dict[data_name]
         except KeyError:
-            raise Exception("Requested data field " + data_name + " does not exist in the solver ")
+            raise Exception('Requested data field "{}" does not exist for solver "{}"'.format(data_name, self.name))
 
     def PrintInfo(self):
         '''This function can be filled if desired, e.g. to print settings at higher echo-levels
