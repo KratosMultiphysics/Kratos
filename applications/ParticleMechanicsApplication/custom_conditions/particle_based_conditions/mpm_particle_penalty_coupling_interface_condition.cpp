@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "includes/kratos_flags.h"
+#include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
@@ -236,13 +237,8 @@ int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCur
     MPMParticlePenaltyDirichletCondition::Check(rCurrentProcessInfo);
 
     // Verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( NODAL_AREA ) == false )
-        {
-            KRATOS_ERROR << "missing variable NODAL_AREA on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
-    }
+    for (const auto& r_node : this->GetGeometry().Points())
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
 
     return 0;
 }

@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -253,25 +254,19 @@ namespace Kratos
 
     int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
+        // Base check
+        Condition::Check(rCurrentProcessInfo);
 
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
+        // Verify variable exists
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
-            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
+        // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
+        for (const auto& r_node : this->GetGeometry().Points()) {
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
         }
 
         return 0;
