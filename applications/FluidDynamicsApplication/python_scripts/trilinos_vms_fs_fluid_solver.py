@@ -1,10 +1,16 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
+
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
+
+from KratosMultiphysics import restart_utilities
+
+from KratosMultiphysics.TrilinosApplication import MonolithicMultiLevelSolver
+from KratosMultiphysics.TrilinosApplication import PressureMultiLevelSolver
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -98,14 +104,12 @@ class IncompressibleFluidSolver:
         velocity_nit_max = 100
         velocity_linear_tol = 1e-6
 
-        import MonolithicMultiLevelSolver
         self.velocity_linear_solver = MonolithicMultiLevelSolver.LinearSolver(
             velocity_linear_tol, velocity_nit_max)
 
         pressure_nit_max = 100
         pressure_linear_tol = 1e-6
 
-        import PressureMultiLevelSolver
         self.pressure_linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(
             pressure_linear_tol, pressure_nit_max)
 
@@ -330,7 +334,6 @@ class IncompressibleFluidSolver:
         backupfile.write("from KratosMultiphysics import *\n")
         backupfile.write("def Restart(NODES):\n")
 
-        import restart_utilities
         restart_utilities.PrintRestart_ScalarVariable_PyFormat(
             VELOCITY_X,
             "VELOCITY_X",
@@ -412,13 +415,6 @@ def CreateSolver(model_part, config):
         fluid_solver.dynamic_tau = config.dynamic_tau
 
     # linear solver settings
-    import deprecated_trilinos_linear_solver_factory
-    if(hasattr(config, "pressure_linear_solver_config")):
-        fluid_solver.pressure_linear_solver = deprecated_trilinos_linear_solver_factory.ConstructSolver(
-            config.pressure_linear_solver_config)
-    if(hasattr(config, "velocity_linear_solver_config")):
-        fluid_solver.velocity_linear_solver = deprecated_trilinos_linear_solver_factory.ConstructSolver(
-            config.velocity_linear_solver_config)
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
