@@ -26,6 +26,15 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
+    // Ensure node order
+    auto& r_nodes_root_array = rModelPart.GetRootModelPart().Nodes();
+    const auto it_node_root_begin = r_nodes_root_array.begin();
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(r_nodes_root_array.size()); ++i) {
+        auto it_node = it_node_root_begin + i;
+        it_node->SetId(i + 1);
+    }
+
     // Getting nodes array
     const auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
@@ -63,7 +72,7 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
     const auto& r_triangles = delaunator.triangles;
     std::size_t counter = rModelPart.GetRootModelPart().Elements().size() + 1;
     for (std::size_t i = 0; i < r_triangles.size(); i += 3) {
-        rModelPart.CreateNewElement("Element2D3N", counter, {{r_triangles[i],r_triangles[i + 1], r_triangles[i + 2]}}, p_elem_prop);
+        rModelPart.CreateNewElement("Element2D3N", counter, {{r_triangles[i] + 1,r_triangles[i + 1] + 1, r_triangles[i + 2] + 1}}, p_elem_prop);
         ++counter;
     }
 
