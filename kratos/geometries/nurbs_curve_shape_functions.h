@@ -38,7 +38,7 @@ private:    // variables
 private:    // methods
     double& values(const int order, const int pole)
     {
-        const int index = NurbsUtility::single_index(nb_shapes(),
+        const int index = NurbsUtility::single_index(nb_shape_functions(),
             nb_nonzero_poles(), order, pole);
 
         return m_values[index];
@@ -46,7 +46,7 @@ private:    // methods
 
     double& ndu(const int i, const int j)
     {
-        const int index = NurbsUtility::single_index(nb_shapes(),
+        const int index = NurbsUtility::single_index(nb_shape_functions(),
             nb_nonzero_poles(), i, j);
 
         return m_ndu[index];
@@ -54,7 +54,7 @@ private:    // methods
 
     void clear_values()
     {
-        const int nb_values = nb_nonzero_poles() * nb_shapes();
+        const int nb_values = nb_nonzero_poles() * nb_shape_functions();
 
         std::fill(m_values.begin(), m_values.begin() + nb_values, 0);
     }
@@ -98,7 +98,7 @@ public:     // methods
         return degree() + 1;
     }
 
-    int nb_shapes() const
+    int nb_shape_functions() const
     {
         return order() + 1;
     }
@@ -110,7 +110,7 @@ public:     // methods
 
     double value(const int order, const int pole) const
     {
-        int index = NurbsUtility::single_index(nb_shapes(), nb_nonzero_poles(),
+        int index = NurbsUtility::single_index(nb_shape_functions(), nb_nonzero_poles(),
             order, pole);
 
         return m_values[index];
@@ -177,7 +177,7 @@ public:     // methods
         for (int r = 0; r < nb_nonzero_poles(); r++) {
             a[0] = 1.0;
 
-            for (int k = 1; k < nb_shapes(); k++) {
+            for (int k = 1; k < nb_shape_functions(); k++) {
                 double& value = values(k, r);
 
                 int rk = r - k;
@@ -207,7 +207,7 @@ public:     // methods
 
         int s = degree();
 
-        for (int k = 1; k < nb_shapes(); k++) {
+        for (int k = 1; k < nb_shape_functions(); k++) {
             for (int j = 0; j < nb_nonzero_poles(); j++) {
                 values(k, j) *= s;
             }

@@ -114,9 +114,9 @@ public:     // methods
             shape_function.compute(m_knots, t);
         }
 
-        std::vector<Vector> derivatives(shape_function.nb_shapes());
+        std::vector<Vector> derivatives(shape_function.nb_shape_functions());
 
-        for (int order = 0; order < shape_function.nb_shapes(); order++) {
+        for (int order = 0; order < shape_function.nb_shape_functions(); order++) {
             for (int i = 0; i < shape_function.nb_nonzero_poles(); i++) {
                 int index = shape_function.first_nonzero_pole() + i;
 
@@ -226,10 +226,10 @@ public:     // methods
             shape_function.compute(knots(), t);
         }
 
-        Matrix values(shape_function.nb_shapes(),
+        Matrix values(shape_function.nb_shape_functions(),
             shape_function.nb_nonzero_poles());
 
-        for (int i = 0; i < shape_function.nb_shapes(); i++) {
+        for (int i = 0; i < shape_function.nb_shape_functions(); i++) {
             for (int j = 0; j < shape_function.nb_nonzero_poles(); j++) {
                 values(i, j) = shape_function(i, j);
             }
