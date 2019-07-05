@@ -11,7 +11,8 @@ def Create(settings, name):
     return CoSimulationSolverWrapper(settings, name)
 
 class CoSimulationSolverWrapper(object):
-    """The base class for the CoSimulation Solver Wrappers
+    """Baseclass for the solver wrappers used for CoSimulation
+    It wraps solvers used in the CoSimulation
     """
     def __init__(self, settings, name):
         """Constructor of the Base Solver Wrapper

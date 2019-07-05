@@ -4,6 +4,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 class CoSimulationCouplingOperation(object):
+    """Baseclass for the coupling operations used for CoSimulation
+    This class can be used to customize the behavior of the CoSimulation,
+    by providing a large interface and access to the solvers/models
+    """
     def __init__(self, settings):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())

@@ -8,6 +8,12 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationConvergenceAccelerator(object):
+    """Baseclass for the convergence acceleratos used for CoSimulation
+    Relaxes the solution to increase the speed of convergence in a (strongly) coupled simulation
+
+    Note that the interface matches the convergence accelerators in the FSIapplication such that they can be used interchangeable
+    ("FSIapplication/custom_utilitiesconvergence_accelerator.hpp")
+    """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())

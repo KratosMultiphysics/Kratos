@@ -10,6 +10,15 @@ from  . import co_simulation_solver_wrapper
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
+    """Baseclass for the coupled solvers used for CoSimulation
+    Performs basic operations that are common among coupled solvers:
+    - holds Predictors
+    - holds DataTransferOperators
+    - holds CouplingOperations
+    - initialization of IOs of solvers
+    - Snychronization of Input and Output
+    - Handles the coupling sequence
+    """
     def __init__(self, settings, solver_name):
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
