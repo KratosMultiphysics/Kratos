@@ -11,6 +11,8 @@ import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 import KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility
 
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)
 
@@ -66,7 +68,6 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         self.min_buffer_size = 2
 
         # construct the linear solver
-        import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicMPISolver finished.")
