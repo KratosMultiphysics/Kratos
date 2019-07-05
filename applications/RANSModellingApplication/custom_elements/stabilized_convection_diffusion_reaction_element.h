@@ -24,6 +24,7 @@
 #include "rans_modelling_application_variables.h"
 #include "stabilized_convection_diffusion_reaction_utilities.h"
 #include "utilities/time_discretization.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -325,6 +326,7 @@ public:
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
+        const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
@@ -354,7 +356,7 @@ public:
             double tau, element_length;
             StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor, reaction,
-                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time);
+                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
@@ -519,6 +521,7 @@ public:
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
+        const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
@@ -551,7 +554,7 @@ public:
             double tau, element_length;
             StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor, reaction,
-                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time);
+                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
             const double s = std::abs(reaction);
 
@@ -595,6 +598,7 @@ public:
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
+        const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
@@ -626,8 +630,9 @@ public:
 
             double tau, element_length;
             StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
-                tau, element_length, velocity, contravariant_metric_tensor, reaction,
-                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time);
+                tau, element_length, velocity, contravariant_metric_tensor,
+                reaction, effective_kinematic_viscosity, bossak_alpha,
+                bossak_gamma, delta_time, dynamic_tau);
 
             // Calculate residual for cross wind dissipation coefficient
             double cross_wind_diffusion{0.0}, stream_line_diffusion{0.0};
@@ -652,7 +657,7 @@ public:
                 double chi, k1, k2;
                 StabilizedConvectionDiffusionReactionUtilities::CalculateCrossWindDiffusionParameters(
                     chi, k1, k2, velocity_magnitude, tau, effective_kinematic_viscosity,
-                    reaction, bossak_alpha, bossak_gamma, delta_time, element_length);
+                    reaction, bossak_alpha, bossak_gamma, delta_time, element_length, dynamic_tau);
 
                 stream_line_diffusion = residual * chi * k1 / velocity_magnitude_square;
                 cross_wind_diffusion = residual * chi * k2 / velocity_magnitude_square;
@@ -726,7 +731,7 @@ public:
             {
                 this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
                 this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) +=
-                    length * length;
+                    length * length / TNumNodes;
                 this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
             }
         }
