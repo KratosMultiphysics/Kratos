@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 ## @module aitken
-# This module contains the class Aitken
+# This module contains the class AitkenConvergenceAccelerator
 # Author: Wei He
 # Date: Feb. 20, 2017
 
@@ -21,17 +21,17 @@ from collections import deque
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return Aitken(settings, solver_wrapper)
+    return AitkenConvergenceAccelerator(settings, solver_wrapper)
 
-## Class Aitken.
+## Class AitkenConvergenceAccelerator.
 # This class contains the implementation of Aitken relaxation and helper functions.
 # Reference: Ulrich Küttler et al., "Fixed-point fluid–structure interaction solvers with dynamic relaxation"
-class Aitken(CoSimulationConvergenceAccelerator):
+class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param init_alpha Initial relaxation factor in the first time step.
     # @param init_alpha_max Maximum relaxation factor for the first iteration in each time step
     def __init__( self, settings, solver_wrapper):
-        super(Aitken, self).__init__(settings, solver_wrapper)
+        super(AitkenConvergenceAccelerator, self).__init__(settings, solver_wrapper)
         self.R = deque( maxlen = 2 )
 
         self.alpha_old = self.settings["init_alpha"].GetDouble()
@@ -76,5 +76,5 @@ class Aitken(CoSimulationConvergenceAccelerator):
             "init_alpha"     : 0.1,
             "init_alpha_max" : 0.45
         }""")
-        this_defaults.AddMissingParameters(super(Aitken, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(AitkenConvergenceAccelerator, cls)._GetDefaultSettings())
         return this_defaults
