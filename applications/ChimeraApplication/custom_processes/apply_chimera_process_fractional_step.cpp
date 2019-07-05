@@ -145,6 +145,9 @@ void ApplyChimeraProcessFractionalStep<TDim, TDistanceCalculatorType>::ApplyCont
     KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
 }
 
+//typedef CalculateDistanceToSkinProcess<2> DistanceCalculator2DType;
+//typedef CalculateDistanceToSkinProcess<3> DistanceCalculator3DType;
+
 typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
 typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
 

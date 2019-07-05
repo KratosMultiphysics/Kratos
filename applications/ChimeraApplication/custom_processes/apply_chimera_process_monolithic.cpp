@@ -172,6 +172,11 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::FormulateChim
         DistanceCalculatorType(r_modified_patch_boundary_model_part, r_background_model_part).Execute(); //TODO: Think about smoothening the distance after this step
         mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
+        WriteModelPart(r_hole_model_part);
+        WriteModelPart(r_modified_patch_boundary_model_part);
+        //WriteModelPart(r_modified_patch_model_part);
+        WriteModelPart(r_hole_boundary_model_part);
+
         //for multipatch
         const unsigned int n_elements = r_hole_model_part.NumberOfElements();
 #pragma omp parallel for
@@ -416,8 +421,8 @@ void ApplyChimeraProcessMonolithic<TDim, TDistanceCalculatorType>::AddMasterSlav
     rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
 }
 
-//typedef CustomCalculateSignedDistanceProcess<2> DistanceCalculator2DType;
-//typedef CustomCalculateSignedDistanceProcess<3> DistanceCalculator3DType;
+//typedef CalculateDistanceToSkinProcess<2> DistanceCalculator2DType;
+//typedef CalculateDistanceToSkinProcess<3> DistanceCalculator3DType;
 
 typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
 typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
