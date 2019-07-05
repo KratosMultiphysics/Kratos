@@ -6,6 +6,9 @@ from KratosMultiphysics.mpi import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 
+from KratosMultiphysics.TrilinosApplication import MonolithicMultiLevelSolver
+from KratosMultiphysics.TrilinosApplication import trilinos_strategy_python
+
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
@@ -96,7 +99,6 @@ class MonolithicSolver:
         self.linear_solver_tol = 1e-6
         self.linear_solver_max_it = 100
 
-        import MonolithicMultiLevelSolver
         self.linear_solver = MonolithicMultiLevelSolver.LinearSolver(
             self.linear_solver_tol, self.linear_solver_max_it)
 
@@ -171,7 +173,7 @@ class MonolithicSolver:
         #    self.Comm,
         #    self.guess_row_size,
         #    PATCH_INDEX)
-        import trilinos_strategy_python
+
         self.solver = trilinos_strategy_python.SolvingStrategyPython(
             "standard",
             self.model_part,
@@ -343,11 +345,6 @@ def CreateSolver(model_part, config):
         fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
-
-    import deprecated_trilinos_linear_solver_factory
-    if(hasattr(config, "linear_solver_config")):
-        fluid_solver.linear_solver = deprecated_trilinos_linear_solver_factory.ConstructSolver(
-            config.linear_solver_config)
 
     if hasattr(config, "TurbulenceModel"):
         if config.TurbulenceModel == "Spalart-Allmaras":
