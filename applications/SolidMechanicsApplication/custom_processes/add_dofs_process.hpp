@@ -553,7 +553,7 @@ private:
       VariablesListDataValueContainer VariablesList = (node_it)->SolutionStepData();
 
       std::cout<<" list size "<<VariablesList.pGetVariablesList()->size()<<std::endl;
-      std::cout<<" Variable: "<<VariablesList.pGetVariablesList()[0]<<std::endl;
+      std::cout<<" Variable: "<<(*VariablesList.pGetVariablesList())[0]<<std::endl;
       std::cout<<" end "<<std::endl;
 
       KRATOS_CATCH(" ")

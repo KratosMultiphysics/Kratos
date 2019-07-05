@@ -13,7 +13,7 @@
                             "DENSITY": 1.0000E+03,
                             "POISSON_RATIO": 4.00000E-01,
                             "THICKNESS": 1.00000,
-                            "FRICTION_COEFFICIENT": 0.5
+                            "FRICTION_COEFFICIENT": 0.75
                     },
                     "Tables": {}
             }
@@ -31,7 +31,7 @@
                             "DENSITY": 1.0000E+03,
                             "POISSON_RATIO": 4.00000E-01,
                             "THICKNESS": 1.00000,
-                            "FRICTION_COEFFICIENT": 0.5
+                            "FRICTION_COEFFICIENT": 0.75
                     },
                     "Tables": {}
             }

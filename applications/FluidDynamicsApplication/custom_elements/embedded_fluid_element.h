@@ -171,6 +171,11 @@ public:
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
+    /// Set up the element for solution.
+    /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY)
+     */
+    void Initialize() override;
+
     /// Calculates both LHS and RHS contributions
     /**
      * Computes the LHS and RHS elementar matrices. If the element is split
