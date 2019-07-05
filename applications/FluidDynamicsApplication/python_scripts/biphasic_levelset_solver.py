@@ -8,9 +8,9 @@ from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 
 import KratosMultiphysics.ConvectionDiffusionApplication
-import pureconvection_solver
-import thermal_solver
-import monolithic_solver_eulerian
+from KratosMultiphysics.ConvectionDiffusionApplication import pureconvection_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import thermal_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import monolithic_solver_eulerian
 
 # settings for the convection solver
 distance_settings = ConvectionDiffusionSettings()
