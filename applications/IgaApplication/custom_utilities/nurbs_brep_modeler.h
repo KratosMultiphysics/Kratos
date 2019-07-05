@@ -11,6 +11,7 @@
 #include "brep_json_io.h"
 #include "brep_topology/brep_model.h"
 
+#include "geometry_utilities/geometry_utilities.h"
 #include "integration_utilities/iga_integration_utilities.h"
 #include "integration_utilities/iga_integration_point_utilities.h"
 

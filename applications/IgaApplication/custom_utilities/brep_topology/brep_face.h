@@ -13,6 +13,7 @@
 #include "brep_trimming_curve.h"
 #include "brep_boundary_loop.h"
 
+#include "custom_utilities/geometry_utilities/geometry_utilities.h"
 #include "custom_utilities/iga_flags.h"
 
 // Kratos includes
@@ -135,6 +136,9 @@ namespace Kratos
             Matrix& rShapeFunctionDerivative,
             Matrix& rShapeFunctionSecondDerivative
             ) const;
+
+        bool IsInside(
+            const array_1d<double, 2>& rLocalCoordinates);
 
         TrimmedSurfaceClipping GetSurfaceClipper(
             const double& rAccuracy,

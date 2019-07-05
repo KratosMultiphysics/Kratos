@@ -30,33 +30,33 @@ void MPMParticleBaseCondition::EquationIdVector(
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int NumberOfNodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    if (rResult.size() != dim * NumberOfNodes)
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    if (rResult.size() != dim * number_of_nodes)
     {
-        rResult.resize(dim*NumberOfNodes,false);
+        rResult.resize(dim*number_of_nodes,false);
     }
 
-    const unsigned int pos = rGeom[0].GetDofPosition(DISPLACEMENT_X);
+    const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
     if(dim == 2)
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             const unsigned int index = i * 2;
-            rResult[index    ] = rGeom[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = rGeom[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
         }
     }
     else
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             const unsigned int index = i * 3;
-            rResult[index    ] = rGeom[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = rGeom[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-            rResult[index + 2] = rGeom[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
+            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
         }
     }
     KRATOS_CATCH("")
@@ -71,27 +71,27 @@ void MPMParticleBaseCondition::GetDofList(
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int NumberOfNodes = rGeom.size();
-    const unsigned int dim =  rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dim =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(dim * NumberOfNodes);
+    rElementalDofList.reserve(dim * number_of_nodes);
 
     if(dim == 2)
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
         }
     }
     else
     {
-        for (unsigned int i = 0; i < NumberOfNodes; ++i)
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
         }
     }
     KRATOS_CATCH("")
@@ -105,19 +105,19 @@ void MPMParticleBaseCondition::GetValuesVector(
     int Step
     )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int NumberOfNodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    const unsigned int MatSize = NumberOfNodes * dim;
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    const unsigned int MatSize = number_of_nodes * dim;
 
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
     }
 
-    for (unsigned int i = 0; i < NumberOfNodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Displacement = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
         unsigned int index = i * dim;
         for(unsigned int k = 0; k < dim; ++k)
         {
@@ -134,19 +134,19 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
     int Step
     )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int NumberOfNodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    const unsigned int MatSize = NumberOfNodes * dim;
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    const unsigned int MatSize = number_of_nodes * dim;
 
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
     }
 
-    for (unsigned int i = 0; i < NumberOfNodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         const unsigned int index = i * dim;
         for(unsigned int k = 0; k<dim; ++k)
         {
@@ -163,19 +163,19 @@ void MPMParticleBaseCondition::GetSecondDerivativesVector(
     int Step
     )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int NumberOfNodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    const unsigned int MatSize = NumberOfNodes * dim;
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    const unsigned int MatSize = number_of_nodes * dim;
 
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
     }
 
-    for (unsigned int i = 0; i < NumberOfNodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
         const unsigned int index = i * dim;
         for(unsigned int k = 0; k < dim; ++k)
         {
@@ -259,7 +259,7 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
-    //verify that the dofs exist
+    // Verify that variables and dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
@@ -358,15 +358,15 @@ Matrix& MPMParticleBaseCondition::CalculateCurrentDisp(Matrix & rCurrentDisp, co
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     rCurrentDisp = ZeroMatrix(number_of_nodes, dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        const array_1d<double, 3 > & current_displacement  = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & current_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {

@@ -342,7 +342,7 @@ namespace Kratos
         metric.dA = norm_2(metric.g3);
         //normal vector _n
         Vector n = metric.g3 / metric.dA;
-        metric.g3 = n;
+        //metric.g3 = n;
 
         //GetCovariantMetric
         metric.gab[0] = pow(metric.g1[0], 2) + pow(metric.g1[1], 2) + pow(metric.g1[2], 2);

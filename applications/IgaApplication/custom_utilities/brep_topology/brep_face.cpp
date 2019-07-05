@@ -202,8 +202,6 @@ namespace Kratos
         const double& rAccuracy,
         const double& rUnit)
     {
-        KRATOS_WATCH("check here")
-
         auto clipper = TrimmedSurfaceClipping(rAccuracy, rUnit);
 
         clipper.Clear();
@@ -266,6 +264,56 @@ namespace Kratos
         clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
 
         return clipper;
+    }
+
+    bool BrepFace::IsInside(
+        const array_1d<double,2>& rLocalCoordinates)
+    {
+        std::vector<std::vector<double>> outer_loops;
+        std::vector<std::vector<double>> inner_loops;
+
+        for (int i = 0; i < mTrimmingLoops.size(); ++i)
+        {
+            std::vector<double> loop;
+
+            auto trimming_curves = mTrimmingLoops[i].GetTrimmingCurves();
+
+            for (int j = 0; j < trimming_curves.size(); ++j)
+            {
+                const auto curve_2d = trimming_curves[j].GetCurve2D();
+
+                const auto curve_on_surface = CurveOnSurface<3>(
+                    curve_2d->CurveGeometry(),
+                    this->mNodeSurfaceGeometry3D,
+                    curve_2d->Domain());
+
+                const auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
+
+                tessellation->Compute(curve_on_surface, 0.001);
+
+                for (unsigned int t = 0; t < tessellation->NbPoints() - 1; ++t)
+                {
+                    auto point_2d = curve_2d->PointAt(tessellation->Parameter(t));
+
+                    for (unsigned int d = 0; d < 2; ++d)
+                    {
+                        loop.push_back(point_2d[d]);
+                    }
+                }
+            }
+
+            if (mTrimmingLoops[i].IsOuterLoop())
+                outer_loops.push_back(loop);
+            else
+                inner_loops.push_back(loop);
+        }
+
+        GeometryUtilities::IsInside2D(
+            rLocalCoordinates[0],
+            rLocalCoordinates[1],
+            outer_loops,
+            inner_loops
+        );
     }
 
     //void BrepFace::GetGeometryIntegrationTrimmed(

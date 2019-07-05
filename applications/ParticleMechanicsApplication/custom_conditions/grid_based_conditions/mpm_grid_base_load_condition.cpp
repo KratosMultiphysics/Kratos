@@ -29,33 +29,33 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int NumberOfNodes = rGeom.size();
-        const unsigned int dim = rGeom.WorkingSpaceDimension();
-        if (rResult.size() != dim * NumberOfNodes)
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        const unsigned int dim = r_geometry.WorkingSpaceDimension();
+        if (rResult.size() != dim * number_of_nodes)
         {
-            rResult.resize(dim*NumberOfNodes,false);
+            rResult.resize(dim*number_of_nodes,false);
         }
 
-        const unsigned int pos = rGeom[0].GetDofPosition(DISPLACEMENT_X);
+        const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
         if(dim == 2)
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 const unsigned int index = i * 2;
-                rResult[index    ] = rGeom[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-                rResult[index + 1] = rGeom[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+                rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+                rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
             }
         }
         else
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 const unsigned int index = i * 3;
-                rResult[index    ] = rGeom[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-                rResult[index + 1] = rGeom[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-                rResult[index + 2] = rGeom[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
+                rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+                rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+                rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
             }
         }
         KRATOS_CATCH("")
@@ -70,27 +70,27 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int NumberOfNodes = rGeom.size();
-        const unsigned int dim =  rGeom.WorkingSpaceDimension();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        const unsigned int dim =  r_geometry.WorkingSpaceDimension();
         ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim * NumberOfNodes);
+        ElementalDofList.reserve(dim * number_of_nodes);
 
         if(dim == 2)
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
-                ElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
+                ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+                ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
             }
         }
         else
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
-                ElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
-                ElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Z));
+                ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+                ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+                ElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
             }
         }
         KRATOS_CATCH("")
@@ -104,19 +104,19 @@ namespace Kratos
         int Step
         )
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int NumberOfNodes = rGeom.size();
-        const unsigned int dim = rGeom.WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        const unsigned int dim = r_geometry.WorkingSpaceDimension();
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
 
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 > & Displacement = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             unsigned int index = i * dim;
             for(unsigned int k = 0; k < dim; ++k)
             {
@@ -133,19 +133,19 @@ namespace Kratos
         int Step
         )
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int NumberOfNodes = rGeom.size();
-        const unsigned int dim = rGeom.WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        const unsigned int dim = r_geometry.WorkingSpaceDimension();
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
 
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 > & Velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
             const unsigned int index = i * dim;
             for(unsigned int k = 0; k<dim; ++k)
             {
@@ -162,19 +162,19 @@ namespace Kratos
         int Step
         )
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int NumberOfNodes = rGeom.size();
-        const unsigned int dim = rGeom.WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        const unsigned int dim = r_geometry.WorkingSpaceDimension();
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
 
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 > & Acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
             const unsigned int index = i * dim;
             for(unsigned int k = 0; k < dim; ++k)
             {
@@ -299,9 +299,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
-        const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
 
         if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
         {
@@ -310,9 +310,9 @@ namespace Kratos
             {
                 SizeType index = dimension * i;
 
-                if (rGeom[i].SolutionStepsDataHas(FORCE_RESIDUAL))
+                if (r_geometry[i].SolutionStepsDataHas(FORCE_RESIDUAL))
                 {
-                    array_1d<double, 3 > &ForceResidual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                    array_1d<double, 3 > &ForceResidual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
                     for(SizeType j=0; j<dimension; j++)
                     {
                         #pragma omp atomic

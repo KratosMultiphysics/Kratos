@@ -527,9 +527,6 @@ namespace Kratos
 
                     array_1d<double, 2> new_location(0.0);
 
-                    KRATOS_WATCH(neighbor_results[i]->pGetBaseElement()->GetValue(LOCAL_COORDINATES))
-                    KRATOS_WATCH(particle_element_ptr->GetGeometry()[0].Coordinates())
-
                     if (IgaSurfaceUtilities::ProjectNodeOnSurface(
                         surface,
                         neighbor_results[i]->pGetBaseElement()->GetValue(LOCAL_COORDINATES),
@@ -564,57 +561,72 @@ namespace Kratos
                             new_contact_geometries.push_back(new_geometry);
                         }
                     }
-
                     cnt:;
                 }
 
+                KRATOS_WATCH(new_contact_geometries.size())
+
                 for (auto contact_geometry : new_contact_geometries)
                 {
-                    for ( int i = 0; i < rInterfaceConditionsModelPart.NumberOfConditions(); ++i)
+                    KRATOS_WATCH(rInterfaceConditionsModelPart.NumberOfConditions())
+                    int i = 0;
+                    bool found_old_condition = false;
+                    for ( auto interface_condition = rInterfaceConditionsModelPart.ConditionsBegin(); interface_condition != rInterfaceConditionsModelPart.ConditionsEnd(); ++interface_condition)
                     {
-                        array_1d<double, 3> distance_vector = contact_geometry->Center() - rInterfaceConditionsModelPart.Conditions()[i].GetGeometry().Center();
-                        if (norm_2(distance_vector) < Tolerance)
+                        array_1d<double, 3> distance_vector = contact_geometry->Center() - (*&interface_condition)->GetGeometry().Center();
+
+                        if (norm_2(distance_vector) < 10*Tolerance)
                         {
                             auto p_condition = ReferenceCondition.Create(
-                                rInterfaceConditionsModelPart.Conditions()[i].Id(),
+                                (*&interface_condition)->Id(),
                                 contact_geometry,
                                 particle_element_ptr->pGetProperties());
 
                             new_elastic_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i]);
                             new_total_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i]);
 
+                            KRATOS_WATCH(particle_element_ptr->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i])
+                            KRATOS_WATCH(particle_element_ptr->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i])
+
                             new_condition_list.push_back(p_condition);
                             new_conditions.push_back(&*p_condition);
 
+                            found_old_condition = true;
                             break;
                         }
+
+                        i++;
                     }
+                    if (!found_old_condition)
+                    {
+                        int id = 1;
+                        if (rInterfaceConditionsModelPart.GetRootModelPart().Conditions().size() > 0)
+                            id = rInterfaceConditionsModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                    int id = 1;
-                    if (rInterfaceConditionsModelPart.GetRootModelPart().Conditions().size() > 0)
-                        id = rInterfaceConditionsModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                        auto p_condition = ReferenceCondition.Create(
+                            id,
+                            contact_geometry,
+                            particle_element_ptr->pGetProperties());
 
-                    auto p_condition = ReferenceCondition.Create(
-                        id,
-                        contact_geometry,
-                        particle_element_ptr->pGetProperties());
+                        new_elastic_forces.push_back(ZeroVector(3));
+                        new_total_forces.push_back(ZeroVector(3));
 
-                    new_elastic_forces.push_back(ZeroVector(3));
-                    new_total_forces.push_back(ZeroVector(3));
-
-                    new_condition_list.push_back(p_condition);
-                    new_conditions.push_back(&*p_condition);
+                        new_condition_list.push_back(p_condition);
+                        new_conditions.push_back(&*p_condition);
+                    }
                 }
 
+
                 int condition_length = particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size();
-                std::vector<Vector> coords;
-                ProcessInfo emptyProcessInfo = ProcessInfo();
+
                 for (int i = 0; i < condition_length; ++i)
                 {
                     rInterfaceConditionsModelPart.RemoveConditionFromAllLevels(*(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[i]));
                 }
 
                 rInterfaceConditionsModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+                KRATOS_WATCH(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size())
 
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, new_elastic_forces);
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, new_total_forces);

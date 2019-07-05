@@ -74,8 +74,8 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
         const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
         GeneralVariables Variables;
 
@@ -88,10 +88,11 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
-            rGeom[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
-            rGeom[i].UnSetLock();
+            r_geometry[i].SetLock();
+            r_geometry[i].Set(SLIP);
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
+            r_geometry[i].UnSetLock();
         }
     }
 }
@@ -237,20 +238,37 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
         // Here MPC normal vector and IS_STRUCTURE are reset
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
-            rGeom[i].FastGetSolutionStepValue(NORMAL).clear();
-            rGeom[i].UnSetLock();
+            r_geometry[i].SetLock();
+            r_geometry[i].Reset(SLIP);
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
+            r_geometry[i].UnSetLock();
         }
     }
 
     KRATOS_CATCH( "" )
+}
+
+int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
+
+    // Verify that the dofs exist
+    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+    {
+        if ( this->GetGeometry()[i].SolutionStepsDataHas( NORMAL ) == false )
+        {
+            KRATOS_ERROR << "missing variable NORMAL on node " << this->GetGeometry()[i].Id() << std::endl;
+        }
+    }
+
+    return 0;
 }
 
 } // Namespace Kratos

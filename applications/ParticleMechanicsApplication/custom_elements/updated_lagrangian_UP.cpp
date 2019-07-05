@@ -152,9 +152,9 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     KRATOS_TRY
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     const array_1d<double,3> & xg = this->GetValue(MP_COORD);
     const array_1d<double,3> & MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
@@ -172,9 +172,12 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     {
         if (rVariables.N[i] > std::numeric_limits<double>::epsilon())
         {
-            const array_1d<double, 3 > & nodal_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+            auto r_geometry = GetGeometry();
+            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
+            if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
+                nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
-            const double& nodal_pressure = rGeom[i].FastGetSolutionStepValue(PRESSURE, 0);
+            const double& nodal_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE, 0);
             MP_Pressure += rVariables.N[i] * nodal_pressure;
 
             for ( unsigned int j = 0; j < dimension; j++ )
@@ -366,9 +369,9 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
 
-    GeometryType& rGeom = GetGeometry();
-    unsigned int dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    GeometryType& r_geometry = GetGeometry();
+    unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
@@ -391,11 +394,16 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        const array_1d<double, 3 > & nodal_acceleration = rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-        const array_1d<double, 3 > & nodal_velocity = rGeom[j].FastGetSolutionStepValue(VELOCITY,1);
+        array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
+        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
+            nodal_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
+
+        array_1d<double, 3 > nodal_velocity = ZeroVector(3);
+        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
+            nodal_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
 
         // These are the values of nodal pressure evaluated in the initialize solution step
-        const double& nodal_pressure = rGeom[j].FastGetSolutionStepValue(PRESSURE,1);
+        const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
 
         AUX_MP_Pressure += Variables.N[j] * nodal_pressure;
 
@@ -417,13 +425,13 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
             nodal_inertia[j]  = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
         }
 
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0)  += nodal_momentum;
-        rGeom[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
-        rGeom[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0)  += nodal_momentum;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
 
-        rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-        rGeom[i].UnSetLock();
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+        r_geometry[i].UnSetLock();
     }
 }
 //************************************************************************************
@@ -548,9 +556,9 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
 
     // FIXME: This is only for Solid Mechanics Problem with young_modulus Modulus and Poisson Ratio
@@ -573,7 +581,7 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            const double& pressure = rGeom[j].FastGetSolutionStepValue(PRESSURE);
+            const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
 
             // TODO: Check what is the meaning of this equation
             rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
@@ -595,9 +603,9 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
 
     double delta_coefficient = 0;
@@ -628,7 +636,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            const double& pressure = rGeom[j].FastGetSolutionStepValue(PRESSURE);
+            const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
 
             if( dimension == 2 )
             {
@@ -961,9 +969,9 @@ double& UpdatedLagrangianUP::CalculateVolumeChange( double& rVolumeChange, Gener
 
 void UpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int element_size          = number_of_nodes * dimension + number_of_nodes;
 
     if ( rResult.size() != element_size )
@@ -972,17 +980,17 @@ void UpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, Proce
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = i * dimension + i;
-        rResult[index]     = rGeom[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = rGeom[i].GetDof( DISPLACEMENT_Y ).EquationId();
+        rResult[index]     = r_geometry[i].GetDof( DISPLACEMENT_X ).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof( DISPLACEMENT_Y ).EquationId();
 
         if( dimension == 3)
         {
-            rResult[index + 2] = rGeom[i].GetDof( DISPLACEMENT_Z ).EquationId();
-            rResult[index + 3] = rGeom[i].GetDof( PRESSURE ).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof( DISPLACEMENT_Z ).EquationId();
+            rResult[index + 3] = r_geometry[i].GetDof( PRESSURE ).EquationId();
         }
         else
         {
-            rResult[index + 2] = rGeom[i].GetDof( PRESSURE ).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof( PRESSURE ).EquationId();
         }
     }
 }
@@ -994,18 +1002,18 @@ void UpdatedLagrangianUP::GetDofList( DofsVectorType& rElementalDofList, Process
 {
     rElementalDofList.resize( 0 );
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    for ( unsigned int i = 0; i < rGeom.size(); i++ )
+    for ( unsigned int i = 0; i < r_geometry.size(); i++ )
     {
-        rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_X ) );
-        rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_Y ) );
+        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_X ) );
+        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Y ) );
 
         if( dimension == 3 )
-            rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_Z ) );
+            rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
 
-        rElementalDofList.push_back( rGeom[i].pGetDof( PRESSURE ));
+        rElementalDofList.push_back( r_geometry[i].pGetDof( PRESSURE ));
     }
 }
 
@@ -1053,9 +1061,9 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessI
 
 void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
 
     if ( values.size() != element_size ) values.resize( element_size, false );
@@ -1064,17 +1072,17 @@ void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
-        values[index]     = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+        values[index]     = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
 
         if ( dimension == 3 )
         {
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
-            values[index + 3] = rGeom[i].FastGetSolutionStepValue( PRESSURE, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
+            values[index + 3] = r_geometry[i].FastGetSolutionStepValue( PRESSURE, Step );
         }
         else
         {
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( PRESSURE, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( PRESSURE, Step );
         }
 
     }
@@ -1085,9 +1093,9 @@ void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
 
 void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
 
     if ( values.size() != element_size ) values.resize( element_size, false );
@@ -1095,11 +1103,11 @@ void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
-        values[index]     = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        values[index]     = r_geometry[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
         if ( dimension == 3 )
         {
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
             values[index + 3] = 0;
         }
         else
@@ -1114,9 +1122,9 @@ void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
 
 void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
 
     if ( values.size() != element_size ) values.resize( element_size, false );
@@ -1125,12 +1133,12 @@ void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
-        values[index]     = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+        values[index]     = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
         if ( dimension == 3 )
         {
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
             values[index + 3] = 0;
         }
         else
@@ -1154,9 +1162,9 @@ void UpdatedLagrangianUP::GetHistoricalVariables( GeneralVariables& rVariables )
 
 void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     double voigtsize = 3;
     if ( dimension == 3)
@@ -1167,7 +1175,7 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
     // Evaluation of the pressure on the material point
     double nodal_mean_stress = 0.0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
-        nodal_mean_stress += rGeom[i].FastGetSolutionStepValue( PRESSURE ) * rVariables.N[i];
+        nodal_mean_stress += r_geometry[i].FastGetSolutionStepValue( PRESSURE ) * rVariables.N[i];
 
     // Evaluation of the mean stress on the material point
     double mean_stress = 0.0;

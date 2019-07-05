@@ -7,18 +7,20 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the base class
-from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
+from KratosMultiphysics.ParticleMechanicsApplication.mpm_implicit_dynamic_solver import MPMImplicitDynamicSolver
 
 def CreateSolver(model, custom_settings):
-    return MPMStaticSolver(model, custom_settings)
+    return MPMQuasiStaticSolver(model, custom_settings)
 
-class MPMStaticSolver(MPMSolver):
+class MPMQuasiStaticSolver(MPMImplicitDynamicSolver):
+
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.
-        super(MPMStaticSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Construction finished")
+        super(MPMQuasiStaticSolver, self).__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[MPMQuasiStaticSolver]:: ", "Construction finished")
 
+    #### Private functions ####
 
-    def _create_solution_scheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+    def _is_dynamic(self):
+        return False

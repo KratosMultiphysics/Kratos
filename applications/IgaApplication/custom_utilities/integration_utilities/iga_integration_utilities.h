@@ -155,7 +155,6 @@ namespace IgaIntegrationUtilities
                         Matrix shape_function_derivative(shape.NonzeroPoleIndices().size(), 2);
                         Matrix shape_function_second_derivative(shape.NonzeroPoleIndices().size(), 3);
 
-                        array_1d<double, 3> location = ZeroVector(3);
                         for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
                         {
                             int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
@@ -178,8 +177,6 @@ namespace IgaIntegrationUtilities
                                 shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
                                 shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
                             }
-
-                            location += non_zero_control_points.back().Coordinates()*shape_function(n);
                         }
 
                         Element ele(0, non_zero_control_points);
@@ -242,7 +239,6 @@ namespace IgaIntegrationUtilities
                             Matrix shape_function_derivative(number_of_non_zero_cps, 2);
                             Matrix shape_function_second_derivative(number_of_non_zero_cps, 3);
 
-                            array_1d<double, 3> location = ZeroVector(3);
                             for (int n = 0; n < number_of_non_zero_cps; ++n)
                             {
                                 int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
@@ -265,8 +261,6 @@ namespace IgaIntegrationUtilities
                                     shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
                                     shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
                                 }
-
-                                location += non_zero_control_points.back().Coordinates()*shape_function(n);
                             }
 
                             Element ele(0, non_zero_control_points);
@@ -356,8 +350,6 @@ namespace IgaIntegrationUtilities
 
                 Matrix N(1, number_of_non_zero_cps);
                 Matrix DN_De(number_of_non_zero_cps, 2);
-
-                array_1d<double, 3> location = ZeroVector(3);
 
                 for (int n = 0; n < number_of_non_zero_cps; ++n)
                 {
@@ -498,8 +490,6 @@ namespace IgaIntegrationUtilities
                     //Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
                     //KRATOS_WATCH(number_of_non_zero_cps_1)
 
-                    array_1d<double, 3> location = ZeroVector(3);
-
                     for (int n = 0; n < number_of_non_zero_cps_1; ++n)
                     {
                         int indexU = shape_1.NonzeroPoleIndices()[n].first - shape_1.FirstNonzeroPoleU();
@@ -522,8 +512,6 @@ namespace IgaIntegrationUtilities
                         //    shape_function_second_derivative(n, 1) = shape_1(5, indexU, indexV);
                         //    shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
                         //}
-
-                        location += cps_master.back().Coordinates()*shape_function_master(n);
                     }
 
                     Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients;

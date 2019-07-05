@@ -188,8 +188,8 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 {
     KRATOS_TRY;
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int mat_size = number_of_nodes * 3;
 
     //Resizing as needed the LHS
@@ -215,14 +215,14 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
     }
 
     // Reading integration points and local gradients
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(rGeom);
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(integration_method);
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = rGeom.ShapeFunctionsLocalGradients(integration_method);
-    const Matrix& Ncontainer = rGeom.ShapeFunctionsValues(integration_method);
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Calculating actual jacobian
     GeometryType::JacobiansType J;
-    J = rGeom.Jacobian(J,integration_method);
+    J = r_geometry.Jacobian(J,integration_method);
 
     // Vector with a loading applied to the elemnt
     array_1d<double, 3 > surface_load = ZeroVector(3);
@@ -251,13 +251,13 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 
     for (unsigned int i = 0; i < pressure_on_nodes.size(); i++)
     {
-        if( rGeom[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] += rGeom[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] += r_geometry[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
         }
-        if( rGeom[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] -= rGeom[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] -= r_geometry[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
         }
     }
 
@@ -267,7 +267,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
     {
         const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
-        const auto& N = row(Ncontainer, point_number);
+        const auto& N = row(r_N, point_number);
 
         ge[0] = J[point_number](0, 0);
         gn[0] = J[point_number](0, 1);
@@ -291,7 +291,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         {
             if (std::abs(pressure) > std::numeric_limits<double>::epsilon())
             {
-                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, DN_DeContainer[point_number], N, pressure, integration_weight);
+                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, r_DN_De[point_number], N, pressure, integration_weight);
             }
         }
 
@@ -308,9 +308,9 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         array_1d<double, 3> gauss_load = surface_load;
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
-            if( rGeom[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
+            if( r_geometry[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
             {
-                noalias(gauss_load) += N[ii]*rGeom[ii].FastGetSolutionStepValue( SURFACE_LOAD );
+                noalias(gauss_load) += N[ii]*r_geometry[ii].FastGetSolutionStepValue( SURFACE_LOAD );
             }
         }
 
