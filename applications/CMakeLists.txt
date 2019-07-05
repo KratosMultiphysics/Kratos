@@ -317,6 +317,10 @@ if(${MULTISCALE_APPLICATION} MATCHES ON)
   add_subdirectory(MultiScaleApplication)
 endif(${MULTISCALE_APPLICATION} MATCHES ON)
 
+if(${MULTISCALE_ROM_APPLICATION} MATCHES ON)
+  add_subdirectory(MultiscaleROMApplication)
+endif(${MULTISCALE_ROM_APPLICATION} MATCHES ON)
+
 if(${POROMECHANICS_APPLICATION} MATCHES ON)
   add_subdirectory(PoromechanicsApplication)
 endif(${POROMECHANICS_APPLICATION} MATCHES ON)

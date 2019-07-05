@@ -109,6 +109,13 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<double>& rThisVariable) override;
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (int)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
