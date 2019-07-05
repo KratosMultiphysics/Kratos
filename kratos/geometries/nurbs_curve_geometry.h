@@ -27,7 +27,7 @@ namespace Kratos {
 
 template <int TDimension, typename TPoleContainer =
     std::vector<array_1d<double, TDimension>>>
-struct NurbsCurveGeometry
+class NurbsCurveGeometry
 {
 public:     // types
     using Type = NurbsCurveGeometry<TDimension>;
