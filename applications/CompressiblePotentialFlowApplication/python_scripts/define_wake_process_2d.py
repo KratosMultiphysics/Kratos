@@ -45,15 +45,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        # CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
-        ###REMOVING DUE TO PROBLEMS WITH MESHING APP###
-        # if self.fluid_model_part.HasSubModelPart("trailing_edge_sub_model_part"):
-        #     self.fluid_model_part.RemoveSubModelPart("trailing_edge_sub_model_part")
-        # if self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
-        #     self.fluid_model_part.RemoveSubModelPart("wake_sub_model_part")
-
-        self.__FindWakeElements()
+        # self.__FindWakeElements()
 
     def __FindWakeElements(self):
 
@@ -128,7 +122,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
                     counter=0
                     for node in elem.GetNodes():
-                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
+                        node.SetValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
         self.__SaveTrailingEdgeElements()
 

@@ -64,30 +64,44 @@ class AdaptiveRefinement(object):
                 find_nodal_h = KratosMultiphysics.FindNodalHProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h.Execute()
-                custom_gradient = KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeNonHistoricalCustomNodalGradientProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY, KratosMultiphysics.NODAL_AREA)
+                custom_gradient = KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeCustomNodalGradientProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY, KratosMultiphysics.NODAL_AREA)
                 custom_gradient.Execute()
-                for node in model_coarse.GetModelPart(model_part_name).Nodes:
-                    vector=node.GetValue(KratosMultiphysics.VELOCITY)
-                    norm=np.linalg.norm(vector)
-                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,norm)
 
-                # prepare parameters to calculate the gradient of the designed variable
-                local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
-                local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
-                metric_param.RemoveValue("local_gradient_variable")
-                # set interpolation error value (level dependent)
+                if metric_param.Has("local_gradient_variable"):
+                    metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
                     interp_error = original_interp_error*10**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
-                # calculate the gradient of the variable
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
+
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
                 local_gradient.Execute()
-                # add again the removed variable parameter
-                metric_param.AddEmptyValue("local_gradient_variable")
-                metric_param["local_gradient_variable"].SetString(local_gradient_variable_string)
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_Y,metric_param)
+                local_gradient.Execute()
+
+                # #### OLD APPROACH
+                # for node in model_coarse.GetModelPart(model_part_name).Nodes:
+                #     vector=node.GetValue(KratosMultiphysics.VELOCITY)
+                #     norm=np.linalg.norm(vector)
+                #     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,norm)
+
+                # prepare parameters to calculate the gradient of the designed variable
+                # local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
+                # local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
+                # set interpolation error value (level dependent)
+                # calculate the gradient of the variable
+                # local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
+                # local_gradient.Execute()
+
+                # # add again the removed variable parameter
+                # metric_param.AddEmptyValue("local_gradient_variable")
+                # metric_param["local_gradient_variable"].SetString(local_gradient_variable_string)
+
+                #### OLD APPROACH
+
 
             elif (problem_type == "ProblemZero"):
-                metric_param.RemoveValue("local_gradient_variable")
+                if metric_param.Has("local_gradient_variable"):
+                    metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
                     interp_error = original_interp_error*10**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)

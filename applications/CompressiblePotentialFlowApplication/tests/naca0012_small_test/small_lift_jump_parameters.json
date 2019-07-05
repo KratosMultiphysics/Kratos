@@ -17,7 +17,7 @@
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
         "linear_solver_settings"  : {
-                "solver_type"             : "ExternalSolversApplication.super_lu"
+                "solver_type"             : "SkylineLUFactorizationSolver"
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
         "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
