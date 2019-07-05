@@ -19,10 +19,13 @@ Note:
 - This file cannot have Kratos-includes, because it is also included in other codes!
 - This file is intended to be header-only, such that other codes do not have to link against a library
 - Requires c++11 to compile
+- All functions have to be static, otherwise linking errors occur if it is included in multiple files
 */
 
 // System includes
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <fstream>
 #include <stdexcept>
 #include <stdio.h>
