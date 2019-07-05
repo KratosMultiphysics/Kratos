@@ -109,6 +109,11 @@
                         "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "VELOCITY"
+                    },
+                    "normals" : {
+                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "NORMAL"
                     }
                 }
             },
@@ -133,6 +138,11 @@
                         "model_part_name"   : "Structure.GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "VELOCITY"
+                    },
+                    "normals" : {
+                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "NORMAL"
                     }
                 }
             }
