@@ -4,6 +4,19 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+
+try:
+    import KratosMultiphysics.MeshingApplication as KMesh
+except:
+    raise("MeshingApplication is missing")
+
+try:
+    import KratosMultiphysics.IncompressibleFluidApplication 
+    from KratosMultiphysics.IncompressibleFluidApplication import new_restart_utilities
+except:
+    raise("IncompressibleFluidApplication is missing")
+
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(FRACT_VEL)
@@ -319,7 +332,6 @@ class IncompressibleFluidSolver:
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, dt)
 
     def AdaptMesh(self):
-        import KratosMultiphysics.MeshingApplication as KMesh
         admissible_ratio = 0.05
         max_levels = 2
         refinement_utils = KMesh.RefinementUtilities()
@@ -344,7 +356,6 @@ class IncompressibleFluidSolver:
 
     def WriteRestartFile(self, FileName):
         restart_file = open(FileName + ".mdpa", 'w')
-        import new_restart_utilities
         new_restart_utilities.PrintProperties(restart_file)
         new_restart_utilities.PrintNodes(self.model_part.Nodes, restart_file)
         new_restart_utilities.PrintElements(
@@ -397,7 +408,6 @@ def CreateSolver(model_part, config, periodic=False):
         fluid_solver.dynamic_tau = config.dynamic_tau
 
     # linear solver settings
-    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "pressure_linear_solver_config")):
         fluid_solver.pressure_linear_solver = linear_solver_factory.ConstructSolver(
             config.pressure_linear_solver_config)
