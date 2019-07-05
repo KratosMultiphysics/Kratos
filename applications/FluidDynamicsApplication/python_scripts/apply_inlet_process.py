@@ -1,6 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
+from KratosMultiphysics import assign_vector_by_direction_process
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -55,7 +57,6 @@ class ApplyInletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.INLET, True)
 
         # Construct the base process AssignVectorByDirectionProcess
-        import assign_vector_by_direction_process
         self.aux_process = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
 
