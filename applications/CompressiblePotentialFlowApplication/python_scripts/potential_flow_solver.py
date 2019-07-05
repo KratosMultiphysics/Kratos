@@ -89,6 +89,7 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "no_skin_parts": [""],
             "move_mesh_flag": false,
+            "reference_chord": 1.0,
             "auxiliary_variables_list" : []
         }''')
 
@@ -108,6 +109,8 @@ class PotentialFlowSolver(FluidSolver):
         self.condition_name = self.formulation.condition_name
         self.min_buffer_size = 1
         self.domain_size = custom_settings["domain_size"].GetInt()
+        self.reference_chord = custom_settings["reference_chord"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
 
         #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
