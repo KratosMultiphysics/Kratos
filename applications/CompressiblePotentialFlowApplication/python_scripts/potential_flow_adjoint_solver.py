@@ -40,6 +40,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
+        # Setting the reference chord
+        self.response_function_settings.AddEmptyValue("reference_chord").SetDouble(self.reference_chord)
 
         self.formulation = PotentialFlowAdjointFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
