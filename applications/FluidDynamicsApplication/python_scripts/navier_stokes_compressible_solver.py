@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
-## Import base class file
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 def CreateSolver(model, custom_settings):
@@ -66,7 +67,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.min_buffer_size = 3
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
@@ -188,7 +188,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
 

@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -12,6 +13,7 @@ except ImportError:
     have_conv_diff = False
 
 # Import base class file
+from KratosMultiphysics.FluidDynamicsApplication import read_distance_from_file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 
@@ -121,7 +123,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.computing_model_part = self.GetComputingModelPart()
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -241,7 +242,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _set_distance_function(self):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
-            import read_distance_from_file
             DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
