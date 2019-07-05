@@ -15,10 +15,11 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
-#include "includes/define.h"
 #include "custom_elements/laplacian_element.h"
 
+#include "includes/checks.h"
+#include "includes/define.h"
+#include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -59,6 +60,15 @@ LaplacianElement::~LaplacianElement()
 void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
+
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_points = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
@@ -88,8 +98,8 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     Vector nodal_conductivity(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
-        heat_flux_local[node_element] = r_geometry[node_element].FastGetSolutionStepValue(HEAT_FLUX);
-        nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(CONDUCTIVITY);
+        heat_flux_local[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_volume_source_var);
+        nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
     }
 
     r_geometry.Jacobian(J0);
@@ -116,8 +126,8 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
 
     // RHS = ExtForces - K*temp;
-    for (unsigned int i=0; i<number_of_points; i++)
-        temp[i] = r_geometry[i].GetSolutionStepValue(TEMPERATURE) ; //this includes the - sign
+    for (unsigned int i = 0; i < number_of_points; i++)
+        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
 
     //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
@@ -136,27 +146,39 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes);
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
-        rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
+        rResult[i] = GetGeometry()[i].GetDof(r_unknown_var).EquationId();
     }
 }
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& rCurrentProcessInfo)
 {
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)
         ElementalDofList.resize(number_of_nodes);
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
-        ElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
+        ElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
     }
 }
 
@@ -164,15 +186,28 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 //************************************************************************************
 int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedUnknownVariable()) << "No Unknown Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedDiffusionVariable()) << "No Diffusion Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedVolumeSourceVariable()) << "No Volume Source Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+    
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
+
     const auto& r_geom = GetGeometry();
+
     for (unsigned int i = 0; i < r_geom.PointsNumber(); i++)
     {
         const auto& r_node = r_geom[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEAT_FLUX, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(CONDUCTIVITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_unknown_var, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_diffusivity_var, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_volume_source_var, r_node);
 
-        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(r_unknown_var, r_node);
     }
 
     return Element::Check(rCurrentProcessInfo);
