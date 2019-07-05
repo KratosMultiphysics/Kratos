@@ -104,13 +104,26 @@ class AdaptiveRefinement(object):
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_Y,metric_param)
                 local_gradient.Execute()
 
+            elif (problem_type == "poisson_square_2d"):
+                if current_level > 0:
+                    interp_error = original_interp_error*10**(-current_level)
+                    metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
+                model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+                # Setting Metric Tensor to 0
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+                # calculate NODAL_H
+                find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+                find_nodal_h.Execute()
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.TEMPERATURE,metric_param)
+                local_gradient.Execute()
+
             # create the remeshing process
             MmgProcess = KratosMeshing.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
             MmgProcess.Execute()
 
             # reset variables if needed
             # TODO: improve, now it is problem dependent
-            if (problem_type == "ProblemZero"):
+            if (problem_type == "ProblemZero" or problem_type == "poisson_square_2d"):
                 model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME , 0.0)
                 model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP , 0)
 
