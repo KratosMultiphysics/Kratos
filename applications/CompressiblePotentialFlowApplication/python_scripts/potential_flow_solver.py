@@ -180,5 +180,5 @@ class PotentialFlowSolver(FluidSolver):
             msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
             KratosMultiphysics.Logger.PrintWarning("PotentialFlowSolver",msg)
-            return is_converged
+        return is_converged
 
