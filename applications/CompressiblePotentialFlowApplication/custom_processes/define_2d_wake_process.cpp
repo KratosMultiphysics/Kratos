@@ -78,7 +78,7 @@ void Define2DWakeProcess::InitializeWakeSubModelpart() const
 
         for (auto& r_element : wake_sub_model_part.Elements()){
             r_element.SetValue(WAKE, false);
-            r_element.SetValue(ELEMENTAL_DISTANCES, ZeroVector(3));
+            r_element.SetValue(WAKE_ELEMENTAL_DISTANCES, ZeroVector(3));
             r_element.Set(TO_ERASE, true);
         }
         wake_sub_model_part.RemoveElements(TO_ERASE);
@@ -157,7 +157,7 @@ void Define2DWakeProcess::MarkWakeElements()
             // Mark wake element and save their nodal distances to the wake
             if (is_wake_element) {
                 it_elem->SetValue(WAKE, true);
-                it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+                it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
                 #pragma omp critical
                 {
                     wake_elements_ordered_ids.push_back(it_elem->Id());
@@ -316,7 +316,7 @@ const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Elem
     unsigned int number_of_nodes_with_negative_distance = 0;
     // REMINDER: In 3D the elemental_distances may not be match with the nodal
     // distances if CalculateDistanceToSkinProcess is used.
-    const auto nodal_distances_to_wake = rElement.GetValue(ELEMENTAL_DISTANCES);
+    const auto nodal_distances_to_wake = rElement.GetValue(WAKE_ELEMENTAL_DISTANCES);
 
     // Count how many element nodes are above and below the wake
     for (unsigned int i = 0; i < nodal_distances_to_wake.size(); i++) {

@@ -45,9 +45,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+        # CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
-        #self.__FindWakeElements()
+        self.__FindWakeElements()
 
     def __FindWakeElements(self):
 
@@ -113,7 +113,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 if(is_wake_element):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
-                        KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                        CPFApp.WAKE_ELEMENTAL_DISTANCES, distances_to_wake)
                     counter=0
                     for node in elem.GetNodes():
                         node.SetValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
@@ -218,7 +218,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         nneg=0
         # REMINDER: In 3D the elemental_distances may not be match with
         # the nodal distances if CalculateDistanceToSkinProcess is used.
-        distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+        distances = elem.GetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES)
         for nodal_distance in distances:
             if nodal_distance<0:
                 nneg += 1
