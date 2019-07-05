@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
@@ -15,8 +18,6 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
-
-        # TODO in case the NORMALS are computed with historical variables then you shoudl check if the var is in the ModelPart
 
     def Initialize(self):
         pass
@@ -38,15 +39,15 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
     def FinalizeCouplingIteration(self):
         pass
 
-
     def Execute(self):
-        COMPUTENORMALS(self.interface_data.GetModelPart()) # no clue how you do this
+        smp_normal_calculator = self.interface_data.GetModelPart()
+        KM.NormalCalculationUtils().CalculateOnSimplex(smp_normal_calculator, smp_normal_calculator.ProcessInfo[KM.DOMAIN_SIZE])
 
     def PrintInfo(self):
         pass
 
     def Check(self):
-        pass
+        # TODO in case the NORMALS are computed with historical variables then you shoudl check if the var is in the ModelPart
 
     @classmethod
     def _GetDefaultSettings(cls):
