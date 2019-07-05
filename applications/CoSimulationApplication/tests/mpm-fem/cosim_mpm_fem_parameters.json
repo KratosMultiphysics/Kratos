@@ -44,6 +44,13 @@
                 }
             }
         },
+        "coupling_operations" : {
+            "normals_computation" : {
+                "type"      : "compute_normals",
+                "solver"    : "structure",
+                "data_name" : "disp"
+            }
+        },
         "coupling_sequence":
         [
             {
