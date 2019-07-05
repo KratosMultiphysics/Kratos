@@ -26,7 +26,7 @@ import algorithm_factory
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
-    ValidateSettings(optimization_settings)
+    _ValidateSettings(optimization_settings)
 
     model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
 
@@ -40,13 +40,13 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ------------------------------------------------------------------------------
-def ValidateSettings(optimization_settings):
-    ValidateTopLevelSettings(optimization_settings)
-    ValidateObjectiveSettings(optimization_settings["objectives"])
-    ValidateConstraintSettings(optimization_settings["constraints"])
+def _ValidateSettings(optimization_settings):
+    _ValidateTopLevelSettings(optimization_settings)
+    _ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
+    _ValidateConstraintSettings(optimization_settings["constraints"])
 
 # ------------------------------------------------------------------------------
-def ValidateTopLevelSettings(optimization_settings):
+def _ValidateTopLevelSettings(optimization_settings):
     default_settings = Parameters("""
     {
         "model_settings" : { },
@@ -64,7 +64,7 @@ def ValidateTopLevelSettings(optimization_settings):
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
 # ------------------------------------------------------------------------------
-def ValidateObjectiveSettings(settings):
+def _ValidateObjectiveSettingsRecursively(objective_settings):
     default_settings = Parameters("""
     {
         "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
@@ -72,13 +72,19 @@ def ValidateObjectiveSettings(settings):
         "scaling_factor"                      : 1.0,
         "use_kratos"                          : false,
         "kratos_response_settings"            : {},
+        "is_combined"                         : false,
+        "combined_responses"                  : [],
+        "weight"                              : 1.0,
         "project_gradient_on_surface_normals" : false
     }""")
-    for itr in range(settings.size()):
-        settings[itr].ValidateAndAssignDefaults(default_settings)
+    for itr in range(objective_settings.size()):
+        objective_settings[itr].ValidateAndAssignDefaults(default_settings)
+
+        if objective_settings[itr]["is_combined"].GetBool():
+            _ValidateObjectiveSettingsRecursively(objective_settings[itr]["combined_responses"])
 
 # ------------------------------------------------------------------------------
-def ValidateConstraintSettings(settings):
+def _ValidateConstraintSettings(constraint_settings):
     default_settings = Parameters("""
     {
         "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
@@ -90,8 +96,8 @@ def ValidateConstraintSettings(settings):
         "kratos_response_settings"            : {},
         "project_gradient_on_surface_normals" : false
     }""")
-    for itr in range(settings.size()):
-        settings[itr].ValidateAndAssignDefaults(default_settings)
+    for itr in range(constraint_settings.size()):
+        constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
 
 # ==============================================================================
 class VertexMorphingMethod:
@@ -110,11 +116,10 @@ class VertexMorphingMethod:
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
-        for itr in range(1,number_of_objectives+1):
-            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX")
-            model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX_MAPPED")
-            model_part.AddNodalSolutionStepVariable(nodal_variable)
+        nodal_variable = KratosGlobals.GetVariable("DF1DX")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
+        nodal_variable = KratosGlobals.GetVariable("DF1DX_MAPPED")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")
