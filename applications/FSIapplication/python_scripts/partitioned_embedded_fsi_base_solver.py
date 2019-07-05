@@ -78,27 +78,10 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         buffer_structure = self.structure_solver.GetMinimumBufferSize()
         return max(buffer_structure,buffer_fluid)
 
-    #TODO: CHECK WHICH VARIABLES ARE MISSING OR NOT NEEDED
     def AddVariables(self):
-        # Structure solver variables addition
-        self.structure_solver.AddVariables()
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-
-        # Fluid solver variables addition
+        # Fluid and structure solvers variables addition
         self.fluid_solver.AddVariables()
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        #TODO: REMOVE THIS! ONLY ADDED FOR DEBUGGING WITHOUT MODIFYING THE JSON WHEN THE FM-ALE ALGORITHM IS SWITCHED OFF.
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
-
-        # FSI coupling required variables addition
-        # TODO: THESE VARIABLES SHOULDN'T BE REQUIRED AFTER THE CREATION OF THE FSI COUPLING SKIN
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRUCTURE_VELOCITY)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_PROJECTED)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
+        self.structure_solver.AddVariables()
 
     def ImportModelPart(self):
         # Fluid and structure solvers ImportModelPart() call
@@ -158,14 +141,10 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
         self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(structure_new_time)
 
-        # TODO: REMOVE AFTER DEBUGGING
-        self.GetStructureIntersectionsModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
-        self.GetStructureIntersectionsModelPart().GetRootModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
-
         if abs(fluid_new_time - structure_new_time) > 1e-12:
             err_msg =  'Fluid new time is: ' + str(fluid_new_time) + '\n'
             err_msg += 'Structure new time is: ' + str(structure_new_time) + '\n'
-            err_msg += 'No substepping has been implemented yet. Fluid and structure time must coincide.'
+            err_msg += 'No substepping has been implemented yet. Fluid and structure time step must coincide.'
             raise Exception(err_msg)
 
         return fluid_new_time
@@ -271,94 +250,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self._solve_fluid()
 
             # Transfer the fluid load to the structure FSI coupling
-            if (self.level_set_type == "continuous"):
-                # Interpolate the pressure to the fluid FSI coupling interface
-                self._get_partitioned_fsi_utilities().EmbeddedPressureToPositiveFacePressureInterpolator(
-                    self.GetFluidComputingModelPart(),
-                    self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
-
-                # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
-                # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
-                for node_orig, node_dest in zip(
-                    self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
-                    self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
-                    aux_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-                    node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pres)
-            elif (self.level_set_type == "discontinuous"):
-                # Generate the intersections skin to map from
-                self._get_embedded_skin_utility().GenerateSkin()
-
-                # Interpolate POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the background mesh
-                self._get_embedded_skin_utility().InterpolateDiscontinuousMeshVariableToSkin(
-                    KratosMultiphysics.PRESSURE, KratosMultiphysics.POSITIVE_FACE_PRESSURE, "positive")
-                self._get_embedded_skin_utility().InterpolateDiscontinuousMeshVariableToSkin(
-                    KratosMultiphysics.PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE, "negative")
-
-                mapper_params = KratosMultiphysics.Parameters("""{
-                    "mapper_type": "nearest_element",
-                    "echo_level" : 0
-                }""")
-                mapper = KratosMapping.MapperFactory.CreateMapper(
-                    self._get_embedded_skin_utility_model_part(),
-                    self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
-                    mapper_params)
-                mapper.Map(KratosMultiphysics.POSITIVE_FACE_PRESSURE, KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-                mapper.Map(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-
-                # # Set the POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE mortar mapping
-                # pos_face_map_parameters = KratosMultiphysics.Parameters("""{
-                #     "echo_level": 0,
-                #     "discontinuous_interface"          : true,
-                #     "discontinous_interface_factor"    : 1.0e-7,
-                #     "absolute_convergence_tolerance"   : 1.0e-9,
-                #     "relative_convergence_tolerance"   : 1.0e-6,
-                #     "max_number_iterations"            : 50,
-                #     "integration_order"                : 2,
-                #     "update_interface": true,
-                #     "origin_are_conditions"            : true,
-                #     "destination_are_conditions"       : false,
-                #     "origin_variable"                  : "POSITIVE_FACE_PRESSURE",
-                #     "destination_variable"             : "POSITIVE_FACE_PRESSURE"
-                # }""")
-                # KratosMultiphysics.SimpleMortarMapperProcess(
-                #     self._get_embedded_skin_utility_model_part(),
-                #     self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
-                #     pos_face_map_parameters).Execute()
-
-                # neg_face_map_parameters = KratosMultiphysics.Parameters("""{
-                #     "echo_level": 0,
-                #     "discontinuous_interface"          : true,
-                #     "discontinous_interface_factor"    : 1.0e-7,
-                #     "absolute_convergence_tolerance"   : 1.0e-9,
-                #     "relative_convergence_tolerance"   : 1.0e-6,
-                #     "max_number_iterations"            : 50,
-                #     "integration_order"                : 2,
-                #     "update_interface": true,
-                #     "origin_are_conditions"            : true,
-                #     "destination_are_conditions"       : false,
-                #     "origin_variable"                  : "NEGATIVE_FACE_PRESSURE",
-                #     "destination_variable"             : "NEGATIVE_FACE_PRESSURE"
-                # }""")
-                # KratosMultiphysics.SimpleMortarMapperProcess(
-                #     self._get_embedded_skin_utility_model_part(),
-                #     self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
-                #     neg_face_map_parameters).Execute()
-
-
-
-                # Transfer POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the fluid coupling interface to the structure one
-                # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
-                # TODO: IMPLEMENT SOMETHING IN THE VARIABLES UTILS THAT DOES THAT
-                for node_orig, node_dest in zip(
-                    self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
-                    self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
-                    aux_pos_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-                    aux_neg_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-                    node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pos_pres)
-                    node_dest.SetSolutionStepValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, aux_neg_pres)
-            else:
-                err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
-                raise Exception(err_msg)
+            self._transfer_fluid_load()
 
             # Transfer fluid from the structure FSI coupling interface to father model part
             if (self.level_set_type == "continuous"):
@@ -563,6 +455,55 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         # Restore the fluid node fixity to its original status
         self._get_distance_modification_process().ExecuteFinalizeSolutionStep()
+
+    def _transfer_fluid_load(self):
+        if (self.level_set_type == "continuous"):
+            # Interpolate the pressure to the fluid FSI coupling interface
+            self._get_partitioned_fsi_utilities().EmbeddedPressureToPositiveFacePressureInterpolator(
+                self.GetFluidComputingModelPart(),
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
+
+            # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
+            # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
+            for node_orig, node_dest in zip(
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
+                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
+                aux_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+                node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pres)
+        elif (self.level_set_type == "discontinuous"):
+            # Generate the intersections skin to map from
+            self._get_embedded_skin_utility().GenerateSkin()
+
+            # Interpolate POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the background mesh
+            self._get_embedded_skin_utility().InterpolateDiscontinuousMeshVariableToSkin(
+                KratosMultiphysics.PRESSURE, KratosMultiphysics.POSITIVE_FACE_PRESSURE, "positive")
+            self._get_embedded_skin_utility().InterpolateDiscontinuousMeshVariableToSkin(
+                KratosMultiphysics.PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE, "negative")
+
+            mapper_params = KratosMultiphysics.Parameters("""{
+                "mapper_type": "nearest_element",
+                "echo_level" : 0
+            }""")
+            mapper = KratosMapping.MapperFactory.CreateMapper(
+                self._get_embedded_skin_utility_model_part(),
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
+                mapper_params)
+            mapper.Map(KratosMultiphysics.POSITIVE_FACE_PRESSURE, KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+            mapper.Map(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+
+            # Transfer POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the fluid coupling interface to the structure one
+            # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
+            # TODO: IMPLEMENT SOMETHING IN THE VARIABLES UTILS THAT DOES THAT
+            for node_orig, node_dest in zip(
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
+                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
+                aux_pos_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+                aux_neg_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+                node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pos_pres)
+                node_dest.SetSolutionStepValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, aux_neg_pres)
+        else:
+            err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
+            raise Exception(err_msg)
 
     def _solve_structure(self):
         # Solve the structure problem
