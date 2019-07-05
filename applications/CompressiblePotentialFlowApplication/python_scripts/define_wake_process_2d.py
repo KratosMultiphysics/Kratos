@@ -217,7 +217,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
     def __CheckIfElemIsCutByWake(elem):
         nneg=0
         # REMINDER: In 3D the elemental_distances may not be match with
-        # the nodal distances if CalculateDistanceToSkinProcess is used.
+        # the nodal distances if CalculateDistanceToSkinProcess is used
         distances = elem.GetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES)
         for nodal_distance in distances:
             if nodal_distance<0:
