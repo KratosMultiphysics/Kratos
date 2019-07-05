@@ -86,12 +86,12 @@ class UPwSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                                   self.settings["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
         if(self.settings["nodal_smoothing"].GetBool() == True):
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
         else:
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.STEP_INITIAL_STRESS, self.settings["step_initial_stress"].GetInt())
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
