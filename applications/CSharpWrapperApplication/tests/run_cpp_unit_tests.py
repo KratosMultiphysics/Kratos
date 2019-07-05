@@ -1,10 +1,10 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.CSharpWrapperApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.CSharpWrapperApplication
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    Tester.RunTestSuite("KratosCSharpWrapperApplicationFastSuite")
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
+    KratosMultiphysics.Tester.RunTestSuite("KratosCSharpWrapperApplicationFastSuite")
 
 if __name__ == '__main__':
     run()
