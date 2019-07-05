@@ -327,7 +327,7 @@ public:
                     vector_of_node_ids.push_back(original_nodes_order[1]);
 
                     Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
-                    Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("Condition2D");
+                    Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("LineCondition2D2N");
 
                     // Skin edges are added as conditions
                     Line2D2<Node<3>> line1(pnode1, pnode2);
@@ -348,7 +348,7 @@ public:
                     vector_of_node_ids.push_back(original_nodes_order[1]);
                     vector_of_node_ids.push_back(original_nodes_order[2]);
                     Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
-                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("mSurfaceCondition3D3N");
 
                     // Skin faces are added as conditions
                     Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
@@ -371,7 +371,7 @@ public:
                     vector_of_node_ids.push_back(original_nodes_order[2]);
                     vector_of_node_ids.push_back(original_nodes_order[3]);
                     Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
-                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("mSurfaceCondition3D3N");
 
                     // Add triangle one as condition
                     Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
