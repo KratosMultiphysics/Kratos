@@ -29,7 +29,8 @@
 #include "includes/variables.h"
 #include "includes/linear_master_slave_constraint.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
-
+#include "processes/calculate_distance_to_skin_process.h"
+#include "input_output/vtk_output.h"
 
 // Application includes
 #include "chimera_application_variables.h"
@@ -267,6 +268,31 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void WriteModelPart(ModelPart& rModelPart)
+    {
+
+        Parameters vtk_parameters(R"(
+                {
+                    "model_part_name"                    : "HoleModelpart",
+                    "output_control_type"                : "step",
+                    "output_frequency"                   : 1,
+                    "file_format"                        : "ascii",
+                    "output_precision"                   : 3,
+                    "output_sub_model_parts"             : false,
+                    "folder_name"                        : "test_vtk_output",
+                    "save_output_files_in_folder"        : true,
+                    "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE"],
+                    "nodal_data_value_variables"         : [],
+                    "element_flags"                      : ["ACTIVE"],
+                    "element_data_value_variables"       : [],
+                    "condition_data_value_variables"     : []
+                }
+                )");
+
+        VtkOutput vtk_output (rModelPart, vtk_parameters);
+        vtk_output.PrintOutput();
+    }
 
     ///@}
     ///@name Private  Access
