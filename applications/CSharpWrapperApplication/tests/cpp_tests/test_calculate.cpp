@@ -37,6 +37,64 @@ namespace Kratos
             buffer.close();
         }
 
+        void CreateJSONFile()
+        {
+            Parameters json_parameters = Parameters(R"(
+            {
+                "problem_data"    : {
+                    "problem_name"  : "Structure",
+                    "parallel_type" : "OpenMP",
+                    "start_time"    : 0.0,
+                    "end_time"      : 1.0,
+                    "echo_level"    : 0
+                },
+                "solver_settings" : {
+                    "model_part_name"                   : "Structure",
+                    "domain_size"                       : 3,
+                    "echo_level"                        : 0,
+                    "buffer_size"                       : 2,
+                    "analysis_type"                     : "non_linear",
+                    "model_import_settings"             : {
+                        "input_type"                        : "mdpa",
+                        "input_filename"                    : "unknown_name"
+                    },
+                    "computing_model_part_name"         : "computing_domain",
+                    "material_import_settings"          :{
+                        "materials_filename"                : ""
+                    },
+                    "time_stepping"                     : { },
+                    "rotation_dofs"                     : false,
+                    "reform_dofs_at_each_step"          : true,
+                    "line_search"                       : false,
+                    "compute_reactions"                 : true,
+                    "block_builder"                     : true,
+                    "clear_storage"                     : false,
+                    "move_mesh_flag"                    : true,
+                    "multi_point_constraints_used"      : true,
+                    "convergence_criterion"             : "residual_criterion",
+                    "displacement_relative_tolerance"   : 1.0e-4,
+                    "displacement_absolute_tolerance"   : 1.0e-9,
+                    "residual_relative_tolerance"       : 1.0e-4,
+                    "residual_absolute_tolerance"       : 1.0e-9,
+                    "max_iteration"                     : 10,
+                    "linear_solver_settings"            : { },
+                    "problem_domain_sub_model_part_list": [],
+                    "processes_sub_model_part_list"     : [],
+                    "auxiliary_variables_list"          : [],
+                    "auxiliary_dofs_list"               : [],
+                    "auxiliary_reaction_list"           : []
+                },
+                "processes"        : {},
+                "output_processes" : {}
+            })" );
+            const std::string& r_json_text = json_parameters.PrettyPrintJsonString();
+            std::filebuf buffer;
+            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.json",std::ios::out);
+            std::ostream os(&buffer);
+            os << r_json_text;
+            buffer.close();
+        }
+
         /**
         * Checks the correct work of update node position
         */
@@ -133,6 +191,107 @@ namespace Kratos
             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             remove((OSUtilities::GetCurrentWorkingDir() + "/file.mdpa").c_str());
+        }
+
+        /**
+        * Checks the correct work of update node position with json input
+        */
+        KRATOS_TEST_CASE_IN_SUITE(CSharpWrapperUpdateNodePositionWithJSON, KratosCSharpWrapperApplicationFastSuite)
+        {
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
+            if (!KratosComponents<Element>::Has("SmallDisplacementElement3D4N"))
+                return void();
+
+            // Import mdpa
+            CreateMDPAFile();
+            CreateJSONFile();
+            const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
+            const std::string file_name_json = OSUtilities::GetCurrentWorkingDir() + "/file.json";
+            CSharpKratosWrapper::CSharpInterface::init(file_name.c_str(), file_name_json.c_str());
+
+            // Get some API info
+            float *x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
+            float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
+            float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
+
+            const float float_epsilon = std::numeric_limits<float>::epsilon();
+
+            // Non-initialized (calculated)
+            for (int i = 0; i < n; i++) {
+                KRATOS_CHECK_NEAR(x[i], 0.0, float_epsilon);
+                KRATOS_CHECK_NEAR(y[i], 0.0, float_epsilon);
+                KRATOS_CHECK_NEAR(z[i], 0.0, float_epsilon);
+            }
+
+            // None fixed
+            CSharpKratosWrapper::CSharpInterface::calculate();
+            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
+            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
+            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+
+            KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[2], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+
+            // All fixed
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(3, x[3], y[3], z[3]);
+
+            CSharpKratosWrapper::CSharpInterface::calculate();
+            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
+            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
+            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+
+            KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[2], 1.0e-8, float_epsilon);
+            KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+
+            // Partially fixed
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
+            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+
+            CSharpKratosWrapper::CSharpInterface::calculate();
+            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
+            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
+            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+
+            KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[2], 2.0e-8, float_epsilon);
+            KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
+            KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
+            KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+
+            remove((OSUtilities::GetCurrentWorkingDir() + "/file.mdpa").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/file.json").c_str());
         }
 
     } // namespace Testing
