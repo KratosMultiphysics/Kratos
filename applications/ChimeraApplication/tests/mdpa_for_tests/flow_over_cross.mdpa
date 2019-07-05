@@ -39118,7 +39118,7 @@ Begin SubModelPart NoSlip2D_bottom // Group bottom // Subtree NoSlip2D
           370
     End SubModelPartConditions
 End SubModelPart
-Begin Conditions LineCondition3D2N// GUI group identifier: patch_boundary
+Begin Conditions LineCondition2D2N// GUI group identifier: patch_boundary
     371 0 4711 4537
     372 0 4537 4337
     373 0 4337 4126
@@ -39203,7 +39203,7 @@ Begin Conditions LineCondition3D2N// GUI group identifier: patch_boundary
     452 0 2836 2999
 End Conditions
 
-Begin Conditions LineCondition3D2N// GUI group identifier: back_ground_boundary
+Begin Conditions LineCondition2D2N// GUI group identifier: back_ground_boundary
     453 0 6472 6470
     454 0 6470 6465
     455 0 6465 6460
