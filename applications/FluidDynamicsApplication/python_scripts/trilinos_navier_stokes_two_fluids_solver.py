@@ -13,6 +13,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver
 import KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility
 
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+
 def CreateSolver(model, custom_settings):
     return NavierStokesMPITwoFluidsSolver(model, custom_settings)
 
@@ -82,7 +84,6 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
             self.element_name = "TwoFluidNavierStokes"
 
         ## Construct the linear solver
-        import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","Construction of NavierStokesMPITwoFluidsSolver finished.")

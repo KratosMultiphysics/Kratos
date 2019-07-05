@@ -13,6 +13,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_fractionalstep
 import KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility
 
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverFractionalStep(model, custom_settings)
 
@@ -84,7 +86,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         self.min_buffer_size = 3
 
         ## Construct the linear solvers
-        import trilinos_linear_solver_factory
         self.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 

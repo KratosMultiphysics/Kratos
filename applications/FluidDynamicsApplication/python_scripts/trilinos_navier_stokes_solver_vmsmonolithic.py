@@ -13,6 +13,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dyna
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic
 import KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility
 
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
@@ -87,7 +89,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.min_buffer_size = 2
 
         ## Construct the linear solver
-        import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.Print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
