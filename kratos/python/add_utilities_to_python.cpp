@@ -227,7 +227,30 @@ void VariableUtilsUpdateCurrentPositionWithVariable(
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
 }
 
-void AddUtilitiesToPython(pybind11::module& m)
+template<class TVarType>
+void VariableUtilsCopyModelPartNodalVar(
+    VariableUtils &rVariableUtils,
+    const TVarType &rVariable,
+    const ModelPart &rOriginModelPart,
+    ModelPart &rDestinationModelPart,
+    const unsigned int BuffStep = 0)
+{
+    rVariableUtils.CopyModelPartNodalVar(rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
+}
+
+template<class TVarType>
+void VariableUtilsCopyModelPartNodalVarWithDestination(
+    VariableUtils &rVariableUtils,
+    const TVarType &rVariable,
+    const TVarType &rDestinationVariable,
+    const ModelPart &rOriginModelPart,
+    ModelPart &rDestinationModelPart,
+    const unsigned int BuffStep = 0)
+{
+    rVariableUtils.CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
+}
+
+void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
@@ -277,14 +300,22 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<bool>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<double>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,3>>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,4>>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,6>>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,9>>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<Vector>>)
-        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<Matrix>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<bool>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<double>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,3>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,4>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,6>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<array_1d<double,9>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Vector>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Matrix>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<bool>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<double>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,3>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,4>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,6>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double,9>>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<Vector>>)
+        .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<Matrix>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<bool>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<double>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<array_1d<double,3>>>)
