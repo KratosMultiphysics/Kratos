@@ -95,7 +95,7 @@ public:
      * @brief This method checks if the linear class is registered
      * @return True if registered, false otherwise
      */
-    virtual bool Has(const std::string& rSolverType)
+    virtual bool Has(const std::string& rSolverType) const
     {
         return KratosComponents< FactoryType >::Has( rSolverType );
     }
@@ -105,13 +105,13 @@ public:
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(Kratos::Parameters Settings)
+    virtual typename ClassType::Pointer Create(Kratos::Parameters Settings) const
     {
-        const std::string& name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( name )) << "Trying to construct a class with type name= " << name << std::endl <<
+        const std::string& r_name = Settings["name"].GetString();
+        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                                             KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( name );
+        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
         return aux.CreateClass(Settings);
     }
 
@@ -121,13 +121,13 @@ public:
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(Model& rModel, Kratos::Parameters Settings)
+    virtual typename ClassType::Pointer Create(Model& rModel, Kratos::Parameters Settings) const
     {
-        const std::string& name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( name )) << "Trying to construct a class with type name= " << name << std::endl <<
+        const std::string& r_name = Settings["name"].GetString();
+        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                                             KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( name );
+        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
         return aux.CreateClass(rModel, Settings);
     }
 
@@ -137,13 +137,13 @@ public:
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(ModelPart& rModelPart, Kratos::Parameters Settings)
+    virtual typename ClassType::Pointer Create(ModelPart& rModelPart, Kratos::Parameters Settings) const
     {
-        const std::string& name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( name )) << "Trying to construct a class with type name= " << name << std::endl <<
+        const std::string& r_name = Settings["name"].GetString();
+        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                                             KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( name );
+        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
         return aux.CreateClass(rModelPart, Settings);
     }
 
@@ -153,13 +153,13 @@ public:
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(typename AuxiliarClassType::Pointer pAuxiliarClass, Kratos::Parameters Settings)
+    virtual typename ClassType::Pointer Create(typename AuxiliarClassType::Pointer pAuxiliarClass, Kratos::Parameters Settings) const
     {
-        const std::string& name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( name )) << "Trying to construct a class with type name= " << name << std::endl <<
+        const std::string& r_name = Settings["name"].GetString();
+        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                                             KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( name );
+        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
         return aux.CreateClass(pAuxiliarClass, Settings);
     }
 
