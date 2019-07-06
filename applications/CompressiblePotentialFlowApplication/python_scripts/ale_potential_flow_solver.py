@@ -11,7 +11,7 @@ def CreateSolver(model, solver_settings, parallelism):
 class AlePotentialFlowSolver(AleFluidSolver):
     def __init__(self, model, solver_settings, parallelism):
         super(AlePotentialFlowSolver, self).__init__(model, solver_settings, parallelism)
-        self.fluid_solver.min_buffer_size = 2
+        self.fluid_solver.min_buffer_size = 1
         self.settings["fluid_solver_settings"]["compute_reactions"].SetBool(False)
 
     def _CreateFluidSolver(self, solver_settings, parallelism):
