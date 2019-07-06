@@ -9,7 +9,7 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 import sys
 
 # Import the base structural analysis
-from contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
 
 class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """
@@ -183,7 +183,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
         # To avoid many prints
-        if (self.echo_level == 0):
+        if self.echo_level == 0:
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
