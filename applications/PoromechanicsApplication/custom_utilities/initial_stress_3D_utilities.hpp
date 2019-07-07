@@ -280,15 +280,34 @@ protected:
                 IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates); //Checks whether the global coordinates fall inside the original old element
                 if(IsInside) break;
             }
+            // if(IsInside==false)
+            // {
+            //     for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+            //     {
+            //         pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+            //         IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,1.0e-5);
+            //         if(IsInside) break;
+            //     }
+            // }
             if(IsInside==false)
             {
-                for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                for(int j = 0; j < 12; j++)
                 {
-                    pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
-                    IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,1.0e-5);
+                    for(int k = 1; k<10; k++)
+                    {
+                        for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                        {
+                            pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+                            double tol = k * pow(10.0, (j-12));
+                            IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                            if(IsInside) break;
+                        }
+                        if(IsInside) break;
+                    }
                     if(IsInside) break;
                 }
             }
+
             if(IsInside == false)
                 std::cout << "ERROR!!, NONE OF THE OLD ELEMENTS CONTAINS NODE: " << itNodeNew->Id() << std::endl;
 
