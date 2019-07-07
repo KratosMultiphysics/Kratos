@@ -9,7 +9,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MeshTyingProcess(Model, settings["Parameters"])
 
-import search_base_process
+import KratosMultiphysics.ContactStructuralMechanicsApplication.search_base_process as search_base_process
 
 class MeshTyingProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the a mortar mesh tying formulation
@@ -91,7 +91,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         # Mesh tying configurations
         # Determine if the variable is components or scalar
         self.variable_name = self.mesh_tying_settings["variable_name"].GetString()
-        if (KM.KratosGlobals.HasVariable(self.variable_name)):
+        if KM.KratosGlobals.HasVariable(self.variable_name):
             var_type = KM.KratosGlobals.GetVariableType(self.variable_name)
             if (var_type == "Array"):
                 self.type_variable = "Components"
@@ -190,7 +190,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         geometry_element_master = self.__type_element(number_nodes_master)
         # We compute the number of nodes of the conditions
         number_nodes, number_nodes_master = super(MeshTyingProcess, self)._compute_number_nodes()
-        if (number_nodes != number_nodes_master):
+        if number_nodes != number_nodes_master:
             return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
         else:
             return geometry_element
@@ -216,7 +216,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         zero_vector[2] = 0.0
 
         # Initilialize weighted variables and LM
-        if (self.type_variable == "Scalar"):
+        if self.type_variable == "Scalar":
             KM.VariableUtils().SetVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL, 0.0, self._get_process_model_part().Nodes)
         else:
             KM.VariableUtils().SetVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL, zero_vector, self._get_process_model_part().Nodes)
@@ -231,7 +231,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We compute the number of nodes of the geometry
-        if (self.predefined_master_slave is True and self.dimension == 3):
+        if self.predefined_master_slave and self.dimension == 3:
             slave_defined = False
             master_defined = False
             for elem in self.computing_model_part.Elements:
@@ -259,13 +259,13 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         number_nodes -- The number of nodes of the element
         """
 
-        if (self.dimension == 2):
-            if (number_nodes == 3):
+        if self.dimension == 2:
+            if number_nodes == 3:
                 return "Triangle"
-            elif (number_nodes == 4):
+            elif number_nodes == 4:
                 return "Quadrilateral"
         else:
-            if (number_nodes == 4):
+            if number_nodes == 4:
                 return "Tetrahedron"
-            elif (number_nodes == 8):
+            elif number_nodes == 8:
                 return "Hexahedron"

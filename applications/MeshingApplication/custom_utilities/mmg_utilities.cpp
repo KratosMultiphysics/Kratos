@@ -2588,7 +2588,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     std::unordered_map<IndexType,std::vector<std::string>>& rColors,
     ColorsMapType& rColorMapCondition,
     ColorsMapType& rColorMapElement,
-    const FrameworkEulerLagrange Framework
+    const FrameworkEulerLagrange Framework,
+    const bool CollapsePrismElements
     )
 {
     // Before computing colors we do some check and throw a warning to get the user informed
@@ -2603,38 +2604,73 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
     }
 
-    // First we compute the colors
-    rColors.clear();
-    ColorsMapType nodes_colors, cond_colors, elem_colors;
-    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
-    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
-
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
 
     // Iterate over components
     auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
     auto& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     auto& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+
+    // The following nodes will be remeshed
+    std::unordered_set<IndexType> remeshed_nodes;
 
     /* Manually set of the mesh */
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
-        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
+        /* Conditions */
+        std::size_t num_lines = 0;
+        for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+            auto it_cond = it_cond_begin + i;
+
+            if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Lines
+                for (auto& r_node : it_cond->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
+                num_lines += 1;
+            } else {
+                it_cond->Set(OLD_ENTITY, true);
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+            }
+        }
+
+        /* Elements */
+        std::size_t num_tri = 0;
+        for(IndexType i = 0; i < r_elements_array.size(); ++i) {
+            auto it_elem = it_elem_begin + i;
+
+            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) { // Triangles
+                for (auto& r_node : it_elem->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
+                num_tri += 1;
+            } else {
+                it_elem->Set(OLD_ENTITY, true);
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+            }
+        }
+
+        mmg_mesh_info.NumberOfLines = num_lines;
+        mmg_mesh_info.NumberOfTriangles = num_tri;
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
-        #pragma omp parallel for reduction(+:num_tri,num_quad)
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+        for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+            auto it_cond = it_cond_begin + i;
 
             if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
+                for (auto& r_node : it_cond->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
                 num_tri += 1;
             } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
+                for (auto& r_node : it_cond->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
                 num_quad += 1;
-            } else
+            } else {
+                it_cond->Set(OLD_ENTITY, true);
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+            }
         }
 
         mmg_mesh_info.NumberOfTriangles = num_tri;
@@ -2645,16 +2681,25 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
         /* Elements */
         std::size_t num_tetra = 0, num_prisms = 0;
-        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
-        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-            auto it_elem = r_elements_array.begin() + i;
+        for(IndexType i = 0; i < r_elements_array.size(); ++i) {
+            auto it_elem = it_elem_begin + i;
 
             if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
+                for (auto& r_node : it_elem->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
                 num_tetra += 1;
             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
-                num_prisms += 1;
-            } else
+                if (CollapsePrismElements) {
+                    KRATOS_INFO_IF("MmgProcess", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
+                } else {
+                    for (auto& r_node : it_elem->GetGeometry())
+                        remeshed_nodes.insert(r_node.Id());
+                    num_prisms += 1;
+                }
+            } else {
+                it_elem->Set(OLD_ENTITY, true);
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+            }
         }
 
         mmg_mesh_info.NumberOfTetrahedra = num_tetra;
@@ -2663,92 +2708,199 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
         "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
     } else { // Surfaces
-        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
-        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
+        /* Conditions */
+        std::size_t num_lines = 0;
+        for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+            auto it_cond = it_cond_begin + i;
+
+            if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Lines
+                for (auto& r_node : it_cond->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
+                num_lines += 1;
+            } else {
+                it_cond->Set(OLD_ENTITY, true);
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+            }
+        }
+
+        /* Elements */
+        std::size_t num_tri = 0;
+        for(IndexType i = 0; i < r_elements_array.size(); ++i) {
+            auto it_elem = it_elem_begin + i;
+
+            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
+                for (auto& r_node : it_elem->GetGeometry())
+                    remeshed_nodes.insert(r_node.Id());
+                num_tri += 1;
+            } else if (CollapsePrismElements && (it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
+                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
+            } else {
+                it_elem->Set(OLD_ENTITY, true);
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+            }
+        }
+
+        mmg_mesh_info.NumberOfLines = num_lines;
+        mmg_mesh_info.NumberOfTriangles = num_tri;
     }
 
-    mmg_mesh_info.NumberOfNodes = r_nodes_array.size();
+    // Set flag on nodes
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+        if (remeshed_nodes.find(it_node->Id()) == remeshed_nodes.end()) {
+            it_node->Set(OLD_ENTITY, true);
+        }
+    }
+
+    mmg_mesh_info.NumberOfNodes = remeshed_nodes.size();
     SetMeshSize(mmg_mesh_info);
 
-    /* Nodes */
-    if (Framework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
-        #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = r_nodes_array.begin() + i;
+    // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
+    IndexType counter_to_remesh = 0;
+    #pragma omp parallel for reduction(+: counter_to_remesh)
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
 
-            SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
-
-            bool blocked = false;
-            if (it_node->IsDefined(BLOCKED))
-                blocked = it_node->Is(BLOCKED);
-            if (blocked)
-                BlockNode(i + 1);
-
-            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-            it_node->SetId(i + 1);
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            ++counter_to_remesh;
         }
-    } else {
-        #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = r_nodes_array.begin() + i;
+    }
+    // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+    IndexType counter_remesh = 1;
+    IndexType counter_not_remesh = counter_to_remesh + 1;
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
 
-            SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_node->SetId(counter_remesh);
+            ++counter_remesh;
+        } else {
+            it_node->SetId(counter_not_remesh);
+            ++counter_not_remesh;
+        }
+    }
+    counter_to_remesh = 0;
+    #pragma omp parallel for reduction(+: counter_to_remesh)
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            ++counter_to_remesh;
+        }
+    }
+    // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
+    counter_remesh = 1;
+    counter_not_remesh = counter_to_remesh + 1;
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_cond->SetId(counter_remesh);
+            ++counter_remesh;
+        } else {
+            it_cond->SetId(counter_not_remesh);
+            ++counter_not_remesh;
+        }
+    }
+    counter_to_remesh = 0;
+    #pragma omp parallel for reduction(+: counter_to_remesh)
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            ++counter_to_remesh;
+        }
+    }
+    // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
+    counter_remesh = 1;
+    counter_not_remesh = counter_to_remesh + 1;
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            it_elem->SetId(counter_remesh);
+            ++counter_remesh;
+        } else {
+            it_elem->SetId(counter_not_remesh);
+            ++counter_not_remesh;
+        }
+    }
+
+    // Now we compute the colors
+    rColors.clear();
+    ColorsMapType nodes_colors, cond_colors, elem_colors;
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
+
+    /* Nodes */
+    #pragma omp parallel for firstprivate(nodes_colors)
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
+            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
 
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
             if (blocked)
-                BlockNode(i + 1);
-
-            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-            it_node->SetId(i + 1);
+                BlockNode(it_node->Id());
         }
     }
 
     /* Conditions */
     #pragma omp parallel for firstprivate(cond_colors)
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
-        auto it_cond = r_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
 
-        SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], it_cond->Id());
 
-        bool blocked = false;
-        if (it_cond->IsDefined(BLOCKED))
-            blocked = it_cond->Is(BLOCKED);
-        if (blocked)
-            BlockCondition(i + 1);
-
-        // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
-        it_cond->SetId(i + 1);
+            bool blocked = false;
+            if (it_cond->IsDefined(BLOCKED))
+                blocked = it_cond->Is(BLOCKED);
+            if (blocked)
+                BlockCondition(it_cond->Id());
+        }
     }
 
     /* Elements */
     #pragma omp parallel for firstprivate(elem_colors)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
+        auto it_elem = it_elem_begin + i;
 
-        SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], it_elem->Id());
 
-        bool blocked = false;
-        if (it_elem->IsDefined(BLOCKED))
-            blocked = it_elem->Is(BLOCKED);
-        if (blocked)
-            BlockElement(i + 1);
-
-        // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
-        it_elem->SetId(i + 1);
+            bool blocked = false;
+            if (it_elem->IsDefined(BLOCKED))
+                blocked = it_elem->Is(BLOCKED);
+            if (blocked)
+                BlockElement(it_elem->Id());
+        }
     }
 
     // Create auxiliar colors maps
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
-        auto it_cond = r_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
         const IndexType cond_id = it_cond->Id();
         const IndexType color = cond_colors[cond_id];
         if (!(rColorMapCondition.find(color) != rColorMapCondition.end()))
             rColorMapCondition.insert (IndexPairType(color,cond_id));
     }
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
+        auto it_elem = it_elem_begin + i;
         const IndexType elem_id = it_elem->Id();
         const IndexType color = elem_colors[elem_id];
         if (!(rColorMapElement.find(color) != rColorMapElement.end()))
@@ -2771,15 +2923,17 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
 
     auto& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     auto& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
 
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
-        rRefElement[0] = r_elements_array.begin()->Create(0, r_elements_array.begin()->GetGeometry(), r_elements_array.begin()->pGetProperties());
+        rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
     }
 
     // Now we add the reference elements and conditions
@@ -2801,6 +2955,7 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 {
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     // Set size of the solution
     SetSolSizeTensor(r_nodes_array.size());
@@ -2809,15 +2964,18 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
+        auto it_node = it_node_begin + i;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
-        // We get the metric
-        const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+            // We get the metric
+            const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
-        // We set the metric
-        SetMetricTensor(r_metric, i + 1);
+            // We set the metric
+            SetMetricTensor(r_metric, it_node->Id());
+        }
     }
 }
 
@@ -3014,6 +3172,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
 {
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
 
@@ -3022,7 +3181,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
 
     #pragma omp parallel for firstprivate(metric)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
+        auto it_node = it_node_begin + i;
 
         // We get the metric
         GetMetricTensor(metric);

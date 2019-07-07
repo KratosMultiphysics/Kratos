@@ -204,7 +204,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     // Initiate iterator variable
     unsigned int counter = 0;
     unsigned int maxcounter = 20;
-    double initial_norm_residual;
+    double initial_norm_residual = 0.0;
     const double tolerance = 5e-03;
     const double norm_tolerance = 5e-012;
 

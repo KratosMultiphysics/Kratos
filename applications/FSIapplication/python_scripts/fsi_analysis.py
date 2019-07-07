@@ -6,46 +6,6 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
 
-    def __init__(self, model, project_parameters):
-        '''The constructor of the FSI analysis object
-
-        Note that the base class analysis stage constructor
-        is not called intentionally, since it is not compatible
-        with the current FSI application Json structure.
-        '''
-        if (type(model) != Kratos.Model):
-            raise Exception("Input is expected to be provided as a Kratos Model object")
-
-        if (type(project_parameters) != Kratos.Parameters):
-            raise Exception("Input is expected to be provided as a Kratos Parameters object")
-
-        self.model = model
-        self.project_parameters = project_parameters
-
-        self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-        # If this is an MPI run, load the distributed memory modules
-        if (self.parallel_type == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            self.is_printing_rank = (mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
-        # Deprecation warnings
-        # This makes possible the FSI solver derivation from the core base python_solver.py
-        # if not self.project_parameters.Has("echo_level"):
-        #     Kratos.Logger.PrintInfo("FSIAnalysis", "Using the old way to pass the echo_level, this will be removed!")
-        #     self.project_parameters.AddEmptyValue("echo_level")
-        #     self.project_parameters["echo_level"].SetInt(self.echo_level)
-
-        if not self.project_parameters["solver_settings"].Has("parallel_type"):
-            self.project_parameters["solver_settings"].AddEmptyValue("parallel_type")
-            self.project_parameters["solver_settings"]["parallel_type"].SetString(self.parallel_type)
-
-        # Add solver variables (note that the solver is created in the first _GetSolver() call)
-        self._GetSolver().AddVariables()
-
     def Initialize(self):
         '''
         Construct and initialize all classes and tools used in the simulation loop.
