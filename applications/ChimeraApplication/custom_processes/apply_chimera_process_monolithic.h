@@ -152,15 +152,14 @@ protected:
 
         const int max_results = 10000;
         const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-        std::size_t counter = 0;
-        std::size_t removed_counter = 0;
-        std::size_t not_found_counter = 0;
+        IndexType counter = 0;
+        IndexType removed_counter = 0;
+        IndexType not_found_counter = 0;
 
         for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
             ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
-            Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-            BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
+            BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
         }
 
 #pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) reduction(+                                                             \
@@ -197,7 +196,7 @@ protected:
                         removed_counter++;
                     }
                 }
-                p_boundary_node->Set(VISITED, false);
+                // p_boundary_node->Set(VISITED, false);
             }
 
             if (is_found == true)
