@@ -92,27 +92,28 @@ public:
      */
     explicit ApplyChimera(ModelPart &rMainModelPart, Parameters iParameters) : mrMainModelPart(rMainModelPart), mParameters(iParameters)
     {
-        Parameters default_parameters(R"(
+        // This is only for example
+        Parameters example_parameters(R"(
             {
                	"chimera_parts"   :   [
 									[{
-										"model_part_name":"GENERIC_background",
-										"model_part_inside_boundary_name" :"GENERIC_domainboundary",
-										"overlap_distance":0.045
+										"model_part_name":"PLEASE_SPECIFY",
+										"model_part_inside_boundary_name" :"PLEASE_SPECIFY",
+										"overlap_distance":0.0
 									}],
 									[{
-										"model_part_name":"GENERIC_patch_1_1",
-										"model_part_inside_boundary_name":"GENERIC_structure_1_1",
-										"overlap_distance":0.045
+										"model_part_name":"PLEASE_SPECIFY",
+										"model_part_inside_boundary_name":"PLEASE_SPECIFY",
+										"overlap_distance":0.0
 									}],
 									[{
-										"model_part_name":"GENERIC_patch_2_1",
-										"model_part_inside_boundary_name":"GENERIC_strcuture2_1",
-										"overlap_distance":0.045
+										"model_part_name":"PLEASE_SPECIFY",
+										"model_part_inside_boundary_name":"PLEASE_SPECIFY",
+										"overlap_distance":0.0
 									}]
 								]
             })");
-
+        
         mNumberOfLevels = mParameters.size();
         KRATOS_ERROR_IF(mNumberOfLevels < 2) << "Chimera requires atleast two levels !. Put Background in one level and the patch in second one." << std::endl;
 
