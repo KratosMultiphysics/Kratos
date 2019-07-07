@@ -58,7 +58,7 @@ namespace Kratos
 
 /// Short class definition.
 
-class ChimeraHoleCuttingUtility
+class KRATOS_API(CHIMERA_APPLICATION) ChimeraHoleCuttingUtility
 {
 public:
     // Needed structures for the ExtractSurfaceMesh operation
@@ -327,7 +327,7 @@ public:
                     vector_of_node_ids.push_back(original_nodes_order[1]);
 
                     Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
-                    Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("LineCondition2D2N");
+                    Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("LineCondition2D2N"); // Condition2D
 
                     // Skin edges are added as conditions
                     Line2D2<Node<3>> line1(pnode1, pnode2);
@@ -348,7 +348,7 @@ public:
                     vector_of_node_ids.push_back(original_nodes_order[1]);
                     vector_of_node_ids.push_back(original_nodes_order[2]);
                     Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
-                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("mSurfaceCondition3D3N");
+                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N"); // Condition3D
 
                     // Skin faces are added as conditions
                     Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
@@ -371,7 +371,7 @@ public:
                     vector_of_node_ids.push_back(original_nodes_order[2]);
                     vector_of_node_ids.push_back(original_nodes_order[3]);
                     Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
-                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("mSurfaceCondition3D3N");
+                    Condition const &rReferenceTriangleCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N"); // Condition3D
 
                     // Add triangle one as condition
                     Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
