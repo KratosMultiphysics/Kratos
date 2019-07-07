@@ -10,8 +10,8 @@
 // ==============================================================================
 //
 
-#if !defined(KRATOS_CUSTOM_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED)
-#define KRATOS_CUSTOM_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED
+#if !defined(KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED)
+#define KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED
 
 // System includes
 #include <algorithm>
@@ -22,21 +22,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/model_part.h"
-#include "containers/model.h"
-#include "includes/variables.h"
-#include "includes/linear_master_slave_constraint.h"
-#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
-#include "processes/calculate_distance_to_skin_process.h"
-#include "input_output/vtk_output.h"
-
-// Application includes
-#include "chimera_application_variables.h"
-#include "custom_utilities/hole_cutting_utility.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
+#include "apply_chimera_process.h"
 
 namespace Kratos
 {
@@ -60,8 +46,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <int TDim, class TDistanceCalculatorType>
-class ApplyChimeraProcessMonolithic : public Process
+template <int TDim, class TSparseSpaceType, class TLocalSpaceType>
+class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessMonolithic : public ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType>
 {
 public:
     ///@name Type Definitions
@@ -69,31 +55,30 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    typedef ProcessInfo::Pointer                                                                    ProcessInfoPointerType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>  VariableComponentType;
-    typedef std::size_t                                                                             IndexType;
-    typedef Kratos::Variable<double>                                                                VariableType;
-    typedef std::vector<IndexType>                                                                  ConstraintIdsVectorType;
-    typedef typename ModelPart::MasterSlaveConstraintType                                           MasterSlaveConstraintType;
-    typedef typename ModelPart::MasterSlaveConstraintContainerType                                  MasterSlaveConstraintContainerType;
-    typedef std::vector<MasterSlaveConstraintContainerType>                                         MasterSlaveContainerVectorType;
-
-    typedef BinBasedFastPointLocator<TDim>                                                          PointLocatorType;
-    typedef TDistanceCalculatorType                                                                 DistanceCalculatorType;
-    typedef ChimeraHoleCuttingUtility                                                               HoleCuttingUtilityType;
-
-    typedef typename PointLocatorType::Pointer PointLocatorPointerType;
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessMonolithic);
+    typedef ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType>                   BaseType;
+    typedef typename BaseType::MasterSlaveConstraintContainerType                   MasterSlaveConstraintContainerType;
+    typedef typename BaseType::PointLocatorType                                     PointLocatorType;
+    typedef typename BaseType::PointLocatorPointerType                              PointLocatorPointerType;
+    typedef typename BaseType::MasterSlaveContainerVectorType                       MasterSlaveContainerVectorType;
+    typedef typename BaseType::ConstraintIdsVectorType                              ConstraintIdsVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters);
+    /**
+     * @brief Constructor
+     * @param rMainModelPart The reference to the modelpart which will be used for computations later on.
+     * @param iParameters The settings parameters.
+     */
+    explicit ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters) :
+                                BaseType(rMainModelPart, iParameters)
+    {
+    }
 
     /// Destructor.
-    virtual ~ApplyChimeraProcessMonolithic() override;
+    virtual ~ApplyChimeraProcessMonolithic() {}
 
     ///@}
     ///@name Operators
@@ -103,25 +88,21 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void ExecuteInitializeSolutionStep() override;
-
-    virtual void ExecuteFinalizeSolutionStep() override;
-
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "ApplyChimeraProcessMonolithic";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const override
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "ApplyChimeraProcessMonolithic" << std::endl;
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const override
+    void PrintData(std::ostream &rOStream) const override
     {
-        KRATOS_INFO("\nNumber of slave nodes :: ") << std::endl;
+        KRATOS_INFO("ApplyChimeraProcessMonolithic") << std::endl;
     }
 
     ///@}
@@ -138,12 +119,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ChimeraHoleCuttingUtility::Pointer mpHoleCuttingUtility;
-    ModelPart &mrMainModelPart;
-    double mOverlapDistance;
-    IndexType mNumberOfLevels;
-    Parameters mParameters;
-    std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -153,91 +128,109 @@ protected:
     ///@{
 
     /**
-     * @brief Does a loop on the background and patch combinations possible and uses FormulateChimera method.
-     */
-    virtual void DoChimeraLoop();
-
-    /**
-     * @brief Formulates the Chimera conditions with a given set of background and patch combination.
-     * @param BackgroundParam Parameters/Settings for the background
-     * @param PatchParameters Parameters/Settings for the Patch
-     * @param MainDomainOrNot Flag specifying if the background is the main bg or not
-     */
-    virtual void FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot);
-
-    /**
-     * @brief Creates a vector of unique constraint ids based on how many required and how many are already present in the mrModelPart.
-     * @param rIdVector The vector which is populated with unique constraint ids.
-     * @param NumberOfConstraintsRequired The number of further constraints required. used for calculation of unique ids.
-     */
-    virtual void CreateConstraintIds(std::vector<int> &rIdVector, const IndexType NumberOfConstraintsRequired);
-
-    /**
      * @brief Applies the continuity between the boundary modelpart and the background.
      * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
-     * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes on rBoundaryModelPart.
+     * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes of rBoundaryModelPart on background.
      */
-    virtual void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator);
+    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator) override
+    {
+        //loop over nodes and find the triangle in which it falls, then do interpolation
+        MasterSlaveContainerVectorType master_slave_container_vector;
+#pragma omp parallel
+        {
+#pragma omp single
+            {
+                master_slave_container_vector.resize(omp_get_num_threads());
+                for (auto &container : master_slave_container_vector)
+                    container.reserve(1000);
+            }
+        }
+        std::vector<int> constraints_id_vector;
 
-    /**
-     * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)
-     * @param rModelPart Modelpart for which the bounding box is to be computed.
-     * @param rLowPoint The lowest point in the modelpart (returned)
-     * @param rHighPoint The highest point in the modelpart (returned)
-     */
-    virtual void GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint);
+        int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
+        BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
-    /**
-     * @brief Checks if two given modelparts (A and B) have bounding box overlaps
-     *                  Here in Chimera A is usually the background and B is the patch
-     * @param rModelPartA ModelPartA
-     * @param rModelPartB ModelPartB
-     * @return bool if the bounding boxes intersect or not.
-     */
-    virtual bool BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB);
+        const int max_results = 10000;
+        const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+        std::size_t counter = 0;
+        std::size_t removed_counter = 0;
+        std::size_t not_found_counter = 0;
 
-    /**
-     * @brief Applies the master-slave constraint between the given master and slave nodes with corresponding variable.
-     * @param rMasterSlaveContainer The container to which the constraint to be added (useful to so OpenMP loop)
-     * @param rCloneConstraint The prototype of constraint which is to be added.
-     * @param ConstraintId The ID of the constraint to be added.
-     * @param rMasterNode The Master node of the constraint.
-     * @param rMasterVariable The variable for the master node.
-     * @param rSlaveNode The Slave node of the constraint.
-     * @param rSlaveVariable The variable for the slave node.
-     * @param Weight The weight of the Master node.
-     * @param Constant The constant of the master slave relation.
-     */
-    template <typename TVariableType>
-    inline void AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
-                                       const LinearMasterSlaveConstraint &rCloneConstraint,
-                                       unsigned int ConstraintId,
-                                       Node<3> &rMasterNode,
-                                       TVariableType &rMasterVariable,
-                                       Node<3> &rSlaveNode,
-                                       TVariableType &rSlaveVariable,
-                                       const double Weight,
-                                       const double Constant = 0.0);
+        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        {
+            ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
+            Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
+            BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
+        }
 
+#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) reduction(+                                                             \
+                                                                                                             : not_found_counter) reduction(+                              \
+                                                                                                                                            : removed_counter) reduction(+ \
+                                                                                                                                                                         : counter)
+        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        {
+            Vector shape_fun_weights;
+            typename PointLocatorType::ResultContainerType results(max_results);
+            auto &ms_container = master_slave_container_vector[omp_get_thread_num()];
 
-    /**
-     * @brief Applies the master-slave constraint to enforce the continuity between a given geometry/element and a boundary node
-     * @param rGeometry The geometry of the element
-     * @param rBoundaryNode The boundary node for which the connections are to be made.
-     * @param rShapeFuncWeights The shape function weights for the node in the rGeometry.
-     * @param StartIndex The start Index of the constraints which are to be added.
-     * @param rConstraintIdVector The vector of the constraints Ids which is accessed with StartIndex.
-     * @param rMsContainer The Constraint container to which the contraints are added.
-     */
-    template <typename TVariableType>
-    void ApplyContinuityWithElement(Geometry<Node<3>> &rGeometry,
-                                    Node<3> &rBoundaryNode,
-                                    Vector &rShapeFuncWeights,
-                                    TVariableType& rVariable,
-                                    unsigned int StartIndex,
-                                    std::vector<int> &rConstraintIdVector,
-                                    MasterSlaveConstraintContainerType &rMsContainer);
+            ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
+            Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
+            ConstraintIdsVectorType constrainIds_for_the_node;
+            unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
+            bool node_coupled = false;
+            if ((p_boundary_node)->IsDefined(VISITED))
+                node_coupled = (p_boundary_node)->Is(VISITED);
 
+            typename PointLocatorType::ResultIteratorType result_begin = results.begin();
+            Element::Pointer p_element;
+            bool is_found = false;
+            is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
+
+            if (node_coupled && is_found)
+            {
+                constrainIds_for_the_node = BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
+                for (auto const &constraint_id : constrainIds_for_the_node)
+                {
+#pragma omp critical
+                    {
+                        BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
+                        removed_counter++;
+                    }
+                }
+                p_boundary_node->Set(VISITED, false);
+            }
+
+            if (is_found == true)
+            {
+                Geometry<Node<3>> &r_geom = p_element->GetGeometry();
+                int init_index = 0;
+                BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                init_index += 3;
+                BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Y, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                init_index += 3;
+                if (TDim == 3)
+                {
+                    BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Z, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                    init_index += 3;
+                }
+                BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id + init_index, constraints_id_vector, ms_container);
+                init_index += 3;
+                counter += 1;
+            }
+            else
+            {
+                not_found_counter += 1;
+            }
+            p_boundary_node->Set(VISITED, true);
+        } // end of loop over boundary nodes
+
+        for (auto &container : master_slave_container_vector)
+            BaseType::mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
+
+        KRATOS_INFO("Number of boundary nodes in : ") << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
+        KRATOS_INFO("Number of Boundary nodes found : ") << counter << ". Number of constraints : " << counter * 9 << std::endl;
+        KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
+    }
 
     ///@}
     ///@name Protected  Access
@@ -269,31 +262,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void WriteModelPart(ModelPart& rModelPart)
-    {
-
-        Parameters vtk_parameters(R"(
-                {
-                    "model_part_name"                    : "HoleModelpart",
-                    "output_control_type"                : "step",
-                    "output_frequency"                   : 1,
-                    "file_format"                        : "ascii",
-                    "output_precision"                   : 3,
-                    "output_sub_model_parts"             : false,
-                    "folder_name"                        : "test_vtk_output",
-                    "save_output_files_in_folder"        : true,
-                    "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE"],
-                    "nodal_data_value_variables"         : [],
-                    "element_flags"                      : ["ACTIVE"],
-                    "element_data_value_variables"       : [],
-                    "condition_data_value_variables"     : []
-                }
-                )");
-
-        VtkOutput vtk_output (rModelPart, vtk_parameters);
-        vtk_output.PrintOutput();
-    }
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -314,4 +282,4 @@ private:
 
 } // namespace Kratos.
 
-#endif //  KRATOS_CUSTOM_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED defined
+#endif //  KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED defined
