@@ -67,17 +67,17 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    typedef ProcessInfo::Pointer                                                                    ProcessInfoPointerType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>  VariableComponentType;
-    typedef std::size_t                                                                             IndexType;
-    typedef Kratos::Variable<double>                                                                VariableType;
-    typedef std::vector<IndexType>                                                                  ConstraintIdsVectorType;
-    typedef typename ModelPart::MasterSlaveConstraintType                                           MasterSlaveConstraintType;
-    typedef typename ModelPart::MasterSlaveConstraintContainerType                                  MasterSlaveConstraintContainerType;
-    typedef std::vector<MasterSlaveConstraintContainerType>                                         MasterSlaveContainerVectorType;
-    typedef BinBasedFastPointLocator<TDim>                                                          PointLocatorType;
-    typedef ChimeraHoleCuttingUtility                                                               HoleCuttingUtilityType;
-    typedef typename PointLocatorType::Pointer                                                      PointLocatorPointerType;
+    typedef ProcessInfo::Pointer ProcessInfoPointerType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef std::size_t IndexType;
+    typedef Kratos::Variable<double> VariableType;
+    typedef std::vector<IndexType> ConstraintIdsVectorType;
+    typedef typename ModelPart::MasterSlaveConstraintType MasterSlaveConstraintType;
+    typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+    typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
+    typedef BinBasedFastPointLocator<TDim> PointLocatorType;
+    typedef ChimeraHoleCuttingUtility HoleCuttingUtilityType;
+    typedef typename PointLocatorType::Pointer PointLocatorPointerType;
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimera);
 
@@ -122,7 +122,8 @@ public:
 
     /// Destructor.
     virtual ~ApplyChimera()
-    {}
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -281,18 +282,12 @@ protected:
             if (has_overlap)
             {
                 KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-                std::cout<<"#######################################"<<std::endl;
-                std::cout<<"##################################For patch"<< std::endl;
-                std::cout<<"#######################################"<<std::endl;
                 CalculateDistance(r_patch_model_part, r_domain_boundary_model_part, over_lap_distance);
                 //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
                 mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
             }
 
             mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
-            std::cout<<"#######################################"<<std::endl;
-            std::cout<<"##################################For background"<< std::endl;
-            std::cout<<"#######################################"<<std::endl;
             CalculateDistance(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
             mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
@@ -349,7 +344,8 @@ protected:
      * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes of rBoundaryModelPart on background.
      */
     virtual void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator)
-    {}
+    {
+    }
 
     /**
      * @brief Applies the master-slave constraint between the given master and slave nodes with corresponding variable.
@@ -365,14 +361,14 @@ protected:
      */
     template <typename TVariableType>
     void AddMasterSlaveRelation(MasterSlaveConstraintContainerType &rMasterSlaveContainer,
-                                       const LinearMasterSlaveConstraint &rCloneConstraint,
-                                       unsigned int ConstraintId,
-                                       Node<3> &rMasterNode,
-                                       TVariableType &rMasterVariable,
-                                       Node<3> &rSlaveNode,
-                                       TVariableType &rSlaveVariable,
-                                       const double Weight,
-                                       const double Constant = 0.0)
+                                const LinearMasterSlaveConstraint &rCloneConstraint,
+                                unsigned int ConstraintId,
+                                Node<3> &rMasterNode,
+                                TVariableType &rMasterVariable,
+                                Node<3> &rSlaveNode,
+                                TVariableType &rSlaveVariable,
+                                const double Weight,
+                                const double Constant = 0.0)
     {
         rSlaveNode.Set(SLAVE);
         ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
@@ -517,49 +513,51 @@ private:
      * @param rBackgroundModelPart The background modelpart where distances are calculated.
      * @param rSkinModelPart The skin modelpart from where the distances are calculated
      */
-    void CalculateDistance(ModelPart& rBackgroundModelPart, ModelPart& rSkinModelPart, const double OverlapDistance)
+    void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
     {
-        typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType>             LinearSolverFactoryType;
-        typedef LinearSolver<SparseSpaceType, TLocalSpaceType >                          LinearSolverType;
-        typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType>  VariationalDistanceCalculationProcessType;
-        typedef CalculateDistanceToSkinProcess<TDim>                                    CalculateDistanceToSkinProcessType;
+        typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
+        typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
+        typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
+        typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
         IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
 
-        #pragma omp parallel for
-        for(IndexType i_node = 0; i_node < nnodes; ++i_node){
+#pragma omp parallel for
+        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
+        {
             auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            double& node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
+            double &node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
             node_distance = 0;
-            std::cout<<"##### node Distance :: "<<node_distance<<"\t";
         }
 
         CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
-        // Setting the boundary conditions for the VariationalDistanceCalculationProcess
-        #pragma omp parallel for
-        for(IndexType i_node = 0; i_node < nnodes; ++i_node){
+        int num_fixed_nodes = 0;
+// Setting the boundary conditions for the VariationalDistanceCalculationProcess
+#pragma omp parallel for reduction(+ \
+                                   : num_fixed_nodes)
+        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
+        {
             auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
             const double node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            std::cout<<"##### node Distance :: "<<node_distance<<"\t";
-            if( std::abs(node_distance) < OverlapDistance )
+            if (std::abs(node_distance) < OverlapDistance)
             {
-                std::cout<<"##### node ID :: "<<it_node->Id()<<std::endl;
+                num_fixed_nodes++;
                 it_node->Fix(DISTANCE);
             }
         }
-        std::cout<<std::endl;
-        std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;
 
-        Parameters amgcl_settings (R"(
+        if (num_fixed_nodes > 0)
+        {
+            Parameters amgcl_settings(R"(
                 {
                     "solver_type"                    : "amgcl"
                 }
                 )");
 
-        LinearSolverFactoryType const& linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
-        auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
-        VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver).Execute();
+            LinearSolverFactoryType const &linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
+            auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
+            VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver).Execute();
+        }
     }
-
 
     /**
      * @brief Utility function to print out various intermediate modelparts
