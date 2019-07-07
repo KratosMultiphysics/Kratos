@@ -151,9 +151,9 @@ protected:
 
     const int max_results = 10000;
     const IndexType n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-    std::size_t counter = 0;
-    std::size_t removed_counter = 0;
-    std::size_t not_found_counter = 0;
+    IndexType counter = 0;
+    IndexType removed_counter = 0;
+    IndexType not_found_counter = 0;
 
     for (IndexType i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
     {
@@ -197,7 +197,7 @@ protected:
                     removed_counter++;
                 }
             }
-            p_boundary_node->Set(VISITED, false);
+            // p_boundary_node->Set(VISITED, false);
         }
 
         if (is_found == true)
