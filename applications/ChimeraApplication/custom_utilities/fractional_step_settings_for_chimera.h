@@ -58,7 +58,7 @@ template< class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
           >
-class FractionalStepSettingsForChimera: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
+class KRATOS_API(CHIMERA_APPLICATION) FractionalStepSettingsForChimera: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
