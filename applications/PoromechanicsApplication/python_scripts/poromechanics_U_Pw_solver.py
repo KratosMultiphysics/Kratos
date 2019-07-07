@@ -58,7 +58,6 @@ class UPwSolver(PythonSolver):
             "compute_reactions": false,
             "move_mesh_flag": false,
             "nodal_smoothing": false,
-            "step_initial_stress": -1,
             "periodic_interface_conditions": false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
@@ -129,13 +128,14 @@ class UPwSolver(PythonSolver):
         ## Other variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
-        if(self.settings["nodal_smoothing"].GetBool() == True):
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_DAMAGE_VARIABLE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_DAMAGE_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Variables added correctly.")
 
@@ -156,7 +156,6 @@ class UPwSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
         else:
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.STEP_INITIAL_STRESS, self.settings["step_initial_stress"].GetInt())
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)

@@ -17,7 +17,15 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
-    puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation]"
+    if {[GiD_AccessValue get gendata Initial_Stresses] eq false} {
+        puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation]"
+    } else {
+        puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation],"
+        puts $FileVar "        \"initial_stress_utility_settings\":   \{"
+        puts $FileVar "            \"mode\":       \"[GiD_AccessValue get gendata Mode]\","
+        puts $FileVar "            \"initial_input_filename\":   \"initial_$basename\""
+        puts $FileVar "        \}"
+    }
     puts $FileVar "    \},"
 
     ## solver_settings
@@ -50,7 +58,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
         puts $FileVar "        \"nodal_smoothing\":                    [GiD_AccessValue get gendata Nodal_Smoothing],"
     }
-    puts $FileVar "        \"step_initial_stress\":                [GiD_AccessValue get gendata Step_Initial_Stress],"
     puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
     puts $FileVar "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme_Type]\","
@@ -279,6 +286,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         AppendOutputVariables PutStrings iGroup Write_Joint_Width NODAL_JOINT_WIDTH
         AppendOutputVariables PutStrings iGroup Write_Damage NODAL_JOINT_DAMAGE
     }
+    AppendOutputVariables PutStrings iGroup Write_Initial_Stress INITIAL_STRESS_TENSOR
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }
@@ -290,7 +298,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
     AppendOutputVariables PutStrings iGroup Write_Effective_Stress CAUCHY_STRESS_TENSOR
     AppendOutputVariables PutStrings iGroup Write_Total_Stress TOTAL_STRESS_TENSOR
-    AppendOutputVariables PutStrings iGroup Write_Initial_Stress INITIAL_STRESS_TENSOR
     AppendOutputVariables PutStrings iGroup Write_Von_Mises_Stress VON_MISES_STRESS
     AppendOutputVariables PutStrings iGroup Write_Fluid_Flux FLUID_FLUX_VECTOR
     AppendOutputVariables PutStrings iGroup Write_Permeability PERMEABILITY_MATRIX

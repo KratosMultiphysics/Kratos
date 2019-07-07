@@ -17,6 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
+#include "utilities/math_utils.h"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -45,8 +46,7 @@ public:
 
     /// Copy Constructor
     HistoryLinearElastic3DLaw(const HistoryLinearElastic3DLaw& rOther)
-        : BaseType(rOther),
-            mInitialStressVector(rOther.mInitialStressVector) {}
+        : BaseType(rOther) {}
 
     /// Destructor
     ~HistoryLinearElastic3DLaw() override {}
@@ -55,30 +55,19 @@ public:
 
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
-
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
-
-    void SetValue( const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     /// Member Variables
-    Vector mInitialStressVector;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateStress( const Vector &rStrainVector,
-                          const Matrix &rConstitutiveMatrix,
-                          Vector& rStressVector) override;
+    void AddInitialStresses( Parameters& rValues, Vector& rStressVector);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,13 +80,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
-        rSerializer.save("InitialStressVector", mInitialStressVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
-        rSerializer.load("InitialStressVector", mInitialStressVector);
     }
 
 }; // Class HistoryLinearElastic3DLaw

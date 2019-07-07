@@ -21,81 +21,77 @@ int HistoryLinearElastic3DLaw::Check(const Properties& rMaterialProperties,const
     int ierr = BaseType::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    if ( INITIAL_STRESS_VECTOR.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_STRESS_VECTOR Key is 0. Check if all applications were correctly registered.", "" )
-    if ( STEP_INITIAL_STRESS.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"STEP_INITIAL_STRESS Key is 0. Check if all applications were correctly registered.", "" )
+    if ( INITIAL_STRESS_TENSOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_STRESS_TENSOR Key is 0. Check if all applications were correctly registered.", "" )
 
     return ierr;
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void HistoryLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+{
+    KRATOS_TRY
+
+    Flags& Options = rValues.GetOptions();
+
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+
+    Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+
+    //1.- Lame constants
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+	    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+            this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+            this->AddInitialStresses(rValues,StressVector);
+	    } else {
+            Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size());
+            noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size());
+            this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+            this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+            this->AddInitialStresses(rValues,StressVector);
+	    }
+    } else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+	    this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	}
+
+    KRATOS_CATCH( "" )
+}
+
 //----------------------------------------------------------------------------------------
 
-void HistoryLinearElastic3DLaw::InitializeMaterial(
-                        const Properties& rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const Vector& rShapeFunctionsValues
-                        )
+void HistoryLinearElastic3DLaw::AddInitialStresses( Parameters& rValues, Vector& rStressVector )
 {
-    BaseType::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+    const Vector& N = rValues.GetShapeFunctionsValues();
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    const unsigned int number_of_nodes = geometry.size();
 
     unsigned int voigt_size = GetStrainSize();
-    if(mInitialStressVector.size() != voigt_size) {
-        mInitialStressVector.resize(voigt_size,false);
+    unsigned int dimension = WorkingSpaceDimension();
+
+    Vector nodal_initial_stress_vector(voigt_size);
+    Matrix nodal_initial_stress_tensor(dimension,dimension);
+
+    Vector gp_initial_stress_vector(voigt_size);
+    noalias(gp_initial_stress_vector) = ZeroVector(voigt_size);
+
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+        noalias(nodal_initial_stress_tensor) = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
+        noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
+
+        for(unsigned int j=0; j < voigt_size; j++) {
+            gp_initial_stress_vector[j] += N[i] * nodal_initial_stress_vector[j];
+        }
     }
-    noalias(mInitialStressVector) = ZeroVector(voigt_size);
-}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void HistoryLinearElastic3DLaw::CalculateStress( const Vector & rStrainVector,
-					  const Matrix & rConstitutiveMatrix,
-					  Vector& rStressVector )
-{
-    BaseType::CalculateStress(rStrainVector,rConstitutiveMatrix,rStressVector);
-
-    noalias(rStressVector) += mInitialStressVector;
-
-    // TODO: the printed stress tensor in the STEP = STEP_INITIAL_STRESS will be wrong !
-}
-
-//----------------------------------------------------------------------------------------
-
-void HistoryLinearElastic3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
-{
-    BaseType::FinalizeMaterialResponseCauchy(rValues);
-
-    if(rValues.GetProcessInfo()[STEP] == rValues.GetProcessInfo()[STEP_INITIAL_STRESS])
-    {
-        mInitialStressVector = rValues.GetStressVector();
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Vector& HistoryLinearElastic3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
-{
-    if(rThisVariable==INITIAL_STRESS_VECTOR) {
-        rValue = mInitialStressVector;
-    }
-    // TODO: I don't understand why this is an error
-    // else {
-    //     return BaseType::GetValue(rThisVariable,rValue);
-    // }
-
-    return rValue;
-}
-
-//----------------------------------------------------------------------------------------
-
-void HistoryLinearElastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                                        const ProcessInfo& rCurrentProcessInfo )
-{
-    if (rThisVariable == INITIAL_STRESS_VECTOR) {
-        mInitialStressVector = rValue;
-    } else {
-        BaseType::SetValue(rThisVariable,rValue,rCurrentProcessInfo);
-    }
+    noalias(rStressVector) += gp_initial_stress_vector;
 }
 
 } // Namespace Kratos

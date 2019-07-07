@@ -47,7 +47,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
             puts $FileVar "Begin Properties $PropertyId"
-            if {[GiD_AccessValue get gendata Initial_Stresses] eq false} {
+            if { ([GiD_AccessValue get gendata Initial_Stresses] eq false) || (([GiD_AccessValue get gendata Initial_Stresses] eq true) && ([GiD_AccessValue get gendata Mode] eq "save")) } {
                 puts $FileVar "  CONSTITUTIVE_LAW_NAME LinearElastic3DLaw"
             } else {
                 puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElastic3DLaw"
@@ -72,7 +72,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
             puts $FileVar "Begin Properties $PropertyId"
-            if {[GiD_AccessValue get gendata Initial_Stresses] eq false} {
+            if { ([GiD_AccessValue get gendata Initial_Stresses] eq false) || (([GiD_AccessValue get gendata Initial_Stresses] eq true) && ([GiD_AccessValue get gendata Mode] eq "save")) } {
                 puts $FileVar "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
             } else {
                 if {[lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStrain2DLaw"} {
