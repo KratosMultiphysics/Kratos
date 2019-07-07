@@ -66,7 +66,7 @@ namespace Kratos
 template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver>
-class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
+class KRATOS_API(CHIMERA_APPLICATION) ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
     : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
