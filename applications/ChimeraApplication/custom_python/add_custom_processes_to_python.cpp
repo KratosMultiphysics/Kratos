@@ -16,15 +16,17 @@
 
 // Project includes
 #include "processes/process.h"
-#include "includes/model_part.h"
+#include "spaces/ublas_space.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
+#include "custom_processes/apply_chimera_process.h"
 #include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_fractional_step.h"
 #include "custom_processes/rotate_region_process.h"
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "custom_utilities/smooth_distance_calculation_utility.h"
 
 namespace Kratos
 {
@@ -36,28 +38,34 @@ void AddCustomProcessesToPython(pybind11::module &m)
 {
 
     namespace py = pybind11;
-    typedef CalculateSignedDistanceTo2DConditionSkinProcess DistanceCalculator2DType;
-    typedef CalculateSignedDistanceTo3DConditionSkinProcess DistanceCalculator3DType;
 
-    //typedef CalculateDistanceToSkinProcess<2> DistanceCalculator2DType;
-    //typedef CalculateDistanceToSkinProcess<3> DistanceCalculator3DType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef ApplyChimeraProcessMonolithic<2, DistanceCalculator2DType> ApplyChimeraMonolithic2DType;
-    typedef ApplyChimeraProcessMonolithic<3, DistanceCalculator3DType> ApplyChimeraMonolithic3DType;
+    typedef ApplyChimera<2, SparseSpaceType, LocalSpaceType> BaseApplyChimera2D;
+    typedef ApplyChimera<3, SparseSpaceType, LocalSpaceType> BaseApplyChimera3D;
 
-    typedef ApplyChimeraProcessFractionalStep<2, DistanceCalculator2DType> ApplyChimeraFractionalStep2DType;
-    typedef ApplyChimeraProcessFractionalStep<3, DistanceCalculator3DType> ApplyChimeraFractionalStep3DType;
+    typedef ApplyChimeraProcessMonolithic<2, SparseSpaceType, LocalSpaceType> ApplyChimeraMonolithic2DType;
+    typedef ApplyChimeraProcessMonolithic<3, SparseSpaceType, LocalSpaceType> ApplyChimeraMonolithic3DType;
 
-    py::class_<ApplyChimeraMonolithic2DType, ApplyChimeraMonolithic2DType::Pointer, Process>(m, "ApplyChimeraProcessMonolithic2d")
+    typedef ApplyChimeraProcessFractionalStep<2, SparseSpaceType, LocalSpaceType> ApplyChimeraFractionalStep2DType;
+    typedef ApplyChimeraProcessFractionalStep<3, SparseSpaceType, LocalSpaceType> ApplyChimeraFractionalStep3DType;
+
+    py::class_<BaseApplyChimera2D, BaseApplyChimera2D::Pointer, Process>(m, "BaseApplyChimera2D")
+        .def(py::init<ModelPart &, Parameters>());
+    py::class_<BaseApplyChimera3D, BaseApplyChimera3D::Pointer, Process>(m, "BaseApplyChimera3D")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraMonolithic3DType, ApplyChimeraMonolithic3DType::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
+    py::class_<ApplyChimeraMonolithic2DType, ApplyChimeraMonolithic2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessMonolithic2d")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraFractionalStep2DType, ApplyChimeraFractionalStep2DType::Pointer, ApplyChimeraMonolithic2DType>(m, "ApplyChimeraProcessFractionalStep2d")
+    py::class_<ApplyChimeraMonolithic3DType, ApplyChimeraMonolithic3DType::Pointer, BaseApplyChimera3D>(m, "ApplyChimeraProcessMonolithic3d")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<ApplyChimeraFractionalStep3DType, ApplyChimeraFractionalStep3DType::Pointer, ApplyChimeraMonolithic3DType>(m, "ApplyChimeraProcessFractionalStep3d")
+    py::class_<ApplyChimeraFractionalStep2DType, ApplyChimeraFractionalStep2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessFractionalStep2d")
+        .def(py::init<ModelPart &, Parameters>());
+
+    py::class_<ApplyChimeraFractionalStep3DType, ApplyChimeraFractionalStep3DType::Pointer, BaseApplyChimera3D>(m, "ApplyChimeraProcessFractionalStep3d")
         .def(py::init<ModelPart &, Parameters>());
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
