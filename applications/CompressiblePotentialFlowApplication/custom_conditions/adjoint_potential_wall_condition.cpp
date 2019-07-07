@@ -71,15 +71,15 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rV
     bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(DISTANCE)<0.0){
+        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
             is_kutta=true;
             break;
         }
     }
     for(unsigned int i=0; i<TNumNodes; i++){
         if(is_kutta){
-            if(r_geometry[i].GetValue(DISTANCE)<0.0)
-                rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
+                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
             else
                 rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
         }
@@ -162,14 +162,14 @@ void AdjointPotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationI
     bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(DISTANCE)<0.0){
+        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
             is_kutta=true;
             break;
         }
     }
     for(unsigned int i=0; i<TNumNodes; i++){
         if(is_kutta){
-            if(r_geometry[i].GetValue(DISTANCE)<0.0)
+            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
                 rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
             else
                 rResult[i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
@@ -189,14 +189,14 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType&
     bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(DISTANCE)<0.0){
+        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
             is_kutta=true;
             break;
         }
     }
     for(unsigned int i=0; i<TNumNodes; i++){
         if(is_kutta){
-            if(r_geometry[i].GetValue(DISTANCE)<0.0)
+            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
                 ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
             else
                 ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
