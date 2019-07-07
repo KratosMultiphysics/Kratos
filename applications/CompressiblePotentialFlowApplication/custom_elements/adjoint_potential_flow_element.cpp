@@ -360,7 +360,7 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
     }
 
     template <class TPrimalElement>
