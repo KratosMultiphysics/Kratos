@@ -33,7 +33,7 @@
 namespace Kratos
 {
 
-class RotateRegionProcess : public Process
+class KRATOS_API(CHIMERA_APPLICATION) RotateRegionProcess : public Process
 {
 public:
     /// Pointer definition of MoveRotorProcess
