@@ -18,7 +18,7 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = True
+        self.print_output = False
 
     def _run_test(self,settings_file_name):
         model = KratosMultiphysics.Model()
