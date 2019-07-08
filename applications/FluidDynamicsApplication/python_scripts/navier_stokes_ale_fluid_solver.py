@@ -6,11 +6,9 @@ import KratosMultiphysics
 # other imports
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as fluid_solvers_wrapper
 
-try:
+have_mesh_moving = KratosUtilities.CheckIfApplicationsAvailable("MeshMovingApplication")
+if have_mesh_moving:
     from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
-except Exception:
-    raise("Unable to load MeshMovingApplication")
-
 
 def CreateSolver(model, solver_settings, parallelism):
     return NavierStokesAleFluidSolver(model, solver_settings, parallelism)
