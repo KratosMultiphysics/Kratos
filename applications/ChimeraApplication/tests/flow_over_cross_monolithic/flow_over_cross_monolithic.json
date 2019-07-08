@@ -136,7 +136,18 @@
                 }
             }
         ],
-        "auxiliary_process_list": [],
+        "auxiliary_process_list": [{
+            "python_module": "rotate_region_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "RotateRegionProcess",
+            "Parameters": {
+                "model_part_name": "GENERIC_patch_surface",
+                "center_of_rotation":[5.91526,4.84748,0],
+                "angular_velocity_radians":0.005,
+                "axis_of_rotation":[0.0,0.0,1.0],
+                "is_ale" : true
+            }
+        }],
         "json_check_process": [
             {
                 "python_module": "from_json_check_result_process",
@@ -150,7 +161,7 @@
                         "PRESSURE"
                     ],
                     "input_file_name": "flow_over_cross_monolithic_results.json",
-                    "model_part_name": "GENERIC_background_surface",
+                    "model_part_name": "GENERIC_patch_surface",
                     "time_frequency": 0.1
                 }
             }
@@ -169,7 +180,7 @@
                     "PRESSURE"
                 ],
                 "input_file_name": "flow_over_cross_monolithic_results.json",
-                "model_part_name": "GENERIC_background_surface",
+                "model_part_name": "GENERIC_patch_surface",
                 "time_frequency": 0.1
             }
         }
@@ -187,7 +198,7 @@
                     "PRESSURE"
                 ],
                 "output_file_name": "flow_over_cross_monolithic_results.json",
-                "model_part_name": "GENERIC_background_surface",
+                "model_part_name": "GENERIC_patch_surface",
                 "time_frequency": 0.1
             }
         }
