@@ -234,10 +234,10 @@ class DEMAnalysisStage(AnalysisStage):
     def _CreateSolver(self):
         def SetSolverStrategy():
             strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
-            filename = __import__(strategy)
+            #filename = __import__(strategy)
             ## Alternative option
-            #from importlib import import_module
-            #filename = import_module(str(strategy))
+            from importlib import import_module
+            filename = import_module(str(strategy))
             return filename
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
