@@ -156,6 +156,25 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasks_Wrapper(current_MLM
         raise Exception("Level not supported")
     return mlmc_results,pickled_current_model
 
+def ExecuteInstanceOnlyAdaptiveRefinement_Wrapper(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    if (current_level == 0):
+        pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_level == 1):
+        pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_level == 2):
+        pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_level == 3):
+        pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_level == 4):
+        pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_level == 5):
+        pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    else:
+        raise Exception("Level not supported")
+    return mlmc_results,pickled_model
+
+
+    ############################### ConcurrentAdaptiveRefinementAllAtOnce ##############################
 
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0")
 @ExaquteTask(returns=1)
@@ -190,6 +209,9 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLM
         del(pickled_current_model)
     return mlmc_results
 
+
+    ############################# ConcurrentAdaptiveRefinementMultipleTasks ############################
+
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
@@ -210,6 +232,51 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current
     mlmc_results,pickled_current_model = \
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
+
+
+    ################################### OnlySingleAdaptiveRefinement ###################################
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0")
+@ExaquteTask(returns=2)
+def executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    pickled_model,mlmc_results = \
+        ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
+    return pickled_model,mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1")
+@ExaquteTask(returns=2)
+def executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    pickled_model,mlmc_results = \
+        ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
+    return pickled_model,mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2")
+@ExaquteTask(returns=2)
+def executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    pickled_model,mlmc_results = \
+        ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
+    return pickled_model,mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_3")
+@ExaquteTask(returns=2)
+def executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    pickled_model,mlmc_results = \
+        ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
+    return pickled_model,mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_4")
+@ExaquteTask(returns=2)
+def executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    pickled_model,mlmc_results = \
+        ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
+    return pickled_model,mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_5")
+@ExaquteTask(returns=2)
+def executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    pickled_model,mlmc_results = \
+        ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
+    return pickled_model,mlmc_results
 
 
 def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis_stage,mlmc_results):
@@ -294,6 +361,45 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_le
     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
     sys.stdout.flush()
     return mlmc_results,pickled_finer_model
+
+
+def ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis_stage,mlmc_results):
+    # unpickle model and build Kratos Model object
+    serialized_model = pickle.loads(pickled_coarse_model)
+    current_model = KratosMultiphysics.Model()
+    serialized_model.Load("ModelSerialization",current_model)
+    del(serialized_model)
+    # unpickle parameters and build Kratos Parameters object
+    serialized_project_parameters = pickle.loads(pickled_coarse_project_parameters)
+    current_project_parameters = KratosMultiphysics.Parameters()
+    serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
+    del(serialized_project_parameters)
+    # refine if current current_global_index > 0, adaptive refinement based on the solution of previous index
+    if (current_index > 0):
+        # unpickle metric and remesh refinement parameters and build Kratos Parameters objects
+        serialized_custom_metric_refinement_parameters = pickle.loads(pickled_custom_metric_refinement_parameters)
+        serialized_custom_remesh_refinement_parameters = pickle.loads(pickled_custom_remesh_refinement_parameters)
+        current_custom_metric_refinement_parameters = KratosMultiphysics.Parameters()
+        current_custom_remesh_refinement_parameters = KratosMultiphysics.Parameters()
+        serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
+        serialized_custom_remesh_refinement_parameters.Load("RemeshRefinementParametersSerialization",current_custom_remesh_refinement_parameters)
+        del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
+        # refine the model Kratos object
+        adaptive_refinement_manager = AdaptiveRefinement(current_index,current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+        refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
+        current_model = refined_model
+        del(refined_model,refined_project_parameters)
+    simulation = current_analysis_stage(current_model,current_project_parameters,random_variable)
+    simulation.Initialize()
+    # reset general flags
+    main_model_part_name = current_project_parameters["solver_settings"]["model_part_name"].GetString()
+    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+    # save model and parameters as StreamSerializer Kratos objects
+    serialized_finer_model = KratosMultiphysics.StreamSerializer()
+    serialized_finer_model.Save("ModelSerialization",simulation.model)
+    # pickle model and parameters
+    pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    return pickled_finer_model,mlmc_results
 
 
 # """
@@ -848,18 +954,24 @@ class MultilevelMonteCarlo(object):
         # generate the sample and prepare mlmc result class
         fake_sample = generator.GenerateSample(self.problem_name)
         fake_mlmc_results = MultilevelMonteCarloResults(number_levels_to_serialize)
-        for current_level in range(number_levels_to_serialize+1):
-            fake_mlmc_results,pickled_current_model = \
-                ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasks_Wrapper(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_mlmc_results)
-                # ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(number_levels_to_serialize,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_mlmc_results)
-            del(pickled_coarse_model)
-            pickled_coarse_model = pickled_current_model
-            if (current_level>0):
-                # save pickled and serialized model and parameters
-                self.pickled_model.append(pickled_current_model)
-                # use next line only if not using pickle
-                # self.serialized_model.append(pickle.loads(pickled_current_model))
-            del(pickled_current_model)
+        for serialize_up_to_level in range (number_levels_to_serialize+1):
+            if (serialize_up_to_level > 0):
+                for current_level in range(serialize_up_to_level+1):
+                    if (current_level < serialize_up_to_level):
+                        fake_mlmc_results,pickled_current_model = \
+                            ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasks_Wrapper(serialize_up_to_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_mlmc_results)
+                            # ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(serialize_up_to_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_mlmc_results)
+                        del(pickled_coarse_model)
+                        pickled_coarse_model = pickled_current_model
+                    elif (current_level == serialize_up_to_level):
+                        fake_mlmc_results,pickled_current_model = ExecuteInstanceOnlyAdaptiveRefinement_Wrapper(pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,fake_sample,current_level,current_analysis,fake_mlmc_results)
+                    # save if current level > 0
+                    if (current_level == serialize_up_to_level and current_level > 0):
+                        # save pickled and serialized model and parameters
+                        self.pickled_model.append(pickled_current_model)
+                        # use next line only if not using pickle
+                        # self.serialized_model.append(pickle.loads(pickled_current_model))
+                    del(pickled_current_model)
 
     """
     function reading the XMC parameters passed from json file
