@@ -165,9 +165,9 @@ protected:
         ) override;
 
     void CalculateAndSubKp(
-        Matrix& K,
-        const Matrix& DN_De,
-        const RowMatrix& N,
+        Matrix& rK,
+        const Matrix& rDN_De,
+        const RowMatrix& rN,
         const double Pressure,
         const double IntegrationWeight
         );
