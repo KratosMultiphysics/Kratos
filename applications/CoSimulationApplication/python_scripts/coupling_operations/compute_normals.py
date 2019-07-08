@@ -6,6 +6,9 @@ import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 def Create(settings, solver_wrappers):
     cs_tools.SettingsTypeCheck(settings)
     return ComputeNormalsOperation(settings, solver_wrappers)
@@ -25,13 +28,11 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
     def Finalize(self):
         pass
 
-
     def InitializeSolutionStep(self):
         pass
 
     def FinalizeSolutionStep(self):
         pass
-
 
     def InitializeCouplingIteration(self):
         pass
@@ -47,7 +48,8 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         pass
 
     def Check(self):
-        # TODO in case the NORMALS are computed with historical variables then you shoudl check if the var is in the ModelPart
+        # TODO in case the NORMALS are computed with historical variables then you should check if the var is in the ModelPart
+        pass
 
     @classmethod
     def _GetDefaultSettings(cls):
