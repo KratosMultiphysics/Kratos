@@ -15,6 +15,7 @@
 #include "convection_diffusion_application_variables.h"
 
 #include "includes/checks.h"
+#include "includes/convection_diffusion_settings.h"
 #include "utilities/geometrical_sensitivity_utility.h"
 #include "utilities/math_utils.h"
 
@@ -140,16 +141,35 @@ template<class PrimalElement>
 int AdjointHeatDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
-    const GeometryType& r_geom = this->GetGeometry();
-    const unsigned int num_nodes = r_geom.PointsNumber();
-    for (unsigned int i = 0; i < num_nodes; i++)
+
+    // We check for the primal element too
+    // (I am not calling PrimalElement::Check directly because I do not need the Primal Unknown to be a DOF)
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
+    ConvectionDiffusionSettings::Pointer p_settings = rProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedUnknownVariable()) << "No Unknown Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedDiffusionVariable()) << "No Diffusion Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedVolumeSourceVariable()) << "No Volume Source Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
+
+    const auto& r_geom = GetGeometry();
+
+    for (unsigned int i = 0; i < r_geom.PointsNumber(); i++)
     {
-        const Node<3>& r_node = r_geom[i];
+        const auto& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_HEAT_TRANSFER, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_HEAT_TRANSFER, r_node);
+
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_unknown_var, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_diffusivity_var, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_volume_source_var, r_node);
     }
 
-    return PrimalElement::Check(rProcessInfo);
+    return Element::Check(rProcessInfo);
     KRATOS_CATCH("")
 }
 
@@ -192,7 +212,11 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     const auto integration_points = r_geom.IntegrationPoints(integration_method);
     const unsigned int num_integration_points = integration_points.size();
     Vector primal_values = ZeroVector(num_nodes);
-    PrimalElement::GetValuesVector(primal_values);
+    const Variable<double>& r_primal_values_variable = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]->GetUnknownVariable();
+    for (unsigned int i = 0; i < num_nodes; i++)
+    {
+        primal_values[i] = r_geom[i].FastGetSolutionStepValue(r_primal_values_variable);
+    }
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
