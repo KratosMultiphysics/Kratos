@@ -21,7 +21,7 @@ class PFEM2MonolithicSolver(PFEM2BaseSolver):
     def FinalizeSolutionStep(self):
         self.get_mesh_strategy().FinalizeSolutionStep()
         self._CalculatePressureProjection()
-        self._UpdateParticles()
+        self.get_particles_stage().ExecuteFinalizeSolutionStep()
 
     def _CalculatePressureProjection(self):
         self.GetComputingModelPart().ProcessInfo.SetValue(KM.FRACTIONAL_STEP, 10)

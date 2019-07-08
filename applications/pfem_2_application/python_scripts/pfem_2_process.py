@@ -1,5 +1,5 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.PFEM2Application as Pfem2
+import KratosMultiphysics.PFEM2Application as PFEM2
 
 import sys
 
@@ -16,11 +16,12 @@ class PFEM2Process(KM.Process):
 
         default_settings = KM.Parameters("""
             {
-                "model_part_name"                : "please_specify_model_part_name",
-                "use_mesh_velocity"              : false,
-                "discriminate_streamlines        : true,
-                "reset_boundary_conditions       : true,
-                "fully_reset_boundary_conditions : true
+                "model_part_name"                 : "please_specify_model_part_name",
+                "echo_level"                      : 0,
+                "use_mesh_velocity"               : false,
+                "discriminate_streamlines"        : true,
+                "reset_boundary_conditions"       : false,
+                "fully_reset_boundary_conditions" : true
             }
             """
             )
@@ -28,6 +29,7 @@ class PFEM2Process(KM.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model[settings["model_part_name"].GetString()]
+        self.echo_level = settings["echo_level"].GetDouble()
         self.use_mesh_velocity = settings["use_mesh_velocity"].GetBool()
         self.discriminate_streamlines = settings["discriminate_streamlines"].GetBool()
         self.reset_boundary_conditions = settings["reset_boundary_conditions"].GetBool()
@@ -47,12 +49,12 @@ class PFEM2Process(KM.Process):
 
         max_num_of_particles = 8 * dimension
         if dimension == 2:
-            self.moveparticles = Pfem2.MoveParticleUtilityPFEM22D(self.model_part, max_num_of_particles)
+            self.moveparticles = PFEM2.MoveParticleUtilityPFEM22D(self.model_part, max_num_of_particles)
         else:
-            self.moveparticles = Pfem2.MoveParticleUtilityPFEM23D(self.model_part, max_num_of_particles)
+            self.moveparticles = PFEM2.MoveParticleUtilityPFEM23D(self.model_part, max_num_of_particles)
         self.moveparticles.MountBin()
 
-        self.initial_water_volume = _get_water_volume_utility.Calculate()
+        self.initial_water_volume = self._get_water_volume_utility().Calculate()
 
     def ExecuteInitializeSolutionStep(self):
         if self.use_mesh_velocity == False:
@@ -63,7 +65,7 @@ class PFEM2Process(KM.Process):
         pre_minimum_num_of_particles = dimension
         self.moveparticles.PreReseed(pre_minimum_num_of_particles)
         self.moveparticles.TransferLagrangianToEulerian()
-        KM.VariableUtils().CopyVectorVar(Pfem2.PROJECTED_VELOCITY, KM.VELOCITY, self.model_part.Nodes)
+        KM.VariableUtils().CopyVectorVar(PFEM2.PROJECTED_VELOCITY, KM.VELOCITY, self.model_part.Nodes)
         if self.reset_boundary_conditions:
             self.moveparticles.ResetBoundaryConditions(self.full_reset_boundary_conditions)
         self.moveparticles.CopyVectorVarToPreviousTimeStep(KM.VELOCITY, self.model_part.Nodes)
@@ -71,7 +73,7 @@ class PFEM2Process(KM.Process):
     def ExecuteFinalizeSolutionStep(self):
         self.moveparticles.CalculateDeltaVelocity()
         self.moveparticles.AccelerateParticlesWithoutMovingUsingDeltaVelocity()
-        dimension = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         post_minimum_num_of_particles = 2 * dimension
         mass_correction_factor = self.compute_mass_correction_factor()
         self.moveparticles.PostReseed(post_minimum_num_of_particles, mass_correction_factor)
@@ -81,7 +83,8 @@ class PFEM2Process(KM.Process):
         water_fraction = water_volume / self.initial_water_volume if self.initial_water_volume else 1.0
         factor = 1.0
         mass_correction_factor = (1.0 - water_fraction) * factor
-        KM.Logger.PrintInfo("PFEM2BaseSolver", "Mass correction factor : ", mass_correction_factor)
+        if self.echo_level > 0:
+            KM.Logger.PrintInfo("PFEM2Process", "Mass correction factor : ", mass_correction_factor)
         return mass_correction_factor
 
     def _get_water_volume_utility(self):

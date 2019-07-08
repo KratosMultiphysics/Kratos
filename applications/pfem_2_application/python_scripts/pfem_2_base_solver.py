@@ -115,7 +115,7 @@ class PFEM2BaseSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.get_particles_stage().ExecuteBeforeSolutionLoop()
+            self.get_particles_stage().ExecuteInitializeSolutionStep()
             self.get_mesh_strategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -209,7 +209,7 @@ class PFEM2BaseSolver(PythonSolver):
             "time_stepping"            : {
                 "automatic_time_step"      : false,
                 "time_step"                : 0.01
-            }
+            },
             "particles_stage_settings" : {
                 "convection_type"          : "pfem_2"
             }
@@ -347,17 +347,20 @@ class PFEM2BaseSolver(PythonSolver):
                                                      self.settings["move_mesh_flag"].GetBool())
 
     def _create_particles_stage(self):
-        self.convection_settings = KM.Parameters('''{"Parameters" : {}}''')
-        self.convection_settings["Parameters"] = self.settings["particles_stage_settings"].Clone()
-        self.convection_settings["Parameters"].RemoveValue("convection_type")
+        convection_settings = KM.Parameters('''{"Parameters" : {}}''')
+        convection_settings["Parameters"] = self.settings["particles_stage_settings"].Clone()
+        convection_settings["Parameters"].RemoveValue("convection_type")
         process_name = "KratosMultiphysics."
         convection_type = self.settings["particles_stage_settings"]["convection_type"].GetString()
         if convection_type == "pfem_2":
             process_name += "PFEM2Application.pfem_2_process"
+            if not convection_settings["Parameters"].Has("model_part_name"):
+                convection_settings["Parameters"].AddValue("model_part_name", self.settings["model_part_name"])
         else:
             raise Exception("The requested particles stage type is not available: " + convection_type)
         python_module = import_module(process_name)
-        return python_module.Factory(self.convection_settings, self.model)
+        print(convection_settings)
+        return python_module.Factory(convection_settings, self.model)
 
     # def _create_particles_stage(self):
     #     model_part = self.GetComputingModelPart()
