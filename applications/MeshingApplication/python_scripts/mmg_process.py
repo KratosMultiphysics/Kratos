@@ -140,6 +140,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "boundary_layer_min_size_ratio"    : 2.0,
                 "interpolation"                    : "Linear"
             },
+            "collapse_prisms_elements"         : false,
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
@@ -294,6 +295,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("discretization_type",self.settings["discretization_type"])
         mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
+        mmg_parameters.AddValue("collapse_prisms_elements",self.settings["collapse_prisms_elements"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("save_colors_files",self.settings["save_colors_files"])
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])

@@ -38,7 +38,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
-    , mIndices(NewBufferSize, 0)
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)

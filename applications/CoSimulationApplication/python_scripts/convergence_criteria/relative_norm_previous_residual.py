@@ -16,11 +16,11 @@ from numpy import linalg as la
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return RelativeNormPreviousResidual(settings, solver_wrapper)
+    return RelativeNormPreviousResidualConvergenceCriteria(settings, solver_wrapper)
 
-class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
+class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def __init__(self, settings, solver_wrapper):
-        super(RelativeNormPreviousResidual, self).__init__( settings, solver_wrapper)
+        super(RelativeNormPreviousResidualConvergenceCriteria, self).__init__( settings, solver_wrapper)
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
@@ -66,6 +66,6 @@ class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
             "abs_tolerance" : 1e-5,
             "rel_tolerance" : 1e-5
         }""")
-        this_defaults.AddMissingParameters(super(RelativeNormPreviousResidual, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(RelativeNormPreviousResidualConvergenceCriteria, cls)._GetDefaultSettings())
         return this_defaults
 
