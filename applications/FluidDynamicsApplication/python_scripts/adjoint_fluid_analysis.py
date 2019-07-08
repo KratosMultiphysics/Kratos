@@ -86,7 +86,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         if self.parallel_type == "OpenMP":
             from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from KratosMultiphysics.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
         output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
