@@ -315,3 +315,9 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
         self.test_aitken_accelerator(forceA,forceB,solution)
+
+if __name__ == '__main__':
+    test = ConvergenceAcceleratorSpringTest()
+    test.setUp()
+    test.test_mvqn_recursive_accelerator_variable_stiffness()
+    test.tearDown()
