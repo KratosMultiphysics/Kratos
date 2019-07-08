@@ -7,7 +7,6 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 
-import KratosMultiphysics.ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication import pureconvection_solver
 from KratosMultiphysics.ConvectionDiffusionApplication import thermal_solver
 from KratosMultiphysics.ConvectionDiffusionApplication import monolithic_solver_eulerian
