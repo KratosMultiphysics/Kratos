@@ -776,7 +776,6 @@ class MultilevelMonteCarlo(object):
                 sys.stdout.flush()
                 if (self.iteration_counter >= 20):
                     self.convergence = True
-                self.convergence=True
             end_time_mlmc = time.time()
             print("[TIMER] mlmc phase MLMC (no screening phase):", end_time_mlmc-end_time_screening)
         else:
@@ -1231,8 +1230,8 @@ class MultilevelMonteCarlo(object):
                     if (self.total_error < self.settings["tolerance"].GetDouble()):
                         self.convergence = True
                 elif (self.settings["convergence_criteria"].GetString() == "relative_total_error_stopping_rule"):
-                    factor =  self.settings["tolerance"].GetDouble() * self.mean_mlmc_QoI + self.settings["tolerance_absolute"].GetDouble()
-                    if (self.total_error < factor):
+                    factor =  np.abs(self.settings["tolerance"].GetDouble() * self.mean_mlmc_QoI) + self.settings["tolerance_absolute"].GetDouble()
+                    if (self.total_error < np.abs(factor)):
                         self.convergence = True
                 # TODO: this is a workaround of a compss bug
                 # delete models and parameters no more used
@@ -1289,6 +1288,7 @@ class MultilevelMonteCarlo(object):
         print("estimated Bayesian variance = ",self.bayesian_variance)
         print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
         print("total_error = bias + statistical error = ",self.total_error)
+        print("relative total error = total_error / MLMC expected value = ",self.total_error/self.mean_mlmc_QoI)
         import sys
         sys.stdout.flush()
 
@@ -1623,7 +1623,7 @@ class MultilevelMonteCarlo(object):
             variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]
         self.difference_QoI.statistical_error = self.settings["cphi_confidence"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
         total_error = self.difference_QoI.bias_error + self.difference_QoI.statistical_error
-        self.total_error = total_error
+        self.total_error = np.abs(total_error)
 
 
 class MultilevelMonteCarloResults(object):
