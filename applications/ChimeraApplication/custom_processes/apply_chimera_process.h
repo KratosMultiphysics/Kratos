@@ -35,6 +35,8 @@
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_utilities/hole_cutting_utility.h"
+#include "calculate_signed_distance_to_2d_condition_skin_process.h"
+#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 
 namespace Kratos
 {
@@ -113,7 +115,7 @@ public:
 									}]
 								]
             })");
-        
+
         mNumberOfLevels = mParameters.size();
         KRATOS_ERROR_IF(mNumberOfLevels < 2) << "Chimera requires atleast two levels !. Put Background in one level and the patch in second one." << std::endl;
 
@@ -205,7 +207,7 @@ protected:
         for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
         {
             auto i_elem = elem_begin + i_be;
-            if (!i_elem->Is(VISITED)) //for multipatch
+            //if (!i_elem->Is(VISITED)) //for multipatch
                 i_elem->Set(ACTIVE, true);
         }
 
@@ -283,13 +285,13 @@ protected:
             if (has_overlap)
             {
                 KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-                CalculateDistance(r_patch_model_part, r_domain_boundary_model_part, over_lap_distance);
+                CalculateDistanceChimeraApplication(r_patch_model_part, r_domain_boundary_model_part, over_lap_distance);
                 //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
                 mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
             }
 
             mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
-            CalculateDistance(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
+            CalculateDistanceChimeraApplication(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
             mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
             //WriteModelPart(r_hole_model_part);
@@ -538,8 +540,8 @@ private:
         for (IndexType i_node = 0; i_node < nnodes; ++i_node)
         {
             auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            const double node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            if (std::abs(node_distance) < OverlapDistance)
+            double& node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
+            if (std::abs(node_distance) < 0.01*OverlapDistance)
             {
                 num_fixed_nodes++;
                 it_node->Fix(DISTANCE);
@@ -550,14 +552,39 @@ private:
         {
             Parameters amgcl_settings(R"(
                 {
-                    "solver_type"                    : "amgcl"
+                    "solver_type"                    : "amgcl",
+                    "smoother_type"                  : "ilu0",
+                    "max_iteration"                  : 200
                 }
                 )");
 
             LinearSolverFactoryType const &linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
             auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
-            VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver).Execute();
+            VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver, 15).Execute();
         }
+    }
+
+    /**
+     * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
+     * @param rBackgroundModelPart The background modelpart where distances are calculated.
+     * @param rSkinModelPart The skin modelpart from where the distances are calculated
+     */
+    void CalculateDistanceChimeraApplication(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
+    {
+        IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
+
+#pragma omp parallel for
+        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
+        {
+            auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
+            double &node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
+            node_distance = 0;
+        }
+
+        if(TDim ==2)
+            CalculateSignedDistanceTo2DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
+        else if(TDim==3)
+            CalculateSignedDistanceTo3DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
     }
 
     /**
