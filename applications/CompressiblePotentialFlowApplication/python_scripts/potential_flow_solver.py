@@ -133,8 +133,6 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("PotentialFlowSolver", "Fluid solver DOFs added correctly.")
-
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if "incompressible" in self.settings["formulation"]["element_type"].GetString():
@@ -167,3 +165,6 @@ class PotentialFlowSolver(FluidSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Initialize()
+
+    def AdvanceInTime(self, current_time):
+        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
