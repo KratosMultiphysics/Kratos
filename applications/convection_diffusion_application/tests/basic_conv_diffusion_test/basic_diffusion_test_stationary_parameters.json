@@ -3,13 +3,13 @@
         "problem_name"    : "basic_conv_diffusion_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 1.0e-0,
+        "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "model_part_name"                    : "Thermic",
         "domain_size"                        : 2,
-        "solver_type"                        : "transient",
+        "solver_type"                        : "Stationary",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -34,7 +34,7 @@
             "reaction_variable"             : "REACTION_FLUX"
         },
         "time_stepping" : {
-            "time_step"       : 1.0e-2
+            "time_step"       : 1.0e6
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -47,7 +47,11 @@
             "solver_type": "ExternalSolversApplication.super_lu"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","Check_Part"]
+        "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","Check_Part"],
+        "element_replace_settings":{
+            "element_name" : "LaplacianElement",
+            "condition_name" : "ThermalFace"
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -61,7 +65,17 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "fluxes_process_list"      : [],
+        "fluxes_process_list"      : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Parts_Parts_Auto1",
+                "variable_name"   : "HEAT_FLUX",
+                "constrained"     : false,
+                "value"           : 100.0,
+                "interval"        : [0.0,"End"]
+            }
+        }],
         "list_other_processes"     : [],
         "check_analytic_results_process" : [
         {
@@ -69,11 +83,11 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "Check_Part",
+                    "model_part_name" : "Central_Nodes",
                     "variable_name"   : "TEMPERATURE",
-                    "interval"        : [0.99, "End"],
-                    "value"           : 1.0,
-                    "tolerance_rank"  : 3
+                    "interval"        : [0.0, "End"],
+                    "value"           : 1.444444,
+                    "tolerance_rank"  : 6
             }
         }]
     },
@@ -85,7 +99,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "Thermic",
-                "output_name"            : "basic_conv_diffusion_test",
+                "output_name"            : "diffusion_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
@@ -101,7 +115,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE","REACTION_FLUX","DENSITY","CONDUCTIVITY","SPECIFIC_HEAT"],
+                        "nodal_results"       : ["TEMPERATURE","REACTION_FLUX","DENSITY","CONDUCTIVITY","SPECIFIC_HEAT","HEAT_FLUX"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
