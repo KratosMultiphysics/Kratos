@@ -1157,7 +1157,8 @@ class MultilevelMonteCarlo(object):
             # compute theta splitting parameter according to the current_number_levels and tolerance_i
             self.ComputeTheta(self.current_number_levels)
             # add batch size per level: multiply by 1 current number samples and take the maximum between this integer and default batch size
-            self.batch_size = [max(self.number_samples[level],self.settings["number_samples_screening"][level].GetInt()) for level in range (self.current_number_levels+1)]
+            # self.batch_size = [max(self.number_samples[level],self.settings["number_samples_screening"][level].GetInt()) for level in range (self.current_number_levels+1)]
+            self.batch_size = [self.settings["number_samples_screening"][level].GetInt() for level in range (self.current_number_levels+1)]
         else:
             raise Exception ("Assign True or False to adaptive_number_samples setting.")
         for new_batch in range (new_number_batches):
