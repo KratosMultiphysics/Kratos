@@ -52,6 +52,7 @@ public:
 
         Parameters default_parameters(R"(
             {
+                "model_part_name":"SPECIFY_MODELPART_NAME",
                 "center_of_rotation":[],
                 "angular_velocity_radians":0.0,
                 "axis_of_rotation":[],
@@ -63,7 +64,7 @@ public:
         mAngularVelocityRadians = mParameters["angular_velocity_radians"].GetDouble();
         mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
         mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector();
-        mAxisOfRoationVectorNormalized.resize(3);
+        mAxisOfRotaionVectorNormalized.resize(3);
 
         mTransformationMatrix.resize(4, 4, false);
 
@@ -73,7 +74,7 @@ public:
             norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
         norm = sqrt(norm);
         for (std::size_t d = 0; d < 3; ++d)
-            mAxisOfRoationVectorNormalized[d] = (mAxisOfRotationVector[d] / norm);
+            mAxisOfRotaionVectorNormalized[d] = (mAxisOfRotationVector[d] / norm);
 
         CalculateRotationMatrix(-1 * mAngularVelocityRadians, mTransformationMatrix);
         mTheta = 0.0;
@@ -130,13 +131,12 @@ public:
             radius[1] = it_node->Y() - mCenterOfRotation[1];
             radius[2] = it_node->Z() - mCenterOfRotation[2];
             CalculateLinearVelocity(mAxisOfRotationVector, radius, linearVelocity);
-
             if (mParameters["is_ale"].GetBool())
             {
-                it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) += mAngularVelocityRadians * linearVelocity[0];
-                it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) += mAngularVelocityRadians * linearVelocity[1];
+                it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) = mAngularVelocityRadians * linearVelocity[0];
+                it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) = mAngularVelocityRadians * linearVelocity[1];
                 if (domain_size > 2)
-                    it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) += mAngularVelocityRadians * linearVelocity[2];
+                    it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) = mAngularVelocityRadians * linearVelocity[2];
 
                 if (it_node->IsFixed(VELOCITY_X))
                     it_node->FastGetSolutionStepValue(VELOCITY_X, 0) = it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
@@ -155,7 +155,11 @@ public:
 
     void ExecuteFinalizeSolutionStep() override
     {
-        const auto &r_process_info = mrModelPart.GetProcessInfo();
+    }
+
+    void ExecuteAfterOutputStep() override
+    {
+        /* const auto &r_process_info = mrModelPart.GetProcessInfo();
 
         int domain_size = r_process_info[DOMAIN_SIZE];
         const int num_nodes = mrModelPart.NumberOfNodes();
@@ -173,11 +177,7 @@ public:
                 if (domain_size > 2)
                     it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) = 0.0;
             }
-        }
-    }
-
-    void ExecuteAfterOutputStep() override
-    {
+        }*/
     }
 
     virtual std::string Info() const override
@@ -220,7 +220,7 @@ private:
     MatrixType mTransformationMatrix;
     DenseVector<double> mAxisOfRotationVector;
     DenseVector<double> mCenterOfRotation;
-    DenseVector<double> mAxisOfRoationVectorNormalized;
+    DenseVector<double> mAxisOfRotaionVectorNormalized;
     double mTheta;
 
     ///@}
@@ -232,14 +232,14 @@ private:
      * Calculates the cross product of two vectors
      *  c = axb
      */
-    void CalculateLinearVelocity(const DenseVector<double> &mAxisOfRotationVector,
+    void CalculateLinearVelocity(const DenseVector<double> &rAxisOfRotationVector,
                                  const DenseVector<double> &rRadius,
                                  DenseVector<double> &rLinearVelocity)
     {
-        assert(mAxisOfRotationVector.size() == rRadius.size());
-        rLinearVelocity[0] = mAxisOfRotationVector[1] * rRadius[2] - mAxisOfRotationVector[2] * rRadius[1];
-        rLinearVelocity[1] = mAxisOfRotationVector[2] * rRadius[0] - mAxisOfRotationVector[0] * rRadius[2];
-        rLinearVelocity[2] = mAxisOfRotationVector[0] * rRadius[1] - mAxisOfRotationVector[1] * rRadius[0];
+        assert(rAxisOfRotationVector.size() == rRadius.size());
+        rLinearVelocity[0] = rAxisOfRotationVector[1] * rRadius[2] - rAxisOfRotationVector[2] * rRadius[1];
+        rLinearVelocity[1] = rAxisOfRotationVector[2] * rRadius[0] - rAxisOfRotationVector[0] * rRadius[2];
+        rLinearVelocity[2] = rAxisOfRotationVector[0] * rRadius[1] - rAxisOfRotationVector[1] * rRadius[0];
     }
 
     void TransformNode(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
