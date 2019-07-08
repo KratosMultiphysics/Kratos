@@ -99,8 +99,6 @@ class PFEM2BaseSolver(PythonSolver):
 
         # The particles stage is created here
         self.get_particles_stage().ExecuteBeforeSolutionLoop()
-        # move_particles = self.get_particles_stage()
-        # move_particles.MountBin()
 
         KM.Logger.PrintInfo("::[PFEM2BaseSolver]:", "Finished initialization.")
 
@@ -152,27 +150,6 @@ class PFEM2BaseSolver(PythonSolver):
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
         return delta_time
-
-    # def _MoveParticles(self):
-    #     move_particles = self.get_particles_stage()
-    #     move_particles.CalculateVelOverElemSize()
-    #     discriminate_streamlines=True
-    #     move_particles.MoveParticles(discriminate_streamlines)
-    #     pre_minimum_number_of_particles = self.domain_size
-    #     move_particles.PreReseed(pre_minimum_number_of_particles)
-    #     move_particles.TransferLagrangianToEulerian()
-    #     KM.VariableUtils().CopyVectorVar(PFEM2.PROJECTED_VELOCITY, KM.VELOCITY, self.model_part.Nodes)
-    #     full_reset = False
-        # move_particles.ResetBoundaryConditions(full_reset)
-        # move_particles.CopyVectorVarToPreviousTimeStep(KM.VELOCITY, self.model_part.Nodes)
-
-    # def _UpdateParticles(self):
-    #     move_particles = self.get_particles_stage()
-    #     move_particles.CalculateDeltaVelocity()
-    #     move_particles.AccelerateParticlesWithoutMovingUsingDeltaVelocity()
-    #     post_minimum_number_of_particles = self.domain_size * 2
-    #     mass_correction_factor = self._compute_mass_correction_factor()
-    #     move_particles.PostReseed(post_minimum_number_of_particles, mass_correction_factor)
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -304,11 +281,6 @@ class PFEM2BaseSolver(PythonSolver):
             self._particles_stage = self._create_particles_stage()
         return self._particles_stage
 
-    # def get_water_volume_utility(self):
-    #     if not hasattr(self, '_water_volume_utility'):
-    #         self._water_volume_utility = self._create_water_volume_utility()
-    #     return self._water_volume_utility
-
     def _create_convergence_criterion(self):
         convergence_criterion = KM.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                         self.settings["absolute_tolerance"].GetDouble())
@@ -361,29 +333,3 @@ class PFEM2BaseSolver(PythonSolver):
         python_module = import_module(process_name)
         print(convection_settings)
         return python_module.Factory(convection_settings, self.model)
-
-    # def _create_particles_stage(self):
-    #     model_part = self.GetComputingModelPart()
-    #     maximum_number_of_particles = 8 * self.domain_size
-    #     particles = None
-    #     if self.domain_size == 2:
-    #         particles = PFEM2.MoveParticleUtilityPFEM22D(model_part, maximum_number_of_particles)
-    #     else:
-    #         particles = PFEM2.MoveParticleUtilityPFEM23D(model_part, maximum_number_of_particles)
-    #     return particles
-
-    # def _create_water_volume_utility(self):
-    #     water_volume_utility = None
-    #     if self.domain_size == 2:
-    #         water_volume_utility = PFEM2.CalculateWaterFraction2D(self.model_part)
-    #     else:
-    #         water_volume_utility = PFEM2.CalculateWaterFraction3D(self.model_part)
-    #     self.initial_water_volume = water_volume_utility.Calculate() + sys.float_info.epsilon
-    #     return water_volume_utility
-
-    # def _compute_mass_correction_factor(self):
-    #     water_volume = self.get_water_volume_utility().Calculate()
-    #     water_fraction = water_volume / self.initial_water_volume
-    #     mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1
-    #     KM.Logger.PrintInfo("PFEM2BaseSolver", "Mass correction factor : ", mass_correction_factor)
-    #     return mass_correction_factor
