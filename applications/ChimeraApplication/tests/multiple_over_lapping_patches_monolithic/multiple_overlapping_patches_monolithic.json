@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 0.11
+        "end_time": 0.21
     },
     "output_processes": {},
     "solver_settings": {
@@ -175,7 +175,7 @@
                     ],
                     "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
                     "model_part_name": "GENERIC_background",
-                    "time_frequency": 0.1
+                    "time_frequency": 0.2
                 }
             }
         ]
@@ -194,7 +194,7 @@
                 ],
                 "output_file_name": "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name": "GENERIC_background",
-                "time_frequency": 0.1
+                "time_frequency": 0.2
             }
         }
     ],
@@ -212,7 +212,7 @@
                 ],
                 "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name": "GENERIC_background",
-                "time_frequency": 0.1
+                "time_frequency": 0.2
             }
         }
     ]
