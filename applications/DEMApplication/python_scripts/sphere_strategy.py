@@ -359,7 +359,6 @@ class ExplicitStrategy(object):
         self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, is_time_to_print)
         self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
 
-        self._MoveAllMeshes(time, self.dt)
 
     def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
@@ -372,6 +371,8 @@ class ExplicitStrategy(object):
 
     def InitializeSolutionStep(self):
         (self.cplusplus_strategy).InitializeSolutionStep()
+        time = self.spheres_model_part.ProcessInfo[TIME]
+        self._MoveAllMeshes(time, self.dt)
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
