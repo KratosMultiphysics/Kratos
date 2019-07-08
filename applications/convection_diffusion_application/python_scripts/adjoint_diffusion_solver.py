@@ -54,6 +54,9 @@ class AdjointDiffusionSolver(PythonSolver):
                 "volume_source_variable"        : "HEAT_FLUX",
                 "surface_source_variable"       : "FACE_HEAT_FLUX"
             },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
             },
@@ -110,6 +113,29 @@ class AdjointDiffusionSolver(PythonSolver):
             variable_utils = kratos.VariableUtils()
             variable_utils.CopyModelPartNodalVar(kratos.TEMPERATURE, primal_model_part, self.model_part, 0)
             variable_utils.CopyModelPartNodalVar(kratos.FACE_HEAT_FLUX, primal_model_part, self.model_part, 0)
+
+            self.ImportMaterials()
+
+    def ImportMaterials(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            with open(materials_filename, 'r') as parameter_file:
+                materials = kratos.Parameters(parameter_file.read())
+
+            for i in range(materials["properties"].size()):
+                model_part = self.model.GetModelPart(materials["properties"][i]["model_part_name"].GetString())
+                mat = materials["properties"][i]["Material"]
+                var_utils = kratos.VariableUtils()
+                for key, value in mat["Variables"].items():
+                    var = kratos.KratosGlobals.GetVariable(key)
+                    #if not model_part.NodalSolutionStepDataHas(var):
+                    #     raise Exception("Trying to set variable ", var.Name()," on nodes, but the variable is not in nodal data.")
+                    if value.IsDouble():
+                        var_utils.SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                    elif value.IsVector():
+                        var_utils.SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                    else:
+                        raise ValueError("Type of value is not available")
 
     def DefineConvectionDiffusionSettings(self,settings):
         convection_diffusion_settings = kratos.ConvectionDiffusionSettings()
