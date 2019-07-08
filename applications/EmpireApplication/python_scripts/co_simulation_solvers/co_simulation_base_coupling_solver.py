@@ -161,6 +161,3 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
 
     def IsDistributed(self):
         return True
-
-    def _Name(self):
-        return self.__class__.__name__
