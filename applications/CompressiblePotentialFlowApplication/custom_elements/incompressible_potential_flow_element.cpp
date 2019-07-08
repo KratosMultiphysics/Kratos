@@ -270,7 +270,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
-    noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
@@ -382,7 +382,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
@@ -409,7 +409,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     GetWakeDistances(data.distances);
 
@@ -445,7 +445,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     GetWakeDistances(data.distances);
 

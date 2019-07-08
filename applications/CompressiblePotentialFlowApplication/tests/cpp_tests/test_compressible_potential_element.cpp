@@ -137,7 +137,7 @@ namespace Kratos {
       distances(1) = -1.0;
       distances(2) = -1.0;
 
-      pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
+      pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
       for (unsigned int i = 0; i < 3; i++){
@@ -189,7 +189,7 @@ namespace Kratos {
       distances(1) = -1.0;
       distances(2) = -1.0;
 
-      pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
+      pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
       for (unsigned int i = 0; i < 3; i++){
@@ -279,7 +279,7 @@ namespace Kratos {
       distances(0) = -0.5;
       distances(1) = -0.5;
       distances(2) = 0.5;
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
