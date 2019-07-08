@@ -212,10 +212,18 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     const auto integration_points = r_geom.IntegrationPoints(integration_method);
     const unsigned int num_integration_points = integration_points.size();
     Vector primal_values = ZeroVector(num_nodes);
-    const Variable<double>& r_primal_values_variable = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]->GetUnknownVariable();
+    Vector diffusivities = ZeroVector(num_nodes);
+
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_primal_values_variable = r_settings.GetUnknownVariable();
+    const Variable<double>& r_diffusivity_variable = r_settings.GetDiffusionVariable();
+
     for (unsigned int i = 0; i < num_nodes; i++)
     {
         primal_values[i] = r_geom[i].FastGetSolutionStepValue(r_primal_values_variable);
+        diffusivities[i] = r_geom[i].FastGetSolutionStepValue(r_diffusivity_variable);
     }
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
@@ -224,6 +232,8 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
         Matrix shape_function_global_gradients(num_nodes,dimension);
         Matrix jacobian(dimension,dimension);
         Matrix jacobian_inv(dimension,dimension);
+
+        const Matrix& N_values = r_geom.ShapeFunctionsValues(integration_method);
 
         for (unsigned int g = 0; g < num_integration_points; g++)
         {
@@ -235,6 +245,8 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
             noalias(shape_function_global_gradients) = prod(shape_function_local_gradients, jacobian_inv);
             const double weight = integration_points[g].Weight();
+            const auto N = row(N_values, g);
+            const double diffusivity = inner_prod(N, diffusivities);
 
             Vector primal_gradient = prod(trans(shape_function_global_gradients),primal_values);
             Matrix laplacian_operator = prod(shape_function_global_gradients, trans(shape_function_global_gradients));
@@ -243,7 +255,6 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             for (auto s = ShapeParameter::Sequence(num_nodes, dimension); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                const unsigned int l = deriv.NodeIndex * dimension + deriv.Direction;
                 double det_j_deriv;
                 GeometricalSensitivityUtility::ShapeFunctionsGradientType shape_function_gradient_deriv;
                 geometrical_sensitivity_utility.CalculateSensitivity(deriv, det_j_deriv, shape_function_gradient_deriv);
@@ -253,7 +264,6 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                 // Calculation by product rule of d/dX_l ( w * J * dN_i/dx_k * dN_j/dx_k * Temperature_j )
                 for (unsigned int i = 0; i < num_nodes; i++)
                 {
-
                     // partial derivative of the determinant of Jacobian w * dJ/dX * dN_i/dx_k * dN_j/dx_k * Temperature_j
                     double contribution_li = det_j_deriv * laplacian_rhs[i];
 
@@ -266,7 +276,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                         contribution_li += det_j * shape_function_global_gradients(i,k) * aux[k];
                     }
 
-                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * contribution_li;
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * diffusivity * contribution_li;
                 }
             }
         }
