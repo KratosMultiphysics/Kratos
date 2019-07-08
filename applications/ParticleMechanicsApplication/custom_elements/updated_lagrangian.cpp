@@ -855,21 +855,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
 ////************************************************************************************
 ////************************************************************************************
-void UpdatedLagrangian::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void UpdatedLagrangian::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
 
 void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {

@@ -93,7 +93,7 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
