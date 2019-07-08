@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "test_chimera_multiple_overlapping_simple",
         "parallel_type": "OpenMP",
-        "echo_level": 0,
+        "echo_level": 1,
         "start_time": 0.0,
         "end_time": 0.1
     },
@@ -15,7 +15,7 @@
             "input_type": "mdpa",
             "input_filename": "../mdpa_for_tests/multiple_overlapping_patches"
         },
-        "echo_level": 0,
+        "echo_level": 1,
         "compute_reactions": true,
         "volume_model_part_name": "Parts_all",
         "skin_parts": [
@@ -34,21 +34,21 @@
                 {
                     "model_part_name": "GENERIC_background",
                     "model_part_inside_boundary_name": "GENERIC_domainboundary",
-                    "overlap_distance": 0.0002
+                    "overlap_distance": 0.0003
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_1_1",
                     "model_part_inside_boundary_name": "NoSlip2D_structure_1_1",
-                    "overlap_distance": 0.0002
+                    "overlap_distance": 0.0003
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_2_1",
                     "model_part_inside_boundary_name": "NoSlip2D_structure_2_1",
-                    "overlap_distance": 0.0002
+                    "overlap_distance": 0.0003
                 }
             ]
         ],
@@ -168,7 +168,7 @@
                 "Parameters": {
                     "model_part_name": "GENERIC_patch_2_1",
                     "center_of_rotation":[0.0085,0.004919,0],
-                    "angular_velocity_radians":0.050,
+                    "angular_velocity_radians":0.005,
                     "axis_of_rotation":[0.0,0.0,1.0],
                     "is_ale" : true
                 }
@@ -187,7 +187,7 @@
                         "PRESSURE"
                     ],
                     "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
-                    "model_part_name": "GENERIC_background",
+                    "model_part_name": "GENERIC_patch_2_1",
                     "time_frequency": 0.1
                 }
             }
@@ -206,7 +206,7 @@
                     "PRESSURE"
                 ],
                 "output_file_name": "multiple_overlapping_patches_monolithic_results.json",
-                "model_part_name": "GENERIC_background",
+                "model_part_name": "GENERIC_patch_2_1",
                 "time_frequency": 0.1
             }
         }
@@ -224,7 +224,7 @@
                     "PRESSURE"
                 ],
                 "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
-                "model_part_name": "GENERIC_background",
+                "model_part_name": "GENERIC_patch_2_1",
                 "time_frequency": 0.1
             }
         }
