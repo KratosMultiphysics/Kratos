@@ -31,6 +31,8 @@ class AdjointDiffusionSolver(PythonSolver):
             self.model_part.ProcessInfo[kratos.DOMAIN_SIZE] = domain_size
             self.solver_imports_model_part = True
 
+            self.DefineConvectionDiffusionSettings(self.settings["convection_diffusion_variables"])
+
         self.primal_model_part_name = self.settings["primal_model_part_name"].GetString()
         if self.primal_model_part_name == "":
             raise Exception("No primal_model_part_name provided")
@@ -45,6 +47,12 @@ class AdjointDiffusionSolver(PythonSolver):
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : ""
+            },
+            "convection_diffusion_variables" : {
+                "diffusion_variable"            : "CONDUCTIVITY",
+                "unknown_variable"              : "TEMPERATURE",
+                "volume_source_variable"        : "HEAT_FLUX",
+                "surface_source_variable"       : "FACE_HEAT_FLUX"
             },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
@@ -66,9 +74,12 @@ class AdjointDiffusionSolver(PythonSolver):
         return default_settings
 
     def AddVariables(self):
-        self.model_part.AddNodalSolutionStepVariable(kratos.TEMPERATURE)
-        self.model_part.AddNodalSolutionStepVariable(kratos.HEAT_FLUX) # needed by primal element RHS
-        self.model_part.AddNodalSolutionStepVariable(kratos.FACE_HEAT_FLUX) # needed by Neumann condition terms
+        convection_diffusion_settings = self.model_part.ProcessInfo[kratos.CONVECTION_DIFFUSION_SETTINGS]
+
+        self.model_part.AddNodalSolutionStepVariable(convection_diffusion_settings.GetUnknownVariable())
+        self.model_part.AddNodalSolutionStepVariable(convection_diffusion_settings.GetDiffusionVariable())
+        self.model_part.AddNodalSolutionStepVariable(convection_diffusion_settings.GetVolumeSourceVariable())
+        self.model_part.AddNodalSolutionStepVariable(convection_diffusion_settings.GetSurfaceSourceVariable())
         self.model_part.AddNodalSolutionStepVariable(convdiff.ADJOINT_HEAT_TRANSFER)
         self.model_part.AddNodalSolutionStepVariable(kratos.SHAPE_SENSITIVITY)
 
@@ -100,6 +111,19 @@ class AdjointDiffusionSolver(PythonSolver):
             variable_utils.CopyModelPartNodalVar(kratos.TEMPERATURE, primal_model_part, self.model_part, 0)
             variable_utils.CopyModelPartNodalVar(kratos.FACE_HEAT_FLUX, primal_model_part, self.model_part, 0)
 
+    def DefineConvectionDiffusionSettings(self,settings):
+        convection_diffusion_settings = kratos.ConvectionDiffusionSettings()
+
+        convection_diffusion_settings.SetDiffusionVariable(
+            kratos.KratosGlobals.GetVariable(settings["diffusion_variable"].GetString()))
+        convection_diffusion_settings.SetUnknownVariable(
+            kratos.KratosGlobals.GetVariable(settings["unknown_variable"].GetString()))
+        convection_diffusion_settings.SetVolumeSourceVariable(
+            kratos.KratosGlobals.GetVariable(settings["volume_source_variable"].GetString()))
+        convection_diffusion_settings.SetSurfaceSourceVariable(
+            kratos.KratosGlobals.GetVariable(settings["surface_source_variable"].GetString()))
+
+        self.model_part.ProcessInfo.SetValue(kratos.CONVECTION_DIFFUSION_SETTINGS,convection_diffusion_settings)
 
     def GetComputingModelPart(self):
         return self.model_part
