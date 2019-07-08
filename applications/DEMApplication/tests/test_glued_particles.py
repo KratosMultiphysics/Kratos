@@ -47,13 +47,13 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage):
 
                 if time > 0.499999 and time < 0.5000001:
                     self.CheckValue("X Coordinate at time 0.5", node.X, -1.0,     tolerance)
-                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6634116060768411, tolerance)
-                    self.CheckValue("Z Coordinate at time 0.5", node.Z,  0.2161209223472555, tolerance)
+                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6638445208099379, tolerance)
+                    self.CheckValue("Z Coordinate at time 0.5", node.Z,  0.21679366644461678, tolerance)
 
                 if time > 0.999999 and time < 1.0000001:
                     self.CheckValue("X Coordinate at time 1.0", node.X, -1.0, tolerance)
-                    self.CheckValue("Y Coordinate at time 1.0", node.Y,  0.636281029269, tolerance)
-                    self.CheckValue("Z Coordinate at time 1.0", node.Z, -0.166458734618, tolerance)
+                    self.CheckValue("Y Coordinate at time 1.0", node.Y,  0.6359488, tolerance)
+                    self.CheckValue("Z Coordinate at time 1.0", node.Z, -0.1657309642449, tolerance)
 
     @classmethod
     def CheckValue(self, explaining_string, value, expected_value, tolerance):
