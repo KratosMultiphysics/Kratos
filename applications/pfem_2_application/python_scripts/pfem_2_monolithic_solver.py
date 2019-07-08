@@ -18,6 +18,16 @@ class PFEM2MonolithicSolver(PFEM2BaseSolver):
         model_part = self.GetComputingModelPart()
         self.explicit_strategy = PFEM2.PFEM2_Explicit_Strategy(model_part,self.domain_size, self.settings["move_mesh_flag"].GetBool())
 
+    def AddVariables(self):
+        super(PFEM2MonolithicSolver, self).AddVariables()
+        self.model_part.AddNodalSolutionStepVariable(KM.DENSITY)
+        self.model_part.AddNodalSolutionStepVariable(KM.DYNAMIC_VISCOSITY)
+
+        self.model_part.AddNodalSolutionStepVariable(KM.MATERIAL_ACCELERATION)
+        self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY_X_GRADIENT)
+        self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY_Y_GRADIENT)
+        self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY_Z_GRADIENT)
+
     def FinalizeSolutionStep(self):
         self.get_mesh_strategy().FinalizeSolutionStep()
         self._CalculatePressureProjection()
