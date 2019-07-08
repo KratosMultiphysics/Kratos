@@ -229,6 +229,7 @@ protected:
         KRATOS_INFO("Number of boundary nodes in : ") << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
         KRATOS_INFO("Number of Boundary nodes found : ") << counter << ". Number of constraints : " << counter * 9 << std::endl;
         KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
+        std::cout<<"Number of Boundary nodes not found : "<<not_found_counter<<std::endl;
     }
 
     ///@}
