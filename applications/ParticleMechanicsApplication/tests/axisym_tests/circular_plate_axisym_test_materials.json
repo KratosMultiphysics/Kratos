@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "HyperElasticAxisym2DLaw"
+                "name" : "HyperElasticNeoHookeanAxisym2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 1.0,

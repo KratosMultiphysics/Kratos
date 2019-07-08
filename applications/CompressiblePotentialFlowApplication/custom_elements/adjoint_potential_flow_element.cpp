@@ -12,6 +12,7 @@
 //
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
+#include "compressible_potential_flow_element.h"
 #include "adjoint_potential_flow_element.h"
 
 namespace Kratos
@@ -359,7 +360,7 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointPotentialFlowElement<TPrimalElement>::GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
     }
 
     template <class TPrimalElement>
@@ -411,5 +412,6 @@ namespace Kratos
     // Template class instantiation
 
     template class AdjointPotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointPotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
 

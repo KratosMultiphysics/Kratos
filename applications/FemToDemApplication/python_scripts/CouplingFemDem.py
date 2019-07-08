@@ -105,6 +105,9 @@ class FEMDEM_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
+
 #============================================================================================================================
     def RunMainTemporalLoop(self):
 
@@ -581,6 +584,7 @@ class FEMDEM_Solution:
     def InitializeIntegrationPointsVariables(self):
         elements = self.FEM_Solution.main_model_part.Elements
         utils = KratosMultiphysics.VariableUtils()
+        utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, elements)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, elements)
@@ -604,6 +608,7 @@ class FEMDEM_Solution:
     def InitializeDummyNodalForces(self):
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeDummyNodalForces")
+
         # we fill the submodel part with the nodes and dummy conditions
         max_id = self.GetMaximumConditionId()
         props = self.FEM_Solution.main_model_part.Properties[0]
@@ -623,6 +628,7 @@ class FEMDEM_Solution:
     def RemoveDummyNodalForces(self):
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveDummyNodalForces")
+
         for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
             condition.Set(KratosMultiphysics.TO_ERASE, True)
 
@@ -631,8 +637,9 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def RemoveAloneDEMElements(self):
-        if self.echo_level > 0:
+        if self.echo_level > 0:c
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
+
         # method to remove the dem corresponding to inactive nodes
         FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
         FEM_Elements = self.FEM_Solution.main_model_part.Elements
@@ -762,6 +769,7 @@ class FEMDEM_Solution:
             if is_remeshing:
                 if self.echo_level > 0:
                     self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionAfterRemeshing")
+
                 self.InitializeSolutionAfterRemeshing()
                 neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
                 neighbour_elemental_finder.ClearNeighbours()
@@ -772,6 +780,7 @@ class FEMDEM_Solution:
     def ExpandWetNodes(self):
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ExpandWetNodes")
+
         if self.PressureLoad:
             # This must be called before Generating DEM
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] = 0 # It is modified inside
@@ -783,6 +792,7 @@ class FEMDEM_Solution:
     def ExtrapolatePressureLoad(self):
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ExtrapolatePressureLoad")
+
         if self.PressureLoad:
             # we reconstruct the pressure load if necessary
             if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:

@@ -79,6 +79,13 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		utils = KratosMultiphysics.VariableUtils()
 		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
+		if self.echo_level > 0:
+			KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
+
+		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
+		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
+
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
@@ -95,6 +102,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		if self.echo_level > 0:
 			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
+
 		self.FEM_Solution.InitializeSolutionStep()
 
 #============================================================================================================================
@@ -151,6 +159,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		if self.echo_level > 0:
 			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
 		self.CountErasedVolume()
+
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
 			dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
 			dem_generator_process.Execute()
@@ -493,6 +502,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if is_remeshing:
 				if self.echo_level > 0:
 					self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNormalizedFreeEnergyOnNodesProcess")
+
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
 				parameters = self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]
 				KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, parameters).Execute()
@@ -506,6 +516,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if is_remeshing:
 				if self.echo_level > 0:
 					self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionAfterRemeshing")
+
 				self.RefineMappedVariables()
 				self.InitializeSolutionAfterRemeshing()
 				self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)

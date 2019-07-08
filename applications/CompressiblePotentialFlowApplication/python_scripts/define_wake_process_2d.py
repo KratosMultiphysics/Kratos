@@ -32,9 +32,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.epsilon = settings["epsilon"].GetDouble()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
-        #List to store trailing edge elements id
-        self.trailing_edge_element_id_list = []
 
         # Find nodal neigbours util call
         avg_elem_num = 10
@@ -47,6 +44,17 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
+
+        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+
+        #self.__FindWakeElements()
+
+    def __FindWakeElements(self):
+
+        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        #List to store trailing edge elements id
+        self.trailing_edge_element_id_list = []
+
         self.__SetWakeDirectionAndNormal()
         # Save the trailing edge for further computations
         self.__SaveTrailingEdgeNode()
@@ -105,10 +113,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 if(is_wake_element):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
-                        KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                        CPFApp.WAKE_ELEMENTAL_DISTANCES, distances_to_wake)
                     counter=0
                     for node in elem.GetNodes():
-                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
+                        node.SetValue(CPFApp.WAKE_DISTANCE,distances_to_wake[counter])
                         counter += 1
         self.__SaveTrailingEdgeElements()
 
@@ -209,8 +217,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
     def __CheckIfElemIsCutByWake(elem):
         nneg=0
         # REMINDER: In 3D the elemental_distances may not be match with
-        # the nodal distances if CalculateDistanceToSkinProcess is used.
-        distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+        # the nodal distances if CalculateDistanceToSkinProcess is used
+        distances = elem.GetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES)
         for nodal_distance in distances:
             if nodal_distance<0:
                 nneg += 1
