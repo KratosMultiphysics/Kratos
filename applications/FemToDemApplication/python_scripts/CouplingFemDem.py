@@ -637,7 +637,7 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def RemoveAloneDEMElements(self):
-        if self.echo_level > 0:c
+        if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
 
         # method to remove the dem corresponding to inactive nodes
