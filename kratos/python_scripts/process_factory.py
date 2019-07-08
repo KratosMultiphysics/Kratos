@@ -54,10 +54,10 @@ class KratosProcessFactory(object):
 def Factory(settings, Model):
     if(settings["process_name"].GetString() == "ApplyConstantScalarValueProcess"):
         model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
-        return KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, settings["Parameters"])
+        return KM.ApplyConstantScalarValueProcess(model_part, settings["Parameters"])
 
     elif(settings["process_name"].GetString() == "ApplyConstantVectorValueProcess"):
         model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
-        return KratosMultiphysics.ApplyConstantVectorValueProcess(model_part, settings["Parameters"])
+        return KM.ApplyConstantVectorValueProcess(model_part, settings["Parameters"])
 
     raise Exception("Process name not found ",)
