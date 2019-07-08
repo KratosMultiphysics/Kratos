@@ -176,7 +176,7 @@ def ExecuteInstanceOnlyAdaptiveRefinement_Wrapper(pickled_model,pickled_project_
 
     ############################### ConcurrentAdaptiveRefinementAllAtOnce ##############################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     for current_level in range(current_MLMC_level+1):
@@ -187,7 +187,7 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLM
         del(pickled_current_model)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     for current_level in range(current_MLMC_level+1):
@@ -198,7 +198,7 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLM
         del(pickled_current_model)
     return mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     for current_level in range(current_MLMC_level+1):
@@ -212,21 +212,21 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLM
 
     ############################# ConcurrentAdaptiveRefinementMultipleTasks ############################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     mlmc_results,pickled_current_model = \
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     mlmc_results,pickled_current_model = \
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     mlmc_results,pickled_current_model = \
@@ -236,42 +236,42 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current
 
     ################################### OnlySingleAdaptiveRefinement ###################################
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
 
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5")
+@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
     pickled_model,mlmc_results = \
