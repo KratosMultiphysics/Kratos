@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 0.21
+        "end_time": 0.1
     },
     "output_processes": {},
     "solver_settings": {
@@ -160,7 +160,20 @@
                 }
             }
         ],
-        "auxiliar_process_list": [],
+        "auxiliary_process_list": [
+            {
+                "python_module": "rotate_region_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "RotateRegionProcess",
+                "Parameters": {
+                    "model_part_name": "GENERIC_patch_2_1",
+                    "center_of_rotation":[0.0085,0.004919,0],
+                    "angular_velocity_radians":0.050,
+                    "axis_of_rotation":[0.0,0.0,1.0],
+                    "is_ale" : true
+                }
+            }
+        ],
         "json_check_process": [
             {
                 "python_module": "from_json_check_result_process",
@@ -175,7 +188,7 @@
                     ],
                     "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
                     "model_part_name": "GENERIC_background",
-                    "time_frequency": 0.2
+                    "time_frequency": 0.1
                 }
             }
         ]
@@ -194,7 +207,7 @@
                 ],
                 "output_file_name": "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name": "GENERIC_background",
-                "time_frequency": 0.2
+                "time_frequency": 0.1
             }
         }
     ],
@@ -212,7 +225,7 @@
                 ],
                 "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
                 "model_part_name": "GENERIC_background",
-                "time_frequency": 0.2
+                "time_frequency": 0.1
             }
         }
     ]
