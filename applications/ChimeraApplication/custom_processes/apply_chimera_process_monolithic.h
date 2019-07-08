@@ -174,7 +174,6 @@ protected:
 
             ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
             Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-            ConstraintIdsVectorType constrainIds_for_the_node;
             unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
             bool node_coupled = false;
             if ((p_boundary_node)->IsDefined(VISITED))
@@ -187,7 +186,7 @@ protected:
 
             if (node_coupled && is_found)
             {
-                constrainIds_for_the_node = BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
+                auto &constrainIds_for_the_node = BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
                 for (auto const &constraint_id : constrainIds_for_the_node)
                 {
 #pragma omp critical
@@ -196,6 +195,7 @@ protected:
                         removed_counter++;
                     }
                 }
+                constrainIds_for_the_node.clear();
                 // p_boundary_node->Set(VISITED, false);
             }
 
