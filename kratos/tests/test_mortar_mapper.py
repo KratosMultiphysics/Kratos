@@ -84,7 +84,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         # Debug postprocess file
         #self.__post_process()
 
-        import from_json_check_result_process
+        import KratosMultiphysics.from_json_check_result_process
 
         check_parameters = KratosMultiphysics.Parameters("""
         {
@@ -100,7 +100,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         else:
             check_parameters["input_file_name"].SetString(input_filename+".json")
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
+        check = KratosMultiphysics.from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
