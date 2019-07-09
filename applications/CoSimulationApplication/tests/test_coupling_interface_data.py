@@ -143,9 +143,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Component, Array'
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data.Initialize()
+            coupling_data = CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_location(self):
         settings = KM.Parameters("""{
@@ -156,9 +155,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         exp_error = '"dummy" is not allowed as "location", only the following options are possible:\nnode_historical, node_non_historical, element, condition, process_info, model_part'
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data.Initialize()
+            coupling_data = CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_set_data(self):
         settings = KM.Parameters("""{

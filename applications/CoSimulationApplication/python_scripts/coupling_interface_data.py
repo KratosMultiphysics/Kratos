@@ -44,7 +44,7 @@ class CouplingInterfaceData(object):
 
         # location of data on ModelPart
         self.location = self.settings["location"].GetString()
-        admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
+        admissible_locations = ["node_historical", "node_non_historical", "element", "condition", "process_info", "model_part"]
         if not self.location in admissible_locations:
             raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
 
@@ -72,7 +72,7 @@ class CouplingInterfaceData(object):
 
         if self.location == "node_historical":
             if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
-                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(variable_name, self.GetModelPart().Name))
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.GetModelPart().Name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
