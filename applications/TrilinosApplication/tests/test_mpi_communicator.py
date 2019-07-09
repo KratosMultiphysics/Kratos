@@ -62,7 +62,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         model_part_io.ReadModelPart(main_model_part)
 
         ## Construct and execute the Parallel fill communicator
-        ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(main_model_part.GetRootModelPart())
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
 
         ## Check submodelpart of each main_model_part of each processor
