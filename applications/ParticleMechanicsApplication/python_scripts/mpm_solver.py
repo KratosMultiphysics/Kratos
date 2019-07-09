@@ -128,7 +128,7 @@ class MPMSolver(PythonSolver):
 
     def Initialize(self):
         # The particle solution strategy is created here if it does not already exist.
-        particle_solution_strategy = self.GetSolutionStrategy()
+        particle_solution_strategy = self._GetSolutionStrategy()
         particle_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Generate material points
@@ -146,65 +146,53 @@ class MPMSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self._SearchElement()
-        self.GetSolutionStrategy().Initialize()
-        self.GetSolutionStrategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().Initialize()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.GetSolutionStrategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.GetSolutionStrategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.GetSolutionStrategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
-        self.GetSolutionStrategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def Check(self):
-        self.GetSolutionStrategy().Check()
+        self._GetSolutionStrategy().Check()
 
     def Clear(self):
-        self.GetSolutionStrategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
-    ### Solver special private functions
+    ### Solver special protected functions
 
-    def GetSolutionScheme(self):
+    def _GetSolutionScheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._CreateSolutionScheme()
         return self._solution_scheme
 
-    def GetConvergenceCriteria(self):
+    def _GetConvergenceCriteria(self):
         if not hasattr(self, '_convergence_criterion'):
             self._convergence_criterion = self._CreateConvergenceCriteria()
         return self._convergence_criterion
 
-    def GetLinearSolver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
             self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
-    def GetBuilderAndSolver(self):
+    def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
-    def GetSolutionStrategy(self):
+    def _GetSolutionStrategy(self):
         if not hasattr(self, '_solution_strategy'):
             self._solution_strategy = self._CreateSolutionStrategy()
         return self._solution_strategy
-
-    def ImportConstitutiveLaws(self):
-        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        if (materials_filename != ""):
-            # Add constitutive laws and material properties from json file to model parts.
-            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
-            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
-            materials_imported = True
-        else:
-            materials_imported = False
-        return materials_imported
 
     ### Solver protected functions
 
@@ -396,7 +384,7 @@ class MPMSolver(PythonSolver):
         raise Exception("Linear-Solver could not be constructed!")
 
     def _CreateBuilderAndSolver(self):
-        linear_solver = self.GetLinearSolver()
+        linear_solver = self._GetLinearSolver()
         if self.settings["block_builder"].GetBool():
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
@@ -419,10 +407,10 @@ class MPMSolver(PythonSolver):
 
     def _CreateNewtonRaphsonStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        solution_scheme = self.GetSolutionScheme()
-        linear_solver = self.GetLinearSolver()
-        convergence_criterion = self.GetConvergenceCriteria()
-        builder_and_solver = self.GetBuilderAndSolver()
+        solution_scheme = self._GetSolutionScheme()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriteria()
+        builder_and_solver = self._GetBuilderAndSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
@@ -462,7 +450,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_mesh_model_part.Elements)
 
         # Read material property
-        materials_imported = self.ImportConstitutiveLaws()
+        materials_imported = self.__ImportConstitutiveLaws()
         if materials_imported:
             KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Constitutive law was successfully imported.")
         else:
@@ -471,4 +459,15 @@ class MPMSolver(PythonSolver):
         # Clone property of model_part2 to model_part3
         self.material_point_model_part.Properties = self.initial_mesh_model_part.Properties
 
+    def __ImportConstitutiveLaws(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
 
