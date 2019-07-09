@@ -69,7 +69,7 @@ void ComputeCustomNodalGradient<THistorical>::Execute()
         Vector values(number_of_nodes);
         if (it_elem->GetValue(WAKE)){
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
-                double distance = r_geometry[i_node].GetValue(DISTANCE);
+                double distance = r_geometry[i_node].GetValue(WAKE_DISTANCE);
                 if (distance>0)
                     values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 else

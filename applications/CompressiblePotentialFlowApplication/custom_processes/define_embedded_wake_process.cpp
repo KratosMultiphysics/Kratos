@@ -83,7 +83,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                     auto r_geometry = it_elem->GetGeometry();
                     for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                         r_geometry[i].SetLock();
-                        r_geometry[i].SetValue(DISTANCE, nodal_distances_to_wake(i));
+                        r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                         r_geometry[i].UnSetLock();
                     }
                 }
