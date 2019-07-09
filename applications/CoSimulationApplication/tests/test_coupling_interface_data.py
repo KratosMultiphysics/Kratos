@@ -232,6 +232,21 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         for v_old, v_new in zip(data_init, data_mod):
             self.assertAlmostEqual(v_old*factor, v_new)
 
+    def test_GetHistoricalVariableDict(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "PRESSURE"
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+
+        exp_dict = {"mp_4_test" : KM.PRESSURE}
+
+        dict_res = coupling_data.GetHistoricalVariableDict()
+
+        self.assertEqual(len(exp_dict), len(dict_res))
+        self.assertEqual(exp_dict["mp_4_test"].Name(), dict_res["mp_4_test"].Name())
+
     def test_GetSetNodalHistoricalData(self):
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
