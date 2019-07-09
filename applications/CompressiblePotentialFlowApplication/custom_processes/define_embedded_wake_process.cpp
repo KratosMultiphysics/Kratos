@@ -7,13 +7,14 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez,
+//  Main authors:    Marc Núñez
 //
 
 
 #include "define_embedded_wake_process.h"
 #include "move_model_part_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "utilities/variable_utils.h"
 #include "compressible_potential_flow_application_variables.h"
 
 
@@ -44,6 +45,12 @@ void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
     CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
+        auto elemental_distances = it_elem->GetValue(ELEMENTAL_DISTANCES);
+        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES,elemental_distances);
+    }
 }
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
@@ -61,7 +68,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
         // if (potentially_wake) {
             // Compute the nodal distances of the element to the wake
-            BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
+            BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(WAKE_ELEMENTAL_DISTANCES);
 
             // Selecting the cut (wake) elements
             bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
@@ -100,12 +107,10 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
     Node<3>::Pointer p_max_node;
     Element::Pointer p_max_elem;
 
-    // #pragma omp parallel for
     auto wake_origin = mrWakeModelPart.pGetNode(5000);
+    // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
-
-        KRATOS_WATCH(wake_origin)
 
         // for (unsigned int i_node= 0; i_node < it_elem->GetGeometry().size(); i_node++) {
         //     // Compute the distance from the trailing edge to the node
