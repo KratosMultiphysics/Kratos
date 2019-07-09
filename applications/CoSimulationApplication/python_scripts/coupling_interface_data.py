@@ -36,7 +36,7 @@ class CouplingInterfaceData(object):
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
             raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
-        self.variable = KM.KratosGlobals.GetVariable(variable_name)
+        self.variable = KM.KratosGlobals.GetVariable(variable_name) # TODO here maybe we could construct a new var if necessary (maybe clashes with delayed app-import ...?)
 
         self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 
