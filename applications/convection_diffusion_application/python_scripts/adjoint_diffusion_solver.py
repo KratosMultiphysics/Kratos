@@ -162,7 +162,7 @@ class AdjointDiffusionSolver(PythonSolver):
         domain_size = self.model_part.ProcessInfo[kratos.DOMAIN_SIZE]
 
         if self.settings["response_function_settings"]["response_type"].GetString() == "point_temperature":
-            self.response_function = convdiff.PointTemperatureResponseFunction(self.settings["response_function_settings"]["custom_settings"],self.model_part)
+            self.response_function = convdiff.LocalTemperatureAverageResponseFunction(self.settings["response_function_settings"]["custom_settings"],self.model_part)
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 

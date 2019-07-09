@@ -9,8 +9,8 @@
 //  Main authors:  Jordi Cotela
 //
 
-#ifndef KRATOS_POINT_TEMPERATURE_RESPONSE_FUNCTION_H_INCLUDED
-#define KRATOS_POINT_TEMPERATURE_RESPONSE_FUNCTION_H_INCLUDED
+#ifndef KRATOS_LOCAL_TEMPERATURE_AVERAGE_RESPONSE_FUNCTION_H_INCLUDED
+#define KRATOS_LOCAL_TEMPERATURE_AVERAGE_RESPONSE_FUNCTION_H_INCLUDED
 
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
@@ -23,20 +23,20 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class PointTemperatureResponseFunction: public AdjointResponseFunction
+class LocalTemperatureAverageResponseFunction: public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(PointTemperatureResponseFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(LocalTemperatureAverageResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    PointTemperatureResponseFunction(Parameters Settings, ModelPart& rModelPart)
+    LocalTemperatureAverageResponseFunction(Parameters Settings, ModelPart& rModelPart)
     : mrModelPart(rModelPart)
     , mNumNodes(0)
     {
@@ -84,7 +84,7 @@ public:
     }
 
     /// Destructor.
-    ~PointTemperatureResponseFunction() override
+    ~LocalTemperatureAverageResponseFunction() override
     {
     }
 
@@ -243,4 +243,4 @@ private:
 
 }
 
-#endif // KRATOS_POINT_TEMPERATURE_RESPONSE_FUNCTION_H_INCLUDED
+#endif // KRATOS_LOCAL_TEMPERATURE_AVERAGE_RESPONSE_FUNCTION_H_INCLUDED

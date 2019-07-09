@@ -17,7 +17,7 @@
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 // Response Functions
-#include "custom_response_functions/point_temperature_response_function.h"
+#include "custom_response_functions/local_temperature_average_response_function.h"
 
 
 namespace Kratos {
@@ -28,8 +28,8 @@ void  AddCustomResponseFunctionsToPython(pybind11::module& m)
     namespace py = pybind11;
 
     // Response Functions
-    py::class_<PointTemperatureResponseFunction, PointTemperatureResponseFunction::Pointer, AdjointResponseFunction>
-        (m, "PointTemperatureResponseFunction")
+    py::class_<LocalTemperatureAverageResponseFunction, LocalTemperatureAverageResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "LocalTemperatureAverageResponseFunction")
         .def(py::init<Parameters, ModelPart&>());
 
 }
