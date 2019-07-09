@@ -15,6 +15,7 @@
 #include "convection_diffusion_application_variables.h"
 
 #include "includes/checks.h"
+#include "includes/convection_diffusion_settings.h"
 #include "utilities/line_sensitivity_utility.h"
 #include "utilities/math_utils.h"
 
@@ -151,12 +152,21 @@ template<class PrimalCondition>
 int AdjointFluxCondition<PrimalCondition>::Check(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
+    ConvectionDiffusionSettings::Pointer p_settings = rProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    KRATOS_ERROR_IF_NOT(r_settings.IsDefinedSurfaceSourceVariable()) << "No Surface Source Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
+
+    const Variable<double>& r_surface_source_variable = r_settings.GetSurfaceSourceVariable();
+
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
     for (unsigned int i = 0; i < num_nodes; i++)
     {
         const Node<3>& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_HEAT_TRANSFER, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_surface_source_variable, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_HEAT_TRANSFER, r_node);
     }
 
@@ -203,10 +213,17 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
     const auto integration_method = this->GetIntegrationMethod();
     const auto integration_points = r_geom.IntegrationPoints(integration_method);
     const unsigned int num_integration_points = integration_points.size();
+
+
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_flux_variable = r_settings.GetSurfaceSourceVariable();
+
     Vector nodal_flux = ZeroVector(num_nodes);
     for (unsigned int i = 0; i < num_nodes; i++)
     {
-        nodal_flux[i] = r_geom[i].FastGetSolutionStepValue(FACE_HEAT_FLUX);
+        nodal_flux[i] = r_geom[i].FastGetSolutionStepValue(r_flux_variable);
     }
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
