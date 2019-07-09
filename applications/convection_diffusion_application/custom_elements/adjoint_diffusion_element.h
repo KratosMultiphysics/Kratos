@@ -9,8 +9,8 @@
 //  Main authors:  Jordi Cotela
 //
 
-#if !defined(KRATOS_ADJOINT_HEAT_DIFFUSION_ELEMENT_H_INCLUDED )
-#define  KRATOS_ADJOINT_HEAT_DIFFUSION_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_ADJOINT_DIFFUSION_ELEMENT )
+#define  KRATOS_ADJOINT_DIFFUSION_ELEMENT
 
 // System includes
 
@@ -44,16 +44,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Basic element for the ajdoint thermal diffusion problem.
+/// Basic element for the ajdoint diffusion problem.
+/** The element supports arbitrary variables in the primal problem by defining CONVECTION_DIFFUSION_SETTINGS in the ProcessInfo.
+ *  Note that the adjoint variable is hard-coded to ADJOINT_HEAT_TRANSFER for now.
+ */
 template< class PrimalElement >
-class AdjointHeatDiffusionElement: public PrimalElement
+class AdjointDiffusionElement: public PrimalElement
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AdjointHeatDiffusionElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointHeatDiffusionElement);
+    /// Counted pointer of AdjointDiffusionElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointDiffusionElement);
 
     using IndexType = typename PrimalElement::IndexType;
     using GeometryType = typename PrimalElement::GeometryType;
@@ -67,12 +70,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    AdjointHeatDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry);
+    AdjointDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry);
 
-    AdjointHeatDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry,  Properties::Pointer pProperties);
+    AdjointDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry,  Properties::Pointer pProperties);
 
     /// Destructor.
-    ~AdjointHeatDiffusionElement() override;
+    ~AdjointDiffusionElement() override;
 
     ///@}
     ///@name Operations
@@ -169,7 +172,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    AdjointHeatDiffusionElement() : PrimalElement()
+    AdjointDiffusionElement() : PrimalElement()
     {
     }
 
@@ -210,14 +213,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    AdjointHeatDiffusionElement& operator=(const AdjointHeatDiffusionElement& rOther) = delete;
+    AdjointDiffusionElement& operator=(const AdjointDiffusionElement& rOther) = delete;
 
     /// Copy constructor.
-    AdjointHeatDiffusionElement(const AdjointHeatDiffusionElement& rOther) = delete;
+    AdjointDiffusionElement(const AdjointDiffusionElement& rOther) = delete;
 
     ///@}
 
-}; // Class AdjointHeatDiffusionElement
+}; // Class AdjointDiffusionElement
 
 ///@}
 
@@ -232,14 +235,14 @@ private:
 
 /// input stream function
 template< class PrimalElement >
-inline std::istream& operator >> (std::istream& rIStream, AdjointHeatDiffusionElement<PrimalElement>& rThis)
+inline std::istream& operator >> (std::istream& rIStream, AdjointDiffusionElement<PrimalElement>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< class PrimalElement >
-inline std::ostream& operator << (std::ostream& rOStream, const AdjointHeatDiffusionElement<PrimalElement>& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const AdjointDiffusionElement<PrimalElement>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -254,6 +257,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const AdjointHeatDiffu
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADJOINT_HEAT_DIFFUSION_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_ADJOINT_DIFFUSION_ELEMENT  defined
 
 

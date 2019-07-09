@@ -9,7 +9,7 @@
 //  Main authors:  Jordi Cotela
 //
 
-#include "adjoint_heat_diffusion_element.h"
+#include "adjoint_diffusion_element.h"
 #include "laplacian_element.h"
 
 #include "convection_diffusion_application_variables.h"
@@ -23,39 +23,39 @@ namespace Kratos
 {
 
 template<class PrimalElement>
-AdjointHeatDiffusionElement<PrimalElement>::AdjointHeatDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry):
+AdjointDiffusionElement<PrimalElement>::AdjointDiffusionElement(IndexType NewId, typename GeometryType::Pointer pGeometry):
     PrimalElement(NewId, pGeometry)
 {}
 
 template<class PrimalElement>
-AdjointHeatDiffusionElement<PrimalElement>::AdjointHeatDiffusionElement(
+AdjointDiffusionElement<PrimalElement>::AdjointDiffusionElement(
     IndexType NewId, typename GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
     PrimalElement(NewId, pGeometry, pProperties)
 {}
 
 template<class PrimalElement>
-AdjointHeatDiffusionElement<PrimalElement>::~AdjointHeatDiffusionElement() {}
+AdjointDiffusionElement<PrimalElement>::~AdjointDiffusionElement() {}
 
 template<class PrimalElement>
-Element::Pointer AdjointHeatDiffusionElement<PrimalElement>::Create(
+Element::Pointer AdjointDiffusionElement<PrimalElement>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<AdjointHeatDiffusionElement<PrimalElement>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<AdjointDiffusionElement<PrimalElement>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template<class PrimalElement>
-Element::Pointer AdjointHeatDiffusionElement<PrimalElement>::Create(
+Element::Pointer AdjointDiffusionElement<PrimalElement>::Create(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<AdjointHeatDiffusionElement<PrimalElement>>(NewId, pGeometry, pProperties);
+    return Kratos::make_intrusive<AdjointDiffusionElement<PrimalElement>>(NewId, pGeometry, pProperties);
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::CalculateLocalSystem(
+void AdjointDiffusionElement<PrimalElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
@@ -68,7 +68,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateLocalSystem(
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::CalculateRightHandSide(
+void AdjointDiffusionElement<PrimalElement>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -84,7 +84,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateRightHandSide(
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step)
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -101,7 +101,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::EquationIdVector(
+void AdjointDiffusionElement<PrimalElement>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -120,7 +120,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::EquationIdVector(
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::GetDofList(
+void AdjointDiffusionElement<PrimalElement>::GetDofList(
     DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& r_geom = this->GetGeometry();
@@ -138,7 +138,7 @@ void AdjointHeatDiffusionElement<PrimalElement>::GetDofList(
 }
 
 template<class PrimalElement>
-int AdjointHeatDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInfo)
+int AdjointDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
 
@@ -174,24 +174,24 @@ int AdjointHeatDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProces
 }
 
 template<class PrimalElement>
-std::string AdjointHeatDiffusionElement<PrimalElement>::Info() const
+std::string AdjointDiffusionElement<PrimalElement>::Info() const
 {
     std::stringstream buffer;
-    buffer << "AdjointHeatDiffusionElement #" << this->Id();
+    buffer << "AdjointDiffusionElement #" << this->Id();
     return buffer.str();
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::PrintInfo(std::ostream& rOStream) const
+void AdjointDiffusionElement<PrimalElement>::PrintInfo(std::ostream& rOStream) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
     const unsigned int num_nodes = r_geom.PointsNumber();
-    rOStream << "AdjointHeatDiffusionElement" << dimension << "D" << num_nodes << "N";
+    rOStream << "AdjointDiffusionElement" << dimension << "D" << num_nodes << "N";
 }
 
 template<class PrimalElement>
-void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
+void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -289,6 +289,6 @@ void AdjointHeatDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     KRATOS_CATCH("")
 }
 
-template class AdjointHeatDiffusionElement<LaplacianElement>;
+template class AdjointDiffusionElement<LaplacianElement>;
 
 }
