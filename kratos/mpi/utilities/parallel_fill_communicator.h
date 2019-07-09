@@ -514,6 +514,8 @@ protected:
         if (NeighbourPID == -1) // Don't communicate with this process.
             return;
 
+        const DataCommunicator& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
         ModelPart::NodesContainerType& r_ghost_nodes =
             rModelPart.GetCommunicator().GhostMesh(Color).Nodes();
         r_ghost_nodes.clear();
@@ -540,24 +542,13 @@ protected:
 
         std::vector<int> ids_to_send;
         { // Syncronize how many nodes need to be sent/received.
-            MPI_Status status;
             int send_tag = Color;
             int receive_tag = Color;
-            unsigned send_buf = ids_to_receive.size();
-            unsigned recv_buf;
-            MPI_Sendrecv(&send_buf, 1, MPI_UNSIGNED, NeighbourPID, send_tag,
-                         &recv_buf, 1, MPI_UNSIGNED, NeighbourPID, receive_tag,
-                         MPI_COMM_WORLD, &status);
+            std::size_t recv_buf = r_data_communicator.SendRecv(ids_to_receive.size(), NeighbourPID, send_tag, NeighbourPID, receive_tag);
             ids_to_send.resize(recv_buf);
-        }
 
-        { // Send/receive node ids.
-            MPI_Status status;
-            int send_tag = Color;
-            int receive_tag = Color;
-            MPI_Sendrecv(ids_to_receive.data(), ids_to_receive.size(), MPI_INT, NeighbourPID,
-                         send_tag, ids_to_send.data(), ids_to_send.size(), MPI_INT,
-                         NeighbourPID, receive_tag, MPI_COMM_WORLD, &status);
+            // Send/receive node ids.
+            r_data_communicator.SendRecv(ids_to_receive, NeighbourPID, send_tag, ids_to_send, NeighbourPID, receive_tag);
         }
 
         // Fill nodes for LocalMesh(Color).
