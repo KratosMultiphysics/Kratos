@@ -113,6 +113,16 @@ class CouplingInterfaceData(object):
     def InplaceMultiply(self, factor):
         self.SetData(factor*self.GetData())
 
+    def GetHistoricalVariableDict(self):
+        # this method returns the historical variable associated to a ModelPart
+        # it is intended to be used before the Mesh is read such that the historical variables
+        # can be allocated beforehand. This is the reason why the name of the ModelPart is
+        # retrieved from the settings and not from the ModelPart itself.
+        if self.location == "node_historical":
+            return {self.settings["model_part_name"].GetString() : self.variable}
+        else:
+            return {}
+
     def GetData(self, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
 
