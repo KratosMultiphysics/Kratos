@@ -140,13 +140,20 @@ public:
     {
     }
 
-	/**
+    /**
     Performs all the required operations that should be done (for each step) after solving the solution step.
-	A member variable should be used as a flag to make sure this function is called only once per step.
+    A member variable should be used as a flag to make sure this function is called only once per step.
     */
-	virtual void FinalizeSolutionStep()
-	{
-	}
+    virtual void FinalizeSolutionStep()
+    {
+    }
+	
+    /**
+    Perform all the operations required after the resolution of the problem.
+    */
+    virtual void Finalize()
+    {
+    }
 
     /**
     Clears the internal storage

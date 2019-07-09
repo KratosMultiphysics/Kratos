@@ -131,7 +131,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 "force_gradation_value"               : false,
                 "gradation_value"                     : 1.3
             },
-            "anisotropy_remeshing"             : true,
+            "anisotropy_remeshing"                 : true,
+            "enforce_anisotropy_relative_variable" : false,
             "anisotropy_parameters":{
                 "reference_variable_name"          : "DISTANCE",
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
@@ -139,6 +140,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "boundary_layer_min_size_ratio"    : 2.0,
                 "interpolation"                    : "Linear"
             },
+            "collapse_prisms_elements"         : false,
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
@@ -293,6 +295,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("discretization_type",self.settings["discretization_type"])
         mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
+        mmg_parameters.AddValue("collapse_prisms_elements",self.settings["collapse_prisms_elements"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("save_colors_files",self.settings["save_colors_files"])
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])
@@ -396,8 +399,9 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters.AddValue("hessian_strategy_parameters",self.settings["hessian_strategy_parameters"])
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("metric_variable")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
-            hessian_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])
-            hessian_parameters["anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
+            hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
+            hessian_parameters.AddValue("enforced_anisotropy_parameters",self.settings["anisotropy_parameters"])
+            hessian_parameters["enforced_anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
             for current_metric_variable in self.metric_variable:
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery":
