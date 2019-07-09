@@ -20,6 +20,7 @@
 // Project includes
 #include "processes/graph_coloring_process.h"
 #include "mpi/includes/mpi_communicator.h"
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
@@ -316,19 +317,16 @@ protected:
     {
         constexpr unsigned root_id = 0;
 
-        Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList());
+        Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList(), DataCommunicator::GetDefault());
         rModelPart.SetCommunicator(pnew_comm);
 
+        const auto& r_data_communicator = pnew_comm->GetDataCommunicator();
+
         // Get rank of current processor.
-        int mpi_rank;
-        KRATOS_ERROR_IF_NOT(MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank) == MPI_SUCCESS) << "MPI_Comm_rank() failed." << std::endl;
-        const unsigned my_rank = mpi_rank;
-        MPI_Status status;
+        const unsigned my_rank = r_data_communicator.Rank();
 
         // Get number of processors.
-        int mpi_num_processors;
-        KRATOS_ERROR_IF_NOT(MPI_Comm_size(MPI_COMM_WORLD, &mpi_num_processors) == MPI_SUCCESS) << "MPI_Comm_size() failed." << std::endl;
-        const unsigned num_processors = mpi_num_processors;
+        const unsigned num_processors = r_data_communicator.Size();
 
         // Find all ghost nodes on this process and mark the corresponding neighbour process for communication.
         vector<bool> receive_from_neighbour(num_processors, false);
@@ -350,7 +348,7 @@ protected:
         }
 
         // Initialize arrays for all neighbour id lists on root process.
-        std::vector<unsigned> number_of_receive_neighbours;
+        std::vector<std::size_t> number_of_receive_neighbours;
         std::vector<std::vector<unsigned>> receive_neighbours;
         if (my_rank == root_id)
         {
@@ -358,9 +356,8 @@ protected:
             receive_neighbours.resize(num_processors);
         }
         {
-            unsigned send_buf = my_receive_neighbours.size();
-            int ierr = MPI_Gather(&send_buf, 1, MPI_UNSIGNED, number_of_receive_neighbours.data(), 1, MPI_UNSIGNED, root_id, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Gather() failed." << std::endl;
+            std::vector<std::size_t> send_buf{my_receive_neighbours.size()};
+            r_data_communicator.Gather(send_buf, number_of_receive_neighbours, root_id);
         }
         if (my_rank == root_id)
             for (unsigned p_id = 0; p_id < num_processors; ++p_id)
@@ -373,15 +370,11 @@ protected:
         for (unsigned p_id = 1; p_id < num_processors; ++p_id)
             if (my_rank == root_id)
             {
-                int ierr = MPI_Recv(receive_neighbours[p_id].data(), number_of_receive_neighbours[p_id], MPI_UNSIGNED,
-                                    p_id, p_id, MPI_COMM_WORLD, &status);
-                KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Recv() failed." << std::endl;
+                r_data_communicator.Recv(receive_neighbours[p_id], p_id, p_id);
             }
             else if (my_rank == p_id)
             {
-                int ierr = MPI_Send(my_receive_neighbours.data(), my_receive_neighbours.size(), MPI_UNSIGNED,
-                                    root_id, p_id, MPI_COMM_WORLD);
-                KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Send() failed." << std::endl;
+                r_data_communicator.Send(my_receive_neighbours, root_id, p_id);
             }
 
         // Create the colored graph for communication.
@@ -411,18 +404,8 @@ protected:
             max_color_found += 1;
         }
 
-        // Scatter max_color_found.
-        if (my_rank == root_id)
-        {
-            std::vector<int> send_buf(num_processors, max_color_found);
-            int ierr = MPI_Scatter(send_buf.data(), 1, MPI_INT, &max_color_found, 1, MPI_INT, root_id, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Scatter() failed." << std::endl;
-        }
-        else
-        {
-            int ierr = MPI_Scatter(nullptr, 1, MPI_INT, &max_color_found, 1, MPI_INT, root_id, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Scatter() failed." << std::endl;
-        }
+        // Broadcast max_color_found.
+        r_data_communicator.Broadcast(max_color_found, root_id);
 
         // Now send the colors of the communication to the processors.
         std::vector<int> colors(max_color_found);
@@ -437,13 +420,11 @@ protected:
             {
                 for (int j = 0; j < max_color_found; ++j)
                     send_colors[j] = domains_colored_graph(p_id, j);
-                int ierr = MPI_Send(send_colors.data(), max_color_found, MPI_INT, p_id, p_id, MPI_COMM_WORLD);
-                KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Send() failed." << std::endl;
+                r_data_communicator.Send(send_colors, p_id, p_id);
             }
             else if (my_rank == p_id)
             {
-                int ierr = MPI_Recv(colors.data(), max_color_found, MPI_INT, root_id, p_id, MPI_COMM_WORLD, &status);
-                KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << "MPI_Recv() failed." << std::endl;
+                r_data_communicator.Recv(colors, root_id, p_id);
             }
         }
 
