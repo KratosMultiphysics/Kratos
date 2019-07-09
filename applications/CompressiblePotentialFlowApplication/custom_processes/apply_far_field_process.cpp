@@ -22,6 +22,17 @@ ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart)
 
 void ApplyFarFieldProcess::Execute()
 {
-    std::cout << "Hello World" << std::endl;
+    double min_projection = std::numeric_limits<double>::epsilon();
+    const auto free_stream_velocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        ModelPart::NodeIterator it_node = mrModelPart.NodesBegin() + i;
+        const auto& r_coordinates = it_node->Coordinates();
+        double distance_projection = inner_prod(r_coordinates,free_stream_velocity);
+        if (distance_projection<min_projection){
+            min_projection=distance_projection;
+        }
+
+    }
+    std::cout << min_projection << std::endl;
 }
 } // namespace Kratos.
