@@ -34,11 +34,10 @@ class TestAdjoint : public TElement
 {
 public:
     typedef Kratos::intrusive_ptr<TestAdjoint> Pointer;
-    typedef Kratos::intrusive_weak_ptr<TestAdjoint> WeakPointer;
     typedef Kratos::unique_ptr<TestAdjoint> UniquePointer;
 
 
-    static TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
+    static typename TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
     {
         Geometry<Node<3>>::Pointer p_geom =
             Kratos::make_shared<Triangle2D3<Node<3>>>(rNodes);

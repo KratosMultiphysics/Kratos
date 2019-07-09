@@ -26,7 +26,7 @@
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 
 // Hardening law
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -36,11 +36,11 @@ namespace Testing
     // Tolerance
     static constexpr double tolerance = 1.0e-6;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
-    typedef MPMYieldCriterion YC;
+    typedef ParticleYieldCriterion YC;
 
     typedef MCYieldCriterion MC;
 

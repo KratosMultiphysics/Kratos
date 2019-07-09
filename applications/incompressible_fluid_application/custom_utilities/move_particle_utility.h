@@ -66,7 +66,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -368,6 +367,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MOVE_PART_UTILITY_INCLUDED  defined 
-
-
+#endif // KRATOS_MOVE_PART_UTILITY_INCLUDED  defined

@@ -21,10 +21,12 @@ namespace Kratos
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarCondition(
     PairedCondition* pCondition,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
-    const bool ComputeNodalArea
+    const bool ComputeNodalArea,
+    const bool ComputeDualLM,
+    Variable<double>& rAreaVariable
     )
 {
     KRATOS_TRY
@@ -43,7 +45,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     MortarConditionMatrices this_mortar_condition_matrices;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -59,6 +61,9 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    // Dual LM
+    bool dual_LM = false;
+
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
@@ -69,8 +74,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         // Initialize the mortar operators
         this_mortar_condition_matrices.Initialize();
 
-        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        if (ComputeDualLM) {
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        }
 
         PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
@@ -111,10 +118,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = this_mortar_condition_matrices.DOperator;
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = this_mortar_condition_matrices.MOperator;
 
-        // Computing contribution of the NODAL_AREA
-        if (ComputeNodalArea) {
+        // Computing contribution of the rAreaVariable
+        if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+                double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
                 #pragma omp atomic
                 r_nodal_area += DOperator(i_node, i_node);
             }
@@ -158,11 +165,13 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarFrictionalCondition(
     PairedCondition* pCondition,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
-    const bool ComputeNodalArea
+    const bool ComputeNodalArea,
+    const bool ComputeDualLM,
+    Variable<double>& rAreaVariable
     )
 {
     KRATOS_TRY;
@@ -181,7 +190,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     MortarConditionMatrices this_mortar_condition_matrices;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -197,6 +206,9 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    // Dual LM
+    bool dual_LM = false;
+
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
@@ -207,8 +219,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         // Initialize the mortar operators
         this_mortar_condition_matrices.Initialize();
 
-        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        if (ComputeDualLM) {
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        }
 
         PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of pCondition points
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
@@ -249,10 +263,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = this_mortar_condition_matrices.DOperator;
         const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = this_mortar_condition_matrices.MOperator;
 
-        // Computing contribution of the NODAL_AREA
-        if (ComputeNodalArea) {
+        // Computing contribution of the rAreaVariable
+        if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+                double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
                 #pragma omp atomic
                 r_nodal_area += DOperator(i_node, i_node);
             }
@@ -260,23 +274,31 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         // Current coordinates
         const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry);
-        const BoundedMatrix<double, TNumNodes, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
+        const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry);
 
         const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2);
 
         // Setting the weighted slip
         // The increment of time
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-
-        // Delta mortar condition matrices - DOperator and MOperator
-        const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
-        const BoundedMatrix<double, TNumNodes, TNumNodesMaster> DeltaMOperator = MOperator - rPreviousMortarOperators.MOperator;
-
-        // Delta objetive gap and slip
-        const BoundedMatrix<double, TNumNodes, TDim> delta_D_x1_M_x2 = prod(DeltaDOperator, x1) - prod(DeltaMOperator, x2);
+        const double delta_time = rCurrentProcessInfo.Has(DELTA_TIME) ? rCurrentProcessInfo[DELTA_TIME] : 1.0;
 
         // The estimation of the slip time derivative
-        const BoundedMatrix<double, TNumNodes, TDim> slip_time_derivative = - delta_D_x1_M_x2/delta_time;
+        BoundedMatrix<double, TNumNodes, TDim> slip_time_derivative;
+        const bool objective_formulation = pCondition->IsDefined(MODIFIED) ? pCondition->IsNot(MODIFIED) : true;
+        if (objective_formulation) {
+            // Delta mortar condition matrices - DOperator and MOperator
+            const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
+            const BoundedMatrix<double, TNumNodes, TNumNodesMaster> DeltaMOperator = MOperator - rPreviousMortarOperators.MOperator;
+
+            // Delta objetive gap and slip
+            noalias(slip_time_derivative)  = (prod(DeltaDOperator, x1) - prod(DeltaMOperator, x2))/delta_time;
+        } else {
+            const BoundedMatrix<double, TNumNodes, TDim> delta_x1 = x1 - MortarUtilities::GetCoordinates<TDim,TNumNodes>(r_slave_geometry, false, 1);
+            const BoundedMatrix<double, TNumNodesMaster, TDim> delta_x2 = x2 - MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(r_master_geometry, false, 1);
+
+            // Delta non-objetive gap and slip
+            noalias(slip_time_derivative)  = - (prod(DOperator, delta_x1) - prod(MOperator, delta_x2))/delta_time;
+        }
 
         array_1d<double, TDim> normal, aux_array;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -286,14 +308,14 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             }
             noalias(aux_array) = row(D_x1_M_x2, i_node);
 
-            double& r_r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
+            double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
             #pragma omp atomic
-            r_r_weighted_gap += inner_prod(aux_array, - normal);
+            r_weighted_gap += inner_prod(aux_array, - normal);
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
-            const array_1d<double, TDim> slip_node = - delta_time * (r_slip_time_derivative_node - inner_prod(normal, r_slip_time_derivative_node) * normal);
+            const array_1d<double, TDim> slip_node = delta_time * (r_slip_time_derivative_node - inner_prod(normal, r_slip_time_derivative_node) * normal);
 
             // The weighted slip
             array_1d<double, 3>& r_weighted_slip = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
@@ -320,12 +342,32 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 /***********************************************************************************/
 
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
-void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
+void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputeNodalArea(
     PairedCondition* pCondition,
-    ProcessInfo& rCurrentProcessInfo,
-    MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+    const ProcessInfo& rCurrentProcessInfo,
+    Variable<double>& rAreaVariable,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase
+    )
+{
+    MortarOperator<TNumNodes, TNumNodesMaster> mortar_operator;
+    mortar_operator.Initialize();
+    ComputePreviousMortarOperators(pCondition, rCurrentProcessInfo, mortar_operator, IntegrationOrder, AxisymmetricCase, true, true, rAreaVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
+    PairedCondition* pCondition,
+    const ProcessInfo& rCurrentProcessInfo,
+    MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+    const IndexType IntegrationOrder,
+    const bool AxisymmetricCase,
+    const bool ComputeNodalArea,
+    const bool ComputeDualLM,
+    Variable<double>& rAreaVariable
     )
 {
     // We "save" the mortar operator for the next step
@@ -340,7 +382,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     BoundedMatrix<double, TNumNodes, TNumNodes> Ae;
 
     // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
 
     // The master geometry
@@ -356,6 +398,9 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     double integration_area;
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
+    // Dual LM
+    bool dual_LM = false;
+
     const double geometry_area = r_slave_geometry.Area();
     if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
@@ -366,8 +411,10 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         // Initialize the mortar operators
         rPreviousMortarOperators.Initialize();
 
-        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
-        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        if (ComputeDualLM) {
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+        }
 
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -407,6 +454,18 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
             }
         }
     }
+
+    // Computing contribution of the rAreaVariable
+    if (ComputeNodalArea && dual_LM) {
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
+            #pragma omp atomic
+            r_nodal_area += DOperator(i_node, i_node);
+        }
+    }
+
+    return dual_LM;
 }
 
 /***********************************************************************************/

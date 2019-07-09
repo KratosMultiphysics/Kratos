@@ -403,7 +403,21 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         key -- The key to identify the current pair
         """
+        # Create main parameters
+        search_parameters = self._create_search_parameters(key)
 
+        # We create the search process
+        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+
+    def _create_search_parameters(self, key = "0"):
+        """ This creates the parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+
+        # Create main parameters
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
         search_parameters.AddValue("simple_search", self.settings["search_parameters"]["simple_search"])
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
@@ -424,8 +438,7 @@ class SearchBaseProcess(KM.Process):
         # Setting additional parameters
         self._set_additional_parameters(search_parameters)
 
-        # We create the search process
-        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+        return search_parameters
 
     def _set_additional_parameters(self, param):
         """ This sets additional parameters for the search
@@ -621,7 +634,7 @@ class SearchBaseProcess(KM.Process):
 
         if self.preprocess:
             id_prop = self.settings["search_property_ids"][key].GetInt()
-            if (id_prop != 0):
+            if id_prop != 0:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
             else:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties())
@@ -630,7 +643,7 @@ class SearchBaseProcess(KM.Process):
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
-                if (self.computing_model_part.Is(KM.MODIFIED)):
+                if self.computing_model_part.Is(KM.MODIFIED):
                     KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
                     partial_model_part.RemoveConditions(KM.TO_ERASE)
 

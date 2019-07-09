@@ -129,7 +129,7 @@ if __name__ == '__main__':
         p = subprocess.Popen(
             ["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"],
             stdout=subprocess.PIPE,
-            cwd=os.path.dirname(__file__))
+            cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
 

@@ -54,11 +54,13 @@ const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchProcess(
-    ModelPart & rMainModelPart,
+    ModelPart& rMainModelPart,
     Parameters ThisParameters
     ):mrMainModelPart(rMainModelPart),
       mThisParameters(ThisParameters)
 {
+    KRATOS_TRY
+
     KRATOS_ERROR_IF(mrMainModelPart.HasSubModelPart("Contact") == false) << "AdvancedContactSearch:: Please add the Contact submodelpart to your modelpart list" << std::endl;
 
     Parameters default_parameters = GetDefaultParameters();
@@ -113,8 +115,9 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
 
     // We set to zero the NORMAL_GAP
-    if (mCheckGap == CheckGap::MappingCheck)
+    if (mCheckGap == CheckGap::MappingCheck) {
         VariableUtils().SetNonHistoricalVariable(NORMAL_GAP, 0.0, r_sub_contact_model_part.Nodes());
+    }
 
     // Iterate in the conditions
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
@@ -126,17 +129,26 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
         if (mrMainModelPart.HasNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
             mTypeSolution = TypeSolution::NormalContactStress;
         } else {
+            const bool is_frictional = mrMainModelPart.Is(SLIP);
             if (mrMainModelPart.HasNodalSolutionStepVariable(WEIGHTED_GAP)) {
-                if (mrMainModelPart.Is(SLIP)) {
+                if (is_frictional) {
                     mTypeSolution = TypeSolution::FrictionalPenaltyMethod;
                 } else {
                     mTypeSolution = TypeSolution::FrictionlessPenaltyMethod;
                 }
-            } else {
+            } else if (mrMainModelPart.HasNodalSolutionStepVariable(SCALAR_LAGRANGE_MULTIPLIER)) {
                 mTypeSolution = TypeSolution::ScalarLagrangeMultiplier;
+            } else {
+                if (is_frictional) {
+                    mTypeSolution = TypeSolution::OtherFrictional;
+                } else {
+                    mTypeSolution = TypeSolution::OtherFrictionless;
+                }
             }
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -145,10 +157,14 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
 {
+    KRATOS_TRY
+
     // We execute the different phases of the process all together
     this->ExecuteInitialize();
     this->ExecuteInitializeSolutionStep();
     this->ExecuteFinalizeSolutionStep();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -157,10 +173,14 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitialize()
 {
+    KRATOS_TRY
+
     // We initialize the search utility
     this->CheckContactModelParts();
     this->CreatePointListMortar();
     this->InitializeMortarConditions();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -169,10 +189,14 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitiali
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitializeSolutionStep()
 {
+    KRATOS_TRY
+
     // We compute the search pairs
     this->ClearMortarConditions();
     this->UpdateMortarConditions();
 //     this->CheckMortarConditions();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -181,8 +205,12 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitiali
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteFinalizeSolutionStep()
 {
+    KRATOS_TRY
+
     // We clear the pairs
     this->ClearMortarConditions();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -191,6 +219,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteFinalize
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarConditions()
 {
+    KRATOS_TRY
+
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
@@ -206,6 +236,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InitializeMorta
 //             it_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -214,6 +246,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InitializeMorta
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationModelParts(ModelPart& rModelPart)
 {
+    KRATOS_TRY
+
     // We check if the MasterSubModelPart already exists
     const std::string& id_name = mThisParameters["id_name"].GetString();
     if (rModelPart.HasSubModelPart("MasterSubModelPart" + id_name) == false) {
@@ -289,6 +323,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestin
 
     KRATOS_ERROR_IF(r_master_model_part.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
     KRATOS_ERROR_IF(r_slave_model_part.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -297,6 +333,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestin
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions()
 {
+    KRATOS_TRY
+
     ResetContactOperators();
 
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -317,7 +355,13 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearMortarCond
             break;
         case TypeSolution::FrictionalPenaltyMethod :
             break;
+        case TypeSolution::OtherFrictionless :
+            break;
+        case TypeSolution::OtherFrictional :
+            break;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -326,6 +370,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearMortarCond
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts()
 {
+    KRATOS_TRY
+
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
@@ -368,6 +414,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMod
 
     // Unsetting TO_ERASE
     VariableUtils().SetFlag(TO_ERASE, false, r_contact_model_part.Conditions());
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -376,6 +424,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMod
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar()
 {
+    KRATOS_TRY
+
     // The search tree considered
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
@@ -403,6 +453,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointList
             mPointListDestination[i_point]->Check();
     #endif
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -411,6 +463,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointList
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar()
 {
+    KRATOS_TRY
+
     // The search tree considered
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
@@ -444,6 +498,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointList
         for(int i = 0; i < static_cast<int>(mPointListDestination.size()); ++i)
             mPointListDestination[i]->UpdatePoint();
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -452,6 +508,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointList
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions()
 {
+    KRATOS_TRY
+
     // We update the list of points
     UpdatePointListMortar();
 
@@ -523,6 +581,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         // We compute the weighted reaction
         ComputeWeightedReaction();
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -534,6 +594,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
     ModelPart& rSubComputingContactModelPart
     )
 {
+    KRATOS_TRY
+
     // Some auxiliar values
     const IndexType allocation_size = mThisParameters["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results
     const double search_factor = mThisParameters["search_factor"].GetDouble();     // The search factor to be considered
@@ -669,6 +731,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
             }
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -680,6 +744,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     ModelPart& rSubComputingContactModelPart
     )
 {
+    KRATOS_TRY
+
     KRATOS_ERROR_IF(mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH)) << "Octree only works with not inverted master/slave model parts (for now)" << std::endl;
     KRATOS_ERROR_IF_NOT(mOptions.Is(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) << "Octree only works with predefined master/slave model part (for now)" << std::endl;
 
@@ -734,8 +800,9 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
                         if (p_cond_master->Is(SELECTED)) {
                             const CheckResult condition_checked_right = CheckGeometricalObject(p_indexes_pairs, (*it_cond.base()), p_cond_master, mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH));
 
-                            if (condition_checked_right == CheckResult::OK)
+                            if (condition_checked_right == CheckResult::OK) {
                                 p_indexes_pairs->AddId(p_cond_master->Id());
+                            }
                         }
                     }
                 }
@@ -759,6 +826,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
             }
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -776,6 +845,8 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
     Properties::Pointer pProperties
     )
 {
+    KRATOS_TRY
+
     pIndexesPairs->AddId(pObjectMaster->Id());
 
     // We add the ID and we create a new auxiliar condition
@@ -794,6 +865,8 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
     }
 
     return nullptr;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -802,6 +875,8 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions()
 {
+    KRATOS_TRY
+
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
@@ -825,9 +900,10 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckMortarCond
 
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
-        if (it_node->Is(ACTIVE))
-            KRATOS_INFO("Check paired nodes") << "Node: " << it_node->Id() << " is active" << std::endl;
+        KRATOS_INFO_IF("Check paired nodes", it_node->Is(ACTIVE)) << "Node: " << it_node->Id() << " is active" << std::endl;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -836,7 +912,11 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckMortarCond
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
 {
+    KRATOS_TRY
+
     mOptions.Flip(BaseContactSearchProcess::INVERTED_SEARCH);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -845,7 +925,11 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarConditions(NodesArrayType& rNodesArray)
 {
+    KRATOS_TRY
+
     VariableUtils().SetVariableForFlag(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -854,8 +938,12 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMort
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarConditions(NodesArrayType& rNodesArray)
 {
+    KRATOS_TRY
+
     const array_1d<double, 3> zero_array = ZeroVector(3);
     VariableUtils().SetVariableForFlag(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -864,7 +952,11 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponents
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray)
 {
+    KRATOS_TRY
+
     VariableUtils().SetVariableForFlag(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -878,17 +970,24 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     const bool InvertedSearch
     )
 {
+    KRATOS_TRY
+
     const IndexType index_1 = pGeometricalObject1->Id();
     const IndexType index_2 = pGeometricalObject2->Id();
 
-    if (index_1 == index_2) // Avoiding "auto self-contact"
+    // Avoiding "auto self-contact"
+    if (index_1 == index_2) {
         return CheckResult::Fail;
+    }
 
     // To avoid to repeat twice the same condition
-    if (pIndexesPairs->find(index_2) != pIndexesPairs->end())
+    if (pIndexesPairs->find(index_2) != pIndexesPairs->end()) {
         return CheckResult::AlreadyInTheMap;
+    }
 
     return CheckResult::OK;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -902,8 +1001,11 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     const bool InvertedSearch
     )
 {
-    if (CheckGeometricalObject(pIndexesPairs, pCond1, pCond2, InvertedSearch) == CheckResult::Fail)
+    KRATOS_TRY
+
+    if (CheckGeometricalObject(pIndexesPairs, pCond1, pCond2, InvertedSearch) == CheckResult::Fail) {
         return CheckResult::Fail;
+    }
 
     // Otherwise will not be necessary to check
     if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE) || pCond2->Is(SLAVE) == !InvertedSearch) {
@@ -914,10 +1016,13 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
 
     // Avoid conditions oriented in the same direction
     const double tolerance = 1.0e-16;
-    if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
+    if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance) {
         return CheckResult::Fail;
+    }
 
     return CheckResult::OK;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -926,6 +1031,8 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMasterSlave(ModelPart& rModelPart)
 {
+    KRATOS_TRY
+
     // We iterate over the conditions
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
@@ -995,6 +1102,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NotPrede
             }
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1003,6 +1112,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NotPrede
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetMaximumConditionsIds()
 {
+    KRATOS_TRY
+
     ConditionsArrayType& r_conditions_array = mrMainModelPart.Conditions();
 
     IndexType condition_id = 0;
@@ -1014,6 +1125,8 @@ inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Get
     }
 
     return condition_id;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1033,27 +1146,29 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
     const bool FrictionalProblem
     )
 {
+    KRATOS_TRY
+
     // Slave geometry
     GeometryType& r_slave_geometry = pObjectSlave->GetGeometry();
 
     // Auxiliar bool
     bool at_least_one_node_potential_contact = false;
 
+    Point projected_point;
+    double aux_distance = 0.0;
+    array_1d<double, 3> result;
     if (mCheckGap == CheckGap::DirectCheck) {
         // Master geometry
         GeometryType& r_geom_master = pObjectMaster->GetGeometry();
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             if (r_slave_geometry[i_node].IsNot(ACTIVE)) {
-                Point projected_point;
-                double aux_distance = 0.0;
-                const array_1d<double, 3> normal = r_slave_geometry[i_node].GetValue(NORMAL);
-                if (norm_2(normal) < ZeroTolerance)
+                const array_1d<double, 3>& r_normal = r_slave_geometry[i_node].GetValue(NORMAL);
+                if (norm_2(r_normal) < ZeroTolerance)
                     aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, rMasterNormal, rSlaveNormal);
                 else
-                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, rMasterNormal, normal);
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, rMasterNormal, r_normal);
 
-                array_1d<double, 3> result;
                 if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     at_least_one_node_potential_contact = true;
                     r_slave_geometry[i_node].Set(ACTIVE, true);
@@ -1062,15 +1177,15 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                             if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
-                            } else {
+                            } else if (!r_node.IsDefined(SLIP)) {
                                 r_node.Set(SLIP, false);
                             }
                         }
-                    }  else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
+                    }  else if (mTypeSolution == TypeSolution::FrictionalPenaltyMethod || mTypeSolution == TypeSolution::OtherFrictional) {
                         NodeType& r_node = r_slave_geometry[i_node];
                         if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
-                        } else {
+                        } else if (!r_node.IsDefined(SLIP)) {
                             r_node.Set(SLIP, false);
                         }
                     }
@@ -1085,21 +1200,22 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                             if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
-                            } else {
+                            } else if (!r_node.IsDefined(SLIP)) {
                                 r_node.Set(SLIP, false);
                             }
                         }
-                    } else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
+                    } else if (mTypeSolution == TypeSolution::FrictionalPenaltyMethod || mTypeSolution == TypeSolution::OtherFrictional) {
                         NodeType& r_node = r_slave_geometry[i_node];
                         if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
-                        } else {
+                        } else if (!r_node.IsDefined(SLIP)) {
                             r_node.Set(SLIP, false);
                         }
                     }
                 }
-            } else
+            } else {
                 at_least_one_node_potential_contact = true;
+            }
         }
     } else {
         at_least_one_node_potential_contact = true;
@@ -1110,15 +1226,15 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                 if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                     if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                         r_node.Set(SLIP, true);
-                    } else {
+                    } else if (!r_node.IsDefined(SLIP)) {
                         r_node.Set(SLIP, false);
                     }
                 }
-            } else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
+            } else if (mTypeSolution == TypeSolution::FrictionalPenaltyMethod || mTypeSolution == TypeSolution::OtherFrictional) {
                 NodeType& r_node = r_slave_geometry[i_node];
                 if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                     r_node.Set(SLIP, true);
-                } else {
+                } else if (!r_node.IsDefined(SLIP)) {
                     r_node.Set(SLIP, false);
                 }
             }
@@ -1127,6 +1243,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
 
     if (at_least_one_node_potential_contact)
         AddPairing(rComputingModelPart, rConditionId, pObjectSlave, rSlaveNormal, pObjectMaster, rMasterNormal, pIndexesPairs, pProperties);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1135,10 +1253,14 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CleanModelPart(ModelPart& rModelPart)
 {
+    KRATOS_TRY
+
     // We clean only the conditions
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     VariableUtils().SetFlag(TO_ERASE, true, r_conditions_array);
     mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1150,6 +1272,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     IndexType& rConditionId
     )
 {
+    KRATOS_TRY
+
     // Getting the corresponding submodelparts
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + mThisParameters["id_name"].GetString());
@@ -1184,6 +1308,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 
     // Finally we compute the active/inactive nodes
     ComputeActiveInactiveNodes();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1192,6 +1318,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGap(const bool SearchOrientation)
 {
+    KRATOS_TRY
+
     // We get the process info
     const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
 
@@ -1234,7 +1362,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
         SwitchFlagNodes(r_nodes_array);
 
     // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,"update_interface" : false, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     if (r_process_info.Has(DISTANCE_THRESHOLD)) {
         mapping_parameters["distance_threshold"].SetDouble(r_process_info[DISTANCE_THRESHOLD]);
     }
@@ -1267,6 +1395,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
             it_node->SetValue(NORMAL_GAP, 0.0);
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1275,6 +1405,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
 {
+    KRATOS_TRY
+
     // We get the process info
     const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
 
@@ -1303,6 +1435,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
             }
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1315,6 +1449,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     const double ScaleFactor
     )
 {
+    KRATOS_TRY
+
     // We activate
     ItNode->Set(ACTIVE, true);
     ItNode->Set(MARKER, true);
@@ -1323,10 +1459,12 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     if (mrMainModelPart.Is(SLIP)) {
         if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
-        } else {
+        } else if (!ItNode->IsDefined(SLIP)) {
             ItNode->Set(SLIP, false);
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1335,6 +1473,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
 {
+    KRATOS_TRY
+
     // If the node has been already actived we do not inactivate
     if (ItNode->IsNot(MARKER)) {
         // Auxiliar zero array
@@ -1356,12 +1496,18 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode
                     break;
                 case TypeSolution::FrictionalPenaltyMethod :
                     break;
+                case TypeSolution::OtherFrictionless :
+                    break;
+                case TypeSolution::OtherFrictional :
+                    break;
             }
         }
 
         // We set the gap to zero (in order to have something "visible" to post process)
         ItNode->SetValue(NORMAL_GAP, 0.0);
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1370,6 +1516,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeWeightedReaction()
 {
+    KRATOS_TRY
+
     // Auxiliar zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
@@ -1400,6 +1548,13 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeW
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
             VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
             break;
+        case TypeSolution::OtherFrictionless :
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            break;
+        case TypeSolution::OtherFrictional :
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+            break;
     }
 
     // Compute explicit contibution of the conditions
@@ -1407,6 +1562,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeW
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
     ModelPart& r_sub_computing_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
     ContactUtilities::ComputeExplicitContributionConditions(r_sub_computing_contact_model_part);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1419,6 +1576,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
     IndexType& rConditionId
     )
 {
+    KRATOS_TRY
+
     // In case of debug mode
     CreateDebugFile(rContactModelPart, "original_conditions_normal_debug_");
 
@@ -1440,6 +1599,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
 
     // In case of debug mode
     CreateDebugFile(rContactModelPart, "created_conditions_normal_debug_");
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1448,6 +1609,8 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline double BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Radius(GeometryType& ThisGeometry)
 {
+    KRATOS_TRY
+
     double radius = 0.0;
     const Point& r_center = ThisGeometry.Center();
 
@@ -1459,6 +1622,8 @@ inline double BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Radius
     }
 
     return radius;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1467,6 +1632,8 @@ inline double BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Radius
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators()
 {
+    KRATOS_TRY
+
     // We iterate over the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
@@ -1519,6 +1686,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOpe
     }
 
     mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1530,6 +1699,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateDebugFile
     const std::string& rName
     )
 {
+    KRATOS_TRY
+
     if (mThisParameters["debug_mode"].GetBool()) {
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
         std::filebuf debug_buffer;
@@ -1545,6 +1716,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateDebugFile
         }
         debug_buffer.close();
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1553,6 +1726,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateDebugFile
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ConvertSearchTree(const std::string& str)
 {
+    KRATOS_TRY
+
     KRATOS_ERROR_IF(str == "KDOP") << "KDOP contact search: Not yet implemented" << std::endl;
 
     if (str == "InRadius" || str == "in_radius") {
@@ -1570,6 +1745,8 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchTreeT
     } else {
         return SearchTreeType::KdtreeInRadius;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1578,6 +1755,8 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchTreeT
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ConvertCheckGap(const std::string& str)
 {
+    KRATOS_TRY
+
     if(str == "NoCheck" || str == "no_check")
         return CheckGap::NoCheck;
     else if(str == "DirectCheck" || str == "direct_check")
@@ -1586,6 +1765,8 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap Ba
         return CheckGap::MappingCheck;
     else
         return CheckGap::MappingCheck;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1594,6 +1775,8 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap Ba
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters()
 {
+    KRATOS_TRY
+
     Parameters default_parameters = Parameters(R"(
     {
         "allocation_size"                      : 1000,
@@ -1620,6 +1803,8 @@ Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaul
     })" );
 
     return default_parameters;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

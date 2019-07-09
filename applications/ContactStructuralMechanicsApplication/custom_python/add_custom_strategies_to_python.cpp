@@ -249,9 +249,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double  >())
-        .def(py::init< double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool, bool >())
         ;
 
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -271,9 +272,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierMixedFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double, bool >())
-        .def(py::init< double, double, double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, bool, bool, bool >())
         ;
 
     // Displacement residual Convergence Criterion
@@ -303,9 +305,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double , bool, bool, bool >())
         ;
 
     // Error mesh Convergence Criterion

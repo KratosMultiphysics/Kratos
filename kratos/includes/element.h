@@ -164,10 +164,6 @@ public:
     {
     }
 
-    Element::Pointer shared_from_this()
-    {
-        return std::static_pointer_cast<Element>(GeometricalObject::shared_from_this());
-    }
     ///@}
     ///@name Operators
     ///@{

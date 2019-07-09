@@ -26,6 +26,27 @@ import algorithm_factory
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
+    _ValidateSettings(optimization_settings)
+
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
+
+    communicator = communicator_factory.CreateCommunicator(optimization_settings)
+
+    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
+    else:
+        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+
+# ------------------------------------------------------------------------------
+def _ValidateSettings(optimization_settings):
+    _ValidateTopLevelSettings(optimization_settings)
+    _ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
+    _ValidateConstraintSettings(optimization_settings["constraints"])
+
+# ------------------------------------------------------------------------------
+def _ValidateTopLevelSettings(optimization_settings):
     default_settings = Parameters("""
     {
         "model_settings" : { },
@@ -42,16 +63,41 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
 
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
-    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+# ------------------------------------------------------------------------------
+def _ValidateObjectiveSettingsRecursively(objective_settings):
+    default_settings = Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "minimization",
+        "scaling_factor"                      : 1.0,
+        "use_kratos"                          : false,
+        "kratos_response_settings"            : {},
+        "is_combined"                         : false,
+        "combined_responses"                  : [],
+        "weight"                              : 1.0,
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(objective_settings.size()):
+        objective_settings[itr].ValidateAndAssignDefaults(default_settings)
 
-    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
+        if objective_settings[itr]["is_combined"].GetBool():
+            _ValidateObjectiveSettingsRecursively(objective_settings[itr]["combined_responses"])
 
-    communicator = communicator_factory.CreateCommunicator(optimization_settings)
-
-    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
-    else:
-        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+# ------------------------------------------------------------------------------
+def _ValidateConstraintSettings(constraint_settings):
+    default_settings = Parameters("""
+    {
+        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+        "type"                                : "<",
+        "scaling_factor"                      : 1.0,
+        "reference"                           : "initial_value",
+        "reference_value"                     : 1.0,
+        "use_kratos"                          : false,
+        "kratos_response_settings"            : {},
+        "project_gradient_on_surface_normals" : false
+    }""")
+    for itr in range(constraint_settings.size()):
+        constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
 
 # ==============================================================================
 class VertexMorphingMethod:
@@ -70,11 +116,10 @@ class VertexMorphingMethod:
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
-        for itr in range(1,number_of_objectives+1):
-            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX")
-            model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX_MAPPED")
-            model_part.AddNodalSolutionStepVariable(nodal_variable)
+        nodal_variable = KratosGlobals.GetVariable("DF1DX")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
+        nodal_variable = KratosGlobals.GetVariable("DF1DX_MAPPED")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")

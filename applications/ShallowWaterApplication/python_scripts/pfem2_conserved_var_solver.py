@@ -10,8 +10,8 @@ def CreateSolver(model, custom_settings):
     return Pfem2ConservedVarSolver(model, custom_settings)
 
 class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
-    def __init__(self, model, custom_settings):
-        super(Pfem2ConservedVarSolver,self).__init__(model, custom_settings)
+    def __init__(self, model, settings):
+        super(Pfem2ConservedVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
         self.element_name = "ConservedVarElement"
@@ -22,7 +22,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         self.settings["pfem2_settings"]["convection_vector_variable"].SetString("MOMENTUM")
 
     def AddVariables(self):
-        super(Pfem2ConservedVarSolver,self).AddVariables()
+        super(Pfem2ConservedVarSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
 
     def AddDofs(self):
@@ -32,18 +32,6 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
 
         KM.Logger.PrintInfo("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Solve equations on mesh
-            is_converged = self.solver.SolveSolutionStep()
-            # Compute free surface
-            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
-            # Compute velocity
-            SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)
-            # Print particles if needed
-            if self.print_particles:
-                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-                self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
-
-            return is_converged
+    def FinalizeSolutionStep(self):
+        super(Pfem2ConservedVarSolver, self).FinalizeSolutionStep()
+        SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)
