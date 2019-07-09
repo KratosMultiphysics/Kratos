@@ -26,10 +26,6 @@ class CouplingInterfaceData(object):
         self.settings = custom_settings
         self.model = model
 
-    def Initialize(self):
-        # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
-        self.model_part = self.model[self.settings["model_part_name"].GetString()]
-
         # variable used to identify data
         variable_name = self.settings["variable_name"].GetString()
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
@@ -45,6 +41,16 @@ class CouplingInterfaceData(object):
         self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 
         self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
+
+        # location of data on ModelPart
+        self.location = self.settings["location"].GetString()
+        admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
+        if not self.location in admissible_locations:
+            raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
+
+    def Initialize(self):
+        # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # dimensionality of the data
         self.dimension = self.settings["dimension"].GetInt()
@@ -63,12 +69,6 @@ class CouplingInterfaceData(object):
                     cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.GetModelPart().Name))
                 if domain_size != self.dimension:
                     cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
-
-        # location of data on ModelPart
-        self.location = self.settings["location"].GetString()
-        admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
-        if not self.location in admissible_locations:
-            raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
 
         if self.location == "node_historical":
             if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
