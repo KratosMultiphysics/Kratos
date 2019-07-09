@@ -89,7 +89,7 @@ class PFEM2BaseSolver(PythonSolver):
 
     def Initialize(self):
         KM.Logger.PrintInfo("::[PFEM2BaseSolver]:", "Initializing ...")
-        
+
         self._ApplyBoundaryConditions()
 
         # The pfem2 mesh solution strategy is created here if it does not already exist.
