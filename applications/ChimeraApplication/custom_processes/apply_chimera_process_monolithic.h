@@ -155,6 +155,7 @@ protected:
         IndexType counter = 0;
         IndexType removed_counter = 0;
         IndexType not_found_counter = 0;
+        int num_removed_nodes = 0;
 
         for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
@@ -196,10 +197,12 @@ protected:
                     }
                 }
                 constrainIds_for_the_node.clear();
-                // p_boundary_node->Set(VISITED, false);
+                p_boundary_node->Set(VISITED, false);
+                ++num_removed_nodes;
             }
+          
 
-            if (is_found == true)
+            if (is_found)
             {
                 Geometry<Node<3>> &r_geom = p_element->GetGeometry();
                 int init_index = 0;
@@ -230,6 +233,7 @@ protected:
         KRATOS_INFO("Number of Boundary nodes found : ") << counter << ". Number of constraints : " << counter * 9 << std::endl;
         KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
         std::cout<<"Number of Boundary nodes not found : "<<not_found_counter<<std::endl;
+        std::cout<<"########### "<<num_removed_nodes<<std::endl; 
     }
 
     ///@}

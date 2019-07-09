@@ -146,7 +146,19 @@ public:
 
     virtual void ExecuteFinalizeSolutionStep() override
     {
+
         //for multipatch
+        const unsigned int num_elements = mrMainModelPart.NumberOfElements();
+        const auto elem_begin = mrMainModelPart.ElementsBegin();
+
+#pragma omp parallel for
+        for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
+        {
+            auto i_elem = elem_begin + i_be;
+            i_elem->Set(VISITED, false);
+            i_elem->SetValue(SPLIT_ELEMENT, false);
+        }
+
         mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
     }
 
@@ -207,7 +219,7 @@ protected:
         for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
         {
             auto i_elem = elem_begin + i_be;
-            //if (!i_elem->Is(VISITED)) //for multipatch
+            if (!i_elem->Is(VISITED)) //for multipatch
                 i_elem->Set(ACTIVE, true);
         }
 
@@ -294,18 +306,18 @@ protected:
             CalculateDistanceChimeraApplication(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
             mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
-            //WriteModelPart(r_hole_model_part);
-            //WriteModelPart(r_modified_patch_boundary_model_part);
-            //WriteModelPart(r_modified_patch_model_part);
-            //WriteModelPart(r_hole_boundary_model_part);
+            WriteModelPart(r_hole_model_part);
+            WriteModelPart(r_modified_patch_boundary_model_part);
+            WriteModelPart(r_modified_patch_model_part);
+            WriteModelPart(r_hole_boundary_model_part);
 
-            //for multipatch
+            
             const unsigned int n_elements = r_hole_model_part.NumberOfElements();
 #pragma omp parallel for
             for (IndexType i_elem = 0; i_elem < n_elements; ++i_elem)
             {
                 ModelPart::ElementsContainerType::iterator it_elem = r_hole_model_part.ElementsBegin() + i_elem;
-                it_elem->Set(VISITED, true);
+                it_elem->Set(VISITED, true); //for multipatch
             }
 
             ApplyContinuityWithMpcs(r_modified_patch_boundary_model_part, p_point_locator_on_background);
@@ -606,6 +618,7 @@ private:
                     "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","DISTANCE"],
                     "nodal_data_value_variables"         : [],
                     "element_flags"                      : ["ACTIVE"],
+                    "nodal_flags"                        : ["VISITED"],
                     "element_data_value_variables"       : [],
                     "condition_data_value_variables"     : []
                 }
