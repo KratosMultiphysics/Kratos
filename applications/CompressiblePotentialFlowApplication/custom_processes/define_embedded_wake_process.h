@@ -82,6 +82,9 @@ private:
 
 
     void ComputeDistanceToWake();
+    void MarkWakeElements();
+    void ComputeTrailingEdgeNode();
+    void MarkKuttaElements();
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
 
 
