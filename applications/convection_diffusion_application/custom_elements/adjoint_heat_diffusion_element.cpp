@@ -156,7 +156,7 @@ int AdjointHeatDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProces
     const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
 
-    const auto& r_geom = GetGeometry();
+    const auto& r_geom = this->GetGeometry();
 
     for (unsigned int i = 0; i < r_geom.PointsNumber(); i++)
     {
