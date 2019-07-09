@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-
 # Importing the base class
 from KratosMultiphysics.ParticleMechanicsApplication.mpm_implicit_dynamic_solver import MPMImplicitDynamicSolver
 

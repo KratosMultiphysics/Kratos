@@ -107,7 +107,7 @@ class MPMSolver(PythonSolver):
         self._set_buffer_size()
 
         # Executes the check and prepare model process
-        self._execute_check_and_prepare()
+        self.__ExecuteCheckAndPrepare()
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "ModelPart prepared for Solver.")
 
@@ -128,7 +128,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","DOFs are added.")
 
     def Initialize(self):
-        # The mechanical solution strategy is created here if it does not already exist.
+        # The particle solution strategy is created here if it does not already exist.
         particle_solution_strategy = self.get_solution_strategy()
         particle_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -138,15 +138,12 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Solver is initialized correctly.")
 
     def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
+        dt = self.__ComputeDeltaTime()
         new_time = current_time + dt
         self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.grid_model_part.CloneTimeStep(new_time)
 
         return new_time
-
-    def ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def InitializeSolutionStep(self):
         self.search_element()
@@ -236,7 +233,7 @@ class MPMSolver(PythonSolver):
             materials_imported = False
         return materials_imported
 
-    ### Solver private functions
+    ### Solver protected functions
 
     def _add_model_part_containers(self):
 
@@ -246,20 +243,20 @@ class MPMSolver(PythonSolver):
             err_msg += "Available options are: \"2\" or \"3\""
             raise Exception(err_msg)
 
-        ### In MPM three model parts are needed
-        ## Material model part definition
+        ## In MPM three model parts are needed
+        # Material model part definition
         material_model_part_name = self.settings["model_part_name"].GetString()
         if not self.model.HasModelPart(material_model_part_name):
             self.material_model_part = self.model.CreateModelPart(material_model_part_name) # Equivalent to model_part3 in the old format
             self.material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        ## Initial material model part definition
+        # Initial material model part definition
         initial_material_model_part_name = "Initial_" + material_model_part_name
         if not self.model.HasModelPart(initial_material_model_part_name):
             self.initial_material_model_part = self.model.CreateModelPart(initial_material_model_part_name) #Equivalent to model_part2 in the old format
             self.initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        ## Grid model part definition
+        # Grid model part definition
         if not self.model.HasModelPart("Background_Grid"):
             self.grid_model_part = self.model.CreateModelPart("Background_Grid") #Equivalent to model_part1 in the old format
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
@@ -308,25 +305,6 @@ class MPMSolver(PythonSolver):
         else:
             raise Exception("Other input options are not implemented yet.")
 
-    def _execute_check_and_prepare(self):
-        # Specific active node and element check for particle MPM solver
-        for node in self.grid_model_part.Nodes:
-            if (node.Is(KratosMultiphysics.ACTIVE)):
-                KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
-
-        # Setting active initial elements
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
-
-        # Read material property
-        materials_imported = self.import_constitutive_laws()
-        if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Constitutive law was successfully imported.")
-        else:
-            KratosMultiphysics.Logger.PrintWarning("::[MPMSolver]:: ","Constitutive law was not imported.")
-
-        # Clone property of model_part2 to model_part3
-        self.material_model_part.Properties = self.initial_material_model_part.Properties
-
     def _add_dofs_to_model_part(self, model_part):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
@@ -337,7 +315,7 @@ class MPMSolver(PythonSolver):
 
         # Add dofs that the user defined in the ProjectParameters
         if (self.settings["auxiliary_dofs_list"].size() != self.settings["auxiliary_reaction_list"].size()):
-                raise Exception("DoFs list and reaction list should be the same long")
+                raise Exception("DoFs list and reaction list should be the same size")
         for i in range(self.settings["auxiliary_dofs_list"].size()):
             dof_variable_name = self.settings["auxiliary_dofs_list"][i].GetString()
             reaction_variable_name = self.settings["auxiliary_reaction_list"][i].GetString()
@@ -448,7 +426,7 @@ class MPMSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        reform_dofs_at_each_step = False
+        reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
                                                                         linear_solver,
@@ -471,4 +449,29 @@ class MPMSolver(PythonSolver):
             self.initial_material_model_part.SetBufferSize(self.min_buffer_size)
         else:
             self.initial_material_model_part.SetBufferSize(current_buffer_size)
+
+    ### Solver private functions
+
+    def __ComputeDeltaTime(self):
+        return self.settings["time_stepping"]["time_step"].GetDouble()
+
+    def __ExecuteCheckAndPrepare(self):
+        # Specific active node and element check for particle MPM solver
+        for node in self.grid_model_part.Nodes:
+            if (node.Is(KratosMultiphysics.ACTIVE)):
+                KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
+
+        # Setting active initial elements
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
+
+        # Read material property
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Constitutive law was successfully imported.")
+        else:
+            KratosMultiphysics.Logger.PrintWarning("::[MPMSolver]:: ","Constitutive law was not imported.")
+
+        # Clone property of model_part2 to model_part3
+        self.material_model_part.Properties = self.initial_material_model_part.Properties
+
 
