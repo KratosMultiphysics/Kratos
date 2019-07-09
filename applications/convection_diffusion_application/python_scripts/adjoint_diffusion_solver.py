@@ -128,14 +128,17 @@ class AdjointDiffusionSolver(PythonSolver):
                 var_utils = kratos.VariableUtils()
                 for key, value in mat["Variables"].items():
                     var = kratos.KratosGlobals.GetVariable(key)
-                    if not model_part.HasNodalSolutionStepVariable(var):
-                         raise Exception("Trying to set variable {0} on nodes, but the variable is not in nodal data.".format(var.Name()))
-                    if value.IsDouble():
-                        var_utils.SetScalarVar(var, value.GetDouble(), model_part.Nodes)
-                    elif value.IsVector():
-                        var_utils.SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                    #if not model_part.HasNodalSolutionStepVariable(var):
+                    #     raise Exception("Trying to set variable {0} on nodes, but the variable is not in nodal data.".format(var.Name()))
+                    if model_part.HasNodalSolutionStepVariable(var):
+                        if value.IsDouble():
+                            var_utils.SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                        elif value.IsVector():
+                            var_utils.SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                        else:
+                            raise ValueError("Type of value is not available")
                     else:
-                        raise ValueError("Type of value is not available")
+                        kratos.Logger.PrintWarning("Ignoring variable {0} given by the materials file, since it is not a nodal variable used by this solver.".format(var.Name()))
 
     def DefineConvectionDiffusionSettings(self,settings):
         convection_diffusion_settings = kratos.ConvectionDiffusionSettings()
