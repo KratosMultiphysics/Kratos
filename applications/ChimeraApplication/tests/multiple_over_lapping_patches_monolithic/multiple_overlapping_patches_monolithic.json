@@ -187,7 +187,7 @@
                         "PRESSURE"
                     ],
                     "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
-                    "model_part_name": "GENERIC_patch_2_1",
+                    "model_part_name": "GENERIC_background",
                     "time_frequency": 0.1
                 }
             }
@@ -206,7 +206,7 @@
                     "PRESSURE"
                 ],
                 "output_file_name": "multiple_overlapping_patches_monolithic_results.json",
-                "model_part_name": "GENERIC_patch_2_1",
+                "model_part_name": "GENERIC_background",
                 "time_frequency": 0.1
             }
         }
@@ -224,7 +224,7 @@
                     "PRESSURE"
                 ],
                 "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
-                "model_part_name": "GENERIC_patch_2_1",
+                "model_part_name": "GENERIC_background",
                 "time_frequency": 0.1
             }
         }
