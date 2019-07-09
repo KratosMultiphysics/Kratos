@@ -237,7 +237,7 @@ class AdjointDiffusionSolver(PythonSolver):
             break
         num_nodes_elements = comm.MaxAll(num_nodes_elements)
 
-        if element_name == "AdjointHeatDiffusionElement":
+        if element_name == "AdjointDiffusionElement":
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
