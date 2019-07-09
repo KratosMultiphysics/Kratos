@@ -102,16 +102,13 @@ public:
         KRATOS_TRY
 
         std::cout.flush();
-        MPI_Barrier(MPI_COMM_WORLD);
+        const DataCommunicator& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        r_data_communicator.Barrier();
 
-
-
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        int rank = r_data_communicator.Rank();
 
         //get number of processors
-        int num_processors = -1;
-        MPI_Comm_size(MPI_COMM_WORLD, &num_processors);
+        int num_processors = r_data_communicator.Size();
 
         for (int i = 0; i < num_processors; i++)
         {
@@ -234,7 +231,7 @@ public:
 
             }
 
-            MPI_Barrier(MPI_COMM_WORLD);
+            r_data_communicator.Barrier();
         }
         KRATOS_CATCH("");
 
