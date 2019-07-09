@@ -202,9 +202,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         self.assertEqual(comm.SumAll(1), self.world.Size())
         self.assertEqual(comm.SumAll(2.0), 2.0*self.world.Size())
-        self.assertEqual(comm.MinAll(comm.MyPID()), self.world.MinAll(self.world.Rank()))
-        self.assertEqual(comm.MaxAll(comm.MyPID()), self.world.MaxAll(self.world.Rank()))
-        self.assertEqual(comm.ScanSum(1,1), self.world.Rank()+1)
+        self.assertEqual(comm.MinAll(comm.Rank()), self.world.MinAll(self.world.Rank()))
+        self.assertEqual(comm.MaxAll(comm.Rank()), self.world.MaxAll(self.world.Rank()))
+        self.assertEqual(comm.ScanSum(1), self.world.Rank()+1)
 
     def testCommunicatorReductionSerial(self):
         current_model = KratosMultiphysics.Model()
@@ -215,9 +215,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         self.assertEqual(comm.SumAll(1), 1)
         self.assertEqual(comm.SumAll(2.0), 2.0)
-        self.assertEqual(comm.MinAll(comm.MyPID()), 0)
-        self.assertEqual(comm.MaxAll(comm.MyPID()), 0)
-        self.assertEqual(comm.ScanSum(1,1), 1)
+        self.assertEqual(comm.MinAll(comm.Rank()), 0)
+        self.assertEqual(comm.MaxAll(comm.Rank()), 0)
+        self.assertEqual(comm.ScanSum(1), 1)
 
 
     #def test_model_part_io_properties_block(self):
