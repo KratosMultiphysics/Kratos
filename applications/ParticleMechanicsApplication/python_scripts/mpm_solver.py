@@ -200,20 +200,20 @@ class MPMSolver(PythonSolver):
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
 
         # Assigning extra information to the main model part
-        self.material_model_part.SetNodes(self.grid_model_part.GetNodes())
-        self.material_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
-        self.material_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
+        self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
+        self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
+        self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
         # Generate MP Element and Condition
-        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_material_model_part, self.material_model_part, axis_symmetric_flag, pressure_dofs)
-        KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_material_model_part, self.material_model_part)
+        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, axis_symmetric_flag, pressure_dofs)
+        KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
 
     def search_element(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
         max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
         if (searching_alg_type == "bin_based"):
-            KratosParticle.SearchElement(self.grid_model_part, self.material_model_part, max_number_of_search_results, searching_tolerance)
+            KratosParticle.SearchElement(self.grid_model_part, self.material_point_model_part, max_number_of_search_results, searching_tolerance)
         else:
             err_msg  = "The requested searching algorithm \"" + searching_alg_type
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
@@ -245,16 +245,16 @@ class MPMSolver(PythonSolver):
 
         ## In MPM three model parts are needed
         # Material model part definition
-        material_model_part_name = self.settings["model_part_name"].GetString()
-        if not self.model.HasModelPart(material_model_part_name):
-            self.material_model_part = self.model.CreateModelPart(material_model_part_name) # Equivalent to model_part3 in the old format
-            self.material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        material_point_model_part_name = self.settings["model_part_name"].GetString()
+        if not self.model.HasModelPart(material_point_model_part_name):
+            self.material_point_model_part = self.model.CreateModelPart(material_point_model_part_name) # Equivalent to model_part3 in the old format
+            self.material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         # Initial material model part definition
-        initial_material_model_part_name = "Initial_" + material_model_part_name
-        if not self.model.HasModelPart(initial_material_model_part_name):
-            self.initial_material_model_part = self.model.CreateModelPart(initial_material_model_part_name) #Equivalent to model_part2 in the old format
-            self.initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        initial_mesh_model_part_name = "Initial_" + material_point_model_part_name
+        if not self.model.HasModelPart(initial_mesh_model_part_name):
+            self.initial_mesh_model_part = self.model.CreateModelPart(initial_mesh_model_part_name) #Equivalent to model_part2 in the old format
+            self.initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         # Grid model part definition
         if not self.model.HasModelPart("Background_Grid"):
@@ -301,7 +301,7 @@ class MPMSolver(PythonSolver):
 
         # reading the model part of the material point
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            self._ImportModelPart(self.initial_material_model_part, self.settings["model_import_settings"])
+            self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
 
@@ -444,11 +444,11 @@ class MPMSolver(PythonSolver):
         else:
             self.grid_model_part.SetBufferSize(current_buffer_size)
 
-        current_buffer_size = self.initial_material_model_part.GetBufferSize()
+        current_buffer_size = self.initial_mesh_model_part.GetBufferSize()
         if self.min_buffer_size > current_buffer_size:
-            self.initial_material_model_part.SetBufferSize(self.min_buffer_size)
+            self.initial_mesh_model_part.SetBufferSize(self.min_buffer_size)
         else:
-            self.initial_material_model_part.SetBufferSize(current_buffer_size)
+            self.initial_mesh_model_part.SetBufferSize(current_buffer_size)
 
     ### Solver private functions
 
@@ -462,7 +462,7 @@ class MPMSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
 
         # Setting active initial elements
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_mesh_model_part.Elements)
 
         # Read material property
         materials_imported = self.import_constitutive_laws()
@@ -472,6 +472,6 @@ class MPMSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintWarning("::[MPMSolver]:: ","Constitutive law was not imported.")
 
         # Clone property of model_part2 to model_part3
-        self.material_model_part.Properties = self.initial_material_model_part.Properties
+        self.material_point_model_part.Properties = self.initial_mesh_model_part.Properties
 
 
