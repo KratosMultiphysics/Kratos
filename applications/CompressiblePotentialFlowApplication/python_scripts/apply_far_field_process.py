@@ -57,6 +57,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
 
     def ExecuteInitializeSolutionStep(self):
+        CPFApp.ApplyFarFieldProcess(self.far_field_model_part).Execute()
         self.Execute()
 
     def Execute(self):
