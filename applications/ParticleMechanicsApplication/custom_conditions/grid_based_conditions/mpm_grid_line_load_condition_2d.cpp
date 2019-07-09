@@ -45,11 +45,11 @@ MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, Geometr
 
 Condition::Pointer MPMGridLineLoadCondition2D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -116,9 +116,9 @@ void MPMGridLineLoadCondition2D::CalculateAll(
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
+    const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
 
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
 
     const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
