@@ -14,8 +14,7 @@ class MPMStaticSolver(MPMSolver):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.
         super(MPMStaticSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Construction is finished.")
 
-
-    def _create_solution_scheme(self):
+    def _CreateSolutionScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
