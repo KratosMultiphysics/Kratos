@@ -36,8 +36,7 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             self.Model = KratosMultiphysics.Model()
-            import fluid_dynamics_analysis
-            self.simulation = fluid_dynamics_analysis.FluidDynamicsAnalysis(self.Model, self.ProjectParameters)
+            self.simulation = KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis.FluidDynamicsAnalysis(self.Model, self.ProjectParameters)
 
     def setUpDistanceField(self):
         # Get the model part containing the domain
