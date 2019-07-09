@@ -22,6 +22,7 @@ from .Variables import *
 from .QuadriateralElement import QuadrilateralElement
 from .TriangleElement import TriangleElement
 from .Logger import Logger
+from .IntervalUtility import IntervalUtility
 
 print("""              _  __          _
   _ __  _   _| |/ /_ __ __ _| |_ ___  ___
