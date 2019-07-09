@@ -24,10 +24,10 @@
 namespace Kratos {
 namespace Python {
 
-namespace { // helpers namespace
+namespace EMPIRE_API_Wrappers { // helpers namespace
 
 template<bool TIsDataField>
-void Wrapper_SendArray(char* name, int sizeOfArray, std::vector<double> signal)
+void SendArray(char* name, int sizeOfArray, std::vector<double> signal)
 {
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     if (TIsDataField) {
@@ -38,7 +38,7 @@ void Wrapper_SendArray(char* name, int sizeOfArray, std::vector<double> signal)
 }
 
 template<bool TIsDataField>
-void Wrapper_ReceiveArray(char* name, int sizeOfArray, pybind11::list signal)
+void ReceiveArray(char* name, int sizeOfArray, pybind11::list signal)
 {
     KRATOS_ERROR_IF(static_cast<int>(signal.size()) != sizeOfArray) << "The size of the list has to be specified before, expected size of " << sizeOfArray << ", current size: " << signal.size() << std::endl;
 
@@ -57,7 +57,7 @@ void Wrapper_ReceiveArray(char* name, int sizeOfArray, pybind11::list signal)
     }
 }
 
-void Wrapper_EMPIRE_API_sendDataField_scalar(const ModelPart& rModelPart, const Variable<double>& rVariable)
+void sendDataField_scalar(const ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
@@ -73,7 +73,7 @@ void Wrapper_EMPIRE_API_sendDataField_scalar(const ModelPart& rModelPart, const 
     EMPIRE_API_sendDataField(const_cast<char*>(rVariable.Name().c_str()), size, &values[0]);
 }
 
-void Wrapper_EMPIRE_API_recvDataField_scalar(ModelPart& rModelPart, const Variable<double>& rVariable)
+void recvDataField_scalar(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
@@ -89,7 +89,7 @@ void Wrapper_EMPIRE_API_recvDataField_scalar(ModelPart& rModelPart, const Variab
     }
 }
 
-void Wrapper_EMPIRE_API_sendDataField_vector(const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
+void sendDataField_vector(const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
@@ -108,7 +108,7 @@ void Wrapper_EMPIRE_API_sendDataField_vector(const ModelPart& rModelPart, const 
     EMPIRE_API_sendDataField(const_cast<char*>(rVariable.Name().c_str()), size, &values[0]);
 }
 
-void Wrapper_EMPIRE_API_recvDataField_vector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
+void recvDataField_vector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
@@ -127,7 +127,7 @@ void Wrapper_EMPIRE_API_recvDataField_vector(ModelPart& rModelPart, const Variab
     }
 }
 
-void Wrapper_EMPIRE_API_sendDataField_doubleVector(const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
+void sendDataField_doubleVector(const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable1)) << "Missing nodal solutionstepvariable: " << rVariable1.Name() << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable2)) << "Missing nodal solutionstepvariable: " << rVariable2.Name() << std::endl;
@@ -152,7 +152,7 @@ void Wrapper_EMPIRE_API_sendDataField_doubleVector(const ModelPart& rModelPart, 
     EMPIRE_API_sendDataField(const_cast<char*>(name.c_str()), size, &values[0]);
 }
 
-void Wrapper_EMPIRE_API_recvDataField_doubleVector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
+void recvDataField_doubleVector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable1)) << "Missing nodal solutionstepvariable: " << rVariable1.Name() << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable2)) << "Missing nodal solutionstepvariable: " << rVariable2.Name() << std::endl;
@@ -177,7 +177,7 @@ void Wrapper_EMPIRE_API_recvDataField_doubleVector(ModelPart& rModelPart, const 
     }
 }
 
-void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart, const bool UseConditions)
+void sendMesh(const ModelPart& rModelPart, const bool UseConditions)
 {
     // extract information from ModelPart
     const int numNodes = rModelPart.NumberOfNodes();
@@ -219,7 +219,7 @@ void Wrapper_EMPIRE_API_sendMesh(const ModelPart& rModelPart, const bool UseCond
     EMPIRE_API_sendMesh(const_cast<char*>(rModelPart.Name().c_str()), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
 }
 
-void Wrapper_EMPIRE_API_recvMesh(ModelPart& rModelPart, const bool UseConditions)
+void recvMesh(ModelPart& rModelPart, const bool UseConditions)
 {
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
@@ -289,23 +289,23 @@ void  AddCustomIOToPython(pybind11::module& m)
 
     mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", EMPIRE_API_getUserDefinedText);
 
-    mEMPIREAPI.def("EMPIRE_API_sendMesh", Wrapper_EMPIRE_API_sendMesh, py::arg("model_part"), py::arg("use_conditions")=false);
-    mEMPIREAPI.def("EMPIRE_API_recvMesh", Wrapper_EMPIRE_API_recvMesh, py::arg("model_part"), py::arg("use_conditions")=false);
+    mEMPIREAPI.def("EMPIRE_API_sendMesh", EMPIRE_API_Wrappers::sendMesh, py::arg("model_part"), py::arg("use_conditions")=false);
+    mEMPIREAPI.def("EMPIRE_API_recvMesh", EMPIRE_API_Wrappers::recvMesh, py::arg("model_part"), py::arg("use_conditions")=false);
 
-    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_SendArray<true>);
-    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_ReceiveArray<true>);
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", EMPIRE_API_Wrappers::SendArray<true>);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", EMPIRE_API_Wrappers::ReceiveArray<true>);
 
-    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_EMPIRE_API_sendDataField_scalar);
-    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_EMPIRE_API_recvDataField_scalar);
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", EMPIRE_API_Wrappers::sendDataField_scalar);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", EMPIRE_API_Wrappers::recvDataField_scalar);
 
-    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_EMPIRE_API_sendDataField_vector);
-    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_EMPIRE_API_recvDataField_vector);
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", EMPIRE_API_Wrappers::sendDataField_vector);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", EMPIRE_API_Wrappers::recvDataField_vector);
 
-    mEMPIREAPI.def("EMPIRE_API_sendDataField", Wrapper_EMPIRE_API_sendDataField_doubleVector);
-    mEMPIREAPI.def("EMPIRE_API_recvDataField", Wrapper_EMPIRE_API_recvDataField_doubleVector);
+    mEMPIREAPI.def("EMPIRE_API_sendDataField", EMPIRE_API_Wrappers::sendDataField_doubleVector);
+    mEMPIREAPI.def("EMPIRE_API_recvDataField", EMPIRE_API_Wrappers::recvDataField_doubleVector);
 
-    mEMPIREAPI.def("EMPIRE_API_sendSignal_double", Wrapper_SendArray<false>);
-    mEMPIREAPI.def("EMPIRE_API_recvSignal_double", Wrapper_ReceiveArray<false>);
+    mEMPIREAPI.def("EMPIRE_API_sendSignal_double", EMPIRE_API_Wrappers::SendArray<false>);
+    mEMPIREAPI.def("EMPIRE_API_recvSignal_double", EMPIRE_API_Wrappers::ReceiveArray<false>);
 
     mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", EMPIRE_API_recvConvergenceSignal);
     mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", EMPIRE_API_sendConvergenceSignal);
