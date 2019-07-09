@@ -128,8 +128,8 @@ class AdjointDiffusionSolver(PythonSolver):
                 var_utils = kratos.VariableUtils()
                 for key, value in mat["Variables"].items():
                     var = kratos.KratosGlobals.GetVariable(key)
-                    #if not model_part.NodalSolutionStepDataHas(var):
-                    #     raise Exception("Trying to set variable ", var.Name()," on nodes, but the variable is not in nodal data.")
+                    if not model_part.HasNodalSolutionStepVariable(var):
+                         raise Exception("Trying to set variable {0} on nodes, but the variable is not in nodal data.".format(var.Name()))
                     if value.IsDouble():
                         var_utils.SetScalarVar(var, value.GetDouble(), model_part.Nodes)
                     elif value.IsVector():
