@@ -5,7 +5,7 @@
         "Material"        : {
             "Variables" : {
                 "DENSITY"       : 1.0,
-                "CONDUCTIVITY"  : 1.0,
+                "CONDUCTIVITY"  : 10.0,
                 "SPECIFIC_HEAT" : 0.0
             },
             "Tables"    : {}
