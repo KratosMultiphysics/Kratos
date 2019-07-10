@@ -128,20 +128,9 @@ public:
     {
         KRATOS_TRY;
         KRATOS_INFO("\n::[Creating Hole]::") << std::endl;
-        Model &current_model = rModelPart.GetModel();
-        ModelPart &r_dummy_internal_boundary = current_model.CreateModelPart("dummy_chimera_internal_boundary");
         RemoveOutOfDomainElements(rModelPart, rExtractedModelPart,1,Distance, true);
-        FindOutsideBoundaryOfModelPartGivenInside(rExtractedModelPart, r_dummy_internal_boundary, rExtractedBoundaryModelPart);
-        current_model.DeleteModelPart("dummy_chimera_internal_boundary");
+        ExtractBoundaryMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
         KRATOS_CATCH("");
-    }
-
-    void FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart, ModelPart &rInsideBoundary, ModelPart &rExtractedBoundaryModelPart)
-    {
-        std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
-        KRATOS_ERROR_IF(!(n_nodes!=3 || n_nodes!=4))<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
-
-        ExtractBoundaryMesh(rModelPart, rInsideBoundary, rExtractedBoundaryModelPart);
     }
 
     void RemoveOutOfDomainElements(ModelPart &rModelPart,
@@ -158,17 +147,17 @@ public:
 
         for (auto& i_element :rModelPart.Elements())
         {
-            double element_distance = 0.0;
+            double nodal_distance = 0.0;
             std::size_t numPointsOutside = 0;
             std::size_t j = 0;
             Geometry<Node<3>> &geom = i_element.GetGeometry();
 
             for (j = 0; j < geom.size(); j++)
             {
-                element_distance = i_element.GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+                nodal_distance = i_element.GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
-                element_distance = element_distance * MainDomainOrNot;
-                if (element_distance < -1*OverLapDistance)
+                nodal_distance = nodal_distance * MainDomainOrNot;
+                if (nodal_distance < -1*OverLapDistance)
                 {
                     numPointsOutside++;
                 }
@@ -228,11 +217,14 @@ public:
     }
 
     //give the outside surface of a model part given inside boundary
-    void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rInsideBoundaryModelPart, ModelPart &rExtractedBoundaryModelPart)
+    void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
     {
         KRATOS_TRY;
 
         KRATOS_INFO(":: [Boundary mesh extraction]::") << std::endl;
+
+        std::size_t n_nodes = rVolumeModelPart.ElementsBegin()->GetGeometry().size();
+        KRATOS_ERROR_IF(!(n_nodes!=3 || n_nodes!=4))<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
 
         // Some type-definitions
         typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparator> hashmap;
@@ -261,18 +253,6 @@ public:
                 // Fill the map
                 n_faces_map[ids] += 1;
             }
-        }
-
-        KRATOS_INFO("Comparing with inside boundary ") << rInsideBoundaryModelPart.Name() << std::endl;
-        for (ModelPart::ConditionIterator it_cond = rInsideBoundaryModelPart.ConditionsBegin(); it_cond != rInsideBoundaryModelPart.ConditionsEnd(); ++it_cond)
-        {
-            vector<std::size_t> ids(it_cond->GetGeometry().size());
-            for (std::size_t i = 0; i < it_cond->GetGeometry().size(); i++)
-                ids[i] = it_cond->GetGeometry()[i].Id();
-
-            std::sort(ids.begin(), ids.end());
-            if (n_faces_map[ids] == 1)
-                n_faces_map[ids] += 1;
         }
 
         // Create a map to get nodes of skin face in original order for given set of node ids representing that face
@@ -396,6 +376,38 @@ public:
             Node<3>::Pointer pnode = rVolumeModelPart.Nodes()(i_node_id);
             rExtractedBoundaryModelPart.AddNode(pnode);
         }
+
+        for(auto& i_condition : rExtractedBoundaryModelPart.Conditions())
+        {
+            auto& geo = i_condition.GetGeometry();
+            for(auto& node : geo )
+                node.Set(TO_ERASE, false);
+        }
+
+        for(auto& i_condition : rExtractedBoundaryModelPart.Conditions())
+        {
+            auto& geo = i_condition.GetGeometry();
+            bool is_internal = true;
+            for(const auto& node : geo )
+                is_internal = is_internal && node.Is(CHIMERA_INTERNAL_BOUNDARY);
+            if(is_internal){
+                if(!GetInternal){
+                    i_condition.Set(TO_ERASE);
+                    for(auto& node : geo )
+                        node.Set(TO_ERASE);
+                }
+            } else {
+                if(GetInternal){
+                    i_condition.Set(TO_ERASE);
+                    for(auto& node : geo )
+                        node.Set(TO_ERASE);
+                }
+            }
+        }
+
+        rExtractedBoundaryModelPart.RemoveConditions(TO_ERASE);
+        rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
+
         KRATOS_INFO("Successful extraction of the boundary mesh") << std::endl;
         KRATOS_CATCH("");
     }
