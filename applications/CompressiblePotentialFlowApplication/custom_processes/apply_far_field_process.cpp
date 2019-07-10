@@ -24,17 +24,21 @@ void ApplyFarFieldProcess::Execute()
 {
     double min_projection = std::numeric_limits<double>::epsilon();
     mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = mrModelPart.NodesBegin() + i;
         const auto& r_coordinates = it_node->Coordinates();
         double distance_projection = inner_prod(r_coordinates,mFreeStreamVelocity);
-        if (distance_projection<min_projection){
-            min_projection=distance_projection;
-            mrReferenceNode = *it_node;
+        #pragma omp critical
+        {
+            if (distance_projection<min_projection){
+                min_projection=distance_projection;
+                mrReferenceNode = *it_node;
+            }
         }
-
     }
 
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Conditions().size()); i++) {
         auto it_cond = mrModelPart.ConditionsBegin() + i;
         auto& r_geometry = it_cond->GetGeometry();
@@ -65,6 +69,7 @@ void ApplyFarFieldProcess::Execute()
 void ApplyFarFieldProcess::InitializeFlowField()
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(root_model_part.Nodes().size()); i++) {
         auto it_node = root_model_part.NodesBegin() + i;
 
