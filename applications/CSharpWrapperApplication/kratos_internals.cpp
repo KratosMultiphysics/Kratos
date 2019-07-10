@@ -67,7 +67,7 @@ void KratosInternals::loadSettingsParameters(const std::string& rJSONFilePath) {
     }
 
     Kratos::Parameters default_parameters = GetDefaultSettings();
-    mSettingsParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    mSettingsParameters.RecursivelyAddMissingParameters(default_parameters);
 }
 
 void KratosInternals::initDofs() {
