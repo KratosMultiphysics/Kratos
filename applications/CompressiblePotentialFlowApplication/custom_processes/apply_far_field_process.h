@@ -91,7 +91,7 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
-    NodeType mrReferenceNode;
+    NodeType::Pointer mpReferenceNode;
     array_1d<double,3> mFreeStreamVelocity;
     double mReferencePotential = 1.0;
     ///@}

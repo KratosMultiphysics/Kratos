@@ -22,21 +22,32 @@ ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart)
 
 void ApplyFarFieldProcess::Execute()
 {
-    double min_projection = std::numeric_limits<double>::epsilon();
     mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+
+    std::size_t num_threads = omp_get_max_threads();
+    std::vector<double> min_projections(num_threads, std::numeric_limits<double>::epsilon());
+    std::vector<std::size_t> nodes_id_list(num_threads, 0);
+
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = mrModelPart.NodesBegin() + i;
+        std::size_t thread_id = omp_get_thread_num();
         const auto& r_coordinates = it_node->Coordinates();
         double distance_projection = inner_prod(r_coordinates,mFreeStreamVelocity);
-        #pragma omp critical
-        {
-            if (distance_projection<min_projection){
-                min_projection=distance_projection;
-                mrReferenceNode = *it_node;
-            }
+        if (distance_projection < min_projections[thread_id]){
+            min_projections[thread_id] = distance_projection;
+            nodes_id_list[thread_id] = it_node->Id();
         }
     }
+
+    std::size_t minimum_node_thread_id = 0;
+    for (std::size_t i_thread = 0; i_thread<num_threads; i_thread++){
+        if (min_projections[i_thread] < min_projections[minimum_node_thread_id]){
+            minimum_node_thread_id = i_thread;
+        }
+    }
+
+    mpReferenceNode = mrModelPart.pGetNode(nodes_id_list[minimum_node_thread_id]);
 
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Conditions().size()); i++) {
@@ -49,7 +60,7 @@ void ApplyFarFieldProcess::Execute()
         double velocity_projection = inner_prod(normal, mFreeStreamVelocity);
         if (velocity_projection < 0.0) {
             for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++){
-                array_1d<double,3> relative_coordinates = r_geometry[i_node].Coordinates() - mrReferenceNode.Coordinates();
+                array_1d<double,3> relative_coordinates = r_geometry[i_node].Coordinates() - mpReferenceNode->Coordinates();
                 double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
                 r_geometry[i_node].Fix(VELOCITY_POTENTIAL);
                 r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
@@ -73,7 +84,7 @@ void ApplyFarFieldProcess::InitializeFlowField()
     for (int i = 0; i < static_cast<int>(root_model_part.Nodes().size()); i++) {
         auto it_node = root_model_part.NodesBegin() + i;
 
-        array_1d<double,3> relative_coordinates = it_node->Coordinates() - mrReferenceNode.Coordinates();
+        array_1d<double,3> relative_coordinates = it_node->Coordinates() - mpReferenceNode->Coordinates();
         double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
 
         it_node->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
