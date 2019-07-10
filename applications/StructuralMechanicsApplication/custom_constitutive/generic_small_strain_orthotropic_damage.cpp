@@ -432,6 +432,30 @@ int GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <class TConstLawIntegratorType>
+void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSecantTensor(
+    Matrix& rSecantTensor, 
+    ConstitutiveLaw::Parameters& rValues, 
+    const Vector& rDamages
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double nu = r_material_properties[POISSON_RATIO];
+
+    if (rSecantTensor.size1() == VoigtSize)
+        rSecantTensor.resize(VoigtSize, VoigtSize);
+    noalias(rSecantTensor) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    if (Dimension == 3) { // 3D version
+
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
 template class GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
