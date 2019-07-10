@@ -20,7 +20,6 @@ from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulatio
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
 from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
-from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
 from adjoint_vms_element_2d import AdjointVMSElement2D
@@ -103,7 +102,6 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
-    validationSuite.addTest(VolumeSourceTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
 
 
