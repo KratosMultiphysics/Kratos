@@ -28,8 +28,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // The size type definition
-    typedef std::size_t SizeType;
+// The size type definition
+typedef std::size_t SizeType;
     
 ///@}
 ///@name  Enum's
@@ -45,10 +45,12 @@ namespace Kratos
 /**
  * @class GenericSmallStrainOrthotropicDamage
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for damage in small deformation
+ * @brief This class defines an small strain orthotropic damage model developed by Cervera et. al
+ * in "Appraisement of planar, bending and twisting cracks in 3D with isotropic and orthotropic damage models"
+ * International Journal of Fracture
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainOrthotropicDamage
@@ -358,11 +360,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double& GetThreshold() { return mThreshold; }
-    double& GetDamage() { return mDamage; }
+    Vector& GetThresholds() { return mThreshold; }
+    Vector& GetDamages() { return mDamage; }
 
-    void SetThreshold(const double toThreshold) { mThreshold = toThreshold; }
-    void SetDamage(const double toDamage) { mDamage = toDamage; }
+    void SetThresholds(const Vector& toThresholds) { mThresholds = toThresholds; }
+    void SetDamages(const Vector& toDamages) { mDamages = toDamages; }
 
     ///@}
     ///@name Protected  Access
@@ -385,10 +387,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    // Converged values
-    double mDamage = 0.0;
-    double mThreshold = 0.0;
-    double mUniaxialStress = 0.0;
+    // The damage and threshold of each principal direction
+    Vector mDamages    = ZeroVector(Dimension);
+    Vector mThresholds = ZeroVector(Dimension);
 
     ///@}
     ///@name Private Operators
