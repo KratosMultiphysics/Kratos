@@ -45,7 +45,7 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
                         "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","DISTANCE","MESH_VELOCITY"],
                         "nodal_data_value_variables"         : [],
                         "element_flags"                      : ["ACTIVE"],
-                        "nodal_flags"                        : ["VISITED"],
+                        "nodal_flags"                        : ["VISITED","CHIMERA_INTERNAL_BOUNDARY"],
                         "element_data_value_variables"       : [],
                         "condition_data_value_variables"     : []
                     }
