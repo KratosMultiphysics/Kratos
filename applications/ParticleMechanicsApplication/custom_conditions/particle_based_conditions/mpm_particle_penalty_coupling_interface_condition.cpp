@@ -45,9 +45,9 @@ MPMParticlePenaltyCouplingInterfaceCondition::MPMParticlePenaltyCouplingInterfac
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMParticlePenaltyCouplingInterfaceCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyCouplingInterfaceCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************

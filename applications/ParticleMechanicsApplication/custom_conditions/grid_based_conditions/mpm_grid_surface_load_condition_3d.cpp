@@ -58,11 +58,11 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
 
 Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, pGeometry, pProperties);
 }
 
 //***********************************************************************************
@@ -216,8 +216,8 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 
     // Reading integration points and local gradients
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
     const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Calculating actual jacobian
