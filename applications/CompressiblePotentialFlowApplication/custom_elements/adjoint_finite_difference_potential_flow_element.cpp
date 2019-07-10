@@ -55,7 +55,7 @@ namespace Kratos
         Vector RHS_perturbed;
 
         auto pPrimalElement = this->pGetPrimalElement();
-        auto& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         pPrimalElement->CalculateRightHandSide(RHS, process_info);
 
@@ -80,7 +80,7 @@ namespace Kratos
                     pPrimalElement->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
                 }else{
                     for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (i_dim + i_node*Dim), i) = 0.0;
+                        rOutput((i_dim + i_node*Dim), i) = 0.0;
                 }
             }
         }
