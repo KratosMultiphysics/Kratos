@@ -13,7 +13,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.input_file = "cavity10"
         self.reference_file = "reference10_qasgs"
         self.work_folder = "FluidElementTest"
-        self.element = "QSVMS2D3N"
+        self.element = "qsvms"
+        self.is_time_integrated = False
 
         self.nsteps = 10
 
@@ -29,7 +30,10 @@ class FluidElementTest(UnitTest.TestCase):
 
     def runCavity(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
-            self.setUpModel()
+            if self.is_time_integrated:
+                self.setUpModelTimeIntegrated()
+            else:
+                self.setUpModel()
             self.setUpProblem()
 
             self.runTest()
@@ -61,6 +65,18 @@ class FluidElementTest(UnitTest.TestCase):
         self.oss_switch = True
         self.runCavity()
 
+    def testSymbolic(self):
+        self.element = "symbolic"
+        self.reference_file = "reference10_symbolic"
+        self.is_time_integrated = True
+        self.runCavity()
+
+    def testTimeIntegratedQSVMS(self):
+        self.element = "qsvms"
+        self.reference_file = "reference10_time_integrated"
+        self.is_time_integrated = True
+        self.runCavity()
+
     def setUpModel(self):
         self.model = Model()
 
@@ -68,7 +84,37 @@ class FluidElementTest(UnitTest.TestCase):
             settings = Parameters(settings_file.read())
 
         settings["solver_settings"]["formulation"]["element_type"].SetString(self.element)
+        settings["solver_settings"]["formulation"].AddEmptyValue("use_orthogonal_subscales")
         settings["solver_settings"]["formulation"]["use_orthogonal_subscales"].SetBool(self.oss_switch)
+
+        self.fluid_solver = navier_stokes_solver.CreateSolver(self.model,settings["solver_settings"])
+        self.fluid_solver.AddVariables()
+        self.fluid_solver.ImportModelPart()
+        self.fluid_solver.PrepareModelPart()
+        self.fluid_solver.AddDofs()
+
+        self.fluid_model_part = self.model.GetModelPart("Fluid")
+
+    def setUpModelTimeIntegrated(self):
+        self.model = Model()
+
+        with open("solver_settings.json","r") as settings_file:
+            settings = Parameters(settings_file.read())
+
+        settings["solver_settings"]["formulation"]["element_type"].SetString(self.element)
+        settings["solver_settings"]["formulation"].AddEmptyValue("dynamic_tau")
+        settings["solver_settings"]["formulation"]["dynamic_tau"].SetDouble(0.0)
+        if self.element == "qsvms":
+            settings["solver_settings"]["formulation"].AddEmptyValue("use_orthogonal_subscales")
+            settings["solver_settings"]["formulation"]["use_orthogonal_subscales"].SetBool(self.oss_switch)
+            settings["solver_settings"]["formulation"].AddEmptyValue("element_manages_time_integration")
+            settings["solver_settings"]["formulation"]["element_manages_time_integration"].SetBool(True)
+        elif self.element == "symbolic":
+            settings["solver_settings"]["formulation"].AddEmptyValue("sound_velocity")
+            settings["solver_settings"]["formulation"]["sound_velocity"].SetDouble(1e12)
+
+        settings["solver_settings"].AddEmptyValue("time_scheme")
+        settings["solver_settings"]["time_scheme"].SetString("bdf2")
 
         self.fluid_solver = navier_stokes_solver.CreateSolver(self.model,settings["solver_settings"])
         self.fluid_solver.AddVariables()
@@ -85,6 +131,15 @@ class FluidElementTest(UnitTest.TestCase):
         ymax = 1.0
 
         ux = 1.0
+
+        if self.element == "symbolic":
+            ## Set up consitutive law
+            rho = 1.0
+            mu = 0.01
+            self.fluid_model_part.Properties[1].SetValue(DENSITY,rho)
+            self.fluid_model_part.Properties[1].SetValue(DYNAMIC_VISCOSITY,mu)
+            constitutive_law = Newtonian2DLaw()
+            self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
 
         for element in self.fluid_model_part.Elements:
             element.Initialize()

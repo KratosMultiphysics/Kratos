@@ -18,8 +18,7 @@
     },
     "maximum_iterations"          : 50,
     "formulation"               : {
-        "element_type"            : "qsvms",
-        "use_orthogonal_subscales": false
+        "element_type"            : "qsvms"
     },
     "volume_model_part_name"      : "Fluid",
     "skin_parts"                  : [],

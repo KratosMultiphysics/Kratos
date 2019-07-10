@@ -20,7 +20,6 @@ from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulatio
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
 from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
-from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
@@ -84,9 +83,9 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testCavityQSOSS'))
     nightSuite.addTest(FluidElementTest('testCavityDASGS'))
     nightSuite.addTest(FluidElementTest('testCavityDOSS'))
+    nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
+    nightSuite.addTest(FluidElementTest('testSymbolic'))
     nightSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
-    nightSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
-    nightSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
