@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez and Marc Núñez
+//  Main authors:    Inigo Lopez and Marc Nunez
 //
 
 #if !defined(KRATOS_APPLY_FAR_FIELD_PROCESS_H_INCLUDED )
