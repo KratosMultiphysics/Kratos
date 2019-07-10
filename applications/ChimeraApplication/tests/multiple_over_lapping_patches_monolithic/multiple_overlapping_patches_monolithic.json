@@ -33,25 +33,23 @@
             [
                 {
                     "model_part_name": "GENERIC_background",
-                    "model_part_inside_boundary_name": "GENERIC_domainboundary",
                     "overlap_distance": 0.0003
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_1_1",
-                    "model_part_inside_boundary_name": "NoSlip2D_structure_1_1",
                     "overlap_distance": 0.0003
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_2_1",
-                    "model_part_inside_boundary_name": "NoSlip2D_structure_2_1",
                     "overlap_distance": 0.0003
                 }
             ]
         ],
+        "internal_parts_for_chimera":["NoSlip2D_structure_1_1", "NoSlip2D_structure_2_1"],
         "time_stepping": {
             "automatic_time_step": false,
             "time_step": 0.01

@@ -34,25 +34,23 @@
             [
                 {
                     "model_part_name": "GENERIC_background",
-                    "model_part_inside_boundary_name": "GENERIC_domainboundary",
                     "overlap_distance": 0.0002
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_1_1",
-                    "model_part_inside_boundary_name": "NoSlip2D_structure_1_1",
                     "overlap_distance": 0.0002
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_2_1",
-                    "model_part_inside_boundary_name": "NoSlip2D_structure_2_1",
                     "overlap_distance": 0.0002
                 }
             ]
         ],
+        "internal_parts_for_chimera":["NoSlip2D_structure_1_1", "NoSlip2D_structure_2_1"],
         "time_stepping": {
             "automatic_time_step": false,
             "time_step": 0.01
@@ -157,24 +155,6 @@
             }
         ],
         "auxiliar_process_list": [],
-        "_json_output_process": [
-            {
-                "python_module": "json_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "help": "",
-                "process_name": "JsonOutputProcess",
-                "Parameters": {
-                    "output_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE"
-                    ],
-                    "output_file_name": "multiple_overlapping_patches_fractionalstep_results.json",
-                    "model_part_name": "GENERIC_background",
-                    "time_frequency": 0.1
-                }
-            }
-        ]
     },
     "_json_output_process": [
         {

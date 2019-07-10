@@ -45,18 +45,17 @@
             [
                 {
                     "model_part_name": "GENERIC_background_surface",
-                    "model_part_inside_boundary_name": "GENERIC_back_ground_boundary",
                     "overlap_distance": 0.01
                 }
             ],
             [
                 {
                     "model_part_name": "GENERIC_patch_surface",
-                    "model_part_inside_boundary_name": "NoSlip2D_cross",
                     "overlap_distance": 0.7
                 }
             ]
         ],
+        "internal_parts_for_chimera":["NoSlip2D_cross"],
         "time_stepping": {
             "automatic_time_step": false,
             "time_step": 0.05
