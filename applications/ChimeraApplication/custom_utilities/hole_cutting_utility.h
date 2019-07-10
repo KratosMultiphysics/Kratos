@@ -61,15 +61,17 @@ namespace Kratos
 class KRATOS_API(CHIMERA_APPLICATION) ChimeraHoleCuttingUtility
 {
 public:
+
+    typedef std::size_t IndexType;
     // Needed structures for the ExtractSurfaceMesh operation
     struct KeyComparator
     {
-        bool operator()(const vector<std::size_t> &lhs, const vector<std::size_t> &rhs) const
+        bool operator()(const vector<IndexType> &lhs, const vector<IndexType> &rhs) const
         {
             if (lhs.size() != rhs.size())
                 return false;
 
-            for (std::size_t i = 0; i < lhs.size(); i++)
+            for (IndexType i = 0; i < lhs.size(); i++)
             {
                 if (lhs[i] != rhs[i])
                     return false;
@@ -81,12 +83,12 @@ public:
 
     struct KeyHasher
     {
-        std::size_t operator()(const vector<int> &k) const
+        IndexType operator()(const vector<int> &k) const
         {
-            std::size_t seed = 0.0;
+            IndexType seed = 0.0;
             std::hash<int> hasher;
 
-            for (std::size_t i = 0; i < k.size(); i++)
+            for (IndexType i = 0; i < k.size(); i++)
             {
                 seed ^= hasher(k[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             }
@@ -158,15 +160,15 @@ public:
     {
         KRATOS_TRY;
         KRATOS_INFO("\n:: Removing Out Of Domain Patch with Inside boundary Given ::") << std::endl;
-        std::vector<std::size_t> vector_of_node_ids;
+        std::vector<IndexType> vector_of_node_ids;
 
         int count = 0;
 
         for (auto& i_element :rModelPart.Elements())
         {
             double nodal_distance = 0.0;
-            std::size_t numPointsOutside = 0;
-            std::size_t j = 0;
+            IndexType numPointsOutside = 0;
+            IndexType j = 0;
             Geometry<Node<3>> &geom = i_element.GetGeometry();
 
             for (j = 0; j < geom.size(); j++)
@@ -185,7 +187,7 @@ public:
             if (numPointsOutside > 0)
             {
                 i_element.Set(ACTIVE, false);
-                std::size_t num_nodes_per_elem = i_element.GetGeometry().PointsNumber();
+                IndexType num_nodes_per_elem = i_element.GetGeometry().PointsNumber();
                 if(GetInside)
                     rModifiedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));
                 for (j = 0; j < num_nodes_per_elem; j++)
@@ -208,7 +210,7 @@ public:
             {
                 if(!GetInside){
                     count++;
-                    std::size_t num_nodes_per_elem = i_element.GetGeometry().PointsNumber(); // Size()
+                    IndexType num_nodes_per_elem = i_element.GetGeometry().PointsNumber(); // Size()
                     rModifiedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));//AddElement()
                     for (j = 0; j < num_nodes_per_elem; j++)
                         vector_of_node_ids.push_back(i_element.GetGeometry()[j].Id());
@@ -220,7 +222,7 @@ public:
 
         KRATOS_INFO("Number of elements added to the modified patch") << count << std::endl;
         //sorting and making unique list of node ids
-        std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+        std::set<IndexType> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
         vector_of_node_ids.assign(s.begin(), s.end());
 
         // Add unique nodes in the ModelPart
@@ -246,75 +248,83 @@ public:
     //
     void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
     {
-        KRATOS_TRY;
+        //KRATOS_TRY;
 
         KRATOS_INFO(":: [Boundary mesh extraction]::") << std::endl;
 
-        std::size_t n_nodes = rVolumeModelPart.ElementsBegin()->GetGeometry().size();
+        IndexType n_nodes = rVolumeModelPart.ElementsBegin()->GetGeometry().size();
         KRATOS_ERROR_IF(!(n_nodes!=3 || n_nodes!=4))<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
 
         // Some type-definitions
-        typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparator> hashmap;
-        typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparator> hashmap_vec;
+        typedef std::unordered_map<vector<IndexType>, IndexType, KeyHasher, KeyComparator> hashmap;
+        typedef std::unordered_map<vector<IndexType>, vector<IndexType>, KeyHasher, KeyComparator> hashmap_vec;
 
         // Create map to ask for number of faces for the given set of node ids representing on face in the model part
         hashmap n_faces_map;
-
+        const unsigned int num_elements = rVolumeModelPart.NumberOfElements();
+        const auto elements_begin = rVolumeModelPart.ElementsBegin();
         // Fill map that counts number of faces for given set of nodes
-        for (ModelPart::ElementIterator it_elem = rVolumeModelPart.ElementsBegin(); it_elem != rVolumeModelPart.ElementsEnd(); it_elem++)
+#pragma omp parallel for
+         for (unsigned int i_e = 0; i_e < num_elements; ++i_e)
         {
-            Element::GeometryType::GeometriesArrayType faces = it_elem->GetGeometry().GenerateEdges();
+            auto i_element = elements_begin + i_e;
+            Element::GeometryType::GeometriesArrayType faces = i_element->GetGeometry().GenerateEdges();
 
-            for (std::size_t face = 0; face < faces.size(); face++)
+            for (IndexType i_face = 0; i_face < faces.size(); i_face++)
             {
-                // Create vector that stores all node is of current face
-                vector<std::size_t> ids(faces[face].size());
+                // Create vector that stores all node is of current i_face
+                vector<IndexType> ids(faces[i_face].size());
 
                 // Store node ids
-                for (std::size_t i = 0; i < faces[face].size(); i++)
-                    ids[i] = faces[face][i].Id();
+                for (IndexType i = 0; i < faces[i_face].size(); i++)
+                    ids[i] = faces[i_face][i].Id();
 
                 //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
                 std::sort(ids.begin(), ids.end());
 
                 // Fill the map
-                n_faces_map[ids] += 1;
+                #pragma omp critical
+                    n_faces_map[ids] += 1;
             }
         }
-
         // Create a map to get nodes of skin face in original order for given set of node ids representing that face
         // The given set of node ids may have a different node order
         hashmap_vec ordered_skin_face_nodes_map;
 
         // Fill map that gives original node order for set of nodes
-        for (ModelPart::ElementIterator it_elem = rVolumeModelPart.ElementsBegin(); it_elem != rVolumeModelPart.ElementsEnd(); it_elem++)
+#pragma omp parallel for
+        for (unsigned int i_e = 0; i_e < num_elements; ++i_e)
         {
-            Element::GeometryType::GeometriesArrayType faces = it_elem->GetGeometry().GenerateEdges();
+            auto i_element = elements_begin + i_e;
+            Element::GeometryType::GeometriesArrayType faces = i_element->GetGeometry().GenerateEdges();
 
-            for (std::size_t face = 0; face < faces.size(); face++)
+            for (IndexType i_face = 0; i_face < faces.size(); i_face++)
             {
-                // Create vector that stores all node is of current face
-                vector<std::size_t> ids(faces[face].size());
-                vector<std::size_t> unsorted_ids(faces[face].size());
+                // Create vector that stores all node is of current i_face
+                vector<IndexType> ids(faces[i_face].size());
+                vector<IndexType> unsorted_ids(faces[i_face].size());
 
                 // Store node ids
-                for (std::size_t i = 0; i < faces[face].size(); i++)
+                for (IndexType i = 0; i < faces[i_face].size(); i++)
                 {
-                    ids[i] = faces[face][i].Id();
-                    unsorted_ids[i] = faces[face][i].Id();
+                    ids[i] = faces[i_face][i].Id();
+                    unsorted_ids[i] = faces[i_face][i].Id();
                 }
 
                 //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
                 std::sort(ids.begin(), ids.end());
-                if (n_faces_map[ids] == 1)
-                    ordered_skin_face_nodes_map[ids] = unsorted_ids;
+                #pragma omp critical
+                {
+                    if (n_faces_map[ids] == 1)
+                        ordered_skin_face_nodes_map[ids] = unsorted_ids;
+                }
             }
         }
         // First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
-        std::size_t id_condition = 1;
+        IndexType id_condition = 1;
 
         // Add skin faces as triangles to skin-model-part (loop over all node sets)
-        std::vector<std::size_t> vector_of_node_ids;
+        std::vector<IndexType> vector_of_node_ids;
         for (typename hashmap::const_iterator it = n_faces_map.begin(); it != n_faces_map.end(); it++)
         {
             // If given node set represents face that is not overlapping with a face of another element, add it as skin element
@@ -324,7 +334,7 @@ public:
                 if (it->first.size() == 2)
                 {
                     // Getting original order is important to properly reproduce skin edge including its normal orientation
-                    vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+                    vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
                     Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
                     Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
@@ -345,7 +355,7 @@ public:
                 if (it->first.size() == 3)
                 {
                     // Getting original order is important to properly reproduce skin face including its normal orientation
-                    vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+                    vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
                     Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
                     Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
                     Node<3>::Pointer pnode3 = rVolumeModelPart.Nodes()(original_nodes_order[2]);
@@ -366,7 +376,7 @@ public:
                 if (it->first.size() == 4)
                 {
                     // Getting original order is important to properly reproduce skin including its normal orientation
-                    vector<std::size_t> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+                    vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
                     Node<3>::Pointer pnode1 = rVolumeModelPart.Nodes()(original_nodes_order[0]);
                     Node<3>::Pointer pnode2 = rVolumeModelPart.Nodes()(original_nodes_order[1]);
@@ -394,7 +404,7 @@ public:
         }
 
         //sorting and making unique list of node ids
-        std::set<std::size_t> sort_set(vector_of_node_ids.begin(), vector_of_node_ids.end());
+        std::set<IndexType> sort_set(vector_of_node_ids.begin(), vector_of_node_ids.end());
         vector_of_node_ids.assign(sort_set.begin(), sort_set.end());
 
         for (const auto& i_node_id : vector_of_node_ids)
@@ -404,11 +414,26 @@ public:
             rExtractedBoundaryModelPart.AddNode(pnode);
         }
 
-        for(auto& i_condition : rExtractedBoundaryModelPart.Conditions())
+
+        //for multipatch
+        const unsigned int num_nodes = rExtractedBoundaryModelPart.NumberOfNodes();
+        const auto nodes_begin = rExtractedBoundaryModelPart.NodesBegin();
+
+#pragma omp parallel for
+        for (unsigned int i_n = 0; i_n < num_nodes; ++i_n)
         {
-            auto& geo = i_condition.GetGeometry();
-            for(auto& node : geo )
-                node.Set(TO_ERASE, false);
+            auto i_node = nodes_begin + i_n;
+            i_node->Set(TO_ERASE, false);
+        }
+
+        const unsigned int num_conditions = rExtractedBoundaryModelPart.NumberOfConditions();
+        const auto conditions_begin = rExtractedBoundaryModelPart.ConditionsBegin();
+
+#pragma omp parallel for
+        for (unsigned int i_c = 0; i_c < num_conditions; ++i_c)
+        {
+            auto i_condition = conditions_begin + i_c;
+            i_condition->Set(TO_ERASE, false);
         }
 
         for(auto& i_condition : rExtractedBoundaryModelPart.Conditions())
@@ -436,7 +461,7 @@ public:
         rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
 
         KRATOS_INFO("Successful extraction of the boundary mesh") << std::endl;
-        KRATOS_CATCH("");
+        //KRATOS_CATCH("");
     }
 
 
