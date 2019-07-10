@@ -91,7 +91,7 @@ class StabilizedFormulation(object):
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvms",
-            "use_orthogonal_subscales": false,
+            "use_orthogonal_subscales": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
