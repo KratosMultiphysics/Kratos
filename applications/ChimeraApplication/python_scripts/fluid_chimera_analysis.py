@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics as Kratos
+import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.ChimeraApplication as KratosChimera
 
@@ -18,12 +18,20 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         else:
             raise Exception("The \"solver_settings\" should have the entry \"chimera_parts\" ")
 
+        if self.parameters["solver_settings"].Has("internal_parts_for_chimera"):
+            self.chimera_internal_parts = self.parameters["solver_settings"]["internal_parts_for_chimera"].Clone()
+            self.parameters["solver_settings"].RemoveValue("internal_parts_for_chimera")
+
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             raise Exception("MPI-Chimera is not implemented yet")
 
         super(FluidChimeraAnalysis,self).__init__(model,parameters)
+
+    def Initialize(self):
+        super(FluidChimeraAnalysis,self).Initialize()
+        self.__SetChimeraInternalPartsFlag()
 
     def _CreateProcesses(self, parameter_name, initialization_order):
 
@@ -36,7 +44,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                 self.solver_settings = self.parameters["solver_settings"]
 
             main_model_part = self.model[self.solver_settings["model_part_name"].GetString()]
-            domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+            domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             solver_type = self.parameters["solver_settings"]["solver_type"].GetString()
 
 
@@ -52,6 +60,10 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                     self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
 
         return list_of_processes
+
+    def __SetChimeraInternalPartsFlag(self):
+        for mp_name in self.chimera_internal_parts:
+            KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name.GetString()].Nodes)
 
     def InitializeSolutionStep(self):
         self.ChimeraProcess.ExecuteInitializeSolutionStep()
@@ -88,8 +100,8 @@ if __name__ == '__main__':
         parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = Kratos.Parameters(parameter_file.read())
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    model = KratosMultiphysics.Model()
     simulation = FluidChimeraAnalysis(model,parameters)
     simulation.Run()
