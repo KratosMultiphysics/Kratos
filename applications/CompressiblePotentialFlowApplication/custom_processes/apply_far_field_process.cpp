@@ -18,11 +18,12 @@ namespace Kratos {
 // Constructor for ApplyFarFieldProcess Process
 ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart, const double rReferencePotential)
     : Process(), mrModelPart(rModelPart), mReferencePotential(rReferencePotential)
-{}
+{
+    mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+}
 
 void ApplyFarFieldProcess::Execute()
 {
-    mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
     FindFarthestUpstreamBoundaryNode();
     AssignFarFieldBoundaryConditions();
 }
@@ -48,7 +49,7 @@ void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
         }
     }
 
-    // Find minium across all threads
+    // Find minimum across all threads
     std::size_t minimum_node_thread_id = 0;
     for (std::size_t i_thread = 0; i_thread<num_threads; i_thread++){
         if (min_projections[i_thread] < min_projections[minimum_node_thread_id]){
