@@ -23,11 +23,11 @@ ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart)
 void ApplyFarFieldProcess::Execute()
 {
     double min_projection = std::numeric_limits<double>::epsilon();
-    const auto free_stream_velocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+    mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = mrModelPart.NodesBegin() + i;
         const auto& r_coordinates = it_node->Coordinates();
-        double distance_projection = inner_prod(r_coordinates,free_stream_velocity);
+        double distance_projection = inner_prod(r_coordinates,mFreeStreamVelocity);
         if (distance_projection<min_projection){
             min_projection=distance_projection;
             mrReferenceNode = *it_node;
@@ -42,11 +42,11 @@ void ApplyFarFieldProcess::Execute()
         r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
         array_1d<double,3> normal = it_cond->GetGeometry().Normal(aux_coordinates);
 
-        double velocity_projection = inner_prod(normal, free_stream_velocity);
+        double velocity_projection = inner_prod(normal, mFreeStreamVelocity);
         if (velocity_projection < 0.0) {
             for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++){
                 array_1d<double,3> relative_coordinates = r_geometry[i_node].Coordinates() - mrReferenceNode.Coordinates();
-                double inlet_potential = inner_prod(relative_coordinates, free_stream_velocity);
+                double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
                 r_geometry[i_node].Fix(VELOCITY_POTENTIAL);
                 r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
                 if (r_geometry[i_node].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL)){
@@ -56,11 +56,24 @@ void ApplyFarFieldProcess::Execute()
             }
         }
         else {
-            it_cond->SetValue(FREE_STREAM_VELOCITY, free_stream_velocity);
+            it_cond->SetValue(FREE_STREAM_VELOCITY, mFreeStreamVelocity);
         }
 
     }
 }
 
+void ApplyFarFieldProcess::InitializeFlowField()
+{
+    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+    for (int i = 0; i < static_cast<int>(root_model_part.Nodes().size()); i++) {
+        auto it_node = root_model_part.NodesBegin() + i;
+
+        array_1d<double,3> relative_coordinates = it_node->Coordinates() - mrReferenceNode.Coordinates();
+        double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
+
+        it_node->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
+        it_node->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
+    }
+}
 
 } // namespace Kratos.

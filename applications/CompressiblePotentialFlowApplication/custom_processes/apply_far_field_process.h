@@ -63,6 +63,7 @@ public:
 
     /// Execute method is used to execute the ApplyFarFieldProcess algorithms.
     void Execute() override;
+    void InitializeFlowField();
 
     ///@}
     ///@name Input and output
@@ -91,6 +92,7 @@ private:
     ///@{
     ModelPart& mrModelPart;
     NodeType mrReferenceNode;
+    array_1d<double,3> mFreeStreamVelocity;
     double mReferencePotential = 1.0;
     ///@}
     ///@name Private Operators
