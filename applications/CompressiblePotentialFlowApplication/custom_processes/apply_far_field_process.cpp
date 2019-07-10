@@ -90,12 +90,16 @@ void ApplyFarFieldProcess::AssignDirichletFarFieldBoundaryCondition(Geometry<Nod
         double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
         // Checking if its the primal or the adjoint case.
         if (!rGeometry[i_node].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL)) {
+            rGeometry[i_node].SetLock();
             rGeometry[i_node].Fix(VELOCITY_POTENTIAL);
             rGeometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
+            rGeometry[i_node].UnSetLock();
         }
         else {
+            rGeometry[i_node].SetLock();
             rGeometry[i_node].Fix(ADJOINT_VELOCITY_POTENTIAL);
             rGeometry[i_node].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL) = 0.0;
+            rGeometry[i_node].UnSetLock();
         }
     }
 }
