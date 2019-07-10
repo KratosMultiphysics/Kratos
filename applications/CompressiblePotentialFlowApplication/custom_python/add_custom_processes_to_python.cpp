@@ -47,7 +47,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyFarFieldProcess, ApplyFarFieldProcess::Pointer, Process >
         (m, "ApplyFarFieldProcess")
-        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const double>())
         .def("InitializeFlowField", &ApplyFarFieldProcess::InitializeFlowField)
         ;
 }

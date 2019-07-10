@@ -42,7 +42,7 @@ public:
     ///@{
 
     /// Constructor
-    ApplyFarFieldProcess(ModelPart& rModelPart);
+    ApplyFarFieldProcess(ModelPart& rModelPart, const double rReferencePotential);
 
     /// Copy constructor.
     ApplyFarFieldProcess(ApplyFarFieldProcess const& rOther) = delete;

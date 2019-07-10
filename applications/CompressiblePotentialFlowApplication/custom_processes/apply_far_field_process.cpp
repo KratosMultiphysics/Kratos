@@ -16,8 +16,8 @@
 namespace Kratos {
 
 // Constructor for ApplyFarFieldProcess Process
-ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart)
-    : Process(), mrModelPart(rModelPart)
+ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart, const double rReferencePotential)
+    : Process(), mrModelPart(rModelPart), mReferencePotential(rReferencePotential)
 {}
 
 void ApplyFarFieldProcess::Execute()
