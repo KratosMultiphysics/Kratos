@@ -80,7 +80,6 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
 {
     // Integrate Stress Damage
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = r_integrated_stress_vector;
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -118,9 +117,21 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         array_1d<double, Dimension> principal_stresses_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
+        double uniaxial_stress = 0.0;
         // Now we compute the damages on each direction...
         for (unsigned int i = 0; i < Dimension; i++) {
-
+            if (principal_stresses_vector[i] > tolerance) { // Damage only if positive
+                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+            }
+            const double F = uniaxial_stress - thresholds[i];
+            if (F > tolerance) { // Damage Case
+                const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+                TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damages[i], thresholds[i], rValues, characteristic_length);
+            } else { // Elastic Case
+                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                    // noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
+                }
+            }
 
         }
 
