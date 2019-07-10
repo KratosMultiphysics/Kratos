@@ -117,12 +117,12 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     //if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     //{
-        if ( rLeftHandSideMatrix.size1() != matrix_size )
-        {
-            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
-        }
+    if ( rLeftHandSideMatrix.size1() != matrix_size )
+    {
+        rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
+    }
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
     //}
 
     // Resizing as needed the RHS
@@ -143,6 +143,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Prepare variables
     GeneralVariables Variables;
+    const double augmention_factor = this->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
@@ -151,7 +152,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
     bool apply_constraints = true;
 
-    double augmention_factor = 0.0;
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
@@ -221,10 +221,10 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             }
 
         // Calculate LHS Matrix and RHS Vector
-        if ( CalculateStiffnessMatrixFlag == true )
-        {
-            rLeftHandSideMatrix  *= this->GetIntegrationWeight();
-        }
+        //if ( CalculateStiffnessMatrixFlag == true )
+        //{
+        rLeftHandSideMatrix  *= this->GetIntegrationWeight();
+        //}
 
 
         if ( CalculateResidualVectorFlag == true )
@@ -351,16 +351,40 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     rElementalDofList.resize(0);
     rElementalDofList.reserve(dim * number_of_nodes *2);
 
+    GeneralVariables Variables;
+    const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
+    // Calculating shape function
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    array_1d<bool,3> zero_shape_function;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        zero_shape_function[i]=false;
+    }
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (Variables.N[i] <= 0.00001 && rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0.00001)
+        {
+            zero_shape_function[i]=true;
+        }
+    }
     if(dim == 2)
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
+            if (zero_shape_function[i]==true){
+                rGeom[i].pGetDof(DISPLACEMENT_X)->FixDof();
+                rGeom[i].pGetDof(DISPLACEMENT_Y)->FixDof();
+            }
             rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
 
         }
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
+            if (zero_shape_function[i]==true){
+                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
+                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
+            }
             rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
             rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
         }
@@ -369,12 +393,22 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
+            if (zero_shape_function[i]==true){
+                rGeom[i].pGetDof(DISPLACEMENT_X)->FixDof();
+                rGeom[i].pGetDof(DISPLACEMENT_Y)->FixDof();
+                rGeom[i].pGetDof(DISPLACEMENT_Z)->FixDof();
+            }
             rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Z));
         }
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
+            if (zero_shape_function[i]==true){
+                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
+                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
+                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FixDof();
+            }
             rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
             rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
             rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));

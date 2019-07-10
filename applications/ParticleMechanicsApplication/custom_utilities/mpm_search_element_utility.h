@@ -121,7 +121,15 @@ namespace MPMSearchElementUtility
                             pelem->Set(ACTIVE);
                             condition_itr->GetGeometry() = pelem->GetGeometry();
                             auto& rGeom = condition_itr->GetGeometry();
+                            const unsigned int dim = rGeom.WorkingSpaceDimension();
 
+                            for ( IndexType j=0; j < rGeom.PointsNumber(); ++j )
+                            {
+                                    condition_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FreeDof();
+                                    condition_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FreeDof();
+                                    if (dim ==3)
+                                        condition_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FreeDof();
+                            }
                             for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
                                 rGeom[j].Set(ACTIVE);
                     }

@@ -50,6 +50,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
 
@@ -175,6 +176,18 @@ public:
 
         KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
 
+
+        for (ModelPart::NodesContainerType::iterator node_i = mr_grid_model_part.NodesBegin();
+        node_i != mr_grid_model_part.NodesEnd();
+        ++node_i)
+	    {
+            node_i->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
+            node_i->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
+            if (TDim == 3)
+            node_i->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FixDof();
+
+	    }
+
         // Create Material Point Element
         this->CreateMaterialPointElement(rNewElement, IsMixedFormulation);
 
@@ -198,7 +211,7 @@ public:
 
             const double ratio_tolerance = 1e-04;
             const double always_converged_norm = 1e-09;
-            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
+            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new DisplacementCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
 
             bool reform_DOF_at_each_iteration = false;
 
@@ -551,7 +564,7 @@ public:
                         p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
                         p_element->SetValue(MP_DENSITY, MP_Density);
                         p_element->SetValue(MP_MASS, mp_mass);
-                        p_element->SetValue(MP_VOLUME, mp_volume);
+                        p_element->SetValue(MP_VOLUME, mp_volume);//rGeom.IntegrationPoints(GeometryData::GI_GAUSS_5)[PointNumber].Weight());
                         p_element->SetValue(MP_COORD, xg);
                         p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
                         p_element->SetValue(MP_VELOCITY, mp_velocity);
@@ -592,6 +605,7 @@ public:
 
         double mpc_area = 0.0;
         double mpc_penalty_factor = 0.0;
+        double mpc_augmention_factor = 0.0;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = mr_grid_model_part.NumberOfConditions();
@@ -832,6 +846,8 @@ public:
                             mpc_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
+                        if (i->Has(SCALAR_LAGRANGE_MULTIPLIER))
+                            mpc_augmention_factor = i->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
                         const bool flip_normal_direction = i->Is(MODIFIED);
@@ -884,7 +900,6 @@ public:
 
                             mpc_xg.clear();
 
-                            // Loop over the nodes of the grid condition
                             for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
                                 for ( unsigned int j = 0; j < rGeom.size(); j ++){
                                     mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(point_number, j) * rGeom[j].Coordinates()[dim];
@@ -896,9 +911,9 @@ public:
 
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the second loop below
-                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
+                            p_condition->SetValue(MPC_CONDITION_ID, new_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_area);
+                            p_condition->SetValue(MPC_AREA, mpc_area);//rGeom.IntegrationPoints(GeometryData::GI_GAUSS_3)[point_number].Weight());
                             p_condition->SetValue(MPC_NORMAL, mpc_normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
@@ -908,6 +923,7 @@ public:
                                 p_condition->SetValue(POINT_LOAD, point_load);
                             else{
                                 p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmention_factor);
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
@@ -943,7 +959,7 @@ public:
 
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
-                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
+                            p_condition->SetValue(MPC_CONDITION_ID, new_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
                             p_condition->SetValue(MPC_AREA, mpc_nodal_area);
                             p_condition->SetValue(MPC_NORMAL, mpc_normal);
@@ -955,6 +971,7 @@ public:
                                 p_condition->SetValue(POINT_LOAD, point_load);
                             else{
                                 p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmention_factor);
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
