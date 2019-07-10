@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez
+//  Main authors:    Iñigo Lopez and Marc Núñez
 //
 
 // Project includes
