@@ -34,96 +34,97 @@ public:     // types
     using Vector = array_1d<double, TDimension>;
 
 private:    // variables
-    const int m_degree;
-    std::vector<double> m_knots;
-    TPoleContainer m_poles;
-    std::vector<double> m_weights;
+    const int mDegree;
+    std::vector<double> mKnots;
+    TPoleContainer mPoles;
+    std::vector<double> mWeights;
 
 public:     // constructors
     NurbsCurveGeometry(
-        const int degree,
-        int nb_poles,
-        bool is_rational
-    ) : m_degree(degree),
-        m_poles(nb_poles),
-        m_weights(is_rational ? nb_poles : 0),
-        m_knots(NurbsUtility::nb_knots(degree, nb_poles))
+        const int Degree,
+        int NbPoles,
+        bool IsRational
+    ) : mDegree(Degree),
+        mPoles(NbPoles),
+        mWeights(IsRational ? NbPoles : 0),
+        mKnots(NurbsUtility::nb_knots(Degree, NbPoles))
     {
         static_assert(TDimension > 0, "Invalid dimension");
     }
 
     NurbsCurveGeometry(
-        const int degree,
-        const std::vector<double>& knots,
-        const std::vector<Vector>& poles
-    ) : m_degree(degree),
-        m_knots(knots),
-        m_poles(poles),
-        m_weights()
+        const int Degree,
+        const std::vector<double>& rKnots,
+        const std::vector<Vector>& rPoles
+    ) : mDegree(Degree),
+        mKnots(rKnots),
+        mPoles(rPoles),
+        mWeights()
     {
         static_assert(TDimension > 0, "Invalid dimension");
 
-        if (knots.size() != NurbsUtility::nb_knots(degree, poles.size())) {
+        if (rKnots.size() != NurbsUtility::nb_knots(Degree, rPoles.size())) {
             throw std::runtime_error("Number of knots and poles do not match");
         }
     }
 
     NurbsCurveGeometry(
-        const int degree,
-        const std::vector<double>& knots,
-        const std::vector<Vector>& poles,
-        const std::vector<double>& weights
-    ) : m_degree(degree),
-        m_knots(knots),
-        m_poles(poles),
-        m_weights(weights)
+        const int Degree,
+        const std::vector<double>& rKnots,
+        const std::vector<Vector>& rPoles,
+        const std::vector<double>& rWeights
+    ) : mDegree(Degree),
+        mKnots(rKnots),
+        mPoles(rPoles),
+        mWeights(rWeights)
     {
         static_assert(TDimension > 0);
 
-        if (knots.size() != NurbsUtility::nb_knots(degree, poles.size())) {
+        if (rKnots.size() != NurbsUtility::nb_knots(Degree, rPoles.size())) {
             throw std::runtime_error("Number of knots and poles do not match");
         }
 
-        if (weights.size() != poles.size()) {
+        if (rWeights.size() != poles.size()) {
             throw std::runtime_error(
                 "Number of poles and weights do not match");
         }
     }
 
 public:     // static methods
-    static constexpr int dimension()
+    static constexpr int GetDimension()
     {
         return TDimension;
     }
 
 public:     // methods
-    int degree() const
+    int GetDegree() const
     {
-        return m_degree;
+        return mDegree;
     }
 
-    std::vector<Vector> derivatives_at(const double t, const int order) const
+    std::vector<Vector> GetDerivativesAt(const double ParameterT,
+        const int Order) const
     {
         NurbsCurveShapeFunction shape_function;
 
-        shape_function.resize(m_degree, order);
+        shape_function.Resize(mDegree, Order);
 
-        if (m_weights.size() > 0) {
-            shape_function.compute(m_knots, [&](int i) { return weight(i); }, t);
+        if (mWeights.size() > 0) {
+            shape_function.Compute(mKnots, [&](int i) { return GetWeight(i); }, ParameterT);
         } else {
-            shape_function.compute(m_knots, t);
+            shape_function.Compute(mKnots, ParameterT);
         }
 
-        std::vector<Vector> derivatives(shape_function.nb_shape_functions());
+        std::vector<Vector> derivatives(shape_function.GetNbShapeFunctions());
 
-        for (int order = 0; order < shape_function.nb_shape_functions(); order++) {
-            for (int i = 0; i < shape_function.nb_nonzero_poles(); i++) {
-                int index = shape_function.first_nonzero_pole() + i;
+        for (int order = 0; order < shape_function.GetNbShapeFunctions(); order++) {
+            for (int i = 0; i < shape_function.GetNbNonzeroPoles(); i++) {
+                int index = shape_function.GetFirstNonzeroPole() + i;
 
                 if (i == 0) {
-                    derivatives[order] = pole(index) * shape_function(order, i);
+                    derivatives[order] = GetPole(index) * shape_function(order, i);
                 } else {
-                    derivatives[order] += pole(index) * shape_function(order, i);
+                    derivatives[order] += GetPole(index) * shape_function(order, i);
                 }
             }
         }
@@ -131,106 +132,106 @@ public:     // methods
         return derivatives;
     }
 
-    Interval domain() const
+    Interval GetDomain() const
     {
-        return Interval(m_knots[m_degree - 1], m_knots[nb_knots() - m_degree]);
+        return Interval(mKnots[mDegree - 1], mKnots[GetNbKnots() - mDegree]);
     }
 
-    bool is_rational() const
+    bool IsRational() const
     {
-        return m_weights.size() != 0;
+        return mWeights.size() != 0;
     }
 
-    double knot(int i) const
+    double GetKnot(int Index) const
     {
-        return m_knots[i];
+        return mKnots[Index];
     }
 
-    const std::vector<double>& knots() const
+    const std::vector<double>& GetKnots() const
     {
-        return m_knots;
+        return mKnots;
     }
 
-    int nb_knots() const
+    int GetNbKnots() const
     {
-        return static_cast<int>(m_knots.size());
+        return static_cast<int>(mKnots.size());
     }
 
-    int nb_poles() const
+    int GetNbPoles() const
     {
-        return static_cast<int>(m_poles.size());
+        return static_cast<int>(mPoles.size());
     }
 
-    Vector point_at(const double t) const
+    Vector GetPointAt(const double ParameterT) const
     {
         NurbsCurveShapeFunction shape_function;
 
-        shape_function.resize(m_degree, 0);
+        shape_function.Resize(mDegree, 0);
 
-        if (m_weights.size() > 0) {
-            shape_function.compute(m_knots,
-                [&](int i) { return weight(i); }, t);
+        if (mWeights.size() > 0) {
+            shape_function.Compute(mKnots,
+                [&](int i) { return GetWeight(i); }, ParameterT);
         } else {
-            shape_function.compute(m_knots, t);
+            shape_function.Compute(mKnots, ParameterT);
         }
 
         Vector point;
 
-        for (int i = 0; i < shape_function.nb_nonzero_poles(); i++) {
-            const int index = shape_function.first_nonzero_pole() + i;
+        for (int i = 0; i < shape_function.GetNbNonzeroPoles(); i++) {
+            const int index = shape_function.GetFirstNonzeroPole() + i;
 
             if (i == 0) {
-                point = pole(index) * shape_function(0, i);
+                point = GetPole(index) * shape_function(0, i);
             } else {
-                point += pole(index) * shape_function(0, i);
+                point += GetPole(index) * shape_function(0, i);
             }
         }
 
         return point;
     }
 
-    Vector pole(int i) const
+    Vector GetPole(int Index) const
     {
-        return m_poles.at(i);
+        return mPoles.at(Index);
     }
 
-    const TPoleContainer& poles() const
+    const TPoleContainer& GetPoles() const
     {
-        return m_poles;
+        return mPoles;
     }
     
-    void set_knot(int i, double value)
+    void SetKnot(int Index, double Value)
     {
-        m_knots[i] = value;
+        mKnots.at(Index) = Value;
     }
     
-    void set_pole(int i, Vector value)
+    void SetPole(int Index, Vector Value)
     {
-        m_poles.at(i) = value;
+        mPoles.at(Index) = Value;
     }
     
-    void set_weight(int i, double value)
+    void SetWeight(int Index, double Value)
     {
-        m_weights.at(i) = value;
+        mWeights.at(Index) = Value;
     }
 
-    std::pair<std::vector<int>, Matrix> shape_functions_at(const double t,
-        const int order) const
+    std::pair<std::vector<int>, Matrix> GetShapeFunctionsAt(
+        const double ParameterT, const int Order) const
     {
-        NurbsCurveShapeFunction shape_function(degree(), order);
+        NurbsCurveShapeFunction shape_function(GetDegree(), Order);
 
-        if (is_rational()) {
-            shape_function.compute(knots(), [&](int i) {
-                return weight(i); }, t);
+        if (IsRational()) {
+            shape_function.Compute(knots(), [&](int i) {
+                return GetWeight(i); }, ParameterT);
         } else {
-            shape_function.compute(knots(), t);
+            shape_function.Compute(knots(), ParameterT);
         }
 
-        Matrix values(shape_function.nb_shape_functions(),
-            shape_function.nb_nonzero_poles());
+        Matrix values(shape_function.GetNbShapeFunctions(),
+            shape_function.GetNbNonzeroPoles());
 
-        for (int i = 0; i < shape_function.nb_shape_functions(); i++) {
-            for (int j = 0; j < shape_function.nb_nonzero_poles(); j++) {
+        for (int i = 0; i < shape_function.GetNbShapeFunctions(); i++) {
+            for (int j = 0; j < shape_function.GetNbNonzeroPoles(); j++) {
                 values(i, j) = shape_function(i, j);
             }
         }
@@ -238,10 +239,10 @@ public:     // methods
         return {shape_function.nonzero_pole_indices(), values};
     }
 
-    std::vector<Interval> spans() const
+    std::vector<Interval> Spans() const
     {
-        const int first_span = degree() - 1;
-        const int last_span = nb_knots() - degree() - 1;
+        const int first_span = GetDegree() - 1;
+        const int last_span = GetNbKnots() - GetDegree() - 1;
 
         const int nb_spans = last_span - first_span + 1;
 
@@ -257,14 +258,14 @@ public:     // methods
         return result;
     }
     
-    double weight(int i) const
+    double GetWeight(int Index) const
     {
-        return m_weights.at(i);
+        return mWeights.at(Index);
     }
     
-    const std::vector<double>& weights() const
+    const std::vector<double>& GetWeights() const
     {
-        return m_weights;
+        return mWeights;
     }
 }; // class NurbsCurveGeometry
 

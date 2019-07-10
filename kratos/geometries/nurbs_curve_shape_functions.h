@@ -24,38 +24,38 @@ namespace Kratos {
 class NurbsCurveShapeFunction
 {
 private:    // variables
-    int m_degree;
-    int m_order;
-    std::vector<double> m_values;
-    std::vector<double> m_left;
-    std::vector<double> m_right;
-    std::vector<double> m_ndu;
-    std::vector<double> m_a;
-    std::vector<double> m_b;
-    int m_first_nonzero_pole;
+    int mDegree;
+    int mOrder;
+    std::vector<double> mValues;
+    std::vector<double> mLeft;
+    std::vector<double> mRight;
+    std::vector<double> mNdu;
+    std::vector<double> mA;
+    std::vector<double> mB;
+    int mFirstNonzeroPole;
 
 private:    // methods
-    double& values(const int order, const int pole)
+    double& Value(const int order, const int pole)
     {
-        const int index = NurbsUtility::single_index(nb_shape_functions(),
-            nb_nonzero_poles(), order, pole);
+        const int index = NurbsUtility::single_index(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), order, pole);
 
-        return m_values[index];
+        return mValues[index];
     }
 
-    double& ndu(const int i, const int j)
+    double& Ndu(const int i, const int j)
     {
-        const int index = NurbsUtility::single_index(nb_shape_functions(),
-            nb_nonzero_poles(), i, j);
+        const int index = NurbsUtility::single_index(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), i, j);
 
-        return m_ndu[index];
+        return mNdu[index];
     }
 
-    void clear_values()
+    void ClearValues()
     {
-        const int nb_values = nb_nonzero_poles() * nb_shape_functions();
+        const int nb_values = GetNbNonzeroPoles() * GetNbShapeFunctions();
 
-        std::fill(m_values.begin(), m_values.begin() + nb_values, 0);
+        std::fill(mValues.begin(), mValues.begin() + nb_values, 0);
     }
 
 public:     // constructors
@@ -63,195 +63,198 @@ public:     // constructors
     {
     }
 
-    NurbsCurveShapeFunction(const int degree, const int order)
+    NurbsCurveShapeFunction(const int Degree, const int Order)
     {
-        resize(degree, order);
+        Resize(Degree, Order);
     }
 
 public:     // methods
-    void resize(const int degree, const int order)
+    void Resize(const int Degree, const int Order)
     {
-        m_values.resize((order + 1) * (degree + 1));
-        m_left.resize(degree);
-        m_right.resize(degree);
-        m_ndu.resize((degree + 1) * (degree + 1));
-        m_a.resize(degree + 1);
-        m_b.resize(degree + 1);
+        mValues.resize((Order + 1) * (Degree + 1));
+        mLeft.resize(Degree);
+        mRight.resize(Degree);
+        mNdu.resize((Degree + 1) * (Degree + 1));
+        mA.resize(Degree + 1);
+        mB.resize(Degree + 1);
 
-        m_degree = degree;
-        m_order = order;
+        mDegree = Degree;
+        mOrder = Order;
     }
 
-    int degree() const
+    int GetDegree() const
     {
-        return m_degree;
+        return mDegree;
     }
 
-    int order() const
+    int GetOrder() const
     {
-        return m_order;
+        return mOrder;
     }
 
-    int nb_nonzero_poles() const
+    int GetNbNonzeroPoles() const
     {
-        return degree() + 1;
+        return GetDegree() + 1;
     }
 
-    int nb_shape_functions() const
+    int GetNbShapeFunctions() const
     {
-        return order() + 1;
+        return GetOrder() + 1;
     }
 
-    double operator()(const int order, const int pole) const
+    double operator()(const int Order, const int Pole) const
     {
-        return value(order, pole);
+        return Value(Order, Pole);
     }
 
-    double value(const int order, const int pole) const
+    double Value(const int Order, const int Pole) const
     {
-        int index = NurbsUtility::single_index(nb_shape_functions(), nb_nonzero_poles(),
-            order, pole);
+        int index = NurbsUtility::single_index(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), Order, Pole);
 
-        return m_values[index];
+        return mValues[index];
     }
 
-    int first_nonzero_pole() const
+    int GetFirstNonzeroPole() const
     {
-        return m_first_nonzero_pole;
+        return mFirstNonzeroPole;
     }
 
-    int last_nonzero_pole() const
+    int GetLastNonzeroPole() const
     {
-        return first_nonzero_pole() + degree();
+        return GetFirstNonzeroPole() + GetDegree();
     }
 
-    std::vector<int> nonzero_pole_indices() const
+    std::vector<int> GetNonzeroPoleIndices() const
     {
-        std::vector<int> indices(nb_nonzero_poles());
+        std::vector<int> indices(GetNbNonzeroPoles());
 
-        for (int i = 0; i < nb_nonzero_poles(); i++) {
-            indices[i] = first_nonzero_pole() + i;
+        for (int i = 0; i < GetNbNonzeroPoles(); i++) {
+            indices[i] = GetFirstNonzeroPole() + i;
         }
 
         return indices;
     }
 
     template <typename TKnots>
-    void compute_at_span(const TKnots& knots, const int span, const double t)
+    void ComputeAtSpan(const TKnots& rKnots, const int Span,
+        const double ParameterT)
     {
-        clear_values();
+        ClearValues();
 
-        m_first_nonzero_pole = span - degree() + 1;
+        mFirstNonzeroPole = Span - GetDegree() + 1;
 
         // compute B-Spline shape
 
-        ndu(0, 0) = 1.0;
+        Ndu(0, 0) = 1.0;
 
-        for (int j = 0; j < degree(); j++) {
-            m_left[j] = t - knots[span - j];
-            m_right[j] = knots[span + j + 1] - t;
+        for (int j = 0; j < GetDegree(); j++) {
+            mLeft[j] = ParameterT - rKnots[Span - j];
+            mRight[j] = rKnots[Span + j + 1] - ParameterT;
 
             double saved = 0.0;
 
             for (int r = 0; r <= j; r++) {
-                ndu(j + 1, r) = m_right[r] + m_left[j - r];
+                Ndu(j + 1, r) = mRight[r] + mLeft[j - r];
 
-                double temp = ndu(r, j) / ndu(j + 1, r);
+                double temp = Ndu(r, j) / Ndu(j + 1, r);
 
-                ndu(r, j + 1) = saved + m_right[r] * temp;
+                Ndu(r, j + 1) = saved + mRight[r] * temp;
 
-                saved = m_left[j - r] * temp;
+                saved = mLeft[j - r] * temp;
             }
 
-            ndu(j + 1, j + 1) = saved;
+            Ndu(j + 1, j + 1) = saved;
         }
 
-        for (int j = 0; j < nb_nonzero_poles(); j++) {
-            values(0, j) = ndu(j, degree());
+        for (int j = 0; j < GetNbNonzeroPoles(); j++) {
+            Value(0, j) = Ndu(j, GetDegree());
         }
 
-        auto& a = m_a;
-        auto& b = m_b;
+        auto& a = mA;
+        auto& b = mB;
 
-        for (int r = 0; r < nb_nonzero_poles(); r++) {
+        for (int r = 0; r < GetNbNonzeroPoles(); r++) {
             a[0] = 1.0;
 
-            for (int k = 1; k < nb_shape_functions(); k++) {
-                double& value = values(k, r);
+            for (int k = 1; k < GetNbShapeFunctions(); k++) {
+                double& value = Value(k, r);
 
                 int rk = r - k;
-                int pk = degree() - k;
+                int pk = GetDegree() - k;
 
                 if (r >= k) {
-                    b[0] = a[0] / ndu(pk + 1, rk);
-                    value = b[0] * ndu(rk, pk);
+                    b[0] = a[0] / Ndu(pk + 1, rk);
+                    value = b[0] * Ndu(rk, pk);
                 }
 
                 int j1 = r >= k - 1 ? 1 : k - r;
-                int j2 = r <= pk + 1 ? k : nb_nonzero_poles() - r;
+                int j2 = r <= pk + 1 ? k : GetNbNonzeroPoles() - r;
 
                 for (int j = j1; j < j2; j++) {
-                    b[j] = (a[j] - a[j - 1]) / ndu(pk + 1, rk + j);
-                    value += b[j] * ndu(rk + j, pk);
+                    b[j] = (a[j] - a[j - 1]) / Ndu(pk + 1, rk + j);
+                    value += b[j] * Ndu(rk + j, pk);
                 }
 
                 if (r <= pk) {
-                    b[k] = -a[k - 1] / ndu(pk + 1, r);
-                    value += b[k] * ndu(r, pk);
+                    b[k] = -a[k - 1] / Ndu(pk + 1, r);
+                    value += b[k] * Ndu(r, pk);
                 }
 
                 std::swap(a, b);
             }
         }
 
-        int s = degree();
+        int s = GetDegree();
 
-        for (int k = 1; k < nb_shape_functions(); k++) {
-            for (int j = 0; j < nb_nonzero_poles(); j++) {
-                values(k, j) *= s;
+        for (int k = 1; k < GetNbShapeFunctions(); k++) {
+            for (int j = 0; j < GetNbNonzeroPoles(); j++) {
+                Value(k, j) *= s;
             }
-            s *= degree() - k;
+            s *= GetDegree() - k;
         }
     }
 
     template <typename TKnots, typename TWeights>
-    void compute_at_span(const TKnots& knots, const int span,
-        const TWeights& weights, const double t)
+    void ComputeAtSpan(const TKnots& rKnots, const int Span,
+        const TWeights& rWeights, const double ParameterT)
     {
         // compute B-Spline shape
 
-        compute_at_span(knots, span, t);
+        ComputeAtSpan(rKnots, Span, ParameterT);
 
         // compute weighted sum
 
         double weightedSum {0};
 
-        for (int i = 0; i < nb_nonzero_poles(); i++) {
-            m_values[i] *= weights(i);
-            weightedSum += m_values[i];
+        for (int i = 0; i < GetNbNonzeroPoles(); i++) {
+            mValues[i] *= rWeights(i);
+            weightedSum += mValues[i];
         }
 
         // apply weights
 
-        for (int i = 0; i < nb_nonzero_poles(); i++) {
-            m_values[i] /= weightedSum;
+        for (int i = 0; i < GetNbNonzeroPoles(); i++) {
+            mValues[i] /= weightedSum;
         }
     }
 
-    void compute(const std::vector<double>& knots, const double t)
+    void Compute(const std::vector<double>& rKnots, const double ParameterT)
     {
-        const int span = NurbsUtility::upper_span(degree(), knots, t);
+        const int span = NurbsUtility::upper_span(GetDegree(), rKnots,
+            ParameterT);
 
-        compute_at_span(knots, span, t);
+        ComputeAtSpan(rKnots, span, ParameterT);
     }
 
     template <typename TWeights>
-    void compute(const std::vector<double>& knots, const TWeights& weights,
-        const double t)
+    void Compute(const std::vector<double>& rKnots, const TWeights& rWeights,
+        const double ParameterT)
     {
-        const int span = NurbsUtility::upper_span(degree(), knots, t);
+        const int span = NurbsUtility::upper_span(GetDegree(), rKnots,
+            ParameterT);
 
-        compute_at_span(knots, span, weights, t);
+        ComputeAtSpan(rKnots, span, rWeights, ParameterT);
     }
 };
 
