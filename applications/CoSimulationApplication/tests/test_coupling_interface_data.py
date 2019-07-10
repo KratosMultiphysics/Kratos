@@ -216,6 +216,24 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data.Initialize()
 
+    def test_inplace_mult(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "PRESSURE"
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        coupling_data.Initialize()
+
+        factor = 1.55
+
+        data_init = coupling_data.GetData()
+        coupling_data.InplaceMultiply(factor)
+        data_mod = coupling_data.GetData()
+
+        for v_old, v_new in zip(data_init, data_mod):
+            self.assertAlmostEqual(v_old*factor, v_new)
+
     def test_GetSetNodalHistoricalData(self):
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
