@@ -28,7 +28,7 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
     def InitializeSolutionStep(self):
         self.initial_iteration = True
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
         self.prev_data = self.interface_data.GetData()
 

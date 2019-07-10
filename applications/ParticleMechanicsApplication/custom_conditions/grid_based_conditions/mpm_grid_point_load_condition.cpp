@@ -43,9 +43,9 @@ MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryT
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMGridPointLoadCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridPointLoadCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************

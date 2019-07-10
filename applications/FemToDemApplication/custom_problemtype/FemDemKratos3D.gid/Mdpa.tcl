@@ -107,6 +107,8 @@ proc WriteMdpa { basename dir problemtypedir } {
                 set ElementName "SmallStrainVonMisesFemDemElement3D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
                 set ElementName "SmallStrainTrescaFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
+                set ElementName "SmallStrainMohrCoulombFemDemElement3D"
             } else {
                 set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
             }        
@@ -123,6 +125,8 @@ proc WriteMdpa { basename dir problemtypedir } {
                 set ElementName "LargeDisplacementVonMisesFemDemElement3D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
                 set ElementName "LargeDisplacementTrescaFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
+                set ElementName "LargeDisplacementMohrCoulombFemDemElement3D"
             } else {
                 set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement3D"
             }  

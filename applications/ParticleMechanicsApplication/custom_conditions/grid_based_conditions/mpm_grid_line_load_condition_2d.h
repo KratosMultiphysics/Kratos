@@ -88,7 +88,7 @@ public:
 
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 

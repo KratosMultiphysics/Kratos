@@ -8,6 +8,12 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationConvergenceAccelerator(object):
+    """Baseclass for the convergence acceleratos used for CoSimulation
+    Relaxes the solution to increase the speed of convergence in a (strongly) coupled simulation
+
+    Note that the interface matches the convergence accelerators in the FSIapplication such that they can be used interchangeable
+    ("FSIapplication/custom_utilitiesconvergence_accelerator.hpp")
+    """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
@@ -28,18 +34,18 @@ class CoSimulationConvergenceAccelerator(object):
     def FinalizeSolutionStep(self):
         pass
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
         self.input_data = self.interface_data.GetData()
 
-    def FinalizeCouplingIteration(self):
+    def FinalizeNonLinearIteration(self):
         pass
 
     def ComputeAndApplyUpdate(self):
         current_data = self.interface_data.GetData()
         residual = current_data - self.input_data
-        updated_data = self.input_data + self.ComputeUpdate(residual, self.input_data)
+        updated_data = self.input_data + self.UpdateSolution(residual, self.input_data)
         self.interface_data.SetData(updated_data)
 
     def PrintInfo(self):
@@ -51,8 +57,8 @@ class CoSimulationConvergenceAccelerator(object):
     def Check(self):
         print("ConvAcc does not yet implement Check")
 
-    def ComputeUpdate( self, residual, previous_data ):
-        raise NotImplementedError('"ComputeUpdate" has to be implemented in the derived class!')
+    def UpdateSolution(self, residual, iteration_guess):
+        raise NotImplementedError('"UpdateSolution" has to be implemented in the derived class!')
 
     def _Name(self):
         return self.__class__.__name__

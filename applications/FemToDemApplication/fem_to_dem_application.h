@@ -114,6 +114,8 @@ private:
 	const GenericSmallStrainFemDemElement<3,4> mSmallStrainVonMisesFemDemElement3D;
 	const GenericSmallStrainFemDemElement<2,5> mSmallStrainTrescaFemDemElement2D;
 	const GenericSmallStrainFemDemElement<3,5> mSmallStrainTrescaFemDemElement3D;
+	const GenericSmallStrainFemDemElement<2,6> mSmallStrainMohrCoulombFemDemElement2D;
+	const GenericSmallStrainFemDemElement<3,6> mSmallStrainMohrCoulombFemDemElement3D;
 
 	const GenericLargeDisplacementFemDemElement<2,0> mLargeDisplacementModifiedMohrCoulombFemDemElement2D;
 	const GenericLargeDisplacementFemDemElement<3,0> mLargeDisplacementModifiedMohrCoulombFemDemElement3D;
@@ -127,6 +129,8 @@ private:
 	const GenericLargeDisplacementFemDemElement<3,4> mLargeDisplacementVonMisesFemDemElement3D;
 	const GenericLargeDisplacementFemDemElement<2,5> mLargeDisplacementTrescaFemDemElement2D;
 	const GenericLargeDisplacementFemDemElement<3,5> mLargeDisplacementTrescaFemDemElement3D;
+	const GenericLargeDisplacementFemDemElement<2,6> mLargeDisplacementMohrCoulombFemDemElement2D;
+	const GenericLargeDisplacementFemDemElement<3,6> mLargeDisplacementMohrCoulombFemDemElement3D;
 
 	//elastic laws
    const ZarateLaw mZarateLaw;
