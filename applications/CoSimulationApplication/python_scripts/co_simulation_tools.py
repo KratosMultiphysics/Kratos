@@ -15,6 +15,13 @@ def cs_print_warning(label, *args):
     KM.Logger.PrintWarning(colors.red("Warning: ")+colors.bold(label), " ".join(map(str,args)))
 
 
+def UsingPyKratos():
+    for i_path in KM.__path__:
+        if "pyKratos" in i_path:
+            return True
+    return False
+
+
 def SettingsTypeCheck(settings):
     if not isinstance(settings, KM.Parameters):
         raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")
