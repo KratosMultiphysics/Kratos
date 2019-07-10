@@ -42,6 +42,8 @@ PYBIND11_MODULE(KratosChimeraApplication, m)
 	AddCustomProcessesToPython(m);
 	AddCustomUtilitiesToPython(m);
 	AddCustomStrategiesToPython(m);
+
+    KRATOS_REGISTER_IN_PYTHON_FLAG(m, CHIMERA_INTERNAL_BOUNDARY);
 }
 
 }  // namespace Python.
