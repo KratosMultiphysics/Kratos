@@ -13,8 +13,8 @@ cd cmake_build
 CMAKE_BUILD_TYPE=Custom
 CCACHE_COMPILERCHECK=content
 bash configure.sh
-make -j12
-make -j12 runkratos
+make -j8
+make -j8 runkratos
 make install/fast
 echo Build complete
 
@@ -25,5 +25,5 @@ cp -r ./* /buildcache
 echo Cache updated
 
 echo Running tests
-cd ../kratos/python_scripts ${PYTHONPATH}
+cd ../kratos/python_scripts
 python3 run_tests.py -l small -c python3

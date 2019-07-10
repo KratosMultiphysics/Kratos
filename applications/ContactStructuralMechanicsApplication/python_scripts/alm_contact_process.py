@@ -12,7 +12,7 @@ def Factory(settings, Model):
 
 import sys
 
-import search_base_process
+import KratosMultiphysics.ContactStructuralMechanicsApplication.search_base_process as search_base_process
 
 class ALMContactProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the contact using a mortar ALM formulation
@@ -53,21 +53,24 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                     : 0,
-            "model_part_name"             : "Structure",
-            "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "contact_property_ids"        : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
-            "contact_type"                : "Frictionless",
-            "interval"                    : [0.0,"End"],
-            "normal_variation"            : "no_derivatives_computation",
-            "frictional_law"              : "Coulomb",
-            "tangent_factor"              : 1.0e-1,
-            "integration_order"           : 2,
-            "clear_inactive_for_post"     : true,
-            "search_parameters" : {
+            "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
+            "mesh_id"                       : 0,
+            "model_part_name"               : "Structure",
+            "computing_model_part_name"     : "computing_domain",
+            "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "contact_type"                  : "Frictionless",
+            "not_normal_update_frictional"  : false,
+            "interval"                      : [0.0,"End"],
+            "normal_variation"              : "no_derivatives_computation",
+            "frictional_law"                : "Coulomb",
+            "tangent_factor"                : 1.0e0,
+            "slip_convergence_coefficient"  : 1.0,
+            "slip_augmentation_coefficient" : 1.0,
+            "integration_order"             : 2,
+            "clear_inactive_for_post"       : true,
+            "search_parameters"             : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
@@ -144,17 +147,23 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
 
         # If we compute a frictional contact simulation
         contact_type = self.contact_settings["contact_type"].GetString()
-        if contact_type == "Frictional" or contact_type == "FrictionalPureSlip":
+        if "Frictional" in contact_type:
+            not_normal_update_frictional = self.contact_settings["not_normal_update_frictional"].GetBool()
+            if not not_normal_update_frictional and not "WithNormalUpdate" in contact_type:
+                contact_type += "WithNormalUpdate"
             self.is_frictional = True
-            if contact_type == "FrictionalPureSlip":
+            if "PureSlip" in contact_type:
                 self.pure_slip = True
             else:
                 self.pure_slip = False
-            if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
-                self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
         else:
             self.is_frictional = False
             self.pure_slip = False
+
+        # In case we want a normal update
+        if "WithNormalUpdate" in contact_type:
+            if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
+                self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -385,6 +394,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.is_frictional:
             process_info[KM.TANGENT_FACTOR] = self.contact_settings["tangent_factor"].GetDouble()
+            process_info[CSMA.SLIP_CONVERGENCE_COEFFICIENT] = self.contact_settings["slip_convergence_coefficient"].GetDouble()
+            process_info[CSMA.SLIP_AUGMENTATION_COEFFICIENT] = self.contact_settings["slip_augmentation_coefficient"].GetDouble()
 
     def _initialize_problem_parameters(self):
         """ This method initializes the ALM parameters from the process info

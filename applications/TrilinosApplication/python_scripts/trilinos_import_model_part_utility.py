@@ -13,12 +13,12 @@ class TrilinosImportModelPartUtility(object):
     def __init__(self, main_model_part, settings):
         self.main_model_part = main_model_part
         self.settings = settings
+        self.comm = KratosMultiphysics.DataCommunicator.GetDefault()
 
     def ExecutePartitioningAndReading(self):
         warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
         warning_msg += 'Please use "ImportModelPart" instead'
-        if (KratosMPI.mpi.rank == 0):
-            KratosMultiphysics.Logger.PrintWarning("TrilinosImportModelPartUtility", warning_msg)
+        KratosMultiphysics.Logger.PrintWarning("::[TrilinosImportModelPartUtility]::", warning_msg, data_communicator=self.comm)
 
         self.ImportModelPart()
 
@@ -27,7 +27,7 @@ class TrilinosImportModelPartUtility(object):
         input_type = model_part_import_settings["input_type"].GetString()
 
         # in single process runs, do not call metis (no partitioning is necessary)
-        is_single_process_run = (KratosMPI.mpi.size == 1)
+        is_single_process_run = (self.comm.Size() == 1)
 
         if input_type == "mdpa":
             input_filename = model_part_import_settings["input_filename"].GetString()
@@ -59,7 +59,7 @@ class TrilinosImportModelPartUtility(object):
                 import KratosMultiphysics.MetisApplication as KratosMetis
 
                 # Partition of the original .mdpa file
-                number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
+                number_of_partitions = self.comm.Size() # Number of partitions equals the number of processors
                 domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
                 verbosity = self.settings["echo_level"].GetInt()
 
@@ -71,7 +71,7 @@ class TrilinosImportModelPartUtility(object):
 
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
-                    if KratosMPI.mpi.rank == 0:
+                    if self.comm.Rank() == 0:
                         partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
 
@@ -84,20 +84,18 @@ class TrilinosImportModelPartUtility(object):
                     partitioner.Execute()
                     serial_model_part_io.ReadModelPart(self.main_model_part)
 
-                    if KratosMPI.mpi.rank == 0:
-                        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
+                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.",data_communicator=self.comm)
 
             else:
-                if (KratosMPI.mpi.rank == 0):
-                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis partitioning not executed.")
+                KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis partitioning not executed.",data_communicator=self.comm)
 
-            KratosMPI.mpi.world.barrier()
+            self.comm.Barrier()
 
             ## Reset as input file name the obtained Metis partition one
             if is_single_process_run:
                 mpi_input_filename = input_filename
             else:
-                mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
+                mpi_input_filename = input_filename + "_" + str(self.comm.Rank())
             model_part_import_settings["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files
@@ -129,5 +127,4 @@ class TrilinosImportModelPartUtility(object):
         ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
 
-        if KratosMPI.mpi.rank == 0 :
-            KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "MPI communicators constructed.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "MPI communicators constructed.")
