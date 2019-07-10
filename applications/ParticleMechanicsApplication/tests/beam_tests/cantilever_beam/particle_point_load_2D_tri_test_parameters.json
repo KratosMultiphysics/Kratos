@@ -35,7 +35,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_Grid"
         },
-        "pressure_dofs"                      : false
+        "pressure_dofs"                      : false,
+        "auxiliary_variables_list"           : ["NORMAL"]
     },
     "processes"        : {
         "constraints_process_list" : [{

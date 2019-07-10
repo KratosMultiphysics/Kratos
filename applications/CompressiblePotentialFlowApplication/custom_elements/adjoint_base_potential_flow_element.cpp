@@ -94,6 +94,7 @@ namespace Kratos
         const AdjointBasePotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
         const int kutta = r_this.GetValue(KUTTA);
+        const auto& r_geometry = GetGeometry();
 
         if (wake == 1) // wake element
         {
@@ -109,13 +110,13 @@ namespace Kratos
 
             if(kutta == 0){
                 for(unsigned int i=0; i<NumNodes; i++)
-                    rValues[i] =GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+                    rValues[i] =r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
             }else{
                 for(unsigned int i=0; i<NumNodes; i++){
-                    if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-                        rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+                    if (!r_geometry[i].GetValue(TRAILING_EDGE))
+                        rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
                     else
-                        rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
+                        rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
                 }
             }
         }
@@ -140,6 +141,7 @@ namespace Kratos
         const AdjointBasePotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
         const int kutta = r_this.GetValue(KUTTA);
+        const auto& r_geometry = GetGeometry();
 
         if(wake == 0)//normal element
         {
@@ -148,14 +150,14 @@ namespace Kratos
 
             if(kutta == 0){
                 for (unsigned int i = 0; i < NumNodes; i++)
-                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+                    rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
             }
             else{
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+                    if (!r_geometry[i].GetValue(TRAILING_EDGE))
+                        rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
                     else
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+                        rResult[i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
                 }
             }
         }
@@ -170,18 +172,18 @@ namespace Kratos
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+                    rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
+                    rResult[i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+                    rResult[NumNodes+i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
+                    rResult[NumNodes+i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
         }
 
@@ -194,6 +196,7 @@ namespace Kratos
         const AdjointBasePotentialFlowElement& r_this = *this;
         const int wake = r_this.GetValue(WAKE);
         const int kutta = r_this.GetValue(KUTTA);
+        const auto& r_geometry = GetGeometry();
 
         if(wake == 0) //normal element
         {
@@ -202,14 +205,14 @@ namespace Kratos
 
             if(kutta == 0){
                 for (unsigned int i = 0; i < NumNodes; i++)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
+                    rElementalDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
             }
             else{
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-                        rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
+                    if (!r_geometry[i].GetValue(TRAILING_EDGE))
+                        rElementalDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
                     else
-                        rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
+                        rElementalDofList[i] = r_geometry[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
                 }
             }
         }
@@ -224,18 +227,18 @@ namespace Kratos
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
+                    rElementalDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
                 else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
+                    rElementalDofList[i] = r_geometry[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
+                    rElementalDofList[NumNodes+i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
                 else
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
+                    rElementalDofList[NumNodes+i] = r_geometry[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
             }
         }
     }

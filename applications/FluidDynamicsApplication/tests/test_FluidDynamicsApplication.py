@@ -29,8 +29,6 @@ from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 
-import run_cpp_unit_tests
-
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -119,7 +117,8 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
+    KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     import os.path

@@ -4,7 +4,8 @@
         "start_time" : 0.0,
         "end_time" : 15.0,
         "echo_level" : 0,
-        "print_colors" : true
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
@@ -113,11 +114,6 @@
                         "model_part_name"   : "Structure.GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    },
-                    "velocity" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "VELOCITY"
                     }
                 }
             }
