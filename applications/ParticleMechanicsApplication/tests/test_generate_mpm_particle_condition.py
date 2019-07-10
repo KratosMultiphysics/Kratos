@@ -12,12 +12,12 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
 
         # Initialize model part
         ## Material model part definition
-        material_model_part = current_model.CreateModelPart("dummy_name")
-        material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        material_point_model_part = current_model.CreateModelPart("dummy_name")
+        material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Initial material model part definition
-        initial_material_model_part = current_model.CreateModelPart("Initial_dummy_name")
-        initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
+        initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Grid model part definition
         grid_model_part = current_model.CreateModelPart("Background_Grid")
@@ -32,26 +32,14 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, num_particle)
 
         # Create element and nodes for initial meshes
-        sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
         sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, 4)
 
-        # Initialize linear_solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-
-        # Initialize element - dummy
-        if (dimension == 2):
-            new_element = KratosParticle.CreateUpdatedLagragian2D4N()
-        else:
-            new_element = KratosParticle.CreateUpdatedLagragian3D8N()
-
-        # Initialize solver
-        if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
-        else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
+        # Generate MP Conditions
+        KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part)
 
         # Check total number of element
-        particle_counter = material_model_part.NumberOfConditions()
+        particle_counter = material_point_model_part.NumberOfConditions()
         self.assertEqual(expected_num_particle,particle_counter)
 
     def _create_nodes(self, initial_mp, dimension, geometry_element):

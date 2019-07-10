@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -50,7 +50,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
 {
     public:
         struct Parameters
@@ -58,7 +58,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         private:
 
         const double* mpStressNorm;
-        MPMHardeningLaw::Parameters HardeningParameters;
+        ParticleHardeningLaw::Parameters HardeningParameters;
 
         public:
 	  //Set Parameters
@@ -66,7 +66,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
 	  //Get Parameters
 	  const double& GetStressNorm  () const { return *mpStressNorm;  };
-	  const MPMHardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
+	  const ParticleHardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
 
 	  //Set Hardening Parameters
 	  void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
@@ -80,42 +80,42 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         ///@name Type Definitions
         ///@{
-        typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+        typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
 
-        /// Pointer definition of MPMYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION( MPMYieldCriterion );
+        /// Pointer definition of ParticleYieldCriterion
+        KRATOS_CLASS_POINTER_DEFINITION( ParticleYieldCriterion );
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructor.
-        MPMYieldCriterion()
+        ParticleYieldCriterion()
 	{
         };
 
         /// Initialization constructor.
-        MPMYieldCriterion(HardeningLawPointer pHardeningLaw)
+        ParticleYieldCriterion(HardeningLawPointer pHardeningLaw)
 	:mpHardeningLaw(pHardeningLaw)
 	{
 	};
 
         /// Copy constructor.
-        MPMYieldCriterion(MPMYieldCriterion const& rOther)
+        ParticleYieldCriterion(ParticleYieldCriterion const& rOther)
 	:mpHardeningLaw(rOther.mpHardeningLaw)
 	{
 
 	};
 
         /// Assignment operator.
-        MPMYieldCriterion& operator=(MPMYieldCriterion const& rOther)
+        ParticleYieldCriterion& operator=(ParticleYieldCriterion const& rOther)
 	{
         mpHardeningLaw = rOther.mpHardeningLaw;
         return *this;
 	}
 
         /// Destructor.
-        virtual ~MPMYieldCriterion() {};
+        virtual ~ParticleYieldCriterion() {};
 
 
         ///@}
@@ -126,9 +126,9 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 	 * Clone function (has to be implemented by any derived class)
 	 * @return a pointer to a new instance of this yield criterion
 	 */
-        virtual MPMYieldCriterion::Pointer Clone() const
+        virtual ParticleYieldCriterion::Pointer Clone() const
         {
-          return Kratos::make_shared<MPMYieldCriterion>(*this);
+          return Kratos::make_shared<ParticleYieldCriterion>(*this);
 	}
 
 
@@ -142,7 +142,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 	}
 
 
-        void SetHardeningLaw(MPMHardeningLaw& rHardeningLaw)
+        void SetHardeningLaw(ParticleHardeningLaw& rHardeningLaw)
         {
 	  mpHardeningLaw = (HardeningLawPointer) (&rHardeningLaw);
         }
@@ -152,7 +152,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 	  mpHardeningLaw = pHardeningLaw;
         }
 
-        MPMHardeningLaw& GetHardeningLaw()
+        ParticleHardeningLaw& GetHardeningLaw()
         {
 	  return *mpHardeningLaw;
         }
@@ -174,18 +174,18 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         */
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
 		return rStateFunction;
 	};
 
         virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
         virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
@@ -198,18 +198,18 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         */
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
 
         };
 
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
         virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const double& rBeta)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
@@ -220,7 +220,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         */
         virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
 	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
+		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
@@ -336,7 +336,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         ///@}
 
-    }; // Class MPMYieldCriterion
+    }; // Class ParticleYieldCriterion
 
     ///@}
 
@@ -351,11 +351,11 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
     // /// input stream function
     // inline std::istream& operator >> (std::istream& rIStream,
-    //                                   MPMYieldCriterion& rThis);
+    //                                   ParticleYieldCriterion& rThis);
 
     // /// output stream function
     // inline std::ostream& operator << (std::ostream& rOStream,
-    //                                   const MPMYieldCriterion& rThis)
+    //                                   const ParticleYieldCriterion& rThis)
     // {
     //     rThis.PrintInfo(rOStream);
     //     rOStream << std::endl;
