@@ -4,9 +4,6 @@
 # Compiled python
 *.pyc
 
-# vs code files
-.vscode/*
-
 # Common build directory
 cmake_build/*
 !cmake_build/example_configure.bat.do_not_touch
@@ -21,6 +18,9 @@ libpython*
 libs/*
 runkratos
 script.py
+
+# Version
+kratos/includes/kratos_version.h
 
 # Times files
 *.time
@@ -66,11 +66,6 @@ script.py
 *.o.sol
 *.o.mesh
 
-# Backup files
 *.bak
 
-# Most used editor files
-*.vscode
-
-# Auxiliar file (deprecated?)
 applications/python_scripts/beam_profiles\.csv
