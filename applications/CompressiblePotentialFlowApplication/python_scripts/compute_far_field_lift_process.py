@@ -50,11 +50,11 @@ class ComputeFarFieldLiftProcess(KratosMultiphysics.Process):
         # Normalizing with reference area
         force_coefficient_pres /= self.reference_area
 
-        # Normalizing with static pressure and reference area
+        # Normalizing with dynamic pressure and reference area
         free_stream_density = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_DENSITY)
         free_stream_velocity_norm2 = _DotProduct(free_stream_velocity,free_stream_velocity)
-        static_pressure = 0.5 * free_stream_velocity_norm2 * free_stream_density
-        force_coefficient_vel /= static_pressure * self.reference_area
+        dynamic_pressure = 0.5 * free_stream_velocity_norm2 * free_stream_density
+        force_coefficient_vel /= dynamic_pressure * self.reference_area
 
         self.__CalculateWakeTangentAndNormalDirections()
 
