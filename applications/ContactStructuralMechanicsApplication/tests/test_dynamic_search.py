@@ -104,7 +104,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         ## DEBUG
         #self.__post_process()
 
-        import from_json_check_result_process
+        import KM.from_json_check_result_process as from_json_check_result_process
 
         check_parameters = KM.Parameters("""
         {

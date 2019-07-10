@@ -48,7 +48,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         
         print(settings.PrettyPrintJsonString())
 
-        import check_scalar_to_nodes_process
+        import KratosMultiphysics.check_scalar_to_nodes_process as check_scalar_to_nodes_process
 
         #component X
         if(not settings["value"][0].IsNull()):

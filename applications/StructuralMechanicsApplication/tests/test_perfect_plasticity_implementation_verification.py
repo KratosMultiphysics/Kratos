@@ -204,7 +204,7 @@ def _solve(mp):
     strategy.Solve()
 
 def _create_check_outputs(current_model):
-    import from_json_check_result_process
+    import KratosMultiphysics.from_json_check_result_process as from_json_check_result_process
 
     check_parameters = KratosMultiphysics.Parameters("""
     {
