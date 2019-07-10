@@ -4,7 +4,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-import vms_monolithic_solver
+import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic as navier_stokes_solver
 
 class FluidElementTest(UnitTest.TestCase):
 
@@ -15,7 +15,6 @@ class FluidElementTest(UnitTest.TestCase):
         self.work_folder = "FluidElementTest"
         self.element = "QSVMS2D3N"
 
-        self.dt = 0.1
         self.nsteps = 10
 
         self.check_tolerance = 1e-6
@@ -28,11 +27,10 @@ class FluidElementTest(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting(self.input_file+'.time')
 
-    def testCavity(self):
+    def runCavity(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
             self.setUpModel()
             self.setUpProblem()
-            self.setUpSolvers()
 
             self.runTest()
 
@@ -41,92 +39,44 @@ class FluidElementTest(UnitTest.TestCase):
 
     def testCavityQSASGS(self):
         self.reference_file = "reference10_qsasgs"
-        self.element = "QSVMS2D3N"
-        self.oss_switch = 0
-        self.testCavity()
+        self.element = "qsvms"
+        self.oss_switch = False
+        self.runCavity()
 
     def testCavityQSOSS(self):
         self.reference_file = "reference10_qsoss"
-        self.element = "QSVMS2D3N"
-        self.oss_switch = 1
-        self.testCavity()
+        self.element = "qsvms"
+        self.oss_switch = True
+        self.runCavity()
 
     def testCavityDASGS(self):
         self.reference_file = "reference10_dasgs"
-        self.element = "DVMS2D3N"
-        self.oss_switch = 0
-        self.testCavity()
+        self.element = "dvms"
+        self.oss_switch = False
+        self.runCavity()
 
     def testCavityDOSS(self):
         self.reference_file = "reference10_doss"
-        self.element = "DVMS2D3N"
-        self.oss_switch = 1
-        self.testCavity()
+        self.element = "dvms"
+        self.oss_switch = True
+        self.runCavity()
 
     def setUpModel(self):
         self.model = Model()
-        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
-        vms_monolithic_solver.AddVariables(self.fluid_model_part)
+        with open("solver_settings.json","r") as settings_file:
+            settings = Parameters(settings_file.read())
 
-        model_part_io = ModelPartIO(self.input_file)
-        model_part_io.ReadModelPart(self.fluid_model_part)
+        settings["solver_settings"]["formulation"]["element_type"].SetString(self.element)
+        settings["solver_settings"]["formulation"]["use_orthogonal_subscales"].SetBool(self.oss_switch)
 
-        self.fluid_model_part.SetBufferSize(2)
-        vms_monolithic_solver.AddDofs(self.fluid_model_part)
+        self.fluid_solver = navier_stokes_solver.CreateSolver(self.model,settings["solver_settings"])
+        self.fluid_solver.AddVariables()
+        self.fluid_solver.ImportModelPart()
+        self.fluid_solver.PrepareModelPart()
+        self.fluid_solver.AddDofs()
 
-        ## Replace element and conditions
-        replace_settings = Parameters("""{
-            "condition_name": "MonolithicWallCondition2D"
-        }""")
-        replace_settings.AddEmptyValue("element_name")
-        replace_settings["element_name"].SetString(self.element)
-
-        ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
-
-    def setUpSolvers(self):
-
-        # Building custom fluid solver
-        self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
-        rel_vel_tol = 1e-5
-        abs_vel_tol = 1e-7
-        rel_pres_tol = 1e-5
-        abs_pres_tol = 1e-7
-        self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
-        self.fluid_solver.conv_criteria.SetEchoLevel(0)
-
-        alpha = -0.3
-        move_mesh = 0
-        self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(alpha,move_mesh,self.domain_size)
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
-                "solver_type" : "amgcl"
-            }'''))
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
-        self.fluid_solver.max_iter = 50
-        self.fluid_solver.compute_reactions = False
-        self.fluid_solver.ReformDofSetAtEachStep = False
-        self.fluid_solver.MoveMeshFlag = False
-
-        self.fluid_solver.solver = ResidualBasedNewtonRaphsonStrategy(\
-                self.fluid_model_part,
-                self.fluid_solver.time_scheme,
-                self.fluid_solver.linear_solver,
-                self.fluid_solver.conv_criteria,
-                builder_and_solver,
-                self.fluid_solver.max_iter,
-                self.fluid_solver.compute_reactions,
-                self.fluid_solver.ReformDofSetAtEachStep,
-                self.fluid_solver.MoveMeshFlag)
-
-        self.fluid_solver.solver.SetEchoLevel(0)
-        self.fluid_solver.solver.Check()
-
-        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,self.oss_switch)
-
-        self.fluid_solver.divergence_clearance_steps = 0
-        self.fluid_solver.use_slip_conditions = 0
-
+        self.fluid_model_part = self.model.GetModelPart("Fluid")
 
     def setUpProblem(self):
         xmin = 0.0
@@ -157,10 +107,15 @@ class FluidElementTest(UnitTest.TestCase):
         if self.print_output:
             self.__InitializeOutput()
 
+        self.fluid_solver.Initialize()
+
         for step in range(self.nsteps):
-            time = time+self.dt
-            self.fluid_model_part.CloneTimeStep(time)
-            self.fluid_solver.Solve()
+            time = self.fluid_solver.AdvanceInTime(time)
+
+            self.fluid_solver.InitializeSolutionStep()
+            self.fluid_solver.Predict()
+            self.fluid_solver.SolveSolutionStep()
+            self.fluid_solver.FinalizeSolutionStep()
 
             if self.print_output:
                 self.__PrintResults()
@@ -217,6 +172,8 @@ class FluidElementTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         self.gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         self.gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
+        self.gid_io.WriteNodalResults(VISCOSITY,self.fluid_model_part.Nodes,label,0)
+        self.gid_io.WriteNodalResults(DENSITY,self.fluid_model_part.Nodes,label,0)
         self.gid_io.PrintOnGaussPoints(SUBSCALE_VELOCITY,self.fluid_model_part,label)
         self.gid_io.PrintOnGaussPoints(SUBSCALE_PRESSURE,self.fluid_model_part,label)
 
@@ -224,12 +181,4 @@ class FluidElementTest(UnitTest.TestCase):
         self.gid_io.FinalizeResults()
 
 if __name__ == '__main__':
-    test = FluidElementTest()
-    test.setUp()
-    test.print_reference_values = False
-    test.print_output = True
-    #test.testCavityQSASGS()
-    #test.testCavityQSOSS()
-    #test.testCavityDASGS()
-    test.testCavityDOSS()
-    test.tearDown()
+    UnitTest.main()
