@@ -324,7 +324,15 @@ public:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method computes the secant tensor
+     * @param rValues The constitutive law parameters and flags
+     * @param rSecantTensor The secant tensor
+     * @param rDamages The damages according to each principal direction
+     */
+    void CalculateSecantTensor(Matrix& rSecantTensor, ConstitutiveLaw::Parameters& rValues, const Vector& rDamages);
     
     ///@}
     ///@name Access
