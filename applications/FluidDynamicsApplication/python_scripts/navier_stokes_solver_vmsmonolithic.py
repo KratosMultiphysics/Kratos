@@ -78,11 +78,17 @@ class StabilizedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau": 0.0
+            "dynamic_tau": 0.0,
+            "element_manages_time_integration": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "QSVMS"
+        if settings["element_manages_time_integration"].GetBool() == False:
+            self.element_name = "QSVMS"
+            self.element_integrates_in_time = False
+        else:
+            self.element_name = "TimeIntegratedQSVMS"
+            self.element_integrates_in_time = True
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
