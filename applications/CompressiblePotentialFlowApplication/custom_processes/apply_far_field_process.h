@@ -90,6 +90,8 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
+    NodeType mrReferenceNode;
+    double mReferencePotential = 1.0;
     ///@}
     ///@name Private Operators
     ///@{
