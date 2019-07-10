@@ -24,6 +24,8 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
+        self._AllocateHistoricalVariablesFromCouplingData()
+
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
         ### Creating the predictors

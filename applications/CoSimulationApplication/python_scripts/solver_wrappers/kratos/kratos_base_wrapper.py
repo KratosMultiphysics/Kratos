@@ -27,6 +27,10 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
             self.project_parameters = KM.Parameters(parameter_file.read())
 
         self._analysis_stage = self._CreateAnalysisStage()
+        # TODO add historical variables (or check if they are already there? => could maybe be done in check)
+        # maybe print warning if they are not there yet ...
+        # Note that it should also be considered if it is coming from a coupling solver
+        self._AllocateHistoricalVariablesFromCouplingData()
 
     def Initialize(self):
         self._analysis_stage.Initialize() # this reades the Meshes
