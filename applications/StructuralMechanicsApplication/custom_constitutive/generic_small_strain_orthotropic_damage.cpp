@@ -202,15 +202,15 @@ bool GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::Has(
     const Variable<double>& rThisVariable
     )
 {
-    if (rThisVariable == DAMAGE) {
-        return true;
-    } else if (rThisVariable == THRESHOLD) {
-        return true;
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        return true;
-    } else {
-        return BaseType::Has(rThisVariable);
-    }
+    // if (rThisVariable == DAMAGE) {
+    //     return true;
+    // } else if (rThisVariable == THRESHOLD) {
+    //     return true;
+    // } else if (rThisVariable == UNIAXIAL_STRESS) {
+    //     return true;
+    // } else {
+    //     return BaseType::Has(rThisVariable);
+    // }
 
     return false;
 }
@@ -247,15 +247,15 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if (rThisVariable == DAMAGE) {
-        mDamage = rValue;
-    } else if (rThisVariable == THRESHOLD) {
-        mThreshold = rValue;
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        mUniaxialStress = rValue;
-    } else {
-        return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    }
+    // if (rThisVariable == DAMAGE) {
+    //     mDamage = rValue;
+    // } else if (rThisVariable == THRESHOLD) {
+    //     mThreshold = rValue;
+    // } else if (rThisVariable == UNIAXIAL_STRESS) {
+    //     mUniaxialStress = rValue;
+    // } else {
+    //     return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    // }
 }
 
 /***********************************************************************************/
@@ -267,15 +267,15 @@ double& GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::GetValue(
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE) {
-        rValue = mDamage;
-    } else if (rThisVariable == THRESHOLD) {
-        rValue = mThreshold;
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        rValue = mUniaxialStress;
-    } else {
-        return BaseType::GetValue(rThisVariable, rValue);
-    }
+    // if (rThisVariable == DAMAGE) {
+    //     rValue = mDamage;
+    // } else if (rThisVariable == THRESHOLD) {
+    //     rValue = mThreshold;
+    // } else if (rThisVariable == UNIAXIAL_STRESS) {
+    //     rValue = mUniaxialStress;
+    // } else {
+    //     return BaseType::GetValue(rThisVariable, rValue);
+    // }
 
     return rValue;
 }
@@ -340,11 +340,11 @@ Matrix& GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateV
     Matrix& rValue
     )
 {
-    if (this->Has(rThisVariable)) {
-        return this->GetValue(rThisVariable, rValue);
-    } else {
-        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    }
+    // if (this->Has(rThisVariable)) {
+    //     return this->GetValue(rThisVariable, rValue);
+    // } else {
+    //     return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    // }
     return rValue;
 }
 

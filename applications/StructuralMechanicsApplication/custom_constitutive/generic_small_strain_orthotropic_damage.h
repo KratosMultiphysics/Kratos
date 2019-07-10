@@ -360,8 +360,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    Vector& GetThresholds() { return mThreshold; }
-    Vector& GetDamages() { return mDamage; }
+    Vector& GetThresholds() { return mThresholds; }
+    Vector& GetDamages() { return mDamages; }
 
     void SetThresholds(const Vector& toThresholds) { mThresholds = toThresholds; }
     void SetDamages(const Vector& toDamages) { mDamages = toDamages; }
