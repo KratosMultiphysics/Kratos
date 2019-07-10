@@ -326,6 +326,7 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # We reset the step
         self.step = 0
+        self.initial_step_done = False
 
         # We compute initial remeshing is desired
         if self.initial_remeshing:
