@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
@@ -45,7 +45,7 @@ public:
     /**
      * Constructor.
      */
-    AdjointBasePotentialFlowElement(IndexType NewId = 0)
+    explicit AdjointBasePotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId))
     {};
@@ -141,8 +141,6 @@ protected:
     Element::Pointer mpPrimalElement;
 
     void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
-
-    double GetPerturbationSize();
 
 private:
 

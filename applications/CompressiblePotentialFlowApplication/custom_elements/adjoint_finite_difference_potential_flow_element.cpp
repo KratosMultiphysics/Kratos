@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
@@ -86,6 +86,14 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
+    }
+
+    template <class TPrimalElement>
+    double AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::GetPerturbationSize()
+    {
+        const double delta = this->GetValue(SCALE_FACTOR);
+        KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+        return delta;
     }
 
     /// Turn back information as a string.

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
@@ -30,8 +30,8 @@ public:
     ///@{
 
     typedef AdjointBasePotentialFlowElement<TPrimalElement> BaseType;
-    static constexpr int NumNodes = TPrimalElement::TNumNodes;
-    static constexpr int Dim = TPrimalElement::TDim;
+    using BaseType::NumNodes;
+    using BaseType::Dim;
     typedef typename BaseType::GeometryType GeometryType;
     typedef typename BaseType::PropertiesType PropertiesType;
     typedef typename BaseType::NodesArrayType NodesArrayType;
@@ -48,7 +48,7 @@ public:
     /**
      * Constructor.
      */
-    AdjointFiniteDifferencePotentialFlowElement(IndexType NewId = 0)
+    explicit AdjointFiniteDifferencePotentialFlowElement(IndexType NewId = 0)
      : AdjointBasePotentialFlowElement<TPrimalElement>(NewId){};
 
     AdjointFiniteDifferencePotentialFlowElement(IndexType NewId,
@@ -103,6 +103,8 @@ public:
 protected:
 
 private:
+
+    double GetPerturbationSize();
 
     friend class Serializer;
 
