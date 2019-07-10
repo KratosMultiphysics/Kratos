@@ -78,9 +78,48 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
     ConstitutiveLaw::Parameters& rValues
     )
 {
+    // Integrate Stress Damage
+    Vector& r_integrated_stress_vector = rValues.GetStressVector();
+    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = r_integrated_stress_vector;
+    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
+
+    // We get the strain vector
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
+    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    }
+
+    // Elastic Matrix
+    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    }
+
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Elastic Matrix
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+
+        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
+        }
+
+        // Internal variables initialization
+        Vector damages = mDamages;
+        Vector thresholds = mThresholds;
+
+        // S0 = C:E
+        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+
+        // Now we compute the principal stresses
+        array_1d<double, Dimension> principal_stresses_vector;
+        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
 
-
+    }
 
 
 
