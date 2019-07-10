@@ -36,7 +36,7 @@ namespace Testing
 
     typedef Node<3> NodeType;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 

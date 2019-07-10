@@ -21,11 +21,11 @@ class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerato
         else:
             self.alpha = 0.125
 
-    ## ComputeUpdate(r, x)
+    ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def ComputeUpdate( self, r, x ):
+    def UpdateSolution( self, r, x ):
         if self.echo_level > 3:
             classprint(self._Name(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
         delta_x = self.alpha * r
