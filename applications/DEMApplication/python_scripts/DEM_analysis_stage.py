@@ -436,7 +436,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
-        super(DEMAnalysisStage, self).InitializeSolutionStep()
+        self._GetSolver().InitializeSolutionStep()
+        #super(DEMAnalysisStage, self).InitializeSolutionStep()
         self._BeforeSolveOperations(self.time)
 
     def _BeforeSolveOperations(self, time):

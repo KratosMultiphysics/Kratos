@@ -119,7 +119,7 @@ def main():
         #### Generic test for code functionalities verification
         Gen_DEM_Benchmarks_list = list(range(40,41))
 
-        Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list  + Gen_DEM_Benchmarks_list
+        Total_DEM_Benchmarks_list =  Gen_DEM_Benchmarks_list
 
         for item in Total_DEM_Benchmarks_list:
             #print(Benchmark_text[item - 1])

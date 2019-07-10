@@ -61,9 +61,9 @@ class AnalysisStage(object):
         while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            self._GetSolver().Predict()
+            #self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
-            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            #self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -122,12 +122,12 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
-        self.ApplyBoundaryConditions() #here the processes are called
-        self.ChangeMaterialProperties() #this is normally empty
+        #self.ApplyBoundaryConditions() #here the processes are called
+        #self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+        #KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        #KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
