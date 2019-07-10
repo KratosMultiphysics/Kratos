@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 import KratosMultiphysics.ChimeraApplication as KratosChimera
-
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid chimera simulations using the navier stokes family of python solvers.'''
