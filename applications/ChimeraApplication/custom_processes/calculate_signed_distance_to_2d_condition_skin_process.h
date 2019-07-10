@@ -463,18 +463,18 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
 // loop over all fluid Elements
 // this loop is parallelized using openmp
-#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-#else
+// #ifdef _OPENMP
+//         int number_of_threads = omp_get_max_threads();
+// #else
         int number_of_threads = 1;
-#endif
+// #endif
 
         ModelPart::ElementsContainerType &pElements = mrFluidModelPart.Elements();
 
         vector<std::size_t> Element_partition;
         CreatePartition(number_of_threads, pElements.size(), Element_partition);
 
-#pragma omp parallel for
+// #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
             ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + Element_partition[k];
