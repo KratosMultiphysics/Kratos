@@ -60,7 +60,7 @@ void KratosInternals::loadMDPA(const std::string& rMDPAFilePath) {
 void KratosInternals::loadSettingsParameters(const std::string& rJSONFilePath) {
     if (rJSONFilePath != "") {
         std::ifstream infile(rJSONFilePath);
-        if (infile.good()) std::cout << "JSON file: " << rJSONFilePath  << " cannot be found" << std::endl;
+        if (!infile.good()) std::cout << "JSON file: " << rJSONFilePath  << " cannot be found" << std::endl;
         std::stringstream buffer;
         buffer << infile.rdbuf();
         mSettingsParameters = Kratos::Parameters(buffer.str());
