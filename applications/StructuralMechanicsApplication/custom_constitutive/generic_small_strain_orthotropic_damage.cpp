@@ -118,6 +118,13 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         array_1d<double, Dimension> principal_stresses_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
+        // Now we compute the damages on each direction...
+        for (unsigned int i = 0; i < Dimension; i++) {
+
+
+        }
+
+
 
     }
 
@@ -158,13 +165,20 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::InitializeMat
     const Vector& rShapeFunctionsValues
     )
 {
+    // We construct the CL parameters
+    ProcessInfo dummy_process_info;
+    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
 
+    // We call the integrator
+    double initial_threshold;
+    TConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
 
+    Vector initial_thresholds(Dimension);
+    noalias(initial_thresholds) = ZeroVector(Dimension);
+    for (unsigned int i = 0; i < Dimension; i++)
+        initial_thresholds[i] = initial_threshold;
 
-
-
-
-
+    this->SetThresholds(initial_thresholds);
 }
 
 /***********************************************************************************/
