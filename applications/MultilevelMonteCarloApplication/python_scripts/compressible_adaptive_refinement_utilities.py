@@ -70,8 +70,9 @@ class AdaptiveRefinement(object):
                 if metric_param.Has("local_gradient_variable"):
                     metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
-                    # interp_error = original_interp_error*10**(-current_level)
-                    interp_error = original_interp_error*(2.5)**(-current_level)
+                    coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
 
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
@@ -104,7 +105,9 @@ class AdaptiveRefinement(object):
                 if metric_param.Has("local_gradient_variable"):
                     metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
-                    interp_error = original_interp_error*10**(-current_level)
+                    coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
 
@@ -121,7 +124,9 @@ class AdaptiveRefinement(object):
 
             elif (problem_type == "poisson_square_2d"):
                 if current_level > 0:
-                    interp_error = original_interp_error*10**(-current_level)
+                    coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
                 # Setting Metric Tensor to 0
