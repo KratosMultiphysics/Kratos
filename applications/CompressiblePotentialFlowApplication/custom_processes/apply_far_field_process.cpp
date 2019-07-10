@@ -87,7 +87,7 @@ void ApplyFarFieldProcess::AssignDirichletFarFieldBoundaryCondition(Geometry<Nod
     // according to the free stream velocity.
     for (std::size_t i_node = 0; i_node < rGeometry.size(); i_node++){
         array_1d<double,3> relative_coordinates = rGeometry[i_node].Coordinates() - mpReferenceNode->Coordinates();
-        double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
+        const double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
         // Checking if its the primal or the adjoint case.
         if (!rGeometry[i_node].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL)) {
             rGeometry[i_node].SetLock();
