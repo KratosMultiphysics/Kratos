@@ -124,15 +124,32 @@ public:
     ///@name Operations
     ///@{
 
-    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, const double Distance)
+    /**
+     * @brief Creates a hole on the given rModelPart at a Distance (-ve) from the zero distance layer.
+     * @param rModelPart The modelpart where the hole is to be cut.
+     * @param rHoleModelPart The modelpart containing the nodes and corresponding elements from the cut hole. (deactivated elements)
+     * @param rHoleBoundaryModelPart Boundary modelpart of the rHoleModelPart
+     * @param Distance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
+     */
+    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance)
     {
         KRATOS_TRY;
         KRATOS_INFO("\n::[Creating Hole]::") << std::endl;
-        RemoveOutOfDomainElements(rModelPart, rExtractedModelPart,1,Distance, true);
-        ExtractBoundaryMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
+        RemoveOutOfDomainElements(rModelPart, rHoleModelPart,1,Distance, true);
+        ExtractBoundaryMesh(rHoleModelPart, rHoleBoundaryModelPart);
         KRATOS_CATCH("");
     }
 
+
+    /**
+     * @brief Removes the elements which are out of the domain.
+     *          An element is removed even if one of its nodes is out of the domain (-ve or +ve) as indicated by GetInside and MainDomainOrNot
+     * @param rModelPart The modelpart From where the elements are to be removed.
+     * @param rModifiedModelPart The modified modelpart without the the elements which are out side.
+     * @param MainDomainOrNot says which sign (-ve or +ve) is inside
+     * @param OverLapDistance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
+     * @param GetInside works in combination with MainDomainOrNot to get the feeling of what is inside or what is outside.
+     */
     void RemoveOutOfDomainElements(ModelPart &rModelPart,
                                    ModelPart &rModifiedModelPart,
                                    const int MainDomainOrNot,
@@ -216,7 +233,17 @@ public:
         KRATOS_CATCH("");
     }
 
-    //give the outside surface of a model part given inside boundary
+
+
+    /**
+     * @brief Extracts the outside surface/edges of a modelpart.This uses the flag CHIMERA_INTERNAL_BOUNDARY
+     *                  to check if there is an internal boundary in the given ModelPart. The flag GetInternal
+     *                  specifies weather to get the internal boundary marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
+     * @param rVolumeModelPart The modelpart on which the boundary is to be found.
+     * @param rExtractedBoundaryModelPart The extracted surface/edge modelpart.
+     * @param GetInternal A bool sepecifying which surface/edge extracted. The one marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
+     */
+    //
     void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
     {
         KRATOS_TRY;
@@ -412,6 +439,13 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    /// Assignment operator.
+    ChimeraHoleCuttingUtility &operator=(ChimeraHoleCuttingUtility const &rOther) = delete;
+
+    /// Copy constructor.
+    ChimeraHoleCuttingUtility(ChimeraHoleCuttingUtility const& rOther) = delete;
+
     ///@}
     ///@name Access
     ///@{
@@ -504,12 +538,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    ChimeraHoleCuttingUtility &operator=(ChimeraHoleCuttingUtility const &rOther);
-
-    /// Copy constructor.
-    ChimeraHoleCuttingUtility(ChimeraHoleCuttingUtility const& rOther);
 
     ///@}
 
