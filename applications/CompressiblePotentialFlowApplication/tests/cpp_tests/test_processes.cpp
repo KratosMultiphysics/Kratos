@@ -118,6 +118,10 @@ namespace Kratos {
       model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
       model_part.CreateNewNode(4, 1.0, 1.0, 0.0);
 
+      for (auto& r_node : model_part.Nodes()) {
+        r_node.AddDof(VELOCITY_POTENTIAL);
+      }
+
       model_part.CreateNewProperties(0);
       Properties::Pointer pProp = model_part.pGetProperties(0);
 
