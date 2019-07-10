@@ -105,8 +105,8 @@ public:
     */
     GenericSmallStrainOrthotropicDamage(const GenericSmallStrainOrthotropicDamage &rOther)
         : BaseType(rOther),
-          mDamage(rOther.mDamage),
-          mThreshold(rOther.mThreshold)
+          mDamages(rOther.mDamages),
+          mThresholds(rOther.mThresholds)
     {
     }
 
@@ -418,15 +418,15 @@ private:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("Damage", mDamage);
-        rSerializer.save("Threshold", mThreshold);
+        rSerializer.save("Damages", mDamages);
+        rSerializer.save("Thresholds", mThresholds);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("Damage", mDamage);
-        rSerializer.load("Threshold", mThreshold);
+        rSerializer.load("Damages", mDamages);
+        rSerializer.load("Thresholds", mThresholds);
     }
 
     ///@}

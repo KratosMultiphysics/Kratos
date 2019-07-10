@@ -118,6 +118,7 @@
 #include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
 #include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
 #include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
+#include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
 
 
 // Integrators
@@ -786,7 +787,9 @@ private:
     const DamageDPlusDMinusMasonry3DLaw mDamageDPlusDMinusMasonry3DLaw;
 
     // Orthotropic Damage
-    const GenericSmallStrainOrthotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> SmallStrainOrthotropicDamageRankine3D;
+    const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainOrthotropicDamageRankine3D;
+    
+    
     ///@}
     ///@name Private Operators
     ///@{
