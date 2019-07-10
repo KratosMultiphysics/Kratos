@@ -306,12 +306,11 @@ protected:
             CalculateDistanceChimeraApplication(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
             mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
-            WriteModelPart(r_hole_model_part);
-            WriteModelPart(r_modified_patch_boundary_model_part);
-            WriteModelPart(r_modified_patch_model_part);
-            WriteModelPart(r_hole_boundary_model_part);
+            // WriteModelPart(r_hole_model_part);
+            // WriteModelPart(r_modified_patch_boundary_model_part);
+            // WriteModelPart(r_modified_patch_model_part);
+            // WriteModelPart(r_hole_boundary_model_part);
 
-            
             const unsigned int n_elements = r_hole_model_part.NumberOfElements();
 #pragma omp parallel for
             for (IndexType i_elem = 0; i_elem < n_elements; ++i_elem)

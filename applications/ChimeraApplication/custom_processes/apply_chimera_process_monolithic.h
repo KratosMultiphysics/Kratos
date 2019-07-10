@@ -154,7 +154,6 @@ protected:
         const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
         IndexType counter = 0;
         IndexType removed_counter = 0;
-        IndexType not_found_counter = 0;
         int num_removed_nodes = 0;
 
         for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
@@ -193,14 +192,12 @@ protected:
 #pragma omp critical
                     {
                         BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
-                        removed_counter++;
                     }
                 }
                 constrainIds_for_the_node.clear();
                 p_boundary_node->Set(VISITED, false);
-                ++num_removed_nodes;
+                removed_counter++;
             }
-          
 
             if (is_found)
             {
@@ -232,8 +229,6 @@ protected:
         KRATOS_INFO("Number of boundary nodes in : ") << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
         KRATOS_INFO("Number of Boundary nodes found : ") << counter << ". Number of constraints : " << counter * 9 << std::endl;
         KRATOS_INFO("Number of Boundary nodes not found  : ") << not_found_counter << std::endl;
-        std::cout<<"Number of Boundary nodes not found : "<<not_found_counter<<std::endl;
-        std::cout<<"########### "<<num_removed_nodes<<std::endl; 
     }
 
     ///@}
