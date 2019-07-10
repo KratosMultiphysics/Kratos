@@ -56,12 +56,12 @@ public:
     ///@}
     ///@name Pointer Definitions
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessMonolithic);
-    typedef ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType>                   BaseType;
-    typedef typename BaseType::MasterSlaveConstraintContainerType                   MasterSlaveConstraintContainerType;
-    typedef typename BaseType::PointLocatorType                                     PointLocatorType;
-    typedef typename BaseType::PointLocatorPointerType                              PointLocatorPointerType;
-    typedef typename BaseType::MasterSlaveContainerVectorType                       MasterSlaveContainerVectorType;
-    typedef typename BaseType::ConstraintIdsVectorType                              ConstraintIdsVectorType;
+    typedef ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType> BaseType;
+    typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+    typedef typename BaseType::PointLocatorType PointLocatorType;
+    typedef typename BaseType::PointLocatorPointerType PointLocatorPointerType;
+    typedef typename BaseType::MasterSlaveContainerVectorType MasterSlaveContainerVectorType;
+    typedef typename BaseType::ConstraintIdsVectorType ConstraintIdsVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -72,8 +72,7 @@ public:
      * @param rMainModelPart The reference to the modelpart which will be used for computations later on.
      * @param iParameters The settings parameters.
      */
-    explicit ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters) :
-                                BaseType(rMainModelPart, iParameters)
+    explicit ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters) : BaseType(rMainModelPart, iParameters)
     {
     }
 
@@ -154,7 +153,7 @@ protected:
         const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
         IndexType counter = 0;
         IndexType removed_counter = 0;
-        int num_removed_nodes = 0;
+        IndexType not_found_counter = 0;
 
         for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
