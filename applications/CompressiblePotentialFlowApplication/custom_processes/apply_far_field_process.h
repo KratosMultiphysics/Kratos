@@ -64,6 +64,10 @@ public:
     /// Execute method is used to execute the ApplyFarFieldProcess algorithms.
     void Execute() override;
     void InitializeFlowField();
+    void FindFarthestUpstreamBoundaryNode();
+    void AssignFarFieldBoundaryConditions();
+    void AssignDirichletFarFieldBoundaryCondition(Geometry<NodeType>& rGeometry);
+    void AssignNeumannFarFieldBoundaryCondition(Condition& rCondition);
 
     ///@}
     ///@name Input and output
