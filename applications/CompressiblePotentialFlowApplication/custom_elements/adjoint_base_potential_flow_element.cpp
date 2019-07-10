@@ -8,7 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
+//  Main authors:    Marc Nunez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
@@ -110,7 +110,7 @@ namespace Kratos
 
             if(kutta == 0){
                 for(unsigned int i=0; i<NumNodes; i++)
-                    rValues[i] =r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+                    rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
             }else{
                 for(unsigned int i=0; i<NumNodes; i++){
                     if (!r_geometry[i].GetValue(TRAILING_EDGE))

@@ -8,7 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
+//  Main authors:    Marc Nunez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
 #if !defined(KRATOS_ADJOINT_FINITE_DIFFERENCE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
