@@ -12,12 +12,12 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
         # Initialize model part
         ## Material model part definition
-        material_model_part = current_model.CreateModelPart("dummy_name")
-        material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        material_point_model_part = current_model.CreateModelPart("dummy_name")
+        material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Initial material model part definition
-        initial_material_model_part = current_model.CreateModelPart("Initial_dummy_name")
-        initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
+        initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Grid model part definition
         grid_model_part = current_model.CreateModelPart("Background_Grid")
@@ -33,7 +33,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._create_background_elements(sub_background,dimension, geometry_element, is_structured)
 
         # Create element and nodes
-        sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
         sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, 1)
         if is_structured:
             self._create_nodes_structured(sub_mp, dimension, geometry_element)
@@ -43,10 +43,10 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Set active
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_material_model_part.Elements)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_material_model_part, material_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):
@@ -161,27 +161,27 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
     def _move_and_search_element(self, current_model, new_coordinate, max_num_results = 1000, specific_tolerance = 1.e-5):
         # Get model part
-        material_model_part = current_model.GetModelPart("dummy_name")
-        grid_model_part     = current_model.GetModelPart("Background_Grid")
+        material_point_model_part = current_model.GetModelPart("dummy_name")
+        grid_model_part           = current_model.GetModelPart("Background_Grid")
 
         # Apply  before search
-        for mpm in material_model_part.Elements:
+        for mpm in material_point_model_part.Elements:
             mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
 
         # Search element
-        KratosParticle.SearchElement(grid_model_part, material_model_part, max_num_results, specific_tolerance)
+        KratosParticle.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
 
     def _check_connectivity(self, current_model, expected_connectivity_node=[]):
         # Get model part
-        material_model_part = current_model.GetModelPart("dummy_name")
-        grid_model_part     = current_model.GetModelPart("Background_Grid")
+        material_point_model_part = current_model.GetModelPart("dummy_name")
+        grid_model_part           = current_model.GetModelPart("Background_Grid")
 
         # Check the searched node as expected connectivity
         if not expected_connectivity_node:
-            for mpm in material_model_part.Elements:
+            for mpm in material_point_model_part.Elements:
                 self.assertEqual(mpm.GetNodes(), [])
         else:
-            for mpm in material_model_part.Elements:
+            for mpm in material_point_model_part.Elements:
                 for i in range (len(expected_connectivity_node)):
                     self.assertEqual(mpm.GetNode(i).Id, grid_model_part.GetNode(expected_connectivity_node[i]).Id)
                     self.assertEqual(mpm.GetNode(i).X, grid_model_part.GetNode(expected_connectivity_node[i]).X)

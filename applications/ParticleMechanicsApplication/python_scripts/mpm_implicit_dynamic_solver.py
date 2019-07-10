@@ -18,7 +18,7 @@ class MPMImplicitDynamicSolver(MPMSolver):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.
         super(MPMImplicitDynamicSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Construction is finished.")
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -32,14 +32,14 @@ class MPMImplicitDynamicSolver(MPMSolver):
 
     def AddVariables(self):
         super(MPMImplicitDynamicSolver, self).AddVariables()
-        self._add_dynamic_variables(self.grid_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Variables ADDED")
+        self._AddDynamicVariables(self.grid_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Variables are all added.")
 
-    #### Private functions ####
+    ### Protected functions ###
 
-    def _create_solution_scheme(self):
+    def _CreateSolutionScheme(self):
         grid_model_part = self.GetGridModelPart()
-        domain_size = self._get_domain_size()
+        domain_size = self._GetDomainSize()
         block_size  = domain_size
         if (self.settings["pressure_dofs"].GetBool()):
             block_size += 1
@@ -57,7 +57,7 @@ class MPMImplicitDynamicSolver(MPMSolver):
             err_msg += "Available options are: \"newmark\", \"bossak\""
             raise Exception(err_msg)
 
-        is_dynamic = self._is_dynamic()
+        is_dynamic = self._IsDynamic()
 
         return KratosParticle.MPMResidualBasedBossakScheme( grid_model_part,
                                                             domain_size,
@@ -65,5 +65,5 @@ class MPMImplicitDynamicSolver(MPMSolver):
                                                             damp_factor_m,
                                                             newmark_beta,
                                                             is_dynamic)
-    def _is_dynamic(self):
+    def _IsDynamic(self):
         return True
