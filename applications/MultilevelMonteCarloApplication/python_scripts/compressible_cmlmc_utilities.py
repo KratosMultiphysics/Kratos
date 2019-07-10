@@ -9,6 +9,8 @@ from scipy.stats import norm
 import copy
 import time
 import sys
+import os
+from threadpoolctl import *
 
 # Importing the analysis stage classes of the different problems
 from simulation_definition import SimulationScenario
@@ -179,6 +181,11 @@ def ExecuteInstanceOnlyAdaptiveRefinement_Wrapper(pickled_model,pickled_project_
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     for current_level in range(current_MLMC_level+1):
         mlmc_results,pickled_current_model = \
             ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
@@ -190,6 +197,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLM
 @constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     for current_level in range(current_MLMC_level+1):
         mlmc_results,pickled_current_model = \
             ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
@@ -201,6 +213,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev1_Task(current_MLM
 @constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     for current_level in range(current_MLMC_level+1):
         mlmc_results,pickled_current_model = \
             ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
@@ -215,6 +232,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLM
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     mlmc_results,pickled_current_model = \
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
@@ -222,6 +244,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current
 @constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev1_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     mlmc_results,pickled_current_model = \
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
@@ -229,6 +256,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev1_Task(current
 @constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
 @ExaquteTask(returns=2)
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     mlmc_results,pickled_current_model = \
         ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
     return mlmc_results,pickled_current_model
@@ -239,6 +271,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
@@ -246,6 +283,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_proj
 @constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
@@ -253,6 +295,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_proj
 @constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
@@ -260,6 +307,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_proj
 @constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
@@ -267,6 +319,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_proj
 @constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
@@ -274,6 +331,11 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_proj
 @constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
 @ExaquteTask(returns=2)
 def executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     pickled_model,mlmc_results = \
         ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis,mlmc_results)
     return pickled_model,mlmc_results
@@ -506,6 +568,8 @@ def ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_coarse_model,
 @constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
+    open_mp_threads = int(os.environ["computing_units_mc_execute"])
+    threadpool_limits(limits=open_mp_threads)
     time_0 = time.time()
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
@@ -774,7 +838,7 @@ class MultilevelMonteCarlo(object):
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
                 sys.stdout.flush()
-                if (self.iteration_counter >= 20):
+                if (self.iteration_counter >= 12):
                     self.convergence = True
             end_time_mlmc = time.time()
             print("[TIMER] mlmc phase MLMC (no screening phase):", end_time_mlmc-end_time_screening)
@@ -1621,7 +1685,8 @@ class MultilevelMonteCarlo(object):
         self.difference_QoI.bias_error = np.abs(self.difference_QoI.h_statistics_1[current_number_levels])
         variance_from_bayesian = np.zeros(np.size(self.number_samples))
         for lev in range(current_number_levels+1):
-            variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]
+            # variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]
+            variance_from_bayesian[lev] = self.difference_QoI.h_statistics_2[lev]/self.number_samples[lev]
         self.difference_QoI.statistical_error = self.settings["cphi_confidence"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
         total_error = self.difference_QoI.bias_error + self.difference_QoI.statistical_error
         self.total_error = np.abs(total_error)

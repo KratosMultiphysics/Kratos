@@ -70,7 +70,8 @@ class AdaptiveRefinement(object):
                 if metric_param.Has("local_gradient_variable"):
                     metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
-                    interp_error = original_interp_error*10**(-current_level)
+                    # interp_error = original_interp_error*10**(-current_level)
+                    interp_error = original_interp_error*(2.5)**(-current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
 
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
