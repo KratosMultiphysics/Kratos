@@ -33,6 +33,7 @@ void KratosChimeraApplication::Register()
     // Flag for distinguishing b/w velocity and pressure constraints.
     KRATOS_REGISTER_FLAG(FS_CHIMERA_VEL_CONSTRAINT);
     KRATOS_REGISTER_FLAG(FS_CHIMERA_PRE_CONSTRAINT);
+    KRATOS_REGISTER_FLAG(CHIMERA_INTERNAL_BOUNDARY);
 }
 
 } // namespace Kratos.
