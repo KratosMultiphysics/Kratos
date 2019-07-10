@@ -100,17 +100,14 @@ public:
                	"chimera_parts"   :   [
 									[{
 										"model_part_name":"PLEASE_SPECIFY",
-										"model_part_inside_boundary_name" :"PLEASE_SPECIFY",
 										"overlap_distance":0.0
 									}],
 									[{
 										"model_part_name":"PLEASE_SPECIFY",
-										"model_part_inside_boundary_name":"PLEASE_SPECIFY",
 										"overlap_distance":0.0
 									}],
 									[{
 										"model_part_name":"PLEASE_SPECIFY",
-										"model_part_inside_boundary_name":"PLEASE_SPECIFY",
 										"overlap_distance":0.0
 									}]
 								]
@@ -239,6 +236,16 @@ protected:
             int is_main_background = 1;
             for (const auto &background_patch_param : current_level)
             { // Gives the current background patch
+                // compute the outerboundary of the background to save
+                ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(background_patch_param["model_part_name"].GetString());
+                if(!r_background_model_part.HasSubModelPart("chimera_boundary_mp")){
+                    auto& r_boundary_model_part = r_background_model_part.CreateSubModelPart("chimera_boundary_mp");
+                    if(i_current_level==0)
+                        mpHoleCuttingUtility->ExtractBoundaryMesh(r_background_model_part, r_boundary_model_part);
+                    else
+                        mpHoleCuttingUtility->ExtractBoundaryMesh(r_background_model_part, r_boundary_model_part, true);
+                }
+
                 for (IndexType i_slave_level = i_current_level + 1; i_slave_level < mNumberOfLevels; ++i_slave_level)
                 {
                     for (const auto &slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
@@ -266,11 +273,12 @@ protected:
      */
     virtual void FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot)
     {
+        Model &current_model = mrMainModelPart.GetModel();
         ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(BackgroundParam["model_part_name"].GetString());
-        ModelPart &r_domain_boundary_model_part = mrMainModelPart.GetSubModelPart(BackgroundParam["model_part_inside_boundary_name"].GetString());
+        ModelPart &r_background_boundary_model_part = r_background_model_part.GetSubModelPart("chimera_boundary_mp");
+
 
         ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_name"].GetString());
-        ModelPart &r_patch_inside_boundary_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_inside_boundary_name"].GetString());
 
         const double overlap_bg = BackgroundParam["overlap_distance"].GetDouble();
         const double overlap_pt = PatchParameters["overlap_distance"].GetDouble();
@@ -287,7 +295,6 @@ protected:
 
         if (over_lap_distance > eps)
         {
-            Model &current_model = mrMainModelPart.GetModel();
             ModelPart &r_hole_model_part = current_model.CreateModelPart("HoleModelpart");
             ModelPart &r_hole_boundary_model_part = current_model.CreateModelPart("HoleBoundaryModelPart");
             ModelPart &r_modified_patch_boundary_model_part = current_model.CreateModelPart("ModifiedPatchBoundary");
@@ -297,19 +304,21 @@ protected:
             if (has_overlap)
             {
                 KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-                CalculateDistanceChimeraApplication(r_patch_model_part, r_domain_boundary_model_part, over_lap_distance);
+                CalculateDistanceChimeraApplication(r_patch_model_part, r_background_boundary_model_part, over_lap_distance);
                 //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
                 mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
             }
 
-            mpHoleCuttingUtility->FindOutsideBoundaryOfModelPartGivenInside(r_modified_patch_model_part, r_patch_inside_boundary_model_part, r_modified_patch_boundary_model_part);
+            mpHoleCuttingUtility->ExtractBoundaryMesh(r_modified_patch_model_part, r_modified_patch_boundary_model_part);
             CalculateDistanceChimeraApplication(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
             mpHoleCuttingUtility->CreateHoleAfterDistance(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
 
             // WriteModelPart(r_hole_model_part);
             // WriteModelPart(r_modified_patch_boundary_model_part);
             // WriteModelPart(r_modified_patch_model_part);
-            // WriteModelPart(r_hole_boundary_model_part);
+            // WriteModelPart(r_patch_model_part);
+            // WriteModelPart(r_background_boundary_model_part);
+            // WriteModelPart(r_background_model_part);
 
             const unsigned int n_elements = r_hole_model_part.NumberOfElements();
 #pragma omp parallel for
