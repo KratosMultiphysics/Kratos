@@ -606,11 +606,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
                                                         VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
-    //To solve chimera fractional step
-
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
@@ -682,7 +679,6 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
         // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
         const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]) ;
 
-
         // Add convection, stabilization and RHS contributions to the local system equation
         for (SizeType i = 0; i < NumNodes; ++i)
         {
@@ -711,7 +707,6 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
             }
 
             rRightHandSideVector[i] += GaussWeight * RHSi;
-
         }
     }
 }
