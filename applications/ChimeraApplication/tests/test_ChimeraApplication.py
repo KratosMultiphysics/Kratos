@@ -38,8 +38,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
     ### Multi-Patch tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepMultiPatch]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepMultiPatch]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
