@@ -168,8 +168,8 @@ class FluidTransportSolver(PythonSolver):
         # Calculate Nodal Area
         self.nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size)
         self.nodal_area_process.Execute()
-        
-        # KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
+
+        KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
         # Check if everything is assigned correctly
         self.Solver.Check()

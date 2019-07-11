@@ -738,6 +738,20 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
+
+        if (TNumNodes == 3)
+        {
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                array_1d <double, 3> AuxNodeNormal = rGeom[i].FastGetSolutionStepValue(NORMAL);
+                double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+
+                if (NormAuxNodeNormal > rVariables.LowTolerance)
+                {
+                    rVariables.lsc = std::sqrt(2.0) * rVariables.lv;
+                }
+            }
+        }
     }
     else
     {
@@ -835,6 +849,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     noalias(rVariables.DifMatrixS) = (rVariables.absorption / (TNumNodes + 1)) * BaricenterMatrix;
 
+    //TODO : if element is not 3-noded triangles or 4-noded quadrilaters, Ds = 0
 
     //////////////////////////////////////////////////////
     // Calculate Dr
