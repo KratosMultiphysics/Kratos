@@ -21,16 +21,16 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
-#include "utilities/timer.h"
-#include "utilities/openmp_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
+#include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -344,7 +344,7 @@ public:
         ModelPart& rModelPart
     )
     {
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0) {
             TSystemVectorType Dxmodified(b.size());
 
             InternalSystemSolveWithPhysics(A, Dxmodified, b, rModelPart);
@@ -421,7 +421,7 @@ public:
 
         Timer::Stop("Build");
 
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0) {
             Timer::Start("ApplyConstraints");
             ApplyConstraints(pScheme,A,Dx,b,rModelPart);
             Timer::Stop("ApplyConstraints");
@@ -575,10 +575,18 @@ public:
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
 
-                // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    // Gets list of Dof involved on every element
+                    it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                    dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+                }
             }
 
             // We merge all the sets in one thread
@@ -960,7 +968,7 @@ protected:
 
     void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
-        if (rModelPart.MasterSlaveConstraints().size() > 0) {
+        if (ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // Vector containing the localization in the system of the different terms
@@ -1148,7 +1156,7 @@ protected:
     {
         KRATOS_TRY
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0) {
             BuildMasterSlaveConstraints(rModelPart);
 
             // We compute the transposed matrix of the global relation matrix

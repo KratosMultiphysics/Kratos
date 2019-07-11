@@ -199,7 +199,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
     void SetUpSystem(ModelPart& rModelPart) override
     {
-        if(rModelPart.MasterSlaveConstraints().size() > 0)
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0)
             SetUpSystemWithConstraints(rModelPart);
         else
             BaseType::SetUpSystem(rModelPart);
@@ -220,7 +220,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         TSystemVectorType& rb
         ) override
     {
-        if(rModelPart.MasterSlaveConstraints().size() > 0)
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0)
             BuildWithConstraints(pScheme, rModelPart, rA, rb);
         else
             BaseType::Build(pScheme, rModelPart, rA, rb);
@@ -243,7 +243,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
-        if(rModelPart.MasterSlaveConstraints().size() > 0)
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0)
             BuildAndSolveWithConstraints(pScheme, rModelPart, A, Dx, b);
         else
             BaseType::BuildAndSolve(pScheme, rModelPart, A, Dx, b);
@@ -262,7 +262,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
 
-        if(rModelPart.MasterSlaveConstraints().size() > 0)
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0)
             BuildRHSWithConstraints(pScheme, rModelPart, b);
         else
             BaseType::BuildRHS(pScheme, rModelPart, b);
@@ -284,7 +284,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         ModelPart& rModelPart
         ) override
     {
-        if(rModelPart.MasterSlaveConstraints().size() > 0)
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0)
             SetUpDofSetWithConstraints(pScheme, rModelPart);
         else
             BaseType::SetUpDofSet(pScheme, rModelPart);
@@ -457,7 +457,7 @@ protected:
         ModelPart& rModelPart
         ) override
     {
-        if(rModelPart.MasterSlaveConstraints().size() > 0)
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0)
             ConstructMatrixStructureWithConstraints(pScheme, rA, rModelPart);
         else
             BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
@@ -656,11 +656,19 @@ protected:
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
 
-                // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-                dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    // Gets list of Dof involved on every element
+                    it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                    dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+                    dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
+                }
             }
 
             // We merge all the sets in one thread
@@ -1263,7 +1271,7 @@ protected:
         }
 
         // Now we resize the relation matrix used on the MPC solution
-        if(rModelPart.MasterSlaveConstraints().size() > 0) {
+        if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0) {
             if (mpTMatrix == NULL) { // If the pointer is not initialized initialize it to an empty matrix
                 TSystemMatrixPointerType pNewT = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
                 mpTMatrix.swap(pNewT);

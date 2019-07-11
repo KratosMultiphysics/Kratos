@@ -50,6 +50,13 @@ namespace Kratos
 namespace ConstraintUtilities
 {
     /**
+     * @brief Calculates the number of active constraints
+     * @param rModelPart The model of the problem to solve
+     * @return The number of active constraints
+     */
+    std::size_t KRATOS_API(KRATOS_CORE) NumberOfActiveConstraints(ModelPart& rModelPart);
+
+    /**
      * @brief This method resets the values of the slave dofs
      * @param rModelPart The model of the problem to solve
      */
