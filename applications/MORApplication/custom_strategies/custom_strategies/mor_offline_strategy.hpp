@@ -352,7 +352,7 @@ class MorOfflineStrategy
         if (mpRHS != nullptr)
             SparseSpaceType::Clear(mpRHS);
         if (mpS != nullptr)
-            SparseSpaceType::Clear(mpRHS);
+            SparseSpaceType::Clear(mpS);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);

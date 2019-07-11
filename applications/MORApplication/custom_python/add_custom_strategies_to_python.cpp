@@ -66,6 +66,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
     typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderIRKAStrategyType;
+    //typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, LinearSolverType > MorSecondOrderIRKAStrategyType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
@@ -92,7 +93,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIRKAStrategyType, typename MorSecondOrderIRKAStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderIRKAStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, LinearSolverPointer, vector<double>, bool >())
         ;
 
     py::class_< MorOfflineStrategyType, typename MorOfflineStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorOfflineStrategy")

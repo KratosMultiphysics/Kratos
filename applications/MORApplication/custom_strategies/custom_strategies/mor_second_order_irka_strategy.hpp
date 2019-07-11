@@ -30,6 +30,7 @@
 
 // TODO: make this include work
 //#include "EigenSolversApplication/costum_solvers/eigensystem_solver.h"
+//#include "../ExternalSolversApplication/external_includes/feast_solver.h"
 
 namespace Kratos
 {
@@ -63,7 +64,8 @@ namespace Kratos
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TLinearSolver//, //= LinearSolver<TSparseSpace,TDenseSpace>
+          //class TLinearSolver  // feast? TODO: check if this is necessary
           >
 class MorSecondOrderIRKAStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -85,6 +87,8 @@ class MorSecondOrderIRKAStrategy
     typedef TSparseSpace SparseSpaceType;
 
     typedef TDenseSpace DenseSpaceType;
+
+    typedef typename TDenseSpace::VectorType TDenseVectorType;
 
     typedef typename TDenseSpace::MatrixType TDenseMatrixType;
 
@@ -123,6 +127,7 @@ class MorSecondOrderIRKAStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TLinearSolver::Pointer pNewLinearEigSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
@@ -159,6 +164,8 @@ class MorSecondOrderIRKAStrategy
 
         mSamplingPoints = samplingPoints;
 
+        mpNewLinearEigSolver = pNewLinearEigSolver;
+
         KRATOS_CATCH("");
     }
 
@@ -184,7 +191,9 @@ class MorSecondOrderIRKAStrategy
         KRATOS_TRY;
         std::cout << "hello! this is where the second order IRKA MOR magic happens" << std::endl;
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver(); // LU
+        //TODO: write functions to clear
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver_feast = typename TBuilderAndSolverType::Pointer(new TBuilderAndSolverType(mpNewLinearEigSolver)); // FEAST
         
         TSystemMatrixType& r_K_size_n = this->GetSystemMatrix();  // n x n
         TSystemMatrixType& r_M_size_n = this->GetMassMatrix();  // n x n
@@ -299,6 +308,22 @@ class MorSecondOrderIRKAStrategy
 
             // step 4 c) polyeig from Matlab
             // generalized or FEAST solver? no special quadratic solver in KRATOS as it seems
+
+            //TODO:  building the feast solve step here;  after everything works, move the definitions etc.
+            TDenseVectorType Eigenvalues;
+            TDenseMatrixType Eigenvectors;
+
+ 
+            p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
+                r_K_reduced, // also r_D_reduced // have a look if it needs to build together, compare to polyeig
+                r_M_reduced,
+                Eigenvalues,
+                Eigenvectors);
+
+            //this->AssignVariables(Eigenvalues,Eigenvectors);
+            KRATOS_WATCH(Eigenvalues);
+            KRATOS_WATCH(Eigenvectors);
+
 
             // step 4 d) shift selection step
             // first r eigenvalues
@@ -427,6 +452,7 @@ class MorSecondOrderIRKAStrategy
 
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
+    typename TLinearSolver::Pointer mpNewLinearEigSolver;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
