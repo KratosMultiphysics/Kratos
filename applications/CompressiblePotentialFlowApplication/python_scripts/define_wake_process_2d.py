@@ -33,12 +33,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
 
-        # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.fluid_model_part, avg_elem_num, avg_node_num).Execute()
-
         for cond in self.body_model_part.Conditions:
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
