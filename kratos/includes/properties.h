@@ -482,6 +482,74 @@ public:
     }
 
     /**
+     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes
+     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAdress)
+    {
+        const auto indexes = TrimComponentName(rAdress);
+
+        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+        for (auto index : indexes) {
+            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        }
+
+        return p_property_interest;
+    }
+
+    /**
+     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes (constant version)
+     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAdress) const
+    {
+        const auto indexes = TrimComponentName(rAdress);
+
+        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+        for (auto index : indexes) {
+            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        }
+
+        return p_property_interest;
+    }
+
+    /**
+     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes
+     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The reference to the subproperty of interest
+     */
+    Properties& GetSubPropertiesByAddress(const std::string& rAdress)
+    {
+        const auto indexes = TrimComponentName(rAdress);
+
+        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+        for (auto index : indexes) {
+            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        }
+
+        return *p_property_interest;
+    }
+
+    /**
+     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes (constant version)
+     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The reference to the subproperty of interest
+     */
+    Properties& GetSubPropertiesByAddress(const std::string& rAdress) const
+    {
+        const auto indexes = TrimComponentName(rAdress);
+
+        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+        for (auto index : indexes) {
+            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        }
+
+        return *p_property_interest;
+    }
+
+    /**
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
