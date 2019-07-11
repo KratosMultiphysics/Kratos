@@ -590,7 +590,24 @@ private:
      * @param rStringName The given name to be trimmed
      * @return The list of indexes
      */
-    std::vector<IndexType> TrimComponentName(std::string& rStringName) const
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName)
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        return list_indexes;
+    }
+
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty (constant version)
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
     {
         std::vector<IndexType> list_indexes;
 
