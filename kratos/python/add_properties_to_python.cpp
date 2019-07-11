@@ -88,6 +88,14 @@ Properties::Pointer GetSubPropertiesById1(
     return rProperties.pGetSubPropertiesById(Index);
 }
 
+bool HasSubPropertiesByAddress1(
+    Properties& rProperties,
+    const std::string& rAdress
+    )
+{
+    return rProperties.HasSubPropertiesByAddress(rAdress);
+}
+
 Properties::Pointer GetSubPropertiesByAddress1(
     Properties& rProperties,
     const std::string& rAdress
@@ -224,8 +232,8 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("GetSubProperty", GetSubProperty1)
     .def("HasSubPropertiesById", HasSubPropertiesById1)
     .def("GetSubPropertiesById", GetSubPropertiesById1)
-    .def("HasSubPropertiesByAddress", HasSubPropertiesByAddress1)
     .def("GetSubPropertiesByAddress", GetSubPropertiesByAddress1)
+    .def("HasSubPropertiesByAddress", HasSubPropertiesByAddress1)
     .def("GetSubProperties", GetSubProperties1)
     .def("GetSubProperties", GetSubProperties2)
     .def("SetSubProperties", &Properties::SetSubProperties)
