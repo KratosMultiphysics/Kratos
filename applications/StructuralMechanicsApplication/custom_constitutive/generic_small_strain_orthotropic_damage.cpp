@@ -132,7 +132,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         
         BoundedMatrix<double, Dimension, Dimension> mInvJ;
         double mDetJ = 0.0;
-        eigen_vectors_matrix = trans(eigen_vectors_matrix);
+        eigen_vectors_matrix = trans(eigen_vectors_matrix); // eigenvectors in cols
         MathUtils<double>::InvertMatrix(eigen_vectors_matrix, mInvJ, mDetJ );
         BoundedMatrix<double, Dimension, Dimension> test = prod(mInvJ, eigen_values_matrix);
         test = prod(test, eigen_vectors_matrix);
