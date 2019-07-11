@@ -71610,3 +71610,129 @@ Begin SubModelPart GENERIC_patch_surface // Group patch_surface // Subtree GENER
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
+
+Begin SubModelPart part_for_testing // Group outlet // Subtree Outlet2D
+    Begin SubModelPartNodes
+        1772
+        1802
+        1804
+        1811
+        1835
+        1851
+        1864
+        1870
+        1883
+        1893
+        1897
+        1915
+        1923
+        1924
+        1929
+        1946
+        1962
+        1977
+        1995
+        2003
+        2032
+        2034
+        2046
+        2074
+        2084
+        2092
+        2100
+        2111
+        2125
+        2142
+        2144
+        2146
+        2155
+        2162
+        2179
+        2193
+        2209
+        2229
+        2250
+        2274
+        2278
+        2301
+        2307
+        2324
+        2334
+        2368
+        2398
+        3734
+        3781
+        3789
+        3877
+        3887
+        3891
+        3915
+        3934
+        3985
+        4001
+        4030
+        4051
+        4076
+        4097
+        4098
+        4102
+        4135
+        4151
+        4162
+        4193
+        4216
+        4225
+        4246
+        4284
+        4287
+        4290
+        4292
+        4318
+        4359
+        4379
+        4433
+        4449
+        4453
+        4465
+        4483
+        4486
+        4540
+        4564
+        4576
+        4583
+        4620
+        4635
+        4644
+        4655
+        4668
+        4687
+        4693
+        4736
+        4783
+        4784
+        4798
+        4809
+        4810
+        4811
+        4860
+        4869
+        4881
+        4888
+        4909
+        4910
+        4918
+        4940
+        4945
+        4957
+        5013
+        5018
+
+    End SubModelPartNodes
+    Begin SubModelPartElements
+
+    End SubModelPartElements
+    Begin SubModelPartConditions
+
+    End SubModelPartConditions
+End SubModelPart
