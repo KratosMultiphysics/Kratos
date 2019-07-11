@@ -313,24 +313,24 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/
     // Update MP_Density
-    const double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
-    this->SetValue(MP_DENSITY, MP_Density);
+    const double MP_density = (GetProperties()[DENSITY]) / Variables.detFT;
+    this->SetValue(MP_DENSITY, MP_density);
 
     // The MP_Volume (integration weight) is evaluated
-    const double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
-    this->SetValue(MP_VOLUME, MP_Volume);
+    const double MP_volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
+    this->SetValue(MP_VOLUME, MP_volume);
 
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_Volume );
+        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_volume );
     }
 
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
         volume_force  = this->CalculateVolumeForce( volume_force, Variables );
-        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, MP_Volume );
+        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, MP_volume );
     }
 
     KRATOS_CATCH( "" )
