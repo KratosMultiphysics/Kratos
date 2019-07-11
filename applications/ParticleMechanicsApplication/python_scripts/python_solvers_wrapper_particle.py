@@ -14,9 +14,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
                 solver_module_name = "mpm_implicit_dynamic_solver"
             #TODO: explicit time integration solver is to be implemented
             elif (time_integration_method == "explicit"):
-                err_msg =  time_integration_method + " time integration method is to be implemented, but not yet available."
-                err_msg += "Available options are: \"implicit\""
-                raise Exception(err_msg)
+                solver_module_name = "mpm_explicit_dynamic_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"implicit\""

@@ -23,7 +23,6 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
-#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -1708,6 +1707,93 @@ void UpdatedLagrangianQuadrilateral::DecimalCorrection(Vector& rVector)
     }
 
     KRATOS_CATCH( "" )
+}
+
+void UpdatedLagrangianQuadrilateral::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int matrix_size = dimension * number_of_nodes;
+    auto& r_geom = GetGeometry();
+
+    if (rDestinationVariable == NODAL_MASS) {
+        MatrixType element_mass_matrix(matrix_size, matrix_size);
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateMassMatrix(element_mass_matrix, temp_process_information);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
+            int index = i * dimension;
+
+#pragma omp atomic
+            r_nodal_mass += element_mass_matrix(index, index);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+
+void UpdatedLagrangianQuadrilateral::AddExplicitContribution(
+    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int matrix_size = dimension * number_of_nodes;
+
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+        Vector damping_residual_contribution = ZeroVector(matrix_size);
+        Vector current_nodal_velocities = ZeroVector(matrix_size);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+        for (size_t i = 0; i < number_of_nodes; ++i) {
+            size_t index = dimension * i;
+            array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < dimension; ++j) {
+#pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    }
+    else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        MatrixType element_mass_matrix(matrix_size, matrix_size);
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateMassMatrix(element_mass_matrix, temp_process_information);
+
+        for (int i = 0; i < number_of_nodes; ++i) {
+            double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+            array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            int index = i * dimension;
+
+#pragma omp atomic
+            r_nodal_mass += element_mass_matrix(index, index);
+
+            for (int k = 0; k < dimension; ++k) {
+#pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************

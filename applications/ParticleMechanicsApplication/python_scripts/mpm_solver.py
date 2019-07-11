@@ -321,6 +321,16 @@ class MPMSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
 
+    def _AddDynamicDofs(self, model_part):
+        # For being consistent for Serial and Trilinos
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.grid_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.grid_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.grid_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.grid_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.grid_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.grid_model_part)
+
+
     def _GetDomainSize(self):
         if not hasattr(self, '_domain_size'):
             self._domain_size = self.settings["domain_size"].GetInt()
