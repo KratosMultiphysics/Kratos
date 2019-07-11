@@ -86,6 +86,9 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         prop1 = self.model_part.GetProperties()[1]
         self.assertEqual(prop1.NumberOfSubproperties(), 3)
 
+        self.assertEqual(prop1.HasSubPropertiesById(11), True)
+        self.assertEqual(prop1.HasSubPropertiesById(12), False)
+
         sub_prop11 = prop1.GetSubPropertiesById(11)
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.YOUNG_MODULUS), 206900000000.0)
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.POISSON_RATIO), 0.29)
