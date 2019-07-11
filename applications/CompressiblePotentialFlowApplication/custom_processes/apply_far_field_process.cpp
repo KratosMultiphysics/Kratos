@@ -17,10 +17,8 @@ namespace Kratos {
 
 // Constructor for ApplyFarFieldProcess Process
 ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart, const double ReferencePotential, const bool InitializeFlowField)
-    : Process(), mrModelPart(rModelPart), mReferencePotential(ReferencePotential), mInitializeFlowField(InitializeFlowField)
-{
-    mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
-}
+    : Process(), mrModelPart(rModelPart), mReferencePotential(ReferencePotential), mInitializeFlowField(InitializeFlowField), mFreeStreamVelocity(mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY])
+{}
 
 void ApplyFarFieldProcess::Execute()
 {
@@ -72,7 +70,7 @@ void ApplyFarFieldProcess::AssignFarFieldBoundaryConditions()
         // Computing normal
         array_1d<double,3> aux_coordinates;
         r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
-        const array_1d<double,3> normal = it_cond->GetGeometry().Normal(aux_coordinates);
+        const auto normal = it_cond->GetGeometry().Normal(aux_coordinates);
 
         const double velocity_projection = inner_prod(normal, mFreeStreamVelocity);
         if (velocity_projection < 0.0) {
@@ -120,7 +118,7 @@ void ApplyFarFieldProcess::InitializeFlowField()
     for (int i = 0; i < static_cast<int>(root_model_part.Nodes().size()); i++) {
         auto it_node = root_model_part.NodesBegin() + i;
 
-        const array_1d<double,3> relative_coordinates = it_node->Coordinates() - mpReferenceNode->Coordinates();
+        const auto relative_coordinates = it_node->Coordinates() - mpReferenceNode->Coordinates();
         const double inlet_potential = inner_prod(relative_coordinates, mFreeStreamVelocity);
 
         it_node->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;

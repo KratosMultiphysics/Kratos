@@ -96,9 +96,9 @@ private:
     ///@{
     ModelPart& mrModelPart;
     NodeType::Pointer mpReferenceNode;
-    array_1d<double,3> mFreeStreamVelocity;
     const double mReferencePotential = 1.0;
     const bool mInitializeFlowField;
+    const array_1d<double,3> mFreeStreamVelocity;
     ///@}
     ///@name Private Operators
     ///@{
