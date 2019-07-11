@@ -160,7 +160,7 @@
                         "PRESSURE"
                     ],
                     "input_file_name": "flow_over_cross_monolithic_results.json",
-                    "model_part_name": "GENERIC_patch_surface",
+                    "model_part_name": "part_for_testing",
                     "time_frequency": 0.1
                 }
             }
@@ -179,7 +179,7 @@
                     "PRESSURE"
                 ],
                 "input_file_name": "flow_over_cross_monolithic_results.json",
-                "model_part_name": "GENERIC_patch_surface",
+                "model_part_name": "part_for_testing",
                 "time_frequency": 0.1
             }
         }
@@ -197,7 +197,7 @@
                     "PRESSURE"
                 ],
                 "output_file_name": "flow_over_cross_monolithic_results.json",
-                "model_part_name": "GENERIC_patch_surface",
+                "model_part_name": "part_for_testing",
                 "time_frequency": 0.1
             }
         }
