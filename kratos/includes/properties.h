@@ -489,17 +489,17 @@ public:
     bool HasSubPropertiesByAddress(const std::string& rAdress)
     {
         const auto indexes = TrimComponentName(rAdress);
-
-        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-        for (auto index : indexes) {
-            if ( p_property_interest->HasSubPropertiesById(index)) {
-                return true;
-            } else {
-                p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        if (indexes[0] == this->Id()) {
+            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
+                if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
+                    return false;
+                }
             }
+            return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -510,17 +510,17 @@ public:
     bool HasSubPropertiesByAddress(const std::string& rAdress) const
     {
         const auto indexes = TrimComponentName(rAdress);
-
-        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-        for (auto index : indexes) {
-            if ( p_property_interest->HasSubPropertiesById(index)) {
-                return true;
-            } else {
-                p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        if (indexes[0] == this->Id()) {
+            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
+                if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
+                    return false;
+                }
             }
+            return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -532,12 +532,15 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
-        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-        for (auto index : indexes) {
-            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        if (indexes[0] == this->Id()) {
+            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
+                p_property_interest = p_property_interest->pGetSubPropertiesById(indexes[i_index]);
+            }
+            return p_property_interest;
+        } else {
+            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
-
-        return p_property_interest;
     }
 
     /**
@@ -549,12 +552,15 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
-        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-        for (auto index : indexes) {
-            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        if (indexes[0] == this->Id()) {
+            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
+                p_property_interest = p_property_interest->pGetSubPropertiesById(indexes[i_index]);
+            }
+            return p_property_interest;
+        } else {
+            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
-
-        return p_property_interest;
     }
 
     /**
@@ -566,12 +572,15 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
-        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-        for (auto index : indexes) {
-            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        if (indexes[0] == this->Id()) {
+            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
+                p_property_interest = p_property_interest->pGetSubPropertiesById(indexes[i_index]);
+            }
+            return *p_property_interest;
+        } else {
+            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
-
-        return *p_property_interest;
     }
 
     /**
@@ -583,12 +592,15 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
-        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-        for (auto index : indexes) {
-            p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+        if (indexes[0] == this->Id()) {
+            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
+                p_property_interest = p_property_interest->pGetSubPropertiesById(indexes[i_index]);
+            }
+            return *p_property_interest;
+        } else {
+            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
-
-        return *p_property_interest;
     }
 
     /**
