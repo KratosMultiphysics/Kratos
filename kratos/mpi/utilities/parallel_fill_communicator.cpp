@@ -37,7 +37,7 @@ void ParallelFillCommunicator::PrintDebugInfo()
     PrintModelPartDebugInfo(mrBaseModelPart);
 }
 
-void ParallelFillCommunicator::PrintModelPartDebugInfo(ModelPart& rModelPart)
+void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
