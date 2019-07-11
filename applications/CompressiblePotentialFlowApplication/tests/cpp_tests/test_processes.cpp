@@ -138,13 +138,13 @@ namespace Kratos {
 
       // Set initial potential
       const double initial_potential = 1.0;
+      const bool initialize_flow_field = true;
 
       // Construct the ApplyFarFieldProcess
-      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential);
+      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field);
 
       // Execute the ApplyFarFieldProcess
       ApplyFarFieldProcess.Execute();
-      ApplyFarFieldProcess.InitializeFlowField();
 
       for (auto& r_node : model_part.Nodes()) {
         if (r_node.Id() == 1 || r_node.Id() == 3) {

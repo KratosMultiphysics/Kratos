@@ -16,8 +16,8 @@
 namespace Kratos {
 
 // Constructor for ApplyFarFieldProcess Process
-ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart, const double rReferencePotential)
-    : Process(), mrModelPart(rModelPart), mReferencePotential(rReferencePotential)
+ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart, const double ReferencePotential, const bool InitializeFlowField)
+    : Process(), mrModelPart(rModelPart), mReferencePotential(ReferencePotential), mInitializeFlowField(InitializeFlowField)
 {
     mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
 }
@@ -26,6 +26,9 @@ void ApplyFarFieldProcess::Execute()
 {
     FindFarthestUpstreamBoundaryNode();
     AssignFarFieldBoundaryConditions();
+    if (mInitializeFlowField){
+        InitializeFlowField();
+    }
 }
 
 void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
