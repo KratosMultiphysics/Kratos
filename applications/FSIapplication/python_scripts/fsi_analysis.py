@@ -64,12 +64,11 @@ class FSIAnalysis(AnalysisStage):
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
-        if self.is_printing_rank and self.echo_level > 1:
+        if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
 
     def InitializeSolutionStep(self):
 
@@ -82,9 +81,8 @@ class FSIAnalysis(AnalysisStage):
             err_msg += 'No substepping has been implemented yet. Fluid and structure step must match.'
             raise Exception(err_msg)
 
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
-            Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
+        Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
+        Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty

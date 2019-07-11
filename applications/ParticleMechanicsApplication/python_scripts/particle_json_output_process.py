@@ -9,11 +9,11 @@ from KratosMultiphysics.json_output_process import JsonOutputProcess
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return ParticleMPMJsonOutputProcess(Model, settings["Parameters"])
+    return ParticleJsonOutputProcess(Model, settings["Parameters"])
 
 # All the processes python processes should be derived from "Process"
 
-class ParticleMPMJsonOutputProcess(JsonOutputProcess):
+class ParticleJsonOutputProcess(JsonOutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
 

@@ -8,6 +8,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationPredictor(object):
+    """Baseclass for the predictors used for CoSimulation
+    It predicts the solution of the next step at the beginning of a step
+    """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
