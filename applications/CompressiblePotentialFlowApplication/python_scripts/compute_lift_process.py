@@ -99,9 +99,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
     def __CalculateWakeTangentAndNormalDirections(self):
         self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
-        if(self.wake_direction.Size() != 3):
-            raise Exception('The wake direction should be a vector with 3 components!')
-
         dnorm = self.wake_direction.norm_2()
         self.wake_direction /= dnorm
 
