@@ -171,6 +171,24 @@
                     "is_ale" : true
                 }
             }
+        ],
+        "json_check_process": [
+            {
+                "python_module": "from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "FromJsonCheckResultProcess",
+                "Parameters": {
+                    "check_variables": [
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE"
+                    ],
+                    "input_file_name": "multiple_overlapping_patches_monolithic_results.json",
+                    "model_part_name": "part_for_testing",
+                    "time_frequency": 0.1
+                }
+            }
         ]
     },
     "_json_output_process": [
