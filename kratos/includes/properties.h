@@ -482,6 +482,48 @@ public:
     }
 
     /**
+     * @brief This method checks if the subproperty exists from the adress corresponding to the proper structure of indexes
+     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return True if there is such subproperty, false otherwise
+     */
+    bool HasSubPropertiesByAddress(const std::string& rAdress)
+    {
+        const auto indexes = TrimComponentName(rAdress);
+
+        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+        for (auto index : indexes) {
+            if ( p_property_interest->HasSubPropertiesById(index)) {
+                return true;
+            } else {
+                p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief This method checks if the subproperty exists from the adress corresponding to the proper structure of indexes  (constant version)
+     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return True if there is such subproperty, false otherwise
+     */
+    bool HasSubPropertiesByAddress(const std::string& rAdress) const
+    {
+        const auto indexes = TrimComponentName(rAdress);
+
+        Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
+        for (auto index : indexes) {
+            if ( p_property_interest->HasSubPropertiesById(index)) {
+                return true;
+            } else {
+                p_property_interest = p_property_interest->pGetSubPropertiesById(index);
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes
      * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The pointer to the subproperty of interest
