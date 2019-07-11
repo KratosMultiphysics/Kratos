@@ -117,6 +117,30 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         array_1d<double, Dimension> principal_stresses_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
+
+
+
+        BoundedMatrix<double, Dimension, Dimension> predictive_stress_tensor;
+        predictive_stress_tensor = MathUtils<double>::StressVectorToTensor(predictive_stress_vector);
+        BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+        BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+        MathUtils<double>::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+        std::cout << "*******************" << std::endl;
+        KRATOS_WATCH(predictive_stress_tensor)
+        KRATOS_WATCH(eigen_vectors_matrix)
+        KRATOS_WATCH(eigen_values_matrix)
+        
+        BoundedMatrix<double, Dimension, Dimension> mInvJ;
+        double mDetJ = 0.0;
+        eigen_vectors_matrix = trans(eigen_vectors_matrix);
+        MathUtils<double>::InvertMatrix(eigen_vectors_matrix, mInvJ, mDetJ );
+        BoundedMatrix<double, Dimension, Dimension> test = prod(mInvJ, eigen_values_matrix);
+        test = prod(test, eigen_vectors_matrix);
+        KRATOS_WATCH(test)
+        std::cout << "*******************" << std::endl;
+
+
+
         double uniaxial_stress = 0.0;
         bool is_damaging = false;
         // Now we compute the damages on each direction...
