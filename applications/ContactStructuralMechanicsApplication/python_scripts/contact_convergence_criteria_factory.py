@@ -29,6 +29,7 @@ class convergence_criterion:
             FCD_AT = convergence_criterion_parameters["frictional_contact_displacement_absolute_tolerance"].GetDouble()
             FCR_RT = convergence_criterion_parameters["frictional_contact_residual_relative_tolerance"].GetDouble()
             FCR_AT = convergence_criterion_parameters["frictional_contact_residual_absolute_tolerance"].GetDouble()
+            RNTT = convergence_criterion_parameters["ratio_normal_tangent_threshold"].GetDouble()
             condn_convergence_criterion = convergence_criterion_parameters["condn_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
 
@@ -36,8 +37,12 @@ class convergence_criterion:
                 KM.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + self.convergence_criterion_name)
 
             if self.convergence_criterion_name == "contact_displacement_criterion":
-                if (self.mortar_type == "ALMContactFrictional" and self.frictional_decomposed):
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierFrictionalContactCriteria(D_RT, D_AT, CD_RT, CD_AT, FCD_RT, FCD_AT, ensure_contact, self.print_convergence_criterion)
+                if "ALMContactFrictional" in self.mortar_type and self.frictional_decomposed:
+                    if "PureSlip" in self.mortar_type:
+                        pure_slip = True
+                    else:
+                        pure_slip = False
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierFrictionalContactCriteria(D_RT, D_AT, CD_RT, CD_AT, FCD_RT, FCD_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementContactCriteria(D_RT, D_AT, self.print_convergence_criterion)
                 else:
@@ -46,8 +51,12 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
             elif self.convergence_criterion_name == "contact_residual_criterion":
-                if (self.mortar_type == "ALMContactFrictional" and self.frictional_decomposed):
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, ensure_contact, self.print_convergence_criterion)
+                if "ALMContactFrictional" in self.mortar_type and self.frictional_decomposed:
+                    if "PureSlip" in self.mortar_type:
+                        pure_slip = True
+                    else:
+                        pure_slip = False
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
                 else:
@@ -55,8 +64,12 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
             elif self.convergence_criterion_name == "contact_mixed_criterion":
-                if (self.mortar_type == "ALMContactFrictional" and self.frictional_decomposed):
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalontactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, ensure_contact, self.print_convergence_criterion)
+                if "ALMContactFrictional" in self.mortar_type and self.frictional_decomposed:
+                    if "PureSlip" in self.mortar_type:
+                        pure_slip = True
+                    else:
+                        pure_slip = False
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
                 else:
@@ -164,21 +177,29 @@ class convergence_criterion:
                 Mortar = CSMA.ALMFrictionlessComponentsMortarConvergenceCriteria(self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
             else:
                 Mortar = CSMA.ALMFrictionlessComponentsMortarConvergenceCriteria()
-        elif self.mortar_type == "ALMContactFrictional":
-            if include_table:
-                Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
+        elif "ALMContactFrictional" in self.mortar_type:
+            if "PureSlip" in self.mortar_type:
+                pure_slip = True
             else:
-                Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria()
+                pure_slip = False
+            if include_table:
+                Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(pure_slip, self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
+            else:
+                Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(pure_slip)
         elif self.mortar_type == "PenaltyContactFrictionless":
             if include_table:
                 Mortar = CSMA.PenaltyFrictionlessMortarConvergenceCriteria(self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
             else:
                 Mortar = CSMA.PenaltyFrictionlessMortarConvergenceCriteria()
-        elif self.mortar_type == "PenaltyContactFrictional":
-            if include_table:
-                Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria(self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
+        elif "PenaltyContactFrictional" in self.mortar_type:
+            if "PureSlip" in self.mortar_type:
+                pure_slip = True
             else:
-                Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria()
+                pure_slip = False
+            if include_table:
+                Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria(pure_slip, self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
+            else:
+                Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria(pure_slip)
         elif "MeshTying" in self.mortar_type:
             Mortar = CSMA.MeshTyingMortarConvergenceCriteria()
 

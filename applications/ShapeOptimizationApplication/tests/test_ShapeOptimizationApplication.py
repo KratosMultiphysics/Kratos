@@ -27,6 +27,7 @@ from shape_optimization_test_factory import algorithm_bead_optimization_test as 
 from shape_optimization_test_factory import opt_process_step_adaption_test as opt_process_step_adaption_test
 from shape_optimization_test_factory import mapper_test as mapper_test
 from shape_optimization_test_factory import opt_process_stress_test as opt_process_stress_test
+from shape_optimization_test_factory import opt_process_multiobjective_test as opt_process_multiobjective_test
 
 # Niglty tests
 
@@ -64,6 +65,7 @@ def AssembleTestSuites():
     smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
     smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
     smallSuite.addTest(opt_process_stress_test('test_execution'))
+    smallSuite.addTest(opt_process_multiobjective_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']

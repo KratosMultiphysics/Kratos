@@ -4,9 +4,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return FemDemMechanicalSolver(main_model_part, custom_settings)
 

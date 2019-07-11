@@ -22,16 +22,37 @@ class PythonSolver(object):
         model -- The Model to be used
         settings -- The solver settings used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(settings) != KratosMultiphysics.Parameters):
+        if not isinstance(settings, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
         self.settings = settings
 
+        # TODO remove the check once the derived solvers implement this
+        if hasattr(self, '_validate_settings_in_baseclass'):
+            self.ValidateSettings()
+        else:
+            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+            IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
+
         self.echo_level = self.settings["echo_level"].GetInt()
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        """This function returns the default-settings used by this class
+        """
+        return KratosMultiphysics.Parameters("""{
+            "echo_level" : 0
+        }""")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        default_settings = self.GetDefaultSettings()
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
@@ -104,8 +125,9 @@ class PythonSolver(object):
     def SolveSolutionStep(self):
         """This function solves the current step.
         It can be called multiple times within one solution step
+        Returns whether the problem is converged
         """
-        pass
+        return True
 
     def Check(self):
         """This function checks the PythonSolver. It usually calls the "Check" function of a solving strategy
@@ -171,7 +193,7 @@ class PythonSolver(object):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
         elif(input_type == "use_input_model_part"):
-            pass
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
 
         else:
             raise Exception("Other model part input options are not yet implemented.")
@@ -204,6 +226,9 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
+
         """Transfer matching settings from origin to destination.
 
         If a name in origin matches a name in destination, then the setting is

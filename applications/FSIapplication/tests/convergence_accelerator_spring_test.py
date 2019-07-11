@@ -175,11 +175,12 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
     # MVQN recursive accelerator test
     def test_mvqn_recursive_accelerator(self,force1,force2,solution):
 
-        mvqn_recursive_settings = KratosMultiphysics.Parameters("""{
-                                                                     "solver_type"        : "MVQN_recursive",
-                                                                     "w_0"                : 0.825,
-                                                                     "buffer_size"        : 5
-                                                                    }""")
+        mvqn_recursive_settings = KratosMultiphysics.Parameters("""
+        {
+            "solver_type": "MVQN_recursive",
+            "w_0": 0.5,
+            "buffer_size": 5
+        }""")
 
         self.test_accelerator(force1,force2,solution,mvqn_recursive_settings)
 
@@ -315,3 +316,9 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
         self.test_aitken_accelerator(forceA,forceB,solution)
+
+if __name__ == '__main__':
+    test = ConvergenceAcceleratorSpringTest()
+    test.setUp()
+    test.test_mvqn_recursive_accelerator_variable_stiffness()
+    test.tearDown()

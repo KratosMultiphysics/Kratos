@@ -54,7 +54,7 @@ public:
     ///@{
 
     /// Counted pointer of MPMGridAxisymPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION(MPMGridAxisymPointLoadCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MPMGridAxisymPointLoadCondition);
 
     ///@}
     ///@name Life Cycle
@@ -76,7 +76,7 @@ public:
 
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 

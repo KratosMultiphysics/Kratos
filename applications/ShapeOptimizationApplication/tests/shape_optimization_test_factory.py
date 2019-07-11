@@ -89,6 +89,9 @@ class opt_process_step_adaption_test(ShapeOptimizationTestFactory):
 @kratos_unittest.skipUnless(has_csm_app,"Missing required application: StructuralMechanicsApplication")
 class opt_process_stress_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_stress_test"
+
+class opt_process_multiobjective_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_multiobjective_test"
     execution_file = "run_test"
 
 # ==============================================================================

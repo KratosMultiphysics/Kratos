@@ -68,9 +68,9 @@ public:
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef MeshDataTransferUtilities::TransferParameters    TransferParametersType;
 
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
     enum ContactElementType //(contact domain definition)
     {

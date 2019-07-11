@@ -115,6 +115,7 @@ public:
     {
         BaseType::operator=(rOther);
         mData = rOther.mData;
+        mTables = rOther.mTables;
         return *this;
     }
 

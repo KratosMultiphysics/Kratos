@@ -29,21 +29,21 @@ public:
     static constexpr int TDim = TPrimalCondition::Dim;
 
     /// Pointer definition of AdjointPotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointPotentialWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointPotentialWallCondition);
 
     typedef Element::WeakPointer ElementWeakPointerType;
-    
+
     typedef Element::Pointer ElementPointerType;
 
     AdjointPotentialWallCondition(IndexType NewId = 0)
     : Condition(NewId),
-      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGetGeometry()))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
     AdjointPotentialWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry),
-      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGeometry))
     {
     }
 
@@ -51,7 +51,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties),
-      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry, pProperties))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGeometry, pProperties))
     {
     }
 

@@ -9,7 +9,6 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
 //
 //
 
@@ -22,7 +21,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-
+#include <atomic>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -51,7 +50,7 @@ namespace Kratos
 		///@{
 
 		/// Pointer definition of VariablesList
-		KRATOS_CLASS_POINTER_DEFINITION(VariablesList);
+		KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VariablesList);
 
 
 
@@ -86,10 +85,13 @@ namespace Kratos
 		///@{
 
 		/// Default constructor. mPosition should have at least on entry.
-        VariablesList() = default;
+        VariablesList()
+		: mReferenceCounter(0)
+		{}
 
         template <class TInputIteratorType>
 		VariablesList(TInputIteratorType First, TInputIteratorType Last)
+		: mReferenceCounter(0)
 		{
 			for (; First != Last; First++)
 				Add(*First);
@@ -100,7 +102,9 @@ namespace Kratos
 			, mHashFunctionIndex(rOther.mHashFunctionIndex)
 			, mKeys(rOther.mKeys)
 			, mPositions(rOther.mPositions)
-			, mVariables(rOther.mVariables) {}
+			, mVariables(rOther.mVariables)
+			, mReferenceCounter(0) 
+			{}
 
 		/// Destructor.
 		virtual ~VariablesList()
@@ -150,7 +154,11 @@ namespace Kratos
 				std::equal(mVariables.begin(), mVariables.end(), r.mVariables.begin());
 		}
 
-
+		//public API of intrusive_ptr
+		unsigned int use_count() const noexcept
+		{
+			return mReferenceCounter;
+		}
 		///@}
 		///@name Operations
 		///@{
@@ -350,7 +358,21 @@ namespace Kratos
 		///@}
 		///@name Private Operators
 		///@{
+		//this block is needed for refcounting
+		mutable std::atomic<int> mReferenceCounter;
 
+		friend void intrusive_ptr_add_ref(const VariablesList* x)
+		{
+			x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+		}
+
+		friend void intrusive_ptr_release(const VariablesList* x)
+		{
+			if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+			std::atomic_thread_fence(std::memory_order_acquire);
+			delete x;
+			}
+		}
 
 		///@}
 		///@name Private Operations
