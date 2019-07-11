@@ -85,7 +85,7 @@ public:
      */
     void PrintDebugInfo();
 
-    void PrintModelPartDebugInfo(ModelPart& rModelPart);
+    void PrintModelPartDebugInfo(const ModelPart& rModelPart);
 
     ///@}
     ///@name Access

@@ -61,7 +61,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
 
             //print ghost mesh
             std::cout << " proc = " << rank << " ghost mesh" << std::endl;
-            for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
+            for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
                     it != rModelPart.GetCommunicator().GhostMesh().NodesEnd();
                     ++it)
             {
@@ -73,7 +73,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
 
             //print local mesh
             std::cout << " proc = " << rank << " local mesh" << std::endl;
-            for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
+            for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
                     it != rModelPart.GetCommunicator().LocalMesh().NodesEnd();
                     ++it)
             {
@@ -85,7 +85,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
 
             //print interface mesh
             std::cout << " proc = " << rank << " interface mesh" << std::endl;
-            for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().InterfaceMesh().NodesBegin();
+            for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().InterfaceMesh().NodesBegin();
                     it != rModelPart.GetCommunicator().InterfaceMesh().NodesEnd();
                     ++it)
             {
@@ -106,7 +106,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
                 if ((destination = neighbours_indices[i_color]) >= 0)
                 {
                     std::cout << "ghost mesh for color --> " << i_color << std::endl;
-                    for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().GhostMesh(i_color).NodesBegin();
+                    for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().GhostMesh(i_color).NodesBegin();
                             it != rModelPart.GetCommunicator().GhostMesh(i_color).NodesEnd();
                             ++it)
                     {
@@ -118,7 +118,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
                     std::cout << "finished printing ghost mesh for color --> " << i_color<< std::endl;
 
                     std::cout << "local mesh for color --> " << i_color << std::endl;
-                    for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
+                    for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
                             it != rModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
                             ++it)
                     {
@@ -129,7 +129,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
                     std::cout << "finished printing local mesh for color --> " << i_color<< std::endl;
 
                     std::cout << "interface mesh for color --> " << i_color << std::endl;
-                    for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesBegin();
+                    for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesBegin();
                             it != rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesEnd();
                             ++it)
                     {
@@ -147,7 +147,7 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
                     if(rModelPart.GetCommunicator().LocalMesh(i_color).Nodes().size()!=0)
                     {
                         std::cout << "local mesh for color --> " << i_color << "*********************************" <<  std::endl;
-                        for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
+                        for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
                                 it != rModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
                                 ++it)
                         {
@@ -239,14 +239,17 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
         r_data_communicator.Gather(send_buf, number_of_receive_neighbours, root_id);
     }
     if (my_rank == root_id)
+    {
         for (unsigned p_id = 0; p_id < num_processors; ++p_id)
             receive_neighbours[p_id].resize(number_of_receive_neighbours[p_id]);
+    }
 
     // Fill the neighbour id lists of the partitions on root.
     if (my_rank == root_id) // On root we directly copy the data without calling MPI.
         std::copy(my_receive_neighbours.begin(), my_receive_neighbours.end(), receive_neighbours[root_id].begin());
     // Gather the remaining id lists to root.
     for (unsigned p_id = 1; p_id < num_processors; ++p_id)
+    {
         if (my_rank == root_id)
         {
             r_data_communicator.Recv(receive_neighbours[p_id], p_id, p_id);
@@ -255,6 +258,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
         {
             r_data_communicator.Send(my_receive_neighbours, root_id, p_id);
         }
+    }
 
     // Create the colored graph for communication.
     DenseMatrix<int> domains_colored_graph;
@@ -289,8 +293,10 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     // Now send the colors of the communication to the processors.
     std::vector<int> colors(max_color_found);
     if (my_rank == root_id) // On root we directly copy the data.
+    {
         for (int j = 0; j < max_color_found; ++j)
             colors[j] = domains_colored_graph(root_id, j);
+    }
     // Send the remaining color patterns to processes.
     std::vector<int> send_colors(max_color_found);
     for (unsigned p_id = 1; p_id < num_processors; ++p_id)
@@ -298,7 +304,9 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
         if (my_rank == root_id)
         {
             for (int j = 0; j < max_color_found; ++j)
+            {
                 send_colors[j] = domains_colored_graph(p_id, j);
+            }
             r_data_communicator.Send(send_colors, p_id, p_id);
         }
         else if (my_rank == p_id)
@@ -351,9 +359,13 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     {
         const unsigned index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);
         if (index == MyRank)
+        {
             r_local_nodes.push_back(*(it_node.base()));
+        }
         else
+        {
             r_ghost_nodes.push_back(*(it_node.base()));
+        }
     }
 
     // Fill nodes for the InterfaceMesh.
@@ -361,8 +373,10 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     {
         ModelPart::NodesContainerType& r_color_interface_nodes =
             r_color_interface_mesh.Nodes();
-        for (auto it = r_color_interface_nodes.begin(); it != r_color_interface_nodes.end(); ++it)
-            r_interface_nodes.push_back(*(it.base()));
+        for (auto it = r_color_interface_nodes.ptr_begin(); it != r_color_interface_nodes.ptr_end(); ++it)
+        {
+            r_interface_nodes.push_back(*it);
+        }
     }
     r_interface_nodes.Unique();
     r_local_nodes.Unique();
@@ -376,7 +390,9 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
 
     // Call the sub model part.
     for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())
+    {
         ComputeCommunicationPlan(r_sub_model_part);
+    }
 
     KRATOS_CATCH("");
 }
@@ -403,7 +419,9 @@ void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsig
     {
         const int index = it->FastGetSolutionStepValue(PARTITION_INDEX);
         if (index == NeighbourPID)
+        {
             r_ghost_nodes.push_back(*(it.base()));
+        }
     }
     unsigned num_ghost_nodes = r_ghost_nodes.size();
     r_ghost_nodes.Unique();
@@ -415,7 +433,9 @@ void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsig
     { // Fill receive ids (ids of ghost nodes).
         int i = 0;
         for (const ModelPart::NodeType& rNode : r_ghost_nodes)
+        {
             ids_to_receive[i++] = rNode.Id();
+        }
     }
 
     std::vector<int> ids_to_send;
@@ -434,11 +454,15 @@ void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsig
         rModelPart.GetCommunicator().LocalMesh(Color).Nodes();
     r_local_nodes.clear();
     for (int id : ids_to_send)
+    {
         r_local_nodes.push_back(rModelPart.Nodes()(id));
+    }
 
     for (const ModelPart::NodeType& r_node : r_local_nodes)
+    {
         KRATOS_ERROR_IF(r_node.FastGetSolutionStepValue(PARTITION_INDEX) != MyPID) << "A node in the local mesh is trying to communicate to the wrong partition."
                                                                                     << std::endl;
+    }
 
     r_local_nodes.Unique();
     KRATOS_ERROR_IF(r_local_nodes.size() != ids_to_send.size())
@@ -450,10 +474,14 @@ void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsig
     r_interface_nodes.clear();
 
     for (auto it = r_ghost_nodes.begin(); it != r_ghost_nodes.end(); ++it)
+    {
         r_interface_nodes.push_back(*(it.base()));
+    }
 
     for (auto it = r_local_nodes.begin(); it != r_local_nodes.end(); it++)
+    {
         r_interface_nodes.push_back(*(it.base()));
+    }
 
     unsigned num_interface_nodes = r_interface_nodes.size();
     r_interface_nodes.Unique();
