@@ -18,8 +18,9 @@
 
 /* Project includes */
 #include "utilities/table_stream_utility.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_utilities/active_set_utilities.h"
 
 namespace Kratos
 {
@@ -70,6 +71,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ENSURE_CONTACT );
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -114,6 +116,7 @@ public:
         const TDataType LMTangentAbsTolerance,
         const TDataType NormalTangentRatio,
         const bool EnsureContact = false,
+        const bool PureSlip = false,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -121,6 +124,7 @@ public:
         // Set local flags
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);
+        mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP, PureSlip);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
 
         // The displacement solution
@@ -150,6 +154,7 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "ensure_contact"                                     : false,
+            "pure_slip"                                          : false,
             "print_convergence_criterion"                        : false,
             "displacement_relative_tolerance"                    : 1.0e-4,
             "displacement_absolute_tolerance"                    : 1.0e-9,
@@ -181,6 +186,7 @@ public:
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT, ThisParameters["ensure_contact"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
     }
 
     //* Copy constructor.
@@ -222,6 +228,20 @@ public:
         ) override
     {
         if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
+
+            // Getting process info
+            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+            // Compute the active set
+            if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+                const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP), this->GetEchoLevel());
+
+                // We save to the process info if the active set has converged
+                r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
+                r_process_info[SLIP_SET_CONVERGED] = is_converged[1] == 0 ? true : false;
+                r_process_info[ACTIVE_SET_COMPUTED] = true;
+            }
+
             // Initialize
             TDataType disp_solution_norm = 0.0, normal_lm_solution_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, disp_increase_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
             IndexType disp_dof_num(0), lm_dof_num(0), lm_stick_dof_num(0), lm_slip_dof_num(0);
@@ -258,7 +278,7 @@ public:
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
 
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -278,7 +298,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -298,7 +318,7 @@ public:
 
                         normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                         normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP)) {
+                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
                             tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
                             tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
                             ++lm_slip_dof_num;
@@ -336,9 +356,6 @@ public:
 
             const TDataType normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
             const TDataType normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
-
-            // The process info of the model part
-            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // We print the results  // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -429,10 +446,12 @@ public:
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
             r_table.AddColumn("EXP. ABS", 10);
-            r_table.AddColumn("STI. RATIO", 10);
-            r_table.AddColumn("EXP. RAT", 10);
-            r_table.AddColumn("ABS", 10);
-            r_table.AddColumn("EXP. ABS", 10);
+            if (mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::PURE_SLIP)) {
+                r_table.AddColumn("STI. RATIO", 10);
+                r_table.AddColumn("EXP. RAT", 10);
+                r_table.AddColumn("ABS", 10);
+                r_table.AddColumn("EXP. ABS", 10);
+            }
             r_table.AddColumn("SLIP RATIO", 10);
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
@@ -440,6 +459,30 @@ public:
             r_table.AddColumn("CONVERGENCE", 15);
             mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::TABLE_IS_INITIALIZED, true);
         }
+    }
+
+    /**
+     * @brief This function finalizes the non-linear iteration
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // Calling base criteria
+        BaseType::FinalizeNonLinearIteration(rModelPart, rDofSet, rA, rDx, rb);
+
+        // The current process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
     ///@}
@@ -551,6 +594,10 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(3));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementLagrangeMultiplierFrictionalContactCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(3, false));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_FRICTIONAL_CONTACT_CRITERIA_H */

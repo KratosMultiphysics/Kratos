@@ -4,7 +4,7 @@ CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces 
-QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,SimoJu,Rankine,DruckerPrager,Elastic)
+QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
 VALUE: 35.00e9
@@ -36,6 +36,8 @@ HELP: D = R_alpha*M + r_beta*K
 QUESTION: Rayleigh_Alpha
 VALUE: 0.5
 HELP: D = R_alpha*M + r_beta*K
+QUESTION: Large_Displacement_Calculation#CB#(true,false)
+VALUE: false
 END CONDITION
 
 CONDITION: Initial_DEM_Part
