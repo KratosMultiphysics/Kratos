@@ -452,7 +452,6 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
         const double c2 = c1 * (1 - nu); // Cii
         const double c3 = c1 * nu;  // Cij
         const double c4 = c1 * 0.5 * (1 - 2 * nu); // Gij
-
         rSecantTensor(0,0) = (1.0 - rDamages[0]) * c2;
         rSecantTensor(1,1) = (1.0 - rDamages[1]) * c2;
         rSecantTensor(2,2) = (1.0 - rDamages[2]) * c2;
@@ -466,7 +465,16 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
         rSecantTensor(4,4) = std::sqrt((1.0 - rDamages[0])*(1.0 - rDamages[2]))*c4;
         rSecantTensor(5,5) = std::sqrt((1.0 - rDamages[1])*(1.0 - rDamages[2]))*c4;
     } else { // 2D Case -> Plane strain
+        const double c0 = E / ((1.00 + nu)*(1 - 2 * nu));
+        const double c1 = (1.00 - nu)*c0;
+        const double c2 = c0 * nu;
+        const double c3 = (0.5 - nu)*c0;
 
+        rSecantTensor(0,0) = (1.0 - rDamages[0])*c1;
+        rSecantTensor(1,1) = (1.0 - rDamages[1])*c1;
+        rSecantTensor(0,1) = std::sqrt((1.0 - rDamages[0])*(1.0 - rDamages[1]))*c2;
+        rSecantTensor(1,0) = std::sqrt((1.0 - rDamages[0])*(1.0 - rDamages[1]))*c2;
+        rSecantTensor(2,2) = std::sqrt((1.0 - rDamages[0])*(1.0 - rDamages[1]))*c3;
     }
 }
 
