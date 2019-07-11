@@ -30,6 +30,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_dem_kinematics_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transfer_nodal_forces_to_fem.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_normalized_free_energy_on_nodes_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_sand_production.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
 )
 
