@@ -54,119 +54,119 @@ void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPa
     {
         if (rank == i)
         {
+            std::stringstream message;
 
-            std::cout << " *************************************** " << std::endl;
-
-            std::cout << " proc = " << rank << "communication colors " << rModelPart.GetCommunicator().NeighbourIndices() << std::endl;
+            message << " *************************************** " << std::endl;
+            message << " proc = " << rank << "communication colors " << rModelPart.GetCommunicator().NeighbourIndices() << std::endl;
 
             //print ghost mesh
-            std::cout << " proc = " << rank << " ghost mesh" << std::endl;
+            message << " proc = " << rank << " ghost mesh" << std::endl;
             for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
                     it != rModelPart.GetCommunicator().GhostMesh().NodesEnd();
                     ++it)
             {
-                if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
-                    KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be = to rank for ghost nodes","")
-                    std::cout << it->Id() << " " ;
+                KRATOS_ERROR_IF(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
+                << "error partition index can not be = to rank for ghost nodes" << it->Id();
+                message << it->Id() << " " ;
             }
-            std::cout << std::endl;
+            message << std::endl;
 
             //print local mesh
-            std::cout << " proc = " << rank << " local mesh" << std::endl;
+            message << " proc = " << rank << " local mesh" << std::endl;
             for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
                     it != rModelPart.GetCommunicator().LocalMesh().NodesEnd();
                     ++it)
             {
-                if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
-                    KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
-                    std::cout << it->Id() << " " ;
+                KRATOS_ERROR_IF(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
+                << "error partition index can not be != from rank for local nodes" << it->Id();
+                message << it->Id() << " " ;
             }
-            std::cout << std::endl;
+            message << std::endl;
 
             //print interface mesh
-            std::cout << " proc = " << rank << " interface mesh" << std::endl;
+            message << " proc = " << rank << " interface mesh" << std::endl;
             for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().InterfaceMesh().NodesBegin();
                     it != rModelPart.GetCommunicator().InterfaceMesh().NodesEnd();
                     ++it)
             {
-                std::cout << it->Id() << " " ;
+                message << it->Id() << " " ;
             }
-            std::cout << std::endl;
+            message << std::endl;
 
             //now print everything color by color
             int destination = 0;
-            std::cout << "NeighbourIndices " ;
+            message << "NeighbourIndices " ;
             const vector<int>& neighbours_indices = rModelPart.GetCommunicator().NeighbourIndices();
             for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-                std::cout << neighbours_indices[i_color] << " " ;
-            std::cout << std::endl;
+                message << neighbours_indices[i_color] << " " ;
+            message << std::endl;
             for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             {
-                std::cout << "color = " << i_color << std::endl;
+                message << "color = " << i_color << std::endl;
                 if ((destination = neighbours_indices[i_color]) >= 0)
                 {
-                    std::cout << "ghost mesh for color --> " << i_color << std::endl;
+                    message << "ghost mesh for color --> " << i_color << std::endl;
                     for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().GhostMesh(i_color).NodesBegin();
                             it != rModelPart.GetCommunicator().GhostMesh(i_color).NodesEnd();
                             ++it)
                     {
-                        if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
-                            KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be = to rank for ghost nodes","")
-                            std::cout << it->Id() << " " ;
+                        KRATOS_ERROR_IF(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
+                        << "error partition index can not be = to rank for ghost nodes" << it->Id();
+                        message << it->Id() << " " ;
                     }
 
-                    std::cout << "finished printing ghost mesh for color --> " << i_color<< std::endl;
+                    message << "finished printing ghost mesh for color --> " << i_color<< std::endl;
 
-                    std::cout << "local mesh for color --> " << i_color << std::endl;
+                    message << "local mesh for color --> " << i_color << std::endl;
                     for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
                             it != rModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
                             ++it)
                     {
-                        if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
-                            KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
-                            std::cout << it->Id() << " " ;
+                        KRATOS_ERROR_IF(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
+                        << "error partition index can not be != from rank for local nodes" << it->Id();
+                        message << it->Id() << " " ;
                     }
-                    std::cout << "finished printing local mesh for color --> " << i_color<< std::endl;
+                    message << "finished printing local mesh for color --> " << i_color<< std::endl;
 
-                    std::cout << "interface mesh for color --> " << i_color << std::endl;
+                    message << "interface mesh for color --> " << i_color << std::endl;
                     for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesBegin();
                             it != rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesEnd();
                             ++it)
                     {
-                        std::cout << it->Id() << " " ;
+                        message << it->Id() << " " ;
                     }
-                    std::cout << "finished printing interface mesh for color --> " << i_color<< std::endl;
+                    message << "finished printing interface mesh for color --> " << i_color<< std::endl;
                 }
                 else
                 {
                     if(rModelPart.GetCommunicator().GhostMesh(i_color).Nodes().size()!=0)
                     {
-                        std::cout << "rank = " << rank << " color = " << i_color << std::endl;
-                        KRATOS_THROW_ERROR(std::logic_error,"nodes found in ghost mesh when communication is not expected","")
+                        message << "rank = " << rank << " color = " << i_color << std::endl;
+                        KRATOS_ERROR << "nodes found in ghost mesh when communication is not expected";
                     }
                     if(rModelPart.GetCommunicator().LocalMesh(i_color).Nodes().size()!=0)
                     {
-                        std::cout << "local mesh for color --> " << i_color << "*********************************" <<  std::endl;
+                        message << "local mesh for color --> " << i_color << "*********************************" <<  std::endl;
                         for (ModelPart::NodesContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
                                 it != rModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
                                 ++it)
                         {
-                            if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
-                                KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
-                                std::cout << it->Id() << " " << it->FastGetSolutionStepValue(PARTITION_INDEX) << std::endl ;
+                            KRATOS_ERROR_IF(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
+                            << "error partition index can not be != from rank for local nodes" << it->Id();
+                            message << it->Id() << " " << it->FastGetSolutionStepValue(PARTITION_INDEX) << std::endl ;
                         }
-                        std::cout << "finished printing local mesh for color --> " << i_color<< std::endl;
-                        std::cout << "nodes found in local mesh when communication is not expected" << std::endl;
-                        KRATOS_THROW_ERROR(std::logic_error,"nodes found in local mesh when communication is not expected","")
+                        message << "finished printing local mesh for color --> " << i_color<< std::endl;
+                        message << "nodes found in local mesh when communication is not expected" << std::endl;
+                        KRATOS_ERROR << "nodes found in local mesh when communication is not expected";
                     }
-                    if(rModelPart.GetCommunicator().InterfaceMesh(i_color).Nodes().size()!=0)
-                        KRATOS_THROW_ERROR(std::logic_error,"nodes found in interface mesh when communication is not expected","")
+                    KRATOS_ERROR_IF(rModelPart.GetCommunicator().InterfaceMesh(i_color).Nodes().size()!=0)
+                    << "nodes found in interface mesh when communication is not expected";
                 }
             }
 
-            std::cout << "finished printing proc -> " << rank << "*********************" << std::endl;
-            std::cout << std::endl;
-            std::cout.flush();
+            message << "finished printing proc -> " << rank << "*********************" << std::endl;
+            message << std::endl;
+            KRATOS_INFO_ALL_RANKS("ParallelFillCommunicator Debug Info") << message.str();
 
         }
 
