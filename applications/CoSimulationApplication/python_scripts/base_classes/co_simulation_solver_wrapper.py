@@ -35,7 +35,7 @@ class CoSimulationSolverWrapper(object):
 
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = self.__CreateInterfaceDataDict()
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.io = None
@@ -158,16 +158,6 @@ class CoSimulationSolverWrapper(object):
     def _GetIOName(cls):
         # only external solvers have to specify sth here / override this
         return "dummy_io"
-
-    ## __CreateInterfaceDataDict : Private Function to obtain the map of data objects
-    #
-    #  @param self            The object pointer.
-    def __CreateInterfaceDataDict(self):
-        data_dict = {}
-        for data_name, data_config in self.settings["data"].items():
-            data_dict[data_name] = CouplingInterfaceData(data_config, self.model)
-
-        return data_dict
 
     def __IOIsInitialized(self):
         return self.io is not None
