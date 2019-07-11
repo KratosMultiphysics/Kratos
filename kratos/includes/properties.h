@@ -308,6 +308,7 @@ public:
      */
     void AddSubProperty(Properties::Pointer pNewSubProperty)
     {
+        KRATOS_ERROR_IF(HasSubPropertiesById(pNewSubProperty->Id())) << "SubProperties with Id: " << pNewSubProperty->Id() << " already exists. In each level the Id of properties (new or existing) should be unique" << std::endl;
         mSubPropertiesList.insert(mSubPropertiesList.begin(), pNewSubProperty);
     }
 
