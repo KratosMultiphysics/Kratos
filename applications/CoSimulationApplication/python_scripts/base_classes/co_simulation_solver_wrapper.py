@@ -17,7 +17,12 @@ class CoSimulationSolverWrapper(object):
     """
     def __init__(self, settings, name):
         """Constructor of the Base Solver Wrapper
-        Deriving classes should call it in their constructors
+
+        The derived classes should do the following things in their constructors:
+        1. call the base-class constructor (i.e. the constructor of this class => CoSimulationSolverWrapper)
+        2. create the ModelParts required for the CoSimulation
+        3. call "_AllocateHistoricalVariablesFromCouplingData" to allocate the nodal historical variables on the previously created ModelParts
+           => this has to be done before the meshes/coupling-interfaces are read/received/imported (due to how the memory allocation of Kratos works for historical nodal values)
         """
 
         # Every SolverWrapper has its own model, because:
@@ -31,12 +36,21 @@ class CoSimulationSolverWrapper(object):
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
         self.data_dict = self.__CreateInterfaceDataDict()
+
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.io = None
-        self.__allocate_hist_vars_called = False
+
+        self.__allocate_hist_vars_called = False # internal variable to check that "_AllocateHistoricalVariablesFromCouplingData" was called
 
 
     def Initialize(self):
+        """Initializes the Solver Wrapper
+
+        The derived classes should do the following things this function:
+        1. read/receive/import the meshes/coupling-interfaces
+        2. call the base-class Initialize, which initializes the CouplingInterfaceDatas, for which the Coupling-interfaces have to be available
+        """
+
         if not self.__allocate_hist_vars_called:
             raise Exception('"_AllocateHistoricalVariablesFromCouplingData" was not called from solver "{}"'.format(self.name))
 
@@ -113,6 +127,9 @@ class CoSimulationSolverWrapper(object):
         return self.__class__.__name__
 
     def _AllocateHistoricalVariablesFromCouplingData(self):
+        '''This function retrieves the historical variables that are needed for the ModelParts from the specified CouplingInterfaceDatas and allocates them on the ModelParts
+        Note that it can only be called after the (Main-)ModelParts are created
+        '''
         for data in self.data_dict.values():
             hist_var_dict = data.GetHistoricalVariableDict()
             for full_model_part_name, variable in hist_var_dict.items():
@@ -146,7 +163,7 @@ class CoSimulationSolverWrapper(object):
     #
     #  @param self            The object pointer.
     def __CreateInterfaceDataDict(self):
-        data_dict = dict()
+        data_dict = {}
         for data_name, data_config in self.settings["data"].items():
             data_dict[data_name] = CouplingInterfaceData(data_config, self.model)
 

@@ -14,7 +14,7 @@ def Create(settings, solver_name):
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
     """This class serves as basis for the kratos-wrappers
-    It uses the AnalysisStage as interface to Kratos
+    It uses the AnalysisStage as black-box interface to Kratos
     """
     def __init__(self, settings, solver_name):
         super(KratosBaseWrapper, self).__init__(settings, solver_name)
@@ -26,10 +26,9 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         with open(input_file_name,'r') as parameter_file:
             self.project_parameters = KM.Parameters(parameter_file.read())
 
+        # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
         self._analysis_stage = self._CreateAnalysisStage()
-        # TODO add historical variables (or check if they are already there? => could maybe be done in check)
-        # maybe print warning if they are not there yet ...
-        # Note that it should also be considered if it is coming from a coupling solver
+
         self._AllocateHistoricalVariablesFromCouplingData()
 
     def Initialize(self):
