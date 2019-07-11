@@ -156,7 +156,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<>())
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
-        .def("CalculateBodyShearForce",&DragUtilities::CalculateBodyShearForce) //rishith
         ;
 
     py::class_<
