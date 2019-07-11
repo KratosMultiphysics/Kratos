@@ -118,6 +118,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
         double uniaxial_stress = 0.0;
+        bool is_damaging = false;
         // Now we compute the damages on each direction...
         for (unsigned int i = 0; i < Dimension; i++) {
             if (principal_stresses_vector[i] > tolerance) { // Damage only if positive
@@ -125,22 +126,26 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
             }
             const double F = uniaxial_stress - thresholds[i];
             if (F > tolerance) { // Damage Case
+                is_damaging = true;
                 const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
                 TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damages[i], thresholds[i], rValues, characteristic_length);
-            } else { // Elastic Case
-                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    // noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
-                }
             }
+        } // Damages computed
 
+        // We compute the secant tensor
+        Matrix secant_tensor(VoigtSize, VoigtSize);
+        noalias(secant_tensor) = ZeroMatrix(VoigtSize, VoigtSize);
+        this->CalculateSecantTensor(secant_tensor, rValues, damages);
+        noalias(r_integrated_stress_vector) = prod(secant_tensor, r_strain_vector);
+
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            if (is_damaging) { // Is damaging
+                this->CalculateTangentTensor(rValues);
+            } else { // otherwise we use the secant
+                noalias(r_tangent_tensor) = secant_tensor;
+            }
         }
-
-
-
     }
-
-
-
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
@@ -443,7 +448,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
     const double E = r_material_properties[YOUNG_MODULUS];
     const double nu = r_material_properties[POISSON_RATIO];
 
-    if (rSecantTensor.size1() == VoigtSize)
+    if (rSecantTensor.size1() != VoigtSize)
         rSecantTensor.resize(VoigtSize, VoigtSize);
     noalias(rSecantTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
