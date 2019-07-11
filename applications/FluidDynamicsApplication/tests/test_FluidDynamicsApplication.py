@@ -3,9 +3,11 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 
 import subprocess
+import os.path
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest
@@ -118,8 +120,6 @@ if __name__ == '__main__':
     KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    import os.path
-    import kratos_utilities
     if kratos_utilities.IsMPIAvailable():
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
         p = subprocess.Popen(

@@ -7,7 +7,9 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -256,7 +258,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             raise Exception(msg)
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
