@@ -72,7 +72,8 @@ class AdaptiveRefinement(object):
                 if current_level > 0:
                     coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                     metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    interp_error = original_interp_error/(coefficient_interp_error*current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
 
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
@@ -107,7 +108,8 @@ class AdaptiveRefinement(object):
                 if current_level > 0:
                     coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                     metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    interp_error = original_interp_error/(coefficient_interp_error*current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
 
