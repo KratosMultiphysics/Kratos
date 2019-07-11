@@ -352,6 +352,50 @@ public:
     }
 
     /**
+     * @brief This method checks if the subproperty exists from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return True if there is such subproperty, false otherwise
+     */
+    bool HasSubPropertiesById(const IndexType SubPropertyIndex)
+    {
+        // Checking if the id is the current properties
+        if (this->Id() == SubPropertyIndex) {
+            KRATOS_WARNING("Properties") << "There is no subproperty with the Id: " << SubPropertyIndex << ". The current property has that Id" << std::endl;
+            return true;
+        }
+
+        // Looking into the database
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @brief This method checks if the subproperty exists from the index corresponding to the property id  (constant version)
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return True if there is such subproperty, false otherwise
+     */
+    bool HasSubPropertiesById(const IndexType SubPropertyIndex) const
+    {
+        // Checking if the id is the current properties
+        if (this->Id() == SubPropertyIndex) {
+            KRATOS_WARNING("Properties") << "There is no subproperty with the Id: " << SubPropertyIndex << ". The current property has that Id" << std::endl;
+            return true;
+        }
+
+        // Looking into the database
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @brief This method gets the subproperty from the index corresponding to the property id
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
