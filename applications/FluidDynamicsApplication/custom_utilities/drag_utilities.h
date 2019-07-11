@@ -100,15 +100,6 @@ namespace Kratos
     */
     array_1d<double, 3> CalculateBodyFittedDrag(ModelPart &rModelPart);
 
-    /** rishith
-    * Computes the integral of the pressure stress term normal projection over the conditions 
-    * of the given modelpart. Its normal force to the surface
-    * @param rModelPart reference to the model part in where the drag is to be computed
-    * @return An array containing the drag force value.
-    */
-    double CalculateBodyShearForce(ModelPart &rModelPart,double,double, double);
-
-
     /**
     * Computes the integral of the Cauchy stress term normal projection in the given modelpart elements.
     * @param rModelPart reference to the model part in where the drag is to be computed

@@ -775,23 +775,7 @@ public:
         const ModelPart& rModelPart,
         const unsigned int rBuffStep = 0
         );
-    /** rishith
-     * @brief Returns the nodal value summation of an historical vector variable dotted with nodal normal.
-     * can be used for computing normal force to a surface
-     * @param rVar reference to the vector variable to summed
-     * @param rModelPart reference to the model part that contains the objective node set
-     * @return sum_value summation vector result
-     */
-    
-    double SumHistoricalNodeVectorVariableDotWithNormal(
-        const Variable<array_1d<double, 3> >& rVar,
-        ModelPart& rModelPart,
-        double centreX,
-        double centreY,
-        double centreZ,
-        const unsigned int rBuffStep = 0
-        );
-    
+
     /**
      * @brief Returns the nodal value summation of an historical scalar variable.
      * @param rVar reference to the scalar variable to be summed

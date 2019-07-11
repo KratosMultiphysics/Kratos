@@ -423,6 +423,7 @@ namespace Kratos
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
+
     //for General kratos application:
 
     //for Structural application:

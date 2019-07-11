@@ -87,7 +87,6 @@ int MultiscaleRefiningProcess::Check()
     return 0;
 
     KRATOS_CATCH("")
-    return 0;
 }
 
 

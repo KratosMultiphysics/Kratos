@@ -270,8 +270,8 @@ public:
         else //solve an optimization problem with the goal of achievieng a gradient of one for the distance function
         {
             //for debuggin purposes:
-            // if( dgauss * (this->GetValue(DISTANCE)) < 0.0 )
-            //    std::cout << "Element " << this->Id() << " changed sign while redistancing!!" << std::endl;
+            if( dgauss * (this->GetValue(DISTANCE)) < 0.0 )
+                std::cout << "Element " << this->Id() << " changed sign while redistancing!!" << std::endl;
 
             //compute the gradient of the distance
             const array_1d<double,TDim> grad = prod(trans(DN_DX),distances);

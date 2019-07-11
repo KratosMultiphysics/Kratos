@@ -37,19 +37,6 @@ namespace Kratos
 
         return drag_force;
     }
-//rishith
-    double DragUtilities::CalculateBodyShearForce(ModelPart& rModelPart,double centreX, double centreY, double centreZ) {
-        // Sum the reactions in the model part of interest.
-        // Note that the reactions are assumed to be already computed.
-        KRATOS_INFO("we reached here");
-        KRATOS_INFO("we reached here");
-        VariableUtils variable_utils;
-        
-        double drag_force = variable_utils.SumHistoricalNodeVectorVariableDotWithNormal(REACTION, rModelPart,centreX ,centreY ,centreZ , 0); // to find shear force on the structure, change of name required
-        drag_force *= -1.0;
-
-        return drag_force;
-    }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
 

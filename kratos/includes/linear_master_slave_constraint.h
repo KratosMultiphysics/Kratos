@@ -192,7 +192,6 @@ public:
         mRelationMatrix.resize(1,1,false);
         mConstantVector.resize(1,false);
 
-
         // Obtaining the dofs from the variables
         mSlaveDofsVector.push_back(rSlaveNode.pGetDof(rSlaveVariable));
         mMasterDofsVector.push_back(rMasterNode.pGetDof(rMasterVariable));

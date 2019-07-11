@@ -731,10 +731,7 @@ private:
         for (auto &eq_id : rEquationIds)
         {
             auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(eq_id);
-/*             if (global_master_slave_constraint != mrGlobalMasterSlaveConstraints.end())
-                rLocalIndexStructure.slave_index_vector.push_back(index);
-             */
-            if (index<9)
+            if (global_master_slave_constraint != mrGlobalMasterSlaveConstraints.end())
                 rLocalIndexStructure.slave_index_vector.push_back(index);
 
             index++;

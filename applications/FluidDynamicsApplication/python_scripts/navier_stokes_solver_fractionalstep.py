@@ -41,7 +41,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
-                "tolerance"                      : 1e-9,
+                "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
                 "smoother_type"                  : "ilu0",
                 "krylov_type"                    : "cg",
@@ -54,7 +54,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "velocity_linear_solver_settings": {
                 "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
-                "tolerance"                      : 1e-9,
+                "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
                 "smoother_type"                  : "ilu0",
                 "krylov_type"                    : "lgmres",
@@ -154,7 +154,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                                                                     self.settings["use_slip_conditions"].GetBool(),
                                                                     self.settings["move_mesh_flag"].GetBool(),
                                                                     self.settings["reform_dofs_at_each_step"].GetBool())
-
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
