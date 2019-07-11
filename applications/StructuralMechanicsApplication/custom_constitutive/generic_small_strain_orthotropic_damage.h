@@ -371,8 +371,8 @@ protected:
     Vector& GetThresholds() { return mThresholds; }
     Vector& GetDamages() { return mDamages; }
 
-    void SetThresholds(const Vector& toThresholds) { mThresholds = toThresholds; }
-    void SetDamages(const Vector& toDamages) { mDamages = toDamages; }
+    void SetThresholds(const Vector& rToThresholds) { mThresholds = rToThresholds; }
+    void SetDamages(const Vector& rToDamages) { mDamages = rToDamages; }
 
     ///@}
     ///@name Protected  Access
