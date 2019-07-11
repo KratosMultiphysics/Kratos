@@ -454,6 +454,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
         self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
+        self.sensitivity_settings = adjoint_parameters["solver_settings"]["sensitivity_settings"]
 
         self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
         self.adjoint_state_variables = [StructuralMechanicsApplication.ADJOINT_DISPLACEMENT]
@@ -510,6 +511,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
 
         self._RunSolutionLoopAdjointSubProblems()
         self._RunSolutionLoopMainProblem()
+        self._UpdateSensitivities()
 
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
@@ -578,3 +580,78 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         adjoint_model_mz = KratosMultiphysics.Model()
         self.adjoint_model_part_mz = _GetModelPart(adjoint_model_mz, adjoint_parameters_mz["solver_settings"])
         self.adjoint_analysis_mz = StructuralMechanicsAnalysis(adjoint_model_mz, adjoint_parameters_mz)
+
+
+    def _UpdateSensitivities(self):
+        nodal_variables, _ = self.__GenerateVariableListFromInput(self.sensitivity_settings["nodal_solution_step_sensitivity_variables"], False)
+        element_variables, element_sensitivity_variables = self.__GenerateVariableListFromInput(self.sensitivity_settings["element_data_value_sensitivity_variables"], True)
+        condition_variables, condition_sensitivity_variables = self.__GenerateVariableListFromInput(self.sensitivity_settings["condition_data_value_sensitivity_variables"], True)
+        sen_mp = self.__GetSensitivityModelPart(self.sensitivity_settings["sensitivity_model_part_name"].GetString(), self.adjoint_model_part)
+        sen_mp_fx = self.__GetSensitivityModelPart(self.sensitivity_settings["sensitivity_model_part_name"].GetString(), self.adjoint_model_part_fx)
+        sen_mp_my = self.__GetSensitivityModelPart(self.sensitivity_settings["sensitivity_model_part_name"].GetString(), self.adjoint_model_part_my)
+        sen_mp_mz = self.__GetSensitivityModelPart(self.sensitivity_settings["sensitivity_model_part_name"].GetString(), self.adjoint_model_part_mz)
+
+        # response superposition for nodal design variables
+        for var in nodal_variables:
+            if var.Name() == 'SHAPE_SENSITIVITY':
+                for node, node_fx, node_my, node_mz in zip(sen_mp.Nodes, sen_mp_fx.Nodes, sen_mp_my.Nodes, sen_mp_mz.Nodes):
+                    sen_fx = node_fx.GetSolutionStepValue(var)
+                    sen_my = node_my.GetSolutionStepValue(var)
+                    sen_mz = node_mz.GetSolutionStepValue(var)
+                    sensitivity =  sen_fx / self.A + sen_my / self.I22 * self.stress_position_z + sen_mz / self.I33 * self.stress_position_y
+                    node.SetSolutionStepValue(var, sensitivity)
+            else:
+                raise RuntimeError(var.Name(), ' not available!')
+
+        # response superposition for elemental design variables
+        for var, sen_var in zip(element_variables, element_sensitivity_variables):
+            for elem, elem_fx, elem_my, elem_mz in zip(sen_mp.Elements, sen_mp_fx.Elements, sen_mp_my.Elements, sen_mp_mz.Elements):
+                sen_fx = elem_fx.GetValue(sen_var)
+                sen_my = elem_my.GetValue(sen_var)
+                sen_mz = elem_mz.GetValue(sen_var)
+                sensitivity =  sen_fx / self.A + sen_my / self.I22 * self.stress_position_z + sen_mz / self.I33 * self.stress_position_y
+                # add additional contribution from partial derivative w.r.t. design variable
+                #if (elem.Id == self.traced_element_id) and (var.Name() == 'CROSS_AREA'):
+                #    FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
+                #    sensitivity = FX / self.A**2
+                #if (elem.Id == self.traced_element_id) and (var.Name() == 'I22'):
+                #    MY = self.adjoint_analysis_my._GetSolver().response_function.CalculateValue(self.primal_model_part)
+                #    sensitivity -= MY / self.I22**2
+                #if (elem.Id == self.traced_element_id) and (var.Name() == 'I33'):
+                #    MZ = self.adjoint_analysis_mz._GetSolver().response_function.CalculateValue(self.primal_model_part)
+                #    sensitivity -= MZ / self.I33**2
+                elem.SetValue(sen_var, sensitivity)
+
+        # response superposition for conditional design variables
+        for var, sen_var in zip(condition_variables, condition_sensitivity_variables):
+            if var.Name() == 'POINT_LOAD':
+                for cond, cond_fx, cond_my, cond_mz in zip(sen_mp.Conditions, sen_mp_fx.Conditions, sen_mp_my.Conditions, sen_mp_mz.Conditions):
+                    sen_fx = cond_fx.GetValue(sen_var)
+                    sen_my = cond_my.GetValue(sen_var)
+                    sen_mz = cond_mz.GetValue(sen_var)
+                    sensitivity =  sen_fx / self.A + sen_my / self.I22 * self.stress_position_z + sen_mz / self.I33 * self.stress_position_y
+                    cond.SetValue(sen_var, sensitivity)
+            else:
+                raise RuntimeError(sen_var.Name(), ' not available!')
+
+    # --------------------------------------------------------------------------
+    def __GenerateVariableListFromInput(self, parameter, create_sensitivity_variable_list):
+        if not parameter.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+        variable_list = []
+        sensitivity_variable_list = []
+        for i in range(0, parameter.size()):
+            variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() ))
+            if create_sensitivity_variable_list:
+                sensitivity_variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() +"_SENSITIVITY"))
+        return variable_list, sensitivity_variable_list
+
+    # --------------------------------------------------------------------------
+    def __GetSensitivityModelPart(self, model_part_name, root_mp):
+        if root_mp.HasSubModelPart(model_part_name):
+            model_part = root_mp.GetSubModelPart(model_part_name)
+            return model_part
+        elif root_mp.Name == model_part_name: # TODO is this necessary?
+            return root_mp
+        else:
+            raise RuntimeError('Given model part ' + model_part_name + ' is not available!')
