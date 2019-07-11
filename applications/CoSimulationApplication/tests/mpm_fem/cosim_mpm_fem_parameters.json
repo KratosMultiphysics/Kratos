@@ -2,8 +2,8 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 15.0,
-        "echo_level" : 0,
+        "end_time" : 10.0,
+        "echo_level" : 3,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
@@ -11,26 +11,18 @@
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
         "echo_level" : 0,
-        "num_coupling_iterations" : 12,
-        "predictors" : [
-            {
-                "type"                 : "linear_derivative_based",
-                "solver"               : "mpm",
-                "data_name"            : "disp",
-                "derivative_data_name" : "velocity"
-            }
-        ],
+        "num_coupling_iterations" : 20,
         "convergence_accelerators" : [
             {
                 "type"      : "mvqn",
-                "solver"    : "mpm",
+                "solver"    : "particle",
                 "data_name" : "disp"
             }
         ],
         "convergence_criteria" : [
             {
                 "type"          : "relative_norm_previous_residual",
-                "solver"        : "mpm",
+                "solver"        : "particle",
                 "data_name"     : "disp",
                 "abs_tolerance" : 1e-5,
                 "rel_tolerance" : 1e-5
@@ -45,7 +37,8 @@
             }
         },
         "coupling_operations" : {
-            "normals_computation" : {
+            "normals_computation" :
+            {
                 "type"      : "compute_normals",
                 "solver"    : "structure",
                 "data_name" : "disp"
@@ -54,7 +47,7 @@
         "coupling_sequence":
         [
             {
-                "name": "mpm",
+                "name": "particle",
                 "input_data_list"  : [],
                 "output_data_list" : []
             },
@@ -63,22 +56,22 @@
                 "input_data_list": [
                     {
                         "data"             : "load",
-                        "from_solver"      : "mpm",
+                        "from_solver"      : "particle",
                         "from_solver_data" : "load",
                         "data_transfer_operator" : "mapper",
-                        "data_transfer_operator_options" : ["swap_sign"]
+                        "data_transfer_operator_options"  : ["use_transpose"]
                     }
                 ],
                 "output_data_list": [
                     {
                         "data"           : "disp",
-                        "to_solver"      : "mpm",
+                        "to_solver"      : "particle",
                         "to_solver_data" : "disp",
                         "data_transfer_operator" : "mapper"
                     },
                     {
                         "data"           : "normals",
-                        "to_solver"      : "mpm",
+                        "to_solver"      : "particle",
                         "to_solver_data" : "normals",
                         "data_transfer_operator" : "mapper",
                         "before_data_transfer_operations" : ["normals_computation"]
@@ -88,30 +81,25 @@
         ],
         "solvers" :
         {
-            "mpm":
+            "particle":
             {
                 "type" : "solver_wrappers.kratos.particle_mechanics_wrapper",
                 "settings" : {
-                    "input_file"  : "fsi_mok/ProjectParametersCFD"
+                    "input_file"  : "mpm_fem/ProjectParametersMPM"
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "model_part_name"   : "MPM_Coupling_Interface",
                         "dimension" : 2,
-                        "variable_name" : "MESH_DISPLACEMENT"
+                        "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "model_part_name"   : "MPM_Coupling_Interface",
                         "dimension" : 2,
-                        "variable_name" : "REACTION"
-                    },
-                    "velocity" : {
-                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "VELOCITY"
+                        "variable_name" : "CONTACT_FORCE"
                     },
                     "normals" : {
-                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "model_part_name"   : "MPM_Coupling_Interface",
                         "dimension" : 2,
                         "variable_name" : "NORMAL"
                     }
@@ -121,26 +109,21 @@
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "settings" : {
-                    "input_file"  : "fsi_mok/ProjectParametersCSM"
+                    "input_file"  : "mpm_fem/ProjectParametersFEM"
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "model_part_name"   : "Structure.LineLoad2D_NormalCalculator",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "model_part_name"   : "Structure.LineLoad2D_NormalCalculator",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
                     },
-                    "velocity" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "VELOCITY"
-                    },
                     "normals" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "model_part_name"   : "Structure.LineLoad2D_NormalCalculator",
                         "dimension" : 2,
                         "variable_name" : "NORMAL"
                     }
