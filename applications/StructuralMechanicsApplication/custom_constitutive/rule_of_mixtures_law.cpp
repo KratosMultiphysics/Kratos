@@ -555,10 +555,11 @@ bool& RuleOfMixturesLaw::CalculateValue(
 
     // We combine the value of each layer (for bools could be problematic)
     rValue = false;
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
         const double factor = mCombinationFactors[i];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
 
         rParameterValues.SetMaterialProperties(r_prop);
         bool aux_value;
@@ -585,10 +586,11 @@ int& RuleOfMixturesLaw::CalculateValue(
 
     // We combine the value of each layer (for integers could be problematic)
     rValue = 0;
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
         const double factor = mCombinationFactors[i];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
 
         rParameterValues.SetMaterialProperties(r_prop);
         int aux_value;
@@ -615,10 +617,11 @@ double& RuleOfMixturesLaw::CalculateValue(
 
     // We combine the value of each layer
     rValue = 0.0;
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
         const double factor = mCombinationFactors[i];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
 
         rParameterValues.SetMaterialProperties(r_prop);
         double aux_value;
@@ -712,10 +715,11 @@ Vector& RuleOfMixturesLaw::CalculateValue(
 
         // We combine the value of each layer
         rValue.clear();
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
             const double factor = mCombinationFactors[i];
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            Properties& r_prop = *(it_prop_begin + i);
 
             rParameterValues.SetMaterialProperties(r_prop);
             Vector aux_value;
@@ -777,10 +781,11 @@ Matrix& RuleOfMixturesLaw::CalculateValue(
 
         // We combine the value of each layer
         rValue.clear();
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
             const double factor = mCombinationFactors[i];
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            Properties& r_prop = *(it_prop_begin + i);
 
             rParameterValues.SetMaterialProperties(r_prop);
             Matrix aux_value;
@@ -807,10 +812,11 @@ array_1d<double, 3 >& RuleOfMixturesLaw::CalculateValue(
 
     // We combine the value of each layer
     noalias(rValue) = ZeroVector(3);
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
         const double factor = mCombinationFactors[i];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
 
         rParameterValues.SetMaterialProperties(r_prop);
         array_1d<double, 3 > aux_value;
@@ -837,10 +843,11 @@ array_1d<double, 6 >& RuleOfMixturesLaw::CalculateValue(
 
     // We combine the value of each layer
     noalias(rValue) = ZeroVector(6);
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
         const double factor = mCombinationFactors[i];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
 
         rParameterValues.SetMaterialProperties(r_prop);
         array_1d<double, 6 > aux_value;
@@ -1088,9 +1095,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
 
         // Auxiliar constitutive matrix
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         Matrix auxiliar_constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1116,9 +1124,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         // Auxiliar stress vector
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector = ZeroVector(voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1202,9 +1211,10 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
 
         // Auxiliar constitutive matrix
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         Matrix auxiliar_constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1230,9 +1240,10 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         // Auxiliar stress vector
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector = ZeroVector(voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1278,8 +1289,9 @@ void RuleOfMixturesLaw::InitializeMaterialResponsePK1(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1297,8 +1309,9 @@ void RuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1316,8 +1329,9 @@ void RuleOfMixturesLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1335,8 +1349,9 @@ void RuleOfMixturesLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1354,8 +1369,9 @@ void RuleOfMixturesLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1373,8 +1389,9 @@ void RuleOfMixturesLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1392,8 +1409,9 @@ void RuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
@@ -1411,8 +1429,9 @@ void RuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We perform the reset in each layer
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_prop_begin + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         rValues.SetMaterialProperties(r_prop);
