@@ -41,7 +41,7 @@ static const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.
 static const std::string TempFilePreString = ".";
 static int VtkUseBinary = 0;
 static int PrintTiming = 0;
-static int EchoLevel = 0;
+static int EchoLevel = 1;
 
 #define EMPIRE_API_LOG(level) if(EMPIRE_API_helpers::EchoLevel>=level) std::cout << "[EMPIRE_API] "
 
@@ -65,12 +65,12 @@ static std::string GetTempFileName(const std::string& rFileName)
 
 static void WaitForFile(const std::string& rFileName)
 {
-    EMPIRE_API_LOG(2) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
+    EMPIRE_API_LOG(1) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
     while(!FileExists(rFileName)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
         EMPIRE_API_LOG(3) << "    Waiting" << std::endl;
     }
-    EMPIRE_API_LOG(2) << "Found file: \"" << rFileName << "\"" << std::endl;
+    EMPIRE_API_LOG(1) << "Found file: \"" << rFileName << "\"" << std::endl;
 }
 
 static void RemoveFile(const std::string& rFileName)
