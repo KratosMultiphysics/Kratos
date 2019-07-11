@@ -568,8 +568,11 @@ def ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_coarse_model,
 @constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
-    open_mp_threads = int(os.environ["computing_units_mc_execute"])
-    threadpool_limits(limits=open_mp_threads)
+    try:
+        open_mp_threads = int(os.environ["computing_units_mc_execute"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
     time_0 = time.time()
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
