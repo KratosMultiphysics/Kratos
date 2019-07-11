@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division
+﻿from __future__ import print_function, absolute_import, division
 
 import os
 import sys
@@ -95,6 +95,9 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
 
         self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
+
+        sub_prop11_adress = prop1.GetSubPropertiesByAddress("1.11")
+        self.assertEqual(sub_prop11.Id, sub_prop11_adress.Id)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
