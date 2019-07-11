@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: abel $
-//   Date:                $Date: 2013-05-27 17:13:27 $
-//   Revision:            $Revision: 1.29 $
+// ==============================================================================
+//  ChimeraApplication
 //
+//  License:         BSD License
+//                   license: ChimeraApplication/license.txt
+//
+//  Authors:       Navaneeth K Narayanan
+// ==============================================================================
 //
 
 #if !defined(KRATOS_QUAD_H_INCLUDED)

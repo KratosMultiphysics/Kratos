@@ -1,3 +1,22 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+// ==============================================================================
+//  ChimeraApplication
+//
+//  License:         BSD License
+//                   license: ChimeraApplication/license.txt
+//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
+// ==============================================================================
+//
+
+
 #include "chimera_application_variables.h"
 
 namespace Kratos

@@ -1,3 +1,8 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 // ==============================================================================
 //  ChimeraApplication
@@ -5,11 +10,11 @@
 //  License:         BSD License
 //                   license: ChimeraApplication/license.txt
 //
-//  Main authors:    Aditya Ghantasala, https://github.com/adityaghantasala
-//                   Navaneeth K Narayanan
-//                   Rishith Ellath Meethal
-//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
 // ==============================================================================
+//
 
 // System includes
 

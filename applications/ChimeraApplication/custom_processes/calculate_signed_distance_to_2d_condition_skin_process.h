@@ -4,13 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+// ==============================================================================
+//  ChimeraApplication
 //
-//  Main authors:    Navaneeth K Narayanan
+//  License:         BSD License
+//                   license: ChimeraApplication/license.txt
 //
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
+// ==============================================================================
 //
-
 #if !defined(KRATOS_CALCULATE_SIGNED_DISTANCE_CONDITION_2D_PROCESS_H_INCLUDED)
 #define KRATOS_CALCULATE_SIGNED_DISTANCE_CONDITION_2D_PROCESS_H_INCLUDED
 

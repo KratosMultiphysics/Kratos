@@ -4,13 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+// ==============================================================================
+//  ChimeraApplication
 //
-//  Main authors:    Aditya Ghantasala
-//                   Rishith E Methal
+//  License:         BSD License
+//                   license: ChimeraApplication/license.txt
 //
-
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
+// ==============================================================================
+//
 
 #ifndef KRATOS_FS_STRATEGY_FOR_CHIMERA_H
 #define KRATOS_FS_STRATEGY_FOR_CHIMERA_H

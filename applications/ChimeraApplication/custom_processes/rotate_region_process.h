@@ -4,11 +4,16 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+// ==============================================================================
+//  ChimeraApplication
 //
-//  Main authors:    Aditya Ghantasala
-//  The implementation follows : http://paulbourke.net/geometry/rotate/
+//  License:         BSD License
+//                   license: ChimeraApplication/license.txt
+//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+// ==============================================================================
+//
 
 #ifndef ROTATE_REGION_PROCESS_H
 #define ROTATE_REGION_PROCESS_H

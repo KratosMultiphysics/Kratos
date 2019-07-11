@@ -1,3 +1,8 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 // ==============================================================================
 //  ChimeraApplication
@@ -5,10 +10,11 @@
 //  License:         BSD License
 //                   license: ChimeraApplication/license.txt
 //
-//  Main authors:    Aditya Ghantasala, https://github.com/adityaghantasala
-//                   Navaneeth K Narayanan
-//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
 // ==============================================================================
+//
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
