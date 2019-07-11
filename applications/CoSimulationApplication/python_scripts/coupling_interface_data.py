@@ -44,7 +44,7 @@ class CouplingInterfaceData(object):
 
         # location of data on ModelPart
         self.location = self.settings["location"].GetString()
-        admissible_locations = ["node_historical", "node_non_historical", "element", "condition", "process_info", "model_part"]
+        admissible_locations = ["node_historical", "node_non_historical", "element", "condition", "model_part"]
         if not self.location in admissible_locations:
             raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
 
@@ -98,7 +98,7 @@ class CouplingInterfaceData(object):
         return self.GetModelPart().IsDistributed()
 
     def Size(self):
-        if self.location in ["process_info", "model_part"]:
+        if self.location == "model_part":
             return 1 * self.dimension
         else:
             return len(self.__GetDataContainer()) * self.dimension
@@ -130,12 +130,6 @@ class CouplingInterfaceData(object):
             data = self.__GetDataFromContainer(self.__GetDataContainer(), GetSolutionStepValue, solution_step_index)
         elif self.location in ["node_non_historical", "element", "condition"]:
             data = self.__GetDataFromContainer(self.__GetDataContainer(), GetValue)
-        elif self.location == "process_info":
-            var_val = self.GetModelPart().ProcessInfo[self.variable]
-            if self.is_scalar_variable:
-                data = [var_val]
-            else:
-                data = [var_val[i] for i in range(self.dimension)]
         elif self.location == "model_part":
             var_val = self.GetModelPart()[self.variable]
             if self.is_scalar_variable:
@@ -156,16 +150,6 @@ class CouplingInterfaceData(object):
             self.__SetDataOnContainer(self.__GetDataContainer(), SetSolutionStepValue, new_data, solution_step_index)
         elif self.location in ["node_non_historical", "element", "condition"]:
             self.__SetDataOnContainer(self.__GetDataContainer(), SetValue, new_data)
-        elif self.location == "process_info":
-            if self.is_scalar_variable:
-                self.GetModelPart().ProcessInfo[self.variable] = new_data[0]
-            else:
-                if self.variable_type == "Array":
-                    vec_value = [0.0, 0.0, 0.0] # Array values require three entries
-                    vec_value[:self.dimension] = new_data[:self.dimension] # apply "padding"
-                    self.GetModelPart().ProcessInfo[self.variable] = vec_value
-                else:
-                    self.GetModelPart().ProcessInfo[self.variable] = new_data
         elif self.location == "model_part":
             if self.is_scalar_variable:
                 self.GetModelPart()[self.variable] = new_data[0]

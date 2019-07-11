@@ -21,8 +21,8 @@ coupling_interface_data_str = '''CouplingInterfaceData:
 model_part_scalar_value = -61.225
 model_part_vector_value = [123.5, 54.9, -92.4]
 
-process_info_scalar_value = 9745.34
-process_info_vector_value = [-556.3, -334.2, 65.9]
+model_part_scalar_value_2 = 9745.34
+model_part_vector_value_2 = [-556.3, -334.2, 65.9]
 
 class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
@@ -69,9 +69,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         self.mp[KM.NODAL_MASS] = model_part_scalar_value
         self.mp[KM.TORQUE] = model_part_vector_value
-
-        self.mp.ProcessInfo[KM.NODAL_ERROR] = process_info_scalar_value
-        self.mp.ProcessInfo[KM.NORMAL] = process_info_vector_value
 
     def test_basics(self):
         settings_scal_hist = KM.Parameters("""{
@@ -153,7 +150,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "location"        : "dummy"
         }""")
 
-        exp_error = '"dummy" is not allowed as "location", only the following options are possible:\nnode_historical, node_non_historical, element, condition, process_info, model_part'
+        exp_error = '"dummy" is not allowed as "location", only the following options are possible:\nnode_historical, node_non_historical, element, condition, model_part'
 
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data = CouplingInterfaceData(settings, self.model)
@@ -163,7 +160,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "model_part_name" : "mp_4_test",
             "variable_name"   : "PRESSURE"
         }""")
-
 
         settings_model_part = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
@@ -434,38 +430,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         self.__CheckData([model_part_vector_value[0]], coupling_data_vec.GetData())
 
         # 2. check setting and getting works
-        set_data_scal = [process_info_scalar_value]
-        set_data_vec = [process_info_vector_value[0]]
-
-        self.__CheckSetGetData(set_data_scal, coupling_data_scal)
-        self.__CheckSetGetData(set_data_vec, coupling_data_vec)
-
-    def test_GetSetProcessInfoData(self):
-        settings_scal = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "location"        : "process_info",
-            "variable_name"   : "NODAL_ERROR"
-        }""")
-
-        settings_vec = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "NORMAL",
-            "location"        : "process_info",
-            "dimension"       : 2
-        }""")
-
-        coupling_data_scal = CouplingInterfaceData(settings_scal, self.model)
-        coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
-        coupling_data_scal.Initialize()
-        coupling_data_vec.Initialize()
-
-        # 1. check the initial values
-        self.__CheckData([process_info_scalar_value], coupling_data_scal.GetData())
-        self.__CheckData([process_info_vector_value[0], process_info_vector_value[1]], coupling_data_vec.GetData())
-
-        # 2. check setting and getting works
-        set_data_scal = [model_part_scalar_value]
-        set_data_vec = [model_part_vector_value[0], model_part_vector_value[1]]
+        set_data_scal = [model_part_scalar_value_2]
+        set_data_vec = [model_part_vector_value_2[0]]
 
         self.__CheckSetGetData(set_data_scal, coupling_data_scal)
         self.__CheckSetGetData(set_data_vec, coupling_data_vec)
