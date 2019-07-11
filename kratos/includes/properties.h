@@ -543,8 +543,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ContainerType mData;
-    TablesContainerType mTables;
+    ContainerType mData;                        /// The data stored on the properties
+
+    TablesContainerType mTables;                /// The tables contained on the properties
 
     PropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
