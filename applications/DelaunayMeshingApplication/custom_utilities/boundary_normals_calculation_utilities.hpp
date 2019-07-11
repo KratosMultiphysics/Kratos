@@ -59,9 +59,9 @@ class BoundaryNormalsCalculationUtilities
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
   typedef ModelPart::MeshType                               MeshType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
   ///@}
   ///@name Life Cycle
@@ -938,7 +938,7 @@ protected:
   //**************************************************************************
 
   template<class TClassType>
-  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
+  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<GlobalPointersVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
   {
     KRATOS_TRY
 
@@ -1326,7 +1326,7 @@ protected:
 
 
   // template<class TClassType>
-  // void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rIds, const unsigned int& dimension )
+  // void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<GlobalPointersVector<TClassType> >& rNeighbours, const std::vector<int>& rIds, const unsigned int& dimension )
   // {
 
   //   KRATOS_TRY

@@ -13,41 +13,21 @@
 #if !defined(KRATOS_BRUTE_FORCE_POINT_LOCATOR_H_INCLUDED)
 #define  KRATOS_BRUTE_FORCE_POINT_LOCATOR_H_INCLUDED
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 
-
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup KratosCore
+///@{
 
-  ///@name Kratos Globals
-  ///@{
-
-  ///@}
-  ///@name Type Definitions
-  ///@{
-
-  ///@}
-  ///@name  Enum's
-  ///@{
-
-  ///@}
-  ///@name  Functions
-  ///@{
-
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@name Kratos Classes
+///@{
 
 /**
  * @class BruteForcePointLocator
@@ -74,13 +54,7 @@ public:
     explicit BruteForcePointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
 
     /// Destructor.
-    virtual ~BruteForcePointLocator() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~BruteForcePointLocator() = default;
 
     ///@}
     ///@name Operations
@@ -92,33 +66,25 @@ public:
      * @param DistanceThreshold threshold for the distance
      * @return Id of the found node. -1 if no node was found
      */
-    int FindNode(const Point& rThePoint, const double DistanceThreshold=1e-12) const;
+    int FindNode(const Point& rThePoint, const double DistanceThreshold=1e-6) const;
 
     /**
      * @brief This function finds an element based on a location
      * @param rThePoint the location to search
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
      * @return Id of the found element. -1 if no element was found
      */
-    int FindElement(const Point& rThePoint, Vector& rShapeFunctionValues) const;
+    int FindElement(const Point& rThePoint, Vector& rShapeFunctionValues, const double LocalCoordTol=1e-6) const;
 
     /**
      * @brief This function finds a condition based on a location
      * @param rThePoint the location to search
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
      * @return Id of the found condition. -1 if no condition was found
      */
-    int FindCondition(const Point& rThePoint, Vector& rShapeFunctionValues) const;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
+    int FindCondition(const Point& rThePoint, Vector& rShapeFunctionValues, const double LocalCoordTol=1e-6) const;
 
     ///@}
     ///@name Input and output
@@ -138,66 +104,13 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -210,10 +123,12 @@ private:
      * @param rThePoint the location to search
      * @param rObjectId Id of the found condition. -1 if no object was found
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
      */
     template<typename TObjectType>
     void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
-                    const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
+                    const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues,
+                    const double LocalCoordTol) const;
 
     /**
      * @brief This function performs some checks after the search
@@ -223,7 +138,7 @@ private:
      */
     void CheckResults(const std::string& rObjectType,
                       const Point& rThePoint,
-                      int LocalObjectsFound) const;
+                      const int LocalObjectFound) const;
 
     /**
      * @brief This function checks whether a node is close to a point based on a threshold
@@ -234,32 +149,11 @@ private:
      */
     bool NodeIsCloseEnough(const Node<3>& rNode,
                            const Point& rThePoint,
-                           double DistanceThreshold) const;
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
+                           const double DistanceThreshold) const;
 
     ///@}
 
 }; // Class BruteForcePointLocator
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output

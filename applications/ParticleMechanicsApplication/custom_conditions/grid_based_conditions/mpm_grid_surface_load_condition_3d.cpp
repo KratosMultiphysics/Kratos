@@ -37,7 +37,7 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
     IndexType NewId,
     GeometryType::Pointer pGeometry
     )
-    : MPMBaseLoadCondition(NewId, pGeometry)
+    : MPMGridBaseLoadCondition(NewId, pGeometry)
 {
 }
 
@@ -49,7 +49,7 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     )
-    : MPMBaseLoadCondition(NewId, pGeometry, pProperties)
+    : MPMGridBaseLoadCondition(NewId, pGeometry, pProperties)
 {
 }
 
@@ -58,11 +58,11 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
 
 Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, pGeometry, pProperties);
 }
 
 //***********************************************************************************
@@ -74,7 +74,7 @@ Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -88,11 +88,11 @@ MPMGridSurfaceLoadCondition3D::~MPMGridSurfaceLoadCondition3D()
 //***********************************************************************************
 
 void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
-    Matrix& K,
-    const array_1d<double, 3 >& ge,
-    const array_1d<double, 3 >& gn,
-    const Matrix& DN_De,
-    const RowMatrix& N,
+    Matrix& rK,
+    const array_1d<double, 3 >& rge,
+    const array_1d<double, 3 >& rgn,
+    const Matrix& rDN_De,
+    const RowMatrix& rN,
     const double Pressure,
     const double Weight)
 {
@@ -104,8 +104,8 @@ void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
     double coeff;
     const unsigned int number_of_nodes = GetGeometry().size();
 
-    MakeCrossMatrix(Cross_ge, ge);
-    MakeCrossMatrix(Cross_gn, gn);
+    MakeCrossMatrix(Cross_ge, rge);
+    MakeCrossMatrix(Cross_gn, rgn);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -114,15 +114,15 @@ void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
         {
             const unsigned int ColIndex = j * 3;
 
-            coeff = Pressure * N[i] * DN_De(j, 1) * Weight;
+            coeff = Pressure * rN[i] * rDN_De(j, 1) * Weight;
             noalias(Kij) = coeff * Cross_ge;
 
-            coeff = Pressure * N[i] * DN_De(j, 0) * Weight;
+            coeff = Pressure * rN[i] * rDN_De(j, 0) * Weight;
 
             noalias(Kij) -= coeff * Cross_gn;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
+            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, ColIndex);
         }
     }
 
@@ -188,41 +188,41 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 {
     KRATOS_TRY;
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int mat_size = number_of_nodes * 3;
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int matrix_size = number_of_nodes * 3;
 
     //Resizing as needed the LHS
     if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
     {
-        if (rLeftHandSideMatrix.size1() != mat_size)
+        if (rLeftHandSideMatrix.size1() != matrix_size)
         {
-            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+            rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
         }
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
     }
 
     // Resizing as needed the RHS
     if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
     {
-        if (rRightHandSideVector.size() != mat_size)
+        if (rRightHandSideVector.size() != matrix_size)
         {
-            rRightHandSideVector.resize(mat_size, false);
+            rRightHandSideVector.resize(matrix_size, false);
         }
 
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        rRightHandSideVector = ZeroVector(matrix_size); //resetting RHS
     }
 
     // Reading integration points and local gradients
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(rGeom);
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(integration_method);
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = rGeom.ShapeFunctionsLocalGradients(integration_method);
-    const Matrix& Ncontainer = rGeom.ShapeFunctionsValues(integration_method);
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
+    const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Calculating actual jacobian
     GeometryType::JacobiansType J;
-    J = rGeom.Jacobian(J,integration_method);
+    J = r_geometry.Jacobian(J,integration_method);
 
     // Vector with a loading applied to the elemnt
     array_1d<double, 3 > surface_load = ZeroVector(3);
@@ -251,13 +251,13 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 
     for (unsigned int i = 0; i < pressure_on_nodes.size(); i++)
     {
-        if( rGeom[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] += rGeom[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] += r_geometry[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
         }
-        if( rGeom[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] -= rGeom[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] -= r_geometry[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
         }
     }
 
@@ -267,7 +267,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
     {
         const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
-        const auto& N = row(Ncontainer, point_number);
+        const auto& N = row(r_N, point_number);
 
         ge[0] = J[point_number](0, 0);
         gn[0] = J[point_number](0, 1);
@@ -291,7 +291,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         {
             if (std::abs(pressure) > std::numeric_limits<double>::epsilon())
             {
-                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, DN_DeContainer[point_number], N, pressure, integration_weight);
+                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, r_DN_De[point_number], N, pressure, integration_weight);
             }
         }
 
@@ -308,9 +308,9 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         array_1d<double, 3> gauss_load = surface_load;
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
-            if( rGeom[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
+            if( r_geometry[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
             {
-                noalias(gauss_load) += N[ii]*rGeom[ii].FastGetSolutionStepValue( SURFACE_LOAD );
+                noalias(gauss_load) += N[ii]*r_geometry[ii].FastGetSolutionStepValue( SURFACE_LOAD );
             }
         }
 

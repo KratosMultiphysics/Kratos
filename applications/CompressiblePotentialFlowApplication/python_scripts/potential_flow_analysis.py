@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics
 
-# Importing the solvers
-import KratosMultiphysics.ExternalSolversApplication
-
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
@@ -39,8 +36,15 @@ class PotentialFlowAnalysis(AnalysisStage):
         super(PotentialFlowAnalysis,self).__init__(model,project_parameters)
 
     def _CreateSolver(self):
-        import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver as potential_flow_solver
-        return potential_flow_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        if self.project_parameters["solver_settings"]["solver_type"].GetString()=="potential_flow":
+            import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver as potential_flow_solver
+            return potential_flow_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        elif self.project_parameters["solver_settings"]["solver_type"].GetString()=="adjoint_potential_flow":
+            import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_adjoint_solver as adjoint_solver
+            return adjoint_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        else:
+            raise Exception("Solver type not added. Please specify an available solver")
+
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -50,7 +54,7 @@ class PotentialFlowAnalysis(AnalysisStage):
         list_of_processes = super(PotentialFlowAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            processes_block_names = ["boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 info_msg  = "Using the old way to create the processes, this will be removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"

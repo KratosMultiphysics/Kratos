@@ -105,7 +105,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-12,1e-8)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -253,39 +253,53 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         self.assertAlmostEqual(disp_u_2, 0.022296019142446475,6)
-        self.assertAlmostEqual(r_u_1, -100000000.00093779,6)
+        self.assertAlmostEqual(r_u_1, -Force_X, 6)
         self.assertAlmostEqual(r_u_3, 0.00 ,4)
 
-    def _check_results_dynamic_explicit(self,mp,time_i,time_step,linear_flag):
+    def _check_results_dynamic_explicit(self,mp,time_i,time_step,linear_flag,scheme_name='central_differences'):
 
         simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
         test_disp_temp=[]
 
-        if not linear_flag:
-            test_disp_temp = [-0.021876435754392846, -0.08025882554469399,
-             -0.15813185652586725, -0.23777687358088162, -0.3064930326402276,
-              -0.3573326497214386, -0.3873391702109082, -0.395577009293513,
-               -0.3818896310557375, -0.3465605603239489, -0.2908778140223522,
-                -0.21859000122176653, -0.137959254822277, -0.06316757026754098,
-                 -0.012505199445968729, -0.0013936517032937436, -0.033558757863839106,
-                  -0.09855750793342796, -0.1783863153886539, -0.2562575870107372,
-                   -0.32098186673316653, -0.36680529690058933, -0.3914373873640369,
-                    -0.3942176190923876, -0.3750955464878065, -0.33451653033029854,
-                     -0.27421215776065255, -0.19885577070221477, -0.11812448977763666,
-                      -0.047582542658150095, -0.005644700007086029]
-        else:
-            test_disp_temp = [-0.021876435754392846, -0.08001480552613088,
-             -0.15450734651949033, -0.21984629437903802, -0.2536582616084091,
-              -0.24436534146715136, -0.19514961922146873, -0.12286356129128417,
-               -0.05225938725829657, -0.007513405377368422, -0.0039475518645423965,
-                -0.04278284764242695, -0.11072129588924451, -0.18449938719258163,
-                 -0.2388539993329007, -0.2551730052486504, -0.22786844469759693,
-                  -0.16628995573849595, -0.09152326809390332, -0.029170019520337,
-                   -0.0005812332236243001, -0.015546292333136365, -0.06894085558946322,
-                    -0.14248153623680793, -0.21098650630318805, -0.2509982677582305,
-                     -0.2488159779533806, -0.2051868973976112, -0.13505051252836275,
-                      -0.06242295105627721, -0.01217337033638198]
+        if (scheme_name=='central_differences'):
+            if not linear_flag:
+                test_disp_temp = [-0.021876435754392846, -0.08025882554469399,
+                -0.15813185652586725, -0.23777687358088162, -0.3064930326402276,
+                -0.3573326497214386, -0.3873391702109082, -0.395577009293513,
+                -0.3818896310557375, -0.3465605603239489, -0.2908778140223522,
+                    -0.21859000122176653, -0.137959254822277, -0.06316757026754098,
+                    -0.012505199445968729, -0.0013936517032937436, -0.033558757863839106,
+                    -0.09855750793342796, -0.1783863153886539, -0.2562575870107372,
+                    -0.32098186673316653, -0.36680529690058933, -0.3914373873640369,
+                        -0.3942176190923876, -0.3750955464878065, -0.33451653033029854,
+                        -0.27421215776065255, -0.19885577070221477, -0.11812448977763666,
+                        -0.047582542658150095, -0.005644700007086029]
+            else:
+                test_disp_temp = [-0.021876435754392846, -0.08001480552613088,
+                -0.15450734651949033, -0.21984629437903802, -0.2536582616084091,
+                -0.24436534146715136, -0.19514961922146873, -0.12286356129128417,
+                -0.05225938725829657, -0.007513405377368422, -0.0039475518645423965,
+                    -0.04278284764242695, -0.11072129588924451, -0.18449938719258163,
+                    -0.2388539993329007, -0.2551730052486504, -0.22786844469759693,
+                    -0.16628995573849595, -0.09152326809390332, -0.029170019520337,
+                    -0.0005812332236243001, -0.015546292333136365, -0.06894085558946322,
+                        -0.14248153623680793, -0.21098650630318805, -0.2509982677582305,
+                        -0.2488159779533806, -0.2051868973976112, -0.13505051252836275,
+                        -0.06242295105627721, -0.01217337033638198]
+
+        elif (scheme_name=='multi_stage'):
+                test_disp_temp = [-0.017928408233957478, -0.07603725469469531, -0.15480249508309368,
+                 -0.2364398097432736, -0.3078205614363182, -0.3615629152566572,
+                  -0.3944680982865904, -0.405520197601318, -0.39453450981119104,
+                   -0.3617029947296638, -0.30804598759838264, -0.23675691223215145,
+                    -0.15518998752404795, -0.07641633002189718, -0.018080148760997134,
+                     0.003411223679836137, -0.018737588198583684, -0.0775622817407451,
+                      -0.15656059992786403, -0.23809121708132586, -0.3091522863815055,
+                       -0.36247180008200336, -0.39491663588260756, -0.4054992910228645,
+                        -0.3940444981430469, -0.3607540576951764, -0.30667787828648724,
+                         -0.23507665118958668, -0.1534155681961326, -0.07488973412869492,
+                          -0.01719384134825973]
 
         self.assertAlmostEqual(simulated_disp_temp, test_disp_temp[time_step],6)
 
@@ -660,13 +674,65 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         time_step = 0
         self._set_and_fill_buffer(mp,2,time_delta)
 
-        strategy_expl = _create_dynamic_explicit_strategy(mp)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
         while (time_i <= time_end):
             time_i += time_delta
             mp.CloneTimeStep(time_i)
             #solve + compare
             strategy_expl.Solve()
             self._check_results_dynamic_explicit(mp,time_i,time_step,False)
+            time_step += 1
+
+
+    def test_truss3D2N_dynamic_explicit_multi_stage_nonlinear(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        _add_explicit_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,1.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_yz.AddNodes([2])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+        #create Elementsdb
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_Y = -24000000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.012
+        time_delta = 0.0004
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'multi_stage')
+        while (time_i <= time_end):
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+            #solve + compare
+            strategy_expl.Solve()
+            self._check_results_dynamic_explicit(mp,time_i,time_step,False,'multi_stage')
             time_step += 1
 
     def test_truss3D2N_dynamic_explicit_linear(self):
@@ -711,7 +777,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         time_step = 0
         self._set_and_fill_buffer(mp,2,time_delta)
 
-        strategy_expl = _create_dynamic_explicit_strategy(mp)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
         while (time_i <= time_end):
             time_i += time_delta
             mp.CloneTimeStep(time_i)
@@ -829,6 +895,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
@@ -836,8 +904,11 @@ def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
-def _create_dynamic_explicit_strategy(mp):
-    scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+def _create_dynamic_explicit_strategy(mp,scheme_name):
+    if (scheme_name=='central_differences'):
+        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+    elif scheme_name=='multi_stage':
+        scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(0.33333333333333333)
 
     strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,scheme,0,0,1)
     strategy.SetEchoLevel(0)

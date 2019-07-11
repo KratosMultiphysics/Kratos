@@ -190,8 +190,10 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self._ComputeMeshPredictionSingleFaced()
 
         ## Non-Linear interface coupling iteration ##
-        for nl_it in range(1,self.max_nl_it+1):
-
+        nl_it = 0
+        is_converged = False
+        while not is_converged:
+            nl_it += 1
             self._PrintInfoOnRankZero("","\tFSI non-linear iteration = ", nl_it)
 
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
@@ -216,6 +218,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
             # Check convergence
             if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
+                is_converged = True
                 self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
                 self._PrintInfoOnRankZero("","\tNon-linear iteration convergence achieved")
                 self._PrintInfoOnRankZero("","\tTotal non-linear iterations: ", nl_it, " |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
@@ -228,6 +231,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
                 if (nl_it == self.max_nl_it):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
+                    break
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         mesh_res_norm = self.partitioned_fsi_utilities.ComputeInterfaceResidualNorm(
@@ -238,6 +242,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
             "nodal")
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
+
+        return is_converged
 
     def FinalizeSolutionStep(self):
         self.structure_solver.FinalizeSolutionStep()
@@ -352,7 +358,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         return fluid_time_step
 
     def _GetNodalUpdateUtilities(self):
-        structure_time_scheme = self.structure_solver.dynamic_settings["scheme_type"].GetString()
+        structure_time_scheme = self.structure_solver.settings["scheme_type"].GetString()
         if (structure_time_scheme == "newmark"):
             damp_factor_m = 0.0
         elif (structure_time_scheme == "bossak"):
@@ -437,7 +443,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         for condition in self.structure_solver.main_model_part.Conditions:
             max_cond_id = max(max_cond_id, condition.Id)
 
-        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().MaxAll(max_cond_id)
+        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_cond_id)
 
         # Set up the point load condition in the structure interface
         structure_interfaces_list = self.settings["coupling_settings"]["structure_interfaces_list"]

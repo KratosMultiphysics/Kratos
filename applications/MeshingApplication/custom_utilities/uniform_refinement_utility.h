@@ -35,7 +35,7 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 
 namespace Kratos
@@ -423,9 +423,9 @@ private:
      * @param rOtherFatherNodes the father nodes to insert
      */
     void AddOtherFatherNodes(
-        WeakPointerVector<NodeType>& rThisFatherNodes,
+        GlobalPointersVector<NodeType>& rThisFatherNodes,
         std::vector<double>& rThisFatherWeights,
-        WeakPointerVector<NodeType>& rOtherFatherNodes,
+        GlobalPointersVector<NodeType>& rOtherFatherNodes,
         const std::vector<double>& rOtherFatherWeights,
         const double& rWeight = 0.5
         );

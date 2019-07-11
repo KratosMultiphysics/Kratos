@@ -31,12 +31,12 @@ class AnalysisStage(object):
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+        is_distributed_run = KratosMultiphysics.IsDistributedRun()
 
-        if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.mpi as KratosMPI
-            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
+        if self.parallel_type == "OpenMP" and is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
+        if self.parallel_type == "MPI" and not is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
 
@@ -62,7 +62,8 @@ class AnalysisStage(object):
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -100,12 +101,11 @@ class AnalysisStage(object):
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
         ## If the echo level is high enough, print the complete list of settings used to run the simualtion
-        if self.is_printing_rank and self.echo_level > 1:
+        if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
@@ -116,8 +116,7 @@ class AnalysisStage(object):
 
         self._GetSolver().Finalize()
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -127,9 +126,8 @@ class AnalysisStage(object):
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -280,3 +278,19 @@ class AnalysisStage(object):
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+
+    def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
+        """In case the solver does not return the state of convergence
+        (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+        """
+        if is_converged is None:
+            if not hasattr(self, '_map_ret_val_depr_warnings'):
+                self._map_ret_val_depr_warnings = []
+            solver_class_name = self._GetSolver().__class__.__name__
+            # used to only print the deprecation-warning once
+            if not solver_class_name in self._map_ret_val_depr_warnings:
+                self._map_ret_val_depr_warnings.append(solver_class_name)
+                from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+                warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
+                warn_msg += 'the state of convergence from "SolveSolutionStep"'
+                IssueDeprecationWarning("AnalysisStage", warn_msg)

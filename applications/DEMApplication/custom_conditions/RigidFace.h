@@ -22,15 +22,15 @@ class KRATOS_API(DEM_APPLICATION) RigidFace3D : public DEMWall
 public:
 
     // Counted pointer of RigidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( RigidFace3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidFace3D );
 
 
-    typedef WeakPointerVector<Element> ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-    typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+    typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -89,6 +89,7 @@ public:
 protected:
 
 private:
+    void AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle);
 
     friend class Serializer;
 

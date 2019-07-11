@@ -28,18 +28,18 @@ namespace Kratos {
                                                   double particle_radius,
                                                   double fluid_density,
                                                   double fluid_kinematic_viscosity,
-                                                  array_1d<double, 3>& slip_velocity,
+                                                  array_1d<double, 3>& minus_slip_velocity,
                                                   array_1d<double, 3>& steady_viscous_torque,
                                                   const ProcessInfo& r_current_process_info)
     {
         Node<3>& node = r_geometry[0];
-        const array_1d<double, 3> slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
+        const array_1d<double, 3> minus_slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));
-        const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
+        const double norm_of_slip_rot = SWIMMING_MODULUS_3(minus_slip_rot);
 
         if (norm_of_slip_rot){
-            array_1d<double, 3> slip_rot_cross_slip_vel;
-            SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, slip_velocity, slip_rot_cross_slip_vel)
+            array_1d<double, 3> minus_slip_rot_cross_slip_vel;
+            SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(minus_slip_rot, minus_slip_velocity, minus_slip_rot_cross_slip_vel)
 
             const double rot_reynolds = this->ComputeParticleRotationReynoldsNumber(norm_of_slip_rot,
                                                                                     particle_radius,
@@ -55,7 +55,7 @@ namespace Kratos {
                 rotational_coeff = 64 * Globals::Pi / rot_reynolds;
             }
 
-            noalias(steady_viscous_torque) = 0.5 * fluid_density * SWIMMING_POW_5(particle_radius) * rotational_coeff * slip_rot;
+            noalias(steady_viscous_torque) = 0.5 * fluid_density * SWIMMING_POW_5(particle_radius) * rotational_coeff * minus_slip_rot;
         }
 
     }

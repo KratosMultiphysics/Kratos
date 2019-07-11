@@ -22,16 +22,37 @@ class PythonSolver(object):
         model -- The Model to be used
         settings -- The solver settings used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(settings) != KratosMultiphysics.Parameters):
+        if not isinstance(settings, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
         self.settings = settings
 
+        # TODO remove the check once the derived solvers implement this
+        if hasattr(self, '_validate_settings_in_baseclass'):
+            self.ValidateSettings()
+        else:
+            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+            IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
+
         self.echo_level = self.settings["echo_level"].GetInt()
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        """This function returns the default-settings used by this class
+        """
+        return KratosMultiphysics.Parameters("""{
+            "echo_level" : 0
+        }""")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        default_settings = self.GetDefaultSettings()
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
@@ -104,8 +125,9 @@ class PythonSolver(object):
     def SolveSolutionStep(self):
         """This function solves the current step.
         It can be called multiple times within one solution step
+        Returns whether the problem is converged
         """
-        pass
+        return True
 
     def Check(self):
         """This function checks the PythonSolver. It usually calls the "Check" function of a solving strategy
@@ -121,7 +143,7 @@ class PythonSolver(object):
         warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
         warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
         warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
-        self.print_warning_on_rank_zero("::[PythonSolver]::", warning_msg)
+        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
         self.Initialize()
         self.InitializeSolutionStep()
         self.Predict()
@@ -134,7 +156,7 @@ class PythonSolver(object):
     def _ImportModelPart(self, model_part, model_part_import_settings):
         """This function imports the ModelPart
         """
-        self.print_on_rank_zero("::[PythonSolver]::", "Reading model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
@@ -153,7 +175,7 @@ class PythonSolver(object):
                 import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
 
             # Import model part from mdpa file.
-            self.print_on_rank_zero("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             if (model_part_import_settings.Has("reorder_consecutive") and model_part_import_settings["reorder_consecutive"].GetBool()):
                 KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
             else:
@@ -162,22 +184,22 @@ class PythonSolver(object):
             if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
-            self.print_on_rank_zero("::[PythonSolver]::", "Finished reading model part from mdpa file.")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
 
         elif (input_type == "rest"):
-            self.print_on_rank_zero("::[PythonSolver]::", "Loading model part from restart file.")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             from restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
-            self.print_on_rank_zero("::[PythonSolver]::", "Finished loading model part from restart file.")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
         elif(input_type == "use_input_model_part"):
-            pass
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
 
         else:
             raise Exception("Other model part input options are not yet implemented.")
 
-        self.print_on_rank_zero("ModelPart", model_part)
-        self.print_on_rank_zero("::[PythonSolver]:: ", "Finished reading model part.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -192,14 +214,21 @@ class PythonSolver(object):
     #### Auxiliar functions ####
 
     def print_on_rank_zero(self, *args):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"print_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     def print_warning_on_rank_zero(self, *args):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"print_warning_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
+
         """Transfer matching settings from origin to destination.
 
         If a name in origin matches a name in destination, then the setting is

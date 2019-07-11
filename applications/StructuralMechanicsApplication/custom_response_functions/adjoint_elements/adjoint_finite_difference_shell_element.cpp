@@ -18,31 +18,29 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
+#include "custom_elements/shell_thin_element_3D3N.hpp"
 
 
 namespace Kratos
 {
 
-AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true) {}
-
-AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
-
-int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
+    int return_value = BaseType::Check(rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->mHasRotationDofs) << "Adjoint shell element does not have rotation dofs!" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
-    CheckVariables();
-    CheckDofs();
-    CheckProperties(rCurrentProcessInfo);
+    this->CheckVariables();
+    this->CheckDofs();
+    this->CheckProperties(rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
-        << "Element #" << Id() << " has an Area of zero!" << std::endl;
+    KRATOS_ERROR_IF(this->GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
+        << "Element #" << this->Id() << " has an Area of zero!" << std::endl;
 
     return return_value;
 
@@ -51,7 +49,8 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 
 // private
 
-void AdjointFiniteDifferencingShellElement::CheckVariables() const
+template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
@@ -69,9 +68,10 @@ void AdjointFiniteDifferencingShellElement::CheckVariables() const
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 }
 
-void AdjointFiniteDifferencingShellElement::CheckDofs() const
+template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckDofs() const
 {
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     // verify that the dofs exist
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
@@ -94,38 +94,39 @@ void AdjointFiniteDifferencingShellElement::CheckDofs() const
     }
 }
 
-void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
+template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     // check properties
-    if(pGetProperties() == nullptr)
-        KRATOS_ERROR << "Properties not provided for element " << Id() << std::endl;
+    if(this->pGetProperties() == nullptr)
+        KRATOS_ERROR << "Properties not provided for element " << this->Id() << std::endl;
 
-    const PropertiesType & props = GetProperties();
+    const PropertiesType & props = this->GetProperties();
 
-    const GeometryType& geom = GetGeometry(); // TODO check if this can be const
+    const GeometryType& geom = this->GetGeometry(); // TODO check if this can be const
 
     if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
     {
         const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
         if(section == nullptr)
-            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
+            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
 
         section->Check(props, geom, rCurrentProcessInfo);
     }
     else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
     {
-        CheckSpecificProperties();
+        this->CheckSpecificProperties();
 
         // perform detailed orthotropic check later in shell_cross_section
     }
     else // ... allow the automatic creation of a homogeneous section from a material and a thickness
     {
-        CheckSpecificProperties();
+        this->CheckSpecificProperties();
 
         // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
         ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>(ShellCrossSection());
         dummySection->BeginStack();
-        dummySection->AddPly(0, 5, GetProperties());
+        dummySection->AddPly(0, 5, this->GetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thick);
         dummySection->Check(props, geom, rCurrentProcessInfo);
@@ -133,39 +134,41 @@ void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& r
 
 }
 
-void AdjointFiniteDifferencingShellElement::CheckSpecificProperties() const
+template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckSpecificProperties() const
 {
-    const PropertiesType & r_props = GetProperties();
+    const PropertiesType & r_props = this->GetProperties();
 
     if (!r_props.Has(CONSTITUTIVE_LAW))
-        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
+        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
     const ConstitutiveLaw::Pointer& claw = r_props[CONSTITUTIVE_LAW];
     if (claw == nullptr)
-        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
+        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
 
     if(!r_props.Has(THICKNESS))
-        KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
+        KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
     if(r_props[THICKNESS] <= 0.0)
-        KRATOS_ERROR << "wrong THICKNESS value provided for element " << Id() << std::endl;
+        KRATOS_ERROR << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
 
     if(!r_props.Has(DENSITY))
-        KRATOS_ERROR << "DENSITY not provided for element " << Id() << std::endl;
+        KRATOS_ERROR << "DENSITY not provided for element " << this->Id() << std::endl;
     if(r_props[DENSITY] < 0.0)
-        KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
+        KRATOS_ERROR << "wrong DENSITY value provided for element " << this->Id() << std::endl;
 
     // TODO for thick shell Stenberg stabilization is not checked
 }
 
 
-double AdjointFiniteDifferencingShellElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+template <class TPrimalElement>
+double AdjointFiniteDifferencingShellElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
 {
     KRATOS_TRY;
 
-    if(rDesignVariable == SHAPE)
+    if(rDesignVariable == SHAPE_SENSITIVITY)
     {
         double dx, dy, dz, L = 0.0;
 
-        const GeometryType& geometry = mpPrimalElement->GetGeometry();
+        const GeometryType& geometry = this->mpPrimalElement->GetGeometry();
 
         dx = geometry[1].X0() - geometry[0].X0();
         dy = geometry[1].Y0() - geometry[0].Y0();
@@ -189,16 +192,20 @@ double AdjointFiniteDifferencingShellElement::GetPerturbationSizeModificationFac
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingShellElement::save(Serializer& rSerializer) const
+template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
-void AdjointFiniteDifferencingShellElement::load(Serializer& rSerializer)
+template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AdjointFiniteDifferencingBaseElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType);
 
 }
+
+template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
 
 } // namespace Kratos
 

@@ -62,8 +62,7 @@ namespace Kratos
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         this->CheckForBodyForces(rAdjointElement);
 
@@ -78,7 +77,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityMatrix.size2() == 0)
+        if (rSensitivityMatrix.size1() == 0)
         {
             if (rSensitivityGradient.size() != 0)
                 rSensitivityGradient.resize(0, false);
@@ -94,8 +93,8 @@ namespace Kratos
         KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
              << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
-        if (rSensitivityGradient.size() != rSensitivityMatrix.size2())
-            rSensitivityGradient.resize(adjoint_variables.size(), false);
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
 
         noalias(rSensitivityGradient) = prod(rSensitivityMatrix, adjoint_variables);
 
@@ -113,8 +112,7 @@ namespace Kratos
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         this->CheckForBodyForces(rAdjointElement);
 
@@ -129,7 +127,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityMatrix.size2() == 0)
+        if (rSensitivityMatrix.size1() == 0)
         {
             if (rSensitivityGradient.size() != 0)
                 rSensitivityGradient.resize(0, false);
@@ -145,8 +143,8 @@ namespace Kratos
         KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
             << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
-        if (rSensitivityGradient.size() != rSensitivityMatrix.size2())
-            rSensitivityGradient.resize(adjoint_variables.size(), false);
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
 
         noalias(rSensitivityGradient) = prod(rSensitivityMatrix, adjoint_variables);
 
