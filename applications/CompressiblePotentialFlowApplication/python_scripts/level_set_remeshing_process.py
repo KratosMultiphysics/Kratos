@@ -106,8 +106,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.wake_model_part=self.model.CreateModelPart("wake")
         KratosMultiphysics.ModelPartIO('wake2').ReadModelPart(self.wake_model_part)
 
-        for node in self.wake_model_part.Nodes:
-            node.X=20*node.X
+        # for node in self.wake_model_part.Nodes:
+        #     node.X=20*node.X
 #
 
         ini_time=time.time()

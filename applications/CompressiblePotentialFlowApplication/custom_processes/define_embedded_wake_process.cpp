@@ -37,6 +37,7 @@ void DefineEmbeddedWakeProcess::Execute()
     MarkWakeElements();
     ComputeTrailingEdgeNode();
     MarkKuttaElements();
+
     KRATOS_CATCH("");
 }
 
@@ -107,7 +108,7 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
     Node<3>::Pointer p_max_node;
     Element::Pointer p_max_elem;
 
-    auto wake_origin = mrWakeModelPart.pGetNode(5000);
+    auto wake_origin = mrWakeModelPart.pGetNode(1);
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
