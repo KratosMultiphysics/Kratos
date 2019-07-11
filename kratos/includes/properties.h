@@ -316,7 +316,47 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer pGetSubProperty(const IndexType SubPropertyIndex)
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use pGetSubPropertiesById") Properties::Pointer pGetSubProperty(const IndexType SubPropertyIndex)
+    {
+        return pGetSubPropertiesById(SubPropertyIndex);
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use pGetSubPropertiesById") Properties::Pointer pGetSubProperty(const IndexType SubPropertyIndex) const
+    {
+        return pGetSubPropertiesById(SubPropertyIndex);
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The reference to the subproperty of interest
+     */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use GetSubPropertiesById") Properties& GetSubProperty(const IndexType SubPropertyIndex)
+    {
+        return GetSubPropertiesById(SubPropertyIndex);
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The reference to the subproperty of interest
+     */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use GetSubPropertiesById") Properties& GetSubProperty(const IndexType SubPropertyIndex) const
+    {
+        return GetSubPropertiesById(SubPropertyIndex);
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer pGetSubPropertiesById(const IndexType SubPropertyIndex)
     {
         // Checking if the id is the current properties
         if (this->Id() == SubPropertyIndex) {
@@ -324,12 +364,35 @@ public:
         }
 
         // Looking into the database
-        if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
-            return mSubPropertiesList(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return *(property_iterator.base());
         } else {
             KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
-            AddSubProperty(Kratos::make_shared<Properties>(SubPropertyIndex));
-            return mSubPropertiesList(SubPropertyIndex);
+            auto p_new_property = Kratos::make_shared<Properties>(SubPropertyIndex);
+            AddSubProperty(p_new_property);
+            return p_new_property;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer pGetSubPropertiesById(const IndexType SubPropertyIndex) const
+    {
+        // Checking if the id is the current properties
+        if (this->Id() == SubPropertyIndex) {
+            return Kratos::make_shared<Properties>(*this);
+        }
+
+        // Looking into the database
+        const auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return *(property_iterator.base());
+        } else {
+            KRATOS_ERROR << "SubProperties\t" << SubPropertyIndex << "\tnot found" << std::endl;
         }
     }
 
@@ -338,13 +401,10 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubProperty(const IndexType SubPropertyIndex)
+    Properties& GetSubPropertiesById(const IndexType SubPropertyIndex)
     {
         // Checking if the id is the current properties
-        if (this->Id() == SubPropertyIndex) {
-            KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
-            return *this;
-        }
+        KRATOS_WARNING_IF("Properties", this->Id() == SubPropertyIndex) << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
 
         // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
@@ -354,6 +414,8 @@ public:
             AddSubProperty(Kratos::make_shared<Properties>(SubPropertyIndex));
             return *(mSubPropertiesList(SubPropertyIndex));
         }
+
+        return *this;
     }
 
     /**
@@ -361,12 +423,10 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubProperty(const IndexType SubPropertyIndex) const
+    Properties& GetSubPropertiesById(const IndexType SubPropertyIndex) const
     {
         // Checking if the id is the current properties
-        if (this->Id() == SubPropertyIndex) {
-            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
-        }
+        KRATOS_ERROR_IF(this->Id() == SubPropertyIndex) << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
 
         // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
