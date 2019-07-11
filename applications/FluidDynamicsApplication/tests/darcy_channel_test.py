@@ -6,6 +6,25 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver as two_fluids_solver
 
+class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
+    """
+    Ad-hoc solver skipping distance levelset re-calculation.
+    Since this test does not involve a free surface, it is more practical to just skip its convection.
+    """
+    def __init__(self, model, settings):
+        super(TwoFluidNoRedistanceSolver,self).__init__(model,settings)
+
+    def InitializeSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            # Recompute the BDF2 coefficients
+            (self.bdf_process).Execute()
+
+            # The base solver updates the levelset here
+
+            # Initialize the solver current step
+            (self.solver).InitializeSolutionStep()
+
+
 class DarcyChannelTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -194,7 +213,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         settings["solver_settings"]["formulation"]["dynamic_tau"].SetDouble(self.dynamic_tau)
         settings["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.dt)
 
-        self.fluid_solver = two_fluids_solver.CreateSolver(self.model, settings["solver_settings"])
+        self.fluid_solver = TwoFluidNoRedistanceSolver(self.model, settings["solver_settings"])
         self.fluid_model_part = self.model.GetModelPart("Fluid")
 
     def setUpSolver(self):
@@ -220,6 +239,7 @@ class DarcyChannelTest(UnitTest.TestCase):
     def setUpProblem(self):
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
+            node.SetSolutionStepValue(DISTANCE, 0, -100.0)
 
             if node.X == self.xmin:
                 node.Fix(VELOCITY_X)
@@ -240,10 +260,6 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         for step in range(self.nsteps):
             time = self.fluid_solver.AdvanceInTime(time)
-
-            midline = 0.5 * (self.ymax - self.ymin)
-            for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(DISTANCE, 0, node.Y - midline)
 
             self.fluid_solver.InitializeSolutionStep()
             self.fluid_solver.Predict()
