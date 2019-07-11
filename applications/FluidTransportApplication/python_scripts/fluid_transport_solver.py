@@ -63,12 +63,17 @@ class FluidTransportSolver(PythonSolver):
         thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
         thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
+        #TODO: check if PFEM2 is on
+        thermal_settings.SetProjectionVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
 
         ## Convection Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
+        self.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.DELTA_SCALAR1) # Required by PFEM2 convection
+        self.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.MEAN_SIZE) # Required by PFEM2 convection
 
         # Add thermal variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -168,11 +173,14 @@ class FluidTransportSolver(PythonSolver):
         # Calculate Nodal Area
         self.nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size)
         self.nodal_area_process.Execute()
-        
-        # KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
+
+        KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
         # Check if everything is assigned correctly
         self.Solver.Check()
+        self._GetParticlesStage().Check()
+
+        self._GetParticlesStage().ExecuteBeforeSolutionLoop()
 
         KratosMultiphysics.Logger.PrintInfo("FluidTransportSolver", "Solver initialization finished.")
 
@@ -198,6 +206,7 @@ class FluidTransportSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        self._GetParticlesStage().ExecuteInitializeSolutionStep()
         self.Solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -209,6 +218,7 @@ class FluidTransportSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.Solver.FinalizeSolutionStep()
+        self._GetParticlesStage().ExecuteFinalizeSolutionStep()
 
     def Solve(self):
         message = "".join([
@@ -275,7 +285,12 @@ class FluidTransportSolver(PythonSolver):
                 "coarsening_type": "aggregation"
             },
             "problem_domain_sub_model_part_list": [""],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list": [""],
+            "pfem2_convection_settings"    : {
+                "use_pfem2_convection"         : false,
+                "use_mesh_velocity"            : false,
+                "reset_boundary_conditions"    : true
+            }
         }
         """)
 
@@ -408,3 +423,19 @@ class FluidTransportSolver(PythonSolver):
                                                                         move_mesh_flag)
 
         return solver
+
+    def _GetParticlesStage(self):
+        if not hasattr(self, '_particles_stage'):
+            self._particles_stage = self._CreateParticlesStage()
+        return self._particles_stage
+
+    def _CreateParticlesStage(self):
+        if self.settings["pfem2_convection_settings"]["use_pfem2_convection"].GetBool():
+            convection_settings = KratosMultiphysics.Parameters("""{"Parameters" : {}}""")
+            convection_settings["Parameters"] = self.settings["pfem2_convection_settings"].Clone()
+            convection_settings["Parameters"].RemoveValue("use_pfem2_convection")
+            convection_settings["Parameters"].AddValue("model_part_name", self.settings["model_part_name"])
+            import KratosMultiphysics.ConvectionDiffusionApplication.pfem2_convection_process as module
+            return module.Factory(convection_settings, self.model)
+        else:
+            return KratosMultiphysics.Process()
