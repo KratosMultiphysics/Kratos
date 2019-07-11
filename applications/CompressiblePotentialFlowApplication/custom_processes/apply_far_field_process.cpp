@@ -33,7 +33,7 @@ void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
 {
     // Declaring omp variables, generating vectors of size = num_threads
     std::size_t num_threads = omp_get_max_threads();
-    std::vector<double> min_projections(num_threads, std::numeric_limits<double>::epsilon());
+    std::vector<double> min_projections(num_threads, std::numeric_limits<double>::max());
     std::vector<std::size_t> nodes_id_list(num_threads, 0);
     // Find minimum node in the direction of the free stream velocity in openmp.
     #pragma omp parallel for
