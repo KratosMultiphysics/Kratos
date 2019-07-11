@@ -12,7 +12,7 @@ except ImportError:
     have_conv_diff = False
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 
 def CreateSolver(model, custom_settings):
@@ -55,7 +55,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-2,
-                "maximum_delta_time"  : 1.0
+                "maximum_delta_time"  : 1.0,
+                "time_step"           : 0.0
             },
             "periodic": "periodic",
             "move_mesh_flag": false,
