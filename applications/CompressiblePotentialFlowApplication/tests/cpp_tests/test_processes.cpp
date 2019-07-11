@@ -62,7 +62,6 @@ namespace Kratos {
       // Create model_part
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-      //model_part.AddNodalSolutionStepVariable(DISTANCE);
 
       // Set model_part properties
       BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);

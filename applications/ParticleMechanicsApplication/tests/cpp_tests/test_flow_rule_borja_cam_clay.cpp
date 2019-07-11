@@ -41,15 +41,15 @@ namespace Testing
 
     typedef Node<3> NodeType;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
-    typedef MPMYieldCriterion YC;
+    typedef ParticleYieldCriterion YC;
 
     typedef ModifiedCamClayYieldCriterion MCCYC;
 
-    typedef MPMFlowRule FR;
+    typedef ParticleFlowRule FR;
 
     typedef BorjaCamClayPlasticFlowRule BCCFR;
 
