@@ -264,10 +264,10 @@ void recvMesh(ModelPart& rModelPart, const std::string rName, const bool UseCond
 
     int numNodes;
     int numElems;
-    double** nodes = new double*;
-    int** nodeIDs = new int*;
-    int** numNodesPerElem = new int*;
-    int** elem = new int*;
+    double** nodes = new double*[1];
+    int** nodeIDs = new int*[1];
+    int** numNodesPerElem = new int*[1];
+    int** elem = new int*[1];
 
     EMPIRE_API_recvMesh(const_cast<char*>(rName.c_str()), &numNodes, &numElems, nodes, nodeIDs, numNodesPerElem, elem);
 
@@ -306,7 +306,11 @@ void recvMesh(ModelPart& rModelPart, const std::string rName, const bool UseCond
     }
 
     // deallocating memory
-    // TODO what abt the memory that was allocated inside "EMPIRE_API_recvMesh"?
+    delete [] nodes[0];
+    delete [] nodeIDs[0];
+    delete [] numNodesPerElem[0];
+    delete [] elem[0];
+
     delete [] nodes;
     delete [] nodeIDs;
     delete [] numNodesPerElem;
