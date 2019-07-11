@@ -112,7 +112,7 @@ namespace Kratos
       typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
       typedef Vector VectorType;
-      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+      typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
 
       ///@}
       ///@name Life Cycle

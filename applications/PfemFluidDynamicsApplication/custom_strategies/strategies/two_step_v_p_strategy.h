@@ -1175,7 +1175,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormV);
+        BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
 
         NormV = sqrt(NormV);
 
@@ -1222,7 +1222,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormP);
+        BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
         NormP = sqrt(NormP);
 

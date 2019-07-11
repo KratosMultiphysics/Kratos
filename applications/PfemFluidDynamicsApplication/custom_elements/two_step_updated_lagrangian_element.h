@@ -736,6 +736,37 @@ namespace Kratos
 	  }
 	}
 
+      void GetOutwardsUnitNormalForTwoPoints(array_1d<double, 3> &NormalVector,
+                         unsigned int idA,
+                         unsigned int idB,
+                         unsigned int otherId)
+      {
+    GeometryType& rGeom = this->GetGeometry();
+    double deltaX= rGeom[idB].X()-rGeom[idA].X();
+    double deltaY= rGeom[idB].Y()-rGeom[idA].Y();
+    double elementSize=sqrt(deltaX*deltaX+deltaY*deltaY); // this is just to have an idea of the size of the element
+    if(fabs(deltaX)>fabs(deltaY)){//to avoid division by zero or small numbers
+      NormalVector[0]=-deltaY/deltaX;
+      NormalVector[1]=1.0;
+      double normNormal=NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1];
+      NormalVector*=1.0/sqrt(normNormal);
+    }else{
+      NormalVector[0]=1.0;
+      NormalVector[1]=-deltaX/deltaY;
+      double normNormal=NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1];
+      NormalVector*=1.0/sqrt(normNormal);
+    }
+    //to determine if the computed normal outwards or inwards
+    const array_1d<double, 3> MeanPoint=(rGeom[idB].Coordinates()+rGeom[idA].Coordinates())*0.5;
+    const array_1d<double, 3> DistanceA=rGeom[otherId].Coordinates() - (MeanPoint + NormalVector*elementSize);
+    const array_1d<double, 3> DistanceB=rGeom[otherId].Coordinates() - (MeanPoint - NormalVector*elementSize);
+    const double normA=DistanceA[0]*DistanceA[0] + DistanceA[1]*DistanceA[1];
+    const double normB=DistanceB[0]*DistanceB[0] + DistanceB[1]*DistanceB[1];
+    if(normB>normA){
+      NormalVector*=-1.0;
+    }
+      }
+
 
 
       void GetOutwardsUnitNormalForThreePoints(array_1d<double, 3> &NormalVector, 
