@@ -19,9 +19,6 @@ libs/*
 runkratos
 script.py
 
-# Version
-kratos/includes/kratos_version.h
-
 # Times files
 *.time
 
@@ -66,6 +63,11 @@ kratos/includes/kratos_version.h
 *.o.sol
 *.o.mesh
 
+# Backup files
 *.bak
 
+# Most used editor files
+*.vscode
+
+# Auxiliar file (deprecated?)
 applications/python_scripts/beam_profiles\.csv
