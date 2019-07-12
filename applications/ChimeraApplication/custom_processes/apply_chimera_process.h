@@ -262,7 +262,7 @@ protected:
                         if (i_current_level == 0) // a check to identify computational Domain boundary
                             is_main_background = -1;
                         FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
-                        KRATOS_INFO("Formulating Chimera for the combination :: \n") << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
+                        //KRATOS_INFO("Formulating Chimera for the combination :: \n") << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                     }
                 }
             }
