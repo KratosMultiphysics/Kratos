@@ -324,10 +324,6 @@ class ExplicitStrategy(object):
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        time = self.spheres_model_part.ProcessInfo[TIME]
-        self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
-        self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
     def AdvanceInTime(self, time):
@@ -371,6 +367,11 @@ class ExplicitStrategy(object):
         self._MoveAllMeshes(time, self.dt)
 
     def InitializeSolutionStep(self):
+        time = self.spheres_model_part.ProcessInfo[TIME]
+        self.FixDOFsManually(time)
+        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self.FixExternalForcesManually(time)
+
         (self.cplusplus_strategy).InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
