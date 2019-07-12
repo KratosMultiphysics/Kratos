@@ -150,7 +150,6 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         Matrix auxiliar(VoigtSize,VoigtSize);
         auxiliar = prod(secant_tensor, rotation_matrix);
         noalias(secant_tensor) = prod(trans(rotation_matrix), auxiliar);
-        // KRATOS_WATCH(rotation_matrix)
 
         // Apply the constitutive law
         noalias(r_integrated_stress_vector) = prod(secant_tensor, r_strain_vector);
@@ -541,7 +540,6 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
     const Matrix& rEigenValuesMatrix
     )
 {
-    // KRATOS_WATCH(rEigenVectorsMatrix)
     if (rRotationTensor.size1() != VoigtSize)
         rRotationTensor.resize(VoigtSize,VoigtSize);
     noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
@@ -554,20 +552,23 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         int i,j,k;
         if (a >= b && b >= c) {i=0; j=1; k=2;}
         else if (a >= c && c >= b) {i=0; j=2; k=1;}
-        // TO BE CONTINUED
+        else if (b >= a && a >= c) {i=1; j=0; k=2;}
+        else if (b >= c && c >= a) {i=1; j=2; k=2;}
+        else if (c >= a && a >= b) {i=2; j=0; k=1;}
+        else if (c >= b && b >= a) {i=2; j=1; k=0;}
 
-        // just to test
-        // Matrix copy(VoigtSize,VoigtSize);
-        // copy.resize(VoigtSize,VoigtSize);
-        // noalias(copy) = rEigenVectorsMatrix;
-        // rEigenVectorsMatrix(0,0) = copy(0,2);
-        // rEigenVectorsMatrix(1,0) = copy(1,2);
-        // rEigenVectorsMatrix(2,0) = copy(2,2);
-        // rEigenVectorsMatrix(0,2) = copy(0,0);
-        // rEigenVectorsMatrix(1,2) = copy(1,0);
-        // rEigenVectorsMatrix(2,2) = copy(2,0);
-        // KRATOS_WATCH(rEigenVectorsMatrix)
-        //
+        Matrix copy(VoigtSize,VoigtSize);
+        copy.resize(VoigtSize,VoigtSize);
+        noalias(copy) = rEigenVectorsMatrix;
+        rEigenVectorsMatrix(0,0) = copy(i,0);
+        rEigenVectorsMatrix(0,1) = copy(i,1);
+        rEigenVectorsMatrix(0,2) = copy(i,2);
+        rEigenVectorsMatrix(1,0) = copy(j,0);
+        rEigenVectorsMatrix(1,1) = copy(j,1);
+        rEigenVectorsMatrix(1,2) = copy(j,2);
+        rEigenVectorsMatrix(2,0) = copy(k,0);
+        rEigenVectorsMatrix(2,1) = copy(k,1);
+        rEigenVectorsMatrix(2,2) = copy(k,2);
 
         const double l1 = rEigenVectorsMatrix(0,0);
         const double l2 = rEigenVectorsMatrix(1,0);
@@ -585,41 +586,38 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         rRotationTensor(0,3) = l1*m1;
         rRotationTensor(0,4) = n1*m1;
         rRotationTensor(0,5) = n1*l1;
-
         rRotationTensor(1,0) = std::pow(l2,2);
         rRotationTensor(1,1) = std::pow(m2,2);
         rRotationTensor(1,2) = std::pow(n2,2);
         rRotationTensor(1,3) = l2*m2;
         rRotationTensor(1,4) = n2*m2;
         rRotationTensor(1,5) = n2*l2;
-
         rRotationTensor(2,0) = std::pow(l3,2);
         rRotationTensor(2,1) = std::pow(m3,2);
         rRotationTensor(2,2) = std::pow(n3,2);
         rRotationTensor(2,3) = l3*m3;
         rRotationTensor(2,4) = n3*m3;
         rRotationTensor(2,5) = n3*l3;
-
         rRotationTensor(3,0) = 2.0*l1*l2;
         rRotationTensor(3,1) = 2.0*m1*m2;
         rRotationTensor(3,2) = 2.0*n1*n2;
         rRotationTensor(3,3) = l1*m2 + l2*m1;
         rRotationTensor(3,4) = m1*n2 + m2*n1;
         rRotationTensor(3,5) = n1*l2 + n2*l1;
-
         rRotationTensor(4,0) = 2.0*l2*l3;
         rRotationTensor(4,1) = 2.0*m2*m3;
         rRotationTensor(4,2) = 2.0*n2*n3;
         rRotationTensor(4,3) = l2*m3 + l3*m2;
         rRotationTensor(4,4) = m2*n3 + m3*n2;
         rRotationTensor(4,5) = n2*l3 + n3*l2;
-
         rRotationTensor(5,0) = 2.0*l3*l1;
         rRotationTensor(5,1) = 2.0*m3*m1;
         rRotationTensor(5,2) = 2.0*n1*n3;
         rRotationTensor(5,3) = l3*m1 + l1*m3;
         rRotationTensor(5,4) = m3*n1 + m1*n3;
         rRotationTensor(5,5) = n3*l1 + n1*l3;
+    } else { // 2D version
+        
     }
 
 }
