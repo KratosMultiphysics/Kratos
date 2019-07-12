@@ -73,7 +73,8 @@ class AdaptiveRefinement(object):
                 if current_level > 0:
                     coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                     metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    interp_error = original_interp_error/(coefficient_interp_error*current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
 
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
@@ -108,7 +109,8 @@ class AdaptiveRefinement(object):
                 if current_level > 0:
                     coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                     metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    interp_error = original_interp_error/(coefficient_interp_error*current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
 
@@ -192,6 +194,11 @@ class AdaptiveRefinement(object):
             elif (domain_size == 3):
                 coefficient = 9/32 # 3d
             # TODO: compute below interp error level more automatically
-            interp_error_level = original_interp_error*10**(-current_level)
+            coefficient_interp_error =  self.metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+            # interp_error_level = original_interp_error*(coefficient_interp_error)**(-current_level)
+            if (current_level > 0):
+                interp_error_level = original_interp_error/(coefficient_interp_error*current_level)
+            else: # current_level == 0
+                interp_error_level = original_interp_error
             mesh_size_level = self.mesh_size_coarsest_level*np.sqrt(interp_error_level/original_interp_error) # relation from [Alauzet] eqs. pag 34 and 35
             self.mesh_size = mesh_size_level
