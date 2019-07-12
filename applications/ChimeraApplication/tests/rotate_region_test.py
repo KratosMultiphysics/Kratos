@@ -38,10 +38,10 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
         model_part.CreateNewNode(2, 0.00000, 0.50000, 1.00000)
 
     def __CheckRotation(self, model_part):
-        self.assertAlmostEqual(model_part.Nodes[1].X, 0.42265340401937285)
-        self.assertAlmostEqual(model_part.Nodes[1].Y, 2.154700538371462)
-        self.assertAlmostEqual(model_part.Nodes[1].Z, 0.4226460576091662)
+        self.assertAlmostEqual(model_part.Nodes[1].X, 1.5773539423908345)
+        self.assertAlmostEqual(model_part.Nodes[1].Y, -0.1547005383714617)
+        self.assertAlmostEqual(model_part.Nodes[1].Z, 1.577346595980627)
 
-        self.assertAlmostEqual(model_part.Nodes[2].X, 0.21132670200968642)
-        self.assertAlmostEqual(model_part.Nodes[2].Y, 1.077350269185731)
-        self.assertAlmostEqual(model_part.Nodes[2].Z, 0.2113230288045831)
+        self.assertAlmostEqual(model_part.Nodes[2].X, 0.7886769711954172)
+        self.assertAlmostEqual(model_part.Nodes[2].Y, -0.07735026918573085)
+        self.assertAlmostEqual(model_part.Nodes[2].Z, 0.7886732979903135)
