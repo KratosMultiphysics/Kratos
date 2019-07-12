@@ -7,7 +7,7 @@ import KratosMultiphysics.ChimeraApplication as KratosChimera
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesSolverMonolithicChimera(main_model_part, custom_settings)

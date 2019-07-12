@@ -3,6 +3,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 import KratosMultiphysics.ChimeraApplication as KratosChimera
+import python_solvers_wrapper_fluid_chimera
 
 class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid chimera simulations using the navier stokes family of python solvers.'''
@@ -48,14 +49,14 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
 
             if domain_size == 2:
                 if(solver_type == "Monolithic" or solver_type == "monolithic"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_params)
+                    self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_params)
                 elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,self.chimera_params)
+                    self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,self.chimera_params)
             else:
                 if(solver_type == "Monolithic" or solver_type == "monolithic"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_params)
+                    self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_params)
                 elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-                    self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
+                    self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
 
         return list_of_processes
 
@@ -64,16 +65,15 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name.GetString()].Nodes)
 
     def InitializeSolutionStep(self):
-        self.ChimeraProcess.ExecuteInitializeSolutionStep()
+        self.chimera_process.ExecuteInitializeSolutionStep()
         super(FluidChimeraAnalysis,self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(FluidChimeraAnalysis,self).FinalizeSolutionStep()
-        self.ChimeraProcess.ExecuteFinalizeSolutionStep()
+        self.chimera_process.ExecuteFinalizeSolutionStep()
 
 
     def _CreateSolver(self):
-        import python_solvers_wrapper_fluid_chimera
         return python_solvers_wrapper_fluid_chimera.CreateSolver(self.model, self.project_parameters)
 
 

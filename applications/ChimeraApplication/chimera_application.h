@@ -75,7 +75,7 @@ public:
 	KratosChimeraApplication();
 
 	/// Destructor.
-	virtual ~KratosChimeraApplication(){}
+	~KratosChimeraApplication()override = default;
 
 
 	///@}

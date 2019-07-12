@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ChimeraApplication
-from fluid_chimera_analysis import FluidChimeraAnalysis
+from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 try:
