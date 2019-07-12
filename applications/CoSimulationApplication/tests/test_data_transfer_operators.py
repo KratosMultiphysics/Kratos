@@ -37,7 +37,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for i in range(num_nodes_matching):
             node_id = i+1
             node_o = mp_o.CreateNewNode(node_id, 0.0, 0.0, i+1)
-            node_d = mp_d_m.CreateNewNode(node_id, 0.0, 0.0, i+1)
+            mp_d_m.CreateNewNode(node_id, 0.0, 0.0, i+1)
 
             node_o.SetSolutionStepValue(KM.PRESSURE, 0, ScalarValueFromId(node_id))
             node_o.SetSolutionStepValue(KM.DISPLACEMENT, 0, VectorValueFromId(node_id))
