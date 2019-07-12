@@ -473,11 +473,11 @@ private:
      */
     void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
     {
-        typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
-        typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
-        typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
         typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
         IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
+        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
+        unsigned int max_level = 100;
+		double max_distance = 200;
 
 #pragma omp parallel for
         for (IndexType i_node = 0; i_node < nnodes; ++i_node)
@@ -488,35 +488,8 @@ private:
         }
 
         CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
-        int num_fixed_nodes = 0;
-// Setting the boundary conditions for the VariationalDistanceCalculationProcess
-#pragma omp parallel for reduction(+ \
-                                   : num_fixed_nodes)
-        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
-        {
-            auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            double& node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            if (std::abs(node_distance) < 0.01*OverlapDistance)
-            {
-                num_fixed_nodes++;
-                it_node->Fix(DISTANCE);
-            }
-        }
 
-        if (num_fixed_nodes > 0)
-        {
-            Parameters amgcl_settings(R"(
-                {
-                    "solver_type"                    : "amgcl",
-                    "smoother_type"                  : "ilu0",
-                    "max_iteration"                  : 200
-                }
-                )");
-
-            LinearSolverFactoryType const &linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
-            auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
-            VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver, 15).Execute();
-        }
+        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
     }
 
     /**
