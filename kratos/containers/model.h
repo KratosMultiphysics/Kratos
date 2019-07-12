@@ -79,7 +79,6 @@ public:
     virtual ~Model()
     {
         mRootModelPartMap.clear();
-        //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
 
     Model(const Model&) = delete;
