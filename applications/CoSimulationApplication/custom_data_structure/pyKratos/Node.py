@@ -41,7 +41,7 @@ class Node(DataValueContainer):
         else:
             return variable in self.__hist_variables
 
-    def GetSolutionStepValue(self, variable, step):
+    def GetSolutionStepValue(self, variable, step=0):
         self.__CheckHistoricalVariable(variable)
         self.__CheckBufferSize(step)
 
