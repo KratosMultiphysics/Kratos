@@ -12,6 +12,7 @@
 
 // Project includes
 #include "apply_far_field_process.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -32,16 +33,19 @@ void ApplyFarFieldProcess::Execute()
 void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
 {
     // Declaring omp variables, generating vectors of size = num_threads
-    std::size_t num_threads = omp_get_max_threads();
+    std::size_t num_threads = OpenMPUtils::GetNumThreads();
     std::vector<double> min_projections(num_threads, std::numeric_limits<double>::max());
     std::vector<std::size_t> nodes_id_list(num_threads, 0);
+
     // Find minimum node in the direction of the free stream velocity in openmp.
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = mrModelPart.NodesBegin() + i;
-        std::size_t thread_id = omp_get_thread_num();
+        std::size_t thread_id = OpenMPUtils::ThisThread();
+
         const auto& r_coordinates = it_node->Coordinates();
         const double distance_projection = inner_prod(r_coordinates, mFreeStreamVelocity);
+
         if (distance_projection < min_projections[thread_id]){
             min_projections[thread_id] = distance_projection;
             nodes_id_list[thread_id] = it_node->Id();
