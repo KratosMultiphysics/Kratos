@@ -340,7 +340,7 @@ public:
      * @param rRotationTensor The rotation tensor
      * @param rEigenVectorsMatrix The eigenvectors of the StressTensor
      */
-    void CalculateRotationMatrix(Matrix& rRotationTensor, const Matrix& rEigenVectorsMatrix);
+    void CalculateRotationMatrix(Matrix& rRotationTensor, Matrix rEigenVectorsMatrix, const Matrix& rEigenValuesMatrix);
     
     ///@}
     ///@name Access

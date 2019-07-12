@@ -124,7 +124,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         MathUtils<double>::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
         Matrix rotation_matrix(VoigtSize,VoigtSize), inverse_rotation(VoigtSize,VoigtSize);
-        this->CalculateRotationMatrix(rotation_matrix, trans(eigen_vectors_matrix));
+        this->CalculateRotationMatrix(rotation_matrix, trans(eigen_vectors_matrix), eigen_values_matrix);
 
         double uniaxial_stress = 0.0;
         bool is_damaging = false;
@@ -150,6 +150,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         Matrix auxiliar(VoigtSize,VoigtSize);
         auxiliar = prod(secant_tensor, rotation_matrix);
         noalias(secant_tensor) = prod(trans(rotation_matrix), auxiliar);
+        // KRATOS_WATCH(rotation_matrix)
 
         // Apply the constitutive law
         noalias(r_integrated_stress_vector) = prod(secant_tensor, r_strain_vector);
@@ -536,14 +537,38 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
 template <class TConstLawIntegratorType>
 void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRotationMatrix(
     Matrix& rRotationTensor, 
-    const Matrix& rEigenVectorsMatrix
+    Matrix rEigenVectorsMatrix,
+    const Matrix& rEigenValuesMatrix
     )
 {
+    // KRATOS_WATCH(rEigenVectorsMatrix)
     if (rRotationTensor.size1() != VoigtSize)
         rRotationTensor.resize(VoigtSize,VoigtSize);
     noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
 
     if (Dimension == 3) {
+        // reorder the principal stresses
+        double a = rEigenValuesMatrix(0,0);
+        double b = rEigenValuesMatrix(1,1);
+        double c = rEigenValuesMatrix(2,2);
+        int i,j,k;
+        if (a >= b && b >= c) {i=0; j=1; k=2;}
+        else if (a >= c && c >= b) {i=0; j=2; k=1;}
+        // TO BE CONTINUED
+
+        // just to test
+        // Matrix copy(VoigtSize,VoigtSize);
+        // copy.resize(VoigtSize,VoigtSize);
+        // noalias(copy) = rEigenVectorsMatrix;
+        // rEigenVectorsMatrix(0,0) = copy(0,2);
+        // rEigenVectorsMatrix(1,0) = copy(1,2);
+        // rEigenVectorsMatrix(2,0) = copy(2,2);
+        // rEigenVectorsMatrix(0,2) = copy(0,0);
+        // rEigenVectorsMatrix(1,2) = copy(1,0);
+        // rEigenVectorsMatrix(2,2) = copy(2,0);
+        // KRATOS_WATCH(rEigenVectorsMatrix)
+        //
+
         const double l1 = rEigenVectorsMatrix(0,0);
         const double l2 = rEigenVectorsMatrix(1,0);
         const double l3 = rEigenVectorsMatrix(2,0);
@@ -595,8 +620,6 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         rRotationTensor(5,3) = l3*m1 + l1*m3;
         rRotationTensor(5,4) = m3*n1 + m1*n3;
         rRotationTensor(5,5) = n3*l1 + n1*l3;
-    } else {
-        // ...
     }
 
 }
