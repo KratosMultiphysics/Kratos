@@ -17,22 +17,25 @@
 
 // Project includes
 #include "includes/element.h"
-#include "custom_utilities/potential_flow_utilities.h"
+#include "adjoint_base_potential_flow_element.h"
 
 namespace Kratos
 {
 
 template <class TPrimalElement>
-class AdjointAnalyticalIncompressiblePotentialFlowElement : public Element
+class AdjointAnalyticalIncompressiblePotentialFlowElement : public AdjointBasePotentialFlowElement<TPrimalElement>
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    typedef Element BaseType;
-    static constexpr int NumNodes = TPrimalElement::TNumNodes;
-    static constexpr int Dim = TPrimalElement::TDim;
+    typedef AdjointBasePotentialFlowElement<TPrimalElement> BaseType;
+    using BaseType::NumNodes;
+    using BaseType::Dim;
+    typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::PropertiesType PropertiesType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
 
     ///@}
     ///@name Pointer Definitions
@@ -46,25 +49,17 @@ public:
     /**
      * Constructor.
      */
-    AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
-     : Element(NewId),
-     mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId))
-    {};
+    explicit AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
+     : AdjointBasePotentialFlowElement<TPrimalElement>(NewId){};
 
     AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId,
-                        GeometryType::Pointer pGeometry)
-     : Element(NewId, pGeometry),
-      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry))
-    {
-    }
+                        typename GeometryType::Pointer pGeometry)
+     : AdjointBasePotentialFlowElement<TPrimalElement>(NewId, pGeometry){};
 
     AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId,
-                        GeometryType::Pointer pGeometry,
-                        PropertiesType::Pointer pProperties)
-     : Element(NewId, pGeometry, pProperties),
-      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties))
-    {
-    }
+                        typename GeometryType::Pointer pGeometry,
+                        typename PropertiesType::Pointer pProperties)
+     : AdjointBasePotentialFlowElement<TPrimalElement>(NewId, pGeometry, pProperties){};
     /**
      * Copy Constructor
      */
@@ -91,68 +86,22 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
-
-    IntegrationMethod GetIntegrationMethod() const override;
-
-    void Initialize() override;
-
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
-            std::vector< array_1d<double,3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValuesVector(Vector& rValues, int Step=0) override;
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
     std::string Info() const override;
 
     void PrintInfo(std::ostream& rOStream) const override;
 
-    void PrintData(std::ostream& rOStream) const override;
-
-   Element::Pointer pGetPrimalElement();
-
 
 protected:
-
-
-    Element::Pointer mpPrimalElement;
-
-    void GetWakeDistances(array_1d<double,NumNodes>& distances);
-
-    void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
-
 
 private:
 
