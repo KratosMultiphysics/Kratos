@@ -1367,7 +1367,7 @@ class MultilevelMonteCarlo(object):
             batch_number      : number of working batch
             batch_size        : compute add result for with this size
     """
-    def AddResults(self,simulation_results,batch_number,mini_batch_size=2):
+    def AddResults(self,simulation_results,batch_number,mini_batch_size=30):
         # store MLMC level of working batch in a list
         simulation_levels = list(map(lambda x: x[1], simulation_results))
         # check all the levels are equal (we are adding results level by level)
