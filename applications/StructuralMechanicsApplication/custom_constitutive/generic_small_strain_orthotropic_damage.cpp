@@ -125,19 +125,21 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
         BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
         MathUtils<double>::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
-        std::cout << "*******************" << std::endl;
-        KRATOS_WATCH(predictive_stress_tensor)
-        KRATOS_WATCH(eigen_vectors_matrix)
-        KRATOS_WATCH(eigen_values_matrix)
+
+        this->CalculateRotationMatrix()
+        // std::cout << "*******************" << std::endl;
+        // KRATOS_WATCH(predictive_stress_tensor)
+        // KRATOS_WATCH(eigen_vectors_matrix)
+        // KRATOS_WATCH(eigen_values_matrix)
         
-        BoundedMatrix<double, Dimension, Dimension> mInvJ;
-        double mDetJ = 0.0;
-        eigen_vectors_matrix = trans(eigen_vectors_matrix); // eigenvectors in cols
-        MathUtils<double>::InvertMatrix(eigen_vectors_matrix, mInvJ, mDetJ );
-        BoundedMatrix<double, Dimension, Dimension> test = prod(mInvJ, eigen_values_matrix);
-        test = prod(test, eigen_vectors_matrix);
-        KRATOS_WATCH(test)
-        std::cout << "*******************" << std::endl;
+        // BoundedMatrix<double, Dimension, Dimension> mInvJ;
+        // double mDetJ = 0.0;
+        // eigen_vectors_matrix = trans(eigen_vectors_matrix); // eigenvectors in cols
+        // MathUtils<double>::InvertMatrix(eigen_vectors_matrix, mInvJ, mDetJ );
+        // BoundedMatrix<double, Dimension, Dimension> test = prod(mInvJ, eigen_values_matrix);
+        // test = prod(test, eigen_vectors_matrix);
+        // KRATOS_WATCH(test)
+        // std::cout << "*******************" << std::endl;
 
 
 
@@ -538,6 +540,25 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRotationMatrix(
+    Matrix& rRotationTensor, 
+    const Matrix& rEigenVectorsMatrix
+    )
+{
+    const double l1 = rEigenVectorsMatrix(0,0);
+    const double l2 = rEigenVectorsMatrix(1,0);
+    const double l3 = rEigenVectorsMatrix(2,0);
+    const double m1 = rEigenVectorsMatrix(0,1);
+    const double m2 = rEigenVectorsMatrix(1,1);
+    const double m3 = rEigenVectorsMatrix(2,1);
+    const double n1 = rEigenVectorsMatrix(0,2);
+    const double n2 = rEigenVectorsMatrix(1,2);
+    const double n3 = rEigenVectorsMatrix(2,2);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

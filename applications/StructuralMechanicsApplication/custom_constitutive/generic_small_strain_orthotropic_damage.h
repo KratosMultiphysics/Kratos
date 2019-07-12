@@ -333,6 +333,14 @@ public:
      * @param rDamages The damages according to each principal direction
      */
     void CalculateSecantTensor(Matrix& rSecantTensor, ConstitutiveLaw::Parameters& rValues, const Vector& rDamages);
+
+    /**
+     * @brief This method computes the rotation tensor from principal stresses axis to global
+     * @param rValues The constitutive law parameters and flags
+     * @param rRotationTensor The rotation tensor
+     * @param rEigenVectorsMatrix The eigenvectors of the StressTensor
+     */
+    void CalculateRotationMatrix(Matrix& rRotationTensor, const Matrix& rEigenVectorsMatrix);
     
     ///@}
     ///@name Access
