@@ -1,10 +1,9 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.ContactStructuralMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    Tester.RunTestSuite("KratosContactStructuralMechanicsFastSuite")
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
+    KratosMultiphysics.Tester.RunTestSuite("KratosContactStructuralMechanicsFastSuite")
 
 if __name__ == '__main__':
     run()

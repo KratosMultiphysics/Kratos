@@ -136,8 +136,8 @@ public:
 					smoothed_coordinates[3*itr+2] = node_i->Z();
 
 					// Average node position
-					WeakPointerVector< Node<3> >& neighbours = node_i->GetValue(NEIGHBOUR_NODES);
-					for( WeakPointerVector<Node<3> >::iterator neighbour_node = neighbours.begin(); neighbour_node!=neighbours.end(); neighbour_node++)
+					GlobalPointersVector< Node<3> >& neighbours = node_i->GetValue(NEIGHBOUR_NODES);
+					for( GlobalPointersVector<Node<3> >::iterator neighbour_node = neighbours.begin(); neighbour_node!=neighbours.end(); neighbour_node++)
 					{
 						// Obtain and sum the X, Y and Z coordinates of all adjacent nodes
 						smoothed_coordinates[3*itr+0] += neighbour_node->X();

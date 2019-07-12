@@ -12,7 +12,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
    
     ## AMR data
     puts $FileVar "   \"AMR_data\": \{"
-    puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing]"
+	puts $FileVar "        \"activate_AMR\":  [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
+    puts $FileVar "           \"hessian_variable_parameters\": \{"
+    puts $FileVar "              \"normalized_free_energy\":           false,"
+    puts $FileVar "              \"correct_with_displacements\":       true,"
+    puts $FileVar "              \"correction_factor\":                1.0"
+    puts $FileVar "         \}"
     puts $FileVar "    \},"
     ## problem_data
     puts $FileVar "   \"problem_data\": \{"
@@ -23,7 +28,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
-	puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level]"
+	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
@@ -159,7 +164,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"gidpost_flags\":       \{"
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
+    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostBinary\","
     puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","

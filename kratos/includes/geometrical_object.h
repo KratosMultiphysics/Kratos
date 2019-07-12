@@ -16,6 +16,7 @@
 #define  KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED
 
 // System includes
+#include <atomic>
 
 // External includes
 
@@ -54,15 +55,14 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject
-    : public IndexedObject, public Flags
+class GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of GeometricalObject
-    KRATOS_CLASS_POINTER_DEFINITION(GeometricalObject);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeometricalObject);
 
     /// Definition of the node type
     typedef Node <3> NodeType;
@@ -84,14 +84,16 @@ public:
     explicit GeometricalObject(IndexType NewId = 0)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry()
+          mpGeometry(),
+          mReferenceCounter(0)
     {}
 
     /// Default constructor.
     GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry(pGeometry)
+          mpGeometry(pGeometry),
+          mReferenceCounter(0)
     {}
 
     /// Destructor.
@@ -101,7 +103,8 @@ public:
     GeometricalObject(GeometricalObject const& rOther)
         : IndexedObject(rOther.Id()),
           Flags(rOther),
-          mpGeometry(rOther.mpGeometry)
+          mpGeometry(rOther.mpGeometry),
+          mReferenceCounter(0)
     {}
 
 
@@ -264,6 +267,14 @@ public:
     {
     }
 
+    //*********************************************
+    //public API of intrusive_ptr
+    unsigned int use_count() const noexcept
+    {
+        return mReferenceCounter;
+    }
+    //*********************************************
+
     ///@}
     ///@name Friends
     ///@{
@@ -322,6 +333,24 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter;
+
+    friend void intrusive_ptr_add_ref(const GeometricalObject* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const GeometricalObject* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}

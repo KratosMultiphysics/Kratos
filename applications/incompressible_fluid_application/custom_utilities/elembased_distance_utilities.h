@@ -104,8 +104,8 @@ public:
 
             if (inode->FastGetSolutionStepValue(DISTANCE) > 0.0)
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator j =	neighb_nodes.begin(); j != neighb_nodes.end(); j++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator j =	neighb_nodes.begin(); j != neighb_nodes.end(); j++)
                 {
                     if(j->FastGetSolutionStepValue(DISTANCE) < 0.0)
                     {

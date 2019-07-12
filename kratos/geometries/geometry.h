@@ -116,10 +116,6 @@ public:
     */
     typedef PointerVector<TPointType> BaseType;
 
-
-    /** The bounding box */
-    /*typedef BoundingBox<TPointType, GeometryType>  BoundingBoxType; */
-
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
@@ -1123,44 +1119,99 @@ public:
     }
 
     ///@}
+    ///@name Boundaries
+    ///@{
+
+    /**
+     * @brief This method gives you all boundaries entities of this geometry.
+     * @details This method will gives you all the boundaries entities
+     * @return GeometriesArrayType containes this geometry boundaries entities.
+     * @see GeneratePoints()
+     * @see GenerateEdges()
+     * @see GenerateFaces()
+     */
+    virtual GeometriesArrayType GenerateBoundariesEntities() const
+    {
+        const SizeType dimension = this->LocalSpaceDimension();
+        if (dimension == 3) {
+            return this->GenerateFaces();
+        } else if (dimension == 2) {
+            return this->GenerateEdges();
+        } else { // Let's assume is one
+            return this->GeneratePoints();
+        }
+    }
+
+    ///@}
+    ///@name Points
+    ///@{
+
+    /**
+     * @brief This method gives you all points of this geometry.
+     * @details This method will gives you all the points
+     * @return GeometriesArrayType containes this geometry points.
+     * @see Points()
+     */
+    virtual GeometriesArrayType GeneratePoints() const
+    {
+        GeometriesArrayType points;
+
+        const auto& p_points = this->Points();
+        for (IndexType i_point = 0; i_point < p_points.size(); ++i_point) {
+            PointsArrayType point_array;
+            point_array.push_back(p_points(i_point));
+            auto p_point_geometry = Kratos::make_shared<Geometry<TPointType>>(point_array);
+            points.push_back(p_point_geometry);
+        }
+
+        return points;
+    }
+
+    ///@}
     ///@name Edge
     ///@{
 
-    /** This method gives you number of all edges of this
-     * geometry. For example, for a hexahedron, this would be
-     * 12
-     *
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
      * @return SizeType containes number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
+     * @see GenerateEdges()
      * @see FacesNumber()
      * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     virtual SizeType EdgesNumber() const
     {
         KRATOS_ERROR << "Calling base class EdgesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return SizeType();
     }
 
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @deprecated This is legacy version, move to GenerateFaces
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Edges( void )
+    {
+        return this->GenerateEdges();
+    }
 
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual GeometriesArrayType Edges( void )
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    virtual GeometriesArrayType GenerateEdges() const
     {
         KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return GeometriesArrayType();
     }
 
     /** This method gives you an edge of this geometry which holds
@@ -1173,17 +1224,20 @@ public:
     @see EdgesNumber()
     @see Edges()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual Pointer Edge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
 //
 //  }
 
+    ///@}
+    ///@name Face
+    ///@{
+
     /**
-     * Returns the number of faces of the current geometry.
-     * This is only implemented for 3D geometries, since 2D geometries
-     * only have edges but no faces
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
      * @see EdgesNumber
      * @see Edges
      * @see Faces
@@ -1191,23 +1245,38 @@ public:
     virtual SizeType FacesNumber() const
     {
         KRATOS_ERROR << "Calling base class FacesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return SizeType();
     }
 
     /**
-     * Returns all faces of the current geometry.
-     * This is only implemented for 3D geometries, since 2D geometries
-     * only have edges but no faces
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @deprecated This is legacy version, move to GenerateFaces
      * @see EdgesNumber
      * @see Edges
      * @see FacesNumber
      */
-    virtual GeometriesArrayType Faces( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Faces( void )
     {
-        KRATOS_ERROR << "Calling base class Faces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        const SizeType dimension = this->LocalSpaceDimension();
+        if (dimension == 3) {
+            return this->GenerateFaces();
+        } else {
+            return this->GenerateEdges();
+        }
+    }
 
-        return GeometriesArrayType();
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    virtual GeometriesArrayType GenerateFaces() const
+    {
+        KRATOS_ERROR << "Calling base class GenerateFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
     //Connectivities of faces required
@@ -1230,7 +1299,7 @@ public:
     @see EdgesNumber()
     @see Edges()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual Pointer Edge(IndexType EdgeIndex)
 //  {
 //    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
@@ -1243,7 +1312,7 @@ public:
     @return NormalType which is normal to this geometry specific edge.
     @see Edge()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual NormalType NormalEdge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl
@@ -1258,7 +1327,7 @@ public:
     @return NormalType which is normal to this geometry specific edge.
     @see Edge()
     */
-    // Commented for possible change in Edge interface of geometry. Pooyan.
+    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
 //       virtual NormalType NormalEdge(IndexType EdgeIndex)
 //  {
 //    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
@@ -2540,7 +2609,7 @@ protected:
 
     /** Calculates the min dihedral angle quality metric.
      * Calculates the min dihedral angle quality metric.
-     * The min dihedral angle is min angle between two faces of the element 
+     * The min dihedral angle is min angle between two faces of the element
      * In radians
      * @return [description]
      */

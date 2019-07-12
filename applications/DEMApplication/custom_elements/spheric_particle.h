@@ -33,14 +33,14 @@ class KRATOS_API(DEM_APPLICATION) SphericParticle : public DiscreteElement
 public:
 
 /// Pointer definition of SphericParticle
-KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
+KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SphericParticle);
 
-typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
-typedef WeakPointerVector<Element> ParticleWeakVectorType;
+typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
 ModelPart* mpInlet;
 SphericParticle();

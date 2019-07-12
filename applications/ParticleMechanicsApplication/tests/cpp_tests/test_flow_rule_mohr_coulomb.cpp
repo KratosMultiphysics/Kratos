@@ -16,14 +16,13 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
 #include "testing/testing.h"
 
 // Application includes
 #include "particle_mechanics_application_variables.h"
 
 // Hardening law
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
 
 // Yields
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
@@ -42,13 +41,13 @@ namespace Testing
 
     typedef Node<3> NodeType;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
-    typedef MPMYieldCriterion YC;
+    typedef ParticleYieldCriterion YC;
 
     typedef MCYieldCriterion MCYC;
 
-    typedef MPMFlowRule FR;
+    typedef ParticleFlowRule FR;
 
     typedef MCPlasticFlowRule MCFR;
 

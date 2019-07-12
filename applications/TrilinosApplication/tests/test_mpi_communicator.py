@@ -1,11 +1,10 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.MetisApplication as KratosMetis
-import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-import kratos_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 
 def GetFilePath(fileName):
@@ -14,16 +13,20 @@ def GetFilePath(fileName):
 
 class TestMPICommunicator(KratosUnittest.TestCase):
 
+    def setUp(self):
+        self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
+
     def tearDown(self):
-        if KratosMPI.mpi.rank == 0:
+        rank = self.communicator.Rank()
+        if rank == 0:
             kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(KratosMPI.mpi.rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(KratosMPI.mpi.rank)+".time")
-        KratosMPI.mpi.world.barrier()
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
+        self.communicator.Barrier()
 
     def _read_model_part_mpi(self,main_model_part):
 
-        if(KratosMPI.mpi.size == 1):
+        if self.communicator.Size() == 1:
             self.skipTest("Test can be run only using more than one mpi process")
 
         ## Add variables to the model part
@@ -34,7 +37,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         ## Serial partition of the original .mdpa file
         input_filename = "test_mpi_communicator"
-        if KratosMPI.mpi.rank == 0 :
+        if self.communicator.Rank() == 0 :
 
             # Original .mdpa file reading
             model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
@@ -48,20 +51,17 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
             partitioner.Execute()
 
-            print("Metis divide finished.")
+            KratosMultiphysics.Logger.PrintInfo("TestMPICommunicator","Metis divide finished.")
 
-        KratosMPI.mpi.world.barrier()
+        self.communicator.Barrier()
 
         ## Read the partitioned .mdpa files
-        mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
+        mpi_input_filename = input_filename + "_" + str(self.communicator.Rank())
         model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
         model_part_io.ReadModelPart(main_model_part)
 
-        ## Construct and execute the MPICommunicator
-        KratosMetis.SetMPICommunicatorProcess(main_model_part).Execute()
-
         ## Construct and execute the Parallel fill communicator
-        ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(main_model_part.GetRootModelPart())
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
 
         ## Check submodelpart of each main_model_part of each processor
@@ -125,7 +125,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         submodelpart = main_model_part.GetSubModelPart("Skin")
 
-        KratosMPI.mpi.world.barrier()
+        self.communicator.Barrier()
 
         # Check partitioning
         #~ for i in range(KratosMPI.mpi.size):
@@ -173,6 +173,50 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 2.0)
 
+    def testCommunicatorRankSize(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        self._read_model_part_mpi(main_model_part)
+
+        self.world = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        self.assertEqual(self.world.Rank(), main_model_part.GetCommunicator().MyPID())
+        self.assertEqual(self.world.Size(), main_model_part.GetCommunicator().TotalProcesses())
+
+        submodelpart = main_model_part.GetSubModelPart("Skin")
+        self.assertEqual(self.world.Rank(), submodelpart.GetCommunicator().MyPID())
+        self.assertEqual(self.world.Size(), submodelpart.GetCommunicator().TotalProcesses())
+
+    def testCommunicatorReduction(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        self._read_model_part_mpi(main_model_part)
+
+        self.world = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+
+        comm = main_model_part.GetCommunicator().GetDataCommunicator()
+
+        self.assertEqual(comm.SumAll(1), self.world.Size())
+        self.assertEqual(comm.SumAll(2.0), 2.0*self.world.Size())
+        self.assertEqual(comm.MinAll(comm.Rank()), self.world.MinAll(self.world.Rank()))
+        self.assertEqual(comm.MaxAll(comm.Rank()), self.world.MaxAll(self.world.Rank()))
+        self.assertEqual(comm.ScanSum(1), self.world.Rank()+1)
+
+    def testCommunicatorReductionSerial(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+
+        # this one is not set, so it should be a serial Communicator
+        comm = main_model_part.GetCommunicator().GetDataCommunicator()
+
+        self.assertEqual(comm.SumAll(1), 1)
+        self.assertEqual(comm.SumAll(2.0), 2.0)
+        self.assertEqual(comm.MinAll(comm.Rank()), 0)
+        self.assertEqual(comm.MaxAll(comm.Rank()), 0)
+        self.assertEqual(comm.ScanSum(1), 1)
 
 
     #def test_model_part_io_properties_block(self):

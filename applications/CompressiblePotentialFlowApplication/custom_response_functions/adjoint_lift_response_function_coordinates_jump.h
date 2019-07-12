@@ -172,6 +172,7 @@ private:
     ///@{
 
     Element::Pointer mpNeighboringElement;
+    double mReferenceChord;
 
 
     ///@}
@@ -183,7 +184,7 @@ private:
     ///@{
 
     void GetNeighboringElementPointer();
-    
+
     ///@}
     ///@name Private  Access
     ///@{

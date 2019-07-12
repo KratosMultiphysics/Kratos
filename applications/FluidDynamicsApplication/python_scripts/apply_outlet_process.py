@@ -134,12 +134,13 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
             vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
-        outlet_avg_vel_norm = self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
+        comm = self.outlet_model_part.GetCommunicator().GetDataCommunicator()
+        outlet_avg_vel_norm = comm.SumAll(outlet_avg_vel_norm)
 
         tot_len = len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)   # Partition outlet model part number of nodes
-        tot_len = self.outlet_model_part.GetCommunicator().SumAll(tot_len)          # Get the total outlet model part nodes
+        tot_len = comm.SumAll(tot_len)                                              # Get the total outlet model part nodes
 
-        outlet_avg_vel_norm /= tot_len;
+        outlet_avg_vel_norm /= tot_len
 
         # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
         min_outlet_avg_vel_norm = 1.0

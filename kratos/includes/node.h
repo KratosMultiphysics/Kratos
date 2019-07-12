@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <atomic>
 
 
 // External includes
@@ -34,7 +35,7 @@
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -69,7 +70,7 @@ class Element;
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point,  public IndexedObject, public Flags, public std::intrusive_base<Node<TDimension,TDofType> >
+class Node : public Point,  public IndexedObject, public Flags
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -80,17 +81,18 @@ class Node : public Point,  public IndexedObject, public Flags, public std::intr
         }
     };
 
+
+
 public:
     ///@name Type Definitions
     ///@{
 
-    //KRATOS_CLASS_POINTER_DEFINITION(Node);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
     typedef Node<TDimension, TDofType> NodeType;
 
     /// Pointer definition of Node
-    typedef Kratos::intrusive_ptr<NodeType> Pointer;
-    typedef Kratos::intrusive_weak_ptr<NodeType> WeakPointer;
+
 
     typedef Point BaseType;
 
@@ -110,7 +112,7 @@ public:
 
     typedef Variable<double> DoubleVariableType;
 
-    typedef WeakPointerVector<NodeType > WeakPointerVectorType;
+    typedef GlobalPointersVector<NodeType > WeakPointerVectorType;
 
 
     ///@}
@@ -129,6 +131,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 
         CreateSolutionStepData();
@@ -153,6 +156,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
         KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
         CreateSolutionStepData();
@@ -171,6 +175,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -191,6 +196,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -211,6 +217,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
@@ -233,7 +240,8 @@ public:
         , mInitialPosition(rThisPoint)
 #ifdef _OPENMP
         , mNodeLock()
-#endif
+#endif  
+        , mReferenceCounter(0)
     {
 
         CreateSolutionStepData();
@@ -307,7 +315,7 @@ public:
     }
 
     /// 3d with variables list and data constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : BaseType(NewX, NewY, NewZ)
         , IndexedObject(NewId)
         , Flags()
@@ -318,6 +326,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 // 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
@@ -351,6 +360,14 @@ public:
         omp_destroy_lock(&mNodeLock);
 #endif
     }
+
+    //*********************************************
+    //public API of intrusive_ptr  
+    unsigned int use_count() const noexcept
+    {
+        return mReferenceCounter;
+    }
+    //*********************************************
 
     void SetId(IndexType NewId) override
     {
@@ -497,7 +514,7 @@ public:
         mSolutionStepsNodalData.Clear();
     }
 
-    void SetSolutionStepVariablesList(VariablesList* pVariablesList)
+    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
     {
         mSolutionStepsNodalData.SetVariablesList(pVariablesList);
     }
@@ -734,12 +751,12 @@ public:
         mInitialPosition.Z() = Z;
     }
 
-    VariablesList * pGetVariablesList()
+    VariablesList::Pointer pGetVariablesList()
     {
         return mSolutionStepsNodalData.pGetVariablesList();
     }
 
-    const VariablesList * pGetVariablesList() const
+    const VariablesList::Pointer pGetVariablesList() const
     {
         return mSolutionStepsNodalData.pGetVariablesList();
     }
@@ -1105,7 +1122,23 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter;
 
+    friend void intrusive_ptr_add_ref(const NodeType* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const NodeType* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}
@@ -1194,23 +1227,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
-//*********************************************************************************
-//*********************************************************************************
-//*********************************************************************************
-//definition of the NEIGHBOUR_NODES variable
-//*********************************************************************************
-//*********************************************************************************
-//*********************************************************************************
-
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_API
-
-KRATOS_DEFINE_VARIABLE(Node<3>::WeakPointerVectorType, NEIGHBOUR_NODES)
-KRATOS_DEFINE_VARIABLE(Node<3>::WeakPointerVectorType, FATHER_NODES)
-
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 
 //     namespace Globals

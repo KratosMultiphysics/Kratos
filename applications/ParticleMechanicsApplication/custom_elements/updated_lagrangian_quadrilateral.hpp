@@ -66,7 +66,7 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianQuadrilateral );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianQuadrilateral );
     ///@}
 
 protected:
@@ -89,7 +89,6 @@ protected:
     private:
 
         //variables including all integration points
-        //const GeometryType::ShapeFunctionsGradientsType* pDN_De;
         const Matrix* pDN_De;
         const Vector* pNcontainer;
 
@@ -339,16 +338,6 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step

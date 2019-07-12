@@ -13,7 +13,8 @@ set( KRATOS_MESH_MOVING_APPLICATION_SOURCES
 	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mesh_moving_python_application.cpp
 		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utilities.cpp
-		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/explicit_mesh_moving_utilities.cpp
+		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/explicit_fixed_mesh_ale_utilities.cpp
+		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fixed_mesh_ale_utilities.cpp
 		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_velocity_calculation.cpp
 )
 
@@ -42,6 +43,18 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+  PATTERN "*.git" EXCLUDE
+  PATTERN "*.c" EXCLUDE
+  PATTERN "*.h" EXCLUDE
+  PATTERN "*.cpp" EXCLUDE
+  PATTERN "*.hpp" EXCLUDE
+)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Add Cotire
 if(USE_COTIRE MATCHES ON)

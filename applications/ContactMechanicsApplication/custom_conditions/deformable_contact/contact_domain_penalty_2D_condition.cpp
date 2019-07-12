@@ -66,7 +66,7 @@ namespace Kratos
 
   Condition::Pointer ContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Kratos::make_shared<ContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+    return Kratos::make_intrusive<ContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
   //************************************CLONE*******************************************

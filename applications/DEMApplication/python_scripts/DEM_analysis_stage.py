@@ -6,6 +6,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
 from analysis_stage import AnalysisStage
+from importlib import import_module
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
@@ -234,10 +235,7 @@ class DEMAnalysisStage(AnalysisStage):
     def _CreateSolver(self):
         def SetSolverStrategy():
             strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
-            filename = __import__(strategy)
-            ## Alternative option
-            #from importlib import import_module
-            #filename = import_module(str(strategy))
+            filename = import_module(str(strategy))
             return filename
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
@@ -360,7 +358,7 @@ class DEMAnalysisStage(AnalysisStage):
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
 
-        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+        [model_part_io_spheres, self.spheres_model_part] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))

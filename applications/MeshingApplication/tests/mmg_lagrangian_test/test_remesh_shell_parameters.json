@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
+        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
         "rotation_dofs"                      : true
     },
     "processes"        : {
@@ -77,6 +77,7 @@
                     "max_size_ratio"                   : 2.0e-1
                 },
                 "initial_remeshing"                : false,
+                "initial_step"                     : 2,
                 "step_frequency"                   : 2,
                 "filename"                         : "mmg_lagrangian_test/test_remesh_shell",
                 "save_external_files"              : true,
@@ -94,7 +95,8 @@
                 "reference_file_name"   : "mmg_lagrangian_test/test_remesh_shell_result.sol",
                 "output_file_name"      : "mmg_lagrangian_test/test_remesh_shell_step=2.sol",
                 "dimension"             : 3,
-                "decimal_places"        : 5,
+                "tolerance"             : 1.0e-3,
+                "relative_tolerance"    : 1.0e-3,
                 "comparison_type"       : "sol_file"
             }
         }

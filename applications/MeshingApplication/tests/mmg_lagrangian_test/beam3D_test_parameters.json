@@ -32,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
+        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
         "auxiliary_variables_list" : []
     },
     "processes"        : {
@@ -83,10 +83,11 @@
                     "max_size_ratio"                   : 1.0,
                     "refer_type"                       : "Mean"
                 },
-                "initial_remeshing"                : false,
-                "step_frequency"                   : 3,
+                "initial_remeshing"                 : false,
+                "initial_step"                      : 3,
+                "step_frequency"                    : 3,
                 "enforce_current"                   : true,
-                "filename"                         : "mmg_lagrangian_test/beam3D_test",
+                "filename"                          : "mmg_lagrangian_test/beam3D_test",
                 "save_external_files"               : true,
                 "anisotropy_remeshing"              : false,
                 "anisotropy_parameters":{
@@ -108,7 +109,8 @@
             "Parameters"            : {
                 "reference_file_name"   : "mmg_lagrangian_test/beam3D_test_result.sol",
                 "output_file_name"      : "mmg_lagrangian_test/beam3D_test_step=3.sol",
-                "decimal_places"        : 3,
+                "tolerance"             : 1.0e-3,
+                "relative_tolerance"    : 1.0e-3,
                 "comparison_type"       : "sol_file"
             }
         }

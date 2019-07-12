@@ -33,13 +33,15 @@ template <class TElement>
 class TestAdjoint : public TElement
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestAdjoint);
+    typedef Kratos::intrusive_ptr<TestAdjoint> Pointer;
+    typedef Kratos::unique_ptr<TestAdjoint> UniquePointer;
 
-    static TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
+
+    static typename TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
     {
         Geometry<Node<3>>::Pointer p_geom =
             Kratos::make_shared<Triangle2D3<Node<3>>>(rNodes);
-        return Kratos::make_shared<TestAdjoint>(NewId, p_geom);
+        return Kratos::make_intrusive<TestAdjoint>(NewId, p_geom);
     }
 
     TestAdjoint(std::size_t NewId, Geometry<Node<3>>::Pointer pGeom)

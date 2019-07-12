@@ -271,7 +271,7 @@ public:
 
     //     return p_clone;
     // }
-    
+
 //     /**
 //      * @brief Lumping factors for the calculation of the lumped mass matrix
 //      * @param rResult Vector containing the lumping factors
@@ -340,19 +340,9 @@ public:
         return 0.00;
     }
 
-
-//      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//              {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
-
-
-
     ///@}
     ///@name Jacobian
     ///@{
-
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
@@ -641,7 +631,7 @@ private:
     ///@name Member Variables
     ///@{
 
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -711,7 +701,7 @@ private:
     // Default constructor needed for serialization only
     Point2D():BaseType( PointsArrayType(), &msGeometryData ) {}
 
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
@@ -764,6 +754,4 @@ const GeometryData Point2D<TPointType>::msGeometryData( 2,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
-
-
+#endif // KRATOS_LINE_2D_H_INCLUDED  defined

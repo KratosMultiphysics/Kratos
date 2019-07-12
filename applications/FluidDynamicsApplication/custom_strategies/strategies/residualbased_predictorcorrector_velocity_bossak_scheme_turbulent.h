@@ -68,8 +68,7 @@ namespace Kratos {
         model by passing a turbulence model as an argument to the constructor.
         This time scheme is intended to be used in combination with elements of type
         ASGS2D, ASGS3D, VMS or derived classes.
-        To use the slip condition, assign IS_STRUCTURE != 0.0 to the non-historic database
-        of the relevant boundary nodes (that is, use SetValue(IS_STRUCTURE,...)). To use
+        To use the slip condition, set the SLIP flag on slip wall nodes. To use
         a wall law in combination with the slip condition, use MonolithicWallCondition to
         mesh the boundary
         @see ASGS2D, ASGS3D, VMS, MonolithicWallConditon
@@ -116,7 +115,7 @@ namespace Kratos {
             unsigned int DomainSize)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
           {
             //default values for the Newmark Scheme
@@ -144,7 +143,7 @@ namespace Kratos {
             const Variable<int>& rPeriodicIdVar)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(rPeriodicIdVar)
           {
             //default values for the Newmark Scheme
@@ -170,10 +169,10 @@ namespace Kratos {
             double NewAlphaBossak,
             double MoveMeshStrategy,
             unsigned int DomainSize,
-            Variable<double>& rSlipVar)
+            Kratos::Flags& rSlipFlag)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,rSlipFlag), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
           {
             //default values for the Newmark Scheme
@@ -201,7 +200,7 @@ namespace Kratos {
             Process::Pointer pTurbulenceModel)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject()),
           mpTurbulenceModel(pTurbulenceModel)
           {
@@ -579,8 +578,7 @@ namespace Kratos {
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
 
-                KRATOS_INFO_IF("ResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
-                    << "Computing OSS projections" << std::endl;
+                KRATOS_INFO("Bossak Scheme") << "Computing OSS projections" << std::endl;
 
                 const int nnodes = static_cast<int>(rModelPart.Nodes().size());
                 auto nbegin = rModelPart.NodesBegin();

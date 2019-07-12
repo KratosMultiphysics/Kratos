@@ -29,8 +29,6 @@ from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 
-import run_cpp_unit_tests
-
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -119,19 +117,20 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
+    KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-    try:
-        import KratosMultiphysics.mpi as KratosMPI
-        import KratosMultiphysics.MetisApplication as MetisApplication
-        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"], stdout=subprocess.PIPE)
+    import os.path
+    import kratos_utilities
+    if kratos_utilities.IsMPIAvailable():
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+        p = subprocess.Popen(
+            ["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"],
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    except ImportError:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
