@@ -25,7 +25,7 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
         self.prev_data = self.interface_data.GetData()
 

@@ -54,12 +54,12 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     def InitializeSolutionStep(self):
         self.iteration_counter = 0
 
-   ## ComputeUpdate(r, x)
+   ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
 
-    def ComputeUpdate(self, r, x):
+    def UpdateSolution(self, r, x):
 
         self.V.appendleft( deepcopy(r) )
         self.W.appendleft( deepcopy(x) )
