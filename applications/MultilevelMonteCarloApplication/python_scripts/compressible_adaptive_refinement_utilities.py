@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.MeshingApplication as KratosMeshing
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 # Import packages
 import numpy as np
@@ -117,9 +118,9 @@ class AdaptiveRefinement(object):
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h.Execute()
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosFluid.AVERAGE_VELOCITY_X,metric_param)
                 local_gradient.Execute()
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_Y,metric_param)
+                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosFluid.AVERAGE_VELOCITY_Y,metric_param)
                 local_gradient.Execute()
 
             elif (problem_type == "poisson_square_2d"):
