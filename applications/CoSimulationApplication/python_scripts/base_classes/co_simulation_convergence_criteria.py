@@ -8,6 +8,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationConvergenceCriteria(object):
+    """Baseclass for the convergence criteria used for CoSimulation
+    Checks if convergence was achieved in a (strongly) coupled simulation
+    """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
@@ -31,10 +34,10 @@ class CoSimulationConvergenceCriteria(object):
     def FinalizeSolutionStep(self):
         pass
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         pass
 
-    def FinalizeCouplingIteration(self):
+    def FinalizeNonLinearIteration(self):
         pass
 
     def IsConverged(self):

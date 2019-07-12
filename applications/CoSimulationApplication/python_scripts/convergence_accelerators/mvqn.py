@@ -41,11 +41,11 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.J = [] # size will be determined when first time get the input vector
         self.J_hat = []
 
-    ## ComputeUpdate(r, x)
+    ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def ComputeUpdate( self, r, x ):
+    def UpdateSolution( self, r, x ):
         self.R.appendleft( deepcopy(r) )
         self.X.appendleft( deepcopy(x) )
         col = len(self.R) - 1
