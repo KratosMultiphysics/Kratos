@@ -1296,7 +1296,6 @@ private:
         }
 
         Timer::Stop("Generating Octree");
-        std::cout << "######## Octree generated #########" << std::endl;
 
 //        KRATOS_WATCH(mOctree);
 
