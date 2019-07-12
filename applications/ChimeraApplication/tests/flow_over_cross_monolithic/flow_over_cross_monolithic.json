@@ -137,7 +137,7 @@
         ],
         "auxiliary_process_list": [{
             "python_module": "rotate_region_process",
-            "kratos_module": "KratosMultiphysics",
+            "kratos_module": "ChimeraApplication",
             "process_name": "RotateRegionProcess",
             "Parameters": {
                 "model_part_name": "GENERIC_patch_surface",

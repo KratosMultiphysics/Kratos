@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "flow_over_cross_fractional_step",
         "parallel_type": "OpenMP",
-        "echo_level": 2,
+        "echo_level": 0,
         "start_time": 0.0,
         "end_time": 5
     },
