@@ -69,19 +69,6 @@ public:
         mAngularVelocityRadians = mParameters["angular_velocity_radians"].GetDouble();
         mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
         mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector();
-        mAxisOfRotaionVectorNormalized.resize(3);
-
-        mTransformationMatrix.resize(4, 4, false);
-
-        // normalizing the axis of roatation
-        double norm = 0.0;
-        for (std::size_t d = 0; d < 3; ++d)
-            norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
-        norm = sqrt(norm);
-        for (std::size_t d = 0; d < 3; ++d)
-            mAxisOfRotaionVectorNormalized[d] = (mAxisOfRotationVector[d] / norm);
-
-        CalculateRotationMatrix(-1 * mAngularVelocityRadians, mTransformationMatrix);
         mTheta = 0.0;
     }
 
@@ -92,9 +79,7 @@ public:
 
     void ExecuteBeforeSolutionLoop() override
     {
-        KRATOS_TRY;
 
-        KRATOS_CATCH("");
     }
 
     void SetAngularVelocity(const double NewAngularVelocity)
@@ -121,8 +106,7 @@ public:
 
             /// Calculating the displacement of the current node
             array_1d<double, 3> transformed_coordinates;
-            TransformNode(it_node->Coordinates(), transformed_coordinates);
-            //TransformNodeWithQuaternion(it_node->Coordinates(), transformed_coordinates);
+            TransformNode(it_node->GetInitialPosition().Coordinates(), transformed_coordinates);
 
             it_node->X() = transformed_coordinates[0];
             it_node->Y() = transformed_coordinates[1];
@@ -164,25 +148,6 @@ public:
 
     void ExecuteAfterOutputStep() override
     {
-        /* const auto &r_process_info = mrModelPart.GetProcessInfo();
-
-        int domain_size = r_process_info[DOMAIN_SIZE];
-        const int num_nodes = mrModelPart.NumberOfNodes();
-        const NodeIteratorType it_slave_node_begin = mrModelPart.NodesBegin();
-
-#pragma omp parallel for schedule(guided, 512)
-        for (int i_node = 0; i_node < num_nodes; ++i_node)
-        {
-            NodeIteratorType it_node = it_slave_node_begin;
-            std::advance(it_node, i_node);
-            if (mParameters["is_ale"].GetBool())
-            {
-                it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) = 0.0;
-                it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) = 0.0;
-                if (domain_size > 2)
-                    it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) = 0.0;
-            }
-        }*/
     }
 
     virtual std::string Info() const override
@@ -222,10 +187,8 @@ private:
     Parameters mParameters;
     std::string mSubModelPartName;
     double mAngularVelocityRadians;
-    MatrixType mTransformationMatrix;
     DenseVector<double> mAxisOfRotationVector;
     DenseVector<double> mCenterOfRotation;
-    DenseVector<double> mAxisOfRotaionVectorNormalized;
     double mTheta;
 
     ///@}
@@ -249,82 +212,13 @@ private:
 
     void TransformNode(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
     {
-        DenseVector<double> original_node(4, 0.0);
-        DenseVector<double> transformed_node(4, 0.0);
 
-        original_node[0] = rCoordinates(0);
-        original_node[1] = rCoordinates(1);
-        original_node[2] = rCoordinates(2);
-        original_node[3] = 1.0;
-        // Multiplying the point to get the rotated point
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 4; j++)
-            {
-                transformed_node[i] += mTransformationMatrix(i, j) * original_node[j];
-            }
-        }
-        rTransformedCoordinates(0) = transformed_node[0];
-        rTransformedCoordinates(1) = transformed_node[1];
-        rTransformedCoordinates(2) = transformed_node[2];
-    }
-
-    void TransformNodeWithQuaternion(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
-    {
-        Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(mAxisOfRotationVector(1), mAxisOfRotationVector(2), mAxisOfRotationVector(3), mTheta);
-        mQuaternion.RotateVector3(rCoordinates, rTransformedCoordinates);
-    }
-
-    void CalculateRotationMatrix(const double Theta, MatrixType &rMatrix)
-    {
-        DenseVector<double> U(3); // normalized axis of rotation
-        // normalizing the axis of rotation
-        double norm = 0.0;
-        for (IndexType d = 0; d < 3; ++d)
-            norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
-        norm = sqrt(norm);
-        KRATOS_ERROR_IF(norm < std::numeric_limits<double>::epsilon()) << "Norm of the provided axis of rotation is Zero !" << std::endl;
-        for (IndexType d = 0; d < 3; ++d)
-            U[d] = mAxisOfRotationVector[d] / norm;
-
-        // Constructing the transformation matrix
-        const double x1 = mCenterOfRotation[0];
-        const double y1 = mCenterOfRotation[1];
-        const double z1 = mCenterOfRotation[2];
-
-        const double a = U[0];
-        const double b = U[1];
-        const double c = U[2];
-
-        const double t2 = std::cos(Theta);
-        const double t3 = std::sin(Theta);
-        const double t4 = a * a;
-        const double t5 = b * b;
-        const double t6 = c * c;
-        const double t7 = a * b;
-        const double t8 = t5 + t6;
-        const double t9 = std::abs(t8) < std::numeric_limits<double>::epsilon() ? 1.0e8 : 1.0 / t8;
-        const double t10 = a * c;
-        const double t11 = b * t3;
-        const double t12 = a * t3 * t5;
-        const double t13 = a * t3 * t6;
-        const double t14 = b * c * t2;
-        rMatrix(0, 0) = t4 + t2 * t8;
-        rMatrix(0, 1) = t7 - c * t3 - a * b * t2;
-        rMatrix(0, 2) = t10 + t11 - a * c * t2;
-        rMatrix(0, 3) = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
-        rMatrix(1, 0) = t7 + c * t3 - a * b * t2;
-        rMatrix(1, 1) = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
-        rMatrix(1, 2) = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
-        rMatrix(1, 3) = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
-        rMatrix(2, 0) = t10 - t11 - a * c * t2;
-        rMatrix(2, 1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
-        rMatrix(2, 2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
-        rMatrix(2, 3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
-        rMatrix(3, 0) = 0.0;
-        rMatrix(3, 1) = 0.0;
-        rMatrix(3, 2) = 0.0;
-        rMatrix(3, 3) = 1.0;
+        auto new_coordinates = rCoordinates - mCenterOfRotation;
+        Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(mAxisOfRotationVector(0),
+                                                                           mAxisOfRotationVector(1),
+                                                                           mAxisOfRotationVector(2), mTheta);
+        mQuaternion.RotateVector3(new_coordinates, rTransformedCoordinates);
+        rTransformedCoordinates = rTransformedCoordinates + mCenterOfRotation;
     }
 }; // Class MoveRotorProcess
 
