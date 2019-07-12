@@ -393,7 +393,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def __GetEmbedddedSkinUtilityModelPart(self):
         if not hasattr(self, '_embedded_skin_utility_model_part'):
-            self._embedded_skin_utility_model_part = self.__CreateEmbeddedSkinUtility_model_part()
+            self._embedded_skin_utility_model_part = self.__CreateEmbeddedSkinUtilityModelPart()
         return self._embedded_skin_utility_model_part
 
     def __CreateEmbeddedSkinUtilityModelPart(self):
@@ -632,18 +632,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             raise("ERROR: Solid domain size and fluid domain size are not equal!")
 
         return fluid_domain_size
-
-"""     def  _ComputeDeltaTime(self):
-        fluid_time_step = self.fluid_solver._ComputeDeltaTime()
-        structure_time_step = self.structure_solver.ComputeDeltaTime()
-
-        if abs(fluid_time_step - structure_time_step) > 1e-12:
-            err_msg =  'Fluid time step is: ' + str(fluid_time_step) + '\n'
-            err_msg += 'Structure time step is: ' + str(structure_time_step) + '\n'
-            err_msg += 'No substepping has been implemented yet. Fluid and structure time step must coincide.'
-            raise Exception(err_msg)
-
-        return fluid_time_step """
 
     def __GetPartitionedFSIUtilities(self):
         if not hasattr(self, '_partitioned_fsi_utilities'):
