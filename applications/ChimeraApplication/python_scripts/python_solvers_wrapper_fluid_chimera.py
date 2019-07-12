@@ -1,17 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+from KratosMultiphysics.ChimeraApplication import *
 
-def CreateSolver(model, custom_settings):
+def CreateSolverByParameters(model, custom_settings, parallelism):
 
-    if (type(model) != KratosMultiphysics.Model):
-        raise Exception("input is expected to be provided as a Kratos Model object")
-
-    if (type(custom_settings) != KratosMultiphysics.Parameters):
-        raise Exception("input is expected to be provided as a Kratos Parameters object")
-
-    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
+    solver_type = custom_settings["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
@@ -29,7 +23,22 @@ def CreateSolver(model, custom_settings):
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
+
+    module_full = 'KratosMultiphysics.ChimeraApplication.' + solver_module_name
+    solver = __import__(module_full, fromlist=[solver_module_name]).CreateSolver(model, custom_settings)
 
     return solver
+
+
+def CreateSolver(model, custom_settings):
+
+    if (type(model) != KratosMultiphysics.Model):
+        raise Exception("input is expected to be provided as a Kratos Model object")#
+
+    if (type(custom_settings) != KratosMultiphysics.Parameters):
+        raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+    solver_settings = custom_settings["solver_settings"]
+    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
+
+    return CreateSolverByParameters(model, solver_settings, parallelism)

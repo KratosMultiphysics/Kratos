@@ -9,7 +9,7 @@ try:
 except ImportError:
     have_external_solvers = False
 
-from fluid_chimera_analysis import FluidChimeraAnalysis
+from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 from chimera_analysis_base_test import ChimeraAnalysisBaseTest
 
 import KratosMultiphysics.KratosUnittest as UnitTest

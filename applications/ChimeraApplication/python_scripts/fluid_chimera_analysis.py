@@ -3,7 +3,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 import KratosMultiphysics.ChimeraApplication as KratosChimera
-import python_solvers_wrapper_fluid_chimera
+import KratosMultiphysics.ChimeraApplication.python_solvers_wrapper_fluid_chimera 
 
 class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid chimera simulations using the navier stokes family of python solvers.'''
@@ -74,7 +74,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
 
 
     def _CreateSolver(self):
-        return python_solvers_wrapper_fluid_chimera.CreateSolver(self.model, self.project_parameters)
+        return KratosChimera.python_solvers_wrapper_fluid_chimera.CreateSolver(self.model, self.project_parameters)
 
 
     def _GetSimulationName(self):
