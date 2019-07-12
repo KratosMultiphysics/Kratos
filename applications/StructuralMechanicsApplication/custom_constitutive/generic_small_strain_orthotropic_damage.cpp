@@ -126,7 +126,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
         MathUtils<double>::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
-        this->CalculateRotationMatrix()
+        // this->CalculateRotationMatrix()
         // std::cout << "*******************" << std::endl;
         // KRATOS_WATCH(predictive_stress_tensor)
         // KRATOS_WATCH(eigen_vectors_matrix)
@@ -549,15 +549,66 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
     const Matrix& rEigenVectorsMatrix
     )
 {
-    const double l1 = rEigenVectorsMatrix(0,0);
-    const double l2 = rEigenVectorsMatrix(1,0);
-    const double l3 = rEigenVectorsMatrix(2,0);
-    const double m1 = rEigenVectorsMatrix(0,1);
-    const double m2 = rEigenVectorsMatrix(1,1);
-    const double m3 = rEigenVectorsMatrix(2,1);
-    const double n1 = rEigenVectorsMatrix(0,2);
-    const double n2 = rEigenVectorsMatrix(1,2);
-    const double n3 = rEigenVectorsMatrix(2,2);
+    if (rRotationTensor.size1() != VoigtSize)
+        rRotationTensor.resize(VoigtSize,VoigtSize);
+    noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
+
+    if (Dimension == 3) {
+        const double l1 = rEigenVectorsMatrix(0,0);
+        const double l2 = rEigenVectorsMatrix(1,0);
+        const double l3 = rEigenVectorsMatrix(2,0);
+        const double m1 = rEigenVectorsMatrix(0,1);
+        const double m2 = rEigenVectorsMatrix(1,1);
+        const double m3 = rEigenVectorsMatrix(2,1);
+        const double n1 = rEigenVectorsMatrix(0,2);
+        const double n2 = rEigenVectorsMatrix(1,2);
+        const double n3 = rEigenVectorsMatrix(2,2);
+
+        rRotationTensor(0,0) = std::pow(l1,2);
+        rRotationTensor(0,1) = std::pow(m1,2);
+        rRotationTensor(0,2) = std::pow(n1,2);
+        rRotationTensor(0,3) = l1*m1;
+        rRotationTensor(0,4) = n1*m1;
+        rRotationTensor(0,5) = n1*l1;
+
+        rRotationTensor(1,0) = std::pow(l2,2);
+        rRotationTensor(1,1) = std::pow(m2,2);
+        rRotationTensor(1,2) = std::pow(n2,2);
+        rRotationTensor(1,3) = l2*m2;
+        rRotationTensor(1,4) = n2*m2;
+        rRotationTensor(1,5) = n2*l2;
+
+        rRotationTensor(2,0) = std::pow(l3,2);
+        rRotationTensor(2,1) = std::pow(m3,2);
+        rRotationTensor(2,2) = std::pow(n3,2);
+        rRotationTensor(2,3) = l3*m3;
+        rRotationTensor(2,4) = n3*m3;
+        rRotationTensor(2,5) = n3*l3;
+
+        rRotationTensor(3,0) = 2.0*l1*l2;
+        rRotationTensor(3,1) = 2.0*m1*m2;
+        rRotationTensor(3,2) = 2.0*n1*n2;
+        rRotationTensor(3,3) = l1*m2 + l2*m1;
+        rRotationTensor(3,4) = m1*n2 + m2*n1;
+        rRotationTensor(3,5) = n1*l2 + n2*l1;
+
+        rRotationTensor(4,0) = 2.0*l2*l3;
+        rRotationTensor(4,1) = 2.0*m2*m3;
+        rRotationTensor(4,2) = 2.0*n2*n3;
+        rRotationTensor(4,3) = l2*m3 + l3*m2;
+        rRotationTensor(4,4) = m2*n3 + m3*n2;
+        rRotationTensor(4,5) = n2*l3 + n3*l2;
+
+        rRotationTensor(5,0) = 2.0*l3*l1;
+        rRotationTensor(5,1) = 2.0*m3*m1;
+        rRotationTensor(5,2) = 2.0*n1*n3;
+        rRotationTensor(5,3) = l3*m1 + l1*m3;
+        rRotationTensor(5,4) = m3*n1 + m1*n3;
+        rRotationTensor(5,5) = n3*l1 + n1*l3;
+    } else {
+        // ...
+    }
+
 }
 
 /***********************************************************************************/
