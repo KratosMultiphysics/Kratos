@@ -46,7 +46,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg = "Parallelism is neither OpenMP nor MPI."
         raise Exception(err_msg)
 
-    module_full = 'KratosMultiphysics.FSIapplication.' + solver_module_name
+    module_full = 'KratosMultiphysics.FSIApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
