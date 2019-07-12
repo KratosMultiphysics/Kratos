@@ -89,9 +89,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.structure_solver.ImportModelPart()
 
     def PrepareModelPart(self):
-        # Get the minimum buffer size between the mesh, fluid and structure solvers
-        self.__GetAndSetMinimumBufferSize()
-
         # Fluid and structure solvers PrepareModelPart() call
         self.fluid_solver.PrepareModelPart()
         self.structure_solver.PrepareModelPart()
@@ -282,10 +279,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
         self.fluid_solver.SetEchoLevel(self, fluid_echo_level)
         self.structure_solver.SetEchoLevel(self, structure_echo_level)
-
-    def SetTimeStep(self, step):
-        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-        self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
 
     def Clear(self):
         self.fluid_solver.Clear()
@@ -512,10 +505,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         interface_dofs = self.__GetPartitionedFSIUtilities().GetInterfaceResidualSize(self.__GetStructureInterfaceSubmodelPart())
         normalised_residual = residual_norm/sqrt(interface_dofs)
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\t|res|/sqrt(nDOFS) = ' + str(normalised_residual))
-        if normalised_residual < self.nl_tol:
-            return True
-        else:
-            return False
+        return normalised_residual < self.nl_tol
 
     # This method returns the convergence accelerator.
     # If it is not created yet, it calls the __CreateConvergenceAccelerator first
@@ -608,17 +598,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid FSI coupling interface created')
 
         return fsi_coupling_interface_fluid
-
-    # This method finds the maximum buffer size between mesh,
-    # fluid and structure solvers and sets it to all the solvers.
-    def __GetAndSetMinimumBufferSize(self):
-        fluid_buffer_size = self.fluid_solver.min_buffer_size
-        str_buffer_size = self.structure_solver.settings["buffer_size"].GetInt()
-
-        buffer_size = max(fluid_buffer_size, str_buffer_size)
-
-        self.fluid_solver.min_buffer_size = buffer_size
-        self.structure_solver.settings["buffer_size"].SetInt(buffer_size)
 
     def __GetStructureInterfaceSubmodelPart(self):
         # Returns the structure interface submodelpart that will be used in the residual minimization
