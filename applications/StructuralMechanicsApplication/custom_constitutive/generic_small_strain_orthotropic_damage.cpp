@@ -545,7 +545,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
     noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
 
     if (Dimension == 3) {
-        // reorder the principal stresses
+        // Reorder the principal stresses
         double a = rEigenValuesMatrix(0,0);
         double b = rEigenValuesMatrix(1,1);
         double c = rEigenValuesMatrix(2,2);
@@ -617,7 +617,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         rRotationTensor(5,4) = m3*n1 + m1*n3;
         rRotationTensor(5,5) = n3*l1 + n1*l3;
     } else { // 2D version
-        
+        // to do in the future
     }
 
 }
