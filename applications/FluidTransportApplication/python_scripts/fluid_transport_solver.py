@@ -207,6 +207,12 @@ class FluidTransportSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self._GetParticlesStage().ExecuteInitializeSolutionStep()
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
+            KratosFluidTransport.PHI_THETA,
+            KratosMultiphysics.TEMPERATURE,
+            self.main_model_part,
+            self.main_model_part,
+            1) # Copy Unknown var to TEMPERATURE on the previous time step (convected) before solving the system
         self.Solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -218,6 +224,12 @@ class FluidTransportSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.Solver.FinalizeSolutionStep()
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
+            KratosMultiphysics.TEMPERATURE,
+            KratosFluidTransport.PHI_THETA,
+            self.main_model_part,
+            self.main_model_part,
+            0) # Copy again the TEMPERATURE to Unknown var before updating the particles
         self._GetParticlesStage().ExecuteFinalizeSolutionStep()
 
     def Solve(self):
