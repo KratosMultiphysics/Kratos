@@ -427,9 +427,6 @@ private:
           {
               CalcNodalDistancesOfTetNodes( i_fluidElement , TetEdgeIndexTable );
           }
-        std::cout<<" finishded distance fluid structure"<<std::endl;
-
-		KRATOS_WATCH("ENDOF LOOP")
       }
 
       ///******************************************************************************************************************
