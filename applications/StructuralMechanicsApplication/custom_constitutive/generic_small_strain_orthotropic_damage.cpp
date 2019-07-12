@@ -117,31 +117,14 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         array_1d<double, Dimension> principal_stresses_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
-
-
-
         BoundedMatrix<double, Dimension, Dimension> predictive_stress_tensor;
         predictive_stress_tensor = MathUtils<double>::StressVectorToTensor(predictive_stress_vector);
         BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
         BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
         MathUtils<double>::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
-        // this->CalculateRotationMatrix()
-        // std::cout << "*******************" << std::endl;
-        // KRATOS_WATCH(predictive_stress_tensor)
-        // KRATOS_WATCH(eigen_vectors_matrix)
-        // KRATOS_WATCH(eigen_values_matrix)
-        
-        // BoundedMatrix<double, Dimension, Dimension> mInvJ;
-        // double mDetJ = 0.0;
-        // eigen_vectors_matrix = trans(eigen_vectors_matrix); // eigenvectors in cols
-        // MathUtils<double>::InvertMatrix(eigen_vectors_matrix, mInvJ, mDetJ );
-        // BoundedMatrix<double, Dimension, Dimension> test = prod(mInvJ, eigen_values_matrix);
-        // test = prod(test, eigen_vectors_matrix);
-        // KRATOS_WATCH(test)
-        // std::cout << "*******************" << std::endl;
-
-
+        Matrix rotation_matrix(VoigtSize,VoigtSize), inverse_rotation(VoigtSize,VoigtSize);
+        this->CalculateRotationMatrix(rotation_matrix, trans(eigen_vectors_matrix));
 
         double uniaxial_stress = 0.0;
         bool is_damaging = false;
@@ -158,10 +141,17 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
             }
         } // Damages computed
 
-        // We compute the secant tensor
+        // We compute the secant tensor in principal axis
         Matrix secant_tensor(VoigtSize, VoigtSize);
         noalias(secant_tensor) = ZeroMatrix(VoigtSize, VoigtSize);
         this->CalculateSecantTensor(secant_tensor, rValues, damages);
+
+        // Now we recover the original axis system
+        Matrix auxiliar(VoigtSize,VoigtSize);
+        auxiliar = prod(secant_tensor, rotation_matrix);
+        noalias(secant_tensor) = prod(trans(rotation_matrix), auxiliar);
+
+        // Apply the constitutive law
         noalias(r_integrated_stress_vector) = prod(secant_tensor, r_strain_vector);
 
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
