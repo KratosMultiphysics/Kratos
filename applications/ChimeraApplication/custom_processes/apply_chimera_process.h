@@ -38,6 +38,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "processes/variational_distance_calculation_process.h"
+#include "utilities/parallel_levelset_distance_calculator.h"
 
 // Application includes
 #include "chimera_application_variables.h"
@@ -85,7 +86,8 @@ public:
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef std::vector<MasterSlaveConstraintContainerType> MasterSlaveContainerVectorType;
     typedef BinBasedFastPointLocator<TDim> PointLocatorType;
-    typedef ChimeraHoleCuttingUtility HoleCuttingUtilityType;
+    typedef ChimeraHoleCuttingUtility<TDim> HoleCuttingUtilityType;
+    typedef typename ChimeraHoleCuttingUtility<TDim>::Pointer HoleCuttingUtilityTypePointerType;
     typedef typename PointLocatorType::Pointer PointLocatorPointerType;
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimera);
@@ -124,7 +126,7 @@ public:
         KRATOS_ERROR_IF(mNumberOfLevels < 2) << "Chimera requires atleast two levels !. Put Background in one level and the patch in second one." << std::endl;
 
         ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-        mpHoleCuttingUtility = ChimeraHoleCuttingUtility::Pointer(new ChimeraHoleCuttingUtility());
+        mpHoleCuttingUtility = Kratos::make_shared<HoleCuttingUtilityType> ();
     }
 
     /// Destructor.
@@ -197,7 +199,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ChimeraHoleCuttingUtility::Pointer mpHoleCuttingUtility;
+    HoleCuttingUtilityTypePointerType mpHoleCuttingUtility;
     ModelPart &mrMainModelPart;
     double mOverlapDistance;
     IndexType mNumberOfLevels;
@@ -599,6 +601,9 @@ private:
     void CalculateDistanceChimeraApplication(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
     {
         IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
+        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
+        unsigned int max_level = 100;
+		double max_distance = 200;
 
 #pragma omp parallel for
         for (IndexType i_node = 0; i_node < nnodes; ++i_node)
@@ -612,6 +617,8 @@ private:
             CalculateSignedDistanceTo2DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
         else if(TDim==3)
             CalculateSignedDistanceTo3DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
+
+        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
     }
 
     /**
