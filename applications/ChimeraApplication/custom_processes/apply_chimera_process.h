@@ -308,15 +308,10 @@ protected:
             ModelPart &r_hole_boundary_model_part = current_model.CreateModelPart("HoleBoundaryModelPart");
             ModelPart &r_modified_patch_boundary_model_part = current_model.CreateModelPart("ModifiedPatchBoundary");
             ModelPart &r_modified_patch_model_part = current_model.CreateModelPart("ModifiedPatch");
-            bool has_overlap = BoundingBoxTest(r_background_model_part, r_patch_model_part); // true if they dont overlap
 
-            if (has_overlap)
-            {
-                KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
-                CalculateDistanceChimeraApplication(r_patch_model_part, r_background_boundary_model_part, over_lap_distance);
-                //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
-                mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
-            }
+            CalculateDistanceChimeraApplication(r_patch_model_part, r_background_boundary_model_part, over_lap_distance);
+            //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
+            mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
 
             mpHoleCuttingUtility->ExtractBoundaryMesh(r_modified_patch_model_part, r_modified_patch_boundary_model_part);
             CalculateDistanceChimeraApplication(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
@@ -470,75 +465,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Computes the bounding box of the modelpart given. The low and high points (brute force way)
-     * @param rModelPart Modelpart for which the bounding box is to be computed.
-     * @param rLowPoint The lowest point in the modelpart (returned)
-     * @param rHighPoint The highest point in the modelpart (returned)
-     */
-    virtual void GetBoundingBox(ModelPart &rModelPart, std::vector<double> &rLowPoint, std::vector<double> &rHighPoint)
-    {
-        double rLowPoint0 = 1e10;
-        double rLowPoint1 = 1e10;
-        double rLowPoint2 = 1e10;
-
-        double rHighPoint0 = -1e10;
-        double rHighPoint1 = -1e10;
-        double rHighPoint2 = -1e10;
-
-        const unsigned int num_nodes = rModelPart.Nodes().size();
-#pragma omp parallel for reduction(min                                                                                                                           \
-                                   : rLowPoint0) reduction(min                                                                                                   \
-                                                           : rLowPoint1) reduction(min                                                                           \
-                                                                                   : rLowPoint2) reduction(max                                                   \
-                                                                                                           : rHighPoint0) reduction(max                          \
-                                                                                                                                    : rHighPoint1) reduction(max \
-                                                                                                                                                             : rHighPoint2)
-        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
-        {
-            ModelPart::NodesContainerType::iterator it_node = rModelPart.NodesBegin() + i_node;
-            rLowPoint0 = std::min(it_node->X(), rLowPoint0);
-            rLowPoint1 = std::min(it_node->Y(), rLowPoint1);
-            rLowPoint2 = std::min(it_node->Z(), rLowPoint2);
-
-            rHighPoint0 = std::max(it_node->X(), rHighPoint0);
-            rHighPoint1 = std::max(it_node->Y(), rHighPoint1);
-            rHighPoint2 = std::max(it_node->Z(), rHighPoint2);
-        }
-
-        rHighPoint[0] = rHighPoint0;
-        rHighPoint[1] = rHighPoint1;
-        rHighPoint[2] = rHighPoint2;
-
-        rLowPoint[0] = rLowPoint0;
-        rLowPoint[1] = rLowPoint1;
-        rLowPoint[2] = rLowPoint2;
-    }
-
-    /**
-     * @brief Checks if two given modelparts (A and B) have bounding box overlaps
-     *                  Here in Chimera A is usually the background and B is the patch
-     * @param rModelPartA ModelPartA
-     * @param rModelPartB ModelPartB
-     * @return bool if the bounding boxes intersect or not.
-     */
-    bool BoundingBoxTest(ModelPart &rModelPartA, ModelPart &rModelPartB)
-    {
-        std::vector<double> min_cornerA(3), max_cornerA(3), min_cornerB(3), max_cornerB(3);
-        GetBoundingBox(rModelPartA, min_cornerA, max_cornerA);
-        GetBoundingBox(rModelPartB, min_cornerB, max_cornerB);
-        const int dim = rModelPartA.GetProcessInfo().GetValue(DOMAIN_SIZE);
-
-        for (int i = 0; i < dim; i++)
-        {
-            if (min_cornerA[i] > max_cornerB[i])
-                return false;
-            if (max_cornerA[i] < min_cornerB[i])
-                return false;
-        }
-        return true;
-    }
 
     /**
      * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
