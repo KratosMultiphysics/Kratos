@@ -216,12 +216,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         return self._embedded_intersections_model_part
 
-    def GetOutputVariables(self):
-        pass
-
-    def SaveRestart(self):
-        pass
-
     def SolveSolutionStep(self):
         ## Non-linear coupling iteration ##
         nl_it = 0
