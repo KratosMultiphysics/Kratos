@@ -56,37 +56,16 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "list_other_processes"     : [SHITTTT I WANT TO BE THERE!!]
-    },
-    "output_processes" : {
-        "gid_output" : [{
-            "python_module" : "gid_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "Structure",
-                "output_name"            : "structure",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 1,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL","POINT_LOAD"],
-                        "gauss_point_results" : ["CAUCHY_STRESS_VECTOR"]
-                    },
-                    "point_data_configuration"  : []
-                }
+        "print_output_process" : [{
+            "python_module"   : "json_output_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables"  : ["DISPLACEMENT"],
+                "output_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_structure_results.json",
+                "model_part_name"   : "Structure",
+                "time_frequency"    : 1.0
             }
         }]
     }

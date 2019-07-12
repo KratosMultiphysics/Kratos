@@ -65,65 +65,17 @@
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }
-        }]
-    },
-    "output_processes" : {
-        "body_output_process" : [{
-            "python_module" : "particle_gid_output_process",
-            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
-            "process_name"  : "ParticleGiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "MPM_Material",
-                "output_name"            : "particle_Body",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "time",
-                        "output_frequency"    : 0.01,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "gauss_point_results" : ["MP_DISPLACEMENT", "MP_CAUCHY_STRESS_VECTOR"]
-                    },
-                    "point_data_configuration"  : []
-                }
-            }
         }],
-        "grid_output_process" : [{
-            "python_module" : "gid_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "Background_Grid",
-                "output_name"            : "particle_Grid",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "time",
-                        "output_frequency"    : 0.01,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT","REACTION"]
-                    },
-                    "point_data_configuration"  : []
-                }
+        "print_output_process" : [{
+            "python_module"   : "particle_json_output_process",
+            "kratos_module"   : "KratosMultiphysics.ParticleMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ParticleJsonOutputProcess",
+            "Parameters"            : {
+                "gauss_points_output_variables"  : ["MP_DISPLACEMENT"],
+                "output_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_particle_results.json",
+                "model_part_name"   : "MPM_Material",
+                "time_frequency"    : 1.0
             }
         }]
     }
