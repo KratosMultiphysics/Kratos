@@ -124,7 +124,7 @@ class TrilinosImportModelPartUtility(object):
 
     def CreateCommunicators(self):
         ## Construct and execute the Parallel fill communicator (also sets the MPICommunicator)
-        ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "MPI communicators constructed.")
