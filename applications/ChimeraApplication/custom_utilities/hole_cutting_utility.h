@@ -65,6 +65,7 @@ namespace Kratos
 
 /// Short class definition.
 
+template<int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) ChimeraHoleCuttingUtility
 {
 public:
@@ -225,9 +226,6 @@ public:
             }
         }
 
-        //rModifiedModelPart.Nodes() = rModelPart.Nodes();
-
-        KRATOS_INFO("Number of elements added to the modified patch") << count << std::endl;
         //sorting and making unique list of node ids
         std::set<IndexType> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
         vector_of_node_ids.assign(s.begin(), s.end());
@@ -250,7 +248,7 @@ public:
      *                  specifies weather to get the internal boundary marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
      * @param rVolumeModelPart The modelpart on which the boundary is to be found.
      * @param rExtractedBoundaryModelPart The extracted surface/edge modelpart.
-     * @param GetInternal A bool sepecifying which surface/edge extracted. The one marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
+     * @param GetInternal A bool specifying which surface/edge extracted. The one marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
      */
     //
     void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
@@ -275,7 +273,11 @@ public:
          for (unsigned int i_e = 0; i_e < num_elements; ++i_e)
         {
             auto i_element = elements_begin + i_e;
-            Element::GeometryType::GeometriesArrayType faces = i_element->GetGeometry().GenerateEdges();
+            Element::GeometryType::GeometriesArrayType faces;
+            if(TDim == 2)
+                faces = i_element->GetGeometry().GenerateEdges();
+            else if(TDim == 3)
+                faces = i_element->GetGeometry().GenerateFaces();
 
             for (IndexType i_face = 0; i_face < faces.size(); i_face++)
             {
@@ -303,7 +305,11 @@ public:
         for (unsigned int i_e = 0; i_e < num_elements; ++i_e)
         {
             auto i_element = elements_begin + i_e;
-            Element::GeometryType::GeometriesArrayType faces = i_element->GetGeometry().GenerateEdges();
+            Element::GeometryType::GeometriesArrayType faces;
+            if(TDim == 2)
+                faces = i_element->GetGeometry().GenerateEdges();
+            else if(TDim == 3)
+                faces = i_element->GetGeometry().GenerateFaces();
 
             for (IndexType i_face = 0; i_face < faces.size(); i_face++)
             {
