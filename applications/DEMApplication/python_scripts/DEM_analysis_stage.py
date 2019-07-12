@@ -6,6 +6,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
 from analysis_stage import AnalysisStage
+from importlib import import_module
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
@@ -234,10 +235,7 @@ class DEMAnalysisStage(AnalysisStage):
     def _CreateSolver(self):
         def SetSolverStrategy():
             strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
-            filename = __import__(strategy)
-            ## Alternative option
-            #from importlib import import_module
-            #filename = import_module(str(strategy))
+            filename = import_module(str(strategy))
             return filename
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,

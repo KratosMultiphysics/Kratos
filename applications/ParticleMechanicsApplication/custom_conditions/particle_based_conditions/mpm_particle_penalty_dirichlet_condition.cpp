@@ -45,9 +45,9 @@ MPMParticlePenaltyDirichletCondition::MPMParticlePenaltyDirichletCondition( Inde
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************

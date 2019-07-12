@@ -55,11 +55,11 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.V_old = []
         self.W_old = []
 
-    ## ComputeUpdate(r, x)
+    ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def ComputeUpdate( self, r, x ):
+    def UpdateSolution( self, r, x ):
         self.R.appendleft( deepcopy(r) )
         self.X.appendleft(    x + r    )  # r = x~ - x
         row = len(r)
