@@ -34,8 +34,12 @@ void KratosChimeraApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosChimeraApplication... " << std::endl;
-
+KRATOS_INFO("")<<"      Kratos ____ _   _ ___ __  __ _____ ____      _       \n"
+               <<"            / ___| | | |_ _|  \\/  | ____|  _ \\    / \\      \n"
+               <<"           | |   | |_| || || |\\/| |  _| | |_) |  / _ \\     \n"
+               <<"           | |___|  _  || || |  | | |___|  _ <  / ___ \\    \n"
+               <<"            \\____|_| |_|___|_|  |_|_____|_| \\_\\/_/   \\_\\    \n"
+               <<"                                                       Application initializing ... "<<std::endl;
     // Flag for distinguishing b/w velocity and pressure constraints.
     KRATOS_REGISTER_FLAG(FS_CHIMERA_VEL_CONSTRAINT);
     KRATOS_REGISTER_FLAG(FS_CHIMERA_PRE_CONSTRAINT);
