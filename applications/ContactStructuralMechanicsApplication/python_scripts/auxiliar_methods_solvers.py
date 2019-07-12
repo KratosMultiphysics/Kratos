@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def print_on_rank_zero(*args):
@@ -80,7 +79,7 @@ def AuxiliarSetSettings(settings, contact_settings):
         print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
-    if mortar_type == "PenaltyContactFrictional" or mortar_type == "ALMContactFrictional":
+    if "PenaltyContactFrictional" in mortar_type or "ALMContactFrictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
             print_on_rank_zero("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
             settings["buffer_size"].SetInt(3)
@@ -98,7 +97,7 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
         main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
         if mortar_type == "PenaltyContactFrictionless":
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
-        elif mortar_type == "PenaltyContactFrictional":
+        elif "PenaltyContactFrictional" in mortar_type:
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)                        # Add contact slip
         elif mortar_type == "ALMContactFrictionless":
@@ -109,7 +108,7 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add normal contact stress
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
-        elif mortar_type == "ALMContactFrictional":
+        elif "ALMContactFrictional" in mortar_type:
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add normal contact stress
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)                        # Add contact slip
@@ -124,7 +123,7 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
 def AuxiliarAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
         KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, main_model_part)
-    elif mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
+    elif "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, main_model_part)
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, main_model_part)
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, main_model_part)
@@ -206,7 +205,7 @@ def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, line
     if contact_settings["rescale_linear_solver"].GetBool():
         linear_solver = KM.ScalingSolver(linear_solver, False)
     mortar_type = contact_settings["mortar_type"].GetString()
-    if mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents":
+    if "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents":
         if contact_settings["use_mixed_ulm_solver"].GetBool():
             print_on_rank_zero("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()

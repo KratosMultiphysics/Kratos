@@ -84,7 +84,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Thermic.computing_domain",
+                "model_part_name"        : "Thermic",
                 "output_name"            : "basic_conv_diffusion_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

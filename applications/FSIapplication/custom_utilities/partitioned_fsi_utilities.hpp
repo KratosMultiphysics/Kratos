@@ -158,7 +158,7 @@ public:
             rOriginInterfaceModelPart.NodesEnd());
 
         // Create new elements emulating the condition based interface
-        for (int i_cond = 0; i_cond < rOriginInterfaceModelPart.NumberOfConditions(); ++i_cond) {
+        for (std::size_t i_cond = 0; i_cond < rOriginInterfaceModelPart.NumberOfConditions(); ++i_cond) {
             const auto &it_cond = rOriginInterfaceModelPart.ConditionsBegin() + i_cond;
             auto p_elem = Kratos::make_intrusive<Element>(it_cond->Id(), it_cond->pGetGeometry());
             rDestinationInterfaceModelPart.AddElement(p_elem);
@@ -607,7 +607,7 @@ public:
         ModelPart &rStructureSkinModelPart)
     {
         // Create the bin-based point locator
-        BinBasedFastPointLocator<2> bin_based_locator(rFluidModelPart);
+        BinBasedFastPointLocator<TDim> bin_based_locator(rFluidModelPart);
 
         // Update the search database
         bin_based_locator.UpdateSearchDatabase();
@@ -616,7 +616,7 @@ public:
         Vector N;
         Element::Pointer p_elem = nullptr;
         #pragma omp parallel for firstprivate(N, p_elem)
-        for (int i_node = 0; i_node < rStructureSkinModelPart.NumberOfNodes(); ++i_node) {
+        for (int i_node = 0; i_node < static_cast<int>(rStructureSkinModelPart.NumberOfNodes()); ++i_node) {
             auto it_node = rStructureSkinModelPart.NodesBegin() + i_node;
             const bool found = bin_based_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_elem);
             // If the structure skin is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
