@@ -253,10 +253,7 @@ public:
     //
     void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
     {
-        //KRATOS_TRY;
-
-        KRATOS_INFO(":: [Boundary mesh extraction]::") << std::endl;
-
+        KRATOS_TRY;
         IndexType n_nodes = rVolumeModelPart.ElementsBegin()->GetGeometry().size();
         KRATOS_ERROR_IF(!(n_nodes!=3 || n_nodes!=4))<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
 
@@ -474,7 +471,7 @@ public:
         rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
 
         KRATOS_INFO("Successful extraction of the boundary mesh") << std::endl;
-        //KRATOS_CATCH("");
+        KRATOS_CATCH("");
     }
 
 
