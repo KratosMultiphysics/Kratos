@@ -145,6 +145,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
+
     void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override {}
 
     void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables) override {}
