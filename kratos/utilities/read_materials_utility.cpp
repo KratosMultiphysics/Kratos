@@ -114,7 +114,7 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
         // Get the properties for the specified model part.
         ModelPart& r_model_part = mrModel.GetModelPart(material["model_part_name"].GetString());
         const IndexType property_id = material["properties_id"].GetInt();
-        Properties::Pointer p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+        Properties::Pointer p_prop = r_model_part.RecursivelyHasProperties(property_id, mesh_id) ? r_model_part.pGetProperties(property_id, mesh_id) : r_model_part.CreateNewProperties(property_id, mesh_id);
     }
 
     // Now we assign the property block
@@ -272,36 +272,47 @@ void ReadMaterialsUtility::CreateSubProperties(
 
         const std::size_t number_of_subproperties = Data["sub_properties"].size();
 
-        // We do a check of ids
-        for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
-            const int sub_property_id = Data["sub_properties"][i_sub_prop]["properties_id"].GetInt();
-            KRATOS_ERROR_IF(sub_property_id == static_cast<int>(pNewProperty->Id())) << "You cannot assign to a property a subproperty with the same Id" << std::endl;
-        }
-
         // We assign the subproperties now
         for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
             // Copy of the current parameters
             Parameters sub_prop = Data["sub_properties"][i_sub_prop];
 
-            // We get the subproperty id
-            const int sub_property_id = sub_prop["properties_id"].GetInt();
-            const bool use_existing_property = sub_prop.Has("use_existing_property") ? sub_prop["use_existing_property"].GetBool() : false;
+            // We get the adress if any
+            const std::string& r_use_existing_property = sub_prop.Has("use_existing_property") ? sub_prop["use_existing_property"].GetString() : "";
 
             // We check if already defined
-            const bool already_defined = rModelPart.GetRootModelPart().HasProperties(sub_property_id);
-
-            KRATOS_ERROR_IF(!use_existing_property && already_defined) << "Subproperty " << sub_property_id << " already defined. You need to set: \"use_existing_property\" : true" << std::endl;
-            KRATOS_WARNING_IF("ReadMaterialsUtility", already_defined && sub_prop.Has("Material")) << "Subproperty " << sub_property_id << " already defined. The first material definition will be taken into account" << std::endl;
+            bool already_defined = false;
+            Properties::Pointer p_new_sub_prop = nullptr;
+            if (r_use_existing_property != "") {
+                auto& r_root_model_part = rModelPart.GetRootModelPart();
+                for (auto& p_prop : r_root_model_part.PropertiesArray(mesh_id)) {
+                    if (p_prop->HasSubPropertiesByAddress(r_use_existing_property)) {
+                        p_new_sub_prop = p_prop->pGetSubPropertiesByAddress(r_use_existing_property);
+                        already_defined = true;
+                        break;
+                    }
+                }
+            }
 
             // We get or create the new subproperty
-            Properties::Pointer p_new_sub_prop = rModelPart.pGetProperties(sub_property_id, mesh_id);
+            if (!already_defined) {
+                // Check if properly read use_existing_property
+                KRATOS_ERROR_IF(r_use_existing_property != "") << "Subproperty " << r_use_existing_property << " is not defined already defined. You need to check the structure of your materials file" << std::endl;
 
-            // Read the recursively subproperties
-            CreateSubProperties(rModelPart, sub_prop, p_new_sub_prop);
+                // We get the subproperty id
+                const int sub_property_id = sub_prop["properties_id"].GetInt();
 
-            // We create the new sub property
-            if (sub_prop.Has("Material") && !already_defined)
-                CreateProperty(sub_prop["Material"], p_new_sub_prop);
+                // Actually creating it
+                p_new_sub_prop = rModelPart.HasProperties(sub_property_id, mesh_id) ? rModelPart.pGetProperties(sub_property_id, mesh_id) : rModelPart.CreateNewProperties(sub_property_id, mesh_id);
+
+                // Read the recursively subproperties
+                CreateSubProperties(rModelPart, sub_prop, p_new_sub_prop);
+
+                // We create the new sub property
+                if (sub_prop.Has("Material")) {
+                    CreateProperty(sub_prop["Material"], p_new_sub_prop);
+                }
+            }
 
             list_sub_properties.insert(list_sub_properties.begin(), p_new_sub_prop);
         }
