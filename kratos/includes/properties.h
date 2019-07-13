@@ -313,46 +313,6 @@ public:
     }
 
     /**
-     * @brief This method gets the subproperty from the index corresponding to the property id
-     * @param SubPropertyIndex The index of the subproperty to be get
-     * @return The pointer to the subproperty of interest
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use pGetSubPropertiesById") Properties::Pointer pGetSubProperty(const IndexType SubPropertyIndex)
-    {
-        return pGetSubPropertiesById(SubPropertyIndex);
-    }
-
-    /**
-     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
-     * @param SubPropertyIndex The index of the subproperty to be get
-     * @return The pointer to the subproperty of interest
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use pGetSubPropertiesById") Properties::Pointer pGetSubProperty(const IndexType SubPropertyIndex) const
-    {
-        return pGetSubPropertiesById(SubPropertyIndex);
-    }
-
-    /**
-     * @brief This method gets the subproperty from the index corresponding to the property id
-     * @param SubPropertyIndex The index of the subproperty to be get
-     * @return The reference to the subproperty of interest
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use GetSubPropertiesById") Properties& GetSubProperty(const IndexType SubPropertyIndex)
-    {
-        return GetSubPropertiesById(SubPropertyIndex);
-    }
-
-    /**
-     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
-     * @param SubPropertyIndex The index of the subproperty to be get
-     * @return The reference to the subproperty of interest
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version. Use GetSubPropertiesById") Properties& GetSubProperty(const IndexType SubPropertyIndex) const
-    {
-        return GetSubPropertiesById(SubPropertyIndex);
-    }
-
-    /**
      * @brief This method checks if the subproperty exists from the index corresponding to the property id
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return True if there is such subproperty, false otherwise
