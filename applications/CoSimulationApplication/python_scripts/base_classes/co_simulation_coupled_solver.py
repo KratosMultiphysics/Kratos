@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from  . import co_simulation_solver_wrapper
+from . import co_simulation_solver_wrapper
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -24,6 +24,8 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
+        self._AllocateHistoricalVariablesFromCouplingData()
+
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
         ### Creating the predictors

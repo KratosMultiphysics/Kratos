@@ -16,6 +16,7 @@
 #include "testing/testing.h"
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/define_2d_wake_process.h"
+#include "custom_processes/apply_far_field_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -94,6 +95,67 @@ namespace Kratos {
 
       const int wake = pElement->GetValue(WAKE);
       KRATOS_CHECK_NEAR(wake, 1, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ApplyFarFieldProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      // Create model_part
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      // Variables addition
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      // Set model_part properties
+      BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+      free_stream_velocity(0) = 10.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+      // Create nodes
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+      model_part.CreateNewNode(4, 1.0, 1.0, 0.0);
+
+      for (auto& r_node : model_part.Nodes()) {
+        r_node.AddDof(VELOCITY_POTENTIAL);
+      }
+
+      model_part.CreateNewProperties(0);
+      Properties::Pointer pProp = model_part.pGetProperties(0);
+
+      std::vector<ModelPart::IndexType> cond1{1, 2};
+      std::vector<ModelPart::IndexType> cond2{2, 4};
+      std::vector<ModelPart::IndexType> cond3{4, 3};
+      std::vector<ModelPart::IndexType> cond4{3, 1};
+
+      model_part.CreateNewCondition("Condition2D2N", 1, cond1, pProp);
+      model_part.CreateNewCondition("Condition2D2N", 2, cond2, pProp);
+      model_part.CreateNewCondition("Condition2D2N", 3, cond3, pProp);
+      model_part.CreateNewCondition("Condition2D2N", 4, cond4, pProp);
+
+
+      // Set initial potential
+      const double initial_potential = 1.0;
+      const bool initialize_flow_field = true;
+
+      // Construct the ApplyFarFieldProcess
+      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field);
+
+      // Execute the ApplyFarFieldProcess
+      ApplyFarFieldProcess.Execute();
+
+      for (auto& r_node : model_part.Nodes()) {
+        if (r_node.Id() == 1 || r_node.Id() == 3) {
+          KRATOS_CHECK(r_node.IsFixed(VELOCITY_POTENTIAL));
+          KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), initial_potential, 1e-6);
+        }
+        else {
+          KRATOS_CHECK_IS_FALSE(r_node.IsFixed(VELOCITY_POTENTIAL));
+          KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), 11.0, 1e-6);
+        }
+      }
     }
   } // namespace Testing
 }  // namespace Kratos.
