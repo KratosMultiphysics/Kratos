@@ -297,7 +297,7 @@ void ReadMaterialsUtility::CreateSubProperties(
             // We get or create the new subproperty
             if (!already_defined) {
                 // Check if properly read use_existing_property
-                KRATOS_ERROR_IF(r_use_existing_property != "") << "Subproperty " << r_use_existing_property << " is not defined already defined. You need to check the structure of your materials file" << std::endl;
+                KRATOS_ERROR_IF(r_use_existing_property != "") << "Subproperties " << r_use_existing_property << " is not already defined. You need to check the structure of your materials file" << std::endl;
 
                 // We get the subproperty id
                 const int sub_property_id = sub_prop["properties_id"].GetInt();
