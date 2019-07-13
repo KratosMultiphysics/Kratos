@@ -15,12 +15,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return ParticleMPMFromJsonCheckResultProcess(Model, settings["Parameters"])
+    return ParticleFromJsonCheckResultProcess(Model, settings["Parameters"])
 
-class ParticleMPMFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnittest.TestCase):
+class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnittest.TestCase):
 
     def __init__(self, model_part, params):
-        super(ParticleMPMFromJsonCheckResultProcess, self).__init__(model_part, params)
+        super(ParticleFromJsonCheckResultProcess, self).__init__(model_part, params)
 
     def ExecuteFinalizeSolutionStep(self):
 

@@ -32,7 +32,7 @@ namespace Kratos
 
 //************ CONSTRUCTOR ***********
 BorjaCamClayPlasticFlowRule::BorjaCamClayPlasticFlowRule()
-    :MPMFlowRule()
+    :ParticleFlowRule()
 {
 }
 
@@ -40,7 +40,7 @@ BorjaCamClayPlasticFlowRule::BorjaCamClayPlasticFlowRule()
 //************************************************************************************
 
 BorjaCamClayPlasticFlowRule::BorjaCamClayPlasticFlowRule(YieldCriterionPointer pYieldCriterion)
-    :MPMFlowRule(pYieldCriterion)
+    :ParticleFlowRule(pYieldCriterion)
 {
 
 }
@@ -48,7 +48,7 @@ BorjaCamClayPlasticFlowRule::BorjaCamClayPlasticFlowRule(YieldCriterionPointer p
 //********* ASSIGMENT OPERATOR
 BorjaCamClayPlasticFlowRule& BorjaCamClayPlasticFlowRule::operator=(BorjaCamClayPlasticFlowRule const& rOther)
 {
-    MPMFlowRule::operator=(rOther);
+    ParticleFlowRule::operator=(rOther);
     return *this;
 
 }
@@ -57,14 +57,14 @@ BorjaCamClayPlasticFlowRule& BorjaCamClayPlasticFlowRule::operator=(BorjaCamClay
 
 //********** COPY CONSTRUCTOR *********
 BorjaCamClayPlasticFlowRule::BorjaCamClayPlasticFlowRule(BorjaCamClayPlasticFlowRule const& rOther)
-    :MPMFlowRule(rOther)
+    :ParticleFlowRule(rOther)
 {
 }
 
 //*******   CLONE ********
-MPMFlowRule::Pointer BorjaCamClayPlasticFlowRule::Clone() const
+ParticleFlowRule::Pointer BorjaCamClayPlasticFlowRule::Clone() const
 {
-    MPMFlowRule::Pointer p_clone(new BorjaCamClayPlasticFlowRule(*this));
+    ParticleFlowRule::Pointer p_clone(new BorjaCamClayPlasticFlowRule(*this));
     return p_clone;
 }
 
@@ -77,7 +77,7 @@ BorjaCamClayPlasticFlowRule::~BorjaCamClayPlasticFlowRule()
 
 void BorjaCamClayPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterionPointer, HardeningLawPointer& pHardeningPointer, const Properties& rProp)
 {
-    MPMFlowRule::InitializeMaterial(pYieldCriterionPointer, pHardeningPointer, rProp);
+    ParticleFlowRule::InitializeMaterial(pYieldCriterionPointer, pHardeningPointer, rProp);
 
     mElasticPrincipalStrain = ZeroVector(3);
     mPlasticPrincipalStrain = ZeroVector(3);
@@ -560,7 +560,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
 
     // Compute PlasticMatrix (2x2) D^p
     BoundedMatrix<double,2,2> plastic_matrix_D_p = IdentityMatrix(2);
-    if (rReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION))
+    if (rReturnMappingVariables.Options.Is(ParticleFlowRule::PLASTIC_REGION))
     {
         this->ComputePlasticMatrix_2X2(principal_stress_vector, volumetric_strain, deviatoric_strain, elastic_matrix_D_e, plastic_matrix_D_p);
     }
@@ -763,12 +763,12 @@ unsigned int BorjaCamClayPlasticFlowRule::GetPlasticRegion()
 
 void BorjaCamClayPlasticFlowRule::save( Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMFlowRule )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleFlowRule )
 }
 
 void BorjaCamClayPlasticFlowRule::load( Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMFlowRule )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleFlowRule )
 
 }
 

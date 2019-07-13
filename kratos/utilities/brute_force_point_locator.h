@@ -72,17 +72,19 @@ public:
      * @brief This function finds an element based on a location
      * @param rThePoint the location to search
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
      * @return Id of the found element. -1 if no element was found
      */
-    int FindElement(const Point& rThePoint, Vector& rShapeFunctionValues) const;
+    int FindElement(const Point& rThePoint, Vector& rShapeFunctionValues, const double LocalCoordTol=1e-6) const;
 
     /**
      * @brief This function finds a condition based on a location
      * @param rThePoint the location to search
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
      * @return Id of the found condition. -1 if no condition was found
      */
-    int FindCondition(const Point& rThePoint, Vector& rShapeFunctionValues) const;
+    int FindCondition(const Point& rThePoint, Vector& rShapeFunctionValues, const double LocalCoordTol=1e-6) const;
 
     ///@}
     ///@name Input and output
@@ -121,10 +123,12 @@ private:
      * @param rThePoint the location to search
      * @param rObjectId Id of the found condition. -1 if no object was found
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
      */
     template<typename TObjectType>
     void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
-                    const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues) const;
+                    const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues,
+                    const double LocalCoordTol) const;
 
     /**
      * @brief This function performs some checks after the search
@@ -145,7 +149,7 @@ private:
      */
     bool NodeIsCloseEnough(const Node<3>& rNode,
                            const Point& rThePoint,
-                           double DistanceThreshold) const;
+                           const double DistanceThreshold) const;
 
     ///@}
 

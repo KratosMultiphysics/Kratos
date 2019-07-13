@@ -99,6 +99,12 @@ void MPIDataCommunicator::ScanSum(                                              
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)           \
+type MPIDataCommunicator::SendRecvImpl(                                                 \
+    const type SendValue,                                                               \
+    const int SendDestination, const int SendTag,                                       \
+    const int RecvSource, const int RecvTag) const {                                    \
+    return SendRecvDetail(SendValue, SendDestination, SendTag, RecvSource, RecvTag);    \
+}                                                                                       \
 std::vector<type> MPIDataCommunicator::SendRecvImpl(                                    \
     const std::vector<type>& rSendValues,                                               \
     const int SendDestination, const int SendTag,                                       \
@@ -109,6 +115,11 @@ void MPIDataCommunicator::SendRecvImpl(                                         
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag, \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {    \
     SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag); \
+}                                                                                       \
+void MPIDataCommunicator::SendRecvImpl(                                                 \
+    const type SendValue, const int SendDestination, const int SendTag,                 \
+    type& rRecvValue, const int RecvSource, const int RecvTag) const {                  \
+    SendRecvDetail(SendValue,SendDestination,SendTag,rRecvValue,RecvSource,RecvTag);    \
 }                                                                                       \
 void MPIDataCommunicator::SendImpl(const std::vector<type>& rSendValues,                \
     const int SendDestination, const int SendTag) const {                               \
@@ -596,6 +607,16 @@ template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
         MPIDatatype(rRecvMessage), RecvSource, RecvTag,
         mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Sendrecv");
+}
+
+template<class TDataType> TDataType MPIDataCommunicator::SendRecvDetail(
+    const TDataType& rSendMessage,
+    const int SendDestination, const int SendTag,
+    const int RecvSource, const int RecvTag) const
+{
+    TDataType recv_values;
+    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
+    return recv_values;
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDetail(
