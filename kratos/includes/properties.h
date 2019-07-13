@@ -759,6 +759,8 @@ private:
             list_indexes.push_back(std::stoi(index_string));
         }
 
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
         return list_indexes;
     }
 
