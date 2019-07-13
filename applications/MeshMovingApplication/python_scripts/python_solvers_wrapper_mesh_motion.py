@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
@@ -45,7 +46,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception(err_msg)
 
     module_full = 'KratosMultiphysics.MeshMovingApplication.' + solver_module_name
-    solver = __import__(module_full, fromlist=[solver_module_name]).CreateSolver(model, solver_settings)
+    solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
 
