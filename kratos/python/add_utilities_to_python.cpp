@@ -663,6 +663,8 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def_static("GetTime", &Timer::GetTime)
         .def_static("SetOuputFile", &Timer::SetOuputFile)
         .def_static("CloseOuputFile", &Timer::CloseOuputFile)
+        .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
+        .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
