@@ -13,10 +13,6 @@
 // System includes
 #include <ctime>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 // External includes
 
 // Project includes
@@ -44,15 +40,6 @@ void Timer::Stop(std::string const& rIntervalName)
     it_time_data->second.Update(stop_time);
 
     PrintIntervalInformation(rIntervalName, it_time_data->second.GetStartTime(), stop_time);
-}
-
-inline double Timer::GetTime()
-{
-#ifndef _OPENMP
-    return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
-#else
-    return omp_get_wtime();
-#endif
 }
 
 int Timer::SetOuputFile(std::string const& rOutputFileName)

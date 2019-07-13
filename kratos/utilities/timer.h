@@ -20,6 +20,9 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // External includes
 #include <boost/timer.hpp> // To be removed after replacing the boost timers with Kratos timer. Additionallty to be moved to the cpp
@@ -159,7 +162,14 @@ public:
     /**
      * @brief This method returns the resulting time
      */
-    static inline double GetTime();
+    static inline double GetTime()
+    {
+#ifndef _OPENMP
+        return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+#else
+        return omp_get_wtime();
+#endif
+    }
 
     ///@}
     ///@name Access
