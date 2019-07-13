@@ -339,20 +339,13 @@ public:
      */
     Properties::Pointer pGetSubPropertiesById(const IndexType SubPropertyIndex)
     {
-        // Checking if the id is the current properties
-        if (this->Id() == SubPropertyIndex) {
-            return Kratos::make_shared<Properties>(*this);
-        }
-
         // Looking into the database
         auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
-            KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
-            auto p_new_property = Kratos::make_shared<Properties>(SubPropertyIndex);
-            AddSubProperty(p_new_property);
-            return p_new_property;
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            return nullptr;
         }
     }
 
@@ -363,17 +356,13 @@ public:
      */
     Properties::Pointer pGetSubPropertiesById(const IndexType SubPropertyIndex) const
     {
-        // Checking if the id is the current properties
-        if (this->Id() == SubPropertyIndex) {
-            return Kratos::make_shared<Properties>(*this);
-        }
-
         // Looking into the database
         const auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
-            KRATOS_ERROR << "SubProperties\t" << SubPropertyIndex << "\tnot found" << std::endl;
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            return nullptr;
         }
     }
 
@@ -384,19 +373,14 @@ public:
      */
     Properties& GetSubPropertiesById(const IndexType SubPropertyIndex)
     {
-        // Checking if the id is the current properties
-        KRATOS_WARNING_IF("Properties", this->Id() == SubPropertyIndex) << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
-
         // Looking into the database
-        if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
-            return *(mSubPropertiesList(SubPropertyIndex));
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return *(property_iterator);
         } else {
-            KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
-            AddSubProperty(Kratos::make_shared<Properties>(SubPropertyIndex));
-            return *(mSubPropertiesList(SubPropertyIndex));
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            return *this;
         }
-
-        return *this;
     }
 
     /**
@@ -406,9 +390,6 @@ public:
      */
     Properties& GetSubPropertiesById(const IndexType SubPropertyIndex) const
     {
-        // Checking if the id is the current properties
-        KRATOS_ERROR_IF(this->Id() == SubPropertyIndex) << "Subproperty ID: " << SubPropertyIndex << " coincides on the current Properties ID: " << this->Id() << std::endl;
-
         // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
             return *(mSubPropertiesList.find(SubPropertyIndex));
