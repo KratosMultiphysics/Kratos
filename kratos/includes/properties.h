@@ -626,8 +626,8 @@ public:
         rOStream << "This properties contains " << mTables.size() << " tables";
         if (mSubPropertiesList.size() > 0) {
             rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
-            for (auto& subprop : mSubPropertiesList) {
-                subprop.PrintData(rOStream);
+            for (auto& r_subprop : mSubPropertiesList) {
+                r_subprop.PrintData(rOStream);
             }
         }
     }
