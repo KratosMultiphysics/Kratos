@@ -49,8 +49,9 @@ class CoSimulationConvergenceCriteria(object):
     def Check(self):
         print("ConvCrit does not implement Check yet!")
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):

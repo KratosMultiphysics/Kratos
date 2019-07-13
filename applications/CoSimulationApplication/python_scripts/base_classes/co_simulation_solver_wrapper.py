@@ -123,8 +123,9 @@ class CoSimulationSolverWrapper(object):
         '''
         pass
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     def _AllocateHistoricalVariablesFromCouplingData(self):
         '''This function retrieves the historical variables that are needed for the ModelParts from the specified CouplingInterfaceDatas and allocates them on the ModelParts

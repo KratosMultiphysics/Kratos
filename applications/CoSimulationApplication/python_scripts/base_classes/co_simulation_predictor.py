@@ -46,8 +46,9 @@ class CoSimulationPredictor(object):
     def Check(self):
         print("The predictors do not yet implement Check!")
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     def _UpdateData(self, updated_data):
         self.interface_data.SetData(updated_data)

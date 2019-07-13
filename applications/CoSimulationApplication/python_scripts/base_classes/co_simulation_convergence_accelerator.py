@@ -60,8 +60,9 @@ class CoSimulationConvergenceAccelerator(object):
     def UpdateSolution(self, residual, iteration_guess):
         raise NotImplementedError('"UpdateSolution" has to be implemented in the derived class!')
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):
