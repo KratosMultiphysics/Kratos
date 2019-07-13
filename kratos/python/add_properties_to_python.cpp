@@ -64,14 +64,6 @@ PropertiesContainerType const& GetSubProperties2(const Properties& rProperties)
     return rProperties.GetSubProperties();
 }
 
-Properties::Pointer GetSubProperty1(
-    Properties& rProperties,
-    IndexType Index
-    )
-{
-    return rProperties.pGetSubProperty(Index);
-}
-
 bool HasSubPropertiesById1(
     Properties& rProperties,
     IndexType Index
@@ -229,7 +221,6 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("IsEmpty", &Properties::IsEmpty)
     .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
     .def("AddSubProperty", &Properties::AddSubProperty)
-    .def("GetSubProperty", GetSubProperty1)
     .def("HasSubPropertiesById", HasSubPropertiesById1)
     .def("GetSubPropertiesById", GetSubPropertiesById1)
     .def("GetSubPropertiesByAddress", GetSubPropertiesByAddress1)
