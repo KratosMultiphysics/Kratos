@@ -41,12 +41,12 @@ class CoSimulationCouplingOperation(object):
     def PrintInfo(self):
         pass
 
+    def Check(self):
+        pass
+
     @classmethod
     def _ClassName(cls):
         return cls.__name__
-
-    def Check(self):
-        pass
 
     @classmethod
     def _GetDefaultSettings(cls):

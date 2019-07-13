@@ -46,20 +46,19 @@ class CoSimulationPredictor(object):
     def Check(self):
         print("The predictors do not yet implement Check!")
 
-    @classmethod
-    def _ClassName(cls):
-        return cls.__name__
-
     def _UpdateData(self, updated_data):
         self.interface_data.SetData(updated_data)
 
         if self.echo_level > 3:
             cs_tools.cs_print_info(self._ClassName(), "Computed prediction")
 
-
     # returns the buffer size needed by the predictor. Can be overridden in derived classes
     def _GetMinimumBufferSize(self):
         return 2
+
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):
