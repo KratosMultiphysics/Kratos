@@ -78,10 +78,10 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 coupling_op.InitializeCouplingIteration()
 
             for conv_acc in self.convergence_accelerators_list:
-                conv_acc.InitializeCouplingIteration()
+                conv_acc.InitializeNonLinearIteration()
 
             for conv_crit in self.convergence_criteria_list:
-                conv_crit.InitializeCouplingIteration()
+                conv_crit.InitializeNonLinearIteration()
 
             for solver_name, solver in self.solver_wrappers.items():
                 self._SynchronizeInputData(solver_name)
@@ -92,10 +92,10 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 coupling_op.FinalizeCouplingIteration()
 
             for conv_acc in self.convergence_accelerators_list:
-                conv_acc.FinalizeCouplingIteration()
+                conv_acc.FinalizeNonLinearIteration()
 
             for conv_crit in self.convergence_criteria_list:
-                conv_crit.FinalizeCouplingIteration()
+                conv_crit.FinalizeNonLinearIteration()
 
             is_converged = True
             for conv_crit in self.convergence_criteria_list:

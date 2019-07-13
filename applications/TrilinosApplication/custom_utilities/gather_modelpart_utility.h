@@ -11,7 +11,7 @@
 // System includes
 
 /* Project includes */
-#include "parallel_fill_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 namespace Kratos
 {

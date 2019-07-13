@@ -21,6 +21,7 @@
 #include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/define_2d_wake_process.h"
+#include "custom_processes/apply_far_field_process.h"
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_embedded_wake_process.h"
 #include "custom_processes/metrics_potential_hessian_process.h"
@@ -46,6 +47,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<Define2DWakeProcess, Define2DWakeProcess::Pointer, Process >
         (m, "Define2DWakeProcess")
         .def(py::init<ModelPart&, const double>())
+        ;
+
+    py::class_<ApplyFarFieldProcess, ApplyFarFieldProcess::Pointer, Process >
+        (m, "ApplyFarFieldProcess")
+        .def(py::init<ModelPart&, const double, const bool>())
         ;
 
     py::class_<ComputeEmbeddedLiftProcess, ComputeEmbeddedLiftProcess::Pointer, Process >

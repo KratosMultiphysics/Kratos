@@ -1190,10 +1190,10 @@ void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, Process
     GeometryType& r_geometry = GetGeometry();
     int number_of_nodes = r_geometry.size();
     int dimension = r_geometry.WorkingSpaceDimension();
-    unsigned int dimension_2 = number_of_nodes * dimension;
+    unsigned int matrix_size = number_of_nodes * dimension;
 
-    if ( rResult.size() != dimension_2 )
-        rResult.resize( dimension_2, false );
+    if ( rResult.size() != matrix_size )
+        rResult.resize( matrix_size, false );
 
     for ( int i = 0; i < number_of_nodes; i++ )
     {
