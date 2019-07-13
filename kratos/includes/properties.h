@@ -448,6 +448,7 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
+        // Iterating over subproperties
         if (indexes[0] == this->Id()) {
             Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
             for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
@@ -468,6 +469,7 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
+        // Iterating over subproperties
         if (indexes[0] == this->Id()) {
             Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
             for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
@@ -488,6 +490,7 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
+        // Iterating over subproperties
         if (indexes[0] == this->Id()) {
             Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
             for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
@@ -508,6 +511,7 @@ public:
     {
         const auto indexes = TrimComponentName(rAdress);
 
+        // Iterating over subproperties
         if (indexes[0] == this->Id()) {
             Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
             for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
