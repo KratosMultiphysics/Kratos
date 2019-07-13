@@ -52,7 +52,7 @@ class CoSimulationConvergenceAccelerator(object):
         '''Function to print Info abt the Object
         Can be overridden in derived classes to print more information
         '''
-        cs_tools.cs_print_info("Convergence Accelerator", colors.bold(self._Name()))
+        cs_tools.cs_print_info("Convergence Accelerator", colors.bold(self._ClassName()))
 
     def Check(self):
         print("ConvAcc does not yet implement Check")

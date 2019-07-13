@@ -52,7 +52,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         row = len(r)
         k = col
         if self.echo_level > 3:
-            cs_tools.cs_print_info(self._Name(), "Number of new modes: ", col )
+            cs_tools.cs_print_info(self._ClassName(), "Number of new modes: ", col )
 
         ## For the first iteration
         if k == 0:
@@ -101,7 +101,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             for j in range(0, col):
                 self.J[i][j] = self.J_hat[i][j]
         if self.echo_level > 3:
-            cs_tools.cs_print_info(self._Name(), "Jacobian matrix updated!")
+            cs_tools.cs_print_info(self._ClassName(), "Jacobian matrix updated!")
         ## Clear the buffer
         if self.R and self.X:
             self.R.clear()
