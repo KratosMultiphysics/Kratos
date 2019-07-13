@@ -319,19 +319,7 @@ public:
      */
     bool HasSubPropertiesById(const IndexType SubPropertyIndex)
     {
-        // Checking if the id is the current properties
-        if (this->Id() == SubPropertyIndex) {
-            KRATOS_WARNING("Properties") << "There is no subproperty with the Id: " << SubPropertyIndex << ". The current property has that Id" << std::endl;
-            return true;
-        }
-
-        // Looking into the database
-        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
-        if (property_iterator != mSubPropertiesList.end()) {
-            return true;
-        } else {
-            return false;
-        }
+        return mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end();
     }
 
     /**
@@ -341,19 +329,7 @@ public:
      */
     bool HasSubPropertiesById(const IndexType SubPropertyIndex) const
     {
-        // Checking if the id is the current properties
-        if (this->Id() == SubPropertyIndex) {
-            KRATOS_WARNING("Properties") << "There is no subproperty with the Id: " << SubPropertyIndex << ". The current property has that Id" << std::endl;
-            return true;
-        }
-
-        // Looking into the database
-        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
-        if (property_iterator != mSubPropertiesList.end()) {
-            return true;
-        } else {
-            return false;
-        }
+        return mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end();
     }
 
     /**
