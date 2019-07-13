@@ -306,7 +306,7 @@ public:
      * @brief This method insert a new property into the list of subproperties
      * @param pNewSubProperty The new property to be added
      */
-    void AddSubProperty(Properties::Pointer pNewSubProperty)
+    void AddSubProperties(Properties::Pointer pNewSubProperty)
     {
         KRATOS_ERROR_IF(HasSubPropertiesById(pNewSubProperty->Id())) << "SubProperties with Id: " << pNewSubProperty->Id() << " already exists. In each level the Id of properties (new or existing) should be unique" << std::endl;
         mSubPropertiesList.insert(mSubPropertiesList.begin(), pNewSubProperty);
