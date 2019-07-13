@@ -49,6 +49,9 @@ class TimerProcess(KratosMultiphysics.Process):
         self.timer = KratosMultiphysics.Timer()
         if self.output_filename != "":
             self.timer.SetOuputFile(self.output_filename)
+        else:
+            self.timer.SetPrintOnScreen(True)
+
         self.timer.Start(self.interval_name)
 
     def ExecuteFinalize(self):
