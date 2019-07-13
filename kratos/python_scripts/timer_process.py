@@ -33,15 +33,13 @@ class TimerProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process helps to measure the time consumed on the simulations",
-            "output_filename" : ""
+            "output_filename" : "",
             "interval_name"   : "Analysis"
         }
         """
         )
 
-        #assign this here since it will change the "interval" prior to validation
-        self.interval = KratosMultiphysics.IntervalUtility(settings)
-
+        # Assign this here since it will change the "interval" prior to validation
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.interval_name = settings["interval_name"].GetString()
