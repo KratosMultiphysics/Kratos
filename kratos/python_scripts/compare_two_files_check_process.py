@@ -371,8 +371,51 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
     def __CompareVtkFile(self):
         """This function compares vtk files in ASCII format
         """
+
+        def CheckHeader(first_lines_file):
+            # expected header:
+            '''
+            # vtk DataFile Version 4.0
+            vtk output
+            ASCII
+            DATASET UNSTRUCTURED_GRID
+            '''
+            if first_lines_file[2] != "ASCII":
+                raise Exception("Only acsii files can be compared!")
+            if first_lines_file[3] != "DATASET UNSTRUCTURED_GRID":
+                raise Exception("unknown dataset")
+
+        def ComparePoints(lines_ref, lines_out, line_counter):
+            pass
+
+        def CompareCells(lines_ref, lines_out, line_counter):
+            pass
+
+        def CompareCellTypes(lines_ref, lines_out, line_counter):
+            pass
+
+        def CompareData(lines_ref, lines_out, line_counter):
+            pass
+
         lines_ref, lines_out = self.__GetFileLines()
 
+        CheckHeader(lines_ref[0:4])
+        CheckHeader(lines_out[0:4])
+
+        line_counter = 0
+        for line_ref, line_out in zip(lines_ref, lines_out):
+            if line_ref.startswith("POINTS"):
+                ComparePoints(lines_ref, lines_out, line_counter)
+            if line_ref.startswith("CELLS"):
+                CompareCells(lines_ref, lines_out, line_counter)
+            if line_ref.startswith("CELL_TYPES"):
+                CompareCellTypes(lines_ref, lines_out, line_counter)
+            if line_ref.startswith("POINT_DATA") or line_ref.startswith("CELL_DATA"):
+                CompareData(lines_ref, lines_out, line_counter)
+
+            line_counter += 1
+
+        raise NotImplementedError
 
 
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
