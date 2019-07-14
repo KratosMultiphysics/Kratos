@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.vtk_output_process as vtk_output_process
+import KratosMultiphysics.compare_two_files_check_process as compare_process
 
 import os
 
@@ -236,8 +237,6 @@ def SetupVtkOutputProcess(current_model, parameters):
     return vtk_output_process.Factory(parameters, current_model)
 
 def Check(output_file,reference_file):
-    import KratosMultiphysics.compare_two_files_check_process as compare_process
-
     ## Settings string in json format
     params = KratosMultiphysics.Parameters("""{
         "reference_file_name" : "",
