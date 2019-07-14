@@ -419,16 +419,28 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if not num_connectivities_ref == num_connectivities_out:
                 raise Exception('output-file has wrong number of connectivities: ref: {}, out: {}'.format(num_connectivities_ref, num_connectivities_out))
 
-            # comparing point coordinates
+            # comparing connectivities
             for i in range(1, num_cells_ref+1):
                 ref_connectivities = ReadVectorFromLine(lines_ref[line_counter+i], int)
                 out_connectivities = ReadVectorFromLine(lines_out[line_counter+i], int)
 
                 for val_1, val_2 in zip(ref_connectivities, out_connectivities):
-                    self.assertTrue(val_1 == val_2)
+                    self.assertTrue(val_1 == val_2, msg='Wrong connectivity in line {}: ref: {}, out: {}'.format(line_counter+i+1, val_1, val_2))
 
         def CompareCellTypes(lines_ref, lines_out, line_counter):
-            pass
+            if not lines_out[line_counter].startswith("CELL_TYPES"):
+                raise Exception('output-file is missing "CELL_TYPES" in the same location (expected line: {})'.format(line_counter))
+
+            num_cells_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_cells_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_cells_ref == num_cells_out:
+                raise Exception('output-file has wrong number of cells: ref: {}, out: {}'.format(num_cells_ref, num_cells_out))
+
+            # comparing cell types
+            for i in range(1, num_cells_ref+1):
+                ref_cell_type = ReadVectorFromLine(lines_ref[line_counter+i], int)
+                out_cell_type = ReadVectorFromLine(lines_out[line_counter+i], int)
+                self.assertTrue(ref_cell_type[0] == out_cell_type[0], msg='Wrong cell type in line {}: ref: {}, out: {}'.format(line_counter+i+1, ref_cell_type[0], out_cell_type[0]))
 
         def CompareData(lines_ref, lines_out, line_counter):
             pass
