@@ -72,6 +72,12 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                                     params.PrettyPrintJsonString()
                                 ])
 
+    def Execute(self):
+        """Executes all functions required to compare the files
+        Intended to be directly used within python-scripts
+        """
+        self.ExecuteFinalize()
+
     def ExecuteFinalize(self):
         """The files are compared in this function
         Please see the respective files for details on the format of the files
