@@ -372,8 +372,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """This function compares vtk files in ASCII format
         """
 
-        def ReadVectorFromLine(line, delimiter=' '):
-            return [float(word) for word in line.split(delimiter)]
+        def ReadVectorFromLine(line, conversion_fct, delimiter=' '):
+            return [conversion_fct(word) for word in line.split(delimiter)]
 
         def CheckHeader(first_lines_file):
             # expected header:
@@ -399,14 +399,33 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
             # comparing point coordinates
             for i in range(1, num_points_ref+1):
-                ref_coords = ReadVectorFromLine(lines_ref[line_counter+i])
-                out_coords = ReadVectorFromLine(lines_out[line_counter+i])
+                ref_coords = ReadVectorFromLine(lines_ref[line_counter+i], float)
+                out_coords = ReadVectorFromLine(lines_out[line_counter+i], float)
 
                 for val_1, val_2 in zip(ref_coords, out_coords):
                     self.__CheckCloseValues(val_1, val_2)
 
         def CompareCells(lines_ref, lines_out, line_counter):
-            pass
+            if not lines_out[line_counter].startswith("CELLS"):
+                raise Exception('output-file is missing "CELLS" in the same location (expected line: {})'.format(line_counter))
+
+            num_cells_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_cells_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_cells_ref == num_cells_out:
+                raise Exception('output-file has wrong number of cells: ref: {}, out: {}'.format(num_cells_ref, num_cells_out))
+
+            num_connectivities_ref = int(lines_ref[line_counter].split(" ")[2])
+            num_connectivities_out = int(lines_out[line_counter].split(" ")[2])
+            if not num_connectivities_ref == num_connectivities_out:
+                raise Exception('output-file has wrong number of connectivities: ref: {}, out: {}'.format(num_connectivities_ref, num_connectivities_out))
+
+            # comparing point coordinates
+            for i in range(1, num_cells_ref+1):
+                ref_connectivities = ReadVectorFromLine(lines_ref[line_counter+i], int)
+                out_connectivities = ReadVectorFromLine(lines_out[line_counter+i], int)
+
+                for val_1, val_2 in zip(ref_connectivities, out_connectivities):
+                    self.assertTrue(val_1 == val_2)
 
         def CompareCellTypes(lines_ref, lines_out, line_counter):
             pass
