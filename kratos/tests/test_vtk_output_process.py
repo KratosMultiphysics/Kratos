@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.vtk_output_process as vtk_output_process
-import KratosMultiphysics.compare_two_files_check_process as compare_process
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
 
@@ -245,15 +245,7 @@ def Check(output_file,reference_file):
     params["reference_file_name"].SetString(GetFilePath(reference_file))
     params["output_file_name"].SetString(output_file)
 
-    cmp_process = compare_process.CompareTwoFilesCheckProcess(params)
-
-    cmp_process.ExecuteInitialize()
-    cmp_process.ExecuteBeforeSolutionLoop()
-    cmp_process.ExecuteInitializeSolutionStep()
-    cmp_process.ExecuteFinalizeSolutionStep()
-    cmp_process.ExecuteBeforeOutputStep()
-    cmp_process.ExecuteAfterOutputStep()
-    cmp_process.ExecuteFinalize()
+    CompareTwoFilesCheckProcess(params).Execute()
 
 def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
