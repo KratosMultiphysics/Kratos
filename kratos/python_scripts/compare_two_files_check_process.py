@@ -504,7 +504,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         CheckHeader(lines_ref[0:4])
         CheckHeader(lines_out[0:4])
 
-        for line_counter, (line_ref, line_out) in enumerate(zip(lines_ref, lines_out)):
+        for line_counter, line_ref in enumerate(lines_ref):
             if line_ref.startswith("POINTS"):
                 ComparePoints(lines_ref, lines_out, line_counter)
             if line_ref.startswith("CELLS"):

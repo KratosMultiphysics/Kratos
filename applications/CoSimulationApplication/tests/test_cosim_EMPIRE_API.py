@@ -6,7 +6,7 @@ from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCh
 
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
-import os, filecmp
+import os
 from shutil import copyfile
 
 conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
