@@ -6,6 +6,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 import co_simulation_test_case
+import os
 
 try:
     import numpy
@@ -16,6 +17,9 @@ except ImportError:
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "ExternalSolversApplication")
 
 using_pykratos = UsingPyKratos()
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
@@ -94,7 +98,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        kratos_utils.DeleteFileIfExisting("fsi_mok/ProjectParametersCFD.json")
+        kratos_utils.DeleteFileIfExisting(GetFilePath("fsi_mok/ProjectParametersCFD.json"))
 
 
 class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):

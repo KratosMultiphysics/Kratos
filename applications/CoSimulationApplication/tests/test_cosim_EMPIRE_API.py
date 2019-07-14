@@ -85,7 +85,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         model_part = model.CreateModelPart(mp_name)
         model_part_ref = model.CreateModelPart("For_Checking")
 
-        copyfile("reference_files/EMPIRE_mesh_For_Sending.vtk_ref", mesh_file_name)
+        copyfile(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), mesh_file_name)
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part)
 
