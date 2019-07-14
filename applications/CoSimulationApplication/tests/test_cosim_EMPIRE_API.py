@@ -78,6 +78,8 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # can directly use filecmp because there are no decimal-number issues
         self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
 
+        os.remove("EMPIRE_mesh_For_Sending.vtk")
+
     def test_EMPIRE_API_recvMesh(self):
         mp_name = "For_Receiving"
         mesh_file_name = GetMeshFileName(mp_name)
