@@ -20,12 +20,10 @@
 #include <iostream>
 #include <fstream>
 #include <map>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include <chrono>
 
 // External includes
-#include <boost/timer.hpp> // To be removed after replacing the boost timers with Kratos timer. Additionallty to be moved to the cpp
+#include <boost/timer.hpp> // To be removed after replacing the boost timers with Kratos timer.
 
 // Project includes
 #include "includes/define.h"
@@ -164,11 +162,17 @@ public:
      */
     static inline double GetTime()
     {
-#ifndef _OPENMP
-        return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
-#else
-        return omp_get_wtime();
-#endif
+        const auto current_time = std::chrono::steady_clock::now();
+        return std::chrono::duration_cast<std::chrono::duration<double>>(current_time.time_since_epoch()).count();
+    }
+
+    /**
+     * @brief This method returns the resulting time
+     */
+    static inline double ElapsedSeconds(const std::chrono::steady_clock::time_point StartTime)
+    {
+        const auto current_time = std::chrono::steady_clock::now();
+        return std::chrono::duration_cast<std::chrono::duration<double>>(current_time - StartTime).count();
     }
 
     ///@}
@@ -292,7 +296,7 @@ private:
 
     static bool msPrintOnScreen;       /// If the information is printed on screen
 
-    static double msGlobalStart;       /// The starting time
+    static const std::chrono::steady_clock::time_point mStartTime; /// The starting time
 
     ///@}
     ///@name Member Variables

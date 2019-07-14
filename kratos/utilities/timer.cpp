@@ -22,7 +22,7 @@
 namespace Kratos
 {
 /// Default constructor.
-Timer::Timer() {}
+Timer::Timer(){}
 
 void Timer::Start(std::string const& rIntervalName)
 {
@@ -101,7 +101,7 @@ void Timer::PrintTimingInformation()
 
 void Timer::PrintTimingInformation(std::ostream& rOStream)
 {
-    const double global_elapsed_time = GetTime() - msGlobalStart;
+    const double global_elapsed_time = ElapsedSeconds(mStartTime);
     rOStream << "                                 Repeat # \tTotal     \tMax     \tMin     \tAverage     \t%" << std::endl;
     for(auto& r_time_data : msTimeTable) {
         rOStream << r_time_data.first;
@@ -116,13 +116,8 @@ void Timer::PrintTimingInformation(std::ostream& rOStream)
 
 Timer::ContainerType Timer::msTimeTable;
 std::ofstream Timer::msOutputFile;
-
 bool Timer::msPrintOnScreen = false;
+const std::chrono::steady_clock::time_point Timer::mStartTime = std::chrono::steady_clock::now();
 
-#ifndef _OPENMP
-double Timer::msGlobalStart = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
-#else
-double Timer::msGlobalStart = omp_get_wtime();
-#endif
 } /// namespace Kratos
 
