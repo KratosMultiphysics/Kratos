@@ -376,7 +376,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             return [conversion_fct(word) for word in line.split(delimiter)]
 
         def CheckHeader(first_lines_file):
-            # expected header:
+            # Expected header:
             '''
             # vtk DataFile Version 4.0
             vtk output
@@ -397,7 +397,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if not num_points_ref == num_points_out:
                 raise Exception('output-file has wrong number of points: ref: {}, out: {}'.format(num_points_ref, num_points_out))
 
-            # comparing point coordinates
+            # Comparing point coordinates
             for i in range(1, num_points_ref+1):
                 ref_coords = ReadVectorFromLine(lines_ref[line_counter+i], float)
                 out_coords = ReadVectorFromLine(lines_out[line_counter+i], float)
@@ -419,7 +419,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if not num_connectivities_ref == num_connectivities_out:
                 raise Exception('output-file has wrong number of connectivities: ref: {}, out: {}'.format(num_connectivities_ref, num_connectivities_out))
 
-            # comparing connectivities
+            # Comparing connectivities
             for i in range(1, num_cells_ref+1):
                 ref_connectivities = ReadVectorFromLine(lines_ref[line_counter+i], int)
                 out_connectivities = ReadVectorFromLine(lines_out[line_counter+i], int)
@@ -436,7 +436,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if not num_cells_ref == num_cells_out:
                 raise Exception('output-file has wrong number of cells: ref: {}, out: {}'.format(num_cells_ref, num_cells_out))
 
-            # comparing cell types
+            # Comparing cell types
             for i in range(1, num_cells_ref+1):
                 ref_cell_type = ReadVectorFromLine(lines_ref[line_counter+i], int)
                 out_cell_type = ReadVectorFromLine(lines_out[line_counter+i], int)
@@ -465,7 +465,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 if not dim_ref == dim_out:
                     raise Exception('dimension of field is not matching: ref: {}, out: {}'.format(dim_ref, dim_out))
 
-                # compare the values
+                # Compare the values
                 for i in range(1, num_entities+1):
                     ref_vals = ReadVectorFromLine(lines_ref[line_counter+i], float)
                     out_vals = ReadVectorFromLine(lines_out[line_counter+i], float)
@@ -474,7 +474,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                         self.__CheckCloseValues(val_1, val_2)
 
 
-            # check if POINT_DATA or CELL_DATA
+            # Check if POINT_DATA or CELL_DATA
             data_type_ref = lines_ref[line_counter].split(" ")[0]
             data_type_out = lines_out[line_counter].split(" ")[0]
             if data_type_ref != data_type_out:
@@ -495,7 +495,6 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if not num_fields_ref == num_fields_out:
                 raise Exception('output-file has wrong number of fields for: {}: ref: {}, out: {}'.format(data_type_ref, num_fields_ref, num_fields_out))
 
-            # compare FieldData
             for i in range(num_fields_ref):
                 CompareFieldData(lines_ref, lines_out, line_counter+2 + i*(num_entities_ref+1), num_entities_ref)
 
