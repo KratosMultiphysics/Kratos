@@ -372,6 +372,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """This function compares vtk files in ASCII format
         """
 
+        def ReadVectorFromLine(line, delimiter=' '):
+            return [float(word) for word in line.split(delimiter)]
+
         def CheckHeader(first_lines_file):
             # expected header:
             '''
@@ -386,7 +389,21 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 raise Exception("unknown dataset")
 
         def ComparePoints(lines_ref, lines_out, line_counter):
-            pass
+            if not lines_out[line_counter].startswith("POINTS"):
+                raise Exception('output-file is missing "POINTS" in the same location (expected line: {})'.format(line_counter))
+
+            num_points_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_points_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_points_ref == num_points_out:
+                raise Exception('output-file has wrong number of points: ref: {}, out: {}'.format(num_points_ref, num_points_out))
+
+            # comparing point coordinates
+            for i in range(1, num_points_ref+1):
+                ref_coords = ReadVectorFromLine(lines_ref[line_counter+i])
+                out_coords = ReadVectorFromLine(lines_out[line_counter+i])
+
+                for val_1, val_2 in zip(ref_coords, out_coords):
+                    self.__CheckCloseValues(val_1, val_2)
 
         def CompareCells(lines_ref, lines_out, line_counter):
             pass
@@ -402,8 +419,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         CheckHeader(lines_ref[0:4])
         CheckHeader(lines_out[0:4])
 
-        line_counter = 0
-        for line_ref, line_out in zip(lines_ref, lines_out):
+        for line_counter, (line_ref, line_out) in enumerate(zip(lines_ref, lines_out)):
             if line_ref.startswith("POINTS"):
                 ComparePoints(lines_ref, lines_out, line_counter)
             if line_ref.startswith("CELLS"):
@@ -412,8 +428,6 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 CompareCellTypes(lines_ref, lines_out, line_counter)
             if line_ref.startswith("POINT_DATA") or line_ref.startswith("CELL_DATA"):
                 CompareData(lines_ref, lines_out, line_counter)
-
-            line_counter += 1
 
         raise NotImplementedError
 
