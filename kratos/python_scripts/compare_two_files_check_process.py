@@ -443,8 +443,63 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 self.assertTrue(ref_cell_type[0] == out_cell_type[0], msg='Wrong cell type in line {}: ref: {}, out: {}'.format(line_counter+i+1, ref_cell_type[0], out_cell_type[0]))
 
         def CompareData(lines_ref, lines_out, line_counter):
-            pass
+            def CompareFieldData(lines_ref, lines_out, line_counter, num_entities):
+                ref_line_splitted = lines_ref[line_counter].split(" ")
+                name_ref = ref_line_splitted[0]
+                dim_ref = int(ref_line_splitted[1])
+                num_entities_ref = int(ref_line_splitted[2])
 
+                out_line_splitted = lines_out[line_counter].split(" ")
+                name_out = out_line_splitted[0]
+                dim_out = int(out_line_splitted[1])
+                num_entities_out = int(out_line_splitted[2])
+
+                if not num_entities_ref == num_entities:
+                    raise Exception('Num entities is wrong in ref: expected: {}, got: {}'.format(num_entities_ref, num_entities))
+                if not num_entities_out == num_entities:
+                    raise Exception('Num entities is wrong in out: expected: {}, got: {}'.format(num_entities_out, num_entities))
+
+                if not name_ref == name_out:
+                    raise Exception('name of field is not matching: ref: {}, out: {}'.format(name_ref, name_out))
+
+                if not dim_ref == dim_out:
+                    raise Exception('dimension of field is not matching: ref: {}, out: {}'.format(dim_ref, dim_out))
+
+                # compare the values
+                for i in range(1, num_entities+1):
+                    ref_vals = ReadVectorFromLine(lines_ref[line_counter+i], float)
+                    out_vals = ReadVectorFromLine(lines_out[line_counter+i], float)
+
+                    for val_1, val_2 in zip(ref_vals, out_vals):
+                        self.__CheckCloseValues(val_1, val_2)
+
+
+            # check if POINT_DATA or CELL_DATA
+            data_type_ref = lines_ref[line_counter].split(" ")[0]
+            data_type_out = lines_out[line_counter].split(" ")[0]
+            if data_type_ref != data_type_out:
+                raise Exception('data type is not matching: ref: {}, out: {}'.format(data_type_ref, data_type_out))
+
+            num_entities_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_entities_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_entities_ref == num_entities_out:
+                raise Exception('output-file has wrong number of entities for: {}: ref: {}, out: {}'.format(data_type_ref, num_entities_ref, num_entities_out))
+
+            if not lines_ref[line_counter+1].startswith("FIELD"):
+                raise Exception('reference-file is missing "FIELD" (expected in line: {})'.format(line_counter))
+            if not lines_out[line_counter+1].startswith("FIELD"):
+                raise Exception('output-file is missing "FIELD" (expected in line: {})'.format(line_counter))
+
+            num_fields_ref = int(lines_ref[line_counter+1].split(" ")[2])
+            num_fields_out = int(lines_out[line_counter+1].split(" ")[2])
+            if not num_fields_ref == num_fields_out:
+                raise Exception('output-file has wrong number of fields for: {}: ref: {}, out: {}'.format(data_type_ref, num_fields_ref, num_fields_out))
+
+            # compare FieldData
+            for i in range(num_fields_ref):
+                CompareFieldData(lines_ref, lines_out, line_counter+2 + i*(num_entities_ref+1), num_entities_ref)
+
+        ######
         lines_ref, lines_out = self.__GetFileLines()
 
         CheckHeader(lines_ref[0:4])
@@ -459,9 +514,6 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 CompareCellTypes(lines_ref, lines_out, line_counter)
             if line_ref.startswith("POINT_DATA") or line_ref.startswith("CELL_DATA"):
                 CompareData(lines_ref, lines_out, line_counter)
-
-        raise NotImplementedError
-
 
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
         isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)
