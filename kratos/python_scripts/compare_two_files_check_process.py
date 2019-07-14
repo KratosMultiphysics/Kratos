@@ -98,6 +98,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.__CompareDatFile()
         elif (self.comparison_type == "dat_file_variables_time_history"):
             self.__CompareDatFileVariablesTimeHistory()
+        elif (self.comparison_type == "vtk"):
+            self.__CompareVtkFile()
         else:
             raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
@@ -365,6 +367,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         error /= nvertices
         self.assertTrue(error < self.tol, msg = self.info_msg)
+
+    def __CompareVtkFile(self):
+        """This function compares vtk files in ASCII format
+        """
+        lines_ref, lines_out = self.__GetFileLines()
+
+
 
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
         isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)
