@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -55,6 +56,7 @@ namespace Kratos
  * @brief This utility can be used to compute the time employed on computations
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) Timer
 {
