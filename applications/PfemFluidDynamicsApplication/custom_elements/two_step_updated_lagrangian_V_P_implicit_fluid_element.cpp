@@ -857,82 +857,25 @@ namespace Kratos {
 										const double Weight)
   {
     GeometryType& rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
-
-    // for (SizeType i = 0; i < (NumNodes-1); i++)
-    //   {
-    //     for (SizeType j = (i+1); j < NumNodes; j++)
-    // 	  {
-    // 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-    // 	      if(rGeom[i].IsNot(INLET))
-    // 		BoundLHSMatrix(i,i) +=  Weight / 3.0;
-    // 	      if(rGeom[j].IsNot(INLET))
-    // 		BoundLHSMatrix(j,j) +=  Weight / 3.0;
-    // 	    }
-    // 	  }
-
-    //   }
-
-    // for (SizeType i = 0; i < (NumNodes-1); i++)
-    //   {
-    //     for (SizeType j = (i+1); j < NumNodes; j++)
-    // 	  {
-    // 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-    // 	      if(rGeom[i].IsNot(INLET)){
-    // 		BoundLHSMatrix(i,i) +=  Weight*rN[i]*rN[i];
-    // 		BoundLHSMatrix(i,j) +=  Weight*rN[i]*rN[j];
-    // 	      }
-    // 	      if(rGeom[j].IsNot(INLET)){
-    // 		BoundLHSMatrix(j,j) +=  Weight*rN[j]*rN[j];
-    // 		BoundLHSMatrix(j,i) +=  Weight*rN[j]*rN[i];
-    // 	      }
-    // 	    }
-    // 	  }
-
-    //   }
-
-    // if(this->Is(TO_ERASE)){
-    //   NodeWeakPtrVectorType& rN0 = rGeom[0].GetValue(NEIGHBOUR_NODES);
-    //   NodeWeakPtrVectorType& rN1 = rGeom[1].GetValue(NEIGHBOUR_NODES);
-    //   NodeWeakPtrVectorType& rN2 = rGeom[2].GetValue(NEIGHBOUR_NODES);
-    //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) &&
-    // 	 (rN0.size()<NumNodes || rN1.size()<NumNodes)){
-    // 	if(rGeom[0].IsNot(INLET))
-    // 	  BoundLHSMatrix(0,0) +=  Weight / 3.0;
-    // 	if(rGeom[1].IsNot(INLET))
-    // 	  BoundLHSMatrix(1,1) +=  Weight / 3.0;
-    //   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) &&
-    // 	 (rN0.size()<NumNodes || rN2.size()<NumNodes)){
-    // 	if(rGeom[0].IsNot(INLET))
-    // 	  BoundLHSMatrix(0,0) +=  Weight / 3.0;
-    // 	if(rGeom[2].IsNot(INLET))
-    // 	  BoundLHSMatrix(2,2) +=  Weight / 3.0;
-    //   }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) &&
-    // 	 (rN2.size()<NumNodes || rN1.size()<NumNodes)){
-    // 	if(rGeom[1].IsNot(INLET))
-    // 	  BoundLHSMatrix(1,1) +=  Weight / 3.0;
-    // 	if(rGeom[2].IsNot(INLET))
-    // 	  BoundLHSMatrix(2,2) +=  Weight / 3.0;
-    //   }
-    // }else{
+    double coeff=1.0/3.0;
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)){
       if(rGeom[0].IsNot(INLET))
-	BoundLHSMatrix(0,0) +=  Weight / 3.0;
+      	BoundLHSMatrix(0,0) +=  Weight * coeff;
       if(rGeom[1].IsNot(INLET))
-	BoundLHSMatrix(1,1) +=  Weight / 3.0;
+	      BoundLHSMatrix(1,1) +=  Weight * coeff;
     }
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
       if(rGeom[0].IsNot(INLET))
-	BoundLHSMatrix(0,0) +=  Weight / 3.0;
+	      BoundLHSMatrix(0,0) +=  Weight * coeff;
       if(rGeom[2].IsNot(INLET))
-	BoundLHSMatrix(2,2) +=  Weight / 3.0;
+      	BoundLHSMatrix(2,2) +=  Weight * coeff;
     }
     if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
       if(rGeom[1].IsNot(INLET))
-	BoundLHSMatrix(1,1) +=  Weight / 3.0;
+	      BoundLHSMatrix(1,1) +=  Weight * coeff;
       if(rGeom[2].IsNot(INLET))
-	BoundLHSMatrix(2,2) +=  Weight / 3.0;
+      	BoundLHSMatrix(2,2) +=  Weight * coeff;
     }
     // }
 
@@ -944,68 +887,39 @@ namespace Kratos {
 										const double Weight)
   {
     GeometryType& rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
-
-    // for (SizeType i = 0; i < (NumNodes-2); i++)
-    //   {
-    //     for (SizeType j = (i+1); j < (NumNodes-1); j++)
-    // 	  {
-    // 	    for (SizeType k = (j+1); k < NumNodes; k++)
-    // 	      {
-    // 		if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE) && rGeom[k].Is(FREE_SURFACE)){
-    // 		  if(rGeom[i].IsNot(INLET)){
-    // 		    BoundLHSMatrix(i,i) +=  Weight*rN[i]*rN[i];
-    // 		    BoundLHSMatrix(i,j) +=  Weight*rN[i]*rN[j];
-    // 		    BoundLHSMatrix(i,k) +=  Weight*rN[i]*rN[k];
-    // 		  }
-    // 		  if(rGeom[j].IsNot(INLET)){
-    // 		    BoundLHSMatrix(j,i) +=  Weight*rN[j]*rN[i];
-    // 		    BoundLHSMatrix(j,j) +=  Weight*rN[j]*rN[j];
-    // 		    BoundLHSMatrix(j,k) +=  Weight*rN[j]*rN[k];
-    // 		  }
-    // 		  if(rGeom[k].IsNot(INLET)){
-    // 		    BoundLHSMatrix(k,i) +=  Weight*rN[k]*rN[i];
-    // 		    BoundLHSMatrix(k,j) +=  Weight*rN[k]*rN[j];
-    // 		    BoundLHSMatrix(k,k) +=  Weight*rN[k]*rN[k];
-    // 		  }
-    // 		}
-    // 	      }
-    // 	  }
-
-    //   }
-
+    double coeff=0.25;
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
       if(rGeom[0].IsNot(INLET))
-    	BoundLHSMatrix(0,0) +=  Weight / 4.0;
+    	  BoundLHSMatrix(0,0) +=  Weight * coeff;
       if(rGeom[1].IsNot(INLET))
-    	BoundLHSMatrix(1,1) +=  Weight / 4.0;
+      	BoundLHSMatrix(1,1) +=  Weight * coeff;
       if(rGeom[2].IsNot(INLET))
-    	BoundLHSMatrix(2,2) +=  Weight / 4.0;
+      	BoundLHSMatrix(2,2) +=  Weight * coeff;
     }
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
       if(rGeom[0].IsNot(INLET))
-    	BoundLHSMatrix(0,0) +=  Weight / 4.0;
+       	BoundLHSMatrix(0,0) +=  Weight * coeff;
       if(rGeom[1].IsNot(INLET))
-    	BoundLHSMatrix(1,1) +=  Weight / 4.0;
+       	BoundLHSMatrix(1,1) +=  Weight * coeff;
       if(rGeom[3].IsNot(INLET))
-    	BoundLHSMatrix(3,3) +=  Weight / 4.0;
+    	  BoundLHSMatrix(3,3) +=  Weight * coeff;
     }
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
       if(rGeom[0].IsNot(INLET))
-    	BoundLHSMatrix(0,0) +=  Weight / 4.0;
+    	  BoundLHSMatrix(0,0) +=  Weight * coeff;
       if(rGeom[2].IsNot(INLET))
-    	BoundLHSMatrix(2,2) +=  Weight / 4.0;
+    	  BoundLHSMatrix(2,2) +=  Weight * coeff;
       if(rGeom[3].IsNot(INLET))
-    	BoundLHSMatrix(3,3) +=  Weight / 4.0;
+    	  BoundLHSMatrix(3,3) +=  Weight * coeff;
     }
     if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
       if(rGeom[1].IsNot(INLET))
-    	BoundLHSMatrix(1,1) +=  Weight / 4.0;
+    	  BoundLHSMatrix(1,1) +=  Weight * coeff;
       if(rGeom[2].IsNot(INLET))
-    	BoundLHSMatrix(2,2) +=  Weight / 4.0;
+    	  BoundLHSMatrix(2,2) +=  Weight * coeff;
       if(rGeom[3].IsNot(INLET))
-    	BoundLHSMatrix(3,3) +=  Weight / 4.0;
+    	  BoundLHSMatrix(3,3) +=  Weight * coeff;
     }
 
   }
@@ -1019,31 +933,30 @@ namespace Kratos {
 											const VectorType SpatialDefRate)
   {
     GeometryType& rGeom = this->GetGeometry();
-
+    const double coeff = 1.0/3.0;
+    const double timeFactor = 0.5/TimeStep;
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){
       array_1d<double, 3>  AccA(3,0.0);
       array_1d<double, 3>  AccB(3,0.0);
       array_1d<double, 3>  MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
 
       this->GetOutwardsUnitNormalForTwoPoints(NormalVector,0,1,2);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(MeanAcc)= 0.5*AccA+0.5*AccB;
+      noalias(AccA)= timeFactor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(MeanAcc)= 0.5*(AccA + AccB);
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0]+MeanAcc[1]*NormalVector[1];
 
       if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-	BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[1].IsNot(INLET))
-	BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+      	BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
     }
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
@@ -1052,24 +965,22 @@ namespace Kratos {
       array_1d<double, 3>  AccB(3,0.0);
       array_1d<double, 3>  MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
 
       this->GetOutwardsUnitNormalForTwoPoints(NormalVector,0,2,1);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(MeanAcc)= 0.5*AccA+0.5*AccB;
+      noalias(AccA)= timeFactor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(MeanAcc)= 0.5*(AccA + AccB);
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0]+MeanAcc[1]*NormalVector[1];
 
       if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-	BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[2].IsNot(INLET))
-	BoundRHSVector[2] += one_third * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
     }
 
     if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
@@ -1078,24 +989,22 @@ namespace Kratos {
       array_1d<double, 3>  AccB(3,0.0);
       array_1d<double, 3>  MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
 
       this->GetOutwardsUnitNormalForTwoPoints(NormalVector,1,2,0);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(MeanAcc)= 0.5*AccA+0.5*AccB;
+      noalias(AccA)= timeFactor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(MeanAcc)= 0.5*(AccA + AccB);
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0]+MeanAcc[1]*NormalVector[1];
 
       if(rGeom[1].IsNot(INLET))
-	BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[2].IsNot(INLET))
-	BoundRHSVector[2] += one_third * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
     }
 
   }
@@ -1112,6 +1021,9 @@ namespace Kratos {
 											const VectorType SpatialDefRate)
   {
     GeometryType& rGeom = this->GetGeometry();
+    const double coeff = 0.25;
+    const double timeFactor = 0.5/TimeStep;
+    const double one_third = 1.0/3.0;
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
 
@@ -1120,29 +1032,27 @@ namespace Kratos {
       array_1d<double, 3> AccC(3,0.0);
       array_1d<double, 3> MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
 
       this->GetOutwardsUnitNormalForThreePoints(NormalVector,0,1,2,3);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccC)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccA)= timeFactor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccC)= timeFactor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
 
-      noalias(MeanAcc)= one_third*AccA + one_third*AccB + one_third*AccC;
+      noalias(MeanAcc)= (AccA + AccB + AccC)*one_third;
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0] + MeanAcc[1]*NormalVector[1] + MeanAcc[2]*NormalVector[2];
 
       if(rGeom[0].IsNot(INLET))
-	BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[1].IsNot(INLET))
-	BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[2].IsNot(INLET))
-	BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
     }
 
@@ -1153,29 +1063,26 @@ namespace Kratos {
       array_1d<double, 3> AccC(3,0.0);
       array_1d<double, 3> MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
-
       this->GetOutwardsUnitNormalForThreePoints(NormalVector,0,1,3,2);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccC)= factor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccA)= timeFactor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccC)= timeFactor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1);
 
-      noalias(MeanAcc)= one_third*AccA + one_third*AccB + one_third*AccC;
+      noalias(MeanAcc)= (AccA + AccB + AccC)*one_third;
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0] + MeanAcc[1]*NormalVector[1] + MeanAcc[2]*NormalVector[2];
 
       if(rGeom[0].IsNot(INLET))
-	BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[1].IsNot(INLET))
-	BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[3].IsNot(INLET))
-	BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[3] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
     }
 
@@ -1186,29 +1093,27 @@ namespace Kratos {
       array_1d<double, 3> AccC(3,0.0);
       array_1d<double, 3> MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
 
       this->GetOutwardsUnitNormalForThreePoints(NormalVector,0,2,3,1);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccC)= factor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccA)= timeFactor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccC)= timeFactor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1);
 
-      noalias(MeanAcc)= one_third*AccA + one_third*AccB + one_third*AccC;
+      noalias(MeanAcc)= (AccA + AccB + AccC)*one_third;
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0] + MeanAcc[1]*NormalVector[1] + MeanAcc[2]*NormalVector[2];
 
       if(rGeom[0].IsNot(INLET))
-	BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[2].IsNot(INLET))
-	BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+      	BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[3].IsNot(INLET))
-	BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[3] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
     }
 
@@ -1219,29 +1124,27 @@ namespace Kratos {
       array_1d<double, 3> AccC(3,0.0);
       array_1d<double, 3> MeanAcc(3,0.0);
       array_1d<double, 3> NormalVector(3,0.0);
-      const double factor = 0.5/TimeStep;
-      const double one_third = 1.0/3.0;
 
       this->GetOutwardsUnitNormalForThreePoints(NormalVector,1,2,3,0);
 
       double SpatialDefRateNormalProjection=this->CalcNormalProjectionDefRate(SpatialDefRate,NormalVector);
 
-      noalias(AccA)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
-      noalias(AccC)= factor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccA)= timeFactor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccB)= timeFactor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1);
+      noalias(AccC)= timeFactor*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1);
 
-      noalias(MeanAcc)= one_third*AccA + one_third*AccB + one_third*AccC;
+      noalias(MeanAcc)= (AccA + AccB + AccC)*one_third;
 
       const double accelerationsNormalProjection=MeanAcc[0]*NormalVector[0] + MeanAcc[1]*NormalVector[1] + MeanAcc[2]*NormalVector[2];
 
       if(rGeom[1].IsNot(INLET))
-	BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[2].IsNot(INLET))
-	BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
       if(rGeom[3].IsNot(INLET))
-	BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
+	      BoundRHSVector[3] += coeff * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*SpatialDefRateNormalProjection);
 
     }
 

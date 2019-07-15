@@ -23,7 +23,6 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_utilities/trilinos_deactivation_utility.h"
-#include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
@@ -99,13 +98,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
         .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
         .def("Initialize", &TrilinosDeactivationUtility::Initialize )
-        ;
-
-    py::class_<ParallelFillCommunicator >
-        (m,"ParallelFillCommunicator")
-        .def(py::init<ModelPart& >() )
-        .def("Execute", &ParallelFillCommunicator::Execute )
-        .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
         ;
 
     py::class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(py::init< Epetra_MpiComm& >() )
