@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
-from KratosMultiphysics.kratos_utilities import IsApplicationAvailable
-if IsApplicationAvailable("TrilinosApplication"):
-    from KratosMultiphysics.TrilinosApplication as KratosTrilinos
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("TrilinosApplication"):
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
@@ -19,7 +19,7 @@ def Factory(settings, Model):
 
 class DistributedGiDOutputProcess(GiDOutputProcess):
     def __init__(self, model_part, file_name, param=None):
-        super(GiDOutputProcessMPI, self).__init__(model_part, file_name, param)
+        super(DistributedGiDOutputProcess, self).__init__(model_part, file_name, param)
         self.serial_file_name = file_name
         self.base_file_name += "_" + str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank()) # overwriting the one from the baseclass
 
