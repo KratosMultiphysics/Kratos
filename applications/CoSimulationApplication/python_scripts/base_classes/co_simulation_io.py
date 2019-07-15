@@ -17,22 +17,6 @@ class CoSimulationIO(object):
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
         self.echo_level = self.settings["echo_level"].GetInt()
 
-    def ImportCouplingInterfaceData(self, data_config):
-        """Imports data from an external solver
-        External solver sends, CoSimulation receives
-
-        @param data_config <python dictionary> : configuration of the data to be imported
-        """
-        raise NotImplementedError("This function has to be implemented in the derived class!")
-
-    def ExportCouplingInterfaceData(self, data_config):
-        """Exports data to an external solver
-        CoSimulation sends, external solver receives
-
-        @param data_config <python dictionary> : configuration of the data to be exported
-        """
-        raise NotImplementedError("This function has to be implemented in the derived class!")
-
     def ImportCouplingInterface(self, interface_config):
         """Imports coupling interface from an external solver
         External solver sends, CoSimulation receives
@@ -46,6 +30,22 @@ class CoSimulationIO(object):
         CoSimulation sends, external solver receives
 
         @param interface_config <python dictionary> : configuration of the interface to be exported
+        """
+        raise NotImplementedError("This function has to be implemented in the derived class!")
+
+    def ImportCouplingInterfaceData(self, data_config):
+        """Imports data from an external solver
+        External solver sends, CoSimulation receives
+
+        @param data_config <python dictionary> : configuration of the data to be imported
+        """
+        raise NotImplementedError("This function has to be implemented in the derived class!")
+
+    def ExportCouplingInterfaceData(self, data_config):
+        """Exports data to an external solver
+        CoSimulation sends, external solver receives
+
+        @param data_config <python dictionary> : configuration of the data to be exported
         """
         raise NotImplementedError("This function has to be implemented in the derived class!")
 
