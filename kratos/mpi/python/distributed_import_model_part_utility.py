@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-class TrilinosImportModelPartUtility(object):
+class DistributedImportModelPartUtility(object):
 
     def __init__(self, main_model_part, settings):
         self.main_model_part = main_model_part
@@ -14,7 +14,7 @@ class TrilinosImportModelPartUtility(object):
     def ExecutePartitioningAndReading(self):
         warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
         warning_msg += 'Please use "ImportModelPart" instead'
-        KratosMultiphysics.Logger.PrintWarning("::[TrilinosImportModelPartUtility]::", warning_msg, data_communicator=self.comm)
+        KratosMultiphysics.Logger.PrintWarning("::[DistributedImportModelPartUtility]::", warning_msg, data_communicator=self.comm)
 
         self.ImportModelPart()
 
@@ -71,7 +71,7 @@ class TrilinosImportModelPartUtility(object):
                         partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
 
-                        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
+                        KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.")
                 else:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
@@ -80,10 +80,10 @@ class TrilinosImportModelPartUtility(object):
                     partitioner.Execute()
                     serial_model_part_io.ReadModelPart(self.main_model_part)
 
-                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.",data_communicator=self.comm)
+                    KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.",data_communicator=self.comm)
 
             else:
-                KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis partitioning not executed.",data_communicator=self.comm)
+                KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis partitioning not executed.",data_communicator=self.comm)
 
             self.comm.Barrier()
 
@@ -123,4 +123,4 @@ class TrilinosImportModelPartUtility(object):
         ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
 
-        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "MPI communicators constructed.")
+        KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "MPI communicators constructed.")
