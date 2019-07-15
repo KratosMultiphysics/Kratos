@@ -185,7 +185,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-	int mNumNodes;
+	int mNumNodes = 0;
 
     ///@}
     ///@name Private Operators
