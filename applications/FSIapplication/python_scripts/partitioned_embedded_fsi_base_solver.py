@@ -4,7 +4,6 @@ from math import sqrt   # Import the square root from python library
 # Import utilities
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural # Import the structure Python solvers wrapper
-from KratosMultiphysics.MeshMovingApplication import python_solvers_wrapper_mesh_motion         # Import the mesh motion Python solvers wrapper
 from KratosMultiphysics.FSIApplication import fsi_coupling_interface                            # Import the FSI coupling interface utility
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory                   # Import the FSI convergence accelerator factory
 
