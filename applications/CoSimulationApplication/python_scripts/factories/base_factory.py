@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+from importlib import import_module
+
 def Create(settings, args, folder, module_name=None):
     """This function creates and returns a class from a module based on the use input
     First the requested module is searched in CoSimulation
@@ -10,10 +12,10 @@ def Create(settings, args, folder, module_name=None):
     full_module_path = ".".join([folder, module_name])
 
     try:
-        imported_module = __import__(full_module_path, fromlist=[module_name])
+        imported_module = import_module(full_module_path)
     except ImportError:
         try:
-            imported_module = __import__(module_name)
+            imported_module = import_module(module_name)
         except ImportError:
             raise ImportError('Module "{}" could neither be imported from CoSimulation nor from PYTHONPATH'.format(module_name))
 
