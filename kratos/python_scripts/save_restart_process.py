@@ -1,6 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IsMPIAvailable
+
+if IsMPIAvailable():
+    import KratosMultiphysics.mpi as KratosMPI
 
 
 def Factory(settings, Model):
@@ -33,8 +37,8 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         model_part = model[params["model_part_name"].GetString()]
 
-        if model_part.GetCommunicator().TotalProcesses() > 1: # mpi-execution
-            from KratosMultiphysics.TrilinosApplication.trilinos_restart_utility import TrilinosRestartUtility as RestartUtility
+        if KratosMultiphysics.KratosGlobals.Kernel.IsDistributedRun(): # mpi-execution
+            from KratosMPI.distributed_restart_utility import DistributedRestartUtility as RestartUtility
         else:
             from KratosMultiphysics.restart_utility import RestartUtility
 

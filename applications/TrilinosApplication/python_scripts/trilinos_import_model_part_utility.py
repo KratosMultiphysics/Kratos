@@ -4,10 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Import applications
-import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-
-
 class TrilinosImportModelPartUtility(object):
 
     def __init__(self, main_model_part, settings):
@@ -103,7 +99,7 @@ class TrilinosImportModelPartUtility(object):
                 KratosMultiphysics.ModelPartIO(mpi_input_filename, import_flags).ReadModelPart(self.main_model_part)
 
         elif input_type == "rest":
-            from trilinos_restart_utility import TrilinosRestartUtility as RestartUtility
+            from KratosMPI.distributed_restart_utility import DistributedRestartUtility as RestartUtility
             restart_settings = model_part_import_settings.Clone()
 
             restart_settings.RemoveValue("input_type")
