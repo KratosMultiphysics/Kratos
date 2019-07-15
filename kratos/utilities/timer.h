@@ -23,7 +23,6 @@
 #include <chrono>
 
 // External includes
-#include <boost/timer.hpp> // To be removed after replacing the boost timers with Kratos timer.
 
 // Project includes
 #include "includes/define.h"
@@ -56,7 +55,6 @@ namespace Kratos
  * @brief This utility can be used to compute the time employed on computations
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
- * @todo The boost::timer dependency is not in this file but in the files that include it
  */
 class KRATOS_API(KRATOS_CORE) Timer
 {
