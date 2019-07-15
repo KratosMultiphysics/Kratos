@@ -148,7 +148,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
 
         // Now we recover the original axis system
         Matrix auxiliar(VoigtSize,VoigtSize);
-        auxiliar = prod(secant_tensor, rotation_matrix);
+        noalias(auxiliar) = prod(secant_tensor, rotation_matrix);
         noalias(secant_tensor) = prod(trans(rotation_matrix), auxiliar);
 
         // Apply the constitutive law
