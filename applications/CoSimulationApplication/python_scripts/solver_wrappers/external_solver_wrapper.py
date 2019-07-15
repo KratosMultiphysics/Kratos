@@ -22,25 +22,27 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
         self._AllocateHistoricalVariablesFromCouplingData()
 
     def Initialize(self):
-        # receive coupling-interface from external solvers
-        for data in self.data_dict.values():
-            self.io.ImportCouplingInterface(data.GetModelPart())
+        io_recv_settings = self.settings["io_settings"]["model_parts_recv"]
+
+        for model_part_name, comm_name in io_recv_settings.items():
+            interface_config = {
+                "comm_name" : comm_name.GetString(),
+                "model_part_name" : model_part_name
+            }
+
+            self.ImportCouplingInterface(interface_config)
 
         super(ExternalSolverWrapper, self).Initialize()
 
     def AdvanceInTime(self, current_time):
-        return 0.0
+        return 0.0 # TODO find a better solution here... maybe get time from solver through IO
 
-    def SolveSolutionStep(self):
-        # Send data-fields to external solver
-        for data in self.data_dict.values():
-            self.io.ExportCouplingInterfaceData(data)
+    def PrintInfo(self):
+        cs_tools.cs_print_info(self._ClassName(), "printing info...")
+        ## TODO print additional stuff with higher echo-level
 
-        # External Solver solves
-
-        # Receive data-fields from external solver
-        for data in self.data_dict.values():
-            self.io.ImportCouplingInterfaceData(data)
+    def _GetIOType(self):
+        return self.settings["io_settings"]["type"].GetString()
 
     def __CreateModelPartsFromCouplingData(self):
         '''This function creates the Main-ModelParts that are used for external solvers
