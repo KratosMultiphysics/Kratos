@@ -80,7 +80,9 @@ void Timer::PrintIntervalInformation(std::string const& rIntervalName, const dou
             msOutputFile << ".";
 
         msOutputFile << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
-    } else if(msPrintOnScreen) {
+    }
+
+    if(msPrintOnScreen) {
         KRATOS_INFO("") << rIntervalName << " ";
 
         for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
@@ -95,7 +97,7 @@ void Timer::PrintTimingInformation()
 {
     if(msOutputFile.is_open())
         PrintTimingInformation(msOutputFile);
-    else if(msPrintOnScreen)
+    if(msPrintOnScreen)
         PrintTimingInformation(std::cout);
 }
 
