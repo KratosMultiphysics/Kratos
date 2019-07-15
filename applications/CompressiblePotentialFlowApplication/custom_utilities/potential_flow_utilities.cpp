@@ -17,7 +17,7 @@ namespace PotentialFlowUtilities {
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement)
 {
-    return rElement.GetValue(ELEMENTAL_DISTANCES);
+    return rElement.GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>

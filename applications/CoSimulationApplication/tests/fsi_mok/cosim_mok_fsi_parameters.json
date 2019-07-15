@@ -114,11 +114,6 @@
                         "model_part_name"   : "Structure.GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    },
-                    "velocity" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "VELOCITY"
                     }
                 }
             }

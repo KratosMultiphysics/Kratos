@@ -4,6 +4,9 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 class CoSimulationDataTransferOperator(object):
+    """Baseclass for the data transfer operators used for CoSimulation
+    It transfers data from one interface to another. This can e.g. be mapping or a copy of values.
+    """
     def __init__(self, settings):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())

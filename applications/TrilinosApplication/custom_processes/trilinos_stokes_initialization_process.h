@@ -12,7 +12,8 @@
 #include "containers/model.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
-#include "custom_utilities/parallel_fill_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 #include "../FluidDynamicsApplication/custom_processes/stokes_initialization_process.h"
 

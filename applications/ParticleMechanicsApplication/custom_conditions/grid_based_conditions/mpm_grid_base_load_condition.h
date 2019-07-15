@@ -211,19 +211,19 @@ public:
 
     unsigned int GetBlockSize()
     {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         if( HasRotDof() ) // if it has rotations
         {
-            if(dim == 2)
+            if(dimension == 2)
                 return 3;
-            else if(dim == 3)
+            else if(dimension == 3)
                 return 6;
             else
                 KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
         }
         else
         {
-            return dim;
+            return dimension;
         }
     }
 

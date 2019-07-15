@@ -285,7 +285,7 @@ private:
         // Loop the edge intersection nodes to set their values
         unsigned int i_edge;
         Element::Pointer p_elem;
-        #pragma parallel for private (i_edge, p_elem)
+        #pragma omp parallel for private (i_edge, p_elem)
         for (int i_node = 0; i_node < static_cast<int>(mrSkinModelPart.NumberOfNodes()); ++i_node) {
             // Get the current node
             auto it_node = mrSkinModelPart.NodesBegin() + i_node;
