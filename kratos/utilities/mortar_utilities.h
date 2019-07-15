@@ -20,9 +20,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -44,6 +41,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class ModelPart; // forward-declaring to not having to include it here
 
 /**
  * @brief This struct is used in order to identify when using the historical and non historical variables
