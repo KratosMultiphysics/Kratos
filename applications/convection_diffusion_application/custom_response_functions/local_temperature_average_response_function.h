@@ -14,6 +14,7 @@
 
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
+#include "utilities/variable_utils.h"
 #include "response_functions/adjoint_response_function.h"
 
 namespace Kratos {
@@ -47,12 +48,13 @@ public:
         auto& r_nodes = r_target_model_part.Nodes();
         mNumNodes = r_nodes.size();
 
-        //#pragma omp parallel for
-        for (int i = 0; i < mNumNodes; i++)
+        VariableUtils variable_utils;
+        variable_utils.SetFlag(STRUCTURE,true,r_nodes);
+
+        // Note: this should not be parallel, the operation is not threadsafe if the variable is uninitialized
+        for (auto& r_node : r_nodes)
         {
-            auto i_node = r_nodes.begin() + i;
-            i_node->Set(STRUCTURE);
-            i_node->SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0);
+            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0);
         }
 
         mNumNodes = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(mNumNodes);
@@ -215,6 +217,7 @@ private:
 
     ModelPart& GetTargetModelPart(ModelPart& rModelPart, const std::string& rTargetModelPartName)
     {
+        KRATOS_TRY;
         if (rModelPart.Name() == rTargetModelPartName)
 		{
             return rModelPart;
@@ -227,6 +230,8 @@ private:
 		{
 			KRATOS_ERROR << "Unknown ModelPart " << rTargetModelPartName << "." << std::endl;
 		}
+        KRATOS_CATCH("")
+        return rModelPart;
     }
 
     ///@}
