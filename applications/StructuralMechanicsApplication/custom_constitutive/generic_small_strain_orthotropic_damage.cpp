@@ -213,19 +213,6 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::InitializeMat
     this->SetThresholds(initial_thresholds);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType &rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // Deprecated
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
