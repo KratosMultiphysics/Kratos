@@ -99,7 +99,7 @@ class DistributedImportModelPartUtility(object):
                 KratosMultiphysics.ModelPartIO(mpi_input_filename, import_flags).ReadModelPart(self.main_model_part)
 
         elif input_type == "rest":
-            from KratosMPI.distributed_restart_utility import DistributedRestartUtility as RestartUtility
+            from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as RestartUtility
             restart_settings = model_part_import_settings.Clone()
 
             restart_settings.RemoveValue("input_type")

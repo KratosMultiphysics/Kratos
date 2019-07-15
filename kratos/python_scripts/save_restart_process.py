@@ -38,7 +38,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
         model_part = model[params["model_part_name"].GetString()]
 
         if KratosMultiphysics.KratosGlobals.Kernel.IsDistributedRun(): # mpi-execution
-            from KratosMPI.distributed_restart_utility import DistributedRestartUtility as RestartUtility
+            from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as RestartUtility
         else:
             from KratosMultiphysics.restart_utility import RestartUtility
 
