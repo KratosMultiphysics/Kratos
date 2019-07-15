@@ -939,12 +939,19 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Orthotropic Damage
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageRankine3D", mSmallStrainOrthotropicDamageRankine3D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageVonMises3D", mSmallStrainOrthotropicDamageVonMises3DD);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageVonMises3D", mSmallStrainOrthotropicDamageVonMises3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageDruckerPrager3D", mSmallStrainOrthotropicDamageDruckerPrager3D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageTresca3D", mSmallStrainOrthotropicDamageTresca3DD);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageTresca3D", mSmallStrainOrthotropicDamageTresca3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageMohrCoulomb3D", mSmallStrainOrthotropicDamageMohrCoulomb3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageModifiedMohrCoulomb3D", mSmallStrainOrthotropicDamageModifiedMohrCoulomb3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageSimoJu3D", mSmallStrainOrthotropicDamageSimoJu3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageRankine2D", mSmallStrainOrthotropicDamageRankine2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageVonMises2D", mSmallStrainOrthotropicDamageVonMises2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageDruckerPrager2D", mSmallStrainOrthotropicDamageDruckerPrager2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageTresca2D", mSmallStrainOrthotropicDamageTresca2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageMohrCoulomb2D", mSmallStrainOrthotropicDamageMohrCoulomb2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageModifiedMohrCoulomb2D", mSmallStrainOrthotropicDamageModifiedMohrCoulomb2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageSimoJu2D", mSmallStrainOrthotropicDamageSimoJu2D);
 
 }
 }  // namespace Kratos.
