@@ -1442,7 +1442,7 @@ namespace Kratos {
 	BoundRHSVector[0] += one_half * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*elementalNormalProjDefRate);
 
       if(rGeom[2].IsNot(INLET))
-	BoundRHSVector[2] += one_half * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev)*elementalNormalProjDefRate;
+	BoundRHSVector[2] += one_half * (BoundRHSCoeffAcc*accelerationsNormalProjection + BoundRHSCoeffDev*elementalNormalProjDefRate);
     }
 
     if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
