@@ -34,9 +34,6 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/potential_flow_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_potential_hessian_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_custom_nodal_gradient_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/meshing_application_variables.cpp
 )
 
 set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_PYTHON_INTERFACE
