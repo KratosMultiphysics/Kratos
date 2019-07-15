@@ -63,7 +63,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             self.fluid_model_part, avg_elem_num, avg_node_num).Execute()
 
     def ExecuteInitializeSolutionStep(self):
-        self.Execute()
+        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
+        far_field_process.Execute()
+
+        # self.Execute()
 
     def Execute(self):
         reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()
