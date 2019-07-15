@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <iomanip>
+#include <sstream>
 
 // External includes
 
@@ -98,7 +100,23 @@ void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& 
     for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
         rOStream << ".";
 
-    rOStream << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
+    std::cout.precision(6);
+    rOStream << " "
+    << std::setiosflags(std::ios::scientific)
+    << std::setprecision(6)
+    << std::uppercase
+    << std::setw(6)
+    << StartTime << "s\t\t"
+    << std::setiosflags(std::ios::scientific)
+    << std::setprecision(6)
+    << std::uppercase
+    << std::setw(6)
+    << StopTime << "s\t\t"
+    << std::setiosflags(std::ios::scientific)
+    << std::setprecision(6)
+    << std::uppercase
+    << std::setw(6)
+    << StopTime - StartTime <<"s" << std::endl;
 }
 
 void Timer::PrintTimingInformation()
@@ -112,7 +130,7 @@ void Timer::PrintTimingInformation()
 void Timer::PrintTimingInformation(std::ostream& rOStream)
 {
     const double global_elapsed_time = ElapsedSeconds(mStartTime);
-    rOStream << "                                 Repeat # \tTotal     \tMax     \tMin     \tAverage     \t%" << std::endl;
+    rOStream << "                                 Repeat # \tTotal      \t\tMax      \t\tMin      \t\tAverage      \t\tTime%" << std::endl;
     for(auto& r_time_data : msTimeTable) {
         rOStream << r_time_data.first;
         for(int i =  r_time_data.first.size() + 1 ; i < 40 ; i++)
