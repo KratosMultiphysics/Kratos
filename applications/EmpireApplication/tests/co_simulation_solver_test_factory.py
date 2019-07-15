@@ -75,6 +75,18 @@ class TestSDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             result_file = os.path.join(folder_name,"results_sdof.dat")
             compareResults(reference_file, result_file)
 
+class TestSDoFStaticSolver(co_simulation_test_case.CoSimulationTestCase):
+    def test_SDoFStaticSolver(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            folder_name = "sdof_static_solver"
+            self.createTest("sdof_static_solver", "cosim_static_sdof")
+            self.runTestSteady()
+            reference_file = os.path.join(folder_name,"results_sdof_static_ref.dat")
+            result_file = os.path.join(folder_name,"results_sdof_static.dat")
+            compareResults(reference_file, result_file)
+
 class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_MDoFSDoFModel(self):
         if not numpy_available:
