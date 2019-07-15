@@ -89,7 +89,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
                           ProcessInfo& rCurrentProcessInfo) override;
