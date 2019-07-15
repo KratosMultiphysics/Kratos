@@ -51,7 +51,7 @@ namespace Kratos
         double denominator = 1.0;
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0){
+            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
                 denominator -= rResult[i];
                 rResult[i] = 0;
             }

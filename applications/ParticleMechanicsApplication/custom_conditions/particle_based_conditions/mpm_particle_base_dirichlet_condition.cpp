@@ -85,6 +85,33 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
     KRATOS_CATCH( "" )
 }
 
+
+Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+{
+    KRATOS_TRY
+
+    rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+
+    // Additional check to modify zero shape function values
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    double denominator = 1.0;
+    const unsigned int small_cut_instability_tolerance = 0.01;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (rResult[i] < small_cut_instability_tolerance){
+            rResult[i] = small_cut_instability_tolerance;
+            denominator += rResult[i];
+        }
+    }
+
+    rResult = rResult/denominator;
+
+    return rResult;
+
+    KRATOS_CATCH( "" )
+}
+
 } // Namespace Kratos
 
 
