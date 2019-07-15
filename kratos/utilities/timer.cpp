@@ -84,7 +84,8 @@ void Timer::PrintIntervalInformation(std::string const& rIntervalName, const dou
         KRATOS_INFO("Timer") << rIntervalName << " ";
 
         for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
-            KRATOS_INFO("Timer") << ".";
+            KRATOS_INFO("") << ".";
+           
 
         KRATOS_INFO("Timer") << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
     }
