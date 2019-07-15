@@ -1,0 +1,101 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 15.0,
+        "echo_level" : 1,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 3,
+        "coupling_sequence":
+        [
+            {
+                "name": "kratos_dummy",
+                "input_data_list"  : [],
+                "output_data_list" : [
+                    {
+                        "data"           : "disp",
+                        "to_solver"      : "external_solver",
+                        "to_solver_data" : "Interface_displacement",
+                        "data_transfer_operator" : "mapper"
+                    }
+                ]
+            },
+            {
+                "name": "external_solver",
+                "input_data_list"  : [],
+                "output_data_list" : [
+                    {
+                        "data"              : "Interface_loads",
+                        "to_solver"         : "kratos_dummy",
+                        "to_solver_data"    : "load",
+                        "data_transfer_operator" : "mapper",
+                        "data_transfer_operator_options" : ["swap_sign"]
+                    }
+                ]
+            }
+        ],
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "solvers" :
+        {
+            "external_solver":
+            {
+                "type" : "solver_wrappers.external_solver_wrapper",
+                "echo_level" : 3,
+                "settings" : {},
+                "io_settings" : {
+                    "type" : "empire_io",
+                    "model_parts_send" : {},
+                    "model_parts_recv" : {
+                        "Fluid.GENERIC_FSI" : "Interface"
+                    }
+                },
+                "data" : {
+                    "Interface_displacement" : {
+                        "model_part_name"   : "Fluid.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "Interface_loads" : {
+                        "model_part_name"   : "Fluid.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "FORCE"
+                    }}
+            },
+            "kratos_dummy" :
+            {
+                "type" : "dummy_solver_wrapper",
+                "echo_level" : 3,
+                "settings" : {
+                    "time_step" : 1.0,
+                    "main_model_part_name" : "Structure",
+                    "mdpa_file_name" : "generic_mdpa_files/Mok_CSM",
+                    "domain_size" : 2
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "load" : {
+                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "FORCE"
+                    }
+                }
+            }
+        }
+    }
+}
