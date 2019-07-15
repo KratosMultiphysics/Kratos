@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
