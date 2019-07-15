@@ -170,8 +170,8 @@ int AdjointFluxCondition<PrimalCondition>::Check(const ProcessInfo& rProcessInfo
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_HEAT_TRANSFER, r_node);
     }
 
-    return PrimalCondition::Check(rProcessInfo);
     KRATOS_CATCH("")
+    return PrimalCondition::Check(rProcessInfo);
 }
 
 template<class PrimalCondition>

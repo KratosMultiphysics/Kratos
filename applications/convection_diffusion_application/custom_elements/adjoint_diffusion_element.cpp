@@ -169,8 +169,8 @@ int AdjointDiffusionElement<PrimalElement>::Check(const ProcessInfo& rProcessInf
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_volume_source_var, r_node);
     }
 
-    return Element::Check(rProcessInfo);
     KRATOS_CATCH("")
+    return Element::Check(rProcessInfo);
 }
 
 template<class PrimalElement>
