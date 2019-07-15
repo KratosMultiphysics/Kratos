@@ -38,7 +38,9 @@ void Timer::Stop(std::string const& rIntervalName)
 
     it_time_data->second.Update(stop_time);
 
-    PrintIntervalInformation(rIntervalName, it_time_data->second.GetStartTime(), stop_time);
+    if (msPrintIntervalInformation) {
+        PrintIntervalInformation(rIntervalName, it_time_data->second.GetStartTime(), stop_time);
+    }
 }
 
 int Timer::SetOuputFile(std::string const& rOutputFileName)
@@ -69,6 +71,16 @@ bool Timer::GetPrintOnScreen()
 void Timer::SetPrintOnScreen(bool const PrintOnScreen)
 {
     msPrintOnScreen = PrintOnScreen;
+}
+
+bool Timer::GetPrintIntervalInformation()
+{
+    return msPrintIntervalInformation;
+}
+
+void Timer::SetPrintIntervalInformation(bool const PrintIntervalInformation)
+{
+    msPrintIntervalInformation = PrintIntervalInformation;
 }
 
 void Timer::PrintIntervalInformation(std::string const& rIntervalName, const double StartTime, const double StopTime)
@@ -119,6 +131,7 @@ void Timer::PrintTimingInformation(std::ostream& rOStream)
 Timer::ContainerType Timer::msTimeTable;
 std::ofstream Timer::msOutputFile;
 bool Timer::msPrintOnScreen = false;
+bool Timer::msPrintIntervalInformation = true;
 const std::chrono::steady_clock::time_point Timer::mStartTime = std::chrono::steady_clock::now();
 
 } /// namespace Kratos

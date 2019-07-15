@@ -200,6 +200,18 @@ public:
      */
     static void SetPrintOnScreen(bool const PrintOnScreen);
 
+    /**
+     * @brief This method gets the variable which stores if the information is printed on each interval
+     * @return True if the information is printed on each interval, false otherwise
+     */
+    static bool GetPrintIntervalInformation();
+
+    /**
+     * @brief This method sets the variable which stores if the information is printed on each interval
+     * @param PrintIntervalInformation True if the information is printed on each interval, false otherwise
+     */
+    static void SetPrintIntervalInformation(bool const PrintIntervalInformation);
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -288,11 +300,13 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ContainerType msTimeTable;  /// The time tables
+    static ContainerType msTimeTable;       /// The time tables
 
-    static std::ofstream msOutputFile; /// The file to be written
+    static std::ofstream msOutputFile;      /// The file to be written
 
-    static bool msPrintOnScreen;       /// If the information is printed on screen
+    static bool msPrintOnScreen;            /// If the information is printed on screen
+
+    static bool msPrintIntervalInformation; /// If the information of the interval is printed
 
     static const std::chrono::steady_clock::time_point mStartTime; /// The starting time
 
