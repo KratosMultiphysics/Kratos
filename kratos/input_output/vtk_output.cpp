@@ -19,6 +19,7 @@
 
 // Project includes
 #include "vtk_output.h"
+#include "includes/kratos_parameters.h"
 #include "containers/model.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 

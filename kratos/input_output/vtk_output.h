@@ -21,7 +21,6 @@
 // External includes
 
 // Project includes
-#include "includes/kratos_parameters.h"
 #include "includes/io.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 
@@ -31,6 +30,9 @@ namespace Kratos
 * A simple class that has functionality to write vtk output
 * @see : https://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
 */
+
+class Parameters; // forward-declaring to not having to include it here
+
 class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 {
 public:
