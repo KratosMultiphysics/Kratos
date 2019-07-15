@@ -841,7 +841,7 @@ class MultilevelMonteCarlo(object):
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
                 sys.stdout.flush()
-                if (self.iteration_counter >= 10):
+                if (self.iteration_counter >= 5):
                     self.convergence = True
             end_time_mlmc = time.time()
             print("[TIMER] mlmc phase MLMC (no screening phase):", end_time_mlmc-end_time_screening)
