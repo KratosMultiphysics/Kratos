@@ -72,7 +72,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:
-                cs_tools.cs_print_info(self._Name(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
+                cs_tools.cs_print_info(self._ClassName(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.InitializeCouplingIteration()
@@ -102,7 +102,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 is_converged = is_converged and conv_crit.IsConverged()
             if is_converged:
                 if self.echo_level > 0:
-                    cs_tools.cs_print_info(self._Name(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
+                    cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
                 return True
             else:
                 # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
@@ -110,7 +110,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                     conv_acc.ComputeAndApplyUpdate()
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                cs_tools.cs_print_info(self._Name(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
                 return False
 
     def Check(self):

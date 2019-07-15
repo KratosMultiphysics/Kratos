@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "co_simulation_application.h"
+#include "custom_python/add_custom_io_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -32,6 +33,8 @@ PYBIND11_MODULE(KratosCoSimulationApplication,m)
         KratosApplication>(m, "KratosCoSimulationApplication")
         .def(py::init<>())
         ;
+
+    AddCustomIOToPython(m);
 }
 
 } // namespace Python.

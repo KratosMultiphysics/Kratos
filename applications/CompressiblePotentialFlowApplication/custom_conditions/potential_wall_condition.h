@@ -202,7 +202,7 @@ public:
 
     void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
