@@ -32,7 +32,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MoveModelPartProcess);
 
     // Constructor for MoveModelPartProcess Process
-    MoveModelPartProcess(ModelPart& rModelPart, Parameters& ThisParameters);
+    MoveModelPartProcess(ModelPart& rModelPart, Parameters ThisParameters);
 
     /// Destructor.
     ~MoveModelPartProcess() = default;

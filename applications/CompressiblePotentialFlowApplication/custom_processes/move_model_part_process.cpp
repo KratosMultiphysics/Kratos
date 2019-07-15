@@ -17,7 +17,7 @@ namespace Kratos
 {
 // Constructor for MoveModelPartProcess Process
 MoveModelPartProcess::MoveModelPartProcess(ModelPart& rModelPart,
-                    Parameters& ThisParameters
+                    Parameters ThisParameters
                 ):
     Process(),
     mrModelPart(rModelPart)
@@ -42,7 +42,6 @@ MoveModelPartProcess::MoveModelPartProcess(ModelPart& rModelPart,
         mRotationPoint = ThisParameters["rotation_point"].GetVector();
     }
     else{
-        ThisParameters["rotation_point"].SetVector(mOrigin);
         mRotationPoint = mOrigin;
     }
     mRotationAngle = ThisParameters["rotation_angle"].GetDouble();
