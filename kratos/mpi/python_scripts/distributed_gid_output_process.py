@@ -13,9 +13,9 @@ def Factory(settings, Model):
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
-    return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    return DistributedGiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class GiDOutputProcessMPI(GiDOutputProcess):
+class DistributedGiDOutputProcess(GiDOutputProcess):
     def __init__(self, model_part, file_name, param=None):
         super(GiDOutputProcessMPI, self).__init__(model_part, file_name, param)
         self.serial_file_name = file_name
