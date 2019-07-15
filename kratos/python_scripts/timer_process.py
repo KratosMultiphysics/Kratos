@@ -48,14 +48,17 @@ class TimerProcess(KratosMultiphysics.Process):
 
         # Defining timer
         self.timer = KratosMultiphysics.Timer()
+
+        # Interval information
+        self.timer.SetPrintIntervalInformation(settings["print_interval_information"].GetBool())
+
+        # Output file
         if self.output_filename != "":
             self.timer.SetOuputFile(self.output_filename)
         else:
             self.timer.SetPrintOnScreen(True)
 
-        # Interval information
-        self.timer.SetPrintIntervalInformation(settings["print_interval_information"].GetBool())
-
+        # Starting timer
         self.timer.Start(self.interval_name)
 
     def ExecuteFinalize(self):
@@ -66,4 +69,5 @@ class TimerProcess(KratosMultiphysics.Process):
         """
         self.timer.Stop(self.interval_name)
         if self.output_filename != "":
+            self.timer.PrintTimingInformation(self.timer)
             self.timer.CloseOuputFile()
