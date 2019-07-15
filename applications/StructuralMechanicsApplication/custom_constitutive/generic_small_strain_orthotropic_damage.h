@@ -327,7 +327,7 @@ public:
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
 
     /**
-     * @brief This method computes the secant tensor
+     * @brief This method computes the secant tensor uin the principal direction axis
      * @param rValues The constitutive law parameters and flags
      * @param rSecantTensor The secant tensor
      * @param rDamages The damages according to each principal direction
