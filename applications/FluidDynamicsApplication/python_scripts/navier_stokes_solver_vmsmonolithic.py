@@ -138,7 +138,8 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesSolverMonolithic(FluidSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -189,9 +190,14 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "turbulence_model": "None"
         }""")
 
-        settings = self._BackwardsCompatibilityHelper(settings)
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        return default_settings
+
+    def ValidateSettings(self):
+        """Overriding python_solver ValidateSettings to call the BackwardsCompatibilityHelper
+        """
+        self.settings = self._BackwardsCompatibilityHelper(self.settings)
+        super(NavierStokesSolverMonolithic, self).ValidateSettings()
 
     def _BackwardsCompatibilityHelper(self,settings):
         ## Backwards compatibility -- deprecation warnings
@@ -228,6 +234,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
         self.formulation = StabilizedFormulation(self.settings["formulation"])
