@@ -104,11 +104,10 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             It also rotates the skin model part around the origin point according to the rotation_angle'''
         self.skin_model_part=self.model.CreateModelPart("skin")
         self.wake_model_part=self.model.CreateModelPart("wake")
-        KratosMultiphysics.ModelPartIO('wake2').ReadModelPart(self.wake_model_part)
 
-        # for node in self.wake_model_part.Nodes:
-        #     node.X=20*node.X
-#
+        self.wake_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        self.wake_model_part.CreateNewNode(2, 200.0, 0.0, 0.0)
+        self.wake_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
 
         ini_time=time.time()
         # Reading skin model part
@@ -116,16 +115,6 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         # Moving and rotating the skin model part
         angle=math.radians(-self.moving_parameters["rotation_angle"].GetDouble())
         self.moving_parameters["rotation_angle"].SetDouble(angle)
-
-        # for node in self.skin_model_part.Nodes:
-        #     node.X=node.X-1.0
-
-        # for node in self.wake_model_part.Nodes:
-        #     node.X=node.X-0.75
-
-
-        # RotateModelPart([-0.75,0.0],angle,self.skin_model_part)
-        # RotateModelPart([-0.75,0.0],angle,self.wake_model_part)
 
         CompressiblePotentialFlow.MoveModelPartProcess(self.skin_model_part, self.moving_parameters).Execute()
         CompressiblePotentialFlow.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()

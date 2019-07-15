@@ -61,42 +61,30 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
-        // Check if the element is touching the trailing edge
-        // CheckIfTrailingEdgeElement(*it_elem);
 
-        // Elements downstream the trailing edge can be wake elements
-        // bool potentially_wake = CheckIfPotentiallyWakeElement(*it_elem);
+        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(WAKE_ELEMENTAL_DISTANCES);
 
-        // if (potentially_wake) {
-            // Compute the nodal distances of the element to the wake
-            BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(WAKE_ELEMENTAL_DISTANCES);
+        // Selecting the cut (wake) elements
+        bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
 
-            // Selecting the cut (wake) elements
-            bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
-
-            // Mark wake element and save their nodal distances to the wake
-            if (is_wake_element) {
-                if (it_elem->Is(BOUNDARY)){
-                    deactivated_ids.push_back(it_elem->Id());
-                    it_elem->Set(ACTIVE, false);
-                    it_elem->Set(BOUNDARY, false);
-                }
-                else{
-                    it_elem->SetValue(WAKE, true);
-                    // it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
-                    // #pragma omp critical
-                    // {
-                    //     wake_elements_ordered_ids.push_back(it_elem->Id());
-                    // }
-                    auto r_geometry = it_elem->GetGeometry();
-                    for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
-                        r_geometry[i].SetLock();
-                        r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
-                        r_geometry[i].UnSetLock();
-                    }
-                }
-
+        // Mark wake element and save their nodal distances to the wake
+        if (is_wake_element) {
+            if (it_elem->Is(BOUNDARY)){
+                deactivated_ids.push_back(it_elem->Id());
+                it_elem->Set(ACTIVE, false);
+                it_elem->Set(BOUNDARY, false);
             }
+            else{
+                it_elem->SetValue(WAKE, true);
+                auto r_geometry = it_elem->GetGeometry();
+                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                    r_geometry[i].SetLock();
+                    r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
+                    r_geometry[i].UnSetLock();
+                }
+            }
+
+        }
     }
     deactivated_model_part.AddElements(deactivated_ids);
 }
@@ -113,36 +101,19 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
 
-        // for (unsigned int i_node= 0; i_node < it_elem->GetGeometry().size(); i_node++) {
-        //     // Compute the distance from the trailing edge to the node
-
-        //     Vector distance_vector(2);
-        //     distance_vector(0) = wake_origin -> X() - it_elem->GetGeometry()[i_node].X();
-        //     distance_vector(1) = wake_origin -> Y() - it_elem->GetGeometry()[i_node].Y();
-        //     double norm = norm_2(distance_vector);
-        //     KRATOS_WATCH(it_elem->GetGeometry()[i_node].Id())
-        //     KRATOS_WATCH(norm)
-        //     if(norm>max_distance){
-        //         max_distance = norm;
-        //         p_max_node = mrModelPart.pGetNode(it_elem->GetGeometry()[i_node].Id());
-        //     }
-        // }
-
         Vector distance_vector(2);
         distance_vector(0) = wake_origin -> X() - it_elem->GetGeometry().Center().X();
         distance_vector(1) = wake_origin -> Y() - it_elem->GetGeometry().Center().Y();
         double norm = norm_2(distance_vector);
-        KRATOS_WATCH(it_elem->Id())
-        KRATOS_WATCH(norm)
         if(norm>max_distance){
             max_distance = norm;
             p_max_elem = mrModelPart.pGetElement(it_elem->Id());
         }
     }
-    Vector distance_center_vector(2);
-    distance_center_vector(0) = wake_origin -> X() - p_max_elem->GetGeometry().Center().X();
-    distance_center_vector(1) = wake_origin -> Y() - p_max_elem->GetGeometry().Center().Y();
-    double distance_to_center = norm_2(distance_center_vector);
+    // Vector distance_center_vector(2);
+    // distance_center_vector(0) = wake_origin -> X() - p_max_elem->GetGeometry().Center().X();
+    // distance_center_vector(1) = wake_origin -> Y() - p_max_elem->GetGeometry().Center().Y();
+    // double distance_to_center = norm_2(distance_center_vector);
     for (unsigned int i_node= 0; i_node < p_max_elem->GetGeometry().size(); i_node++) {
         // Vector distance_vector(2);
         // distance_vector(0) = wake_origin -> X() - p_max_elem->GetGeometry()[i_node].X();
@@ -155,20 +126,17 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
     }
 
-    // p_max_node->SetValue(TRAILING_EDGE,true);
     mrModelPart.RemoveSubModelPart("deactivated_model_part");
 }
 
 void DefineEmbeddedWakeProcess::MarkKuttaElements(){
     // #pragma omp parallel for
-    // mrModelPart.pGetElement(41425)->Set(STRUCTURE);
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
         if (it_elem->GetValue(WAKE) && it_elem->Is(ACTIVE)){
             for (unsigned int i_node= 0; i_node < it_elem->GetGeometry().size(); i_node++) {
                 if(it_elem->GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
                     it_elem->Set(STRUCTURE);
-                    KRATOS_WATCH(it_elem->Id())
                 }
             }
         }
