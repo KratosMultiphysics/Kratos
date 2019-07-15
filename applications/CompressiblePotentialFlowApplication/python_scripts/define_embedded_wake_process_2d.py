@@ -2,6 +2,8 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
+import time
+
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -12,43 +14,31 @@ def Factory(settings, Model):
 class DefineEmbeddedWakeProcess(DefineWakeProcess2D):
 
     def ExecuteInitialize(self):
-
-
-        # self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
-        # #List to store trailing edge elements id
-        # self.trailing_edge_element_id_list = []
-
-        # self._SetWakeDirectionAndNormal()
-        # # Save the trailing edge for further computations
-        # self._SaveTrailingEdgeNode()
-        # # Check which elements are cut and mark them as wake
-        # self._MarkWakeElements()
-        # # Mark the elements touching the trailing edge from below as kutta
-        # self._MarkKuttaElements()
-        # # Mark the trailing edge element that is further downstream as wake
-        # self._MarkWakeTEElement()
-
-        # # self.fluid_model_part.GetElement(51791).SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.KUTTA,False)
-        # # self.fluid_model_part.GetElement(51790).SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.KUTTA,False)
-
-        # # self.fluid_model_part.GetElement(50706).Set(KratosMultiphysics.STRUCTURE,True)
-        # # self.fluid_model_part.GetElement(50706).SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE,True)
-
-        import time
-
-
         ini_time = time.time()
+
+        self.wake_model_part=self.model.CreateModelPart("wake")
+
+        self.wake_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        self.wake_model_part.CreateNewNode(2, 200.0, 0.0, 0.0)
+        self.wake_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
+
+        self.moving_parameters = KratosMultiphysics.Parameters()
+        self.moving_parameters.AddEmptyValue("origin")
+        self.moving_parameters["origin"].SetVector(self.fluid_model_part.ProcessInfo.GetValue(CPFApp.WAKE_ORIGIN))
+        self.moving_parameters.AddEmptyValue("rotation_angle")
+        self.moving_parameters["rotation_angle"].SetDouble(self.fluid_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
+        CPFApp.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
+
         for elem in self.fluid_model_part.Elements:
             boolean = elem.Is(KratosMultiphysics.TO_SPLIT)
             elem.Set(KratosMultiphysics.BOUNDARY,boolean)
 
-        # self.wake_model_part=self.model.CreateModelPart("wake")
-        self.wake_model_part=self.model.GetModelPart("wake")
-        KratosMultiphysics.CompressiblePotentialFlowApplication.DefineEmbeddedWakeProcess(self.fluid_model_part, self.wake_model_part).Execute()
+        CPFApp.DefineEmbeddedWakeProcess(self.fluid_model_part, self.wake_model_part).Execute()
+
         for elem in self.fluid_model_part.Elements:
-            # print(elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
             boolean = elem.Is(KratosMultiphysics.BOUNDARY)
             elem.Set(KratosMultiphysics.TO_SPLIT,boolean)
+
         KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Wake computation time: ',time.time()-ini_time)
 
     def _SaveTrailingEdgeNode(self):

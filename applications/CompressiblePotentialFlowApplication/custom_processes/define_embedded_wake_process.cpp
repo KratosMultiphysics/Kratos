@@ -90,14 +90,14 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
     Node<3>::Pointer p_max_node;
     Element::Pointer p_max_elem;
 
-    auto wake_origin = mrWakeModelPart.pGetNode(1);
+    auto wake_origin = mrModelPart.GetProcessInfo()[WAKE_ORIGIN];
 
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
 
         Vector distance_vector(2);
-        distance_vector(0) = wake_origin -> X() - it_elem->GetGeometry().Center().X();
-        distance_vector(1) = wake_origin -> Y() - it_elem->GetGeometry().Center().Y();
+        distance_vector(0) = wake_origin[0] - it_elem->GetGeometry().Center().X();
+        distance_vector(1) = wake_origin[1] - it_elem->GetGeometry().Center().Y();
         double norm = norm_2(distance_vector);
         if(norm>max_distance){
             max_distance = norm;
