@@ -2,27 +2,24 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                   
+//
 //
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "processes/tetrahedra_mesh_edge_swapping_process.h"
-
-
 
 namespace Kratos
 {

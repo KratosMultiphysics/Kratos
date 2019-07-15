@@ -14,21 +14,16 @@
 #if !defined(KRATOS_STRUCTURED_MESH_GENERATOR_PROCESS_H_INCLUDED )
 #define  KRATOS_STRUCTURED_MESH_GENERATOR_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "processes/process.h"
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-
+#include "geometries/geometry.h"
+#include "includes/properties.h"
 
 namespace Kratos
 {
@@ -37,6 +32,9 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
+
+  class ModelPart; // forward-declaring to not having to include it here
+  class Parameters; // forward-declaring to not having to include it here
 
   /// Short class definition.
   /** Detail class definition.

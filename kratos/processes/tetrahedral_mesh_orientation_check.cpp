@@ -20,6 +20,7 @@
 
 // Project includes
 #include "processes/tetrahedral_mesh_orientation_check.h"
+#include "includes/model_part.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 #include "includes/key_hash.h"

@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -44,6 +43,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class ModelPart; // forward-declaring to not having to include it here
 
 /**
  * @class EntitiesEraseProcess

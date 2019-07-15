@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "processes/entity_erase_process.h"
 #include "utilities/variable_utils.h"

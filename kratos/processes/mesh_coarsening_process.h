@@ -14,20 +14,14 @@
 #if !defined(KRATOS_MESH_COARSENING_PROCESS_H_INCLUDED )
 #define  KRATOS_MESH_COARSENING_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
 
-
 // Project includes
-#include "includes/model_part.h"
 #include "processes/mesh_node_collapsing_process.h"
-
 
 namespace Kratos
 {
@@ -36,6 +30,8 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
+
+  class ModelPart; // forward-declaring to not having to include it here
 
   /// Short class definition.
   /** Detail class definition.

@@ -2,24 +2,22 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-	           
+
 // System includes
 
-
-// External includes 
-
+// External includes
 
 // Project includes
 #include "processes/mesh_node_collapsing_process.h"
 #include "includes/global_pointer_variables.h"
-
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -130,7 +128,7 @@ namespace Kratos
 		return false;
 	}
 
-	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement, 
+	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement,
 		Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode) {
 		std::size_t number_of_nodes = rElement.GetGeometry().size();
 		auto& geometry = rElement.GetGeometry();

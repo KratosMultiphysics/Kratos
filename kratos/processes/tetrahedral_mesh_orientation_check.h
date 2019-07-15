@@ -21,8 +21,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
+#include "includes/node.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -39,6 +39,8 @@ typedef Geometry<NodeType> GeometryType;
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class ModelPart; // forward-declaring to not having to include it here
 
 /**
  * @class TetrahedralMeshOrientationCheck
@@ -68,16 +70,16 @@ public:
 
     /// The definition of the index type
     typedef std::size_t IndexType;
-    
+
     /// The definition of the size type
     typedef std::size_t SizeType;
-    
+
     /// Definition of the node type
     typedef Node<3> NodeType;
-    
+
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{

@@ -20,9 +20,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "containers/model.h"
 #include "includes/key_hash.h"
-#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -44,6 +42,11 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class Model; // forward-declaring to not having to include it here
+class ModelPart; // forward-declaring to not having to include it here
+class Parameters; // forward-declaring to not having to include it here
+
 
 /**
  * @class IntegrationValuesExtrapolationToNodesProcess

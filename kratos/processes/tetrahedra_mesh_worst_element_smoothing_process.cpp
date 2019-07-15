@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/exception.h"
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "processes/tetrahedra_mesh_worst_element_smoothing_process.h"
 #include "processes/measure_mesh_quality_process.h"
@@ -72,8 +72,8 @@ namespace Kratos
 				break;
 		const int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
 		Triangle3D3<Point > face(
-			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][0])->Coordinates()), 
-			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][1])->Coordinates()), 
+			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][0])->Coordinates()),
+			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][1])->Coordinates()),
 			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][2])->Coordinates())
 			);
 		Point center(0.5,0.5,0.5);

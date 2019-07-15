@@ -13,8 +13,6 @@
 #if !defined(KRATOS_TETRAHEDRA_MESH_EDGE_SWAPPING_PROCESS_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_MESH_EDGE_SWAPPING_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
@@ -22,10 +20,8 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "modeler/tetrahedra_edge_shell.h"
 
@@ -36,6 +32,8 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
+
+  class ModelPart; // forward-declaring to not having to include it here
 
   /// Short class definition.
   /** Detail class definition.

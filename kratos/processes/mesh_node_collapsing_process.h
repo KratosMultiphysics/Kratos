@@ -13,20 +13,17 @@
 #if !defined(KRATOS_MESH_NODE_COLLAPSING_PROCESS_H_INCLUDED )
 #define  KRATOS_MESH_NODE_COLLAPSING_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/element.h"
+#include "includes/node.h"
 #include "processes/process.h"
-#include "includes/model_part.h"
 
 
 namespace Kratos
@@ -36,6 +33,8 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
+
+  class ModelPart; // forward-declaring to not having to include it here
 
   /// Remove the selected node from the mesh and collapse the connectivity arround it.
   /** Detail class definition.

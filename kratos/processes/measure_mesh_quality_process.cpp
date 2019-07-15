@@ -14,12 +14,10 @@
 // System includes
 #include <limits>
 
-
 // External includes
 
-
 // Project includes
-#include "includes/exception.h"
+#include "includes/model_part.h"
 #include "processes/measure_mesh_quality_process.h"
 
 namespace Kratos

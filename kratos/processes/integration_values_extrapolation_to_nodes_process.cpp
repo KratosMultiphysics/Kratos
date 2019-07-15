@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-
-// Include the point locator
+#include "containers/model.h"
+#include "includes/kratos_parameters.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"

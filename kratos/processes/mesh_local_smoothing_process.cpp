@@ -13,14 +13,13 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/exception.h"
 #include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "processes/mesh_local_smoothing_process.h"
 #include "processes/measure_mesh_quality_process.h"
 #include "processes/find_nodal_neighbours_process.h"

@@ -14,22 +14,15 @@
 #if !defined(KRATOS_MEASURE_MESH_QUALITY_PROCESS_H_INCLUDED )
 #define  KRATOS_MEASURE_MESH_QUALITY_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/model_part.h"
-
-
 
 namespace Kratos
 {
@@ -37,6 +30,8 @@ namespace Kratos
   ///@{
   ///@name Kratos Classes
   ///@{
+
+  class ModelPart; // forward-declaring to not having to include it here
 
   /// Short class definition.
   /** Detail class definition.

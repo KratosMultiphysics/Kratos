@@ -13,16 +13,18 @@
 
 // System includes
 #include <vector>
+
 // External includes
 
 // Project includes
 #include "processes/structured_mesh_generator_process.h"
+#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "geometries/geometry.h"
 #include "geometries/point.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "includes/checks.h"
-
 
 namespace Kratos
 {

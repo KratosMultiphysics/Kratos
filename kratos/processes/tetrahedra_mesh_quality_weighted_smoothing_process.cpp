@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/exception.h"
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "processes/tetrahedra_mesh_quality_weighted_smoothing_process.h"
 #include "processes/measure_mesh_quality_process.h"
