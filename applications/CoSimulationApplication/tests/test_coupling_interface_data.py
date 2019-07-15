@@ -210,50 +210,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data.Initialize()
 
-    def test_inplace_mult(self):
-        settings = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "PRESSURE"
-        }""")
-
-        coupling_data = CouplingInterfaceData(settings, self.model)
-        coupling_data.Initialize()
-
-        factor = 1.55
-
-        data_init = coupling_data.GetData()
-        coupling_data.InplaceMultiply(factor)
-        data_mod = coupling_data.GetData()
-
-        for v_old, v_new in zip(data_init, data_mod):
-            self.assertAlmostEqual(v_old*factor, v_new)
-
-    def test_add_to_data(self):
-        settings = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "PRESSURE"
-        }""")
-
-        coupling_data = CouplingInterfaceData(settings, self.model)
-        coupling_data.Initialize()
-
-        data_size = coupling_data.Size()
-        wrong_data_size = data_size + 3
-        added_data = [i*1.25 for i in range(data_size)] # intentionally creating a list
-        added_data_wrong_size = [i*1.25 for i in range(wrong_data_size)] # intentionally creating a list
-
-        data_init = coupling_data.GetData()
-
-        exp_error = 'The sizes of the data are not matching, got: {}, expected: {}'.format(wrong_data_size, data_size)
-        with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data.AddToData(added_data_wrong_size)
-
-        coupling_data.AddToData(added_data)
-        data_mod = coupling_data.GetData()
-
-        for v_old, v_new, v_added in zip(data_init, data_mod, added_data):
-            self.assertAlmostEqual(v_old+v_added, v_new)
-
     def test_GetHistoricalVariableDict(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
