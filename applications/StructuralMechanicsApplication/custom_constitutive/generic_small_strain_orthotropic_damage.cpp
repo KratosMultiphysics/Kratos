@@ -617,7 +617,36 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         rRotationTensor(5,4) = m3*n1 + m1*n3;
         rRotationTensor(5,5) = n3*l1 + n1*l3;
     } else { // 2D version
-        // to do in the future
+        // Reorder the principal stresses
+        double a = rEigenValuesMatrix(0,0);
+        double b = rEigenValuesMatrix(1,1);
+        int i,j;
+        i = (a >= b) ? 0 : 1;
+        j = (a >= b) ? 1 : 0;
+
+        Matrix copy(VoigtSize,VoigtSize);
+        copy.resize(VoigtSize,VoigtSize);
+        noalias(copy) = rEigenVectorsMatrix;
+
+        rEigenVectorsMatrix(0,0) = copy(i,0);
+        rEigenVectorsMatrix(0,1) = copy(i,1);
+        rEigenVectorsMatrix(1,0) = copy(j,0);
+        rEigenVectorsMatrix(1,1) = copy(j,1);
+
+        const double l1 = rEigenVectorsMatrix(0,0);
+        const double l2 = rEigenVectorsMatrix(1,0);
+        const double m1 = rEigenVectorsMatrix(0,1);
+        const double m2 = rEigenVectorsMatrix(1,1);
+
+        rRotationTensor(0,0) = std::pow(l1,2);
+        rRotationTensor(0,1) = std::pow(m1,2);
+        rRotationTensor(0,2) = l1*m1;
+        rRotationTensor(1,0) = std::pow(l2,2);
+        rRotationTensor(1,1) = std::pow(m2,2);
+        rRotationTensor(1,2) = l2*m2;
+        rRotationTensor(2,0) = 2.0*l1*l2;
+        rRotationTensor(2,1) = 2.0*m1*m2;
+        rRotationTensor(2,2) = l1*m2+l2*m1;
     }
 
 }
