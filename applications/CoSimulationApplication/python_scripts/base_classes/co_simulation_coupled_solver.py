@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from  . import co_simulation_solver_wrapper
+from . import co_simulation_solver_wrapper
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -24,6 +24,8 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
+        self._AllocateHistoricalVariablesFromCouplingData()
+
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
         ### Creating the predictors
@@ -117,7 +119,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         to_solver = self.solver_wrappers[solver_name]
         input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._Name(), 'Start Synchronizing Input for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Input for "{}"'.format(colors.blue(solver_name)))
 
         for i in range(input_data_list.size()):
             i_input_data = input_data_list[i]
@@ -157,13 +159,13 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             self.__ApplyScaling(to_solver_data, i_input_data)
 
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._Name(), 'End Synchronizing Input for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Input for "{}"'.format(colors.blue(solver_name)))
 
     def _SynchronizeOutputData(self, solver_name):
         from_solver = self.solver_wrappers[solver_name]
         output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._Name(), 'Start Synchronizing Output for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Output for "{}"'.format(colors.blue(solver_name)))
 
         for i in range(output_data_list.size()):
             i_output_data = output_data_list[i]
@@ -203,7 +205,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             from_solver.ExportCouplingInterfaceData(from_solver_data)
 
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._Name(), 'End Synchronizing Output for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Output for "{}"'.format(colors.blue(solver_name)))
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
@@ -221,7 +223,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def PrintInfo(self):
         super(CoSimulationCoupledSolver, self).PrintInfo()
 
-        cs_print_info(self._Name(), "Has the following components:")
+        cs_print_info(self._ClassName(), "Has the following components:")
         for solver in self.solver_wrappers.values():
             solver.PrintInfo()
 

@@ -73,6 +73,12 @@ class TestVariableUtils(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VISCOSITY, 0, node.X + node.Y)
             node.SetSolutionStepValue(DISPLACEMENT, 1, [node.X, node.Y, node.Z])
 
+        ##  initialize the containers in destination model part (otherwise the operation is not threadsafe!)
+        for node in destination_model_part.Nodes:
+            node.SetValue(VISCOSITY, 0)
+            node.SetValue(DISPLACEMENT, Array3())
+            node.SetValue(VELOCITY, Array3())
+
         ##copy the values to the destination model part
         VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(VISCOSITY, origin_model_part, destination_model_part, 0)
         VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(DISPLACEMENT, origin_model_part, destination_model_part, 1)
