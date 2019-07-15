@@ -303,7 +303,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         if abs(scaling_factor-1.0) > 1E-15:
             if self.echo_level > 2:
                 cs_tools.cs_print_info("  Scaling-Factor", scaling_factor)
-            interface_data.InplaceMultiply(scaling_factor)
+            interface_data.SetData(scaling_factor*interface_data.GetData()) # setting the scaled data
 
     @classmethod
     def _GetDefaultSettings(cls):

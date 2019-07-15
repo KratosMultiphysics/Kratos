@@ -23,7 +23,7 @@ class CopyDataTransferOperator(CoSimulationDataTransferOperator):
             from_solver_data_array *= (-1)
 
         if "add_values" in transfer_options_list:
-            to_solver_data.AddToData(from_solver_data_array)
+            to_solver_data.SetData(to_solver_data.GetData() + from_solver_data_array)
         else:
             to_solver_data.SetData(from_solver_data_array)
 
