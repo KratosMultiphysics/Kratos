@@ -32,9 +32,10 @@ class TimerProcess(KratosMultiphysics.Process):
         #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"            : "This process helps to measure the time consumed on the simulations",
-            "output_filename" : "",
-            "interval_name"   : "Analysis"
+            "help"                       : "This process helps to measure the time consumed on the simulations",
+            "output_filename"            : "",
+            "print_interval_information" : false,
+            "interval_name"              : "Analysis"
         }
         """
         )
@@ -51,6 +52,9 @@ class TimerProcess(KratosMultiphysics.Process):
             self.timer.SetOuputFile(self.output_filename)
         else:
             self.timer.SetPrintOnScreen(True)
+
+        # Interval information
+        self.timer.SetPrintIntervalInformation(settings["print_interval_information"].GetBool())
 
         self.timer.Start(self.interval_name)
 
