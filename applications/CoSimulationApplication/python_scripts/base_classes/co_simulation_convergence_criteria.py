@@ -44,13 +44,14 @@ class CoSimulationConvergenceCriteria(object):
         raise NotImplementedError('"IsConverged" has to be implemented in the derived class!')
 
     def PrintInfo(self):
-        cs_tools.cs_print_info("Convergence Criteria", colors.bold(self._Name()))
+        cs_tools.cs_print_info("Convergence Criteria", colors.bold(self._ClassName()))
 
     def Check(self):
         print("ConvCrit does not implement Check yet!")
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):
