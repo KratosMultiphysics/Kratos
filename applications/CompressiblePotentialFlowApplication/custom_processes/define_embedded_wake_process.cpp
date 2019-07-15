@@ -46,23 +46,18 @@ void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
     CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
-        auto elemental_distances = it_elem->GetValue(ELEMENTAL_DISTANCES);
-        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES,elemental_distances);
-    }
 }
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
     ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
     std::vector<std::size_t> deactivated_ids;
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
 
-        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(WAKE_ELEMENTAL_DISTANCES);
+        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
+        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
         bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
@@ -83,7 +78,6 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                     r_geometry[i].UnSetLock();
                 }
             }
-
         }
     }
     deactivated_model_part.AddElements(deactivated_ids);
@@ -97,7 +91,7 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
     Element::Pointer p_max_elem;
 
     auto wake_origin = mrWakeModelPart.pGetNode(1);
-    // #pragma omp parallel for
+
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
 
@@ -110,20 +104,9 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
             p_max_elem = mrModelPart.pGetElement(it_elem->Id());
         }
     }
-    // Vector distance_center_vector(2);
-    // distance_center_vector(0) = wake_origin -> X() - p_max_elem->GetGeometry().Center().X();
-    // distance_center_vector(1) = wake_origin -> Y() - p_max_elem->GetGeometry().Center().Y();
-    // double distance_to_center = norm_2(distance_center_vector);
-    for (unsigned int i_node= 0; i_node < p_max_elem->GetGeometry().size(); i_node++) {
-        // Vector distance_vector(2);
-        // distance_vector(0) = wake_origin -> X() - p_max_elem->GetGeometry()[i_node].X();
-        // distance_vector(1) = wake_origin -> Y() - p_max_elem->GetGeometry()[i_node].Y();
-        // double distance = norm_2(distance_vector);
-        // if (distance > distance_to_center){
-        //     p_max_elem->GetGeometry()[i_node].SetValue(TRAILING_EDGE,true);
-        // }
-        p_max_elem->GetGeometry()[i_node].SetValue(TRAILING_EDGE,true);
 
+    for (unsigned int i_node= 0; i_node < p_max_elem->GetGeometry().size(); i_node++) {
+        p_max_elem->GetGeometry()[i_node].SetValue(TRAILING_EDGE,true);
     }
 
     mrModelPart.RemoveSubModelPart("deactivated_model_part");
@@ -140,9 +123,9 @@ void DefineEmbeddedWakeProcess::MarkKuttaElements(){
                 }
             }
         }
-
     }
 }
+
 // This function checks whether the element is cut by the wake
 const bool DefineEmbeddedWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const
 {

@@ -14,7 +14,6 @@
 #define KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 
 #include "includes/define.h"
-
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -82,9 +81,13 @@ private:
 
 
     void ComputeDistanceToWake();
+
     void MarkWakeElements();
+
     void ComputeTrailingEdgeNode();
+
     void MarkKuttaElements();
+
     const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
 
 
