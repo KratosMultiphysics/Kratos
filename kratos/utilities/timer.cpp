@@ -85,24 +85,20 @@ void Timer::SetPrintIntervalInformation(bool const PrintIntervalInformation)
 
 void Timer::PrintIntervalInformation(std::string const& rIntervalName, const double StartTime, const double StopTime)
 {
-    if (msOutputFile.is_open()) {
-        msOutputFile << rIntervalName << " ";
+    if (msOutputFile.is_open())
+        PrintIntervalInformation(msOutputFile, rIntervalName, StartTime, StopTime);
+    if(msPrintOnScreen)
+        PrintIntervalInformation(std::cout, rIntervalName, StartTime, StopTime);
+}
 
-        for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
-            msOutputFile << ".";
+void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& rIntervalName, const double StartTime, const double StopTime)
+{
+    rOStream << rIntervalName << " ";
 
-        msOutputFile << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
-    }
+    for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
+        rOStream << ".";
 
-    if(msPrintOnScreen) {
-        KRATOS_INFO("") << rIntervalName << " ";
-
-        for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
-            KRATOS_INFO("") << ".";
-
-
-        KRATOS_INFO("") << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
-    }
+    rOStream << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
 }
 
 void Timer::PrintTimingInformation()

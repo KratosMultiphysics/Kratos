@@ -221,6 +221,20 @@ public:
     ///@{
 
     /**
+     * @brief This method prints the internal information in a given stream
+     * @param rOStream The strem considered
+     * @param rIntervalName The internal name that will store the timing data
+     * @param StartTime The starting time
+     * @param StopTime The stoping time
+     */
+    static void PrintIntervalInformation(
+        std::ostream& rOStream,
+        std::string const& rIntervalName,
+        const double StartTime,
+        const double StopTime
+        );
+
+    /**
      * @brief This method prints the internal information
      * @param rIntervalName The internal name that will store the timing data
      * @param StartTime The starting time
