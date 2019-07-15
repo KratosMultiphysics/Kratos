@@ -532,7 +532,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         double a = rEigenValuesMatrix(0,0);
         double b = rEigenValuesMatrix(1,1);
         double c = rEigenValuesMatrix(2,2);
-        int i,j,k;
+        int i=0,j=0,k=0;
         if (a >= b && b >= c) {i=0; j=1; k=2;}
         else if (a >= c && c >= b) {i=0; j=2; k=1;}
         else if (b >= a && a >= c) {i=1; j=0; k=2;}
