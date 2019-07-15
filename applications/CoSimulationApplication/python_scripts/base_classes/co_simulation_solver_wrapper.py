@@ -7,9 +7,10 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_factory
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, name):
-    return CoSimulationSolverWrapper(settings, name)
+    raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
 
 class CoSimulationSolverWrapper(object):
     """Baseclass for the solver wrappers used for CoSimulation
@@ -36,9 +37,11 @@ class CoSimulationSolverWrapper(object):
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
         self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model) for (data_name, data_config) in self.settings["data"].items()}
+        for data_name, interface_data in self.data_dict.items(): # TODO improve this
+            interface_data.name = data_name
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
-        self.io = None
+        self.__io = None
 
         self.__allocate_hist_vars_called = False # internal variable to check that "_AllocateHistoricalVariablesFromCouplingData" was called
 
@@ -80,7 +83,7 @@ class CoSimulationSolverWrapper(object):
         pass
 
 
-    def InitializeIO(self, solvers, io_echo_level):
+    def CreateIO(self, solvers, io_echo_level):
         if self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is already initialized!')
 
@@ -89,27 +92,29 @@ class CoSimulationSolverWrapper(object):
         if not io_settings.Has("echo_level"):
             io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
 
-        self.io = io_factory.CreateIO(self.settings["io_settings"],
+        self.__io = io_factory.CreateIO(self.settings["io_settings"],
                                       self.model,
-                                      self._GetIOName())
+                                      self._GetIOType())
 
-    def ImportCouplingInterfaceData(self, data_name, from_client=None):
-        if not self.__IOIsInitialized():
-            raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ImportCouplingInterfaceData(data_name, from_client)
-    def ImportCouplingInterface(self, geometry_name, from_client=None):
-        if not self.__IOIsInitialized():
-            raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ImportCouplingInterface(geometry_name, from_client)
+    def ImportCouplingInterface(self, interface_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
+        self._GetIO().ImportCouplingInterface(interface_config)
 
-    def ExportCouplingInterfaceData(self, data_name, to_client=None):
-        if not self.__IOIsInitialized():
-            raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ExportCouplingInterfaceData(data_name, to_client)
-    def ExportCouplingInterface(self, geometry_name, to_client=None):
-        if not self.__IOIsInitialized():
-            raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ExportCouplingInterface(geometry_name, to_client)
+    def ExportCouplingInterface(self, interface_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
+        self._GetIO().ExportCouplingInterface(interface_config)
+
+    def ImportCouplingInterfaceData(self, data_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
+        self._GetIO().ImportCouplingInterfaceData(data_config)
+
+    def ExportCouplingInterfaceData(self, data_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
+        self._GetIO().ExportCouplingInterfaceData(data_config)
 
 
     def GetInterfaceData(self, data_name):
@@ -122,6 +127,12 @@ class CoSimulationSolverWrapper(object):
         '''This function can be filled if desired, e.g. to print settings at higher echo-levels
         '''
         pass
+
+    def _GetIO(self):
+        if not self.__IOIsInitialized():
+            raise Exception('IO for solver "{}" is not initialized!'.format(self.name))
+        return self.__io
+
 
     def _AllocateHistoricalVariablesFromCouplingData(self):
         '''This function retrieves the historical variables that are needed for the ModelParts from the specified CouplingInterfaceDatas and allocates them on the ModelParts
@@ -155,13 +166,12 @@ class CoSimulationSolverWrapper(object):
     def _ClassName(cls):
         return cls.__name__
 
-    @classmethod
-    def _GetIOName(cls):
+    def _GetIOType(self):
         # only external solvers have to specify sth here / override this
         return "dummy_io"
 
     def __IOIsInitialized(self):
-        return self.io is not None
+        return self.__io is not None
 
     @classmethod
     def _GetDefaultSettings(cls):
