@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "utilities/math_utils.h"
 #include "utilities/mortar_utilities.h"
 #include "includes/mapping_variables.h"
 #include "includes/serializer.h"
