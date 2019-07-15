@@ -23,6 +23,8 @@
 namespace Kratos
 {
 
+namespace {
+
 template<class TDataType> struct MPIDataType;
 
 template<> struct MPIDataType<int>
@@ -72,8 +74,6 @@ template<> struct MPIDataType<Flags::BlockType>
         return MPI_INT64_T;
     }
 };
-
-namespace {
 
 template<class TDataType> class ValueMessage
 {
