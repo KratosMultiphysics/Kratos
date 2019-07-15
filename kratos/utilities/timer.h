@@ -19,7 +19,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <map>
+#include <unordered_map>
 #include <chrono>
 
 // External includes
@@ -121,8 +121,8 @@ public:
     /// The type of float used to store the time
     typedef double TimeType;
 
-    /// The timer data container type (map)
-    typedef std::map<std::string, TimerData> ContainerType;
+    /// The timer data container type (unordered_map)
+    typedef std::unordered_map<std::string, TimerData> ContainerType;
 
     ///@}
     ///@name Life Cycle
