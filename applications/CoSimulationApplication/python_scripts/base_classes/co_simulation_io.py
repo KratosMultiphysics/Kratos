@@ -1,83 +1,67 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-##
-#  IMPORTANT : This is a BASE CLASS
-#               Please do not change any thing in this class.
-#
-# This Class servers as a base class for all the Input-output methods to be implemented
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
+def Create(settings, model):
+    raise Exception('"CoSimulationIO" is a baseclass and cannot be used directly!')
+
 class CoSimulationIO(object):
-    ## The constructor
-    #
-    def __init__(self, model, settings):
-        self.echo_level = 0
-        self.settings = settings
+    """Baseclass defining the interface for the input and output methods
+    for the communication with external solvers
+    """
+    def __init__(self, settings, model):
         self.model = model
 
-    ## ImportCouplingInterfaceData :  used to import data from other solvers
-    #                Follow EXAMPLE implementation below.
-    #
-    #  @param data_object     python dictionary : object of the data to be imported.
-    #                                             data will be imported into this dictionary
-    #  @param from_solver     python object : The solver from which data is to be imported.
-    def ImportCouplingInterfaceData(self, data_object, from_solver=None):
-        """
-        if(from_client not None):
-            # exchange data from python cosim solver
-        else:
-            # import data from remote solver
-        """
-        raise NotImplementedError(cs_tools.darkred("From BaseIO : The method ImportCouplingInterfaceData is not implemented in the IO class!"))
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.echo_level = self.settings["echo_level"].GetInt()
 
-    ## ImportCouplingInterface :  used to import mesh from other solvers
-    #                Follow EXAMPLE implementation below.
-    #
-    #  @param mesh_config      python dictionary : configuration of the mesh to be imported.
-    #  @param from_solver     python object : The solver from which mesh is to be imported.
-    def ImportCouplingInterface(self, mesh_config, from_solver=None):
-        """
-        if(from_client not None):
-            # exchange mesh from python cosim solver
-        else:
-            # import mesh from remote solver
-        """
-        raise NotImplementedError(cs_tools.darkred("From BaseIO : The method ImportCouplingInterface is not implemented in the IO class!"))
+    def ImportCouplingInterfaceData(self, data_config):
+        """Imports data from an external solver
+        External solver sends, CoSimulation receives
 
-    ## ExportCouplingInterfaceData :  used to export data to other solvers
-    #                Follow EXAMPLE implementation below.
-    #
-    #  @param data_object     python dictionary : object of the mesh to be exported.
-    #                                             also contains the data to export.
-    #  @param to_solver       python object : The solver to which mesh is to be exported.
-    def ExportCouplingInterfaceData(self, data_object, to_solver=None):
+        @param data_config <python dictionary> : configuration of the data to be imported
         """
-        if(to_client not None): # IMPORTANT : exchanging data between python cosim solvers should be avoided here.
-            # put data on to python cosim solver.
-        else:
-            # export the given data to the remote solver
-        """
-        raise NotImplementedError(cs_tools.darkred("From BaseIO : The method ExportCouplingInterfaceData is not implemented in the IO class!"))
+        raise NotImplementedError("This function has to be implemented in the derived class!")
 
-    ## ExportCouplingInterface :  used to export mesh to other solvers
-    #                Follow EXAMPLE implementation below.
-    #
-    #  @param mesh_config      python dictionary : configuration of the mesh to be exported.
-    #                                             also contains the mesh data to export.
-    #  @param to_solver       python object : The solver to which mesh is to be exported.
-    def ExportCouplingInterface(self, mesh_config, to_solver=None):
-        """
-        if(to_client not None): # IMPORTANT : exchanging mesh between python cosim solvers should be avoided here.
-            # put mesh on to python cosim solver.
-        else:
-            # export the given mesh to the remote solver
-        """
-        raise NotImplementedError(cs_tools.darkred("From BaseIO : The method ExportCouplingInterface is not implemented in the IO class!"))
+    def ExportCouplingInterfaceData(self, data_config):
+        """Exports data to an external solver
+        CoSimulation sends, external solver receives
 
-    ## Prints the information about the current IO. The derived classes should implement it.
-    #
+        @param data_config <python dictionary> : configuration of the data to be exported
+        """
+        raise NotImplementedError("This function has to be implemented in the derived class!")
+
+    def ImportCouplingInterface(self, interface_config):
+        """Imports coupling interface from an external solver
+        External solver sends, CoSimulation receives
+
+        @param interface_config <python dictionary> : configuration of the interface to be imported
+        """
+        raise NotImplementedError("This function has to be implemented in the derived class!")
+
+    def ExportCouplingInterface(self, interface_config):
+        """Exports coupling interface to an external solver
+        CoSimulation sends, external solver receives
+
+        @param interface_config <python dictionary> : configuration of the interface to be exported
+        """
+        raise NotImplementedError("This function has to be implemented in the derived class!")
+
     def PrintInfo(self):
-        cs_tools.PrintWarning(cs_tools.red("WARNING", "Calling PrintInfo from base IO class!"))
+        pass
 
-    ## Check : Checks the current IO against faulty settings. Derived classes may implement this function.
-    #
     def Check(self):
-        cs_tools.PrintWarning(cs_tools.red("WARNING", "Calling Check from base IO class!"))
+        print("!!!WARNING!!! your IO does not implement Check!!!")
+
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        return KM.Parameters("""{
+            "type"        : "",
+            "echo_level"  : 0
+        }""")
