@@ -1,7 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
-import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+from KratosMultiphysics.kratos_utilities import IsApplicationAvailable
+if IsApplicationAvailable("TrilinosApplication"):
+    from KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
@@ -65,7 +67,9 @@ class DistributedGiDOutputProcess(GiDOutputProcess):
         KM.ParallelEnvironment.GetDefaultDataCommunicator().Barrier()
 
     def _CreateCuttingUtility(self):
-        self.epetra_comm = CreateCommunicator()
+        if not IsApplicationAvailable("TrilinosApplication"):
+            raise Exception("Defining output cuts requires the TrilinosApplication, which appears to be unavailable.")
+        self.epetra_comm = KratosTrilinos.CreateCommunicator()
         return KratosTrilinos.TrilinosCuttingApplication(self.epetra_comm)
 
     def _SetCurrentTimeParameters(self, additional_list_files):
