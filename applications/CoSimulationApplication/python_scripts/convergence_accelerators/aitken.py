@@ -37,11 +37,11 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.alpha_old = self.settings["init_alpha"].GetDouble()
         self.init_alpha_max = self.settings["init_alpha_max"].GetDouble()
 
-    ## ComputeUpdate(r, x)
+    ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def ComputeUpdate( self, r, x ):
+    def UpdateSolution( self, r, x ):
         self.R.appendleft( deepcopy(r) )
         k = len( self.R ) - 1
         ## For the first iteration, do relaxation only
