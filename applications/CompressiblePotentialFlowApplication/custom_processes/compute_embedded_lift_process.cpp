@@ -7,7 +7,7 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez
+//  Main authors:    Marc Nunez
 //
 
 
@@ -33,7 +33,12 @@ void ComputeEmbeddedLiftProcess::Execute()
 
     mrResultForce = ZeroVector(3);
 
-    // #pragma omp parallel for THIS PROCESS IS NOT THREADSAFE
+    //Declaring auxilary variables needed to use with omp
+    double fx = 0.0;
+    double fy = 0.0;
+    double fz = 0.0;
+
+    #pragma omp parallel for reduction(+:fx,fy,fz)
     for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
         auto it=mrModelPart.ElementsBegin()+i;
         if (it->Is(TO_SPLIT) && it->Is(ACTIVE)){
@@ -41,8 +46,9 @@ void ComputeEmbeddedLiftProcess::Execute()
             const std::size_t NumNodes = r_geometry.PointsNumber();
 
             array_1d<double,3> elemental_distances;
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
                 elemental_distances[i_node] = r_geometry[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
+            }
 
             const Vector& r_elemental_distances=elemental_distances;
             ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
@@ -58,12 +64,16 @@ void ComputeEmbeddedLiftProcess::Execute()
             it->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);
             it->SetValue(NORMAL,cut_normal[0]);
 
-            //Calculating result force as the sum of the pressure contribution of every element
-            for (std::size_t i = 0; i<3;i++){
-                mrResultForce(i) += pressure_coefficient[0]*cut_normal[0][i];
-            }
+            fx += pressure_coefficient[0]*cut_normal[0][0];
+            fy += pressure_coefficient[0]*cut_normal[0][1];
+            fz += pressure_coefficient[0]*cut_normal[0][2];
         }
     }
+
+    // Storing final result
+    mrResultForce[0] = fx;
+    mrResultForce[1] = fy;
+    mrResultForce[2] = fz;
 
     KRATOS_CATCH("");
 }
