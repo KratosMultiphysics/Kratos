@@ -24,6 +24,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "wing_tips_model_part_name": "",
+            "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "epsilon": 1e-9
         }''')
@@ -46,6 +47,13 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.wing_tips_model_part = Model[wing_tips_model_part_name]
 
+        body_model_part_name = settings["body_model_part_name"].GetString()
+        if body_model_part_name == "":
+            err_msg = "Empty model_part_name in DefineWakeProcess3D\n"
+            err_msg += "Please specify the model part that contains the wing tips nodes"
+            raise Exception(err_msg)
+        self.body_model_part = Model[body_model_part_name]
+
         self.wake_stl_file_name = settings["wake_stl_file_name"].GetString()
         if self.wake_stl_file_name == "":
             err_msg = "Empty wake_stl_file_name in DefineWakeProcess3D\n"
@@ -60,6 +68,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.__SetWakeDirectionAndNormal()
         self.__MarkTrailingEdgeAndWingTipNodes()
+        self.__ComputeLowerSurfaceNormals()
         self.__CreateWakeModelPart()
         self.__MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
@@ -103,6 +112,16 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 wing_span_direction = other_node - node
                 if(DotProduct(wing_span_direction,wing_span_direction) > self.epsilon):
                     node.SetValue(CPFApp.WING_SPAN_DIRECTION, wing_span_direction)
+
+    def __ComputeLowerSurfaceNormals(self):
+        for cond in self.body_model_part.Conditions:
+            # The surface normal points outisde the domain
+            surface_normal = cond.GetGeometry().Normal()
+            projection = DotProduct(surface_normal, self.wake_normal)
+            # The surface normal in the same direction as the wake normal belongs to the lower_surface
+            if(projection > 0.0):
+                for node in cond.GetNodes():
+                    node.SetValue(KratosMultiphysics.NORMAL,surface_normal)
 
     # This function imports the stl file containing the wake and creates the wake model part out of it.
     # TODO: implement an automatic generation of the wake
@@ -161,7 +180,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 elem.SetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES,wake_elemental_distances)
                 counter = 0
                 for node in elem.GetNodes():
-                    node.SetSolutionStepValue(CPFApp.WAKE_DISTANCE, wake_elemental_distances[counter])
+                    node.SetValue(CPFApp.WAKE_DISTANCE, wake_elemental_distances[counter])
                     if(wake_elemental_distances[counter] > 0.0):
                         node.SetValue(KratosMultiphysics.WATER_PRESSURE, 1.0)
                     else:
@@ -197,8 +216,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 elem.SetValue(CPFApp.WAKE, False)
                 elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
             else:
-                distances_to_te = self.__ComputeDistancesToTrailingEdgeNode(elem, trailing_edge_node, number_of_non_te_nodes)
-                self.__CheckIfKuttaElement(elem, distances_to_te, number_of_non_te_nodes)
+                wake_distances_to_te = self.__ComputeWakeDistancesToTrailingEdgeNode(elem, trailing_edge_node, number_of_non_te_nodes)
+                lower_surface_distance_to_te = self.__ComputeLowerSurfaceDistantesToTrailingEdgeNode(elem, trailing_edge_node, number_of_non_te_nodes)
+                self.__CheckIfKuttaElement(elem, wake_distances_to_te, lower_surface_distance_to_te, number_of_non_te_nodes)
 
     def __CheckIfWingTip(self, elem):
         wing_tip = False
@@ -223,12 +243,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                     distance = elnode - wing_tip_node
                     wing_span_projection = DotProduct(distance, wing_span_direction)
                     free_stream_projection = DotProduct(distance, self.wake_direction)
-                    if(wing_span_projection > 0.0 and free_stream_projection > 0.0):
+                    if(wing_span_projection > 0.0):
                         wing_tip = False
 
         return wing_tip, trailing_edge_node, number_of_non_te_nodes
 
-    def __ComputeDistancesToTrailingEdgeNode(self, elem, trailing_edge_node, number_of_non_te_nodes):
+    def __ComputeWakeDistancesToTrailingEdgeNode(self, elem, trailing_edge_node, number_of_non_te_nodes):
         # This function computes the distance of the element nodes
         # to the wake
         nodal_distances_to_te = KratosMultiphysics.Vector(number_of_non_te_nodes)
@@ -251,8 +271,62 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         return nodal_distances_to_te
 
-    def __CheckIfKuttaElement(self, elem, distances_to_te, number_of_non_te_nodes):
+    def __ComputeLowerSurfaceDistantesToTrailingEdgeNode(self, elem, trailing_edge_node, number_of_non_te_nodes):
+        # This function computes the distance of the element nodes
+        # to the wake
+        nodal_distances_to_te = KratosMultiphysics.Vector(number_of_non_te_nodes)
+        counter = 0
+        for elnode in elem.GetNodes():
+            # Looping only over non traling edge nodes
+            if not (elnode.GetValue(CPFApp.TRAILING_EDGE)):
+                # Compute the distance from the node to the trailing edge
+                distance = elnode - trailing_edge_node
+
+                # Compute the projection of the distance vector in the wake normal direction
+                distance_to_wake = DotProduct(distance, trailing_edge_node.GetValue(KratosMultiphysics.NORMAL))
+
+                # Nodes laying on the wake have a negative distance
+                if(abs(distance_to_wake) < self.epsilon):
+                    distance_to_wake = -self.epsilon
+
+                nodal_distances_to_te[counter] = distance_to_wake
+                counter += 1
+
+        return nodal_distances_to_te
+
+    def __CheckIfKuttaElement(self, elem, wake_distances_to_te, lower_surface_distance_to_te, number_of_non_te_nodes):
         # This function checks whether the element is kutta
+
+        # Count number of nodes above and below the wake
+        number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(wake_distances_to_te)
+
+        # Elements with all non trailing edge nodes below the wake are kutta
+        kutta_by_wake_criteria = number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1
+
+        # Count number o nodes above and below the lower surface
+        number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(lower_surface_distance_to_te)
+
+        # Elements with all non trailing edge nodes below the lower surface are kutta
+        kutta_by_lower_surface_criteria = number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1
+
+        # Elements with nodes above and below the wake and that were already marked as wake, are wake elements
+        # Attention: here some kutta elements might be selected, they are deselected right below
+        if(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0):
+            if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
+                #elem.SetValue(CPFApp.WAKE, True)
+                elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
+        # Selecting kutta elements
+        elif(kutta_by_wake_criteria or kutta_by_lower_surface_criteria):
+            elem.SetValue(CPFApp.KUTTA, True)
+            elem.SetValue(CPFApp.WAKE, False)
+            elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
+        # Elements with all non trailing edge nodes above the wake are normal
+        else:
+            elem.SetValue(CPFApp.WAKE, False)
+            elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
+            elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+
+    def __CountNodes(self, distances_to_te):
         # Initialize counters
         number_of_nodes_with_positive_distance = 0
         number_of_nodes_with_negative_distance = 0
@@ -264,40 +338,24 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             else:
                 number_of_nodes_with_positive_distance += 1
 
-        if(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0):
-            if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
-                # Elements with nodes above and below the wake and that were already marked as wake, are wake elements
-                #elem.SetValue(CPFApp.WAKE, True)
-
-                elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
-        elif(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1):
-            # Elements with all non trailing edge nodes below the wake are kutta
-            elem.SetValue(CPFApp.KUTTA, True)
-        else:
-            # Elements with all non trailing edge nodes above the wake are normal
-            elem.SetValue(CPFApp.WAKE, False)
-            elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
-            elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+        return number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance
 
     def __VisualizeWake(self):
 
-
+        # Print elements
         for elem in self.trailing_edge_model_part.Elements:
             if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
-                print(elem.Id)
+                #print(elem.Id)
                 pass
             elif(elem.GetValue(CPFApp.KUTTA)):
                 #print(elem.Id)
                 pass
             else:
-                #print(elem.Id)
+                print(elem.Id)
                 pass
                 if not (elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
-                    print(elem.Id)
+                    #print(elem.Id)
                     pass
-
-
-
 
         # To visualize the wake
         number_of_nodes = self.fluid_model_part.NumberOfNodes()
