@@ -102,7 +102,7 @@ void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& 
     for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
         rOStream << ".";
 
-    std::cout.precision(6);
+    rOStream.precision(6);
     rOStream << " "
     << std::setiosflags(std::ios::scientific)
     << std::setprecision(6)
