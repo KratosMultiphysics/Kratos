@@ -677,6 +677,7 @@ protected:
           //Calculating the inverse of the jacobian and the parameters needed
           MathUtils<double>::InvertMatrix( J, InvJ, detJ);
 
+
           //Compute cartesian derivatives for one gauss point
           DN_DX = prod( DN_De[PointNumber] , InvJ );
 
