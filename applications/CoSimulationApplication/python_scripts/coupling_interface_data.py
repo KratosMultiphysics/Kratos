@@ -115,15 +115,6 @@ class CouplingInterfaceData(object):
         else:
             return 1
 
-    def InplaceMultiply(self, factor):
-        self.SetData(factor*self.GetData())
-
-    def AddToData(self, data_to_add):
-        if not len(data_to_add) == self.Size():
-            raise Exception("The sizes of the data are not matching, got: {}, expected: {}".format(len(data_to_add), self.Size()))
-
-        self.SetData(self.GetData()+data_to_add) # this works as long as the input is compatible with np.array
-
     def GetHistoricalVariableDict(self):
         # this method returns the historical variable associated to a ModelPart
         # it is intended to be used before the Mesh is read such that the historical variables
