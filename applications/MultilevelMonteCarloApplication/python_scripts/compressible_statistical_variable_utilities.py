@@ -49,6 +49,7 @@ output: new_mean:             updated mean
         new_central_moment_4: updated central_moment_4
         nsamples:             updated number of samples
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=7,priority=True)
 def UpdateOnePassCentralMomentsAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,nsamples):
     old_M1 = old_central_moment_1 * nsamples
@@ -103,6 +104,7 @@ output: new_S1: updated first power sum
         new_S3: updated third power sum
         new_S4: updated fourth power sum
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
 def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,nsamples):
     nsamples = nsamples + 1
@@ -118,7 +120,7 @@ def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,nsamples):
         new_S4 = old_S4 + sample**4
     return new_S1,new_S2,new_S3,new_S4,nsamples
 
-
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
 def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,add_S1,add_S2,add_S3,add_S4,add_number_samples_level):
     new_S1 = old_S1 + add_S1
@@ -128,10 +130,12 @@ def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_lev
     number_samples_level = number_samples_level + add_number_samples_level
     return new_S1,new_S2,new_S3,new_S4,number_samples_level
 
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=4, priority=True)
 def UnfoldValuesAux_Task(sample):
     return sample[0], sample[1], sample[2], sample[3]
 
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=1,priority=True)
 def UpdateBatchesPassPowerSumsAux_Task(*samples):
     samples_list = np.array(list(samples))
@@ -173,6 +177,7 @@ output: h1_level: first h statistics for defined level
         h3_level: third h statistics for defined level
         h4_level: fourth h statistics for defined level
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=4,priority=True)
 def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
     h1_level = S1_level / number_samples_level
@@ -194,6 +199,7 @@ input:  h2_level: second h statistics for defined level
 output: skewness_level: skewness for defined level
         kurtosis_level: kurtosis for defined level
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=2,priority=True)
 def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
     skewness_level = h3_level / (np.sqrt(h2_level**3))
@@ -221,6 +227,7 @@ output: central_moment_from_scratch_1:          updated first central moment
         central_moment_from_scratch_3_absolute: updated third central moment absolute value
         central_moment_from_scratch_4:          update fourth central moment
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
 def ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
     central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
@@ -448,7 +455,7 @@ class StatisticalVariable(object):
         self.power_sum_batches_2[batch_counter][level] = new_S2
         self.power_sum_batches_3[batch_counter][level] = new_S3
         self.power_sum_batches_4[batch_counter][level] = new_S4
-        
+
 
     """
     function computing the h statistics h_p from the power sums

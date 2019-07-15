@@ -59,6 +59,7 @@ input:  simulation_results: an instance of the multilevel monte carlo result cla
 output: difference_QoI_value:              difference QoIvalue to be added
         simulation_results.time_ML[level]: time value to be added
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=2,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
     def computePowers(value):
@@ -90,6 +91,7 @@ output: auxiliary_MLMC_object.rates_error:       rates error of the MultilevelMo
         auxiliary_MLMC_object.total_error:       total error of the MultilevelMonteCarlo class
         auxiliary_MLMC_object.number_samples:    number of samples of the MultilevelMonteCarlo class
 """
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
 def FinalizePhaseAux_Task(ConstructorCallback,aux_settings_serialized,aux_mesh_parameters,\
 aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
