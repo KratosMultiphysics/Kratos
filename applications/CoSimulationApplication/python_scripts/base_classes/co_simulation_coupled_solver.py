@@ -45,14 +45,14 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             self.settings["data_transfer_operators"],
             self.echo_level)
 
+        for solver in self.solver_wrappers.values():
+            solver.CreateIO(self.solver_wrappers, self.echo_level)
+            # we use the Echo_level of the coupling solver, since IO is needed by the coupling
+            # and not by the (physics-) solver
+
     def Initialize(self):
         for solver in self.solver_wrappers.values():
             solver.Initialize()
-
-        for solver in self.solver_wrappers.values():
-            solver.InitializeIO(self.solver_wrappers, self.echo_level)
-            # we use the Echo_level of the coupling solver, since IO is needed by the coupling
-            # and not by the (physics-) solver
 
         super(CoSimulationCoupledSolver, self).Initialize()
 
@@ -117,95 +117,91 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
     def _SynchronizeInputData(self, solver_name):
         to_solver = self.solver_wrappers[solver_name]
-        input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
+        data_list = self.coupling_sequence[solver_name]["input_data_list"]
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Input for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Input for solver "{}"'.format(colors.blue(solver_name)))
 
-        for i in range(input_data_list.size()):
-            i_input_data = input_data_list[i]
+        for i in range(data_list.size()):
+            i_data = data_list[i]
 
-            data_name = i_input_data["data"].GetString()
-            from_solver_name = i_input_data["from_solver"].GetString()
-            from_solver_data_name = i_input_data["from_solver_data"].GetString()
+            to_data_name = i_data["data"].GetString()
+            from_solver_name = i_data["from_solver"].GetString()
+            from_solver_data_name = i_data["from_solver_data"].GetString()
 
             if self.echo_level > 2:
-                cs_tools.cs_print_info("  Data", '"{}" | from solver: "{}": "{}"'.format(colors.magenta(data_name), colors.blue(from_solver_name), colors.magenta(from_solver_data_name)))
-
-            # check if data-exchange is specified for current time
-            if not KM.IntervalUtility(i_input_data).IsInInterval(self.time):
-                if self.echo_level > 2:
-                    cs_tools.cs_print_info("  Skipped", 'not in interval')
-                continue
+                cs_tools.cs_print_info("  Data", '"{}" | from solver: "{}": "{}"'.format(colors.magenta(to_data_name), colors.blue(from_solver_name), colors.magenta(from_solver_data_name)))
 
             # from solver
             from_solver = self.solver_wrappers[from_solver_name]
             from_solver_data = from_solver.GetInterfaceData(from_solver_data_name)
 
             # to solver
-            to_solver_data = to_solver.GetInterfaceData(data_name)
+            to_solver_data = to_solver.GetInterfaceData(to_data_name)
 
-            # Importing data from external solvers
-            # to_solver.ImportCouplingInterfaceData(to_solver_data)
-
-            # perform the data transfer
-            self.__ExecuteCouplingOperations(i_input_data["before_data_transfer_operations"])
-
-            data_transfer_operator_name = i_input_data["data_transfer_operator"].GetString()
-            # TODO check the order of solvers!
-            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_input_data["data_transfer_operator_options"])
-
-            self.__ExecuteCouplingOperations(i_input_data["after_data_transfer_operations"])
-
-            self.__ApplyScaling(to_solver_data, i_input_data)
+            self.__SynchronizeData(i_data, from_solver, from_solver_data, to_solver, to_solver_data)
 
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Input for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Input for solver "{}"'.format(colors.blue(solver_name)))
 
     def _SynchronizeOutputData(self, solver_name):
         from_solver = self.solver_wrappers[solver_name]
-        output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
+        data_list = self.coupling_sequence[solver_name]["output_data_list"]
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Output for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'Start Synchronizing Output for solver "{}"'.format(colors.blue(solver_name)))
 
-        for i in range(output_data_list.size()):
-            i_output_data = output_data_list[i]
+        for i in range(data_list.size()):
+            i_data = data_list[i]
 
-            data_name = i_output_data["data"].GetString()
-            to_solver_name = i_output_data["to_solver"].GetString()
-            to_solver_data_name = i_output_data["to_solver_data"].GetString()
+            from_data_name = i_data["data"].GetString()
+            to_solver_name = i_data["to_solver"].GetString()
+            to_solver_data_name = i_data["to_solver_data"].GetString()
 
             if self.echo_level > 2:
-                cs_tools.cs_print_info("  Data", '"{}" | to solver: "{}": "{}"'.format(colors.magenta(data_name), colors.blue(to_solver_name), colors.magenta(to_solver_data_name)))
-
-            # check if data-exchange is specified for current time
-            if not KM.IntervalUtility(i_output_data).IsInInterval(self.time):
-                if self.echo_level > 2:
-                    cs_tools.cs_print_info("  Skipped", 'not in interval')
-                continue
+                cs_tools.cs_print_info("  Data", '"{}" | to solver: "{}": "{}"'.format(colors.magenta(from_data_name), colors.blue(to_solver_name), colors.magenta(to_solver_data_name)))
 
             # from solver
-            from_solver_data = from_solver.GetInterfaceData(data_name)
+            from_solver_data = from_solver.GetInterfaceData(from_data_name)
 
             # to solver
             to_solver = self.solver_wrappers[to_solver_name]
             to_solver_data = to_solver.GetInterfaceData(to_solver_data_name)
 
-            # perform the data transfer
-            self.__ExecuteCouplingOperations(i_output_data["before_data_transfer_operations"])
-
-            data_transfer_operator_name = i_output_data["data_transfer_operator"].GetString()
-            # TODO check the order of solvers!
-            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_output_data["data_transfer_operator_options"])
-
-            self.__ExecuteCouplingOperations(i_output_data["after_data_transfer_operations"])
-
-            self.__ApplyScaling(to_solver_data, i_output_data)
-
-            # Exporting data to external solvers
-            # from_solver.ExportCouplingInterfaceData(from_solver_data)
+            self.__SynchronizeData(i_data, from_solver, from_solver_data, to_solver, to_solver_data)
 
         if self.echo_level > 2:
-            cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Output for "{}"'.format(colors.blue(solver_name)))
+            cs_tools.cs_print_info(self._ClassName(), 'End Synchronizing Output for solver "{}"'.format(colors.blue(solver_name)))
+
+    def __SynchronizeData(self, i_data, from_solver, from_solver_data, to_solver, to_solver_data):
+            # check if data-exchange is specified for current time
+            if not KM.IntervalUtility(i_data).IsInInterval(self.time):
+                if self.echo_level > 2:
+                    cs_tools.cs_print_info("  Skipped", 'not in interval')
+                return
+
+            # Importing data from external solvers
+            from_solver_data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : from_solver_data
+            }
+            from_solver.ImportCouplingInterfaceData(from_solver_data_config)
+
+            # perform the data transfer
+            self.__ExecuteCouplingOperations(i_data["before_data_transfer_operations"])
+
+            data_transfer_operator_name = i_data["data_transfer_operator"].GetString()
+            # TODO check the order of solvers!
+            self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_data["data_transfer_operator_options"])
+
+            self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
+
+            self.__ApplyScaling(to_solver_data, i_data)
+
+            # Exporting data to external solvers
+            to_solver_data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : to_solver_data
+            }
+            to_solver.ExportCouplingInterfaceData(to_solver_data_config)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
@@ -216,8 +212,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
 
     def __ExecuteCouplingOperations(self, settings):
-        for i in range(settings.size()):
-            coupling_operation_name = settings[i].GetString()
+        for coupling_operation_name in settings.GetStringArray():
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
