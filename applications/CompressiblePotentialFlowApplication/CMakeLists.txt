@@ -21,10 +21,12 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_potential_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_potential_flow_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_base_potential_flow_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_finite_difference_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_incompressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_far_field_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_2d_wake_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_model_part_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp

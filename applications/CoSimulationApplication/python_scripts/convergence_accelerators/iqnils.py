@@ -71,12 +71,12 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             if k == 0:
                 ## For the first iteration in the first time step, do relaxation only
                 if self.echo_level > 3:
-                    cs_print_info(self._Name(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
+                    cs_print_info(self._ClassName(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
                 return self.alpha * r
             else:
                 if self.echo_level > 3:
-                    cs_print_info(self._Name(), "Doing multi-vector extrapolation")
-                    cs_print_info(self._Name(), "Number of new modes: ", col)
+                    cs_print_info(self._ClassName(), "Doing multi-vector extrapolation")
+                    cs_print_info(self._ClassName(), "Number of new modes: ", col)
                 self.V_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.V_new[i] = self.R[i] - self.R[i + 1]
@@ -85,7 +85,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ) and self.echo_level > 0:
-                    cs_print_warning(self._Name(), ": "+ colors.red("WARNING: column number larger than row number!"))
+                    cs_print_warning(self._ClassName(), ": "+ colors.red("WARNING: column number larger than row number!"))
 
                 ## Construct matrix W(differences of predictions)
                 self.W_new = np.empty( shape = (col, row) ) # will be transposed later
@@ -105,8 +105,8 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         else:  # previous vectors can be reused
             if k == 0: # first iteration
                 if self.echo_level > 3:
-                    cs_print_info(self._Name(), "Using matrices from previous time steps")
-                    cs_print_info(self._Name(), "Number of previous matrices: ", num_old_matrices)
+                    cs_print_info(self._ClassName(), "Using matrices from previous time steps")
+                    cs_print_info(self._ClassName(), "Number of previous matrices: ", num_old_matrices)
                 V = self.V_old
                 W = self.W_old
                 ## Solve least-squares problem
@@ -119,9 +119,9 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             else:
                 ## For other iterations, construct new V and W matrices and combine them with old ones
                 if self.echo_level > 3:
-                    cs_print_info(self._Name(), "Doing multi-vector extrapolation")
-                    cs_print_info(self._Name(), "Number of new modes: ", col)
-                    cs_print_info(self._Name(), "Number of previous matrices: ", num_old_matrices)
+                    cs_print_info(self._ClassName(), "Doing multi-vector extrapolation")
+                    cs_print_info(self._ClassName(), "Number of new modes: ", col)
+                    cs_print_info(self._ClassName(), "Number of previous matrices: ", num_old_matrices)
                 ## Construct matrix V (differences of residuals)
                 self.V_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
@@ -130,7 +130,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 V = np.hstack( (self.V_new, self.V_old) )
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ) and self.echo_level > 0:
-                    cs_print_warning(self._Name(), ": "+ colors.red("WARNING: column number larger than row number!"))
+                    cs_print_warning(self._ClassName(), ": "+ colors.red("WARNING: column number larger than row number!"))
 
                 ## Construct matrix W(differences of predictions)
                 self.W_new = np.empty( shape = (col, row) ) # will be transposed later
@@ -160,7 +160,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         ## Clear the buffer
         if self.R and self.X:
             if self.echo_level > 3:
-                cs_print_info(self._Name(), "Cleaning")
+                cs_print_info(self._ClassName(), "Cleaning")
             self.R.clear()
             self.X.clear()
         self.V_new = []

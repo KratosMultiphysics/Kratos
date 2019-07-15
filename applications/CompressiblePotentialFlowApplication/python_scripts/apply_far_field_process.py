@@ -57,7 +57,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
 
     def ExecuteInitializeSolutionStep(self):
-        self.Execute()
+        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
+        far_field_process.Execute()
+
+        # self.Execute()
 
     def Execute(self):
         reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()
