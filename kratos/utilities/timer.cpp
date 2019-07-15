@@ -52,7 +52,9 @@ int Timer::SetOuputFile(std::string const& rOutputFileName)
 
     msOutputFile.open(rOutputFileName.c_str());
 
-    msOutputFile << "                                         Start      \t\tStop          \t\tElapsed" << std::endl;
+    if (msPrintIntervalInformation) {
+        msOutputFile << "                                         Start      \t\tStop          \t\tElapsed" << std::endl;
+    }
 
     return msOutputFile.is_open();
 }
