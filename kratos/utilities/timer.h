@@ -84,6 +84,14 @@ class KRATOS_API(KRATOS_CORE) Timer
         {
             mStartTime = StartTime;
         }
+        double GetTotalElapsedTime()
+        {
+            return mTotalElapsedTime;
+        }
+        void SetTotalElapsedTime(double TotalElapsedTime)
+        {
+            mTotalElapsedTime = TotalElapsedTime;
+        }
         void Update(double StopTime)
         {
             double elapsed = StopTime - mStartTime;
