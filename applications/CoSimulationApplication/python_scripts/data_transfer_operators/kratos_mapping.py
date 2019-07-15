@@ -8,9 +8,9 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 def Create(settings):
-    return MappingDataTransferOperator(settings)
+    return KratosMappingDataTransferOperator(settings)
 
-class MappingDataTransferOperator(CoSimulationDataTransferOperator):
+class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
     # currently available mapper-flags aka transfer-options
     __mapper_flags_dict = {
@@ -22,7 +22,7 @@ class MappingDataTransferOperator(CoSimulationDataTransferOperator):
     def __init__(self, settings):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
-        super(MappingDataTransferOperator, self).__init__(settings)
+        super(KratosMappingDataTransferOperator, self).__init__(settings)
         self.__mappers = {}
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
@@ -64,7 +64,7 @@ class MappingDataTransferOperator(CoSimulationDataTransferOperator):
                 "mapper_type" : "UNSPECIFIED"
             }
         }""")
-        this_defaults.AddMissingParameters(super(MappingDataTransferOperator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(KratosMappingDataTransferOperator, cls)._GetDefaultSettings())
         return this_defaults
 
     @classmethod

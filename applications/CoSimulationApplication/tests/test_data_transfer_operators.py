@@ -119,7 +119,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             self.skipTest("MappingApplication not available!")
 
         data_transfer_op_settings_missing = KM.Parameters("""{
-            "type" : "mapping"
+            "type" : "kratos_mapping"
         }""")
 
         exp_error = 'No "mapper_settings" provided!'
@@ -127,7 +127,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings_missing)
 
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "mapping",
+            "type" : "kratos_mapping",
             "mapper_settings" : {
                 "mapper_type" : "nearest_neighbor"
             }
