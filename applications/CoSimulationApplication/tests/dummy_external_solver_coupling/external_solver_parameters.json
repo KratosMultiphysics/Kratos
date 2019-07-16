@@ -1,7 +1,6 @@
 {
     "name"                : "External Solver",
-    "do_coupling"         : true,
-    "num_steps"           : 10,
+    "num_steps"           : 15,
     "coupling_interfaces" : [{
         "comm_name"            : "Interface",
         "sub_model_part_name"  : "NoSlip2D_FSI",
@@ -13,8 +12,10 @@
             "data_field_name" : "Interface_loads",
             "variables"       : ["FORCE"]
         }
-    }],
+        }],
     "mdpa_file_name"      : "generic_mdpa_files/Mok_CFD",
-    "echo_level"          : 2,
-    "solving_time"        : 1
+    "debugging_settings" : {
+        "echo_level"          : 3,
+        "solving_time"        : 0.5
+    }
 }

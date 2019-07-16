@@ -38,7 +38,7 @@ class TestExternalSolverCoupling(KratosUnittest.TestCase):
 
     def _runTest(self):
         p = subprocess.Popen(
-            ["python3", "external_solver.py", self.ext_parameter_file_name],
+            ["python3", "external_field_solver.py", self.ext_parameter_file_name],
             cwd=os.path.dirname(os.path.abspath(__file__)))
 
         CoSimulationAnalysis(self.cosim_parameters).Run()

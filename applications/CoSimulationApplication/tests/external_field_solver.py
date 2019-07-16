@@ -1,43 +1,57 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
-from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+# CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
-import os, sys, time
+# Other imports
+import sys, time
 
-class ExternalSolver(object):
-    """This class emulates the behavior of an external solver, hence it can be used for testing
-    TFor now it uses directly the EMPIRE_API
+class ExternalFieldSolver(object):
+    """This class emulates the behavior of an external field solver (e.g. OpenFOAM)
+    It can be used for testing and development of couplings to external solvers,
+    without actually having to couple to an external solver
+
+    TODO: For now it uses directly the EMPIRE_API
     In the future this will be replaced by the CoSimIO (which is included in the external solvers)
     """
     def __init__(self, settings):
         default_settings = KM.Parameters("""{
-            "name"                           : "UNSPECIFIED",
-            "do_coupling"                    : true,
-            "implicit_coupling"              : false,
-            "num_steps"                      : 10,
-            "coupling_interfaces"            : [],
-            "receive_meshes"                 : [],
-            "mdpa_file_name"                 : "UNSPECIFIED",
-            "api_configuration_file_name"    : "UNSPECIFIED",
-            "echo_level"                     : 0,
-            "solving_time"                   : 1
+            "name"                        : "UNSPECIFIED",
+            "implicit_coupling"           : false,
+            "num_steps"                   : 10,
+            "io_settings"                 : {},
+            "coupling_interfaces"         : [],
+            "receive_meshes"              : [],
+            "mdpa_file_name"              : "UNSPECIFIED",
+            "api_configuration_file_name" : "UNSPECIFIED",
+            "debugging_settings" : {
+                "echo_level"                  : 0,
+                "do_coupling"                 : true,
+                "solving_time"                : 0.0
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
         self.settings = settings
 
-        self.do_coupling = self.settings["do_coupling"].GetBool()
-
         self.model = KM.Model()
         self.model_part = self.model.CreateModelPart("ExtSolver")
         self.name = self.settings["name"].GetString()
-        self.echo_level = self.settings["echo_level"].GetInt()
-        self.solving_time = self.settings["solving_time"].GetInt()
+
+        debugging_settings_defaults = KM.Parameters("""{
+            "echo_level"                  : 0,
+            "do_coupling"                 : true,
+            "solving_time"                : 0.0
+        }""")
+
+        self.settings["debugging_settings"].ValidateAndAssignDefaults(debugging_settings_defaults)
+        debugging_settings = self.settings["debugging_settings"]
+        self.echo_level = debugging_settings["echo_level"].GetInt()
+        self.do_coupling = debugging_settings["do_coupling"].GetBool()
+        self.solving_time = debugging_settings["solving_time"].GetDouble()
 
         # TODO hardcoded for now, parse it from the variables used in the settings
         self.model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
@@ -61,6 +75,9 @@ class ExternalSolver(object):
             for i in range(num_coupling_interfaces):
                 sub_model_part_name = self.settings["coupling_interfaces"][i]["sub_model_part_name"].GetString()
                 comm_name = self.settings["coupling_interfaces"][i]["comm_name"].GetString()
+
+                self.__CustomPrint(2, '  Exporting coupling-interface "{}" on ModelPart "{}"'.format(comm_name, sub_model_part_name))
+
                 KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(self.model["ExtSolver."+sub_model_part_name], comm_name)
 
             self.__CustomPrint(1, "Sucessfully finished export of CouplingInterfaces")
@@ -97,6 +114,9 @@ class ExternalSolver(object):
                 data_field_settings = coupling_interface_settings["data_field_send"]
 
                 data_field_name = data_field_settings["data_field_name"].GetString()
+
+                self.__CustomPrint(2, '  Importing data-field "{}" on ModelPart "{}"'.format(data_field_name, sub_model_part_name))
+
                 variables = GenerateVariableListFromInput(data_field_settings["variables"])
                 KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables)
 
@@ -115,6 +135,9 @@ class ExternalSolver(object):
                 data_field_settings = coupling_interface_settings["data_field_recv"]
 
                 data_field_name = data_field_settings["data_field_name"].GetString()
+
+                self.__CustomPrint(2, '  Exporting data-field "{}" on ModelPart "{}"'.format(data_field_name, sub_model_part_name))
+
                 variables = GenerateVariableListFromInput(data_field_settings["variables"])
                 KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables)
 
@@ -142,5 +165,5 @@ if __name__ == '__main__':
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KM.Parameters(parameter_file.read())
 
-    simulation = ExternalSolver(parameters)
+    simulation = ExternalFieldSolver(parameters)
     simulation.Run()
