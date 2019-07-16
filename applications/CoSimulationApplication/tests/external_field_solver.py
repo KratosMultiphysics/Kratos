@@ -136,6 +136,7 @@ class ExternalFieldSolver(object):
         self.__CustomPrint(1, colors.cyan("Starting export") + " of CouplingInterfaceData ...")
 
         for i in range(num_coupling_interfaces):
+            coupling_interface_settings = self.settings["coupling_interfaces"][i]
             sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
             data_field_settings = coupling_interface_settings["data_field_recv"]
 
