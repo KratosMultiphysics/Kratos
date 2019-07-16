@@ -23,7 +23,6 @@ class PotentialFlowFormulation(object):
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
-
     def _SetUpIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "incompressible"
@@ -81,9 +80,6 @@ class PotentialFlowSolver(FluidSolver):
             "calculate_solution_norm": false,
             "linear_solver_settings": {
                 "solver_type": "amgcl"
-            },
-            "formulation": {
-                "element_type": "incompressible"
             },
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
