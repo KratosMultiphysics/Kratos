@@ -30,7 +30,7 @@ def _CheckIfTypeIsDeprecated(config):
         config["solver_type"].SetString(new_name)
 
 def ConstructSolver(configuration):
-    if not isinstance(settings, KM.Parameters):
+    if not isinstance(configuration, KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     _CheckIfTypeIsDeprecated(configuration) # for backwards-compatibility
