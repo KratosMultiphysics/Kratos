@@ -340,7 +340,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
     const double A = GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
-    const double J = GetProperties()[TORSIONAL_INERTIA];
+    const double It = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
 
@@ -378,7 +378,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
 
     local_stiffness_matrix(4, 2) = local_stiffness_matrix(2, 4);
     local_stiffness_matrix(5, 1) = local_stiffness_matrix(1, 5);
-    local_stiffness_matrix(3, 3) = G * J / L;
+    local_stiffness_matrix(3, 3) = G * It / L;
     local_stiffness_matrix(4, 4) = E * Iy * (3.0 * Psi_y + 1.0) / L;
     local_stiffness_matrix(5, 5) = E * Iz * (3.0 * Psi_z + 1.0) / L;
     local_stiffness_matrix(4, 8) = -1.0 * local_stiffness_matrix(4, 2);
@@ -555,7 +555,7 @@ CrBeamElement3D2N::CalculateDeformationStiffness() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    const double J = GetProperties()[TORSIONAL_INERTIA];
+    const double It = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
 
@@ -571,7 +571,7 @@ CrBeamElement3D2N::CalculateDeformationStiffness() const
     const double Psi_y = CalculatePsi(Iy, Az);
     const double Psi_z = CalculatePsi(Iz, Ay);
 
-    Kd(0, 0) = G * J / L;
+    Kd(0, 0) = G * It / L;
     Kd(1, 1) = E * Iy / L;
     Kd(2, 2) = E * Iz / L;
     Kd(3, 3) = E * A / L;
