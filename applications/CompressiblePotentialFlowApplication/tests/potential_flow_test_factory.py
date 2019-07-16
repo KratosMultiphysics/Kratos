@@ -101,6 +101,18 @@ class PotentialFlowTests(UnitTest.TestCase):
             reference_kutta_elements_id_list = [13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
+    def test_WakeProcess3DKuttaNodesAboveTheWake(self):
+        # This tests a model with some kutta nodes above the wake
+        settings_file_name = "small_3d_parameters.json"
+        work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            reference_wake_elements_id_list = [2, 4, 8, 16, 17, 19, 20]
+            self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
+            reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
+            self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
         solution_element_id_list = []
