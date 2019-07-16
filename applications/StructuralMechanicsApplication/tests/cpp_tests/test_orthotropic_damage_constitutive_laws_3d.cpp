@@ -40,7 +40,7 @@
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -54,14 +54,14 @@ typedef Node<3> NodeType;
 /**
     * Check the correct calculation of the integrated stress with the CL's
     */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     material_properties.SetValue(SOFTENING_TYPE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    Flags& ConstitutiveLawOptions = cl_parameters.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -126,12 +126,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     SJ SimoJuCL = SJ();
 
     std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-    MCres = {1.10203e+06,1.10203e+06,3.9072e+06,0,0,2.97015e-11};
-    VMres = {1.10203e+06,1.10203e+06,3.9072e+06,0,0,2.97015e-11};
-    DPres = {788415,788415,2.79529e+06,0,0,2.12491e-11};
-    Tres  = {1.10203e+06,1.10203e+06,3.9072e+06,0,0,2.97015e-11};
-    Rres  = {763601,763601,2.70731e+06,0,0,2.05803e-11};
-    SJres = {5.40984e+06, 5.40984e+06, 1.91803e+07, 0, 0, 1.45804e-10};
+    MCres = {2.52653e+06,2.44022e+06,3.9072e+06,0,0,1.46187e-11};
+    VMres = {2.52653e+06,2.44022e+06,3.9072e+06,0,0,1.46187e-11};
+    DPres = {2.17197e+06,2.06344e+06,2.79529e+06,0,0,6.59982e-12};
+    Tres  = {2.52653e+06,2.44022e+06,3.9072e+06,0,0,1.46187e-11};
+    Rres  = {2.14141e+06,2.03065e+06,2.70731e+06,0,0,5.99187e-12};
+    SJres = {5.40984e+06,5.40984e+06,1.91803e+07,0,0,1.45804e-10};
 
     Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
     MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters);
@@ -165,21 +165,20 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
+    typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
     Vector stress_vector, strain_vector;
 
     Model current_model;
-
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -215,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     material_properties.SetValue(SOFTENING_TYPE, 1);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    Flags& ConstitutiveLawOptions = cl_parameters.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -237,12 +236,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     SJ SimoJuCL = SJ();
 
     std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-    MCres = {1.17707e+06,1.17707e+06,4.17324e+06,0,0,3.17239e-11};
-    VMres = {1.17707e+06,1.17707e+06,4.17324e+06,0,0,3.17239e-11};
-    DPres = {868915,868915,3.0807e+06,0,0,2.34186e-11};
-    Tres  = {1.17707e+06,1.17707e+06,4.17324e+06,0,0,3.17239e-11};
-    Rres  = {844533,844533,2.99425e+06,0,0,2.27615e-11};
-    SJres = {870986,870986,3.08804e+06,0,0,2.34744e-11};
+    MCres = {2.52505e+06,2.52344e+06,4.17324e+06,0,0,1.74513e-11};
+    VMres = {2.52505e+06,2.52344e+06,4.17324e+06,0,0,1.74513e-11};
+    DPres = {2.17012e+06,2.16811e+06,3.0807e+06,0,0,9.64135e-12};
+    Tres  = {2.52505e+06,2.52344e+06,4.17324e+06,0,0,1.74513e-11};
+    Rres  = {2.13952e+06,2.13747e+06,2.99425e+06,0,0,9.05001e-12};
+    SJres = {1.39358e+06,1.74487e+06,3.08804e+06,0,0,1.79412e-11};
 
     Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
     MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters);
@@ -264,7 +263,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     cl_parameters.SetMaterialProperties(material_properties);
     SimoJuCL.CalculateMaterialResponseCauchy(cl_parameters);
     TestSJ = cl_parameters.GetStressVector();
-
+    
     //Check the results
     for (int comp = 0; comp < 6; comp++) {
         KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.00001e+06);
