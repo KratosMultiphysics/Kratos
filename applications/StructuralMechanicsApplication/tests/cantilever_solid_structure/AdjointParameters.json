@@ -107,8 +107,8 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["ADJOINT_DISPLACEMENT"],
-                        "gauss_point_results" : ["YOUNG_MODULUS_SENSITIVITY", "DENSITY_SENSITIVITY"]
+                        "nodal_results"       : ["ADJOINT_DISPLACEMENT", "DISPLACEMENT"],
+                        "gauss_point_results" : ["YOUNG_MODULUS_SENSITIVITY", "DENSITY_SENSITIVITY", "YOUNG_MODULUS"]
                     },
                     "point_data_configuration"  : []
                 }
