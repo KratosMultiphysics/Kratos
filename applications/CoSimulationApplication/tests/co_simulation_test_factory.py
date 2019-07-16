@@ -15,6 +15,7 @@ except ImportError:
     numpy_available = False
 
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "ExternalSolversApplication")
+have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
 
 using_pykratos = UsingPyKratos()
 
@@ -54,6 +55,19 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self.__ManipulateSettings()
             # self.__AddVtkOutputToCFD() # uncomment to get output
             self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+    def test_MPM_FEM_beam_penalty(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_mpm_fem_dependencies:
+            self.skipTest("MPM-FEM dependencies are not available!")
+
+        self.name = "penalty_beam"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
             self._runTest()
 
     def __ManipulateSettings(self):

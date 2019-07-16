@@ -35,11 +35,11 @@ class KratosParticleSolver(KratosBaseFieldSolver):
             model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
 
             ## ADD VELOCITY
-            current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
             model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_VELOCITY, current_velocity)
 
             ## ADD NORMAL
-            normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL,0)
             # Check and see whether the normal is not zero
             norm_normal = math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
             if norm_normal > 1.e-10:
@@ -52,7 +52,7 @@ class KratosParticleSolver(KratosBaseFieldSolver):
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
                 contact_force = mpc.GetValue(KratosParticle.MPC_CONTACT_FORCE)
-                coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,contact_force)
+                coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,0,contact_force)
 
 
     def _GetParallelType(self):

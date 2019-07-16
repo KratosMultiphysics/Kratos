@@ -223,7 +223,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def PrintInfo(self):
         super(CoSimulationCoupledSolver, self).PrintInfo()
 
-        cs_print_info(self._ClassName(), "Has the following components:")
+        cs_tools.cs_print_info(self._ClassName(), "Has the following components:")
         for solver in self.solver_wrappers.values():
             solver.PrintInfo()
 

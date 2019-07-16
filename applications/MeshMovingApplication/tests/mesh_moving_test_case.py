@@ -59,7 +59,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         solver_settings = self.project_parameters["solver_settings"]
 
         solver_settings["domain_size"].SetInt(self.domain_size)
-        solver_settings["buffer_size"].SetInt(KM.GetMinimumBufferSize(self.mesh_vel_calc_helper))
+        solver_settings["buffer_size"].SetInt(KM.TimeDiscretization.GetMinimumBufferSize(self.mesh_vel_calc_helper))
         solver_settings["solver_type"].SetString(self.solver_type)
         input_file_name = os.path.join("test_mdpa_files", "rectangle_{}_test".format(self.__GetElementTopology()))
         solver_settings["model_import_settings"]["input_filename"].SetString(input_file_name)

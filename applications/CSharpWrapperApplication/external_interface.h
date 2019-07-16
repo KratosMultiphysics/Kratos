@@ -6,35 +6,40 @@
 
 namespace CSharpKratosWrapper {
 
-	class CSharpInterface {
-	public:
-		static void init(char* mdpaPath);
-		static void updateNodePos(int nodeId, float x, float y, float z);
-		static void calculate();
-		static float* getXCoordinates();
-		static float* getYCoordinates();
-		static float* getZCoordinates();
-		static int getNodesCount();
-		static int* getTriangles();
-		static int getTrianglesCount();
-		
-	private:
-		static int* pmKratosNodeIds;
-		static int* pmUnityNodeIds;
-		static int* pmTriangles;
-		static int mTrianglesCount;
-		static int mNodesCount;
-		static float* pmXCoordinates;
-		static float* pmYCoordinates;
-		static float* pmZCoordinates;
-		static KratosInternals mKratosInternals;
-		static IdTranslator idTranslator;
+    using NodeType = Kratos::Node<3>;
+    using ModelPart = Kratos::ModelPart;
 
-		static std::vector<Kratos::NodeType::Pointer> mFixedNodes;
+    class CSharpInterface {
 
-		static void saveTriangles(MeshConverter& meshConverter);
-		static void saveNodes(MeshConverter& meshConverter);
-		static void retrieveNodesPos();
-		static void freeNodes();
-	};
+    public:
+        static void init(const char* MDPAFilePath, const char* JSONFilePath = NULL);
+        static void initWithSettings(const char* JSONFilePath = NULL);
+        static void updateNodePos(const int nodeId, const float x, const float y, const float z);
+        static void calculate();
+        static float* getXCoordinates();
+        static float* getYCoordinates();
+        static float* getZCoordinates();
+        static int getNodesCount();
+        static int* getTriangles();
+        static int getTrianglesCount();
+
+    private:
+        static int* pmKratosNodeIds;
+        static int* pmUnityNodeIds;
+        static int* pmTriangles;
+        static int mTrianglesCount;
+        static int mNodesCount;
+        static float* pmXCoordinates;
+        static float* pmYCoordinates;
+        static float* pmZCoordinates;
+        static KratosInternals mKratosInternals;
+        static IdTranslator idTranslator;
+
+        static std::vector<NodeType::Pointer> mFixedNodes;
+
+        static void saveTriangles(MeshConverter& meshConverter);
+        static void saveNodes(MeshConverter& meshConverter);
+        static void retrieveNodesPos();
+        static void freeNodes();
+    };
 }
