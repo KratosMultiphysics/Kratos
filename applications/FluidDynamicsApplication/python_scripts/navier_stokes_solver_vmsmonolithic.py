@@ -193,12 +193,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
         default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
         return default_settings
 
-    def ValidateSettings(self):
-        """Overriding python_solver ValidateSettings to call the BackwardsCompatibilityHelper
-        """
-        self.settings = self._BackwardsCompatibilityHelper(self.settings)
-        super(NavierStokesSolverMonolithic, self).ValidateSettings()
-
     def _BackwardsCompatibilityHelper(self,settings):
         ## Backwards compatibility -- deprecation warnings
         if settings.Has("stabilization"):
@@ -235,6 +229,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
+        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
         self.formulation = StabilizedFormulation(self.settings["formulation"])
