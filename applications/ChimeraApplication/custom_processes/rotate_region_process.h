@@ -197,8 +197,10 @@ private:
     RotateRegionProcess &operator=(RotateRegionProcess const &rOther) { return *this; }
 
     /*
-     * Calculates the cross product of two vectors
-     *  c = axb
+     * @brief Calculates the linear velocity v = r x w
+     * @param rAxisOfRotationVector the axis of rotation vector
+     * @param rRadius the radius vector of the point for which v is to be calculated.
+     * @out   rLinearVelocity the calculated linear velocity.
      */
     void CalculateLinearVelocity(const DenseVector<double> &rAxisOfRotationVector,
                                  const DenseVector<double> &rRadius,
@@ -210,14 +212,21 @@ private:
         rLinearVelocity[2] = rAxisOfRotationVector[0] * rRadius[1] - rAxisOfRotationVector[1] * rRadius[0];
     }
 
+    /*
+     * @brief Rotates the given node by mTheta around the mAxisOfRotationVector and mCenterOfRotation
+     *          This function uses Quaternion for rotations.
+     * @param rCoordinates The nodal coordinates which are to be rotated.
+     * @out rTransformedCoordinates the rotated nodal coordinates.
+     */
     void TransformNode(const array_1d<double, 3> &rCoordinates, array_1d<double, 3> &rTransformedCoordinates) const
     {
-
+        // Changing the origin to the center of rotation
         auto new_coordinates = rCoordinates - mCenterOfRotation;
         Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(mAxisOfRotationVector(0),
                                                                            mAxisOfRotationVector(1),
                                                                            mAxisOfRotationVector(2), mTheta);
         mQuaternion.RotateVector3(new_coordinates, rTransformedCoordinates);
+        // Bringing back to the original coordinate system.
         rTransformedCoordinates = rTransformedCoordinates + mCenterOfRotation;
     }
 }; // Class MoveRotorProcess
