@@ -26,6 +26,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "wing_tips_model_part_name": "",
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
+            "wake_normal": [0.0,0.0,1.0],
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -50,7 +51,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         body_model_part_name = settings["body_model_part_name"].GetString()
         if body_model_part_name == "":
             err_msg = "Empty model_part_name in DefineWakeProcess3D\n"
-            err_msg += "Please specify the model part that contains the wing tips nodes"
+            err_msg += "Please specify the model part that contains the body nodes"
             raise Exception(err_msg)
         self.body_model_part = Model[body_model_part_name]
 
@@ -61,6 +62,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
         self.epsilon = settings["epsilon"].GetDouble()
+
+        # For now plane wake surfaces are considered.
+        # TODO: Generalize this to curved wake surfaces
+        self.wake_normal = settings["wake_normal"].GetVector()
+        if( abs(DotProduct(self.wake_normal,self.wake_normal) - 1) > self.epsilon ):
+            raise Exception('The wake normal should be a unitary vector')
 
         self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
 
@@ -85,13 +92,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.wake_direction[0] = free_stream_velocity[0]/vnorm
         self.wake_direction[1] = free_stream_velocity[1]/vnorm
         self.wake_direction[2] = free_stream_velocity[2]/vnorm
-
-        # For now plane wake surfaces are considered.
-        # TODO: Generalize this to curved wake surfaces
-        self.wake_normal = KratosMultiphysics.Vector(3)
-        self.wake_normal[0] = 0.0
-        self.wake_normal[1] = 0.0
-        self.wake_normal[2] = 1.0
 
         self.span_direction = KratosMultiphysics.Vector(3)
         self.span_direction[0] = self.wake_normal[1] * self.wake_direction[2] - self.wake_normal[2] * self.wake_direction[1]
@@ -209,114 +209,106 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # This function selects the kutta elements. Kutta elements
         # are touching the trailing edge from below.
         for elem in self.trailing_edge_model_part.Elements:
-            # Check if the element is touching the wing tip
-            wing_tip, trailing_edge_node, number_of_non_te_nodes = self.__CheckIfWingTip(elem)
+            # Check if it is a wing tip element
+            wing_tip = self.__CheckIfWingTipElement(elem)
             if wing_tip:
-                # Elements touching the wing tip are set to normal
+                # Wing tip elements are set to normal
+                # TODO: Check what to do with wing tip elements
+                # and tip vortice elements in general
                 elem.SetValue(CPFApp.WAKE, False)
                 elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
             else:
-                wake_distances_to_te = self.__ComputeWakeDistancesToTrailingEdgeNode(elem, trailing_edge_node, number_of_non_te_nodes)
-                lower_surface_distance_to_te = self.__ComputeLowerSurfaceDistantesToTrailingEdgeNode(elem, trailing_edge_node, number_of_non_te_nodes)
-                self.__CheckIfKuttaElement(elem, wake_distances_to_te, lower_surface_distance_to_te, number_of_non_te_nodes)
+                trailing_edge_node, number_of_non_te_nodes = self.__GetATrailingEdgeNodeAndNumberOfNonTENodes(elem)
+                nodal_distances = self.__ComputeNodalDistancesToWakeAndLowerSurface(elem, trailing_edge_node, number_of_non_te_nodes)
+                self.__CheckIfKuttaElement(elem, nodal_distances, number_of_non_te_nodes)
 
-    def __CheckIfWingTip(self, elem):
+    def __CheckIfWingTipElement(self, elem):
+        # Wing tip elements are elements with one node at the wing tip
+        # and with the rest of the nodes on the side of the wing and wake.
         wing_tip = False
-        number_of_te_nodes = 0
 
+        # Checking if the element has a node at the wing tip
         for elnode in elem.GetNodes():
-            if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
-                    trailing_edge_node = elnode
-                    number_of_te_nodes += 1
             if(elnode.GetValue(CPFApp.WING_TIP)):
                 wing_tip = True
                 wing_tip_node = elnode
                 wing_span_direction = elnode.GetValue(CPFApp.WING_SPAN_DIRECTION)
 
-        if(number_of_te_nodes > 1):
-            wing_tip = False
-        number_of_non_te_nodes = 4 - number_of_te_nodes
-
         if(wing_tip):
             for elnode in elem.GetNodes():
                 if not (elnode.GetValue(CPFApp.WING_TIP)):
+                    # Checking if the rest of the nodes are on the side
                     distance = elnode - wing_tip_node
                     wing_span_projection = DotProduct(distance, wing_span_direction)
-                    free_stream_projection = DotProduct(distance, self.wake_direction)
+                    # A positive wing_span_projection means that the node is not on the side
+                    # but actually laying somewhere above or below the wing and/or wake
                     if(wing_span_projection > 0.0):
                         wing_tip = False
 
-        return wing_tip, trailing_edge_node, number_of_non_te_nodes
+        return wing_tip
 
-    def __ComputeWakeDistancesToTrailingEdgeNode(self, elem, trailing_edge_node, number_of_non_te_nodes):
+    def __GetATrailingEdgeNodeAndNumberOfNonTENodes(self,elem):
+        # This function returns a trailing edge node (note that
+        # an element may have more than one trailing edge node)
+        # and the number of nodes that are not trailing edge.
+        number_of_te_nodes = 0
+        for elnode in elem.GetNodes():
+            if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
+                trailing_edge_node = elnode
+                number_of_te_nodes += 1
+
+        number_of_non_te_nodes = 4 - number_of_te_nodes
+
+        return trailing_edge_node, number_of_non_te_nodes
+
+    def __ComputeNodalDistancesToWakeAndLowerSurface(self, elem, trailing_edge_node, number_of_non_te_nodes):
         # This function computes the distance of the element nodes
-        # to the wake
+        # to the wake and the wing lower surface
+
+        # Only computing the distances of the nodes that are not trailing edge
         nodal_distances_to_te = KratosMultiphysics.Vector(number_of_non_te_nodes)
         counter = 0
         for elnode in elem.GetNodes():
             # Looping only over non traling edge nodes
             if not (elnode.GetValue(CPFApp.TRAILING_EDGE)):
-                # Compute the distance from the node to the trailing edge
-                distance = elnode - trailing_edge_node
+                # Compute the distance vector from the trailing edge to the node
+                distance_vector = elnode - trailing_edge_node
 
-                # Compute the projection of the distance vector in the wake normal direction
-                distance_to_wake = DotProduct(distance, self.wake_normal)
+                # Compute the distance in the free stream direction
+                free_stream_direction_distance = DotProduct(distance_vector, self.wake_direction)
 
-                # Nodes laying on the wake have a negative distance
-                if(abs(distance_to_wake) < self.epsilon):
-                    distance_to_wake = -self.epsilon
+                # Node laying either above or below the lower surface
+                if(free_stream_direction_distance < 0.0):
+                    # Compute the distance in the lower surface normal direction
+                    distance = DotProduct(distance_vector, trailing_edge_node.GetValue(KratosMultiphysics.NORMAL))
+                # Node laying either above or below the wake
+                else:
+                    # Compute the distance in the wake normal direction
+                    distance = DotProduct(distance_vector, self.wake_normal)
 
-                nodal_distances_to_te[counter] = distance_to_wake
+                # Nodes laying on the wake or on the lower surface have a negative distance
+                if(abs(distance) < self.epsilon):
+                    distance = -self.epsilon
+
+                nodal_distances_to_te[counter] = distance
                 counter += 1
 
         return nodal_distances_to_te
 
-    def __ComputeLowerSurfaceDistantesToTrailingEdgeNode(self, elem, trailing_edge_node, number_of_non_te_nodes):
-        # This function computes the distance of the element nodes
-        # to the wake
-        nodal_distances_to_te = KratosMultiphysics.Vector(number_of_non_te_nodes)
-        counter = 0
-        for elnode in elem.GetNodes():
-            # Looping only over non traling edge nodes
-            if not (elnode.GetValue(CPFApp.TRAILING_EDGE)):
-                # Compute the distance from the node to the trailing edge
-                distance = elnode - trailing_edge_node
-
-                # Compute the projection of the distance vector in the wake normal direction
-                distance_to_wake = DotProduct(distance, trailing_edge_node.GetValue(KratosMultiphysics.NORMAL))
-
-                # Nodes laying on the wake have a negative distance
-                if(abs(distance_to_wake) < self.epsilon):
-                    distance_to_wake = -self.epsilon
-
-                nodal_distances_to_te[counter] = distance_to_wake
-                counter += 1
-
-        return nodal_distances_to_te
-
-    def __CheckIfKuttaElement(self, elem, wake_distances_to_te, lower_surface_distance_to_te, number_of_non_te_nodes):
+    def __CheckIfKuttaElement(self, elem, nodal_distances, number_of_non_te_nodes):
         # This function checks whether the element is kutta
 
-        # Count number of nodes above and below the wake
-        number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(wake_distances_to_te)
+        # Count number of nodes above and below the wake and lower surface
+        number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(nodal_distances)
 
-        # Elements with all non trailing edge nodes below the wake are kutta
-        kutta_by_wake_criteria = number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1
-
-        # Count number o nodes above and below the lower surface
-        number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(lower_surface_distance_to_te)
-
-        # Elements with all non trailing edge nodes below the lower surface are kutta
-        kutta_by_lower_surface_criteria = number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1
-
-        # Elements with nodes above and below the wake and that were already marked as wake, are wake elements
-        # Attention: here some kutta elements might be selected, they are deselected right below
+        # Elements with nodes above and below the wake are wake elements
         if(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0):
+            # Selecting only the elements that were already marked as wake
             if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
                 #elem.SetValue(CPFApp.WAKE, True)
                 elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
-        # Selecting kutta elements
-        elif(kutta_by_wake_criteria or kutta_by_lower_surface_criteria):
+        # Elements with all non trailing edge nodes below the wake and the lower surface are kutta
+        elif(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1):
             elem.SetValue(CPFApp.KUTTA, True)
             elem.SetValue(CPFApp.WAKE, False)
             elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
@@ -352,6 +344,21 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 pass
             else:
                 print(elem.Id)
+                pass
+                if not (elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
+                    #print(elem.Id)
+                    pass
+
+        # Print elements
+        for elem in self.fluid_model_part.Elements:
+            if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
+                #print(elem.Id)
+                pass
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                #print(elem.Id)
+                pass
+            else:
+                #print(elem.Id)
                 pass
                 if not (elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
                     #print(elem.Id)
