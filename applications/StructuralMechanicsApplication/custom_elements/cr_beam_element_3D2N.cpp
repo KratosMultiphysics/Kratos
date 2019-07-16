@@ -1395,9 +1395,17 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
     const double A = GetProperties()[CROSS_AREA];
     const double E = GetProperties()[YOUNG_MODULUS];
 
-    const double J = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
+
+    double Ip = 0.00;
+    if (GetProperties().Has(POLAR_MOMENT_OF_INERTIA)){
+        Ip = GetProperties()[POLAR_MOMENT_OF_INERTIA];
+    }
+    else {
+        //This is an approximation for a circular cross section
+        Ip = Iy + Iz;
+    }
     const double G = CalculateShearModulus();
 
     double Ay = 0.00;
@@ -1439,7 +1447,7 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
     // longitudinal forces + torsional moment
     const double M00 = (1.00 / 3.00) * A * rho * L;
     const double M06 = M00 / 2.00;
-    const double M33 = (J * L * rho) / 3.00;
+    const double M33 = (Ip * L * rho) / 3.00;
     const double M39 = M33 / 2.00;
 
     rMassMatrix(0, 0) = M00;
