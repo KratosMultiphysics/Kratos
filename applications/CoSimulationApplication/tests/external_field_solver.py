@@ -5,6 +5,7 @@ import KratosMultiphysics as KM
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
 import sys, time
@@ -27,11 +28,7 @@ class ExternalFieldSolver(object):
             "receive_meshes"              : [],
             "mdpa_file_name"              : "UNSPECIFIED",
             "api_configuration_file_name" : "UNSPECIFIED",
-            "debugging_settings" : {
-                "echo_level"                  : 0,
-                "do_coupling"                 : true,
-                "solving_time"                : 0.0
-            }
+            "debugging_settings" : { }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -42,16 +39,18 @@ class ExternalFieldSolver(object):
         self.name = self.settings["name"].GetString()
 
         debugging_settings_defaults = KM.Parameters("""{
-            "echo_level"                  : 0,
-            "do_coupling"                 : true,
-            "solving_time"                : 0.0
+            "echo_level"   : 0,
+            "dry_run"      : true,
+            "solving_time" : 0.0,
+            "print_colors" : false
         }""")
 
         self.settings["debugging_settings"].ValidateAndAssignDefaults(debugging_settings_defaults)
         debugging_settings = self.settings["debugging_settings"]
         self.echo_level = debugging_settings["echo_level"].GetInt()
-        self.do_coupling = debugging_settings["do_coupling"].GetBool()
+        self.dry_run = debugging_settings["dry_run"].GetBool()
         self.solving_time = debugging_settings["solving_time"].GetDouble()
+        colors.PRINT_COLORS = debugging_settings["print_colors"].GetBool()
 
         # TODO hardcoded for now, parse it from the variables used in the settings
         self.model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
@@ -69,22 +68,24 @@ class ExternalFieldSolver(object):
 
     def Run(self):
         num_coupling_interfaces = self.settings["coupling_interfaces"].size()
-        if self.do_coupling:
-            self.__CustomPrint(1, "Starting export of CouplingInterfaces ...")
+        self.__CustomPrint(1, colors.cyan("Starting export") + " of CouplingInterfaces ...")
 
-            for i in range(num_coupling_interfaces):
-                sub_model_part_name = self.settings["coupling_interfaces"][i]["sub_model_part_name"].GetString()
-                comm_name = self.settings["coupling_interfaces"][i]["comm_name"].GetString()
+        for i in range(num_coupling_interfaces):
+            sub_model_part_name = self.settings["coupling_interfaces"][i]["sub_model_part_name"].GetString()
+            comm_name = self.settings["coupling_interfaces"][i]["comm_name"].GetString()
 
-                self.__CustomPrint(2, '  Exporting coupling-interface "{}" on ModelPart "{}"'.format(comm_name, sub_model_part_name))
+            self.__CustomPrint(2, colors.cyan('Exporting')+' coupling-interface "{}" on ModelPart "{}"'.format(comm_name, sub_model_part_name))
 
+            if not self.dry_run:
                 KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(self.model["ExtSolver."+sub_model_part_name], comm_name)
+            else:
+                self.__CustomPrint(2, colors.magenta('... skipped'))
 
-            self.__CustomPrint(1, "Sucessfully finished export of CouplingInterfaces")
+            self.__CustomPrint(1, colors.cyan("Finished export") + " of CouplingInterfaces")
 
-        if self.do_coupling:
+        if not self.dry_run:
             if self.settings["receive_meshes"].size() > 0:
-                self.__CustomPrint(1, "Starting import of CouplingInterfaces ...")
+                self.__CustomPrint(1, colors.green("Starting import") + " of CouplingInterfaces ...")
 
             for mesh_name in self.settings["receive_meshes"].GetStringArray():
                 stopNotImplemented
@@ -92,60 +93,68 @@ class ExternalFieldSolver(object):
                 KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part_for_receiving)
 
             if self.settings["receive_meshes"].size() > 0:
-                self.__CustomPrint(1, "Sucessfully finished import of CouplingInterfaces")
+                self.__CustomPrint(1, colors.green("Finished import") + " of CouplingInterfaces")
 
         # time loop
         self.__CustomPrint(1, "Starting Solution Loop")
         for i in range(self.settings["num_steps"].GetInt()):
             print() # newline
-            self.__CustomPrint(1, 'Step: {}/{}'.format(i+1, self.settings["num_steps"].GetInt()))
+            self.__CustomPrint(1, colors.bold('Step: {}/{}'.format(i+1, self.settings["num_steps"].GetInt())))
             self.SolveSolutionStep()
         self.__CustomPrint(1, "Finished")
 
     def SolveSolutionStep(self):
         num_coupling_interfaces = self.settings["coupling_interfaces"].size()
 
-        if self.do_coupling:
-            self.__CustomPrint(1, "Starting import of CouplingInterfaceData ...")
+        self.__CustomPrint(1, colors.green("Starting import") + " of CouplingInterfaceData ...")
 
-            for i in range(num_coupling_interfaces):
-                coupling_interface_settings = self.settings["coupling_interfaces"][i]
-                sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
-                data_field_settings = coupling_interface_settings["data_field_send"]
+        for i in range(num_coupling_interfaces):
+            coupling_interface_settings = self.settings["coupling_interfaces"][i]
+            sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
+            data_field_settings = coupling_interface_settings["data_field_send"]
 
-                data_field_name = data_field_settings["data_field_name"].GetString()
+            data_field_name = data_field_settings["data_field_name"].GetString()
 
-                self.__CustomPrint(2, '  Importing data-field "{}" on ModelPart "{}"'.format(data_field_name, sub_model_part_name))
+            self.__CustomPrint(2, colors.green('Importing')+' data-field "{}" on ModelPart "{}"'.format(data_field_name, sub_model_part_name))
 
-                variables = GenerateVariableListFromInput(data_field_settings["variables"])
+            variables = GenerateVariableListFromInput(data_field_settings["variables"])
+
+            if not self.dry_run:
                 KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables)
+            else:
+                self.__CustomPrint(2, colors.magenta('... skipped'))
 
-            self.__CustomPrint(1, "Sucessfully finished import of CouplingInterfaceData")
+        self.__CustomPrint(1, colors.green("Finished import") + " of CouplingInterfaceData")
 
-        self.__CustomPrint(1, "Solving ...")
+        print() # newline
+        self.__CustomPrint(1, colors.blue("Solving ..."))
         time.sleep(self.solving_time)
-        self.__CustomPrint(2, "  Solving took {} [sec]".format(self.solving_time))
+        self.__CustomPrint(2, "Solving took {} [sec]".format(self.solving_time))
+        print() # newline
         # TODO implement random values ... ?
 
-        if self.do_coupling:
-            self.__CustomPrint(1, "Starting export of CouplingInterfaceData ...")
+        self.__CustomPrint(1, colors.cyan("Starting export") + " of CouplingInterfaceData ...")
 
-            for i in range(num_coupling_interfaces):
-                sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
-                data_field_settings = coupling_interface_settings["data_field_recv"]
+        for i in range(num_coupling_interfaces):
+            sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
+            data_field_settings = coupling_interface_settings["data_field_recv"]
 
-                data_field_name = data_field_settings["data_field_name"].GetString()
+            data_field_name = data_field_settings["data_field_name"].GetString()
 
-                self.__CustomPrint(2, '  Exporting data-field "{}" on ModelPart "{}"'.format(data_field_name, sub_model_part_name))
+            self.__CustomPrint(2, colors.cyan('Exporting')+' data-field "{}" on ModelPart "{}"'.format(data_field_name, sub_model_part_name))
 
-                variables = GenerateVariableListFromInput(data_field_settings["variables"])
+            variables = GenerateVariableListFromInput(data_field_settings["variables"])
+
+            if not self.dry_run:
                 KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables)
+            else:
+                self.__CustomPrint(2, colors.magenta('... skipped'))
 
-            self.__CustomPrint(1, "Sucessfully finished export of CouplingInterfaceData")
+        self.__CustomPrint(1, colors.cyan("Finished export") + " of CouplingInterfaceData")
 
     def __CustomPrint(self, echo_level, *args):
         if self.echo_level >= echo_level:
-            KM.Logger.PrintInfo(self.name, " ".join(map(str,args)))
+            KM.Logger.PrintInfo(self.name, (echo_level-1)*"   " + " ".join(map(str,args)))
 
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
