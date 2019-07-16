@@ -839,27 +839,27 @@ void SetNeighboursOrderToInterfaceNode(ModelPart::NodeIterator itNode)
 		}
 	}
 
-	fluidCounter+=1;	
-	solidCounter+=1;	
+	// fluidCounter+=1;	
+	// solidCounter+=1;	
 
 
-  	ModelPart& rModelPart = BaseType::GetModelPart();
-	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+  	// ModelPart& rModelPart = BaseType::GetModelPart();
+	// const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-	const unsigned int sizeFluidSDFNeigh=fluidCounter*dimension;
-	const unsigned int sizeSolidSDFNeigh=solidCounter*dimension;
+	// const unsigned int sizeFluidSDFNeigh=fluidCounter*dimension;
+	// const unsigned int sizeSolidSDFNeigh=solidCounter*dimension;
 
-	Vector& rFluidNodalSFDneighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
-	Vector& rSolidNodalSFDneighbours=itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS);
+	// Vector& rFluidNodalSFDneighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
+	// Vector& rSolidNodalSFDneighbours=itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS);
 
-	if(rFluidNodalSFDneighbours.size() != sizeFluidSDFNeigh)
-		rFluidNodalSFDneighbours.resize(sizeFluidSDFNeigh,false);
+	// if(rFluidNodalSFDneighbours.size() != sizeFluidSDFNeigh)
+	// 	rFluidNodalSFDneighbours.resize(sizeFluidSDFNeigh,false);
 
-	if(rSolidNodalSFDneighbours.size() != sizeSolidSDFNeigh)
-		rSolidNodalSFDneighbours.resize(sizeSolidSDFNeigh,false);
+	// if(rSolidNodalSFDneighbours.size() != sizeSolidSDFNeigh)
+	// 	rSolidNodalSFDneighbours.resize(sizeSolidSDFNeigh,false);
 
-	noalias(rFluidNodalSFDneighbours)=ZeroVector(sizeFluidSDFNeigh);
-	noalias(rSolidNodalSFDneighbours)=ZeroVector(sizeSolidSDFNeigh);
+	// noalias(rFluidNodalSFDneighbours)=ZeroVector(sizeFluidSDFNeigh);
+	// noalias(rSolidNodalSFDneighbours)=ZeroVector(sizeSolidSDFNeigh);
 
 	// rFluidNodalSFDneighbours.resize(sizeFluidSDFNeigh,true);
 	// rSolidNodalSFDneighbours.resize(sizeSolidSDFNeigh,true);
