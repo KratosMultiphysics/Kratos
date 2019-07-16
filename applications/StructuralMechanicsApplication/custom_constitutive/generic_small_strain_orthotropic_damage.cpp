@@ -541,9 +541,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         else if (c >= b && b >= a) {i=2; j=1; k=0;}
         else KRATOS_ERROR << "Problem with the principal stresses..." << std::endl;
 
-        Matrix copy(VoigtSize,VoigtSize);
-        copy.resize(VoigtSize,VoigtSize);
-        noalias(copy) = rEigenVectorsMatrix;
+        Matrix copy(rEigenVectorsMatrix);
         rEigenVectorsMatrix(0,0) = copy(i,0);
         rEigenVectorsMatrix(0,1) = copy(i,1);
         rEigenVectorsMatrix(0,2) = copy(i,2);
@@ -608,10 +606,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         i = (a >= b) ? 0 : 1;
         j = (a >= b) ? 1 : 0;
 
-        Matrix copy(VoigtSize,VoigtSize);
-        copy.resize(VoigtSize,VoigtSize);
-        noalias(copy) = rEigenVectorsMatrix;
-
+        Matrix copy(rEigenVectorsMatrix);
         rEigenVectorsMatrix(0,0) = copy(i,0);
         rEigenVectorsMatrix(0,1) = copy(i,1);
         rEigenVectorsMatrix(1,0) = copy(j,0);
