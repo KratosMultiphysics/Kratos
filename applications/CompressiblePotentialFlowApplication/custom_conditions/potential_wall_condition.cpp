@@ -174,7 +174,7 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     // Get parent element
     GlobalPointer<Element> pElem = pGetElement();
