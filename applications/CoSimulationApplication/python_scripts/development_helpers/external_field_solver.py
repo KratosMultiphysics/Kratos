@@ -57,6 +57,7 @@ class ExternalFieldSolver(object):
         self.model_part.AddNodalSolutionStepVariable(KM.ROTATION)
         self.model_part.AddNodalSolutionStepVariable(KM.FORCE)
         self.model_part.AddNodalSolutionStepVariable(KM.MOMENT)
+        self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
 
         severity = KM.Logger.GetDefaultOutput().GetSeverity()
         KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
@@ -71,29 +72,29 @@ class ExternalFieldSolver(object):
         self.__CustomPrint(1, colors.cyan("Starting export") + " of CouplingInterfaces ...")
 
         for i in range(num_coupling_interfaces):
-            sub_model_part_name = self.settings["coupling_interfaces"][i]["sub_model_part_name"].GetString()
-            comm_name = self.settings["coupling_interfaces"][i]["comm_name"].GetString()
+            coupling_interface_settings = self.settings["coupling_interfaces"][i]
+            sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
+            comm_name = coupling_interface_settings["comm_name"].GetString()
 
-            self.__CustomPrint(2, colors.cyan('Exporting')+' coupling-interface "{}" on ModelPart "{}"'.format(comm_name, sub_model_part_name))
+            receive_interface = False
+            operation = "Exporting"
+            if coupling_interface_settings.Has("receive_interface"):
+                receive_interface = coupling_interface_settings["receive_interface"].GetBool()
+                operation = "Importing"
+
+            self.__CustomPrint(2, colors.cyan(operation)+' coupling-interface "{}" on ModelPart "{}"'.format(comm_name, sub_model_part_name))
 
             if not self.dry_run:
-                KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(self.model["ExtSolver."+sub_model_part_name], comm_name)
+                if receive_interface:
+                    # use an aux-modelpart, which will not be used again
+                    KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(self.model.CreateModelPart(sub_model_part_name), comm_name)
+                    # TODO maybe restructure and do all receives after all sends
+                else:
+                    KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(self.model["ExtSolver."+sub_model_part_name], comm_name)
             else:
                 self.__CustomPrint(2, colors.magenta('... skipped'))
 
-            self.__CustomPrint(1, colors.cyan("Finished export") + " of CouplingInterfaces")
-
-        if not self.dry_run:
-            if self.settings["receive_meshes"].size() > 0:
-                self.__CustomPrint(1, colors.green("Starting import") + " of CouplingInterfaces ...")
-
-            for mesh_name in self.settings["receive_meshes"].GetStringArray():
-                stopNotImplemented
-                model_part_for_receiving = self.model.CreateModelPart(mesh_name)
-                KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part_for_receiving)
-
-            if self.settings["receive_meshes"].size() > 0:
-                self.__CustomPrint(1, colors.green("Finished import") + " of CouplingInterfaces")
+            self.__CustomPrint(1, colors.cyan("Finished "+operation) + " of CouplingInterfaces")
 
         # time loop
         self.__CustomPrint(1, "Starting Solution Loop")
@@ -110,8 +111,10 @@ class ExternalFieldSolver(object):
 
         for i in range(num_coupling_interfaces):
             coupling_interface_settings = self.settings["coupling_interfaces"][i]
+            if not coupling_interface_settings.Has("data_field_recv"):
+                continue
             sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
-            data_field_settings = coupling_interface_settings["data_field_send"]
+            data_field_settings = coupling_interface_settings["data_field_recv"]
 
             data_field_name = data_field_settings["data_field_name"].GetString()
 
@@ -137,8 +140,10 @@ class ExternalFieldSolver(object):
 
         for i in range(num_coupling_interfaces):
             coupling_interface_settings = self.settings["coupling_interfaces"][i]
+            if not coupling_interface_settings.Has("data_field_send"):
+                continue
             sub_model_part_name = coupling_interface_settings["sub_model_part_name"].GetString()
-            data_field_settings = coupling_interface_settings["data_field_recv"]
+            data_field_settings = coupling_interface_settings["data_field_send"]
 
             data_field_name = data_field_settings["data_field_name"].GetString()
 
