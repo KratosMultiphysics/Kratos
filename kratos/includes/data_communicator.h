@@ -126,12 +126,24 @@ virtual void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& r
  */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)                                 \
+virtual type SendRecvImpl(                                                                                      \
+    const type rSendValues, const int SendDestination, const int SendTag,                                       \
+    const int RecvSource, const int RecvTag) const {                                                            \
+    KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))                                     \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
+    return rSendValues;                                                                                         \
+}                                                                                                               \
 virtual std::vector<type> SendRecvImpl(                                                                         \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,                         \
     const int RecvSource, const int RecvTag) const {                                                            \
     KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))                                     \
     << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
     return rSendValues;                                                                                         \
+}                                                                                                               \
+virtual void SendRecvImpl(                                                                                      \
+    const type rSendValues, const int SendDestination, const int SendTag,                                       \
+    type& rRecvValues, const int RecvSource, const int RecvTag) const {                                         \
+    rRecvValues = SendRecvImpl(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);                     \
 }                                                                                                               \
 virtual void SendRecvImpl(                                                                                      \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,                         \
