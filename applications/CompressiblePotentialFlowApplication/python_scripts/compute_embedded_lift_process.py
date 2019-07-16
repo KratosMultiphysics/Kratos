@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
+from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -7,24 +8,24 @@ def Factory(settings, Model):
     return ComputeEmbeddedLiftProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class ComputeEmbeddedLiftProcess(KratosMultiphysics.Process):
+class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
-        default_parameters = KratosMultiphysics.Parameters("""
-            {
-
-                "model_part_name" : "please specify the main model part",
-                "reference_area": 1.0
-            }  """)
+        default_parameters = KratosMultiphysics.Parameters(r'''{
+            "model_part_name": "please specify the model part that contains the surface nodes"
+        }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
-        self.main_model_part=Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
+        self.fluid_model_part=Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
+        self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.result_force=KratosMultiphysics.Vector(3)
-        self.reference_area =  settings["reference_area"].GetDouble()
+
+        if not self.reference_area > 0.0:
+            raise Exception('The reference area should be larger than 0.')
 
     def ExecuteFinalizeSolutionStep(self):
-        if (self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==2):
-            CPFApp.ComputeEmbeddedLiftProcess2D(self.main_model_part,self.result_force).Execute()
+        if (self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==2):
+            CPFApp.ComputeEmbeddedLiftProcess2D(self.fluid_model_part,self.result_force).Execute()
         else:
             raise(Exception("Dimension of the problem is not 2. Only 2D cases are currently supported."))
         self.lift_coefficient = self.result_force[1]/self.reference_area
@@ -33,5 +34,7 @@ class ComputeEmbeddedLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cl = ', self.lift_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cd = ', self.drag_coefficient)
 
-        self.main_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
-        self.main_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
+
+        # TODO Add call to ComputeLiftProcess PotentialJumpLift and FarFieldLift
