@@ -254,10 +254,10 @@ private:
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition2D4N;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition3D4N;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition3D8N;
-    const MPMParticlePenaltyDirichletCondition mMPMParticleLagrangeDirichletCondition2D3N;
-    const MPMParticlePenaltyDirichletCondition mMPMParticleLagrangeDirichletCondition2D4N;
-    const MPMParticlePenaltyDirichletCondition mMPMParticleLagrangeDirichletCondition3D4N;
-    const MPMParticlePenaltyDirichletCondition mMPMParticleLagrangeDirichletCondition3D8N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition2D3N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition2D4N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition3D4N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition3D8N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D3N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D4N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D4N;
