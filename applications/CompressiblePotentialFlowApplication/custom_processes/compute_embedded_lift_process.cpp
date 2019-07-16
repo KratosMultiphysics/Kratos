@@ -14,6 +14,7 @@
 #include "compute_embedded_lift_process.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -40,9 +41,16 @@ void ComputeEmbeddedLiftProcess::Execute()
 
     #pragma omp parallel for reduction(+:fx,fy,fz)
     for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
-        auto it=mrModelPart.ElementsBegin()+i;
-        if (it->Is(TO_SPLIT) && it->Is(ACTIVE)){
-            auto r_geometry = it->GetGeometry();
+        auto it_elem=mrModelPart.ElementsBegin()+i;
+
+        BoundedVector<double,3> geometry_distances;
+        for(unsigned int i_node = 0; i_node<3; i_node++){
+            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        }
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
+
+        if (is_embedded && it_elem->Is(ACTIVE)){
+            auto r_geometry = it_elem->GetGeometry();
             const std::size_t NumNodes = r_geometry.PointsNumber();
 
             array_1d<double,3> elemental_distances;
@@ -51,18 +59,18 @@ void ComputeEmbeddedLiftProcess::Execute()
             }
 
             const Vector& r_elemental_distances=elemental_distances;
-            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it->pGetGeometry(), r_elemental_distances);
+            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), r_elemental_distances);
 
             // Computing Normal
             std::vector<Vector> cut_normal;
             pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
 
             std::vector<double> pressure_coefficient;
-            it->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
+            it_elem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
 
             //Storing the local cp and cut normal
-            it->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);
-            it->SetValue(NORMAL,cut_normal[0]);
+            it_elem->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);
+            it_elem->SetValue(NORMAL,cut_normal[0]);
 
             fx += pressure_coefficient[0]*cut_normal[0][0];
             fy += pressure_coefficient[0]*cut_normal[0][1];

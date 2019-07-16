@@ -79,7 +79,6 @@ private:
     ModelPart& mrModelPart;
     ModelPart& mrWakeModelPart;
 
-
     void ComputeDistanceToWake();
 
     void MarkWakeElements();
@@ -87,9 +86,6 @@ private:
     void ComputeTrailingEdgeNode();
 
     void MarkKuttaElements();
-
-    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
-
 
 }; // Class Process
 } // namespace Kratos

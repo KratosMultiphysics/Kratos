@@ -43,15 +43,7 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         self.moving_parameters["rotation_angle"].SetDouble(self.main_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
         CPFApp.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
 
-        for elem in self.main_model_part.Elements:
-            boolean = elem.Is(KratosMultiphysics.TO_SPLIT)
-            elem.Set(KratosMultiphysics.BOUNDARY,boolean)
-
         CPFApp.DefineEmbeddedWakeProcess(self.main_model_part, self.wake_model_part).Execute()
-
-        for elem in self.main_model_part.Elements:
-            boolean = elem.Is(KratosMultiphysics.BOUNDARY)
-            elem.Set(KratosMultiphysics.TO_SPLIT,boolean)
 
         KratosMultiphysics.Logger.PrintInfo('EmbeddedWake','Wake computation time: ',time.time()-ini_time)
 

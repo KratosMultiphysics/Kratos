@@ -16,6 +16,7 @@
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "utilities/variable_utils.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 
 namespace Kratos
@@ -60,14 +61,19 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
-        bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
+        const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
+
+        BoundedVector<double,3> geometry_distances;
+        for(unsigned int i_node = 0; i_node<3; i_node++){
+            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        }
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
 
         // Mark wake element and save their nodal distances to the wake
         if (is_wake_element) {
-            if (it_elem->Is(BOUNDARY)){
+            if (is_embedded){
                 deactivated_ids.push_back(it_elem->Id());
                 it_elem->Set(ACTIVE, false);
-                it_elem->Set(BOUNDARY, false);
             }
             else{
                 it_elem->SetValue(WAKE, true);
@@ -87,7 +93,6 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
     double max_distance = 0.0;
     ModelPart& deactivated_model_part = mrModelPart.GetSubModelPart("deactivated_model_part");
-    Node<3>::Pointer p_max_node;
     Element::Pointer p_max_elem;
 
     auto wake_origin = mrModelPart.GetProcessInfo()[WAKE_ORIGIN];
@@ -95,9 +100,9 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
 
-        Vector distance_vector(2);
-        distance_vector(0) = wake_origin[0] - it_elem->GetGeometry().Center().X();
-        distance_vector(1) = wake_origin[1] - it_elem->GetGeometry().Center().Y();
+        BoundedVector<double,2> distance_vector;
+        distance_vector[0] = wake_origin[0] - it_elem->GetGeometry().Center().X();
+        distance_vector[1] = wake_origin[1] - it_elem->GetGeometry().Center().Y();
         double norm = norm_2(distance_vector);
         if(norm>max_distance){
             max_distance = norm;
@@ -125,27 +130,4 @@ void DefineEmbeddedWakeProcess::MarkKuttaElements(){
         }
     }
 }
-
-// This function checks whether the element is cut by the wake
-const bool DefineEmbeddedWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const
-{
-    // Initialize counters
-    unsigned int number_of_nodes_with_positive_distance = 0;
-    unsigned int number_of_nodes_with_negative_distance = 0;
-
-    // Count how many element nodes are above and below the wake
-    for (unsigned int i = 0; i < rNodalDistancesToWake.size(); i++) {
-        if (rNodalDistancesToWake(i) < 0.0) {
-            number_of_nodes_with_negative_distance += 1;
-        }
-        else {
-            number_of_nodes_with_positive_distance += 1;
-        }
-    }
-
-    // Elements with nodes above and below the wake are wake elements
-    return number_of_nodes_with_negative_distance > 0 &&
-           number_of_nodes_with_positive_distance > 0;
-}
-
 }// Namespace Kratos
