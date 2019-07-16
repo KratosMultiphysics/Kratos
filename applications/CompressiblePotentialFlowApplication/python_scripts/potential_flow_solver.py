@@ -134,6 +134,8 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
+        self.__ComputeNodalNeighbours()
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if "incompressible" in self.settings["formulation"]["element_type"].GetString():
             # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
@@ -168,3 +170,10 @@ class PotentialFlowSolver(FluidSolver):
 
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+
+    def __ComputeNodalNeighbours(self):
+        # Find nodal neigbours util call
+        avg_elem_num = 10
+        avg_node_num = 10
+        KratosMultiphysics.FindNodalNeighboursProcess(
+            self.main_model_part, avg_elem_num, avg_node_num).Execute()
