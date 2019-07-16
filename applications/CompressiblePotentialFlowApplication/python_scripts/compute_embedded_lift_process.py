@@ -18,18 +18,18 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         settings.ValidateAndAssignDefaults(default_parameters)
         self.fluid_model_part=Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
-        self.result_force=KratosMultiphysics.Vector(3)
+        self.resultant_force=KratosMultiphysics.Vector(3)
 
         if not self.reference_area > 0.0:
             raise Exception('The reference area should be larger than 0.')
 
     def ExecuteFinalizeSolutionStep(self):
         if (self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==2):
-            CPFApp.ComputeEmbeddedLiftProcess2D(self.fluid_model_part,self.result_force).Execute()
+            CPFApp.ComputeEmbeddedLiftProcess2D(self.fluid_model_part,self.resultant_force).Execute()
         else:
             raise(Exception("Dimension of the problem is not 2. Only 2D cases are currently supported."))
-        self.lift_coefficient = self.result_force[1]/self.reference_area
-        self.drag_coefficient = self.result_force[0]/self.reference_area
+        self.lift_coefficient = self.resultant_force[1]/self.reference_area
+        self.drag_coefficient = self.resultant_force[0]/self.reference_area
 
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cl = ', self.lift_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cd = ', self.drag_coefficient)

@@ -21,11 +21,11 @@ namespace Kratos
 // Constructor for ComputeEmbeddedLiftProcess Process
 template <unsigned int Dim, unsigned int NumNodes>
 ComputeEmbeddedLiftProcess<Dim, NumNodes>::ComputeEmbeddedLiftProcess(ModelPart& rModelPart,
-                Vector& rResultForce
+                Vector& rResultantForce
                 ):
         Process(),
         mrModelPart(rModelPart),
-        mrResultForce(rResultForce)
+        mrResultantForce(rResultantForce)
     {
     }
 
@@ -34,7 +34,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
 {
     KRATOS_TRY;
 
-    mrResultForce = ZeroVector(3);
+    mrResultantForce = ZeroVector(3);
 
     //Declaring auxilary variables needed to use with omp
     double fx = 0.0;
@@ -79,9 +79,9 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
     }
 
     // Storing final result
-    mrResultForce[0] = fx;
-    mrResultForce[1] = fy;
-    mrResultForce[2] = fz;
+    mrResultantForce[0] = fx;
+    mrResultantForce[1] = fy;
+    mrResultantForce[2] = fz;
 
     KRATOS_CATCH("");
 }

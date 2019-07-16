@@ -33,7 +33,7 @@ public:
     typedef Geometry<NodeType>::Pointer GeomPointerType;
 
     // Constructor for ComputeEmbeddedLiftProcess Process
-    ComputeEmbeddedLiftProcess(ModelPart& rModelPart, Vector& rResultForce);
+    ComputeEmbeddedLiftProcess(ModelPart& rModelPart, Vector& rResultantForce);
 
     /// Destructor.
     ~ComputeEmbeddedLiftProcess() = default;
@@ -80,7 +80,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Vector& mrResultForce;
+    Vector& mrResultantForce;
 
     ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const;
 
