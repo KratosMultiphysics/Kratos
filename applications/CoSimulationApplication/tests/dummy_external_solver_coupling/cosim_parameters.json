@@ -92,7 +92,7 @@
             },
             "kratos_dummy" :
             {
-                "type" : "dummy_solver_wrapper",
+                "type" : "development_helpers.dummy_solver_wrapper",
                 "echo_level" : 3,
                 "settings" : {
                     "time_step" : 1.0,
