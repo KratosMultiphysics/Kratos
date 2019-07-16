@@ -22,6 +22,7 @@ cmake .. \
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                                               \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
+-CSHARP_WRAPPER_APPLICATION=ON                                                                  \
 -DMESHING_APPLICATION=ON                                                                        \
 -DINCLUDE_MMG=ON                                                                                \
 -DMMG_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/"                                      \
