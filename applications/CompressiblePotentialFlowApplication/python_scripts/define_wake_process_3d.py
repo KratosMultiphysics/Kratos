@@ -27,10 +27,10 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "wake_normal": [0.0,0.0,1.0],
+            "output_wake": true,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
-
 
         self.model = Model
 
@@ -62,6 +62,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
         self.epsilon = settings["epsilon"].GetDouble()
+        self.output_wake = settings["output_wake"].GetBool()
 
         # For now plane wake surfaces are considered.
         # TODO: Generalize this to curved wake surfaces
@@ -75,12 +76,17 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.__SetWakeAndSpanDirections()
+        # Save the trailing edge and wing tip nodes for further computations
         self.__MarkTrailingEdgeAndWingTipNodes()
+        # Save the lower surface normals to help mark kutta elements later on
         self.__ComputeLowerSurfaceNormals()
+        # Read wake from stl and create the wake model part
         self.__CreateWakeModelPart()
+        # Check which elements are cut and mark them as wake
         self.__MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
         self.__MarkKuttaElements()
+        # Output the wake in GiD for visualization
         self.__VisualizeWake()
 
     def __SetWakeAndSpanDirections(self):
@@ -153,24 +159,22 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     # Check which elements are cut and mark them as wake
     def __MarkWakeElements(self):
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
+
+        # In this process a negative distance is assigned to nodes laying on the wake
         distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(
             self.wake_model_part, self.fluid_model_part)
         distance_calculator.Execute()
 
-        if(self.fluid_model_part.HasSubModelPart("trailing_edge_model_part")):
-            for elem in self.trailing_edge_model_part.Elements:
-                elem.Set(KratosMultiphysics.TO_ERASE)
-            self.trailing_edge_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
-        else:
-            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         #List to store trailing edge elements id
         self.trailing_edge_element_id_list = []
 
         for elem in self.fluid_model_part.Elements:
             # Mark and save the elements touching the trailing edge
             self.__MarkTrailingEdgeElement(elem)
+
+            # Cut elements are wake
             if(elem.Is(KratosMultiphysics.TO_SPLIT)):
-                #elem.SetValue(CPFApp.WAKE, True)
+                elem.SetValue(CPFApp.WAKE, True)
                 elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
                 wake_elemental_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
                 for i in range(len(wake_elemental_distances)):
@@ -203,8 +207,14 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 break
 
     def __SaveTrailingEdgeElements(self):
-        # This function stores the trailing edge element
-        # to its submodelpart.
+        # This function stores the trailing edge elements
+        # in its submodelpart.
+        if(self.fluid_model_part.HasSubModelPart("trailing_edge_model_part")):
+            for elem in self.trailing_edge_model_part.Elements:
+                elem.Set(KratosMultiphysics.TO_ERASE)
+            self.trailing_edge_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
+        else:
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         self.trailing_edge_model_part.AddElements(self.trailing_edge_element_id_list)
 
     def __MarkKuttaElements(self):
@@ -345,7 +355,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 #print(elem.Id)
                 pass
             else:
-                print(elem.Id)
+                #print(elem.Id)
                 pass
                 if not (elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
                     #print(elem.Id)
@@ -354,7 +364,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Print elements
         for elem in self.fluid_model_part.Elements:
             if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
-                #print(elem.Id)
+                print(elem.Id)
                 pass
             elif(elem.GetValue(CPFApp.KUTTA)):
                 #print(elem.Id)
@@ -381,40 +391,41 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             elem.Id = counter
             counter +=1
 
-        from gid_output_process import GiDOutputProcess
-        output_file = "representation_of_wake"
-        gid_output =  GiDOutputProcess(self.wake_model_part,
-                                output_file,
-                                KratosMultiphysics.Parameters("""
-                                    {
-                                        "result_file_configuration": {
-                                            "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostAscii",
-                                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                "WriteConditionsFlag": "WriteConditions",
-                                                "MultiFileFlag": "SingleFile"
-                                            },
-                                            "file_label": "time",
-                                            "output_control_type": "step",
-                                            "output_frequency": 1.0,
-                                            "body_output": true,
-                                            "node_output": false,
-                                            "skin_output": false,
-                                            "plane_output": [],
-                                            "nodal_results": [],
-                                            "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
-                                            "nodal_flags_results": [],
-                                            "gauss_point_results": [],
-                                            "additional_list_files": []
+        if(self.output_wake):
+            from gid_output_process import GiDOutputProcess
+            output_file = "representation_of_wake"
+            gid_output =  GiDOutputProcess(self.wake_model_part,
+                                    output_file,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration": {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostAscii",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "file_label": "time",
+                                                "output_control_type": "step",
+                                                "output_frequency": 1.0,
+                                                "body_output": true,
+                                                "node_output": false,
+                                                "skin_output": false,
+                                                "plane_output": [],
+                                                "nodal_results": [],
+                                                "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
+                                                "nodal_flags_results": [],
+                                                "gauss_point_results": [],
+                                                "additional_list_files": []
+                                            }
                                         }
-                                    }
-                                    """)
-                                )
+                                        """)
+                                    )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+            gid_output.ExecuteInitialize()
+            gid_output.ExecuteBeforeSolutionLoop()
+            gid_output.ExecuteInitializeSolutionStep()
+            gid_output.PrintOutput()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.ExecuteFinalize()
     #'''
