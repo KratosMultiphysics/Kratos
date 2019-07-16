@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-
+template<unsigned int Dim, unsigned int NumNodes>
 class ComputeEmbeddedLiftProcess: public Process
 {
 public:

@@ -7,7 +7,7 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Nunez
+//  Main authors:   Marc Nunez
 //
 
 
@@ -19,7 +19,8 @@
 namespace Kratos
 {
 // Constructor for ComputeEmbeddedLiftProcess Process
-ComputeEmbeddedLiftProcess::ComputeEmbeddedLiftProcess(ModelPart& rModelPart,
+template <unsigned int Dim, unsigned int NumNodes>
+ComputeEmbeddedLiftProcess<Dim, NumNodes>::ComputeEmbeddedLiftProcess(ModelPart& rModelPart,
                 Vector& rResultForce
                 ):
         Process(),
@@ -28,7 +29,8 @@ ComputeEmbeddedLiftProcess::ComputeEmbeddedLiftProcess(ModelPart& rModelPart,
     {
     }
 
-void ComputeEmbeddedLiftProcess::Execute()
+template <unsigned int Dim, unsigned int NumNodes>
+void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
 {
     KRATOS_TRY;
 
@@ -42,17 +44,15 @@ void ComputeEmbeddedLiftProcess::Execute()
     #pragma omp parallel for reduction(+:fx,fy,fz)
     for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
         auto it_elem=mrModelPart.ElementsBegin()+i;
+        auto r_geometry = it_elem->GetGeometry();
 
         BoundedVector<double,3> geometry_distances;
-        for(unsigned int i_node = 0; i_node<3; i_node++){
-            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
-        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
+        bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
 
         if (is_embedded && it_elem->Is(ACTIVE)){
-            auto r_geometry = it_elem->GetGeometry();
-            const std::size_t NumNodes = r_geometry.PointsNumber();
-
             array_1d<double,3> elemental_distances;
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
                 elemental_distances[i_node] = r_geometry[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
@@ -86,7 +86,8 @@ void ComputeEmbeddedLiftProcess::Execute()
     KRATOS_CATCH("");
 }
 
-ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
+template<unsigned int Dim, unsigned int NumNodes>
+ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<Dim, NumNodes>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
     GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
     switch (geometry_type){
         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
@@ -96,4 +97,5 @@ ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess::pGetModifiedShapeFun
     }
 }
 
+template class ComputeEmbeddedLiftProcess<2, 3>;
 }// Namespace Kratos

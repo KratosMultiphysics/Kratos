@@ -52,8 +52,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const double, const bool>())
         ;
 
-    py::class_<ComputeEmbeddedLiftProcess, ComputeEmbeddedLiftProcess::Pointer, Process >
-        (m, "ComputeEmbeddedLiftProcess")
+    py::class_<ComputeEmbeddedLiftProcess<2,3>, ComputeEmbeddedLiftProcess<2,3>::Pointer, Process >
+        (m, "ComputeEmbeddedLiftProcess2D")
         .def(py::init<ModelPart&, Vector&>())
         ;
 

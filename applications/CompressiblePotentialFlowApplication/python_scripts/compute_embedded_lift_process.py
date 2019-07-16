@@ -23,7 +23,10 @@ class ComputeEmbeddedLiftProcess(KratosMultiphysics.Process):
         self.reference_area =  settings["reference_area"].GetDouble()
 
     def ExecuteFinalizeSolutionStep(self):
-        CPFApp.ComputeEmbeddedLiftProcess(self.main_model_part,self.result_force).Execute()
+        if (self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==2):
+            CPFApp.ComputeEmbeddedLiftProcess2D(self.main_model_part,self.result_force).Execute()
+        else:
+            raise(Exception("Dimension of the problem is not 2. Only 2D cases are currently supported."))
         self.lift_coefficient = self.result_force[1]/self.reference_area
         self.drag_coefficient = self.result_force[0]/self.reference_area
 
