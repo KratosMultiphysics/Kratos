@@ -175,6 +175,28 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
     return pressure_coefficient;
 }
 
+template <int Dim, int NumNodes>
+const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
+{
+    // Initialize counters
+    unsigned int number_of_nodes_with_positive_distance = 0;
+    unsigned int number_of_nodes_with_negative_distance = 0;
+
+    // Count how many element nodes are above and below the wake
+    for (unsigned int i = 0; i < rNodalDistances.size(); i++) {
+        if (rNodalDistances(i) < 0.0) {
+            number_of_nodes_with_negative_distance += 1;
+        }
+        else {
+            number_of_nodes_with_positive_distance += 1;
+        }
+    }
+
+    // Elements with nodes above and below the wake are wake elements
+    return number_of_nodes_with_negative_distance > 0 &&
+           number_of_nodes_with_positive_distance > 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -192,6 +214,7 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
