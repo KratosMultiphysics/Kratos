@@ -51,7 +51,7 @@ void convert(std::vector<element>& elements, std::vector<node>& nodes, std::vect
         };
         std::sort(std::begin(e.nodes), std::end(e.nodes));
         for (int i = 0; i < 4; i++) {
-            if (nodes.size() <= e.nodes[i]) {
+            if (static_cast<int>(nodes.size()) <= e.nodes[i]) {
                 nodes.resize(e.nodes[i] + 1);
             }
             nodes[e.nodes[i]].elements.push_back(e);
@@ -79,10 +79,10 @@ bool checkContains(element& e, int(&face)[4]) {
 void fixFace(face& face, Kratos::intrusive_ptr < Kratos::Element > kratosElement) {
     Kratos::array_1d<double, 3> points[4];
 
-    //assign coordinates
+    // Assign coordinates
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            if (face.nodes[i] == kratosElement->pGetGeometry()->pGetPoint(j)->Id()) {
+            if (face.nodes[i] == static_cast<int>(kratosElement->pGetGeometry()->pGetPoint(j)->Id())) {
                 points[i] = kratosElement->pGetGeometry()->pGetPoint(j)->Coordinates();
                 break;
             }
@@ -130,7 +130,7 @@ void process(std::vector<element>& elements, std::vector<node>& nodes, std::vect
 
         for (int f = 0; f < 4; f++) {
 
-            //For each element containing first node of a face, check if that element contains given face
+            // For each element containing first node of a face, check if that element contains given face
             bool contains = false;
             for (auto& toCheck : nodes[faces[f][0]].elements) {
                 if (toCheck.pKratosElement != e.pKratosElement)
@@ -157,13 +157,13 @@ void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode
     bool* nodeFlags = new bool[maxNode + 1];
     for (int i = 0; i < maxNode + 1; i++)nodeFlags[i] = false;
 
-    //mark nodes that are used at least once
-    for (auto& face : faces) {
+    // Mark nodes that are used at least once
+    for (auto& r_face : faces) {
         for (int i = 0; i < 3; i++)
-            nodeFlags[face.nodes[i]] = true;
+            nodeFlags[r_face.nodes[i]] = true;
     }
 
-    //save marked nodes
+    // Save marked nodes
     for (int i = 0; i < maxNode + 1; i++)
         if (nodeFlags[i])
             nodes.push_back(i);
