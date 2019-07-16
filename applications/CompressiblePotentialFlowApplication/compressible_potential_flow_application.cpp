@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:	    	 BSD License
-//    					     Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez
-//                   Riccardo Rossi
+//
+//  Main authors:    Riccardo Rossi, Inigo Lopez and Marc Nunez
 //
 
 // System includes

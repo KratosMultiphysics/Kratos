@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nuñez, based on Martin Fusseder work, https://github.com/MFusseder
+//  Main authors:    Marc Nunez, based on Martin Fusseder work, https://github.com/MFusseder
 //
 
 

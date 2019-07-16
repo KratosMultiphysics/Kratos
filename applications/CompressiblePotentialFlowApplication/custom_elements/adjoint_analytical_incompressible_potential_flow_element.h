@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Iñigo Lopez based on M. Nuñez, A. Geiser, M. Fusseder and R. Rossi work
+//  Main authors:    Inigo Lopez and Marc Nunez, based on A. Geiser, M. Fusseder and R. Rossi work
 //
 
 #if !defined(KRATOS_ADJOINT_ANALYTICAL_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )

@@ -5,11 +5,12 @@
 #   _|\_\_|  \__,_|\__|\___/ ____/
 #                   Multi-Physics
 #
-#  License:		 BSD License
-#					 Kratos default license: kratos/license.txt
+#  License:        BSD License
+#                  Kratos default license: kratos/license.txt
 #
 #
-#  Main authors:    Iñigo Lopez and Riccardo Rossi
+#  Main authors:    Inigo Lopez and Riccardo Rossi
+
 # This scripts computes the sensitivity matrix for the incompressible
 # potential flow formulation simbolicaly using Kratos and sympy.
 from sympy import *
