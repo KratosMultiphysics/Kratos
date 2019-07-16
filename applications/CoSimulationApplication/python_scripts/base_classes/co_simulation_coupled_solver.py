@@ -154,6 +154,8 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
 
             from_data_name = i_data["data"].GetString()
             to_solver_name = i_data["to_solver"].GetString()
+
+            # Check that name is not the same! => do we allow self-communication?
             to_solver_data_name = i_data["to_solver_data"].GetString()
 
             if self.echo_level > 2:
