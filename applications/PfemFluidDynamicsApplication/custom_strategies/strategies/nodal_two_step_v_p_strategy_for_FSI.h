@@ -246,34 +246,33 @@ namespace Kratos {
 	bool continuityConverged = false;
 	bool fixedTimeStep=false;
 	/* boost::timer solve_step_time; */
-	std::cout<<" InitializeSolutionStep().... "<<std::endl;
+	// std::cout<<" InitializeSolutionStep().... "<<std::endl;
 	InitializeSolutionStep();  // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 	for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
 	  {
 	    if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 	      std::cout << "----- > iteration: " << it << std::endl;
 
-		std::cout << "----- > iteration: " << it << std::endl;
 	    if(it==0){
 
 	   		ComputeNodalVolumeAndAssignFlagToElementType(); // it assings NODAL_VOLUME to fluid and SOLID_NODAL_VOLUME to solid. Interface nodes have both
 
 	    	this->InitializeNonLinearIterations(); // it fills SOLID_NODAL_SFD_NEIGHBOURS for solids and NODAL_SFD_NEIGHBOURS for fluids
 		}
-		std::cout<<" CalcNodalStrainsAndStresses .... "<<std::endl;
+		// std::cout<<" CalcNodalStrainsAndStresses .... "<<std::endl;
 	    CalcNodalStrainsAndStresses(); // it computes stresses and strains for fluid and solid nodes
-		std::cout<<" CalcNodalStrainsAndStresses DONE "<<std::endl;
+		// std::cout<<" CalcNodalStrainsAndStresses DONE "<<std::endl;
 
 	    momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
 
 	    UpdateTopology(rModelPart, BaseType::GetEchoLevel());
-    	std::cout<<" ComputeNodalVolume .... "<<std::endl;
+    	// std::cout<<" ComputeNodalVolume .... "<<std::endl;
 		ComputeNodalVolume();
-    	std::cout<<" ComputeNodalVolume DONE "<<std::endl;
+    	// std::cout<<" ComputeNodalVolume DONE "<<std::endl;
 	    this->InitializeNonLinearIterations();
-		std::cout<<"    InitializeNonLinearIterations DONE "<<std::endl;
+		// std::cout<<"    InitializeNonLinearIterations DONE "<<std::endl;
 	    CalcNodalStrains();
-		std::cout<<"         CalcNodalStrains DONE "<<std::endl;
+		// std::cout<<"         CalcNodalStrains DONE "<<std::endl;
 
 	    if( fixedTimeStep==false){
 	      continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
@@ -728,7 +727,7 @@ void InitializeSolutionStep() override
 void FillNodalSFDVector()
 {
 
-	std::cout << "FillNodalSFDVector(); ... "  << std::endl;
+	// std::cout << "FillNodalSFDVector(); ... "  << std::endl;
 
 	ModelPart& rModelPart = BaseType::GetModelPart();
 		
@@ -757,7 +756,7 @@ void FillNodalSFDVector()
 		}
 	}
 //	 }
-	std::cout << "FillNodalSFDVector(); DONE "  << std::endl;
+	// std::cout << "FillNodalSFDVector(); DONE "  << std::endl;
 
 }
 
@@ -2163,13 +2162,13 @@ void ComputeAndStoreNodalDeformationGradientForInterfaceNode(ModelPart::NodeIter
 void UpdateTopology(ModelPart& rModelPart, unsigned int echoLevel)
     {
       KRATOS_TRY;
-			std::cout<<"                  UpdateTopology ..."<<std::endl;
+			// std::cout<<"                  UpdateTopology ..."<<std::endl;
       /* this->CalculateDisplacements(); */
       CalculateDisplacementsAndResetNodalVariables();
       BaseType::MoveMesh();
       BoundaryNormalsCalculationUtilities BoundaryComputation;
       BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
-			std::cout<<"                 UpdateTopology DONE"<<std::endl;
+			// std::cout<<"                 UpdateTopology DONE"<<std::endl;
 
       KRATOS_CATCH("");
 
