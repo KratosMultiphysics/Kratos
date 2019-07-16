@@ -220,14 +220,5 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         self.assertTrue(isclosethis, msg=full_msg)
 
-    def _runWakeTest(self,settings_file_name):
-        model = KratosMultiphysics.Model()
-        with open(settings_file_name,'r') as settings_file:
-            settings = KratosMultiphysics.Parameters(settings_file.read())
-
-        potential_flow_analysis = PotentialFlowAnalysis(model, settings)
-        potential_flow_analysis.Run()
-        self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
-
 if __name__ == '__main__':
     UnitTest.main()
