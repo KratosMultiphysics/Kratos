@@ -3,10 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import IsMPIAvailable
 
-if IsMPIAvailable():
-    import KratosMultiphysics.mpi as KratosMPI
-
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")

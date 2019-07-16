@@ -4,9 +4,6 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.kratos_utilities import IsMPIAvailable
 
-if IsMPIAvailable():
-    import KratosMultiphysics.mpi as KratosMPI
-
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
 
