@@ -3,6 +3,7 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
 import time
+import math
 
 
 def Factory(settings, Model):
@@ -40,7 +41,8 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         self.moving_parameters.AddEmptyValue("origin")
         self.moving_parameters["origin"].SetVector(self.main_model_part.ProcessInfo.GetValue(CPFApp.WAKE_ORIGIN))
         self.moving_parameters.AddEmptyValue("rotation_angle")
-        self.moving_parameters["rotation_angle"].SetDouble(self.main_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
+        angle=math.radians(-self.main_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
+        self.moving_parameters["rotation_angle"].SetDouble(angle)
         CPFApp.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
 
         CPFApp.DefineEmbeddedWakeProcess(self.main_model_part, self.wake_model_part).Execute()
