@@ -8,7 +8,7 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-import trilinos_import_model_part_utility
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 def GetFilePath(fileName):
@@ -59,9 +59,9 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         # Import the model part, perform the partitioning and create communicators
         import_settings = KratosMultiphysics.Parameters(self.parameters)
 
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, import_settings)
-        TrilinosModelPartImporter.ImportModelPart()
-        TrilinosModelPartImporter.CreateCommunicators()
+        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
+        ModelPartImporter.ImportModelPart()
+        ModelPartImporter.CreateCommunicators()
 
         # Recall to set the buffer size
         self.model_part.SetBufferSize(2)

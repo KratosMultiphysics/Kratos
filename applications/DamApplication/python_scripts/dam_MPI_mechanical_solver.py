@@ -10,6 +10,7 @@ import KratosMultiphysics.DamApplication as KratosDam
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 import dam_mechanical_solver
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -97,18 +98,17 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
 
     def ImportModelPart(self):
 
-        # Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        # Construct the import model part utility
+        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.main_model_part, self.settings)
 
         # Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        ModelPartImporter.ExecutePartitioningAndReading()
 
         # Create computing_model_part, set constitutive law and buffer size
         self._ExecuteAfterReading()
 
         # Construct the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+        ModelPartImporter.CreateCommunicators()
 
     def Initialize(self):
 

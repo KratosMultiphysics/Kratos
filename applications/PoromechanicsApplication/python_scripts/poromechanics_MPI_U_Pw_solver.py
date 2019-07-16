@@ -29,12 +29,12 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
     def ImportModelPart(self):
-        # Construct the Trilinos import model part utility
-        from KratosMultiphysics.TrilinosApplication import trilinos_import_model_part_utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        # Construct the import model part utility
+        from KratosMultiphysics.mpi import distributed_import_model_part_utility
+        self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.main_model_part, self.settings)
 
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
         super(MPIUPwSolver, self).PrepareModelPart()
@@ -43,7 +43,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
 
         # Construct the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
 
         KratosMultiphysics.Logger.PrintInfo("MPIUPwSolver: ", "Model reading finished.")
 

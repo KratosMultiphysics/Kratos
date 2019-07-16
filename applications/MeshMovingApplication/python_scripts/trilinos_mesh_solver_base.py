@@ -11,6 +11,8 @@ from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factor
 # Import baseclass
 from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
+# Importing MPI extensions to Kratos
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 class TrilinosMeshSolverBase(MeshSolverBase):
     def __init__(self, model, custom_settings):
@@ -48,15 +50,14 @@ class TrilinosMeshSolverBase(MeshSolverBase):
 
     def ImportModelPart(self):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Importing model part.")
-        from KratosMultiphysics.TrilinosApplication.trilinos_import_model_part_utility import TrilinosImportModelPartUtility
-        self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.mesh_model_part, self.settings)
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.mesh_model_part, self.settings)
+        self.distributed_model_part_importer.ImportModelPart()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
         super(TrilinosMeshSolverBase, self).PrepareModelPart()
         # Construct the mpi-communicator
-        self.trilinos_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
 
     def Finalize(self):
