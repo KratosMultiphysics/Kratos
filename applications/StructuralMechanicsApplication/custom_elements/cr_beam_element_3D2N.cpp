@@ -1399,8 +1399,8 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
     const double Iz = GetProperties()[I33];
 
     double Ip = 0.00;
-    if (GetProperties().Has(POLAR_MOMENT_OF_INERTIA)){
-        Ip = GetProperties()[POLAR_MOMENT_OF_INERTIA];
+    if (GetProperties().Has(MASS_MOMENT_OF_INERTIA)){
+        Ip = GetProperties()[MASS_MOMENT_OF_INERTIA];
     }
     else {
         //This is an approximation for a circular cross section
