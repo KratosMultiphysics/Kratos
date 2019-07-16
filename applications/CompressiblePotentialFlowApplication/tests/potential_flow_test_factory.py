@@ -77,6 +77,45 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_WakeProcess3DSmall(self):
+        # This tests a simple small 3D model
+        settings_file_name = "small_3d_parameters.json"
+        work_folder = "wake_process_3d_tests/15_elements_small_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            reference_wake_elements_id_list = [2, 4, 9, 13, 15]
+            self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
+            reference_kutta_elements_id_list = [1, 10, 14]
+            self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def test_WakeProcess3DNodesOnWake(self):
+        # This tests a model with nodes laying on the wake
+        settings_file_name = "small_3d_parameters.json"
+        work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_small_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            reference_wake_elements_id_list = [1, 2, 3, 4, 5, 6]
+            self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
+            reference_kutta_elements_id_list = [13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
+            self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def _validateWakeProcess(self,reference_element_id_list, variable_name):
+        variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+        solution_element_id_list = []
+        for elem in self.main_model_part.Elements:
+            if(elem.GetValue(variable)):
+                solution_element_id_list.append(elem.Id)
+        self._validateIdList(solution_element_id_list, reference_element_id_list)
+
+    def _validateIdList(self, solution_element_id_list, reference_element_id_list):
+        if(abs(len(reference_element_id_list) - len(solution_element_id_list)) > 0.1):
+            raise Exception('Lists have different lengths')
+        else:
+            for i in range(len(reference_element_id_list)):
+                self._check_results(solution_element_id_list[i], reference_element_id_list[i], 0.0, 1e-9)
+
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
@@ -166,6 +205,15 @@ class PotentialFlowTests(UnitTest.TestCase):
         full_msg += str(rel_tol) + ", abs_tol = " + str(abs_tol)
 
         self.assertTrue(isclosethis, msg=full_msg)
+
+    def _runWakeTest(self,settings_file_name):
+        model = KratosMultiphysics.Model()
+        with open(settings_file_name,'r') as settings_file:
+            settings = KratosMultiphysics.Parameters(settings_file.read())
+
+        potential_flow_analysis = PotentialFlowAnalysis(model, settings)
+        potential_flow_analysis.Run()
+        self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
 
 if __name__ == '__main__':
     UnitTest.main()
