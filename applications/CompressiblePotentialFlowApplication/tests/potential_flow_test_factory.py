@@ -143,7 +143,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                         "help"          : "This process writes postprocessing files for GiD",
                         "Parameters"    : {
                             "model_part_name"        : "MainModelPart",
-                            "output_name"            : "naca0012_adjoint",
+                            "output_name"            : "adjoint_test_output",
                             "postprocess_parameters" : {
                                 "result_file_configuration" : {
                                     "gidpost_flags"       : {
@@ -178,7 +178,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                         "help"          : "This process writes postprocessing files for GiD",
                         "Parameters"    : {
                             "model_part_name"        : "MainModelPart",
-                            "output_name"            : "naca0012",
+                            "output_name"            : "test_output",
                             "postprocess_parameters" : {
                                 "result_file_configuration" : {
                                     "gidpost_flags"       : {
