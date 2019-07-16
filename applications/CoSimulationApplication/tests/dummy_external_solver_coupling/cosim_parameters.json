@@ -16,27 +16,32 @@
             {
                 "name": "kratos_dummy",
                 "input_data_list"  : [],
-                "output_data_list" : [
-                    {
-                        "data"           : "disp",
+                "output_data_list" : [{
+                        "data"           : "Interface_1_disp",
                         "to_solver"      : "external_solver",
-                        "to_solver_data" : "Interface_displacement",
+                        "to_solver_data" : "Interface_1_disp",
                         "data_transfer_operator" : "mapper"
-                    }
-                ]
+                    },{
+                        "data"           : "Interface_2_rot",
+                        "to_solver"      : "external_solver",
+                        "to_solver_data" : "Interface_2_rot",
+                        "data_transfer_operator" : "mapper"
+                }]
             },
             {
                 "name": "external_solver",
                 "input_data_list"  : [],
-                "output_data_list" : [
-                    {
-                        "data"              : "Interface_loads",
-                        "to_solver"         : "kratos_dummy",
-                        "to_solver_data"    : "load",
-                        "data_transfer_operator" : "mapper",
-                        "data_transfer_operator_options" : ["swap_sign"]
-                    }
-                ]
+                "output_data_list" : [{
+                    "data"           : "Interface_1_force",
+                    "to_solver"      : "kratos_dummy",
+                    "to_solver_data" : "Interface_1_force",
+                    "data_transfer_operator" : "mapper"
+                },{
+                    "data"           : "Interface_2_moment",
+                    "to_solver"      : "kratos_dummy",
+                    "to_solver_data" : "Interface_2_moment",
+                    "data_transfer_operator" : "mapper"
+            }]
             }
         ],
         "data_transfer_operators" : {
@@ -58,20 +63,32 @@
                     "type" : "empire_io",
                     "model_parts_send" : {},
                     "model_parts_recv" : {
-                        "Fluid.GENERIC_FSI" : "Interface"
+                        "Fluid.NoSlip2D_FSI"    : "Interface_1_coupling",
+                        "Fluid2.Outlet2D_Outlet" : "Interface_2_Outlet"
                     }
                 },
                 "data" : {
-                    "Interface_displacement" : {
-                        "model_part_name"   : "Fluid.GENERIC_FSI",
+                    "Interface_1_disp" : {
+                        "model_part_name"   : "Fluid.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    "Interface_loads" : {
-                        "model_part_name"   : "Fluid.GENERIC_FSI",
+                    "Interface_1_force" : {
+                        "model_part_name"   : "Fluid.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "FORCE"
-                    }}
+                    },
+                    "Interface_2_rot" : {
+                        "model_part_name"   : "Fluid2.Outlet2D_Outlet",
+                        "dimension" : 2,
+                        "variable_name" : "ROTATION"
+                    },
+                    "Interface_2_moment" : {
+                        "model_part_name"   : "Fluid2.Outlet2D_Outlet",
+                        "dimension" : 2,
+                        "variable_name" : "MOMENT"
+                    }
+                }
             },
             "kratos_dummy" :
             {
@@ -79,20 +96,30 @@
                 "echo_level" : 3,
                 "settings" : {
                     "time_step" : 1.0,
-                    "main_model_part_name" : "Structure",
-                    "mdpa_file_name" : "generic_mdpa_files/Mok_CSM",
+                    "main_model_part_name" : "Fluid",
+                    "mdpa_file_name" : "generic_mdpa_files/Mok_CFD",
                     "domain_size" : 2
                 },
                 "data" : {
-                    "disp" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
+                    "Interface_1_disp" : {
+                        "model_part_name"   : "Fluid.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    "load" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
+                    "Interface_1_force" : {
+                        "model_part_name"   : "Fluid.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "FORCE"
+                    },
+                    "Interface_2_rot" : {
+                        "model_part_name"   : "Fluid.Outlet2D_Outlet",
+                        "dimension" : 2,
+                        "variable_name" : "ROTATION"
+                    },
+                    "Interface_2_moment" : {
+                        "model_part_name"   : "Fluid.Outlet2D_Outlet",
+                        "dimension" : 2,
+                        "variable_name" : "MOMENT"
                     }
                 }
             }
