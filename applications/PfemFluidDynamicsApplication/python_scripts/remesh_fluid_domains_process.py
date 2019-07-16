@@ -290,56 +290,6 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                    #  print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
                     # self.RemeshFluidDomains()
 
-
-    def NodalChecksAndAssignations(self):
-
-        numFluid=0
-        numRigid=0
-        numRigidFluid=0
-        numRigidNotFluid=0
-        numBoundary=0
-        numIsolated=0
-        numFreeSurface=0
-        numBlocked=0
-        mean_nodal_h=0
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            if (node.Is(KratosMultiphysics.FLUID)):
-                numFluid+=1
-
-                nodal_h=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
-                mean_nodal_h+=nodal_h
-
-            if (node.Is(KratosMultiphysics.RIGID)):
-                numRigid+=1
-                if (node.Is(KratosMultiphysics.FLUID)):
-                    numRigidFluid+=1
-                else:
-                    numRigidNotFluid+=1
-                    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0.0)
-                if (node.Is(KratosMultiphysics.BOUNDARY)):
-                    numBoundary+=1
-                if (node.Is(KratosMultiphysics.ISOLATED)):
-                    numIsolated+=1
-                    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0.0)
-
-                if (node.Is(KratosMultiphysics.FREE_SURFACE)):
-                    numFreeSurface+=1
-                if (node.Is(KratosMultiphysics.BLOCKED)):
-                    numBlocked+=1
-
-        mean_nodal_h*=1.0/numFluid;
-        if(self.echo_level>1):
-            print("nodal_h is  ",nodal_h)
-            print("numFluid ",numFluid)
-            print("numRigid ",numRigid)
-            print("numRigidFluid ",numRigidFluid)
-            print("numRigidNotFluid ",numRigidNotFluid)
-            print("numBoundary ",numBoundary)
-            print("numIsolated ",numIsolated)
-            print("numFreeSurface ",numFreeSurface)
-            print("numBlocked ",numBlocked)
-
     #
     def ExecuteAfterOutputStep(self):
 
@@ -359,6 +309,9 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
     #
     def IsMeshingStep(self):
 
+        #if( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= 0.025):
+            #return False
+            
         if(self.meshing_control_is_time):
             #print( str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])+">"+ str(self.next_meshing) )
             return ( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_meshing )
