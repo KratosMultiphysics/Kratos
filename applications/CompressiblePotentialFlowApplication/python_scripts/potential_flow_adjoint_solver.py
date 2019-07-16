@@ -62,7 +62,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
-        self.__ComputeNodalNeighbours()
+        self._ComputeNodalNeighbours()
 
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
