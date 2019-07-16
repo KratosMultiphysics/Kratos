@@ -6,8 +6,8 @@ import KratosMultiphysics.FSIApplication as KratosFSI
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math
-import convergence_accelerator_factory
+import math, os, glob
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorSpringTests/" + fileName
@@ -127,7 +127,6 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             gid_io.FinalizeResults()
 
         # clean temporary files
-        import os,glob
         for f in glob.glob(GetFilePath('*.time')):
             os.remove(f)
 
