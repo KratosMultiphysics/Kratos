@@ -87,7 +87,10 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Mark the elements touching the trailing edge from below as kutta
         self.__MarkKuttaElements()
         # Output the wake in GiD for visualization
-        self.__VisualizeWake()
+        if(self.output_wake):
+            self.__VisualizeWake()
+        # Output element ids in the terminal
+        self.__TerminalPrint()
 
     def __SetWakeAndSpanDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
@@ -160,7 +163,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def __MarkWakeElements(self):
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
 
-        # In this process a negative distance is assigned to nodes laying on the wake
+        # Mark cut elements and compute elemental distances
+        # Attention: Note that in this process a negative distance is assigned to nodes
+        # laying on the wake. In 2D it is done viceversa.
         distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(
             self.wake_model_part, self.fluid_model_part)
         distance_calculator.Execute()
@@ -174,8 +179,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
             # Cut elements are wake
             if(elem.Is(KratosMultiphysics.TO_SPLIT)):
+                # Mark wake element
                 elem.SetValue(CPFApp.WAKE, True)
-                elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
+                # Save wake elemental distances
                 wake_elemental_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
                 for i in range(len(wake_elemental_distances)):
                     if(abs(wake_elemental_distances[i]) < self.epsilon ):
@@ -184,6 +190,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                         else:
                             wake_elemental_distances[i] = self.epsilon
                 elem.SetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES,wake_elemental_distances)
+                # Save wake nodal distances
+                counter = 0
+                for node in elem.GetNodes():
+                    node.SetValue(CPFApp.WAKE_DISTANCE,wake_elemental_distances[counter])
+                    counter += 1
+                # Mark nodes above and below the wake with WATER_PRESSURE variable for visualization
                 counter = 0
                 for node in elem.GetNodes():
                     node.SetValue(CPFApp.WAKE_DISTANCE, wake_elemental_distances[counter])
@@ -220,6 +232,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def __MarkKuttaElements(self):
         # This function selects the kutta elements. Kutta elements
         # are touching the trailing edge from below.
+
+        # Loop over elements touching the trailing edge
         for elem in self.trailing_edge_model_part.Elements:
             # Check if it is a wing tip element
             wing_tip = self.__CheckIfWingTipElement(elem)
@@ -228,7 +242,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 # TODO: Check what to do with wing tip elements
                 # and tip vortice elements in general
                 elem.SetValue(CPFApp.WAKE, False)
-                elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
             else:
                 trailing_edge_node, number_of_non_te_nodes = self.__GetATrailingEdgeNodeAndNumberOfNonTENodes(elem)
                 nodal_distances = self.__ComputeNodalDistancesToWakeAndLowerSurface(elem, trailing_edge_node, number_of_non_te_nodes)
@@ -313,24 +326,18 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Count number of nodes above and below the wake and lower surface
         number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(nodal_distances)
 
-        # Elements with nodes above and below the wake are wake elements
-        if(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0):
-            # Selecting only the elements that were already marked as wake
-            if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
-                #elem.SetValue(CPFApp.WAKE, True)
-                elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
         # Elements with all non trailing edge nodes below the wake and the lower surface are kutta
-        elif(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1):
+        if(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1):
             elem.SetValue(CPFApp.KUTTA, True)
             elem.SetValue(CPFApp.WAKE, False)
-            elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
-        # Elements with all non trailing edge nodes above the wake are normal
-        else:
+        # Elements with all non trailing edge nodes above the wake and the lower surface are normal
+        elif(number_of_nodes_with_positive_distance > number_of_non_te_nodes - 1):
             elem.SetValue(CPFApp.WAKE, False)
-            elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, False)
-            elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
 
     def __CountNodes(self, distances_to_te):
+        # This function counts the number of nodes that are above and below
+        # the wake and the lower surface
+
         # Initialize counters
         number_of_nodes_with_positive_distance = 0
         number_of_nodes_with_negative_distance = 0
@@ -345,37 +352,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         return number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance
 
     def __VisualizeWake(self):
-
-        # Print elements
-        for elem in self.trailing_edge_model_part.Elements:
-            if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
-                #print(elem.Id)
-                pass
-            elif(elem.GetValue(CPFApp.KUTTA)):
-                #print(elem.Id)
-                pass
-            else:
-                #print(elem.Id)
-                pass
-                if not (elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
-                    #print(elem.Id)
-                    pass
-
-        # Print elements
-        for elem in self.fluid_model_part.Elements:
-            if(elem.GetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)):
-                print(elem.Id)
-                pass
-            elif(elem.GetValue(CPFApp.KUTTA)):
-                #print(elem.Id)
-                pass
-            else:
-                #print(elem.Id)
-                pass
-                if not (elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
-                    #print(elem.Id)
-                    pass
-
         # To visualize the wake
         number_of_nodes = self.fluid_model_part.NumberOfNodes()
         number_of_elements = self.fluid_model_part.NumberOfElements()
@@ -391,41 +367,65 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             elem.Id = counter
             counter +=1
 
-        if(self.output_wake):
-            from gid_output_process import GiDOutputProcess
-            output_file = "representation_of_wake"
-            gid_output =  GiDOutputProcess(self.wake_model_part,
-                                    output_file,
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration": {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostAscii",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "file_label": "time",
-                                                "output_control_type": "step",
-                                                "output_frequency": 1.0,
-                                                "body_output": true,
-                                                "node_output": false,
-                                                "skin_output": false,
-                                                "plane_output": [],
-                                                "nodal_results": [],
-                                                "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
-                                                "nodal_flags_results": [],
-                                                "gauss_point_results": [],
-                                                "additional_list_files": []
-                                            }
+        from gid_output_process import GiDOutputProcess
+        output_file = "representation_of_wake"
+        gid_output =  GiDOutputProcess(self.wake_model_part,
+                                output_file,
+                                KratosMultiphysics.Parameters("""
+                                    {
+                                        "result_file_configuration": {
+                                            "gidpost_flags": {
+                                                "GiDPostMode": "GiD_PostAscii",
+                                                "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                "WriteConditionsFlag": "WriteConditions",
+                                                "MultiFileFlag": "SingleFile"
+                                            },
+                                            "file_label": "time",
+                                            "output_control_type": "step",
+                                            "output_frequency": 1.0,
+                                            "body_output": true,
+                                            "node_output": false,
+                                            "skin_output": false,
+                                            "plane_output": [],
+                                            "nodal_results": [],
+                                            "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
+                                            "nodal_flags_results": [],
+                                            "gauss_point_results": [],
+                                            "additional_list_files": []
                                         }
-                                        """)
-                                    )
+                                    }
+                                    """)
+                                )
 
-            gid_output.ExecuteInitialize()
-            gid_output.ExecuteBeforeSolutionLoop()
-            gid_output.ExecuteInitializeSolutionStep()
-            gid_output.PrintOutput()
-            gid_output.ExecuteFinalizeSolutionStep()
-            gid_output.ExecuteFinalize()
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
+
+    def __TerminalPrint(self):
+        # Print trailing_edge_model_part elements
+        for elem in self.trailing_edge_model_part.Elements:
+            if(elem.GetValue(CPFApp.WAKE)):
+                #print(elem.Id)
+                pass
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                #print(elem.Id)
+                pass
+            else:
+                #print(elem.Id)
+                pass
+
+        # Print fluid_model_part elements
+        for elem in self.fluid_model_part.Elements:
+            if(elem.GetValue(CPFApp.WAKE)):
+                print(elem.Id)
+                pass
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                #print(elem.Id)
+                pass
+            else:
+                #print(elem.Id)
+                pass
     #'''
