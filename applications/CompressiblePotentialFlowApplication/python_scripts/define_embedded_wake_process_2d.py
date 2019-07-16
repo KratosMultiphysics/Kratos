@@ -30,7 +30,7 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
 
         self.epsilon = settings["epsilon"].GetDouble()
 
-    def ExecuteInitialize(self):
+    def ExecuteInitializeSolutionStep(self):
         ini_time = time.time()
 
         self.wake_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
