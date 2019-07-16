@@ -16,7 +16,7 @@
         },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
-        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "volume_model_part_name" : "MainModelPart",
         "skin_parts"             : ["PotentialWallCondition3D_Far_field_Auto1","Body3D_Body_Auto1"],
         "no_skin_parts"          : ["Wake3D_Wake_Auto1","Tip3D_Wing_Tips_Auto1"],
         "auxiliary_variables_list" : ["DISTANCE"]

@@ -28,30 +28,30 @@ End Nodes
 
 
 Begin Elements Element3D4N// GUI group identifier: Parts Auto1
-        1          1          8         13         11          4 
-        2          1         11          8          4          5 
-        3          1          3          7          9          4 
-        4          1          3          7          4          5 
-        5          1         13         11          4          9 
-        6          1          8         13          4          3 
-        7          1          7          9          4         11 
-        8          1          4          7         11          5 
-        9          1          9          3          4         13 
-       10          1         14          8         10          6 
-       11          1          6          1          3          2 
-       12          1          1          3          2          5 
-       13          1          3          6          2         12 
-       14          1         10          8          5          2 
-       15          1         10          8          2          6 
-       16          1          8          5          2          4 
-       17          1          2          8          4          3 
-       18          1          2          8          3         12 
-       19          1          4          2          3          5 
-       20          1          3          1          7          5 
-       21          1          5         10          2          1 
-       22          1          2         10          6          1 
-       23          1          8          2          6         12 
-       24          1         14         12          8          6 
+        1          1          8         13         11          4
+        2          1         11          8          4          5
+        3          1          3          7          9          4
+        4          1          3          7          4          5
+        5          1         13         11          4          9
+        6          1          8         13          4          3
+        7          1          7          9          4         11
+        8          1          4          7         11          5
+        9          1          9          3          4         13
+       10          1         14          8         10          6
+       11          1          6          1          3          2
+       12          1          1          3          2          5
+       13          1          3          6          2         12
+       14          1         10          8          5          2
+       15          1         10          8          2          6
+       16          1          8          5          2          4
+       17          1          2          8          4          3
+       18          1          2          8          3         12
+       19          1          4          2          3          5
+       20          1          3          1          7          5
+       21          1          5         10          2          1
+       22          1          2         10          6          1
+       23          1          8          2          6         12
+       24          1         14         12          8          6
 End Elements
 
 Begin Conditions SurfaceCondition3D3N// GUI group identifier: _HIDDEN__SKIN_
@@ -77,7 +77,7 @@ Begin Conditions SurfaceCondition3D3N// GUI group identifier: _HIDDEN__SKIN_
     20 0 3 7 1
 End Conditions
 
-Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
+Begin SubModelPart MainModelPart // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartNodes
             1
             2
