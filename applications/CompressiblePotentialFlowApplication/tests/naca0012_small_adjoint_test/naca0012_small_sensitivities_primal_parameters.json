@@ -51,7 +51,8 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "moment_reference_point" : [0.0,0.0,0.0]
+                "moment_reference_point" : [0.0,0.0,0.0],
+                "far_field_model_part_name": "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
             }
         }],
         "list_other_processes" :[{

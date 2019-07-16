@@ -34,7 +34,7 @@
             },
             "initial_remeshing"                : false,
             "fix_contour_model_parts"          : [],
-			"fix_elements_model_parts"         : ["Body_Part-auto-1"],
+			"fix_elements_model_parts"         : [],
             "minimal_size"                     : 0.015,
             "maximal_size"                     : 0.5,
             "force_min"                        : false,
