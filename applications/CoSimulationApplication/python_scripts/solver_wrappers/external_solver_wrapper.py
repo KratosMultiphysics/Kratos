@@ -18,13 +18,30 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, solver_name):
         super(ExternalSolverWrapper, self).__init__(settings, solver_name)
 
+        settings_defaults = KM.Parameters("""{
+            "model_parts_read" : { },
+            "model_parts_send" : { },
+            "model_parts_recv" : { }
+        }""")
+
+        self.settings["settings"].ValidateAndAssignDefaults(settings_defaults)
+
         self.__CreateModelPartsFromCouplingData()
         self._AllocateHistoricalVariablesFromCouplingData()
 
     def Initialize(self):
-        io_recv_settings = self.settings["io_settings"]["model_parts_recv"]
+        for main_model_part_name, mdpa_file_name in self.settings["settings"]["model_parts_read"].items():
+            KM.ModelPartIO(mdpa_file_name.GetString()).ReadModelPart(self.model[main_model_part_name])
 
-        for model_part_name, comm_name in io_recv_settings.items():
+        for model_part_name, comm_name in self.settings["settings"]["model_parts_send"].items():
+            interface_config = {
+                "comm_name" : comm_name.GetString(),
+                "model_part_name" : model_part_name
+            }
+
+            self.ExportCouplingInterface(interface_config)
+
+        for model_part_name, comm_name in self.settings["settings"]["model_parts_recv"].items():
             interface_config = {
                 "comm_name" : comm_name.GetString(),
                 "model_part_name" : model_part_name
