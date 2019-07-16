@@ -92,7 +92,7 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_WakeProcess3DNodesOnWake(self):
         # This tests a model with nodes laying on the wake
         settings_file_name = "small_3d_parameters.json"
-        work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_small_test"
+        work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
