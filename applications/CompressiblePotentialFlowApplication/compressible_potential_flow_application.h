@@ -100,8 +100,8 @@ private:
     ///@{
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
-	const IncompressiblePotentialFlowElement<3, 4> mIncompressiblePotentialFlowElement3D4N;
-    const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
+    const IncompressiblePotentialFlowElement<3, 4> mIncompressiblePotentialFlowElement3D4N;
+    const CompressiblePotentialFlowElement<2, 3> mCompressiblePotentialFlowElement2D3N;
     const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
     const AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>> mAdjointCompressiblePotentialFlowElement2D3N;
     const EmbeddedIncompressiblePotentialFlowElement<2,3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
