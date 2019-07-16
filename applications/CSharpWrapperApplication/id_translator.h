@@ -15,6 +15,9 @@
 //                   Riccardo Rossi
 //
 
+#if !defined(CSHARP_WRAPPER_APPLICATION_ID_TRANSLATOR_H_INCLUDED )
+#define  CSHARP_WRAPPER_APPLICATION_ID_TRANSLATOR_H_INCLUDED
+
 // System includes
 
 // External includes
@@ -34,3 +37,5 @@ namespace CSharpKratosWrapper {
         int* pmUnityIds;
     };
 }
+
+#endif	/* CSHARP_WRAPPER_APPLICATION_ID_TRANSLATOR_H_INCLUDED */

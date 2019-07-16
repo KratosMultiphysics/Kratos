@@ -15,6 +15,9 @@
 //                   Riccardo Rossi
 //
 
+#if !defined(CSHARP_WRAPPER_APPLICATION_EXTERNAL_INTERFACE_H_INCLUDED )
+#define  CSHARP_WRAPPER_APPLICATION_EXTERNAL_INTERFACE_H_INCLUDED
+
 // System includes
 
 // External includes
@@ -64,3 +67,5 @@ namespace CSharpKratosWrapper {
         static void freeNodes();
     };
 }
+
+#endif	/* CSHARP_WRAPPER_APPLICATION_EXTERNAL_INTERFACE_H_INCLUDED */

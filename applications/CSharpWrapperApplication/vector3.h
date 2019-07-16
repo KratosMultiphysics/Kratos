@@ -15,6 +15,9 @@
 //                   Riccardo Rossi
 //
 
+#if !defined(CSHARP_WRAPPER_APPLICATION_VECTOR3_H_INCLUDED )
+#define  CSHARP_WRAPPER_APPLICATION_VECTOR3_H_INCLUDED
+
 // System includes
 
 // External includes
@@ -39,3 +42,5 @@ namespace CSharpKratosWrapper {
     };
 
 }
+
+#endif	/* CSHARP_WRAPPER_APPLICATION_VECTOR3_H_INCLUDED */

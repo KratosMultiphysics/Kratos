@@ -15,6 +15,9 @@
 //                   Riccardo Rossi
 //
 
+#if !defined(CSHARP_WRAPPER_APPLICATION_MESH_CONVERTER_H_INCLUDED )
+#define  CSHARP_WRAPPER_APPLICATION_MESH_CONVERTER_H_INCLUDED
+
 // System includes
 #include <vector>
 
@@ -40,3 +43,5 @@ namespace CSharpKratosWrapper {
 
     };
 }
+
+#endif	/* CSHARP_WRAPPER_APPLICATION_MESH_CONVERTER_H_INCLUDED */

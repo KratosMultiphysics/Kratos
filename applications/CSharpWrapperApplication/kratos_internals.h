@@ -15,6 +15,9 @@
 //                   Riccardo Rossi
 //
 
+#if !defined(CSHARP_WRAPPER_APPLICATION_KRATOS_INTERNALS_H_INCLUDED )
+#define  CSHARP_WRAPPER_APPLICATION_KRATOS_INTERNALS_H_INCLUDED
+
 // System includes
 
 // External includes
@@ -82,3 +85,6 @@ namespace CSharpKratosWrapper {
         Kratos::Parameters GetDefaultSettings();
     };
 }
+
+#endif	/* CSHARP_WRAPPER_APPLICATION_KRATOS_INTERNALS_H_INCLUDED */
+
