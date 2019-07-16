@@ -7,7 +7,7 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:   Marc Núñez
+//  Main authors:   Marc Nunez
 //
 
 
