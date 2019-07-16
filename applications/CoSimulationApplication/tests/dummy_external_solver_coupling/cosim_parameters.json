@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 15.0,
+        "end_time" : 5.0,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -31,17 +31,24 @@
             {
                 "name": "external_solver",
                 "input_data_list"  : [],
-                "output_data_list" : [{
-                    "data"           : "Interface_1_force",
-                    "to_solver"      : "kratos_dummy",
-                    "to_solver_data" : "Interface_1_force",
-                    "data_transfer_operator" : "mapper"
-                },{
-                    "data"           : "Interface_2_moment",
-                    "to_solver"      : "kratos_dummy",
-                    "to_solver_data" : "Interface_2_moment",
-                    "data_transfer_operator" : "mapper"
-            }]
+                "output_data_list" : [
+                    {
+                        "data"           : "Interface_1_force",
+                        "to_solver"      : "kratos_dummy",
+                        "to_solver_data" : "Interface_1_force",
+                        "data_transfer_operator" : "mapper"
+                    },{
+                        "data"           : "Interface_2_moment",
+                        "to_solver"      : "kratos_dummy",
+                        "to_solver_data" : "Interface_2_moment",
+                        "data_transfer_operator" : "mapper"
+                    },{
+                        "data"           : "Interface_inlet_velocity",
+                        "to_solver"      : "kratos_dummy",
+                        "to_solver_data" : "Interface_velocity",
+                        "data_transfer_operator" : "copy_transfer"
+                    }
+                ]
             }
         ],
         "data_transfer_operators" : {
@@ -50,6 +57,9 @@
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
                 }
+            },
+            "copy_transfer" : {
+                "type" : "copy"
             }
         },
         "solvers" :
@@ -58,14 +68,20 @@
             {
                 "type" : "solver_wrappers.external_solver_wrapper",
                 "echo_level" : 3,
-                "settings" : {},
-                "io_settings" : {
-                    "type" : "empire_io",
-                    "model_parts_send" : {},
+                "settings" : {
+                    "model_parts_read" : {
+                        "Fluid_copy" : "generic_mdpa_files/Mok_CFD"
+                    },
+                    "model_parts_send" : {
+                        "Fluid_copy.AutomaticInlet2D_Inlet" : "Interface_Inlet_vel"
+                    },
                     "model_parts_recv" : {
                         "Fluid.NoSlip2D_FSI"    : "Interface_1_coupling",
                         "Fluid2.Outlet2D_Outlet" : "Interface_2_Outlet"
                     }
+                },
+                "io_settings" : {
+                    "type" : "empire_io"
                 },
                 "data" : {
                     "Interface_1_disp" : {
@@ -87,6 +103,11 @@
                         "model_part_name"   : "Fluid2.Outlet2D_Outlet",
                         "dimension" : 2,
                         "variable_name" : "MOMENT"
+                    },
+                    "Interface_inlet_velocity" : {
+                        "model_part_name"   : "Fluid_copy.AutomaticInlet2D_Inlet",
+                        "dimension" : 2,
+                        "variable_name" : "VELOCITY"
                     }
                 }
             },
@@ -120,6 +141,11 @@
                         "model_part_name"   : "Fluid.Outlet2D_Outlet",
                         "dimension" : 2,
                         "variable_name" : "MOMENT"
+                    },
+                    "Interface_velocity" : {
+                        "model_part_name"   : "Fluid.AutomaticInlet2D_Inlet",
+                        "dimension" : 2,
+                        "variable_name" : "VELOCITY"
                     }
                 }
             }
