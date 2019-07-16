@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 
 namespace Kratos
 {
