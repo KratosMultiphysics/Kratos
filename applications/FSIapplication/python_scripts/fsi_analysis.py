@@ -134,7 +134,7 @@ class FSIAnalysis(AnalysisStage):
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility
+                from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as Restart
             model_part_name = self.project_parameters["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):
                 model_part = self.model.GetModelPart(model_part_name)
@@ -153,7 +153,7 @@ class FSIAnalysis(AnalysisStage):
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility
+                from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as Restart
 
             model_part_name = self.project_parameters["structure_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):
