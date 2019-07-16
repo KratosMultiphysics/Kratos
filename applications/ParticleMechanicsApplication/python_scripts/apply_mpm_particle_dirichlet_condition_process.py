@@ -17,6 +17,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "particles_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
+                "augmention_factor"         : 0,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -36,9 +37,15 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         # set type of boundary
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
+            self.is_penalty_condition = True
+            self.augmention_factor = 0
+        elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
+            self.is_penalty_condition = False
+            self.penalty_factor = 0
+            self.augmention_factor = settings["augmention_factor"].GetDouble()
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"."
+            err_msg += "Available option is: \"penalty\"or \"lagrange\"."
             raise Exception(err_msg)
 
         # check constraint
@@ -90,7 +97,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
+                condition.SetValue(KratosParticle.MPC_IS_PENALTY, self.is_penalty_condition)
                 condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                condition.SetValue(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, self.augmention_factor)
                 condition.SetValue(self.variable, self.vector)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
