@@ -70,10 +70,11 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception('The wake normal should be a unitary vector')
 
         self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 
     def ExecuteInitialize(self):
 
-        self.__SetWakeDirectionAndNormal()
+        self.__SetWakeAndSpanDirections()
         self.__MarkTrailingEdgeAndWingTipNodes()
         self.__ComputeLowerSurfaceNormals()
         self.__CreateWakeModelPart()
@@ -82,7 +83,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.__MarkKuttaElements()
         self.__VisualizeWake()
 
-    def __SetWakeDirectionAndNormal(self):
+    def __SetWakeAndSpanDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         if(free_stream_velocity.Size() != 3):
             raise Exception('The free stream velocity should be a vector with 3 components!')
@@ -93,6 +94,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.wake_direction[1] = free_stream_velocity[1]/vnorm
         self.wake_direction[2] = free_stream_velocity[2]/vnorm
 
+        # span_direction = wake_normal x wake_direction
         self.span_direction = KratosMultiphysics.Vector(3)
         self.span_direction[0] = self.wake_normal[1] * self.wake_direction[2] - self.wake_normal[2] * self.wake_direction[1]
         self.span_direction[1] = self.wake_normal[2] * self.wake_direction[0] - self.wake_normal[0] * self.wake_direction[2]
