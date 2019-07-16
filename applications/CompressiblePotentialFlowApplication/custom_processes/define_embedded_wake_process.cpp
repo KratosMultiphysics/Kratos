@@ -34,10 +34,12 @@ void DefineEmbeddedWakeProcess::Execute()
 {
     KRATOS_TRY;
 
+    KRATOS_ERROR_IF(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]>2) << "DOMAIN_SIZE is greater than 2. DefineEmbeddedWakeProcess is only implemented for 2D cases!" << std::endl;
+
     ComputeDistanceToWake();
     MarkWakeElements();
     ComputeTrailingEdgeNode();
-    MarkKuttaElements();
+    MarkKuttaWakeElements();
 
     KRATOS_CATCH("");
 }
@@ -97,6 +99,7 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
     auto wake_origin = mrModelPart.GetProcessInfo()[WAKE_ORIGIN];
 
+    // Find furthest deactivated element to the wake origin
     for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
 
@@ -110,24 +113,33 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
         }
     }
 
+    // Mark nodes of the furthest deactivated element and store its neighbour elements
     for (unsigned int i_node= 0; i_node < p_max_elem->GetGeometry().size(); i_node++) {
         p_max_elem->GetGeometry()[i_node].SetValue(TRAILING_EDGE,true);
+        const GlobalPointersVector<Element>& r_node_elem_candidates = p_max_elem -> GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+        for (std::size_t j = 0; j < r_node_elem_candidates.size(); j++) {
+            mKuttaWakeElementCandidates.push_back(r_node_elem_candidates(j));
+        }
     }
 
     mrModelPart.RemoveSubModelPart("deactivated_model_part");
 }
 
-void DefineEmbeddedWakeProcess::MarkKuttaElements(){
-    // #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
-        if (it_elem->GetValue(WAKE) && it_elem->Is(ACTIVE)){
-            for (unsigned int i_node= 0; i_node < it_elem->GetGeometry().size(); i_node++) {
-                if(it_elem->GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
-                    it_elem->Set(STRUCTURE);
+void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
+
+    // Find elements that touch the furthes deactivated element and that are part of the wake.
+    for (std::size_t i = 0; i < mKuttaWakeElementCandidates.size(); i++)
+    {
+        auto& r_geometry = mKuttaWakeElementCandidates[i].GetGeometry();
+        if (mKuttaWakeElementCandidates[i].GetValue(WAKE) && mKuttaWakeElementCandidates[i].Is(ACTIVE)) {
+            for (std::size_t i_node= 0; i_node < r_geometry.size(); i_node++) {
+                if(r_geometry[i_node].GetValue(TRAILING_EDGE)){
+                    mKuttaWakeElementCandidates[i].Set(STRUCTURE);
+                    break;
                 }
             }
         }
+
     }
 }
 }// Namespace Kratos

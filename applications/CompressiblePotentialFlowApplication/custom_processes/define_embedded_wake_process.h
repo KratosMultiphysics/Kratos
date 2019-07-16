@@ -78,6 +78,7 @@ private:
 
     ModelPart& mrModelPart;
     ModelPart& mrWakeModelPart;
+    GlobalPointersVector<Element> mKuttaWakeElementCandidates;
 
     void ComputeDistanceToWake();
 
@@ -85,7 +86,7 @@ private:
 
     void ComputeTrailingEdgeNode();
 
-    void MarkKuttaElements();
+    void MarkKuttaWakeElements();
 
 }; // Class Process
 } // namespace Kratos
