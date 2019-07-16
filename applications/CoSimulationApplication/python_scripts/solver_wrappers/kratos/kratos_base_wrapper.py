@@ -8,9 +8,10 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from importlib import import_module
 
 def Create(settings, solver_name):
-    raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')
+    return KratosBaseWrapper(settings, solver_name)
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
     """This class serves as basis for the kratos-wrappers
@@ -60,7 +61,11 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
 
     def _CreateAnalysisStage(self):
-        raise Exception("Creation of the AnalysisStage must be implemented in the derived class!")
+        if not self.settings["settings"].Has("analysis_stage_module"):
+            raise Exception('The "KratosBaseWrapper" can only be used when specifying "analysis_stage_module"!')
+
+        analysis_stage_module = import_module(self.settings["settings"]["analysis_stage_module"].GetString())
+        return analysis_stage_module.Create(self.model, self.project_parameters)
 
 
     def PrintInfo(self):
