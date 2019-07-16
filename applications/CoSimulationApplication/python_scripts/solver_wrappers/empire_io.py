@@ -63,9 +63,7 @@ class EmpireIO(CoSimulationIO):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "api_configuration_file_name" : "UNSPECIFIED",
-            "model_parts_send" : {},
-            "model_parts_recv" : {}
+            "api_configuration_file_name" : "UNSPECIFIED"
         }""")
         this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 
