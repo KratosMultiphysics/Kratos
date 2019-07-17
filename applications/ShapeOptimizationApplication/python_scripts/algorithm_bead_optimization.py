@@ -13,22 +13,39 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from algorithm_base import OptimizationAlgorithm
-import mapper_factory
-import data_logger_factory
-from custom_timer import Timer
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from .algorithm_base import OptimizationAlgorithm
+from . import mapper_factory
+from . import data_logger_factory
+from .custom_timer import Timer
+from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 import math
+
+
+from KratosMultiphysics.ShapeOptimizationApplication import (
+    ALPHA,
+    ALPHA_MAPPED,
+    DF1DALPHA,
+    DF1DALPHA_MAPPED,
+    DPDALPHA,
+    DPDALPHA_MAPPED,
+    DLDALPHA,
+    NORMALIZED_SURFACE_NORMAL,
+    BEAD_DIRECTION,
+    SHAPE_CHANGE,
+    SHAPE_UPDATE,
+    DF1DX,
+    CONTROL_POINT_CHANGE
+)
 
 # ==============================================================================
 class AlgorithmBeadOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
-        default_algorithm_settings = Parameters("""
+        default_algorithm_settings = KM.Parameters("""
         {
             "name"                          : "bead_optimization",
             "bead_height"                   : 1.0,
@@ -132,30 +149,30 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
 
         # Identify fixed design areas
-        VariableUtils().SetFlag(BOUNDARY, False, self.optimization_model_part.Nodes)
+        KM.VariableUtils().SetFlag(KM.BOUNDARY, False, self.optimization_model_part.Nodes)
 
         radius = self.mapper_settings["filter_radius"].GetDouble()
-        search_based_functions = SearchBasedFunctions(self.design_surface)
+        search_based_functions = KSO.SearchBasedFunctions(self.design_surface)
 
         for itr in range(self.algorithm_settings["fix_boundaries"].size()):
             sub_model_part_name = self.algorithm_settings["fix_boundaries"][itr].GetString()
             node_set = self.optimization_model_part.GetSubModelPart(sub_model_part_name).Nodes
-            search_based_functions.FlagNodesInRadius(node_set, BOUNDARY, radius)
+            search_based_functions.FlagNodesInRadius(node_set, KM.BOUNDARY, radius)
 
         # Specify bounds and assign starting values for ALPHA
         if self.bead_side == "positive":
-            VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes, BOUNDARY, False)
+            KM.VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes, KM.BOUNDARY, False)
             self.lower_bound = 0.0
             self.upper_bound = 1.0
         elif self.bead_side == "negative":
-            VariableUtils().SetScalarVar(ALPHA, -0.5, self.design_surface.Nodes, BOUNDARY, False)
+            KM.VariableUtils().SetScalarVar(ALPHA, -0.5, self.design_surface.Nodes, KM.BOUNDARY, False)
             self.lower_bound = -1.0
             self.upper_bound = 0.0
         elif self.bead_side == "both":
-            VariableUtils().SetScalarVar(ALPHA, 0.0, self.design_surface.Nodes, BOUNDARY, False)
+            KM.VariableUtils().SetScalarVar(ALPHA, 0.0, self.design_surface.Nodes, KM.BOUNDARY, False)
             self.lower_bound = -1.0
             self.upper_bound = 1.0
         else:
@@ -175,7 +192,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         elif len(bead_direction) == 3:
             norm = math.sqrt(bead_direction[0]**2 + bead_direction[1]**2 + bead_direction[2]**2)
             normalized_bead_direction = [value/norm for value in bead_direction]
-            VariableUtils().SetNonHistoricalVectorVar(BEAD_DIRECTION, normalized_bead_direction, self.design_surface.Nodes)
+            KM.VariableUtils().SetNonHistoricalVectorVar(BEAD_DIRECTION, normalized_bead_direction, self.design_surface.Nodes)
         else:
             raise RuntimeError("Wrong definition of bead direction. Options are: 1) [] -> takes surface normal, 2) [x.x,x.x,x.x] -> takes specified vector.")
 
@@ -258,7 +275,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 penalty_value = 0.0
                 if self.bead_side == "positive":
                     for node in self.design_surface.Nodes:
-                        if not node.Is(BOUNDARY):
+                        if not node.Is(KM.BOUNDARY):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
                             penalty_value += penalty_scaling*(alpha_i-alpha_i**2)
 
@@ -267,7 +284,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 elif self.bead_side == "negative":
                     for node in self.design_surface.Nodes:
-                        if not node.Is(BOUNDARY):
+                        if not node.Is(KM.BOUNDARY):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
                             penalty_value += penalty_scaling*(-alpha_i-alpha_i**2)
 
@@ -276,7 +293,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 elif self.bead_side == "both":
                     for node in self.design_surface.Nodes:
-                        if not node.Is(BOUNDARY):
+                        if not node.Is(KM.BOUNDARY):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
                             penalty_value += penalty_scaling*(-alpha_i**2+1)
 
@@ -307,7 +324,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 dLdalpha_for_normalization = {}
                 for node in self.design_surface.Nodes:
                     nodal_alpha = node.GetSolutionStepValue(ALPHA)
-                    if nodal_alpha==self.lower_bound or nodal_alpha==self.upper_bound or node.Is(BOUNDARY):
+                    if nodal_alpha==self.lower_bound or nodal_alpha==self.upper_bound or node.Is(KM.BOUNDARY):
                         dLdalpha_for_normalization[node.Id] = 0.0
                     else:
                         dLdalpha_for_normalization[node.Id] = node.GetSolutionStepValue(DLDALPHA)**2
@@ -326,7 +343,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     alpha_new = min(alpha_new, self.upper_bound)
 
                     # Enforce constraints
-                    if node.Is(BOUNDARY):
+                    if node.Is(KM.BOUNDARY):
                         alpha_new = 0.0
 
                     node.SetSolutionStepValue(ALPHA,alpha_new)

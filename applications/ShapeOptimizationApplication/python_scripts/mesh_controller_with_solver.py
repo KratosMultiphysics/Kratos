@@ -24,7 +24,7 @@ from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMo
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     def __init__(self, MeshSolverSettings, model):
-        default_settings = Parameters("""
+        default_settings = KM.Parameters("""
         {
             "apply_mesh_solver" : true,
             "solver_settings" : {
@@ -99,7 +99,7 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update-1)
         self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, 0)
 
-        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+        KM.VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
@@ -120,7 +120,7 @@ class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     @staticmethod
     def __AddDefaultProblemData(mesh_solver_settings):
-        problem_data = Parameters("""{
+        problem_data = KM.Parameters("""{
             "echo_level"    : 0,
             "start_time"    : 0.0,
             "end_time"      : 1.0,
@@ -134,7 +134,7 @@ class MeshControllerWithSolver(MeshController) :
     def __FixWholeSurface(optimization_model_part, mesh_solver_settings):
         optimization_model_part.CreateSubModelPart("auto_surface_nodes")
 
-        auto_process_settings = Parameters(
+        auto_process_settings = KM.Parameters(
             """
             {
                 "python_module" : "fix_vector_variable_process",

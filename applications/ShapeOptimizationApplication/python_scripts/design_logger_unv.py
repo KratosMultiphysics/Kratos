@@ -13,11 +13,11 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Import logger base classes
-from design_logger_base import DesignLogger
+from .design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerUNV( DesignLogger ):
