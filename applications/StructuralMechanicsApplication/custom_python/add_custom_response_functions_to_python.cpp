@@ -30,19 +30,19 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 
-#include "state_derivative/response_functions/direct_sensitivity_response_function.cpp"
-#include "state_derivative/response_functions/direct_sensitivity_local_stress_response_function.cpp"
-#include "state_derivative/response_functions/direct_sensitivity_nodal_displacement_response_function.cpp"
+#include "direct_sensitivity_analysis/response_functions/direct_sensitivity_response_function.cpp"
+#include "direct_sensitivity_analysis/response_functions/direct_sensitivity_local_stress_response_function.cpp"
+#include "direct_sensitivity_analysis/response_functions/direct_sensitivity_nodal_displacement_response_function.cpp"
 
 // Direct Sensitivity variables
-#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
-#include "state_derivative/variable_utilities/direct_sensitivity_element_data_variable.h"
-#include "state_derivative/variable_utilities/direct_sensitivity_nodal_data_variable.h"
-#include "state_derivative/variable_utilities/direct_sensitivity_point_load_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_element_data_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_nodal_data_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_point_load_variable.h"
 
 
 // Direct sensitivity postprocess 
-#include "state_derivative/variable_utilities/direct_sensitivity_postprocess.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_postprocess.h"
 
 namespace Kratos {
 namespace Python {

@@ -24,8 +24,8 @@
 #include "includes/process_info.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/define.h"
-#include "state_derivative/math_functions/vector_math.h"
-#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "direct_sensitivity_analysis/math_functions/vector_math.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_variable.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
 

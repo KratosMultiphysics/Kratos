@@ -20,9 +20,9 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
-#include "state_derivative/response_functions/direct_sensitivity_response_function.h"
-#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
-#include "state_derivative/math_functions/vector_math.h"
+#include "direct_sensitivity_analysis/response_functions/direct_sensitivity_response_function.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_variable.h"
+#include "direct_sensitivity_analysis/math_functions/vector_math.h"
 
 
 

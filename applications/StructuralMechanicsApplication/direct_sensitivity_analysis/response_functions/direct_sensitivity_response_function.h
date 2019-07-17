@@ -24,9 +24,9 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
-#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_variable.h"
 #include "derivative_builder.h"
-#include "state_derivative/math_functions/vector_math.h"
+#include "direct_sensitivity_analysis/math_functions/vector_math.h"
 
 namespace Kratos
 {

@@ -27,7 +27,7 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_variable.h"
 
 namespace Kratos
 {

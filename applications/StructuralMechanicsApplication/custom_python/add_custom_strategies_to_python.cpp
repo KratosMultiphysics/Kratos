@@ -30,7 +30,7 @@
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
-#include "state_derivative/direct_schemes/direct_structural_static_scheme.h"
+#include "direct_sensitivity_analysis/direct_schemes/direct_structural_static_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
