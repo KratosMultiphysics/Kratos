@@ -173,6 +173,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
 
       // Adding adjoint conditions
       mAdjointSemiAnalyticPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+      mAdjointSemiAnalyticPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mAdjointSemiAnalyticPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))){}
 
 void KratosStructuralMechanicsApplication::Register() {
@@ -582,6 +583,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Adjoint conditions
     KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointLoadCondition2D1N", mAdjointSemiAnalyticPointLoadCondition2D1N )
     KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointLoadCondition3D1N", mAdjointSemiAnalyticPointLoadCondition3D1N )
+    KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointMomentCondition3D1N", mAdjointSemiAnalyticPointMomentCondition3D1N )
 
     // Register linear elastics laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);

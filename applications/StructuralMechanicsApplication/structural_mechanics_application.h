@@ -79,6 +79,7 @@
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
+#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_moment_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
@@ -439,6 +440,8 @@ private:
     // Adjoint Conditions
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition2D1N;
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition3D1N;
+    const AdjointSemiAnalyticPointMomentCondition<PointMomentCondition3D> mAdjointSemiAnalyticPointMomentCondition3D1N;
+
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
