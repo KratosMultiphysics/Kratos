@@ -56,9 +56,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
     typedef ApplyChimeraProcessFractionalStep<3, SparseSpaceType, LocalSpaceType> ApplyChimeraFractionalStep3DType;
 
     py::class_<BaseApplyChimera2D, BaseApplyChimera2D::Pointer, Process>(m, "BaseApplyChimera2D")
-        .def(py::init<ModelPart &, Parameters>());
+        .def(py::init<ModelPart &, Parameters>())
+        .def("SetEchoLevel", &BaseApplyChimera2D::SetEchoLevel) ;
     py::class_<BaseApplyChimera3D, BaseApplyChimera3D::Pointer, Process>(m, "BaseApplyChimera3D")
-        .def(py::init<ModelPart &, Parameters>());
+        .def(py::init<ModelPart &, Parameters>())
+        .def("SetEchoLevel", &BaseApplyChimera3D::SetEchoLevel) ;
 
     py::class_<ApplyChimeraMonolithic2DType, ApplyChimeraMonolithic2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessMonolithic2d")
         .def(py::init<ModelPart &, Parameters>());
