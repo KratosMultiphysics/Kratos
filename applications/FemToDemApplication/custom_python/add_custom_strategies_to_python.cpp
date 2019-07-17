@@ -43,16 +43,12 @@ namespace Python
 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+		typedef FemDemResidualCriteria< SparseSpaceType,  LocalSpaceType > FemDemResidualCriteriaType;
 
 		// Base types
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-		//typedef LinearSolverType::Pointer LinearSolverPointer;
 		typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 		typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-		//typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
-		//typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-		//typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
-		//typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 		typedef HexahedraNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HexahedraNewtonRaphsonStrategyType;
 
 		class_< HexahedraNewtonRaphsonStrategyType,
@@ -60,6 +56,13 @@ namespace Python
 				BaseSolvingStrategyType  >  (m, "HexahedraNewtonRaphsonStrategy")
 				.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
 				;
+	
+		class_<FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >,
+			typename FemDemResidualCriteria<SparseSpaceType, LocalSpaceType >::Pointer,
+			ConvergenceCriteriaType >
+			(m,"FemDemResidualCriteria")
+			.def(init< double, double>())
+			;
 	}
 
 }  // namespace Python.

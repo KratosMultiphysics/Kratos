@@ -1,13 +1,13 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics FemDem Application
+//                   Multi-Physics
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velazquez
+//  Main authors:    Alejandro Cornejo
 //
 
 #if !defined(KRATOS_FEMDEM_RESIDUAL_CRITERIA )
@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
 {
@@ -44,26 +44,26 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualCriteria
+ * @class FemDemResidualCriteria
  * @ingroup KratosCore
  * @brief This is a convergence criteria that employes the residual as criteria
  * @details The reactions from the RHS are not computed in the residual
- * @author Alejandro Cornejo
+ * @author Riccardo Rossi
 */
 template<class TSparseSpace,
          class TDenseSpace
          >
 class FemDemResidualCriteria
-    : public  ResidualCriteria< TSparseSpace, TDenseSpace >
+    : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(FemDemResidualCriteria);
+    KRATOS_CLASS_POINTER_DEFINITION( FemDemResidualCriteria );
 
     /// The definition of the base ConvergenceCriteria
-    typedef ResidualCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
     /// The data type
     typedef typename BaseType::TDataType TDataType;
@@ -88,37 +88,54 @@ public:
     ///@{
 
     //* Constructor.
-    explicit ResidualCriteria(Kratos::Parameters Settings)
+    explicit FemDemResidualCriteria(Kratos::Parameters Settings)
         : BaseType()
     {
-        BaseType(Settings);
+        if (Settings.Has("residual_absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["residual_absolute_tolerance"].GetDouble();
+        } else if (Settings.Has("absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("FemDemResidualCriteria") << "residual_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
+            mAlwaysConvergedNorm = 1.0e-9;
+        }
+        if (Settings.Has("residual_relative_tolerance")) {
+            mRatioTolerance = Settings["residual_relative_tolerance"].GetDouble();
+        } else if (Settings.Has("relative_tolerance")) {
+            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("FemDemResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
+            mRatioTolerance = 1.0e-4;
+        }
+
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Constructor.
-    // explicit ResidualCriteria(
-    //     TDataType NewRatioTolerance,
-    //     TDataType AlwaysConvergedNorm)
-    //     : BaseType(),
-    //       mRatioTolerance(NewRatioTolerance),
-    //       mAlwaysConvergedNorm(AlwaysConvergedNorm)
-    // {
-    //     this->mActualizeRHSIsNeeded = true;
-    // }
+    explicit FemDemResidualCriteria(
+        TDataType NewRatioTolerance,
+        TDataType AlwaysConvergedNorm)
+        : BaseType(),
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
+    {
+        this->mActualizeRHSIsNeeded = true;
+    }
 
     //* Copy constructor.
-    // explicit ResidualCriteria( ResidualCriteria const& rOther )
-    //   :BaseType(rOther)
-    //   ,mRatioTolerance(rOther.mRatioTolerance)
-    //   ,mInitialResidualNorm(rOther.mInitialResidualNorm)
-    //   ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
-    //   ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
-    //   ,mReferenceDispNorm(rOther.mReferenceDispNorm)
-    // {
-    //     this->mActualizeRHSIsNeeded = true;
-    // }
+    explicit FemDemResidualCriteria( FemDemResidualCriteria const& rOther )
+      :BaseType(rOther)
+      ,mRatioTolerance(rOther.mRatioTolerance)
+      ,mInitialResidualNorm(rOther.mInitialResidualNorm)
+      ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
+      ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
+      ,mReferenceDispNorm(rOther.mReferenceDispNorm)
+    {
+        this->mActualizeRHSIsNeeded = true;
+    }
 
     //* Destructor.
-    ~ResidualCriteria() override {}
+    ~FemDemResidualCriteria() override {}
 
     ///@}
     ///@name Operators
@@ -165,7 +182,7 @@ public:
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
             if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) {
-                KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
+                KRATOS_INFO_IF("FEMDEM_RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
                 return true;
             } else {
                 return false;
@@ -179,10 +196,10 @@ public:
      * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
      */
-    // void Initialize(ModelPart& rModelPart) override
-    // {
-    //     BaseType::Initialize(rModelPart);
-    // }
+    void Initialize(ModelPart& rModelPart) override
+    {
+        BaseType::Initialize(rModelPart);
+    }
 
     /**
      * @brief This function initializes the solution step
@@ -192,46 +209,46 @@ public:
      * @param rDx Vector of results (variations on nodal variables)
      * @param rb RHS vector (residual + reactions)
      */
-    // void InitializeSolutionStep(
-    //     ModelPart& rModelPart,
-    //     DofsArrayType& rDofSet,
-    //     const TSystemMatrixType& rA,
-    //     const TSystemVectorType& rDx,
-    //     const TSystemVectorType& rb
-    //     ) override
-    // {
-    //     BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
 
-    //     // Filling mActiveDofs when MPC exist
-    //     if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-    //         mActiveDofs.resize(rDofSet.size());
+        // Filling mActiveDofs when MPC exist
+        if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+            mActiveDofs.resize(rDofSet.size());
 
-    //         #pragma omp parallel for
-    //         for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i) {
-    //             mActiveDofs[i] = true;
-    //         }
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i) {
+                mActiveDofs[i] = true;
+            }
 
-    //         #pragma omp parallel for
-    //         for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
-    //             const auto it_dof = rDofSet.begin() + i;
-    //             if (it_dof->IsFixed()) {
-    //                 mActiveDofs[it_dof->EquationId()] = false;
-    //             }
-    //         }
+            #pragma omp parallel for
+            for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
+                const auto it_dof = rDofSet.begin() + i;
+                if (it_dof->IsFixed()) {
+                    mActiveDofs[it_dof->EquationId()] = false;
+                }
+            }
 
-    //         for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
-    //             for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
-    //                 mActiveDofs[r_dof->EquationId()] = false;
-    //             }
-    //             for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
-    //                 mActiveDofs[r_dof->EquationId()] = false;
-    //             }
-    //         }
-    //     }
+            for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
+                for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
+                    mActiveDofs[r_dof->EquationId()] = false;
+                }
+                for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
+                    mActiveDofs[r_dof->EquationId()] = false;
+                }
+            }
+        }
 
-    //     SizeType size_residual;
-    //     CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
-    // }
+        SizeType size_residual;
+        CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
+    }
 
     /**
      * @brief This function finalizes the solution step
@@ -271,7 +288,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ResidualCriteria";
+        return "FemDemResidualCriteria";
     }
 
     /// Print information about this object.
