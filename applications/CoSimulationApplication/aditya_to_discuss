@@ -1,0 +1,13 @@
+IO => class or free fcts???
+
+how to do the allocation => particle
+
+IO Empire => doubleVector???
+
+Sync with myself? => do we allow this?
+
+make all comm async ... => send first and then receive, probably best way to avoid deadlocks
+
+change name of settings being passed around in solver wrapper => has a subkey that is also called "settings"
+
+think if the import/export in the synchronize can mess up the other classes (predictor, Acc, ConvCrit...)
