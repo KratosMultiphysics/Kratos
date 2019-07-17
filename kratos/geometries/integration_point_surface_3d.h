@@ -27,11 +27,11 @@ namespace Kratos
 /**
  * @class IntegrationPointSurface3d
  * @ingroup KratosCore
- * @brief A sinlge integration point, that can be used for geometries without 
+ * @brief A sinlge integration point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single integration point.
- *        Shape functions and integration types have to be precomputed and are set from 
+ *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
  */
 template<class TPointType> class IntegrationPointSurface3d
@@ -51,9 +51,9 @@ public:
     typedef array_1d<double, 2> LocalCoordinatesArray2dType;
 
     typedef IntegrationPoint<2> IntegrationPointType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     typedef typename GeometryType::IntegrationMethod IntegrationMethod;
     typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
@@ -93,7 +93,7 @@ public:
      * Constructs this geometry as a copy of given geometry.
      *
      * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry. 
+     * the new geometry shares points with the source geometry.
      * Any changes to the new geometry points affect the source
      * geometry points too.
      */
@@ -191,7 +191,7 @@ public:
     double Area() const override
     {
         Vector temp;
-        temp = DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
+        temp = this->DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
         const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
         double area = 0.0;
 
@@ -222,13 +222,13 @@ public:
     */
     virtual Point Center() const
     {
-        const SizeType points_number = PointsNumber();
+        const std::size_t points_number = this->PointsNumber();
 
         Point point(0.0, 0.0, 0.0);
         const Matrix& N = this->ShapeFunctionsValues();
 
-        for (IndexType point_number = 0; point_number < IntegrationPointsNumber(); ++point_number) {
-            for (IndexType i = 0; i < PointsNumber(); ++i) {
+        for (IndexType point_number = 0; point_number < this->IntegrationPointsNumber(); ++point_number) {
+            for (IndexType i = 0; i < this->PointsNumber(); ++i) {
                 point += (*this)[i] * N(point_number, i);
             }
         }
@@ -270,7 +270,7 @@ public:
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
         Matrix jacobian;
-        Jacobian( jacobian, PointType() );
+        // this->Jacobian( jacobian, PointType() );
         rOStream << "    Jacobian in the integration point\t : " << jacobian;
     }
     ///@}
@@ -358,4 +358,4 @@ const GeometryDimension IntegrationPointSurface3d<TPointType>::msGeometryDimensi
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_POINT_SURFACE_3D_H_INCLUDED  defined 
+#endif // KRATOS_INTEGRATION_POINT_SURFACE_3D_H_INCLUDED  defined

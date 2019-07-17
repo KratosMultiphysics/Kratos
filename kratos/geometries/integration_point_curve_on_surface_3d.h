@@ -52,9 +52,9 @@ public:
     typedef array_1d<double, 2> LocalCoordinatesArray2dType;
 
     typedef IntegrationPoint<2> IntegrationPointType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     typedef array_1d<double, 2> LocalTangentsArray2dType;
 
@@ -230,13 +230,13 @@ public:
     */
     Point Center() const override
     {
-        const SizeType points_number = PointsNumber();
+        const std::size_t points_number = this->PointsNumber();
 
         Point point(0.0, 0.0, 0.0);
         const Matrix& N = this->ShapeFunctionsValues();
 
-        for (IndexType point_number = 0; point_number < IntegrationPointsNumber(); ++point_number) {
-            for (IndexType i = 0; i < PointsNumber(); ++i) {
+        for (IndexType point_number = 0; point_number < this->IntegrationPointsNumber(); ++point_number) {
+            for (IndexType i = 0; i < this->PointsNumber(); ++i) {
                 point += (*this)[i] * N(point_number, i);
             }
         }
