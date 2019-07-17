@@ -506,6 +506,7 @@ private:
         if(mPointLocatorsMap.count(rModelPart.Name()) == 0){
             PointLocatorPointerType p_point_locator = Kratos::make_shared<PointLocatorType>(rModelPart);
             p_point_locator->UpdateSearchDatabase();
+            mPointLocatorsMap[rModelPart.Name()] = p_point_locator;
             return p_point_locator;
         } else {
             auto p_point_locator = mPointLocatorsMap.at(rModelPart.Name());
