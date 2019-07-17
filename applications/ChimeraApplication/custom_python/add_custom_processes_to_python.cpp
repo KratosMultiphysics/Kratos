@@ -57,10 +57,12 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<BaseApplyChimera2D, BaseApplyChimera2D::Pointer, Process>(m, "BaseApplyChimera2D")
         .def(py::init<ModelPart &, Parameters>())
-        .def("SetEchoLevel", &BaseApplyChimera2D::SetEchoLevel) ;
+        .def("SetEchoLevel", &BaseApplyChimera2D::SetEchoLevel)
+        .def("SetReformulateEveryStep", &BaseApplyChimera2D::SetReformulateEveryStep);
     py::class_<BaseApplyChimera3D, BaseApplyChimera3D::Pointer, Process>(m, "BaseApplyChimera3D")
         .def(py::init<ModelPart &, Parameters>())
-        .def("SetEchoLevel", &BaseApplyChimera3D::SetEchoLevel) ;
+        .def("SetEchoLevel", &BaseApplyChimera3D::SetEchoLevel) 
+        .def("SetReformulateEveryStep", &BaseApplyChimera3D::SetReformulateEveryStep);
 
     py::class_<ApplyChimeraMonolithic2DType, ApplyChimeraMonolithic2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessMonolithic2d")
         .def(py::init<ModelPart &, Parameters>());

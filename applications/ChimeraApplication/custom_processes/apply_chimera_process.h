@@ -130,6 +130,7 @@ public:
         mpHoleCuttingUtility = Kratos::make_shared<HoleCuttingUtilityType> ();
 
         mEchoLevel = 0;
+        mReformulateEveryStep = false;
     }
 
     /// Destructor.
@@ -150,11 +151,17 @@ public:
         mEchoLevel = EchoLevel;
     }
 
+    void SetReformulateEveryStep(bool Reformulate)
+    {
+        mReformulateEveryStep = Reformulate;
+    }
+
     virtual void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
         // Actual execution of the functionality of this class
-        DoChimeraLoop();
+        if(mReformulateEveryStep)
+            DoChimeraLoop();
         KRATOS_CATCH("");
     }
 
@@ -173,7 +180,8 @@ public:
             i_elem->SetValue(SPLIT_ELEMENT, false);
         }
 
-        mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+        if(mReformulateEveryStep)
+            mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
     }
 
     virtual std::string Info() const override
@@ -214,6 +222,7 @@ protected:
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     int mEchoLevel;
+    bool mReformulateEveryStep;
     std::map<std::string, PointLocatorPointerType> mPointLocatorsMap;
     ///@}
     ///@name Protected Operators
@@ -510,6 +519,8 @@ private:
             return p_point_locator;
         } else {
             auto p_point_locator = mPointLocatorsMap.at(rModelPart.Name());
+            if(mReformulateEveryStep)
+                p_point_locator->UpdateSearchDatabase();
             return p_point_locator;
         }
     }

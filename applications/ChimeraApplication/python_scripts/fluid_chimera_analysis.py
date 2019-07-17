@@ -29,6 +29,10 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             self.chimera_internal_parts = self.parameters["solver_settings"]["internal_parts_for_chimera"].Clone()
             self.parameters["solver_settings"].RemoveValue("internal_parts_for_chimera")
 
+        if self.parameters["solver_settings"].Has("reformulate_chimera_every_step"):
+            self.reformulate_every_step = self.parameters["solver_settings"]["reformulate_chimera_every_step"].Clone()
+            self.parameters["solver_settings"].RemoveValue("reformulate_chimera_every_step")
+
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
@@ -66,6 +70,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                     self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
 
             self.chimera_process.SetEchoLevel(self.chimera_echo_lvl)
+            self.chimera_process.SetReformulateEveryStep(self.reformulate_every_step)
 
         return list_of_processes
 
