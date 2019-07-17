@@ -42,6 +42,18 @@
 #define KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if (TheString.find(SubString) == std::string::npos ) \
 KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given string"
 
+// To be used as a default check, when the characteristic units of the problem
+// are not expected to be too many orders of magnitude smaller than 1, since otherwise
+// the check would become trivial (e.g., if one is comparing distances when the characteristic length
+// of the problem is represented by a number smaller than 10-7 in the assumed units).
+//
+// Similarly, when the numerical errors associated with finite-point arithmetic
+// are not expected to be especially large, due to the particularities of the operation
+// being performed, since in the latter case the condition for equality might become too
+// rigorous.
+//
+// In the above-mentioned cases, and in other exceptional ones it is best to use 'KRATOS_CHECK_NEAR', where the
+// tolerance is explicitly set.
 #define KRATOS_STANDARD_CHECK_NEAR(a,b) if(std::abs(a - b) > Globals::Epsilon * (1 + std::abs(a) + std::abs(b))) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the standard Kratos tolerance."
 
