@@ -1,0 +1,58 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "linear_truss_structure",
+        "model_part_name" : "linear_truss_structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "primal_settings"                   : "linear_truss_test_parameters.json",
+    "direct_sensitivity_settings"       : "auto",
+
+    "response_function_settings" : {            
+        "response_functions"        : {                            
+            "local_stress"                  : ["FORCE"],
+            "nodal_displacement"            : ["DISPLACEMENT"]                           
+        }, 
+        "gradient_mode"                     : "semi_analytic",           
+        "stress_treatment"                  : "GP",
+        "stress_location"                   : [1]        
+    },
+    
+    "sensitivity_settings" : {
+        "sensitivity_model_part_name"       : "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART",
+        "build_mode"                        : "static"
+    }, 
+    
+    "variable_settings" : {		    
+        "variable_type"                         : "element_data_type",
+        "design_variable_name"                  : "YOUNG_MODULUS",                                 
+        "delta"                                 : 1e-10,
+        "traced_model_part_name"                : "Traced_Model_Part"    
+    },    
+    
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : [],
+            "gauss_point_results" : ["FORCE_SENSITIVITY"],
+            "nodal_nonhistorical_results": ["DISPLACEMENT_SENSITIVITY"]
+        },
+        "point_data_configuration"  : []
+    }
+}

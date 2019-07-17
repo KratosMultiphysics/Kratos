@@ -21,12 +21,12 @@ try:
 except ImportError:
     has_hdf5_application = False
 
-with open("direct_sensitivity_analysis_tests/direct_beam_structure_3d2n/direct_sensitivity_beam_parameters_element_data.json",'r') as parameter_file:
+with open("direct_sensitivity_truss_parameters_point_load_intensity.json",'r') as parameter_file:
     ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
-model_primal = Model()
+model = Model()
 
-direct_sensitivity_analysis = direct_sensitivity_analysis.DirectSensitivityAnalysis(ProjectParameters,model_primal)
+direct_sensitivity_analysis = direct_sensitivity_analysis.DirectSensitivityAnalysis(ProjectParameters,model)
 calculate_gradient = True
 direct_sensitivity_analysis.RunCalculation(calculate_gradient)
 print("Simulation finished")
