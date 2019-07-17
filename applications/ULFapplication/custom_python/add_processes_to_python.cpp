@@ -46,6 +46,8 @@
 
 #include "custom_processes/add_periodic_conditions_process.h"
 #include "custom_processes/add_mean_velocity_condition_lag_mult_process.h"
+#include "custom_processes/refine_edge_process.h"
+
 
 #include "includes/node.h"
 
@@ -191,6 +193,11 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateAdhesionForce> (m,"CalculateAdhesionForce")
     .def(py::init<>())
     .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
+    ;
+
+    py::class_<RefineEdgeProcess> (m,"RefineEdgeProcess")
+    .def(py::init<ModelPart&>())
+    .def("RefineFreeSurfEdge2D", &RefineEdgeProcess::RefineFreeSurfEdge2D)
     ;
 
 //      py::class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
