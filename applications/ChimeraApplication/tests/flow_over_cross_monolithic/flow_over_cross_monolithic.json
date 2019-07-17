@@ -41,6 +41,7 @@
             "NoSlip2D_bottom"
         ],
         "no_skin_parts": [],
+        "chimera_echo_level" : 1,
         "chimera_parts": [
             [
                 {
