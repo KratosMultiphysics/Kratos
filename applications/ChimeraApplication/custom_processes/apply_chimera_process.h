@@ -214,6 +214,7 @@ protected:
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     int mEchoLevel;
+    std::map<std::string, PointLocatorPointerType> mPointLocatorsMap;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -310,10 +311,8 @@ protected:
         const double over_lap_distance = (overlap_bg > overlap_pt) ? overlap_bg : overlap_pt;
 
         BuiltinTimer search_creation_time;
-        PointLocatorPointerType p_point_locator_on_background = Kratos::make_shared<PointLocatorType>(r_background_model_part);
-        p_point_locator_on_background->UpdateSearchDatabase();
-        PointLocatorPointerType p_pointer_locator_on_patch = Kratos::make_shared<PointLocatorType>(r_patch_model_part);
-        p_pointer_locator_on_patch->UpdateSearchDatabase();
+        PointLocatorPointerType p_point_locator_on_background = GetPointLocator(r_background_model_part);
+        PointLocatorPointerType p_pointer_locator_on_patch = GetPointLocator(r_patch_model_part);
         KRATOS_INFO_IF("Creation of search structures took : ", mEchoLevel > 0)<< search_creation_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
         const double eps = 1e-12;
@@ -496,6 +495,23 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
+    /**
+     * @brief Creates or returns an existing point locator on a given ModelPart
+     * @param rModelPart The modelpart on which a point locator is to be obtained.
+     */
+    PointLocatorPointerType GetPointLocator(ModelPart& rModelPart)
+    {
+        if(mPointLocatorsMap.count(rModelPart.Name()) == 0){
+            PointLocatorPointerType p_point_locator = Kratos::make_shared<PointLocatorType>(rModelPart);
+            p_point_locator->UpdateSearchDatabase();
+            return p_point_locator;
+        } else {
+            auto p_point_locator = mPointLocatorsMap.at(rModelPart.Name());
+            return p_point_locator;
+        }
+    }
 
     /**
      * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
