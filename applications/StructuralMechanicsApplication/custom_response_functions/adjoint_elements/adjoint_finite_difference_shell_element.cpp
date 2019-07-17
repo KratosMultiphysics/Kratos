@@ -232,8 +232,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::SetValueOnIntegratio
     // Wright sensitivity values on the member variables
     if (rValues.size() == write_points_number)
     {
-        std::cout << "in Wright sensitivity values on the member variables" << std::endl;
-	    if (rVariable == SHELL_FORCE_GLOBAL_SENSITIVITY)
+        if (rVariable == SHELL_FORCE_GLOBAL_SENSITIVITY)
 	        for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
                 for( IndexType i = 0; i < rValues[PointNumber].size1(); ++i )
                     for( IndexType j = 0; j < rValues[PointNumber].size2(); ++j ) 

@@ -16,9 +16,7 @@ def CreateSolver(model, custom_settings):
 
 class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.MechanicalSolver):
 
-    def __init__(self, model, custom_settings):
-
-        
+    def __init__(self, model, custom_settings):        
         direct_settings = KratosMultiphysics.Parameters("""
         {
             "scheme_settings" : {
@@ -34,9 +32,7 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
         custom_settings.RemoveValue("variable_settings")        
         # Construct the base solver.
         super(StructuralMechanicsDirectSensitivitySolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Construction finished")
-        
-        
+        self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Construction finished")  
 
     def AddVariables(self):
         super(StructuralMechanicsDirectSensitivitySolver, self).AddVariables()
@@ -65,15 +61,16 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
             {
                 "element_name_table" :
                 {
-                    "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
-                    "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
-                    "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
-                    "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N"
+                    "ShellThinElement3D3N"            : "AdjointFiniteDifferencingShellThinElement3D3N",                    
+                    "CrLinearBeamElement3D2N"         : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
+                    "TrussLinearElement3D2N"          : "AdjointFiniteDifferenceTrussLinearElement3D2N",
+                    "TrussElement3D2N"                : "AdjointFiniteDifferenceTrussElement3D2N"
                 },
                 "condition_name_table" :
                 {
-                    "PointLoadCondition2D1N"         : "AdjointSemiAnalyticPointLoadCondition2D1N",
-                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N"
+                    "PointLoadCondition2D1N"          : "AdjointSemiAnalyticPointLoadCondition2D1N",
+                    "PointLoadCondition3D1N"          : "AdjointSemiAnalyticPointLoadCondition3D1N",
+                    "PointMomentCondition3D1N"        : "AdjointSemiAnalyticPointMomentCondition3D1N"
                 }
             }
         """)
