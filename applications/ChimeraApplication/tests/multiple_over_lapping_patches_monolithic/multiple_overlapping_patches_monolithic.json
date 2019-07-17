@@ -29,6 +29,7 @@
             "Drag_structure_1_1",
             "Drag_structure_2_1"
         ],
+        "reformulate_chimera_every_step":true,
         "chimera_parts": [
             [
                 {
