@@ -2,6 +2,7 @@
 import KratosMultiphysics as km
 
 # Additional imports
+from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -56,7 +57,6 @@ class CustomAnalyzer(AnalyzerBaseClass):
 # =======================================================================================================
 
 # Create optimizer and perform optimization
-import optimizer_factory
 optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
 optimizer.Optimize()
 

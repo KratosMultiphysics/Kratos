@@ -74,7 +74,7 @@ class ModelPartController:
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__IdentifyDampingRegions()
-            self.damping_utility = DampingUtilities(self.design_surface, self.damping_regions, self.model_settings["damping"])
+            self.damping_utility = KSO.DampingUtilities(self.design_surface, self.damping_regions, self.model_settings["damping"])
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):

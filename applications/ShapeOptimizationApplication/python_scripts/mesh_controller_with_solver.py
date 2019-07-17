@@ -12,12 +12,12 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 import time as timer
-from mesh_controller_base import MeshController
+from KratosMultiphysics.ShapeOptimizationApplication.mesh_controller_base import MeshController
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
@@ -81,7 +81,7 @@ class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     def Initialize(self):
         if self.has_automatic_boundary_process:
-            GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
+            KSO.GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
 
         self._mesh_moving_analysis.Initialize()
 
@@ -90,26 +90,26 @@ class MeshControllerWithSolver(MeshController) :
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
-        time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
-        step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(STEP)
-        delta_time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(DELTA_TIME)
+        time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.TIME)
+        step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.STEP)
+        delta_time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.DELTA_TIME)
 
         # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
-        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update-1)
-        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update-1)
-        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, 0)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.STEP, step_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
-        KM.VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+        KM.VariableUtils().CopyVectorVar(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
         self._mesh_moving_analysis.RunSolutionLoop()
 
-        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
+        KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(KM.MESH_DISPLACEMENT)
 
-        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update)
-        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update)
-        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, delta_time_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.STEP, step_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_update)
 
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 

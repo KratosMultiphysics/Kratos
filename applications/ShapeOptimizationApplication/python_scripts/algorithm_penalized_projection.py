@@ -22,6 +22,18 @@ from . import mapper_factory
 from . import data_logger_factory
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication import (
+    DF1DX,
+    DF1DX_MAPPED,
+    DC1DX,
+    DC1DX_MAPPED,
+    SEARCH_DIRECTION,
+    CONTROL_POINT_UPDATE,
+    CONTROL_POINT_CHANGE,
+    SHAPE_UPDATE,
+    SHAPE_CHANGE
+)
+
 
 # ==============================================================================
 class AlgorithmPenalizedProjection(OptimizationAlgorithm):

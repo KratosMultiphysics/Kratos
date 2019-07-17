@@ -13,8 +13,18 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
+
+from KratosMultiphysics.ShapeOptimizationApplication import (
+    DF1DX,
+    DF1DX_MAPPED,
+    SEARCH_DIRECTION,
+    CONTROL_POINT_UPDATE,
+    CONTROL_POINT_CHANGE,
+    SHAPE_UPDATE,
+    SHAPE_CHANGE
+)
 
 # Additional imports
 from .algorithm_base import OptimizationAlgorithm
