@@ -16,8 +16,8 @@ class CouplingInterfaceData(object):
     def __init__(self, custom_settings, model):
 
         default_config = KM.Parameters("""{
-            "model_part_name" : "UNSPECIFIED",
-            "variable_name"   : "UNSPECIFIED",
+            "model_part_name" : "",
+            "variable_name"   : "",
             "location"        : "node_historical",
             "dimension"       : -1
         }""")
@@ -25,13 +25,14 @@ class CouplingInterfaceData(object):
 
         self.settings = custom_settings
         self.model = model
-
-    def Initialize(self):
-        # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
-        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+        self.model_part_name = self.settings["model_part_name"].GetString()
+        if self.model_part_name == "":
+            raise Exception('No "model_part_name" was specified!')
 
         # variable used to identify data
         variable_name = self.settings["variable_name"].GetString()
+        if variable_name == "":
+            raise Exception('No "variable_name" was specified!')
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
@@ -40,11 +41,21 @@ class CouplingInterfaceData(object):
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
             raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
-        self.variable = KM.KratosGlobals.GetVariable(variable_name)
+        self.variable = KM.KratosGlobals.GetVariable(variable_name) # TODO here maybe we could construct a new var if necessary (maybe clashes with delayed app-import ...?)
 
         self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 
         self.is_scalar_variable = self.variable_type in admissible_scalar_variable_types
+
+        # location of data on ModelPart
+        self.location = self.settings["location"].GetString()
+        admissible_locations = ["node_historical", "node_non_historical", "element", "condition", "model_part"]
+        if not self.location in admissible_locations:
+            raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
+
+    def Initialize(self):
+        # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # dimensionality of the data
         self.dimension = self.settings["dimension"].GetInt()
@@ -64,15 +75,9 @@ class CouplingInterfaceData(object):
                 if domain_size != self.dimension:
                     cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
 
-        # location of data on ModelPart
-        self.location = self.settings["location"].GetString()
-        admissible_locations = ["node_historical", "node_non_historical","element","condition","process_info","model_part"]
-        if not self.location in admissible_locations:
-            raise Exception('"{}" is not allowed as "location", only the following options are possible:\n{}'.format(self.location, ", ".join(admissible_locations)))
-
         if self.location == "node_historical":
             if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
-                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(variable_name, self.GetModelPart().Name))
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.GetModelPart().Name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
@@ -98,7 +103,7 @@ class CouplingInterfaceData(object):
         return self.GetModelPart().IsDistributed()
 
     def Size(self):
-        if self.location in ["process_info", "model_part"]:
+        if self.location == "model_part":
             return 1 * self.dimension
         else:
             return len(self.__GetDataContainer()) * self.dimension
@@ -110,8 +115,15 @@ class CouplingInterfaceData(object):
         else:
             return 1
 
-    def InplaceMultiply(self, factor):
-        self.SetData(factor*self.GetData())
+    def GetHistoricalVariableDict(self):
+        # this method returns the historical variable associated to a ModelPart
+        # it is intended to be used before the Mesh is read such that the historical variables
+        # can be allocated beforehand. This is the reason why the name of the ModelPart is
+        # retrieved from the settings and not from the ModelPart itself.
+        if self.location == "node_historical":
+            return {self.settings["model_part_name"].GetString() : self.variable}
+        else:
+            return {}
 
     def GetData(self, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
@@ -120,12 +132,6 @@ class CouplingInterfaceData(object):
             data = self.__GetDataFromContainer(self.__GetDataContainer(), GetSolutionStepValue, solution_step_index)
         elif self.location in ["node_non_historical", "element", "condition"]:
             data = self.__GetDataFromContainer(self.__GetDataContainer(), GetValue)
-        elif self.location == "process_info":
-            var_val = self.GetModelPart().ProcessInfo[self.variable]
-            if self.is_scalar_variable:
-                data = [var_val]
-            else:
-                data = [var_val[i] for i in range(self.dimension)]
         elif self.location == "model_part":
             var_val = self.GetModelPart()[self.variable]
             if self.is_scalar_variable:
@@ -146,16 +152,6 @@ class CouplingInterfaceData(object):
             self.__SetDataOnContainer(self.__GetDataContainer(), SetSolutionStepValue, new_data, solution_step_index)
         elif self.location in ["node_non_historical", "element", "condition"]:
             self.__SetDataOnContainer(self.__GetDataContainer(), SetValue, new_data)
-        elif self.location == "process_info":
-            if self.is_scalar_variable:
-                self.GetModelPart().ProcessInfo[self.variable] = new_data[0]
-            else:
-                if self.variable_type == "Array":
-                    vec_value = [0.0, 0.0, 0.0] # Array values require three entries
-                    vec_value[:self.dimension] = new_data[:self.dimension] # apply "padding"
-                    self.GetModelPart().ProcessInfo[self.variable] = vec_value
-                else:
-                    self.GetModelPart().ProcessInfo[self.variable] = new_data
         elif self.location == "model_part":
             if self.is_scalar_variable:
                 self.GetModelPart()[self.variable] = new_data[0]

@@ -80,6 +80,7 @@ public:
     ComputeBDFCoefficientsProcess(ModelPart& model_part, unsigned int time_order)
         : mr_model_part(model_part), mtime_order(time_order)
     {
+        KRATOS_WARNING_ONCE("DEPRECATION") << "\"ComputeBDFCoefficientsProcess\" is deprecated, please use the functionalities provided by /kratos/utilities/time_discretization.h" << std::endl;
         KRATOS_ERROR_IF(mtime_order == 0 || mtime_order > 2) << "Time order must be either \'1\' or \'2\'. Got " << mtime_order << std::endl;
         mr_model_part.GetProcessInfo()[BDF_COEFFICIENTS] = ZeroVector(mtime_order + 1);
     }
