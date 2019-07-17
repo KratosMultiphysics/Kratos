@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 #ifndef DERIVATIVE_BUILDER_H
@@ -24,9 +24,9 @@
 #include "includes/process_info.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/define.h"
-#include "state_derivative/output_utilities/output_utility.h"
 #include "state_derivative/math_functions/vector_math.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 
 namespace Kratos
@@ -34,9 +34,9 @@ namespace Kratos
 
 /** \brief DerivativeBuilder
 *
-* This class computes the derivative of a certain response variable (MOMENT etc.) derived by
+* This class computes the derivative of a certain response variable (e.g. MOMENT, FORCE etc.) derived by
 * either the displacement or the design variable. It also assembles the result in a vector
-* matching the data type of the response variable (array_1d<double, 3>, Matrix etc.) 
+* matching the data type of the response variable (e.g. array_1d<double, 3>, Matrix etc.) 
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DerivativeBuilder
 {
@@ -57,7 +57,7 @@ public:
                                     Variable<TDataType> const& rResponseVariable,
                                     std::vector<std::vector<TDataType>>& rOutput, 
                                     const ProcessInfo rCurrentProcessInfo)
-    { 
+    {         
         // Define working variables
         Matrix DerivativeMatrix;
         DerivativeMatrix.clear();
@@ -73,36 +73,48 @@ public:
         // To get the number of integration points
         rDirectElement.CalculateOnIntegrationPoints(rResponseVariable, dummy_vector, rCurrentProcessInfo);        
         const SizeType num_gp = dummy_vector.size();
-        
+
+        // Get the name of the current element
+        std::string name_elem;
+        CompareElementsAndConditionsUtility::GetRegisteredName(rDirectElement, name_elem); 
+
         // Size rOutput        
         rOutput.resize( dofs_of_element.size() );        
                 
         for (IndexType i = 0; i < rOutput.size(); ++i)
-            rOutput[i].resize( num_gp );
+        {
+            if (num_gp > 0)
+                rOutput[i].resize( num_gp );
+            else
+            {
+                if (name_elem == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || name_elem == "AdjointFiniteDifferencingShellThinElement3D3N")
+                    rOutput[i].resize(3);     
+                else
+                    rOutput[i].resize(1);
+            }
+        }
 
-        VectorMath::SizeVectorComponents(rOutput);
+        VectorMath::SizeVectorComponents(rOutput);        
 
         // Set rOutput to zero
         VectorMath::SetToZero(rOutput);
-
+        
         if (num_gp == 1 && rResponseVariable == FORCE)
             DeriveTrussForceDisplacementDerivative(rDirectElement, rResponseVariable ,rOutput, rCurrentProcessInfo);    
-        else
-        {
+        else if (num_gp > 1)
+        {                     
             for (IndexType dir_it = 0; dir_it < traced_stresses_list.size(); ++dir_it)
-            {   
+            { 
                 TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType(traced_stresses_list[dir_it]);  
                 rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
                             
-                rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
-
-                
+                rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);                
                 
                 AssembleDerivationVector(rOutput, DerivativeMatrix, dir_it);
                
                 DerivativeMatrix.clear();
-            }
-        }          
+            }            
+        }                 
     }
 
     // Calculate the derivative of the response variable wrt. the design variable and assemble the results in a vector
@@ -125,12 +137,26 @@ public:
         // To get the number of integration points
         rDirectElement.CalculateOnIntegrationPoints(rResponseVariable, dummy_vector, rCurrentProcessInfo);        
         const SizeType num_gp = dummy_vector.size();
+
+        // Get the name of the current element
+        std::string name_elem;
+        CompareElementsAndConditionsUtility::GetRegisteredName(rDirectElement, name_elem);
         
         // Size rOutput        
         rOutput.resize(1);        
                 
         for (IndexType i = 0; i < rOutput.size(); ++i)
-            rOutput[i].resize( num_gp );
+        {
+            if (num_gp > 0)
+                rOutput[i].resize( num_gp );
+            else
+            {
+                if (name_elem == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || name_elem == "AdjointFiniteDifferencingShellThinElement3D3N")
+                    rOutput[i].resize(3);     
+                else
+                    rOutput[i].resize(1);
+            }
+        }
 
         VectorMath::SizeVectorComponents(rOutput);
 
@@ -139,10 +165,10 @@ public:
 
         if (num_gp == 1 && rResponseVariable == FORCE)
             DeriveTrussForceDesignVariableDerivative(rDirectElement, rResponseVariable, rDesignVariable, rOutput, rCurrentProcessInfo);    
-        else
+        else if (num_gp > 1)
         {
             for (IndexType dir_it = 0; dir_it < traced_stresses_list.size(); ++dir_it)
-            {   
+            { 
                 TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType(traced_stresses_list[dir_it]);  
                 rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
                             
@@ -194,11 +220,13 @@ private:
         Matrix DerivativeMatrix;
         DerivativeMatrix.clear();
 
-        TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType("FX");  
+        // Calculate Fx of the truss
+        TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType("FX");
         rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
            
         rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
 
+        // Assemble results for the response function FORCE
         AssembleDerivationVector(rOutput, DerivativeMatrix, 0);               
         DerivativeMatrix.clear();
         AssembleDerivationVector(rOutput, DerivativeMatrix, 1);
@@ -218,11 +246,13 @@ private:
         Matrix extracted_derivative_matrix;
         extracted_derivative_matrix.clear();
 
+        // Calculate Fx of the truss
         TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType("FX");  
         rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
            
         rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
 
+        // Assemble results for the response function FORCE
         if ( rDesignVariable.GetDesignVariableType() != "nodal_data_type")
         {
             AssembleDerivationVector(rOutput, DerivativeMatrix, 0);               

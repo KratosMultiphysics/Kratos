@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 #ifndef DIRECT_POSTPROCESS_H
@@ -23,10 +23,7 @@
 #include "state_derivative/response_functions/direct_sensitivity_response_function.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
 #include "state_derivative/math_functions/vector_math.h"
-#include "state_derivative/output_utilities/output_utility.h"
 
-
-//#include "state_derivative/new_adjoint_response_functions/new_adjoint_response_function.h"
 
 
 namespace Kratos
@@ -41,7 +38,7 @@ namespace Kratos
 *
 * This class is responsible to perform the post-processing step in which the
 * sensitvities are computed.
-* It is designed to be used in adjoint sensitivity analysis.
+* It is designed to be used in direct sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityPostprocess
 {

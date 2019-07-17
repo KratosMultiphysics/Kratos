@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 
@@ -60,14 +60,10 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-
-
     /// Destructor.
     DirectSensitivityPostprocess::~DirectSensitivityPostprocess()
     {
     }
-
-
 
     void DirectSensitivityPostprocess::Initialize()
     {
@@ -83,8 +79,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-
-
     void DirectSensitivityPostprocess::Clear()
     {
         KRATOS_TRY;
@@ -96,8 +90,6 @@ namespace Kratos
 
         KRATOS_CATCH("");
     }
-
-
 
     void DirectSensitivityPostprocess::SetAllSensitivityVariablesToZero(DirectSensitivityResponseFunction& rResponseFunction)
     {
@@ -146,8 +138,7 @@ namespace Kratos
             KRATOS_ERROR << "Unsupported \"build_mode\": " << mBuildMode << std::endl;
         
         // Define response variables ("MOMENT", "DISPLACEMENT" etc.) for which the sensitivity should get computed
-        std::string response_variable_name = rResponseFunction.GetResponseVariableName();
-        std::cout << response_variable_name << std::endl; 
+        std::string response_variable_name = rResponseFunction.GetResponseVariableName();        
 
         // Define response output variables ("MOMENT_SENSITIVITY", "DISPLACEMENT_SENSITIVITY" etc.) to save the results 
         std::string response_output_variable_name = response_variable_name + std::string("_SENSITIVITY");
@@ -217,18 +208,16 @@ namespace Kratos
         for (auto& elem_i : mrModelPart.Elements())
         {   
             if (!(elem_i.GetValue(UPDATE_SENSITIVITIES)))
-                continue;           
-
-            std::cout << "UpdateOnGaussPointsElement: ELEMENT: "<< elem_i.Id() << std::endl;            
+                continue; 
             
-            // No element contribution if the design variable is an condition data type
+            // No element contribution if the design variable is a point load data type
             if(mVariableType == "condition_data_type")
                 break;  
 
             // Calculate derivative of the response function wrt. the displacements             
             rResponseFunction.CalculateGradient(elem_i, rResponseVariable, response_displacement_gradient[k], r_process_info);
 
-            //OutputUtility::OutputOnTerminal("dg/du", response_displacement_gradient[k]);
+            VectorMath::MultiplyByFactor(response_displacement_gradient[k], -1);            
 
             // Calculate derivative of the response function wrt. the design variable
             rResponseFunction.CalculatePartialSensitivity(elem_i, mrDirectSensitivityVariable, rResponseVariable,
@@ -243,9 +232,7 @@ namespace Kratos
             VectorMath::SizeVectorComponents(scalar_product[k]);
                                            
             // Get the displacement vector derived wrt. the design parameter
-            elem_i.GetValuesVector(displacement_gradient[k]);
-                        
-            //OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
+            elem_i.GetValuesVector(displacement_gradient[k]); 
                         
             if( (response_displacement_gradient[k].size() > 0) && (displacement_gradient[k].size() > 0) )
             {
@@ -253,35 +240,27 @@ namespace Kratos
                     "Sizes of the response vector derived wrt. the displacement" <<
                     " and of the displacement vector derived wrt. the design parameter do not match!" << std::endl;
                  
-                VectorMath::ScalarProduct(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
-
-                //OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
+                VectorMath::ScalarProduct(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]);                 
 
                 VectorMath::SetToZero(sensitivity_vector[k]);
 
                 VectorMath::Addition(sensitivity_vector[k], scalar_product[k]);
             }   
+            
             if( response_sensitivity_gradient[k].size() > 0 )
             {
                 KRATOS_ERROR_IF_NOT( response_sensitivity_gradient[k].size() == sensitivity_vector[k].size() ) << 
                     "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
-                
-                OutputUtility::OutputOnTerminal("dg/ds", response_sensitivity_gradient[k]);
-                
-                VectorMath::MultiplyByFactor(response_sensitivity_gradient[k], -1);
 
                 VectorMath::Addition(sensitivity_vector[k], response_sensitivity_gradient[k]);
-
-                OutputUtility::OutputOnTerminal("sensitivity_vector", sensitivity_vector[k]);
-            }
-            else
-                OutputUtility::OutputOnTerminal("sensitivity_vector", sensitivity_vector[k]); 
+            }            
 
             this->AssembleElementSensitivityContribution(rOutputVariable, sensitivity_vector[k], elem_i);  
-        }
+        }        
 
         KRATOS_CATCH("");
     }
+    
     
 
 
@@ -305,14 +284,12 @@ namespace Kratos
         for (auto& node_i : mrModelPart.Nodes())
         {   
             if (!(node_i.GetValue(UPDATE_SENSITIVITIES)))
-                continue;
-
-            std::cout << "UpdateNode: Node: "<< node_i.Id() << std::endl; 
+                continue;            
 
             // Calculate derivative of the response function wrt. the displacements             
             rResponseFunction.CalculateGradient(node_i, rResponseVariable, response_displacement_gradient[k], r_process_info);
 
-            //OutputUtility::OutputOnTerminal("dg/du", response_displacement_gradient[k]);
+            VectorMath::MultiplyByFactor(response_displacement_gradient[k], -1);            
 
             // Calculate derivative of the response function wrt. the design variable
             rResponseFunction.CalculatePartialSensitivity(node_i, mrDirectSensitivityVariable, rResponseVariable,
@@ -335,17 +312,12 @@ namespace Kratos
             }            
             else
                 KRATOS_ERROR << "There exist no related adjoint variable for " << response_variable_name << "." << std::endl;
-            
 
-            OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
-                        
             if( response_displacement_gradient[k].size() > 0 )
             { 
                 VectorMath::SetToZero(scalar_product[k]);
 
                 VectorMath::Product(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
-
-                OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
 
                 VectorMath::SetToZero(sensitivity_vector[k]);
 
@@ -353,22 +325,12 @@ namespace Kratos
             }   
             
             if( !(EvaluateIfObjectIsOfSizeZero(response_sensitivity_gradient[k])) )
-            {                              
-                //OutputUtility::OutputOnTerminal("dg/ds", response_sensitivity_gradient[k]);
-                
-                VectorMath::MultiplyByFactor(response_sensitivity_gradient[k], -1);
-
+            {
                 VectorMath::Addition(sensitivity_vector[k], response_sensitivity_gradient[k]);
-
-                OutputUtility::OutputOnTerminal("sensitivity_vector", sensitivity_vector[k]);
-            }
-            else
-                OutputUtility::OutputOnTerminal("sensitivity_vector", sensitivity_vector[k]); 
+            }           
 
             this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], node_i);  
         }
-
-
 
         KRATOS_CATCH("");
     }    

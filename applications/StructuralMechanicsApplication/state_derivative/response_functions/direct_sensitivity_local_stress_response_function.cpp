@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 
@@ -110,8 +110,8 @@ namespace Kratos
         std::vector<std::vector<TDataType>> response_gradient;
         VectorMath::SetToZero(response_gradient);
 
-        // Compute Derivative
-        DerivativeBuilder::ComputeStressDisplacementDerivative(rDirectElement, rStressVariable, response_gradient, rProcessInfo);
+        // Compute the derivative of the local stress wrt. the displacement.
+        DerivativeBuilder::ComputeStressDisplacementDerivative(rDirectElement, rStressVariable, response_gradient, rProcessInfo);        
         
         // Size rOutput
         if (rOutput.size() != num_dofs)
@@ -200,12 +200,14 @@ namespace Kratos
         const std::string design_variable_name = rDesignVariable.GetDesignVariableName(); 
         rDirectElement.SetValue(DESIGN_VARIABLE_NAME, design_variable_name);
         
+        
         // Get perturbation size  
         double delta = rDesignVariable.GetPerturbationSize(); 
         rDirectElement.SetValue(PERTURBATION_SIZE, delta);
 
-        // Compute the derivative of the local stress wrt. the design variable        
-        DerivativeBuilder::ComputeStressDesignVariableDerivative(rDirectElement, rStressVariable, rDesignVariable, rOutput, rProcessInfo);
+        // Compute the derivative of the local stress wrt. the design variable. 
+        DerivativeBuilder::ComputeStressDesignVariableDerivative(rDirectElement, rStressVariable, rDesignVariable, rOutput, rProcessInfo);        
+        
     }
 
     template <typename TDataType>
@@ -264,11 +266,16 @@ namespace Kratos
         for (IndexType i = 0; i < num_traced_gp; ++i)
         {    
             // Check if choosen gauss point is available
-            KRATOS_ERROR_IF_NOT(num_gp >= mIdOfLocationVector[i] ) <<
+            if (num_gp > 1)
+            {
+                KRATOS_ERROR_IF_NOT(num_gp >= mIdOfLocationVector[i] ) <<
                     "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " << num_gp  << "!"<< std::endl;
 
-            // Extract the values for the choosen gauss point from the derivative matrix
-            VectorMath::Addition( rOutput[i], rStressDerivativeVector[mIdOfLocationVector[i]-1] );
+                // Extract the values for the choosen gauss point from the derivative matrix
+                VectorMath::Addition( rOutput[i], rStressDerivativeVector[mIdOfLocationVector[i]-1] );
+            }
+            else
+                VectorMath::Addition( rOutput[i], rStressDerivativeVector[0] );
         }
 
         KRATOS_CATCH("");

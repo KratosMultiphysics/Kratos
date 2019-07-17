@@ -23,7 +23,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
-#include "state_derivative/output_utilities/output_utility.h"
+
 
 
 
@@ -38,8 +38,8 @@ namespace Kratos
 
 /** \brief DirectSensitivityVariable
 *
-* This is the response base class for responses in structural mechanics.
-* It is designed to be used in adjoint sensitivity analysis.
+* This is the variable base class for variables in structural mechanics.
+* It is designed to be used in direct sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityVariable
 {
@@ -138,10 +138,6 @@ protected:
 private:
     ///@name private Member Variables
     ///@{
-
-    /*std::string mSensitivityModelPartName;
-    unsigned int mGradientMode;
-    */
 
     ///@}
     ///@name private Operators

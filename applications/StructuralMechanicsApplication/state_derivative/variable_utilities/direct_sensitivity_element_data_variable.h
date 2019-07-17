@@ -22,6 +22,17 @@
 
 namespace Kratos
 {
+    ///@addtogroup StructuralMechanicsApplication
+    ///@{
+
+    ///@name Kratos Classes
+    ///@{
+
+    /** \brief DirectSensitivityElementDataVariable
+    *
+    * This variable class describes parameters concerning parameters of elements (e.g. YOUNG_MODULUS).
+    * It is designed to be used in direct sensitivity analysis.
+    */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityElementDataVariable : public DirectSensitivityVariable
 {

@@ -19,7 +19,7 @@
 
 
 namespace Kratos
-{
+{ 
     // Constructor
     DirectSensitivityPointLoadVariable::DirectSensitivityPointLoadVariable(ModelPart& rModelPart, Parameters VariableSettings)
     : DirectSensitivityVariable(rModelPart, VariableSettings)
@@ -34,8 +34,7 @@ namespace Kratos
         // Set mTracedElementIdVector to zero
         mTracedElementIdVector.resize(0);
 
-        // Direction has to coincide with the direction of the traced point loads
-        // ToDo: find a way to make that automatically 
+        // Direction in which the intensity of the traced point loads should be examined
         mCoordinateDirection = VariableSettings["coordinate_direction"].GetString();             
         
     }
@@ -51,7 +50,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-   
     void DirectSensitivityPointLoadVariable::CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, 
                                             const ProcessInfo& rProcessInfo)
     {
@@ -59,25 +57,18 @@ namespace Kratos
         KRATOS_TRY;
 
         // Define working variables
-        unsigned int coord_dir = GetCoordinateDirection(); 
-
-        //std::cout << "rPseudoLoadVector.size(): " << rLHS.size1() << " , " << rLHS.size2() << std::endl;
+       unsigned int coord_dir = GetCoordinateDirection();
 
         // Define sizes
         const SizeType number_of_nodes = rDirectCondition.GetGeometry().PointsNumber();
         const SizeType dimension = rDirectCondition.GetGeometry().WorkingSpaceDimension();
-        const SizeType vec_size = number_of_nodes * dimension;
-
-        std::cout << "vec_size: " << vec_size << std::endl;
+        const SizeType vec_size = number_of_nodes * dimension;        
 
         // Sizing and clearing of the pseudo load vector
         if (rPseudoLoadVector.size() != vec_size)
             rPseudoLoadVector.resize(vec_size, false);
 
-        rPseudoLoadVector.clear();
-
-        /*KRATOS_ERROR_IF_NOT( rPseudoLoadVector.size() == vec_size ) 
-            << "Size of the pseudo load vector does not fit!" << std::endl;*/
+        rPseudoLoadVector.clear();        
 
         // Calculate pseudo load
         if (std::find(mTracedConditionIdVector.begin(), mTracedConditionIdVector.end(), rDirectCondition.Id() ) != mTracedConditionIdVector.end())    
@@ -88,14 +79,8 @@ namespace Kratos
             }
         else
             rPseudoLoadVector = ZeroVector(rPseudoLoadVector.size()); 
-
-
-        std::cout << "PseudoLoad: Condition: " << rDirectCondition.Id() << std::endl; 
-        for (IndexType i = 0; i < rPseudoLoadVector.size(); ++i)
-            std::cout << rPseudoLoadVector[i] << " : ";
-        std::cout << std::endl;
-
-        KRATOS_CATCH("");           
+        
+        KRATOS_CATCH("");          
     }
 
     void DirectSensitivityPointLoadVariable::CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rLHS, Vector& rPseudoLoadVector, 
@@ -109,6 +94,7 @@ namespace Kratos
 
         // Set pseudo load to zero    
         rPseudoLoadVector = ZeroVector(rPseudoLoadVector.size());
+      
 
         KRATOS_CATCH("");
     }

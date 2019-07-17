@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 #ifndef DIRECT_SENSITIVITY_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H

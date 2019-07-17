@@ -22,6 +22,17 @@
 
 namespace Kratos
 {
+    ///@addtogroup StructuralMechanicsApplication
+    ///@{
+
+    ///@name Kratos Classes
+    ///@{
+
+    /** \brief DirectSensitivityNodalDataVariable
+    *
+    * This variable class describes parameters concerning the coordinates of nodes.
+    * It is designed to be used in direct sensitivity analysis.
+    */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityNodalDataVariable : public DirectSensitivityVariable
 {

@@ -115,11 +115,6 @@ namespace Kratos
         else
             rPseudoLoadVector = ZeroVector(rPseudoLoadVector.size());
 
-        /*std::cout << "PseudoLoad: Element: " << rDirectElement.Id() << std::endl;
-        for ( IndexType i = 0; i < rPseudoLoadVector.size(); ++i)
-            std::cout << rPseudoLoadVector[i] << "  :  ";
-        std::cout << std::endl;*/
-        
         KRATOS_CATCH("");           
     }
 
@@ -206,8 +201,7 @@ namespace Kratos
                 for(IndexType i = 0; i < rDerivativeMatrix.size2(); ++i)                    
                     rExtractedDerivativeMatrix(0, i) += rDerivativeMatrix( index + coord_dir, i );
         }  
-    }
-    
+    }    
     
     std::vector<unsigned int>  DirectSensitivityNodalDataVariable::GetTracedElementId() 
     {              

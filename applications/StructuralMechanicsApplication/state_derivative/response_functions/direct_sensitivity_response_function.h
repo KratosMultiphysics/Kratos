@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 #ifndef DIRECT_SENSITIVITY_RESPONSE_FUNCTION_H
@@ -27,8 +27,6 @@
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
 #include "derivative_builder.h"
 #include "state_derivative/math_functions/vector_math.h"
-#include "state_derivative/output_utilities/output_utility.h"
-
 
 namespace Kratos
 {
@@ -148,8 +146,7 @@ protected:
     ModelPart& mrModelPart;
     unsigned int mGradientMode;
     std::string mResponseVariableName;
-    //std::string mResponseVariableName;
-    
+        
     ///@}
     ///@name Protected Operators
     ///@{
@@ -171,9 +168,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    
-    
+
     ///@}
 };
 

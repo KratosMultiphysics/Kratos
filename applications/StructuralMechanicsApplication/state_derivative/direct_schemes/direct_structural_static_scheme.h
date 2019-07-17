@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 #if !defined(KRATOS_DIRECT_STRUCTURAL_STATIC_SCHEME)
@@ -37,7 +37,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A scheme for for adjoint equations.
+/// A scheme for for direct sensitivity analysis.
 /**
  *
  *
@@ -254,13 +254,10 @@ public:
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
-        // Calculate transposed gradient of response function on element w.r.t. primal solution
-        //mpResponseFunction->CalculateGradient(
-        //    *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        // Calculate pseudo load        
         mpVariable->CalculatePseudoLoadVector(*pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;       
-        
+        noalias(rRHS_Contribution) = -rRHS_Contribution;  
 
         // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
@@ -299,17 +296,18 @@ public:
 
         int thread_id = OpenMPUtils::ThisThread();
 
-        // Calculate transposed gradient of condition residual w.r.t. primal solution.
+        // Calculate pseudo load.
         pCurrentCondition->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-
-        if (rRHS_Contribution.size() != rLHS_Contribution.size1())
-             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
-
-        // Calculate transposed gradient of response function on condition w.r.t. primal solution.
-        //mpResponseFunction->CalculateGradient(
-        //     *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        
         mpVariable->CalculatePseudoLoadVector(*pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        if( rLHS_Contribution.size1() == 0 || rLHS_Contribution.size2() == 0 )
+        {
+            rLHS_Contribution.resize(rRHS_Contribution.size(),rRHS_Contribution.size());
+            for(IndexType i = 0; i < rLHS_Contribution.size1(); ++i)
+                for(IndexType j = 0; j < rLHS_Contribution.size1(); ++j)
+                    rLHS_Contribution(i,j)=0;
+        } 
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 

@@ -30,8 +30,6 @@ namespace Kratos
 
         for (auto& elem_i : mpTracedModelPart->Elements())
             mTracedElementIdVector.push_back(elem_i.Id()); 
-            
-        //mpTracedElement = rModelPart.pGetElement(mIdTracedElement);
     }
 
     // Destructor

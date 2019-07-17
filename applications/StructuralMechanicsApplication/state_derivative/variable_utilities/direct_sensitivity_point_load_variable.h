@@ -22,6 +22,17 @@
 
 namespace Kratos
 {
+    ///@addtogroup StructuralMechanicsApplication
+    ///@{
+
+    ///@name Kratos Classes
+    ///@{
+
+    /** \brief DirectSensitivityPointLoadVariable
+    *
+    * This variable class describes parameters concerning the intensity of point loads.
+    * It is designed to be used in direct sensitivity analysis.
+    */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityPointLoadVariable : public DirectSensitivityVariable
 {

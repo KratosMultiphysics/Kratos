@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
 #ifndef VECTOR_MATH_H
@@ -24,9 +24,7 @@ namespace Kratos
 
 /** \brief DerivativeBuilder
 *
-* This class computes the derivative of a certain response variable (MOMENT etc.) derived by
-* either the displacement or the design variable. It also assembles the result in a vector
-* matching the data type of the response variable (array_1d<double, 3>, Matrix etc.) 
+* The purpose of this class is to perform varies calculations with vectors that are filled with certain data types (e.g. array_1d<double, 3>, Matrix etc.)
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VectorMath
 {
