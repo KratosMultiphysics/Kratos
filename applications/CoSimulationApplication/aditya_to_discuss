@@ -1,4 +1,4 @@
-IO => class or free fcts???
+IO => class or free fcts??? (probably class is better, otherwise the configuring of the IO is difficult.. And also e.g. we would not constantly open/close MPI-Ports)
 
 how to do the allocation => particle
 
@@ -7,6 +7,11 @@ IO Empire => doubleVector???
 Sync with myself? => do we allow this?
 
 make all comm async ... => send first and then receive, probably best way to avoid deadlocks
+=> can we make all communication async???
+
+File-IO: Probably better to put files into a folder
+    - If multiple external solvers are participating it is easier to keep track / avoid potential miscommunication
+    - Should always be deleted at the beginning of a new simulation (and restart), otherwise old files might be read => much easier if files are inside a folder, then the IO can easily do it.
 
 change name of settings being passed around in solver wrapper => has a subkey that is also called "settings"
 
