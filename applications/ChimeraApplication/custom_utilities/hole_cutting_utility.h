@@ -144,7 +144,6 @@ public:
     void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance)
     {
         KRATOS_TRY;
-        KRATOS_INFO("\n::[Creating Hole]::") << std::endl;
         RemoveOutOfDomainElements(rModelPart, rHoleModelPart,1,Distance, true);
         ExtractBoundaryMesh(rHoleModelPart, rHoleBoundaryModelPart);
         KRATOS_CATCH("");
@@ -167,7 +166,6 @@ public:
                                    const bool GetInside=false)
     {
         KRATOS_TRY;
-        KRATOS_INFO("\n:: Removing Out Of Domain Patch with Inside boundary Given ::") << std::endl;
         std::vector<IndexType> vector_of_node_ids;
 
         int count = 0;
@@ -469,8 +467,6 @@ public:
 
         rExtractedBoundaryModelPart.RemoveConditions(TO_ERASE);
         rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
-
-        KRATOS_INFO("Successful extraction of the boundary mesh") << std::endl;
         KRATOS_CATCH("");
     }
 
