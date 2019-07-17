@@ -76,7 +76,7 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     // The discretization type
     mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
 
-    if ( mDiscretization == DiscretizationOption::ISOSURFACE ){
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_regions"].GetBool();
     } else {
         mRemoveRegions = false;
@@ -129,6 +129,11 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
             }
         }
         mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
+
+        // Setting to erare on the auxiliar model part
+        if (mrThisModelPart.HasSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART")) {
+            VariableUtils().SetFlag(TO_ERASE, true, mrThisModelPart.GetSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART").Conditions());
+        }
 
         // Reset flag
         VariableUtils().ResetFlag(MARKER, mrThisModelPart.Conditions());

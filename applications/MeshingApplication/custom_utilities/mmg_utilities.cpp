@@ -3124,6 +3124,18 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
                 if (first_color_elem.find(key) != first_color_elem.end()) r_sub_model_part.AddElements(first_color_elem[key]);
                 if (second_color_elem.find(key) != second_color_elem.end()) r_sub_model_part.AddElements(second_color_elem[key]);
             }
+        } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            if (rModelPart.HasSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART")) {
+                auto& r_sub_model_part = rModelPart.GetSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART");
+                r_sub_model_part.AddConditions(first_color_cond[0]);
+                r_sub_model_part.AddConditions(second_color_cond[0]);
+            } else {
+                if (first_color_cond[0].size() + second_color_cond[0].size() > 0) {
+                auto& r_sub_model_part = rModelPart.CreateSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART");
+                    r_sub_model_part.AddConditions(first_color_cond[0]);
+                    r_sub_model_part.AddConditions(second_color_cond[0]);
+                }
+            }
         }
     }
 
