@@ -257,17 +257,6 @@ protected:
             for (const auto &background_patch_param : current_level)
             { // Gives the current background patch
                 // compute the outerboundary of the background to save
-                ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(background_patch_param["model_part_name"].GetString());
-                if(!r_background_model_part.HasSubModelPart("chimera_boundary_mp")){
-                    auto& r_boundary_model_part = r_background_model_part.CreateSubModelPart("chimera_boundary_mp");
-                    BuiltinTimer extraction_time;
-                    if(i_current_level==0){
-                        mpHoleCuttingUtility->ExtractBoundaryMesh(r_background_model_part, r_boundary_model_part);
-                    }else{
-                        mpHoleCuttingUtility->ExtractBoundaryMesh(r_background_model_part, r_boundary_model_part, true);
-                    }
-                    KRATOS_INFO_IF("Extraction of boundary mesh took : ", mEchoLevel > 0)<< extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
-                }
 
                 for (IndexType i_slave_level = i_current_level + 1; i_slave_level < mNumberOfLevels; ++i_slave_level)
                 {
@@ -275,6 +264,17 @@ protected:
                     {
                         if (i_current_level == 0) // a check to identify computational Domain boundary
                             is_main_background = -1;
+                        ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(background_patch_param["model_part_name"].GetString());
+                        if(!r_background_model_part.HasSubModelPart("chimera_boundary_mp")){
+                            auto& r_boundary_model_part = r_background_model_part.CreateSubModelPart("chimera_boundary_mp");
+                            BuiltinTimer extraction_time;
+                            if(i_current_level==0){
+                                mpHoleCuttingUtility->ExtractBoundaryMesh(r_background_model_part, r_boundary_model_part);
+                            }else{
+                                mpHoleCuttingUtility->ExtractBoundaryMesh(r_background_model_part, r_boundary_model_part, true);
+                            }
+                            KRATOS_INFO_IF("Extraction of boundary mesh took : ", mEchoLevel > 0)<< extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
+                        }
                         FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
                         //KRATOS_INFO("Formulating Chimera for the combination :: \n") << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                     }
