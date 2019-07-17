@@ -174,7 +174,7 @@ public:
                             
                 rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
                 
-                if ( rDesignVariable.GetDesignVariableType() != "nodal_data_type")
+                if ( rDesignVariable.GetDesignVariableType() != "nodal_coordinates_type")
                     AssembleDerivationVector(rOutput, DerivativeMatrix, dir_it);    
                 else    
                 {                    
@@ -253,7 +253,7 @@ private:
         rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
 
         // Assemble results for the response function FORCE
-        if ( rDesignVariable.GetDesignVariableType() != "nodal_data_type")
+        if ( rDesignVariable.GetDesignVariableType() != "nodal_coordinates_type")
         {
             AssembleDerivationVector(rOutput, DerivativeMatrix, 0);               
             DerivativeMatrix.clear();
