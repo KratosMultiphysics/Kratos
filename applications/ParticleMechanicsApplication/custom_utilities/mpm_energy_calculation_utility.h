@@ -40,12 +40,12 @@ namespace MPMEnergyCalculationUtility
      */
     void CalculatePotentialEnergy(ElementPointerType& rpElement)
     {
-        double MP_PotentialEnergy = 0.0;
+        double MP_potential_energy = 0.0;
 
         for(unsigned int k = 0; k<3; k++)
-            MP_PotentialEnergy += rpElement->GetValue(MP_MASS) * std::abs(rpElement->GetValue(MP_VOLUME_ACCELERATION)[k] * rpElement->GetValue(MP_COORD)[k]);
+            MP_potential_energy += rpElement->GetValue(MP_MASS) * std::abs(rpElement->GetValue(MP_VOLUME_ACCELERATION)[k] * rpElement->GetValue(MP_COORD)[k]);
 
-        rpElement->SetValue(MP_POTENTIAL_ENERGY, MP_PotentialEnergy);
+        rpElement->SetValue(MP_POTENTIAL_ENERGY, MP_potential_energy);
     }
 
     void CalculatePotentialEnergy(ModelPart& rModelPart)
@@ -63,12 +63,12 @@ namespace MPMEnergyCalculationUtility
      */
     void CalculateKineticEnergy(ElementPointerType& rpElement)
     {
-        double MP_KineticEnergy = 0.0;
+        double MP_kinetic_energy = 0.0;
 
         for(unsigned int k = 0; k<3; k++)
-            MP_KineticEnergy   += 0.5 * rpElement->GetValue(MP_MASS) * rpElement->GetValue(MP_VELOCITY)[k] * rpElement->GetValue(MP_VELOCITY)[k] ;
+            MP_kinetic_energy   += 0.5 * rpElement->GetValue(MP_MASS) * rpElement->GetValue(MP_VELOCITY)[k] * rpElement->GetValue(MP_VELOCITY)[k] ;
 
-        rpElement->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
+        rpElement->SetValue(MP_KINETIC_ENERGY, MP_kinetic_energy);
     }
 
     void CalculateKineticEnergy(ModelPart& rModelPart)
@@ -87,14 +87,14 @@ namespace MPMEnergyCalculationUtility
 
     void CalculateStrainEnergy(ElementPointerType& rpElement)
     {
-        double MP_StrainEnergy = 0.0;
+        double MP_strain_energy = 0.0;
 
         for(unsigned int j = 0; j < rpElement->GetValue(MP_CAUCHY_STRESS_VECTOR).size(); j++)
         {
-            MP_StrainEnergy +=  0.5 * rpElement->GetValue(MP_VOLUME) * rpElement->GetValue(MP_CAUCHY_STRESS_VECTOR)[j] * rpElement->GetValue(MP_ALMANSI_STRAIN_VECTOR)[j];
+            MP_strain_energy +=  0.5 * rpElement->GetValue(MP_VOLUME) * rpElement->GetValue(MP_CAUCHY_STRESS_VECTOR)[j] * rpElement->GetValue(MP_ALMANSI_STRAIN_VECTOR)[j];
         }
 
-        rpElement->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
+        rpElement->SetValue(MP_STRAIN_ENERGY, MP_strain_energy);
     }
 
     void CalculateStrainEnergy(ModelPart& rModelPart)
@@ -118,12 +118,12 @@ namespace MPMEnergyCalculationUtility
         CalculateKineticEnergy(rpElement);
         CalculateStrainEnergy(rpElement);
 
-        const double & MP_PotentialEnergy = rpElement->GetValue(MP_POTENTIAL_ENERGY);
-        const double & MP_KineticEnergy   = rpElement->GetValue(MP_KINETIC_ENERGY);
-        const double & MP_StrainEnergy    = rpElement->GetValue(MP_STRAIN_ENERGY);
-        const double MP_TotalEnergy = MP_PotentialEnergy + MP_KineticEnergy + MP_StrainEnergy;
+        const double & r_MP_potential_energy = rpElement->GetValue(MP_POTENTIAL_ENERGY);
+        const double & r_MP_kinetic_energy   = rpElement->GetValue(MP_KINETIC_ENERGY);
+        const double & r_MP_strain_energy    = rpElement->GetValue(MP_STRAIN_ENERGY);
+        const double MP_total_energy = r_MP_potential_energy + r_MP_kinetic_energy + r_MP_strain_energy;
 
-        rpElement->SetValue(MP_TOTAL_ENERGY, MP_TotalEnergy);
+        rpElement->SetValue(MP_TOTAL_ENERGY, MP_total_energy);
     }
 
 

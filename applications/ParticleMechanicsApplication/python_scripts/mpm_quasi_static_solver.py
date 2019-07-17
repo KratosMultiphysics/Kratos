@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-
 # Importing the base class
 from KratosMultiphysics.ParticleMechanicsApplication.mpm_implicit_dynamic_solver import MPMImplicitDynamicSolver
 
@@ -18,9 +15,9 @@ class MPMQuasiStaticSolver(MPMImplicitDynamicSolver):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.
         super(MPMQuasiStaticSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[MPMQuasiStaticSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MPMQuasiStaticSolver]:: ", "Construction is finished.")
 
-    #### Private functions ####
+    ### Protected functions ###
 
-    def _is_dynamic(self):
+    def _IsDynamic(self):
         return False

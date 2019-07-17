@@ -154,6 +154,41 @@ public:
         this->CopyModelPartNodalVar(rVariable, rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
     }
 
+    template< class TVarType >
+    void CopyModelPartNodalVarToNonHistoricalVar(
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
+        const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
+
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) <<
+            "Origin and destination model parts have different number of nodes." <<
+            "\n\t- Number of origin nodes: " << n_orig_nodes <<
+            "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < n_orig_nodes; ++i_node){
+            auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
+            const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
+            it_dest_node->GetValue(rDestinationVariable) = r_value;
+        }
+    }
+
+    template< class TVarType >
+    void CopyModelPartNodalVarToNonHistoricalVar(
+        const TVarType &rVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        this->CopyModelPartNodalVarToNonHistoricalVar(rVariable, rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
+    }
+
     /**
      * @brief Copies the elemental value of a variable from an origin model
      * part elements to the elements in a destination model part. It is assumed that

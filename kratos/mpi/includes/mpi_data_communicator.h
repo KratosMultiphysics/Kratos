@@ -62,9 +62,15 @@ void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalVa
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)               \
+type SendRecvImpl(                                                                           \
+    const type SendValue, const int SendDestination, const int SendTag,                      \
+    const int RecvSource, const int RecvTag) const override;                                 \
 std::vector<type> SendRecvImpl(const std::vector<type>& rSendValues,                         \
     const int SendDestination, const int SendTag,                                            \
     const int RecvSource, const int RecvTag) const override;                                 \
+void SendRecvImpl(                                                                           \
+    const type SendValue, const int SendDestination, const int SendTag,                      \
+    type& RecvValue, const int RecvSource, const int RecvTag) const override;                \
 void SendRecvImpl(                                                                           \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
@@ -341,6 +347,11 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void SendRecvDetail(
         const TDataType& rSendMessage, const int SendDestination, const int SendTag,
         TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const;
+
+    template<class TDataType> TDataType SendRecvDetail(
+        const TDataType& rSendMessage,
+        const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const;
 
     template<class TDataType> std::vector<TDataType> SendRecvDetail(
         const std::vector<TDataType>& rSendMessage,

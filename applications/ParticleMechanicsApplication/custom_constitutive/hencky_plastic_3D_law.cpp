@@ -175,7 +175,7 @@ void HenckyElasticPlastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable,
 
 
 void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
-        const GeometryType& rGeom,
+        const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues)
 {
     mDeterminantF0                = 1;

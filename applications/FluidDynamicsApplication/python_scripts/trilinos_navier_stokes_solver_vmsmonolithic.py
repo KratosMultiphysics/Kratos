@@ -11,7 +11,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dyna
 
 # Import base class file
 import navier_stokes_solver_vmsmonolithic
-import trilinos_import_model_part_utility
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
@@ -103,17 +103,17 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
     def ImportModelPart(self):
-        ## Construct the Trilinos import model part utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the MPI import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.ImportModelPart()
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
-        ## Construct Trilinos the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        ## Construct the MPI communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         ## Base class DOFs addition

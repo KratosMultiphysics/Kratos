@@ -45,11 +45,11 @@ MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, Geometr
 
 Condition::Pointer MPMGridLineLoadCondition2D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -90,35 +90,35 @@ void MPMGridLineLoadCondition2D::CalculateAll(
     const unsigned int block_size = this->GetBlockSize();
 
     // Resizing as needed the LHS
-    unsigned int mat_size = number_of_nodes * block_size;
+    unsigned int matrix_size = number_of_nodes * block_size;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != mat_size )
+        if ( rLeftHandSideMatrix.size1() != matrix_size )
         {
-            rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
         }
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(mat_size,mat_size); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
     }
 
     //resizing as needed the RHS
     if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size( ) != mat_size )
+        if ( rRightHandSideVector.size( ) != matrix_size )
         {
-            rRightHandSideVector.resize( mat_size, false );
+            rRightHandSideVector.resize( matrix_size, false );
         }
 
-        noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
+        noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
 
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
+    const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
 
     const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
@@ -194,7 +194,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         {
             if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
-                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[point_number], row( r_N, point_number ), gauss_pressure, integration_weight );
+                CalculateAndSubKp( rLeftHandSideMatrix, r_DN_De[point_number], row( r_N, point_number ), gauss_pressure, integration_weight );
             }
         }
         // Adding contributions to the residual vector
@@ -234,9 +234,9 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 //***********************************************************************
 
 void MPMGridLineLoadCondition2D::CalculateAndSubKp(
-    Matrix& K,
-    const Matrix& DN_De,
-    const RowMatrix& N,
+    Matrix& rK,
+    const Matrix& rDN_De,
+    const RowMatrix& rN,
     const double Pressure,
     const double IntegrationWeight
     )
@@ -262,11 +262,11 @@ void MPMGridLineLoadCondition2D::CalculateAndSubKp(
         {
             const unsigned int ColIndex = j * 2;
 
-            const double coeff = Pressure * N[i] * DN_De( j, 0 ) * IntegrationWeight;
+            const double coeff = Pressure * rN[i] * rDN_De( j, 0 ) * IntegrationWeight;
             Kij = -coeff * Cross_gn;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix( K, Kij, RowIndex, ColIndex );
+            MathUtils<double>::SubtractMatrix( rK, Kij, RowIndex, ColIndex );
         }
     }
 

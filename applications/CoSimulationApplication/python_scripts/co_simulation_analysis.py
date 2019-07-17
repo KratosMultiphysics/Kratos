@@ -73,7 +73,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def InitializeSolutionStep(self):
         self.step += 1
-        cs_tools.cs_print_info(colors.bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
+        cs_tools.cs_print_info(colors.bold("\ntime={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
 
         self._GetSolver().InitializeSolutionStep()
 

@@ -5,7 +5,7 @@ import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import math
-import convergence_accelerator_factory
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
 
@@ -290,7 +290,6 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
         print("Testing Newton-Raphson with accelerator: ",settings["solver_type"].GetString())
 
         # Construct the coupling partitioned strategy
-        import convergence_accelerator_factory
         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(settings)
 
         x_guess = KratosMultiphysics.Vector(2)
@@ -375,7 +374,6 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
         print("Testing Newton-Raphson with accelerator: ",settings["solver_type"].GetString(), " version with residual=DX")
 
         # Construct the coupling partitioned strategy
-        import convergence_accelerator_factory
         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(settings)
 
         x_guess = KratosMultiphysics.Vector(2)

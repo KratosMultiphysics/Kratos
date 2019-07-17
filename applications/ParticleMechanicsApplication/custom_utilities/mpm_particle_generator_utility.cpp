@@ -215,23 +215,23 @@ namespace MPMParticleGeneratorUtility
                         new_element_id = last_element_id + PointNumber;
                         Element::Pointer p_element = new_element.Create(new_element_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
-                        const double MP_Density  = density;
-                        const int MP_Material_Id = material_id;
+                        const double MP_density  = density;
+                        const int MP_material_id = material_id;
 
                         xg.clear();
 
                         // Loop over the nodes of the grid element
-                        for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++)
+                        for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++)
                         {
                             for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                             {
-                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dim];
+                                xg[dimension] = xg[dimension] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dimension];
                             }
                         }
 
                         // Setting particle element's initial condition
-                        p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
-                        p_element->SetValue(MP_DENSITY, MP_Density);
+                        p_element->SetValue(MP_MATERIAL_ID, MP_material_id);
+                        p_element->SetValue(MP_DENSITY, MP_density);
                         p_element->SetValue(MP_MASS, mp_mass);
                         p_element->SetValue(MP_VOLUME, mp_volume);
                         p_element->SetValue(MP_COORD, xg);
@@ -569,9 +569,9 @@ namespace MPMParticleGeneratorUtility
                             mpc_xg.clear();
 
                             // Loop over the nodes of the grid condition
-                            for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++){
+                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
                                 for ( unsigned int j = 0; j < r_geometry.size(); j ++){
-                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dim];
+                                    mpc_xg[dimension] = mpc_xg[dimension] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dimension];
                                 }
                             }
 
@@ -628,8 +628,8 @@ namespace MPMParticleGeneratorUtility
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
-                            for (unsigned int dim = 0; dim < r_geometry.WorkingSpaceDimension(); dim++){
-                                mpc_xg[dim] = r_geometry[j].Coordinates()[dim];
+                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
+                                mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
                             }
 
                             // Setting particle condition's initial condition
@@ -689,78 +689,78 @@ namespace MPMParticleGeneratorUtility
         const double Ne2 = 0.72849239295540;
         const double Ne3 = 0.00839477740996;
 
-        BoundedMatrix<double,16,3> MP_ShapeFunctions;
+        BoundedMatrix<double,16,3> MP_shape_functions;
 
-        MP_ShapeFunctions(0,0) = Na1;
-        MP_ShapeFunctions(0,1) = Na1;
-        MP_ShapeFunctions(0,2) = Na1;
+        MP_shape_functions(0,0) = Na1;
+        MP_shape_functions(0,1) = Na1;
+        MP_shape_functions(0,2) = Na1;
 
-        MP_ShapeFunctions(1,0) = Nb1;
-        MP_ShapeFunctions(1,1) = Nb1;
-        MP_ShapeFunctions(1,2) = Nb2;
+        MP_shape_functions(1,0) = Nb1;
+        MP_shape_functions(1,1) = Nb1;
+        MP_shape_functions(1,2) = Nb2;
 
-        MP_ShapeFunctions(2,0) = Nb1;
-        MP_ShapeFunctions(2,1) = Nb2;
-        MP_ShapeFunctions(2,2) = Nb1;
+        MP_shape_functions(2,0) = Nb1;
+        MP_shape_functions(2,1) = Nb2;
+        MP_shape_functions(2,2) = Nb1;
 
-        MP_ShapeFunctions(3,0) = Nb2;
-        MP_ShapeFunctions(3,1) = Nb1;
-        MP_ShapeFunctions(3,2) = Nb1;
+        MP_shape_functions(3,0) = Nb2;
+        MP_shape_functions(3,1) = Nb1;
+        MP_shape_functions(3,2) = Nb1;
 
-        MP_ShapeFunctions(4,0) = Nc1;
-        MP_ShapeFunctions(4,1) = Nc1;
-        MP_ShapeFunctions(4,2) = Nc2;
+        MP_shape_functions(4,0) = Nc1;
+        MP_shape_functions(4,1) = Nc1;
+        MP_shape_functions(4,2) = Nc2;
 
-        MP_ShapeFunctions(5,0) = Nc1;
-        MP_ShapeFunctions(5,1) = Nc2;
-        MP_ShapeFunctions(5,2) = Nc1;
+        MP_shape_functions(5,0) = Nc1;
+        MP_shape_functions(5,1) = Nc2;
+        MP_shape_functions(5,2) = Nc1;
 
-        MP_ShapeFunctions(6,0) = Nc2;
-        MP_ShapeFunctions(6,1) = Nc1;
-        MP_ShapeFunctions(6,2) = Nc1;
+        MP_shape_functions(6,0) = Nc2;
+        MP_shape_functions(6,1) = Nc1;
+        MP_shape_functions(6,2) = Nc1;
 
-        MP_ShapeFunctions(7,0) = Nd1;
-        MP_ShapeFunctions(7,1) = Nd1;
-        MP_ShapeFunctions(7,2) = Nd2;
+        MP_shape_functions(7,0) = Nd1;
+        MP_shape_functions(7,1) = Nd1;
+        MP_shape_functions(7,2) = Nd2;
 
-        MP_ShapeFunctions(8,0) = Nd1;
-        MP_ShapeFunctions(8,1) = Nd2;
-        MP_ShapeFunctions(8,2) = Nd1;
+        MP_shape_functions(8,0) = Nd1;
+        MP_shape_functions(8,1) = Nd2;
+        MP_shape_functions(8,2) = Nd1;
 
-        MP_ShapeFunctions(9,0) = Nd2;
-        MP_ShapeFunctions(9,1) = Nd1;
-        MP_ShapeFunctions(9,2) = Nd1;
+        MP_shape_functions(9,0) = Nd2;
+        MP_shape_functions(9,1) = Nd1;
+        MP_shape_functions(9,2) = Nd1;
 
-        MP_ShapeFunctions(10,0) = Ne1;
-        MP_ShapeFunctions(10,1) = Ne2;
-        MP_ShapeFunctions(10,2) = Ne3;
+        MP_shape_functions(10,0) = Ne1;
+        MP_shape_functions(10,1) = Ne2;
+        MP_shape_functions(10,2) = Ne3;
 
-        MP_ShapeFunctions(11,0) = Ne2;
-        MP_ShapeFunctions(11,1) = Ne3;
-        MP_ShapeFunctions(11,2) = Ne1;
+        MP_shape_functions(11,0) = Ne2;
+        MP_shape_functions(11,1) = Ne3;
+        MP_shape_functions(11,2) = Ne1;
 
-        MP_ShapeFunctions(12,0) = Ne3;
-        MP_ShapeFunctions(12,1) = Ne1;
-        MP_ShapeFunctions(12,2) = Ne2;
+        MP_shape_functions(12,0) = Ne3;
+        MP_shape_functions(12,1) = Ne1;
+        MP_shape_functions(12,2) = Ne2;
 
-        MP_ShapeFunctions(13,0) = Ne2;
-        MP_ShapeFunctions(13,1) = Ne1;
-        MP_ShapeFunctions(13,2) = Ne3;
+        MP_shape_functions(13,0) = Ne2;
+        MP_shape_functions(13,1) = Ne1;
+        MP_shape_functions(13,2) = Ne3;
 
-        MP_ShapeFunctions(14,0) = Ne1;
-        MP_ShapeFunctions(14,1) = Ne3;
-        MP_ShapeFunctions(14,2) = Ne2;
+        MP_shape_functions(14,0) = Ne1;
+        MP_shape_functions(14,1) = Ne3;
+        MP_shape_functions(14,2) = Ne2;
 
-        MP_ShapeFunctions(15,0) = Ne3;
-        MP_ShapeFunctions(15,1) = Ne2;
-        MP_ShapeFunctions(15,2) = Ne1;
+        MP_shape_functions(15,0) = Ne3;
+        MP_shape_functions(15,1) = Ne2;
+        MP_shape_functions(15,2) = Ne1;
 
-        //MP_ShapeFunctions = [(Na1, Na1, Na1),(Nb1, Nb1, Nb2),(Nb1, Nb2, Nb1),(Nb2, Nb1, Nb1),
+        //MP_shape_functions = [(Na1, Na1, Na1),(Nb1, Nb1, Nb2),(Nb1, Nb2, Nb1),(Nb2, Nb1, Nb1),
         //                    (Nc1, Nc1, Nc2),(Nc1, Nc2, Nc1),(Nc2, Nc1, Nc1),(Nd1, Nd1, Nd2),
         //                    (Nd1, Nd2, Nd1),(Nd2, Nd1, Nd1),(Ne1, Ne2, Ne3),(Ne2, Ne3, Ne1),
         //                    (Ne3, Ne1, Ne2),(Ne2, Ne1, Ne3),(Ne1, Ne3, Ne2),(Ne3, Ne2, Ne1)];
 
-        return MP_ShapeFunctions;
+        return MP_shape_functions;
     }
 
 /***********************************************************************************/
@@ -795,142 +795,142 @@ namespace MPMParticleGeneratorUtility
         const double Nh2 = 0.116251915907597;
         const double Nh3 = 0.858014033544073;
 
-        BoundedMatrix<double,33,3> MP_ShapeFunctions;
+        BoundedMatrix<double,33,3> MP_shape_functions;
 
-        MP_ShapeFunctions(0,0) = Na1;
-        MP_ShapeFunctions(0,1) = Na1;
-        MP_ShapeFunctions(0,2) = Na2;
+        MP_shape_functions(0,0) = Na1;
+        MP_shape_functions(0,1) = Na1;
+        MP_shape_functions(0,2) = Na2;
 
-        MP_ShapeFunctions(1,0) = Na1;
-        MP_ShapeFunctions(1,1) = Na2;
-        MP_ShapeFunctions(1,2) = Na1;
+        MP_shape_functions(1,0) = Na1;
+        MP_shape_functions(1,1) = Na2;
+        MP_shape_functions(1,2) = Na1;
 
-        MP_ShapeFunctions(2,0) = Na2;
-        MP_ShapeFunctions(2,1) = Na1;
-        MP_ShapeFunctions(2,2) = Na1;
+        MP_shape_functions(2,0) = Na2;
+        MP_shape_functions(2,1) = Na1;
+        MP_shape_functions(2,2) = Na1;
 
 
-        MP_ShapeFunctions(3,0) = Nb1;
-        MP_ShapeFunctions(3,1) = Nb1;
-        MP_ShapeFunctions(3,2) = Nb2;
+        MP_shape_functions(3,0) = Nb1;
+        MP_shape_functions(3,1) = Nb1;
+        MP_shape_functions(3,2) = Nb2;
 
-        MP_ShapeFunctions(4,0) = Nb1;
-        MP_ShapeFunctions(4,1) = Nb2;
-        MP_ShapeFunctions(4,2) = Nb1;
+        MP_shape_functions(4,0) = Nb1;
+        MP_shape_functions(4,1) = Nb2;
+        MP_shape_functions(4,2) = Nb1;
 
-        MP_ShapeFunctions(5,0) = Nb2;
-        MP_ShapeFunctions(5,1) = Nb1;
-        MP_ShapeFunctions(5,2) = Nb1;
+        MP_shape_functions(5,0) = Nb2;
+        MP_shape_functions(5,1) = Nb1;
+        MP_shape_functions(5,2) = Nb1;
 
-        MP_ShapeFunctions(6,0) = Nc1;
-        MP_ShapeFunctions(6,1) = Nc1;
-        MP_ShapeFunctions(6,2) = Nc2;
+        MP_shape_functions(6,0) = Nc1;
+        MP_shape_functions(6,1) = Nc1;
+        MP_shape_functions(6,2) = Nc2;
 
-        MP_ShapeFunctions(7,0) = Nc1;
-        MP_ShapeFunctions(7,1) = Nc2;
-        MP_ShapeFunctions(7,2) = Nc1;
+        MP_shape_functions(7,0) = Nc1;
+        MP_shape_functions(7,1) = Nc2;
+        MP_shape_functions(7,2) = Nc1;
 
-        MP_ShapeFunctions(8,0) = Nc2;
-        MP_ShapeFunctions(8,1) = Nc1;
-        MP_ShapeFunctions(8,2) = Nc1;
+        MP_shape_functions(8,0) = Nc2;
+        MP_shape_functions(8,1) = Nc1;
+        MP_shape_functions(8,2) = Nc1;
 
-        MP_ShapeFunctions(9,0) = Nd1;
-        MP_ShapeFunctions(9,1) = Nd1;
-        MP_ShapeFunctions(9,2) = Nd2;
+        MP_shape_functions(9,0) = Nd1;
+        MP_shape_functions(9,1) = Nd1;
+        MP_shape_functions(9,2) = Nd2;
 
-        MP_ShapeFunctions(10,0) = Nd1;
-        MP_ShapeFunctions(10,1) = Nd2;
-        MP_ShapeFunctions(10,2) = Nd1;
+        MP_shape_functions(10,0) = Nd1;
+        MP_shape_functions(10,1) = Nd2;
+        MP_shape_functions(10,2) = Nd1;
 
-        MP_ShapeFunctions(11,0) = Nd2;
-        MP_ShapeFunctions(11,1) = Nd1;
-        MP_ShapeFunctions(11,2) = Nd1;
+        MP_shape_functions(11,0) = Nd2;
+        MP_shape_functions(11,1) = Nd1;
+        MP_shape_functions(11,2) = Nd1;
 
-        MP_ShapeFunctions(12,0) = Ne1;
-        MP_ShapeFunctions(12,1) = Ne1;
-        MP_ShapeFunctions(12,2) = Ne2;
+        MP_shape_functions(12,0) = Ne1;
+        MP_shape_functions(12,1) = Ne1;
+        MP_shape_functions(12,2) = Ne2;
 
-        MP_ShapeFunctions(13,0) = Ne1;
-        MP_ShapeFunctions(13,1) = Ne2;
-        MP_ShapeFunctions(13,2) = Ne1;
+        MP_shape_functions(13,0) = Ne1;
+        MP_shape_functions(13,1) = Ne2;
+        MP_shape_functions(13,2) = Ne1;
 
-        MP_ShapeFunctions(14,0) = Ne2;
-        MP_ShapeFunctions(14,1) = Ne1;
-        MP_ShapeFunctions(14,2) = Ne1;
+        MP_shape_functions(14,0) = Ne2;
+        MP_shape_functions(14,1) = Ne1;
+        MP_shape_functions(14,2) = Ne1;
 
-        MP_ShapeFunctions(15,0) = Nf1;
-        MP_ShapeFunctions(15,1) = Nf2;
-        MP_ShapeFunctions(15,2) = Nf3;
+        MP_shape_functions(15,0) = Nf1;
+        MP_shape_functions(15,1) = Nf2;
+        MP_shape_functions(15,2) = Nf3;
 
-        MP_ShapeFunctions(16,0) = Nf2;
-        MP_ShapeFunctions(16,1) = Nf3;
-        MP_ShapeFunctions(16,2) = Nf1;
+        MP_shape_functions(16,0) = Nf2;
+        MP_shape_functions(16,1) = Nf3;
+        MP_shape_functions(16,2) = Nf1;
 
-        MP_ShapeFunctions(17,0) = Nf3;
-        MP_ShapeFunctions(17,1) = Nf1;
-        MP_ShapeFunctions(17,2) = Nf2;
+        MP_shape_functions(17,0) = Nf3;
+        MP_shape_functions(17,1) = Nf1;
+        MP_shape_functions(17,2) = Nf2;
 
-        MP_ShapeFunctions(18,0) = Nf2;
-        MP_ShapeFunctions(18,1) = Nf1;
-        MP_ShapeFunctions(18,2) = Nf3;
+        MP_shape_functions(18,0) = Nf2;
+        MP_shape_functions(18,1) = Nf1;
+        MP_shape_functions(18,2) = Nf3;
 
-        MP_ShapeFunctions(19,0) = Nf1;
-        MP_ShapeFunctions(19,1) = Nf3;
-        MP_ShapeFunctions(19,2) = Nf2;
+        MP_shape_functions(19,0) = Nf1;
+        MP_shape_functions(19,1) = Nf3;
+        MP_shape_functions(19,2) = Nf2;
 
-        MP_ShapeFunctions(20,0) = Nf3;
-        MP_ShapeFunctions(20,1) = Nf2;
-        MP_ShapeFunctions(20,2) = Nf1;
+        MP_shape_functions(20,0) = Nf3;
+        MP_shape_functions(20,1) = Nf2;
+        MP_shape_functions(20,2) = Nf1;
 
-        MP_ShapeFunctions(21,0) = Ng1;
-        MP_ShapeFunctions(21,1) = Ng2;
-        MP_ShapeFunctions(21,2) = Ng3;
+        MP_shape_functions(21,0) = Ng1;
+        MP_shape_functions(21,1) = Ng2;
+        MP_shape_functions(21,2) = Ng3;
 
-        MP_ShapeFunctions(22,0) = Ng2;
-        MP_ShapeFunctions(22,1) = Ng3;
-        MP_ShapeFunctions(22,2) = Ng1;
+        MP_shape_functions(22,0) = Ng2;
+        MP_shape_functions(22,1) = Ng3;
+        MP_shape_functions(22,2) = Ng1;
 
-        MP_ShapeFunctions(23,0) = Ng3;
-        MP_ShapeFunctions(23,1) = Ng1;
-        MP_ShapeFunctions(23,2) = Ng2;
+        MP_shape_functions(23,0) = Ng3;
+        MP_shape_functions(23,1) = Ng1;
+        MP_shape_functions(23,2) = Ng2;
 
-        MP_ShapeFunctions(24,0) = Ng2;
-        MP_ShapeFunctions(24,1) = Ng1;
-        MP_ShapeFunctions(24,2) = Ng3;
+        MP_shape_functions(24,0) = Ng2;
+        MP_shape_functions(24,1) = Ng1;
+        MP_shape_functions(24,2) = Ng3;
 
-        MP_ShapeFunctions(25,0) = Ng1;
-        MP_ShapeFunctions(25,1) = Ng3;
-        MP_ShapeFunctions(25,2) = Ng2;
+        MP_shape_functions(25,0) = Ng1;
+        MP_shape_functions(25,1) = Ng3;
+        MP_shape_functions(25,2) = Ng2;
 
-        MP_ShapeFunctions(26,0) = Ng3;
-        MP_ShapeFunctions(26,1) = Ng2;
-        MP_ShapeFunctions(26,2) = Ng1;
+        MP_shape_functions(26,0) = Ng3;
+        MP_shape_functions(26,1) = Ng2;
+        MP_shape_functions(26,2) = Ng1;
 
-        MP_ShapeFunctions(27,0) = Nh1;
-        MP_ShapeFunctions(27,1) = Nh2;
-        MP_ShapeFunctions(27,2) = Nh3;
+        MP_shape_functions(27,0) = Nh1;
+        MP_shape_functions(27,1) = Nh2;
+        MP_shape_functions(27,2) = Nh3;
 
-        MP_ShapeFunctions(28,0) = Nh2;
-        MP_ShapeFunctions(28,1) = Nh3;
-        MP_ShapeFunctions(28,2) = Nh1;
+        MP_shape_functions(28,0) = Nh2;
+        MP_shape_functions(28,1) = Nh3;
+        MP_shape_functions(28,2) = Nh1;
 
-        MP_ShapeFunctions(29,0) = Nh3;
-        MP_ShapeFunctions(29,1) = Nh1;
-        MP_ShapeFunctions(29,2) = Nh2;
+        MP_shape_functions(29,0) = Nh3;
+        MP_shape_functions(29,1) = Nh1;
+        MP_shape_functions(29,2) = Nh2;
 
-        MP_ShapeFunctions(30,0) = Nh2;
-        MP_ShapeFunctions(30,1) = Nh1;
-        MP_ShapeFunctions(30,2) = Nh3;
+        MP_shape_functions(30,0) = Nh2;
+        MP_shape_functions(30,1) = Nh1;
+        MP_shape_functions(30,2) = Nh3;
 
-        MP_ShapeFunctions(31,0) = Nh1;
-        MP_ShapeFunctions(31,1) = Nh3;
-        MP_ShapeFunctions(31,2) = Nh2;
+        MP_shape_functions(31,0) = Nh1;
+        MP_shape_functions(31,1) = Nh3;
+        MP_shape_functions(31,2) = Nh2;
 
-        MP_ShapeFunctions(32,0) = Nh3;
-        MP_ShapeFunctions(32,1) = Nh2;
-        MP_ShapeFunctions(32,2) = Nh1;
+        MP_shape_functions(32,0) = Nh3;
+        MP_shape_functions(32,1) = Nh2;
+        MP_shape_functions(32,2) = Nh1;
 
-        return MP_ShapeFunctions;
+        return MP_shape_functions;
     }
 
 } // end namespace MPMParticleGeneratorUtility

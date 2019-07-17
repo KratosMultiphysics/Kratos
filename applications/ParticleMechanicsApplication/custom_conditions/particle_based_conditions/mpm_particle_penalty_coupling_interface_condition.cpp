@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "includes/kratos_flags.h"
+#include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
@@ -44,9 +45,9 @@ MPMParticlePenaltyCouplingInterfaceCondition::MPMParticlePenaltyCouplingInterfac
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMParticlePenaltyCouplingInterfaceCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyCouplingInterfaceCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -201,7 +202,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
         const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
         const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
-        if (nodal_mass > std::numeric_limits<double>::epsilon())
+        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
         {
             mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
         }
@@ -236,13 +237,8 @@ int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCur
     MPMParticlePenaltyDirichletCondition::Check(rCurrentProcessInfo);
 
     // Verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( NODAL_AREA ) == false )
-        {
-            KRATOS_ERROR << "missing variable NODAL_AREA on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
-    }
+    for (const auto& r_node : this->GetGeometry().Points())
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
 
     return 0;
 }
