@@ -44,7 +44,7 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
         gid_parameters = self.project_parameters["output_processes"]["gid_output"][0]
-        gid_parameters["Parameters"]["output_name"].SetString('fsi_potential_flow_sdof')
+        gid_parameters["Parameters"]["output_name"].SetString('Fsi_Potential_Flow_Output_with_TimeSteps')
         self.gid_output_process = GiDFactory(gid_parameters,self.model)
         self.gid_output_process.ExecuteInitialize()
         self.gid_output_process.ExecuteBeforeSolutionLoop()
