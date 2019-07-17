@@ -13,7 +13,7 @@ except ImportError:
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math, os, glob
+import os, glob
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 def GetFilePath(fileName):

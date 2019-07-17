@@ -1,12 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
-
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math, os, glob
+import os, glob
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 def GetFilePath(fileName):
