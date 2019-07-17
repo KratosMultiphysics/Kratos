@@ -12,9 +12,7 @@
 
 
 #include "define_embedded_wake_process.h"
-#include "move_model_part_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-#include "utilities/variable_utils.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
