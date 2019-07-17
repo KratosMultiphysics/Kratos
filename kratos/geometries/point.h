@@ -84,6 +84,8 @@ public:
 
     typedef std::size_t IndexType;
 
+    typedef Point PointType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -195,14 +197,136 @@ public:
         return this->operator[](2);
     }
 
+    /**
+     * @brief This method gets the current coordinates (constant)
+     * @return The current coordinates
+     */
     CoordinatesArrayType const &Coordinates() const
     {
         return *this;
     }
 
+    /**
+     * @brief This method gets the current coordinates (reference)
+     * @return The current coordinates
+     */
     CoordinatesArrayType &Coordinates()
     {
         return *this;
+    }
+
+    /**
+     * @brief This method gets the initial coordinates (constant)
+     * @return The initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual const PointType& GetInitialPosition() const
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return *this;
+    }
+
+    /**
+     * @brief This method gets the initial coordinates (reference)
+     * @return The initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual PointType& GetInitialPosition()
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return *this;
+    }
+
+    /**
+     * @brief This method returns the X initial coordinates (reference)
+     * @return X initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual double& X0()
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return this->X();
+    }
+
+    /**
+     * @brief This method returns the Y initial coordinates (reference)
+     * @return Y initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual double& Y0()
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return this->Y();
+    }
+
+    /**
+     * @brief This method returns the Z initial coordinates (reference)
+     * @return Z initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual double& Z0()
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return this->Z();
+    }
+
+    /**
+     * @brief This method returns the X initial coordinates (constant)
+     * @return X initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual double X0() const
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return this->X();
+    }
+
+    /**
+     * @brief This method returns the Y initial coordinates (constant)
+     * @return Y initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual double Y0() const
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return this->Y();
+    }
+
+    /**
+     * @brief This method returns the Z initial coordinates (constant)
+     * @return Z initial coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual double Z0() const
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        return this->Z();
+    }
+
+    /**
+     * @brief This method sets the initial coordinates
+     * @param rNewInitialPosition The new coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual void SetInitialPosition(const PointType& rNewInitialPosition)
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+    }
+
+    /**
+     * @brief This method sets the initial coordinates one by one
+     * @param X The X coordinates
+     * @param Y The Y coordinates
+     * @param Z The Z coordinates
+     * @note Must be override in tehd erived classes with initial position
+     */
+    virtual void SetInitialPosition(
+        const double X,
+        const double Y,
+        const double Z
+        )
+    {
+        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
     }
 
     ///@}

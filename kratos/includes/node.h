@@ -240,7 +240,7 @@ public:
         , mInitialPosition(rThisPoint)
 #ifdef _OPENMP
         , mNodeLock()
-#endif  
+#endif
         , mReferenceCounter(0)
     {
 
@@ -362,7 +362,7 @@ public:
     }
 
     //*********************************************
-    //public API of intrusive_ptr  
+    //public API of intrusive_ptr
     unsigned int use_count() const noexcept
     {
         return mReferenceCounter;
@@ -702,49 +702,98 @@ public:
     ///@name Access
     ///@{
 
-    const PointType& GetInitialPosition() const
-    {
-        return mInitialPosition;
-    }
-    PointType& GetInitialPosition()
+    /**
+     * @brief This method gets the initial coordinates (constant)
+     * @return The initial coordinates
+     */
+    const PointType& GetInitialPosition() const override
     {
         return mInitialPosition;
     }
 
-    double& X0()
+    /**
+     * @brief This method gets the initial coordinates (reference)
+     * @return The initial coordinates
+     */
+    PointType& GetInitialPosition() override
+    {
+        return mInitialPosition;
+    }
+
+    /**
+     * @brief This method returns the X initial coordinates (reference)
+     * @return X initial coordinates
+     */
+    double& X0() override
     {
         return mInitialPosition.X();
     }
-    double& Y0()
+
+    /**
+     * @brief This method returns the Y initial coordinates (reference)
+     * @return Y initial coordinates
+     */
+    double& Y0() override
     {
         return mInitialPosition.Y();
     }
-    double& Z0()
+
+    /**
+     * @brief This method returns the Z initial coordinates (reference)
+     * @return Z initial coordinates
+     */
+    double& Z0() override
     {
         return mInitialPosition.Z();
     }
 
-    double X0() const
+    /**
+     * @brief This method returns the X initial coordinates (constant)
+     * @return X initial coordinates
+     */
+    double X0() const override
     {
         return mInitialPosition.X();
     }
-    double Y0() const
+
+    /**
+     * @brief This method returns the Y initial coordinates (constant)
+     * @return Y initial coordinates
+     */
+    double Y0() const override
     {
         return mInitialPosition.Y();
     }
-    double Z0() const
+
+    /**
+     * @brief This method returns the Z initial coordinates (constant)
+     * @return Z initial coordinates
+     */
+    double Z0() const override
     {
         return mInitialPosition.Z();
     }
 
-    void SetInitialPosition(const PointType& NewInitialPosition)
+    /**
+     * @brief This method sets the initial coordinates
+     * @param rNewInitialPosition The new coordinates
+     */
+    void SetInitialPosition(const PointType& rNewInitialPosition) override
     {
-        mInitialPosition.X() = NewInitialPosition.X();
-        mInitialPosition.Y() = NewInitialPosition.Y();
-        mInitialPosition.Z() = NewInitialPosition.Z();
+        noalias(mInitialPosition.Coordinates()) = rNewInitialPosition.Coordinates();
     }
 
-    void SetInitialPosition(double X,double Y, double Z)
+    /**
+     * @brief This method sets the initial coordinates one by one
+     * @param X The X coordinates
+     * @param Y The Y coordinates
+     * @param Z The Z coordinates
+     */
+    void SetInitialPosition(
+        const double X,
+        const double Y,
+        const double Z
+        ) override
     {
         mInitialPosition.X() = X;
         mInitialPosition.Y() = Y;
@@ -907,14 +956,8 @@ public:
         KRATOS_TRY
 
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-        if(rDofReaction.Key() == 0)
-        {
-            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
-        }
+        KRATOS_ERROR_IF(rDofVariable.Key() == 0) << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        KRATOS_ERROR_IF(rDofReaction.Key() == 0) << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
 #endif
 
         typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
@@ -943,10 +986,7 @@ public:
         KRATOS_TRY
 
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
+        KRATOS_ERROR_IF(rDofVariable.Key() == 0) << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
 #endif
 
         typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
@@ -974,14 +1014,8 @@ public:
         KRATOS_TRY
 
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-        if(rDofReaction.Key() == 0)
-        {
-            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
-        }
+        KRATOS_ERROR_IF(rDofVariable.Key() == 0) << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        KRATOS_ERROR_IF(rDofReaction.Key() == 0) << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
 #endif
 
         typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
