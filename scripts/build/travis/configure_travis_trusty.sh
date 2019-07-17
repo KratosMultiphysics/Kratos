@@ -73,7 +73,7 @@ CXX_PERF_FLAGS="-O0 -fopenmp"
 #        CXX_WARN_FLAGS="-Wall"
 # --------------------------------------------------------------------------------------------------------------
 C_WARN_FLAGS="-Wall"
-CXX_WARN_FLAGS="-Wall -Werror=suggest-override -Werror=unused-variable \
+CXX_WARN_FLAGS="-Wall -Wno-deprecated-declarations -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized"
