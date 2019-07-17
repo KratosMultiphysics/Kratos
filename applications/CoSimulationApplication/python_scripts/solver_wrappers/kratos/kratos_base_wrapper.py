@@ -64,5 +64,5 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
 
     def PrintInfo(self):
-        cs_tools.cs_print_info("KratosSolver", self._Name())
+        cs_tools.cs_print_info("KratosSolver", self._ClassName())
         ## TODO print additional stuff with higher echo-level
