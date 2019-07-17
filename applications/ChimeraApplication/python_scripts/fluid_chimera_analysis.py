@@ -3,7 +3,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 import KratosMultiphysics.ChimeraApplication as KratosChimera
-import KratosMultiphysics.ChimeraApplication.python_solvers_wrapper_fluid_chimera 
+import KratosMultiphysics.ChimeraApplication.python_solvers_wrapper_fluid_chimera
 
 class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid chimera simulations using the navier stokes family of python solvers.'''
@@ -16,6 +16,14 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             self.parameters["solver_settings"].RemoveValue("chimera_parts")
         else:
             raise Exception("The \"solver_settings\" should have the entry \"chimera_parts\" ")
+
+        self.chimera_echo_lvl = 0
+        if self.parameters["solver_settings"].Has("chimera_echo_level"):
+            self.chimera_echo_lvl = self.parameters["solver_settings"]["chimera_echo_level"].GetInt()
+            self.parameters["solver_settings"].RemoveValue("chimera_echo_level")
+        else:
+            self.chimera_echo_lvl = self.parameters["solver_settings"]["echo_level"].GetInt()
+
 
         if self.parameters["solver_settings"].Has("internal_parts_for_chimera"):
             self.chimera_internal_parts = self.parameters["solver_settings"]["internal_parts_for_chimera"].Clone()
@@ -46,7 +54,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             solver_type = self.parameters["solver_settings"]["solver_type"].GetString()
 
-
             if domain_size == 2:
                 if(solver_type == "Monolithic" or solver_type == "monolithic"):
                     self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_params)
@@ -57,6 +64,8 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                     self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_params)
                 elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
                     self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
+
+            self.chimera_process.SetEchoLevel(self.chimera_echo_lvl)
 
         return list_of_processes
 
