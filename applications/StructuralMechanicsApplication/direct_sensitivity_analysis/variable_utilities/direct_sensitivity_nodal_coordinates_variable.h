@@ -9,8 +9,8 @@
 //  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
-#ifndef DIRECT_SENSITIVITY_NODAL_DATA_VARIABLE_H
-#define DIRECT_SENSITIVITY_NODAL_DATA_VARIABLE_H
+#ifndef DIRECT_SENSITIVITY_NODAL_COORDINATES_VARIABLE_H
+#define DIRECT_SENSITIVITY_NODAL_COORDINATES_VARIABLE_H
 
 // System includes
 
@@ -28,13 +28,13 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    /** \brief DirectSensitivityNodalDataVariable
+    /** \brief DirectSensitivityNodalCoordinatesVariable
     *
     * This variable class describes parameters concerning the coordinates of nodes.
     * It is designed to be used in direct sensitivity analysis.
     */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityNodalDataVariable : public DirectSensitivityVariable
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityNodalCoordinatesVariable : public DirectSensitivityVariable
 {
 public:
     ///@name Type Definitions
@@ -44,18 +44,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of DirectSensitivityNodalDataVariable
-    KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityNodalDataVariable);
+    /// Pointer definition of DirectSensitivityNodalCoordinatesVariable
+    KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityNodalCoordinatesVariable);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DirectSensitivityNodalDataVariable(ModelPart& rModelPart, Parameters VariableSettings);
+    DirectSensitivityNodalCoordinatesVariable(ModelPart& rModelPart, Parameters VariableSettings);
 
     /// Destructor.
-    ~DirectSensitivityNodalDataVariable();
+    ~DirectSensitivityNodalCoordinatesVariable();
     
     ///@}
     ///@name Operators
@@ -133,7 +133,7 @@ private:
     unsigned int GetCoordinateDirection();                
     ///@}
 
-}; // Class DirectSensitivityNodalDataVariable
+}; // Class DirectSensitivityNodalCoordinatesVariable
 
 ///@}
 
@@ -148,4 +148,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // DIRECT_SENSITIVITY_NODAL_DATA_VARIABLE_H_INCLUDED
+#endif // DIRECT_SENSITIVITY_NODAL_COORDINATES_VARIABLE_H_INCLUDED

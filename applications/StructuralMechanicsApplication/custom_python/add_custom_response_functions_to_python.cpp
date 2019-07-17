@@ -37,7 +37,7 @@
 // Direct Sensitivity variables
 #include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_variable.h"
 #include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_element_data_variable.h"
-#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_nodal_data_variable.h"
+#include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_nodal_coordinates_variable.h"
 #include "direct_sensitivity_analysis/variable_utilities/direct_sensitivity_point_load_variable.h"
 
 
@@ -90,8 +90,8 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "DirectSensitivityElementDataVariable")
         .def(py::init<ModelPart&, Parameters>());
 
-    py::class_<DirectSensitivityNodalDataVariable, DirectSensitivityNodalDataVariable::Pointer, DirectSensitivityVariable>
-        (m, "DirectSensitivityNodalDataVariable")
+    py::class_<DirectSensitivityNodalCoordinatesVariable, DirectSensitivityNodalCoordinatesVariable::Pointer, DirectSensitivityVariable>
+        (m, "DirectSensitivityNodalCoordinatesVariable")
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<DirectSensitivityPointLoadVariable, DirectSensitivityPointLoadVariable::Pointer, DirectSensitivityVariable>

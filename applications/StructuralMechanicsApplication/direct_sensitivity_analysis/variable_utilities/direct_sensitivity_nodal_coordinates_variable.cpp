@@ -15,14 +15,14 @@
 // External includes
 
 // Project includes
-#include "direct_sensitivity_nodal_data_variable.h"
+#include "direct_sensitivity_nodal_coordinates_variable.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 
 namespace Kratos
 {
     // Constructor
-    DirectSensitivityNodalDataVariable::DirectSensitivityNodalDataVariable(ModelPart& rModelPart, Parameters VariableSettings)
+    DirectSensitivityNodalCoordinatesVariable::DirectSensitivityNodalCoordinatesVariable(ModelPart& rModelPart, Parameters VariableSettings)
     : DirectSensitivityVariable(rModelPart, VariableSettings)
     {        
 
@@ -41,10 +41,10 @@ namespace Kratos
     }
 
     // Destructor
-    DirectSensitivityNodalDataVariable::~DirectSensitivityNodalDataVariable(){}
+    DirectSensitivityNodalCoordinatesVariable::~DirectSensitivityNodalCoordinatesVariable(){}
 
 
-    void DirectSensitivityNodalDataVariable::Initialize()
+    void DirectSensitivityNodalCoordinatesVariable::Initialize()
     {
         KRATOS_TRY;
 
@@ -52,7 +52,7 @@ namespace Kratos
     }
 
    
-    void DirectSensitivityNodalDataVariable::CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rLHS, Vector& rPseudoLoadVector, 
+    void DirectSensitivityNodalCoordinatesVariable::CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rLHS, Vector& rPseudoLoadVector, 
                                             const ProcessInfo& rProcessInfo)
     {
         
@@ -118,7 +118,7 @@ namespace Kratos
         KRATOS_CATCH("");           
     }
 
-    void DirectSensitivityNodalDataVariable::CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, 
+    void DirectSensitivityNodalCoordinatesVariable::CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, 
                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
@@ -183,7 +183,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void DirectSensitivityNodalDataVariable::ExtractDataFromDerivativeMatrix(Element& rDirectElement,
+    void DirectSensitivityNodalCoordinatesVariable::ExtractDataFromDerivativeMatrix(Element& rDirectElement,
                                                     Matrix& rExtractedDerivativeMatrix,
                                                     const Matrix& rDerivativeMatrix)
     { 
@@ -203,12 +203,12 @@ namespace Kratos
         }  
     }    
     
-    std::vector<unsigned int>  DirectSensitivityNodalDataVariable::GetTracedElementId() 
+    std::vector<unsigned int>  DirectSensitivityNodalCoordinatesVariable::GetTracedElementId() 
     {              
         return mNeighboringElementIdVector;
     }
 
-    void DirectSensitivityNodalDataVariable::GetNeighboringElementIdVector(std::vector<unsigned int>& rNeighboringElementIdVector)
+    void DirectSensitivityNodalCoordinatesVariable::GetNeighboringElementIdVector(std::vector<unsigned int>& rNeighboringElementIdVector)
     {
         KRATOS_TRY;
         
@@ -226,7 +226,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void DirectSensitivityNodalDataVariable::GetNeighboringConditionIdVector(std::vector<unsigned int>& rNeighboringConditionIdVector)
+    void DirectSensitivityNodalCoordinatesVariable::GetNeighboringConditionIdVector(std::vector<unsigned int>& rNeighboringConditionIdVector)
     {
         KRATOS_TRY;
         
@@ -245,7 +245,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }        
 
-    unsigned int DirectSensitivityNodalDataVariable::GetCoordinateDirection()
+    unsigned int DirectSensitivityNodalCoordinatesVariable::GetCoordinateDirection()
     {        
         if( mCoordinateDirection == "X" )
             return 0;
