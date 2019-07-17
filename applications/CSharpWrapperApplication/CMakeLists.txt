@@ -9,18 +9,17 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 set( KRATOS_WRAPPER_SOURCES_CORE
-    ## MAIN FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/csharp_wrapper_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/csharp_wrapper_application_variables.cpp
+        ## MAIN FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/csharp_wrapper_application.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/csharp_wrapper_application_variables.cpp
 
-    ## WRAPPER API
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_interface.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_interface_bindings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/mesh_converter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/vector3.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/kratos_internals.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/id_translator.cpp
-)
+        ## WRAPPER API
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_interface_bindings.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/mesh_converter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/vector3.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/kratos_internals.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/id_translator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/kratos_wrapper.cpp)
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_WRAPPER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
@@ -28,9 +27,9 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## generate variables with the sources
 set( KRATOS_WRAPPER_SOURCES_PYTHON_INTERFACE
-    ## CUSTOM PYTHON
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/csharp_wrapper_python_application.cpp
-)
+        ## CUSTOM PYTHON
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/csharp_wrapper_python_application.cpp
+        )
 
 add_library(KratosCSharpWrapperCore SHARED ${KRATOS_WRAPPER_SOURCES_CORE} ${KRATOS_WRAPPER_TESTING_SOURCES})
 target_link_libraries(KratosCSharpWrapperCore PUBLIC KratosCore KratosStructuralMechanicsCore)
@@ -56,13 +55,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 install(TARGETS KratosCSharpWrapperCore DESTINATION libs)

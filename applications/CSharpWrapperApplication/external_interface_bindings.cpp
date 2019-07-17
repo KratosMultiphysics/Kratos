@@ -1,6 +1,7 @@
 #define EXPORT __declspec(dllexport)
+
 #include <stdlib.h>
-#include "external_interface.h"
+#include "kratos_wrapper.h"
 #include <iostream>
 
 using namespace std;
@@ -9,40 +10,57 @@ using namespace CSharpKratosWrapper;
 extern "C" {
 
 #if defined(KRATOS_COMPILED_IN_WINDOWS)
-    EXPORT void __stdcall Init(char* path) {
-        CSharpInterface::init(path);
-    }
+EXPORT KratosWrapper *CreateInstance() {
+    return new KratosWrapper();
+}
 
-    EXPORT float* __stdcall GetXCoordinates() {
-        return CSharpInterface::getXCoordinates();
-    }
+EXPORT void __stdcall Init(KratosWrapper *instance, char *mdpaPath, char *parametersJsonPath) {
+    instance->init(mdpaPath, parametersJsonPath);
+}
 
-    EXPORT float* __stdcall GetYCoordinates() {
-        return CSharpInterface::getYCoordinates();
-    }
+EXPORT void __stdcall InitWithMDPA(KratosWrapper *instance, char *mdpaPath) {
+    instance->init(mdpaPath);
+}
 
-    EXPORT float* __stdcall GetZCoordinates() {
-        return CSharpInterface::getZCoordinates();
-    }
+EXPORT void __stdcall InitWithSettings(KratosWrapper *instance, char *parametersJsonPath) {
+    instance->initWithSettings(parametersJsonPath);
+}
 
-    EXPORT int __stdcall GetNodesCount() {
-        return CSharpInterface::getNodesCount();
-    }
+EXPORT float *__stdcall GetXCoordinates(KratosWrapper *instance) {
+    return instance->getXCoordinates();
+}
 
-    EXPORT int* __stdcall GetTriangles() {
-        return CSharpInterface::getTriangles();
-    }
+EXPORT float *__stdcall GetYCoordinates(KratosWrapper *instance) {
+    return instance->getYCoordinates();
+}
 
-    EXPORT int __stdcall GetTrianglesCount() {
-        return CSharpInterface::getTrianglesCount();
-    }
+EXPORT float *__stdcall GetZCoordinates(KratosWrapper *instance) {
+    return instance->getZCoordinates();
+}
 
-    EXPORT void __stdcall UpdateNodePos(int nodeId, float x, float y, float z) {
-        CSharpInterface::updateNodePos(nodeId, x, y, z);
-    }
+EXPORT int __stdcall GetNodesCount(KratosWrapper *instance) {
+    return instance->getNodesCount();
+}
 
-    EXPORT void __stdcall Calculate() {
-        CSharpInterface::calculate();
-    }
+EXPORT int *__stdcall GetTriangles(KratosWrapper *instance) {
+    return instance->getTriangles();
+}
+
+EXPORT int __stdcall GetTrianglesCount(KratosWrapper *instance) {
+    return instance->getTrianglesCount();
+}
+
+EXPORT void __stdcall UpdateNodePos(KratosWrapper *instance, int nodeId, float x, float y, float z) {
+    instance->updateNodePos(nodeId, x, y, z);
+}
+
+EXPORT void __stdcall Calculate(KratosWrapper *instance) {
+    instance->calculate();
+}
+
+EXPORT void __stdcall DisposeInstance(KratosWrapper *instance) {
+    free(instance);
+}
+
 #endif
 }
