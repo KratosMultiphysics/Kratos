@@ -10,7 +10,7 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 # Import base class file
-import poromechanics_U_Pw_solver
+from KratosMultiphysics.PoromechanicsApplication import poromechanics_U_Pw_solver
 
 def CreateSolver(model, custom_settings):
     return MPIUPwSolver(model, custom_settings)
@@ -19,10 +19,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
     def __init__(self, model, custom_settings):
         super(MPIUPwSolver,self).__init__(model, custom_settings)
-
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
-        self.print_on_rank_zero("MPIUPwSolver: ", "Construction of MPI UPwSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo("MPIUPwSolver: ", "Construction of MPI UPwSolver finished.")
 
     def AddVariables(self):
 
@@ -31,12 +28,12 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
     def ImportModelPart(self):
-        # Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        # Construct the import model part utility
+        from KratosMultiphysics.mpi import distributed_import_model_part_utility
+        self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.main_model_part, self.settings)
 
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
         super(MPIUPwSolver, self).PrepareModelPart()
@@ -45,9 +42,9 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
 
         # Construct the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
 
-        self.print_on_rank_zero("MPIUPwSolver: ", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("MPIUPwSolver: ", "Model reading finished.")
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
@@ -87,19 +84,14 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         # Check if everything is assigned correctly
         self.Check()
 
-        self.print_on_rank_zero("MPIUPwSolver: ", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("MPIUPwSolver: ", "Solver initialization finished.")
 
-    def print_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Specific internal functions ####
 
     def _ConstructLinearSolver(self):
-        import trilinos_linear_solver_factory
-        linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+        return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _ConstructBuilderAndSolver(self, block_builder):
 

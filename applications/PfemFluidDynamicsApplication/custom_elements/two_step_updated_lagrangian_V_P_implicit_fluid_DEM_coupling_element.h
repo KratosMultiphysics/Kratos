@@ -63,7 +63,7 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement);
 
       ///base type:
       typedef TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> BaseType;
@@ -108,7 +108,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
-      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+      typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
       ///@}
       ///@name Life Cycle
       ///@{

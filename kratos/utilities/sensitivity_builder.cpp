@@ -217,9 +217,13 @@ void AssembleNodalSolutionStepContainerContributions(const SensitivityVariables<
             return;
         builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
                                           rResponseFunction, rProcessInfo);
-        builder.LocalSensitivity *= ScalingFactor;
-        AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
+        // if rElement does not contribute to local sensitivity, skip assembly
+        if (builder.LocalSensitivity.size() != 0)
+        {
+            builder.LocalSensitivity *= ScalingFactor;
+            AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
                                         builder.LocalSensitivity, r_geom);
+        }
     });
     KRATOS_CATCH("");
 }
@@ -291,9 +295,13 @@ void CalculateNonHistoricalSensitivities(const SensitivityVariables<TDataType>& 
             return;
         builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
                                           rResponseFunction, rProcessInfo);
-        builder.LocalSensitivity *= ScalingFactor;
-        AssembleOnDataValueContainer(*rVariables.pOutputVariable,
+        // if rElement does not contribute to local sensitivity, skip assembly
+        if (builder.LocalSensitivity.size() != 0)
+        {
+            builder.LocalSensitivity *= ScalingFactor;
+            AssembleOnDataValueContainer(*rVariables.pOutputVariable,
                                      builder.LocalSensitivity, rElement.Data());
+        }
     });
     KRATOS_CATCH("");
 }
@@ -541,7 +549,7 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
 void SensitivityBuilder::Initialize()
 {
     KRATOS_TRY;
-    ClearSensitivities();
+    Clear();
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              mpSensitivityModelPart->Nodes());
     VariableUtils().SetNonHistoricalVariable(
@@ -560,9 +568,14 @@ void SensitivityBuilder::UpdateSensitivities()
         // integrate in time
         scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
     }
-    else if (mBuildMode == "sum" || mBuildMode == "static")
+    else if (mBuildMode == "sum")
     {
         scaling_factor = 1.0;
+    }
+    else if (mBuildMode == "static")
+    {
+        scaling_factor = 1.0;
+        ClearSensitivities();
     }
     else
     {
@@ -596,7 +609,17 @@ void SensitivityBuilder::UpdateSensitivities()
     KRATOS_CATCH("");
 }
 
-void SensitivityBuilder::ClearSensitivities()
+void SensitivityBuilder::Clear()
+{
+    KRATOS_TRY;
+
+    ClearFlags();
+    ClearSensitivities();
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::ClearFlags()
 {
     KRATOS_TRY;
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
@@ -605,6 +628,12 @@ void SensitivityBuilder::ClearSensitivities()
                                              mpModelPart->Elements());
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
                                              mpModelPart->Conditions());
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::ClearSensitivities()
+{
+    KRATOS_TRY;
     using sensitivity_builder_cpp::SetNodalSolutionStepSensitivityVariablesToZero;
     using sensitivity_builder_cpp::SetNonHistoricalSensitivityVariablesToZero;
     SetNodalSolutionStepSensitivityVariablesToZero(

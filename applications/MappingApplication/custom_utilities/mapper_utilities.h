@@ -187,8 +187,7 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
     }
 
-    int num_local_systems = rLocalSystems.size(); // int bcs of MPI
-    rModelPartCommunicator.SumAll(num_local_systems);
+    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
 
     KRATOS_ERROR_IF_NOT(num_local_systems > 0)
         << "No mapper local systems were created" << std::endl;
@@ -197,26 +196,24 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
 inline int ComputeNumberOfNodes(ModelPart& rModelPart)
 {
     int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    rModelPart.GetCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-    return num_nodes;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
 }
 
 inline int ComputeNumberOfConditions(ModelPart& rModelPart)
 {
     int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    rModelPart.GetCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
-    return num_conditions;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
 }
 
 inline int ComputeNumberOfElements(ModelPart& rModelPart)
 {
     int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-    rModelPart.GetCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-    return num_elements;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_elements); // Compute the sum among the partitions
 }
 
-inline double ComputeDistance(const array_1d<double, 3>& rCoords1,
-                              const array_1d<double, 3>& rCoords2)
+template <class T1, class T2>
+inline double ComputeDistance(const T1& rCoords1,
+                              const T2& rCoords2)
 {
     return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
                       std::pow(rCoords1[1] - rCoords2[1] , 2) +

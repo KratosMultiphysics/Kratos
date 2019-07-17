@@ -138,7 +138,7 @@ public:
     ///@{
 
     /// Pointer definition of FluxCondition
-    KRATOS_CLASS_POINTER_DEFINITION(FluxCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FluxCondition);
 
     typedef Condition::MatrixType MatrixType;
     typedef Condition::VectorType VectorType;

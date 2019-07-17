@@ -4,13 +4,6 @@ def IssueDeprecationWarning(label, *message):
     from KratosMultiphysics import Logger
     Logger.PrintWarning('DEPRECATION-Warning; '+label, ' '.join(map(str,message)))
 
-def import_solver(SolverSettings):
-    """this function imports a solver named "solver_type" from SolverSettings
-    solver_type is expected to be the FILENAME of the solver to be imported"""
-    IssueDeprecationWarning('kratos_utilities', '"import_solver" is outdated and will be removed, please update your code')
-    obj = __import__(SolverSettings.solver_type)
-    return obj
-
 def DeleteFileIfExisting(file_name):
     """This function tries to delete a file
     It uses try/except to also work in MPI
@@ -57,6 +50,14 @@ def GetListOfAvailableApplications():
     ]
 
     return apps
+
+def IsMPIAvailable():
+    """Check if the KratosMPI module (the MPI core) is available.
+    """
+    kratos_path = GetKratosMultiphysicsPath()
+    import os
+
+    return "mpi" in os.listdir(kratos_path)
 
 def IsApplicationAvailable(application_name):
     """Returns whether an application is available

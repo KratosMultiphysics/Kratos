@@ -9,7 +9,7 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
 from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
-import trilinos_import_model_part_utility
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)
@@ -58,9 +58,6 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
     def __init__(self, model, custom_settings):
         super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
         self.element_name = "VMSAdjointElement"
         if self.settings["domain_size"].GetInt() == 2:
             self.condition_name = "LineCondition"
@@ -72,8 +69,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicMPISolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicMPISolver finished.")
 
     def AddVariables(self):
         ## Add variables from the base class
@@ -81,31 +77,26 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        KratosMPI.mpi.world.barrier()
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
 
     def ImportModelPart(self):
-        ## Construct the Trilinos import model part utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the distributed import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ExecutePartitioningAndReading()
+        self.distributed_model_part_importer.ExecutePartitioningAndReading()
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(self.__class__,self).PrepareModelPart()
-        ## Construct Trilinos the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        ## Construct the MPI communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         super(self.__class__, self).AddDofs()
-        KratosMPI.mpi.world.barrier()
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "DOFs for the AdjointVMSMonolithicMPISolver added correctly in all processors.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "DOFs for the AdjointVMSMonolithicMPISolver added correctly in all processors.")
 
     def Initialize(self):
 
@@ -162,5 +153,4 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Monolithic MPI solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Monolithic MPI solver initialization finished.")

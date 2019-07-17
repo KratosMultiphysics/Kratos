@@ -1,7 +1,5 @@
 import sys
 sys.path.append('/home/gcasas/kratos')
-from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from cube_mesher import *
 from altair_cube_mesher import *
 

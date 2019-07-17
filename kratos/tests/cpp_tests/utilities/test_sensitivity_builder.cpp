@@ -33,13 +33,15 @@ template <class TElement>
 class TestAdjoint : public TElement
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TestAdjoint);
+    typedef Kratos::intrusive_ptr<TestAdjoint> Pointer;
+    typedef Kratos::unique_ptr<TestAdjoint> UniquePointer;
 
-    static TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
+
+    static typename TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
     {
         Geometry<Node<3>>::Pointer p_geom =
             Kratos::make_shared<Triangle2D3<Node<3>>>(rNodes);
-        return Kratos::make_shared<TestAdjoint>(NewId, p_geom);
+        return Kratos::make_intrusive<TestAdjoint>(NewId, p_geom);
     }
 
     TestAdjoint(std::size_t NewId, Geometry<Node<3>>::Pointer pGeom)
@@ -253,12 +255,12 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
         KRATOS_CHECK_NEAR(val_x, RefValue[0], tolerance);
         KRATOS_CHECK_NEAR(val_y, RefValue[1], tolerance);
     };
-    CheckNode(model_part.GetNode(1), {100., -48.});
-    CheckNode(model_part.GetNode(2), {216., 0.});
-    CheckNode(model_part.GetNode(3), {16., 96.});
-    CheckNode(model_part.GetNode(4), {4., -16.});
-    CheckNode(model_part.GetNode(5), {-16., 208.});
-    CheckNode(model_part.GetNode(6), {-48., 16.});
+    CheckNode(model_part.GetNode(1), {{100., -48.}});
+    CheckNode(model_part.GetNode(2), {{216., 0.}});
+    CheckNode(model_part.GetNode(3), {{16., 96.}});
+    CheckNode(model_part.GetNode(4), {{4., -16.}});
+    CheckNode(model_part.GetNode(5), {{-16., 208.}});
+    CheckNode(model_part.GetNode(6), {{-48., 16.}});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_InactiveNodes,

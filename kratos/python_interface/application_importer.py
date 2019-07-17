@@ -6,9 +6,9 @@ from KratosMultiphysics import Logger
 
 
 def ImportApplication(application, application_name, application_folder, caller, mod_path=None):
-    Globals = KratosMultiphysics.KratosGlobals
-    Kernel = Globals.Kernel
-    applications_root = Globals.ApplicationsRoot
+    KratosGlobals = KratosMultiphysics.KratosGlobals
+    Kernel = KratosGlobals.Kernel
+    applications_root = KratosGlobals.ApplicationsRoot
 
     Logger.PrintInfo("", "Importing  " + application_name)
 

@@ -173,7 +173,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::GetValueOnIntegration
         KRATOS_ERROR << "Sensitivity Variable "<< rVariable <<" is not compatible with adjoint_finite_difference_cr_beam_element_3D2N." << std::endl;    
 }  
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
+template class AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
 
 } // namespace Kratos.
 

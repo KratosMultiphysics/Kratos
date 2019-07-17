@@ -15,10 +15,20 @@ The application includes tests to check the proper functioning of the applicatio
  
 - Augmented Lagrangian contact conditions based in mortar formulation
  
- 	* Frictionless formulation
- 	
- 	* Frictional formulation (WIP)
+    * Frictionless formulation
+
+    * Frictional formulation
+
+- Penalty contact conditions based in mortar formulation
+
+     * Frictionless formulation
+
+     * Frictional formulation
  
 - Strategies, processes, solvers and convergence criterias used by the contact formulation
  
 - The application includes search utilities in order to create the contact conditions
+
+- Frictional laws (WIP) in order to consider different types of frictional behaviour 
+
+- +100 tests, including Validation tests and cpp tests

@@ -10,6 +10,15 @@ class ExplicitStrategy(object):
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
+        self.solver_settings = DEM_parameters["solver_settings"]
+
+        default_settings = Parameters("""
+        {
+            "strategy" : "sphere_strategy",
+            "do_search_neighbours" : true,
+            "RemoveBallsInitiallyTouchingWalls": false
+        }""")
+        self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
         # Initialization of member variables
         self.all_model_parts = all_model_parts
@@ -158,7 +167,6 @@ class ExplicitStrategy(object):
 
 
         self.SetContinuumType()
-        self.do_search_neighbours = True # Hard-coded until needed as an option
 
     def SetContinuumType(self):
         self.continuum_type = False
@@ -281,16 +289,14 @@ class ExplicitStrategy(object):
 
         self.SetVariablesAndOptions()
 
-        solver_settings = self.DEM_parameters["solver_settings"]
-
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.search_strategy, solver_settings, self.do_search_neighbours)
+                                                              self.search_strategy, self.solver_settings)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.search_strategy, solver_settings, self.do_search_neighbours)
+                                                             self.search_strategy, self.solver_settings)
 
     def AddVariables(self):
         pass
@@ -454,7 +460,6 @@ class ExplicitStrategy(object):
         return gamma
 
     def GammaForHertzThornton(self, e):
-
         if e < 0.001:
             e = 0.001
 
@@ -476,6 +481,17 @@ class ExplicitStrategy(object):
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
+    @classmethod
+    def SinAlphaConicalDamage(self, e):
+
+        if e < 0.001:
+            sinAlpha = 0.001
+
+        else:
+            sinAlpha = math.sin(math.radians(e))
+
+        return (1-sinAlpha)/sinAlpha
+
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = None
 
@@ -495,13 +511,13 @@ class ExplicitStrategy(object):
 
         if name_rotational == 'Direct_Integration' or name_rotational == 'same_as_translational':
             class_name = self.TranslationalIntegrationSchemeTranslator(name_translational)
-        elif name == 'Forward_Euler':
+        elif name_rotational == 'Forward_Euler':
             class_name = 'ForwardEulerScheme'
-        elif name == 'Symplectic_Euler':
+        elif name_rotational == 'Symplectic_Euler':
             class_name = 'SymplecticEulerScheme'
-        elif name == 'Taylor_Scheme':
+        elif name_rotational == 'Taylor_Scheme':
             class_name = 'TaylorScheme'
-        elif name == 'Velocity_Verlet':
+        elif name_rotational == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
         elif name_rotational == 'Runge_Kutta':
             class_name = 'RungeKuttaScheme'
@@ -511,10 +527,10 @@ class ExplicitStrategy(object):
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-             return globals().get(class_name)()
+        return eval(class_name)()
 
     def GetRotationalSchemeInstance(self, class_name):
-             return globals().get(class_name)()
+        return eval(class_name)()
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)
@@ -564,19 +580,33 @@ class ExplicitStrategy(object):
 
             write_gamma = False
 
+            write_AlphaFunction = False
+
             if (type_of_law == 'Linear'):
                 gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
                 write_gamma = True
 
-            elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
+            elif (type_of_law == 'Hertz'):
                 gamma = self.GammaForHertzThornton(coefficient_of_restitution)
                 write_gamma = True
+
+            elif (type_of_law == 'Conical_damage'):
+                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+                write_gamma = True
+                conical_damage_alpha = properties[CONICAL_DAMAGE_ALPHA]
+                AlphaFunction = self.SinAlphaConicalDamage(conical_damage_alpha)
+                write_AlphaFunction = True
+                if not properties.Has(LEVEL_OF_FOULING):
+                    properties[LEVEL_OF_FOULING] = 0.0
 
             else:
                 pass
 
             if write_gamma == True:
                 properties[DAMPING_GAMMA] = gamma
+
+            if write_AlphaFunction == True:
+                properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
 
             if properties.Has(CLUSTER_FILE_NAME):
                 cluster_file_name = properties[CLUSTER_FILE_NAME]

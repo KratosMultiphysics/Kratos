@@ -55,20 +55,20 @@ namespace Kratos
  * @todo Complete this
  * @author Vicente Mataix Ferrandiz
  */
-template< std::size_t TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyMethodFrictionalMortarContactAxisymCondition
-    : public PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>
+    : public PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of PenaltyMethodFrictionalMortarContactAxisymCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactAxisymCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactAxisymCondition );
 
-    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation> MortarBaseType;
+    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster> MortarBaseType;
 
-    typedef PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
+    typedef PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation, TNumNodesMaster>                    BaseType;
 
     typedef typename MortarBaseType::MortarConditionMatrices                                                   MortarConditionMatrices;
 
@@ -98,9 +98,9 @@ public:
 
     typedef Line2D2<Point>                                                                                           DecompositionType;
 
-    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                                                DerivativeDataType;
+    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation, TNumNodesMaster>                               DerivativeDataType;
 
-    static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
+    static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodesMaster);
 
     ///@}
     ///@name Life Cycle

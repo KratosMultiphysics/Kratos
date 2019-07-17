@@ -215,9 +215,8 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> second_vector, third_vector;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
@@ -228,8 +227,6 @@ public:
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c2, c3;
-        const double c1 = 0.0;
-
         if (std::abs(checker) < 29.0) { // the lode_angle cannot be greater than pi/6
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
@@ -238,7 +235,7 @@ public:
             c3 = 0.0;
         }
 
-        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rFFlux) = c2 * second_vector + c3 * third_vector;
     }
 
     /**

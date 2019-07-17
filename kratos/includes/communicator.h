@@ -29,13 +29,12 @@
 // External includes
 
 // Project includes
+#include "includes/data_communicator.h"
 #include "includes/define.h"
-// #include "includes/process_info.h"
-// #include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
 #include "includes/condition.h"
-
+#include "includes/element.h"
+#include "includes/mesh.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -170,11 +169,30 @@ public:
     ///@{
 
     /// Default constructor.
-
     Communicator() : mNumberOfColors(1)
         , mpLocalMesh(MeshType::Pointer(new MeshType))
-        , mpGhostMesh(MeshType::Pointer(new MeshType)),
-        mpInterfaceMesh(MeshType::Pointer(new MeshType))
+        , mpGhostMesh(MeshType::Pointer(new MeshType))
+        , mpInterfaceMesh(MeshType::Pointer(new MeshType))
+        , mrDataCommunicator(ParallelEnvironment::GetDataCommunicator("Serial"))
+
+    {
+        MeshType mesh;
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    }
+
+    /// Constructor using a custom DataCommunicator.
+    /** This constructor is intended for use from derived classes,
+     *  since the base Communicator class will often not use the communicator at all.
+     *  @param rDataCommunicator Reference to a DataCommunicator.
+     */
+    Communicator(const DataCommunicator& rDataCommunicator)
+        : mNumberOfColors(1)
+        , mpLocalMesh(MeshType::Pointer(new MeshType))
+        , mpGhostMesh(MeshType::Pointer(new MeshType))
+        , mpInterfaceMesh(MeshType::Pointer(new MeshType))
+        , mrDataCommunicator(rDataCommunicator)
     {
         MeshType mesh;
         mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -193,59 +211,51 @@ public:
         , mLocalMeshes(rOther.mLocalMeshes)
         , mGhostMeshes(rOther.mGhostMeshes)
         , mInterfaceMeshes(rOther.mInterfaceMeshes)
+        , mrDataCommunicator(rOther.mrDataCommunicator)
     {
     }
 
-    virtual Communicator::Pointer Create()
+    virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const
     {
         KRATOS_TRY
 
-        return Communicator::Pointer(new Communicator);
+        return Kratos::make_shared<Communicator>(rDataCommunicator);
 
         KRATOS_CATCH("");
     }
 
-    /// Destructor.
-
-    virtual ~Communicator()
+    virtual Communicator::Pointer Create() const
     {
+        return Create(ParallelEnvironment::GetDataCommunicator("Serial"));
     }
 
+    /// Destructor.
+    virtual ~Communicator() = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-
-    Communicator & operator=(Communicator const& rOther)
-    {
-        mNumberOfColors = rOther.mNumberOfColors;
-        mNeighbourIndices = rOther.mNeighbourIndices;
-        mpLocalMesh = rOther.mpLocalMesh;
-        mpGhostMesh = rOther.mpGhostMesh;
-        mpInterfaceMesh = rOther.mpInterfaceMesh;
-        mLocalMeshes = rOther.mLocalMeshes;
-        mGhostMeshes = rOther.mGhostMeshes;
-        mInterfaceMeshes = rOther.mInterfaceMeshes;
-
-        return *this;
-    }
-
-
+    Communicator & operator=(Communicator const& rOther) = delete;
 
     ///@}
     ///@name Access
     ///@{
 
+    virtual bool IsDistributed() const
+    {
+        return false;
+    }
+
     virtual int MyPID() const
     {
-        return 0;
+        return mrDataCommunicator.Rank();
     }
 
     virtual int TotalProcesses() const
     {
-        return 1;
+        return mrDataCommunicator.Size();
     }
 
     SizeType GetNumberOfColors() const
@@ -467,86 +477,72 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Barrier() const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    void Barrier() const
     {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
+        mrDataCommunicator.Barrier();
     }
 
-    virtual bool SumAll(int& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool SumAll(int& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
-    virtual bool SumAll(double& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool SumAll(double& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
-    virtual bool SumAll(array_1d<double, 3>& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool SumAll(array_1d<double, 3>& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
-    virtual bool MinAll(int& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MinAll(int& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.MinAll(rValue);
         return true;
     }
 
-    virtual bool MinAll(double& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MinAll(double& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.MinAll(rValue);
         return true;
     }
 
-    virtual bool MaxAll(int& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MaxAll(int& rValue) const
     {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
+        rValue = mrDataCommunicator.MaxAll(rValue);
         return true;
     }
 
-    virtual bool MaxAll(double& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MaxAll(double& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.MaxAll(rValue);
         return true;
     }
 
-    virtual bool ScanSum(const double& send_partial, double& receive_accumulated) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool ScanSum(const double& send_partial, double& receive_accumulated) const
     {
-        receive_accumulated = send_partial;
+        receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
         return true;
     }
 
-    virtual bool ScanSum(const int& send_partial, int& receive_accumulated) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool ScanSum(const int& send_partial, int& receive_accumulated) const
     {
-        receive_accumulated = send_partial;
-        return true;
-    }
-
-    virtual bool SynchronizeElementalIds()
-    {
-        // #if defined(KRATOS_USING_MPI )
-        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
         return true;
     }
 
@@ -581,6 +577,11 @@ public:
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
         // #endif
+        return true;
+    }
+
+    virtual bool SynchronizeVariable(Variable<bool> const& rThisVariable)
+    {
         return true;
     }
 
@@ -633,6 +634,11 @@ public:
         return true;
     }
 
+    virtual bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable)
+    {
+        return true;
+    }
+
     virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& rThisVariable)
     {
         return true;
@@ -663,14 +669,20 @@ public:
         return true;
     }
 
-    // This function is for test and will be changed. Pooyan.
+    /// Synchronize variable in nodal solution step data to the minimum value across all processes.
+    /** @param ThisVariable The variable to be synchronized.
+     */
     virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
     {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
         return true;
+    }
 
+    /// Synchronize variable in nodal data to the minimum value across all processes.
+    /** @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable)
+    {
+        return true;
     }
 
     virtual bool SynchronizeElementalFlags()
@@ -882,6 +894,21 @@ public:
         return true;
     }
 
+    virtual bool SynchronizeOrNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeAndNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNodalFlags()
+    {
+        return true;
+    }
+
     void Clear()
     {
         mNumberOfColors = 0;
@@ -898,6 +925,10 @@ public:
     ///@name Access
     ///@{
 
+    virtual const DataCommunicator& GetDataCommunicator() const
+    {
+        return mrDataCommunicator;
+    }
 
     ///@}
     ///@name Inquiry
@@ -975,6 +1006,8 @@ protected:
     // To store interfaces ghost+local entities
     MeshesContainerType mInterfaceMeshes;
 
+    // Interface to MPI communication
+    const DataCommunicator& mrDataCommunicator;
 
     ///@}
     ///@name Protected Operators

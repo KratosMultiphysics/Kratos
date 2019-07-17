@@ -40,7 +40,7 @@ class ApplyThermalFaceProcess(KratosMultiphysics.Process):
             for prop in Model.GetModelPart(model_part_name).Properties:
                 if prop.Id > max_prop_id:
                     max_prop_id = prop.Id
-        model_part.GetCommunicator().MaxAll(max_prop_id)
+        max_prop_id = model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_prop_id)
 
         # Create a new property with the user defined interface parameters
         thermal_interface_prop = KratosMultiphysics.Properties(max_prop_id + 1)

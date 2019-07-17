@@ -69,13 +69,10 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess() = delete;
 
     /// Copy constructor.
-    CalculateDiscontinuousDistanceToSkinProcess(Process const& rOther) = delete;
+    CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther) = delete;
 
     /// Assignment operator.
     CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther) = delete;
-
-    /// Copy constructor.
-    CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
     FindIntersectedGeometricalObjectsProcess mFindIntersectedObjectsProcess;
 
@@ -85,7 +82,7 @@ public:
 
     /**
      * @brief Initializes discontinuous distance computation process
-     * This method initializes the TO_SPLIT flag, the DISTANCE and 
+     * This method initializes the TO_SPLIT flag, the DISTANCE and
      * ELEMENTAL_DISTANCES variables as well as the EMBEDDED_VELOCITY
      */
     virtual void Initialize();
@@ -99,7 +96,7 @@ public:
     /**
      * @brief Get the array containing the intersecting objects
      * This method returns an array containing pointers to the intersecting geometries
-     * @return std::vector<PointerVector<GeometricalObject>>& 
+     * @return std::vector<PointerVector<GeometricalObject>>&
      */
     virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
 
@@ -175,6 +172,14 @@ protected:
      */
     Plane3D SetIntersectionPlane(const std::vector<array_1d<double,3>> &rIntPtsVector);
 
+    /**
+     * @brief Calculates the domain characteristic length
+     * This method computes the domain characteristic length as the norm of
+     * the diagonal vector that joins the maximum and minimum coordinates
+     * @return double the calculated characteristic length
+     */
+    double CalculateCharacteristicLength();
+
     ///@}
 private:
     ///@name Member Variables
@@ -186,7 +191,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief Computes the discontinuous distance in one element
      * This method computes the discontinuous distance field for a given element
@@ -199,7 +204,7 @@ private:
 
     /**
      * @brief Computes the edges intersections in one element
-     * Provided a list of elemental intersecting geometries, this 
+     * Provided a list of elemental intersecting geometries, this
      * method computes the edge intersections for a given element
      * @param rElement1 reference to the element of interest
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
@@ -208,26 +213,26 @@ private:
      * @return unsigned int number of cut edges
      */
     unsigned int ComputeEdgesIntersections(
-        Element& rElement1, 
+        Element& rElement1,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
         std::vector<unsigned int> &rCutEdgesVector,
         std::vector<array_1d <double,3> > &rIntersectionPointsArray);
 
     /**
      * @brief Computes the intersection of a single edge
-     * This method computes the intersection of a given edge with the candidate 
-     * intersecting geometry. This operation is performed accordingly to the working 
+     * This method computes the intersection of a given edge with the candidate
+     * intersecting geometry. This operation is performed accordingly to the working
      * space dimension using the intersection utilities implemented in intersection_utilities.h
      * @param rIntObjGeometry candidate intersecting geometry
      * @param rEdgePoint1 edge origin point
      * @param rEdgePoint2 edge end point
-     * @param rIntersectionPoint intersection point 
+     * @param rIntersectionPoint intersection point
      * @return int type of intersection id (see intersection_utilities.h)
      */
     int ComputeEdgeIntersection(
         const Element::GeometryType& rIntObjGeometry,
         const Element::NodeType& rEdgePoint1,
-        const Element::NodeType& rEdgePoint2, 
+        const Element::NodeType& rEdgePoint2,
         Point& rIntersectionPoint);
 
     /**
@@ -263,7 +268,7 @@ private:
      * @brief Checks (and corrects if needed) the intersection normal orientation
      * This method checks the orientation of the previously computed intersection normal.
      * To do that, the normal vector to each one of the intersecting geometries is
-     * computed and its directo is compared against the current one. If the negative 
+     * computed and its directo is compared against the current one. If the negative
      * votes win, the current normal vector orientation is switched.
      * @param rGeometry element of interest geometry
      * @param rIntersectedObjects reference to the array containing the element of interest intersecting geometries
@@ -276,7 +281,7 @@ private:
 
     /**
      * @brief Computes the normal vector to an intersecting object geometry
-     * This method computes the normal vector to an intersecting object geometry. 
+     * This method computes the normal vector to an intersecting object geometry.
      * @param rGeometry reference to the geometry of the intersecting object
      * @param rIntObjNormal reference to the intersecting object normal vector
      */
@@ -287,8 +292,8 @@ private:
     /**
      * @brief Computes the value of any embedded variable
      * For a given array variable in the skin mesh, this method calculates the value
-     * of such variable in the embedded mesh. This is done in each element of the volume 
-     * mesh by computing the average value of all the edges intersections. This value 
+     * of such variable in the embedded mesh. This is done in each element of the volume
+     * mesh by computing the average value of all the edges intersections. This value
      * is averaged again according to the number of intersected edges.
      * @tparam TVarType variable type
      * @param rVariable origin variable in the skin mesh
@@ -303,10 +308,10 @@ private:
 		const int n_elems = mrVolumePart.NumberOfElements();
 
 		// Check requested variables
-		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0) 
+		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0)
 			<< rEmbeddedVariable << " key is 0. Check that the variable is correctly registered." << std::endl;
 
-		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false) 
+		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false)
 			<< "Skin model part solution step data missing variable: " << rVariable << std::endl;
 
 		// Initialize embedded variable value
@@ -355,7 +360,7 @@ private:
                         }
 					}
 
-					// Check if the edge is intersected					
+					// Check if the edge is intersected
 					if (n_int_obj != 0) {
 						// Update the element intersected edges counter
 						n_int_edges++;

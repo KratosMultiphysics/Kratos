@@ -29,6 +29,7 @@
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
 
 #include "direct_sensitivity_analysis/response_functions/direct_sensitivity_response_function.cpp"
 #include "direct_sensitivity_analysis/response_functions/direct_sensitivity_local_stress_response_function.cpp"
@@ -111,6 +112,9 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "AdjointLinearStrainEnergyResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
+    py::class_<AdjointNodalReactionResponseFunction, AdjointNodalReactionResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointNodalReactionResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
     py::class_<DirectSensitivityResponseFunction, DirectSensitivityResponseFunction::Pointer>
         (m, "DirectSensitivityResponseFunction")
         .def(py::init<ModelPart&, Parameters, std::string&>());

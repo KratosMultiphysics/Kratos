@@ -98,8 +98,8 @@ namespace Kratos
           //typedef typename std::vector<ParticlePointer> ParticlePointerVector;
           //typedef typename std::vector<ParticlePointer>::iterator ParticlePointerIterator;
 
-          //typedef WeakPointerVector<Element > ParticleWeakVector;
-          //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
+          //typedef GlobalPointersVector<Element > ParticleWeakVector;
+          //typedef GlobalPointersVector<Element >::iterator ParticleWeakIterator;
 
 
 

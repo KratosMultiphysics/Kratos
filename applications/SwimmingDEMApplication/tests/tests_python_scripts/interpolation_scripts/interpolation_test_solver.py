@@ -1,5 +1,5 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Vector
 import swimming_DEM_solver
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 
@@ -29,7 +29,7 @@ class InterpolationTestSolver(BaseSolver):
 
         for node in self.fluid_solver.main_model_part.Nodes:
             velocity = self.ReturnExactVelocity(self.next_time_to_solve_fluid, node.X, node.Y, node.Z)
-            node.SetSolutionStepValue(VELOCITY, velocity)
+            node.SetSolutionStepValue(Kratos.VELOCITY, velocity)
 
     def SolveDEM(self):
         import random

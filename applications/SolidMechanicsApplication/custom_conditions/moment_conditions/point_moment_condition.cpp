@@ -50,7 +50,7 @@ namespace Kratos
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<PointMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<PointMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -65,7 +65,7 @@ namespace Kratos
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//
-    return Kratos::make_shared<PointMomentCondition>(NewCondition);
+    return Kratos::make_intrusive<PointMomentCondition>(NewCondition);
   }
 
 

@@ -1,13 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Array3, Logger
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import DEM_procedures as DP
+import shutil
+import weakref
 import math
 import os
-from KratosMultiphysics import *
-import KratosMultiphysics.DEMApplication as DEMApp
-import KratosMultiphysics.SwimmingDEMApplication as SDEMApp
-import DEM_procedures
-import shutil
-import os
-import weakref
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -19,17 +19,17 @@ def AddExtraDofs(fluid_model_part,
                  dem_inlet_model_part,
                  variables_manager):
 
-    if VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
+    if Kratos.VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
         for node in fluid_model_part.Nodes:
-            node.AddDof(VELOCITY_LAPLACIAN_X)
-            node.AddDof(VELOCITY_LAPLACIAN_Y)
-            node.AddDof(VELOCITY_LAPLACIAN_Z)
+            node.AddDof(Kratos.VELOCITY_LAPLACIAN_X)
+            node.AddDof(Kratos.VELOCITY_LAPLACIAN_Y)
+            node.AddDof(Kratos.VELOCITY_LAPLACIAN_Z)
 
-    if VELOCITY_LAPLACIAN_RATE in variables_manager.fluid_vars:
+    if Kratos.VELOCITY_LAPLACIAN_RATE in variables_manager.fluid_vars:
         for node in fluid_model_part.Nodes:
-            node.AddDof(VELOCITY_LAPLACIAN_RATE_X)
-            node.AddDof(VELOCITY_LAPLACIAN_RATE_Y)
-            node.AddDof(VELOCITY_LAPLACIAN_RATE_Z)
+            node.AddDof(Kratos.VELOCITY_LAPLACIAN_RATE_X)
+            node.AddDof(Kratos.VELOCITY_LAPLACIAN_RATE_Y)
+            node.AddDof(Kratos.VELOCITY_LAPLACIAN_RATE_Z)
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
@@ -38,7 +38,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
     if must_renumber:
 
-        Logger.PrintWarning("SwimmingDEM","WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
+        Logger.PrintWarning("SwimmingDEM", "WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
 
         for node in dem_model_part.Nodes:
             node.Id += max_fluid_id
@@ -48,17 +48,17 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
         Logger.PrintWarning("SwimmingDEM","The DEM model part and the fem-DEM model parts Ids have been renumbered")
 
-def RenumberModelPartNodesFromGivenId(model_part, id):
+def RenumberModelPartNodesFromGivenId(model_part, my_id):
 
-    new_id = id + 1
+    new_id = my_id + 1
 
     for node in model_part.Nodes:
         node.Id = new_id
         new_id = new_id + 1
 
-def RenumberModelPartElementsFromGivenId(model_part, id):
+def RenumberModelPartElementsFromGivenId(model_part, my_id):
 
-    new_id = id + 1
+    new_id = my_id + 1
 
     for element in model_part.Elements:
         element.Id = new_id
@@ -71,20 +71,20 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_model_part):
-    checker = SDEMApp.VariableChecker()
+    checker = SDEM.VariableChecker()
 
-    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
-        SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
-        SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION_OLD, 1.0)
-    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
-        SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, Kratos.FLUID_FRACTION):
+        SetModelPartSolutionStepValue(fluid_model_part, Kratos.FLUID_FRACTION, 1.0)
+        SetModelPartSolutionStepValue(fluid_model_part, Kratos.FLUID_FRACTION_OLD, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, Kratos.FLUID_FRACTION_PROJECTED):
+        SetModelPartSolutionStepValue(balls_model_part, Kratos.FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
 
     for node in model_part.Nodes:
-        node.Fix(VELOCITY_X)
-        node.Fix(VELOCITY_Y)
-        node.Fix(VELOCITY_Z)
+        node.Fix(Kratos.VELOCITY_X)
+        node.Fix(Kratos.VELOCITY_Y)
+        node.Fix(Kratos.VELOCITY_Z)
 
 def GetWordWithSpaces(word, total_length):
 
@@ -96,8 +96,8 @@ def GetWordWithSpaces(word, total_length):
 def TransferFacePressuresToPressure(model_part):
 
     for node in model_part.Nodes:
-        total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
-        node.SetSolutionStepValue(PRESSURE, total_pressure)
+        total_pressure = node.GetSolutionStepValue(Kratos.POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(Kratos.NEGATIVE_FACE_PRESSURE)
+        node.SetSolutionStepValue(Kratos.PRESSURE, total_pressure)
 
 def Norm(my_list):
     return math.sqrt(sum([value ** 2 for value in my_list]))
@@ -106,17 +106,17 @@ def NormOfDifference(v1, v2):
     return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
 
 def FindClosestNode(model_part, coors):
-     relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
-     nodes = [node for node in model_part.Nodes]
-     min_dist = Norm(coors_nodes[0])
-     min_i = 0
-     for i in range(len(nodes)):
-         norm_i = Norm(relative_coors_nodes[i])
-         if min_dist > norm_i:
-             min_dist = norm_i
-             min_i = i
+    relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
+    nodes = [node for node in model_part.Nodes]
+    min_dist = Norm(relative_coors_nodes[0])
+    min_i = 0
+    for i in range(len(nodes)):
+        norm_i = Norm(relative_coors_nodes[i])
+        if min_dist > norm_i:
+            min_dist = norm_i
+            min_i = i
 
-     return nodes[min_i]
+    return nodes[min_i]
 
 class FluidFractionFieldUtility:
 
@@ -173,12 +173,12 @@ class FluidFractionFieldUtility:
         for field in self.field_list:
 
             for node in self.fluid_model_part.Nodes:
-                fluid_fraction = node.GetSolutionStepValue(FLUID_FRACTION, 0)
+                fluid_fraction = node.GetSolutionStepValue(Kratos.FLUID_FRACTION, 0)
 
                 if self.CheckIsInside([node.X, node.Y, node.Z], field.low, field.high):
                     value = fluid_fraction + field.frac_0 + field.frac_grad[0] * node.X + field.frac_grad[1] * node.Y + field.frac_grad[2] * node.Z
                     value = min(max(value, 0.0), self.min_fluid_fraction)
-                    node.SetSolutionStepValue(FLUID_FRACTION, 0, value)
+                    node.SetSolutionStepValue(Kratos.FLUID_FRACTION, 0, value)
 
 def MultiplyNodalVariableByFactor(model_part, variable, factor):
 
@@ -204,8 +204,8 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
             fluid_density_factor = mod_over_real
             fluid_viscosity_factor = mod_over_real * mod_over_real
-            MultiplyNodalVariableByFactor(fluid_model_part, DENSITY, fluid_density_factor)
-            MultiplyNodalVariableByFactor(fluid_model_part, VISCOSITY, fluid_viscosity_factor)
+            MultiplyNodalVariableByFactor(fluid_model_part, Kratos.DENSITY, fluid_density_factor)
+            MultiplyNodalVariableByFactor(fluid_model_part, Kratos.VISCOSITY, fluid_viscosity_factor)
     else:
 
         Logger.PrintWarning("SwimmingDEM",('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
@@ -219,10 +219,10 @@ def FindMaxElementId(fluid_model_part):
 
 def FunctionsCalculator(domain_size=3):
     if domain_size == 2:
-        custom_functions_tool = SDEMApp.CustomFunctionsCalculator2D()
+        custom_functions_tool = SDEM.CustomFunctionsCalculator2D()
 
     elif domain_size == 3:
-        custom_functions_tool = SDEMApp.CustomFunctionsCalculator3D()
+        custom_functions_tool = SDEM.CustomFunctionsCalculator3D()
 
     return custom_functions_tool
 
@@ -236,12 +236,12 @@ class IOTools:
         for variablename in variables:
             outstring = "Particles_" + variablename + ".csv"
             outputfile = open(outstring, 'a')
-            variables_dictionary = {"PRESSURE": PRESSURE,
-                                    "VELOCITY": VELOCITY,
-                                    "BUOYANCY": BUOYANCY,
-                                    "DRAG_FORCE": DRAG_FORCE,
-                                    "LIFT_FORCE": LIFT_FORCE,
-                                    "MU": MU}
+            variables_dictionary = {"PRESSURE": Kratos.PRESSURE,
+                                    "VELOCITY": Kratos.VELOCITY,
+                                    "BUOYANCY": Kratos.BUOYANCY,
+                                    "DRAG_FORCE": Kratos.DRAG_FORCE,
+                                    "LIFT_FORCE": Kratos.LIFT_FORCE,
+                                    "MU": Kratos.MU}
 
             for node in model_part.Nodes:
                 Results_value = node.GetSolutionStepValue(variables_dictionary[variablename])
@@ -262,17 +262,6 @@ class IOTools:
 
         return directories
 
-    def ControlEcho(self, step, incremental_time, total_steps_expected):
-
-        if incremental_time > self.param.ControlTime:
-            percentage = 100.0 * (float(step) / total_steps_expected)
-
-            Say('Real time calculation: ' + str(incremental_time))
-            Say('Percentage Completed: ' + str(percentage) + ' %')
-            Say("TIME STEP = " + str(step) + '\n')
-
-            prev_time = (incremental_time)
-
 class ProjectionDebugUtils:
 
     def __init__(self, domain_volume, fluid_model_part, particles_model_part, custom_functions_calculator):
@@ -282,7 +271,7 @@ class ProjectionDebugUtils:
         self.UpdateDataAndPrint(domain_volume, False)
 
     def UpdateDataAndPrint(self, domain_volume, is_time_to_print = True):
-        self.granul_utils                         = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
+        self.granul_utils                         = DP.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                        = domain_volume
         self.number_of_balls                      = self.balls_model_part.NumberOfElements(0)
         self.discr_domain_volume                  = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
@@ -336,20 +325,20 @@ class ProjectionDebugUtils:
 class Counter:
 
     def __init__(self,
-                 steps_in_cycle = 1,
-                 beginning_step = 1,
-                 is_active = True,
-                 is_dead = False):
+                 steps_in_cycle=1,
+                 beginning_step=1,
+                 is_active=True,
+                 is_dead=False):
 
-        if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
+        if steps_in_cycle <= 0 or (not isinstance(steps_in_cycle, int) and not isinstance(steps_in_cycle, long)):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
 
-        self.beginning_step    = beginning_step
-        self.step              = 1
-        self.steps_in_cycle    = steps_in_cycle
-        self.step_in_cycle     = steps_in_cycle
-        self.is_active         = is_active
-        self.is_dead           = is_dead
+        self.beginning_step = beginning_step
+        self.step = 1
+        self.steps_in_cycle = steps_in_cycle
+        self.step_in_cycle = steps_in_cycle
+        self.is_active = is_active
+        self.is_dead = is_dead
         self.accumulated_ticks = 0
 
     def Tick(self):
@@ -413,6 +402,7 @@ class Averager:
         self.average = 0.0
         self.average_error = 0.0
         self.step = 0
+        self.sum_exact = 0
     def Norm(self, v):
         if self.counter.Tick():
             self.step += 1
@@ -456,15 +446,19 @@ class PostUtils:
         self.rigid_faces_model_part = rigid_faces_model_part
         self.mixed_model_part       = mixed_model_part
         self.vars_man               = variables_manager
-        self.post_utilities         = DEMApp.PostUtilities()
+        self.post_utilities         = DEM.PostUtilities()
 
     def Writeresults(self, time):
 
         Logger.PrintInfo("SwimmingDEM","*******************  PRINTING RESULTS FOR GID  ***************************")
         Logger.Flush()
 
-        if self.project_parameters['Multifile'].GetString() == "multiple_files":
-            renumbering_utility = SDEMApp.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
+        gid_output_options = self.project_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
+        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+        multiple_files_option_key = result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString()
+
+        if multiple_files_option_key == "MultipleFiles":
+            renumbering_utility = SDEM.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
             renumbering_utility.Renumber()
 
             self.mixed_model_part.Elements.clear()
@@ -487,7 +481,7 @@ class PostUtils:
                                                self.vars_man.mixed_nodal_results,
                                                self.vars_man.gauss_points_results)
 
-        if self.project_parameters['Multifile'].GetString() == "multiple_files":
+        if multiple_files_option_key == "MultipleFiles":
             renumbering_utility.UndoRenumber()
 
 class ResultsFileCreator:
@@ -546,44 +540,6 @@ class ResultsFileCreator:
                     line += str('%.17f' % entry) + ' '
                 f.write(line + ' \n')
 
-# The following function creates a run_code to be appended to the name of the PostFiles directory for the benchmark marine_rain (2013 Guseva)
-def CreateRunCode(parameters):
-    code = []
-
-    if parameters["basset_force_type"].GetInt() > 0:
-        history_or_not = 'H'
-    else:
-        history_or_not = 'NH'
-
-    code.append(history_or_not)
-
-    if parameters["basset_force_type"].GetInt() == 4:
-        method_name = 'Hinsberg'
-        number_of_exponentials = 'm=' + str(parameters.number_of_exponentials)
-        time_window = 'tw=' + str(parameters["time_window"].GetDouble())
-        code.append(method_name)
-        code.append(number_of_exponentials)
-        code.append(time_window)
-
-    elif parameters["basset_force_type"].GetInt() > 0:
-        method_name = 'Daitche'
-        code.append(method_name)
-    else:
-        method_name = parameters["TranslationalIntegrationScheme"].GetString()
-        code.append(method_name)
-
-    DEM_dt = 'Dt=' + str(parameters["MaxTimeStep"].GetDouble())
-    code.append(DEM_dt)
-
-    if parameters["basset_force_type"].GetInt() > 0:
-        phi = 'phi=' + str(round(1 / parameters["time_steps_per_quadrature_step"].GetInt(), 3))
-        code.append(phi)
-
-    quadrature_order = 'QuadOrder=' + str(parameters["quadrature_order"].GetInt())
-    code.append(quadrature_order)
-
-    return '_' + '_'.join(code)
-
 def CopyInputFilesIntoFolder(files_path, folder_path):
     import glob, os, shutil
     input_data_directory = folder_path + "/InputData"
@@ -624,19 +580,3 @@ def PrintPositionsToFileInterpolation(coors, n_div, method, main_path=''):
             for comp in coor:
                 line += str(comp) + ' '
             fout.write(line + '\n')
-
-class StationarityAssessmentTool:
-
-    def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
-        self.tol  = max_pressure_variation_rate_tol
-        self.tool = weakref.proxy(custom_functions_tool)
-
-    def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
-        stationarity = self.tool.AssessStationarity(model_part, self.tol)
-
-        if stationarity:
-            Logger.PrintInfo("SwimmingDEM","\nThe fluid has reached a stationary state.")
-            Logger.PrintInfo("Its calculation will be omitted from here on.\n")
-            Logger.Flush()
-
-        return stationarity

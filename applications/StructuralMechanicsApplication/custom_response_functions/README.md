@@ -79,7 +79,7 @@ An example for a possible input file is:
 If all necessary input files are defined, the analysis can be performed with a simple python script by calling the primal and afterwards the adjoint analysis. The sensitivities are computed in a post-processing of the adjoint problem.
 
 A possible python workflow can be found in:
-*StructuralMechanicsApplication/tests/test_adjoint_sensitity_analysis_beam_3d2n_structure.py*
+*StructuralMechanicsApplication/tests/test_adjoint_sensitivity_analysis_beam_3d2n_structure.py*
 
 #### Possible ```response_function_settings```:
 

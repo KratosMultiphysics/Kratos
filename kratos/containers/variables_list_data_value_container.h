@@ -2,21 +2,17 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
-//                    
 //
-
+//
 
 #if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
 #define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -24,11 +20,7 @@
 #include <cstddef>
 #include <cstring>
 
-
-
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -60,8 +52,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/**
+* @class VariablesListDataValueContainer
+* @ingroup KratosCore
+* @brief A  shared  variable  list gives the position of each variable in the containers sharing it.
+* @details The mechanism is very simple. There is an array which stores the local offset for each variable in the container and assigns  the  value−1  for  the  rest  of  the variables
+* For more details see P. Dadvand, R. Rossi, E. Oñate: An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Computational Methods in Engineering. 2010
+* @author Pooyan Dadvand
+* @author Riccardo Rossi
 */
 class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer
 {
@@ -88,7 +86,7 @@ public:
     /// Default constructor.
     explicit VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(&GetDefaultVariablesList())
+          mpData(0), mpVariablesList(pGetDefaultVariablesList())
     {
         // Allcating memory
         Allocate();
@@ -131,7 +129,7 @@ public:
     }
 
     /// Variables list constructor.
-    VariablesListDataValueContainer(VariablesList*  pVariablesList, SizeType NewQueueSize = 1)
+    VariablesListDataValueContainer(VariablesList::Pointer  pVariablesList, SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
@@ -152,7 +150,7 @@ public:
     }
 
     /// Variables list and data constructor
-    VariablesListDataValueContainer(VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+    VariablesListDataValueContainer(VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
@@ -346,7 +344,7 @@ public:
     template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
-        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;    
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -395,8 +393,8 @@ public:
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
-    {   
-        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;	
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
@@ -525,19 +523,19 @@ public:
     ///@name Access
     ///@{
 
-    VariablesList* pGetVariablesList()
+    VariablesList::Pointer pGetVariablesList()
     {
         return mpVariablesList;
     }
 
-    const VariablesList * pGetVariablesList() const
+    const VariablesList::Pointer pGetVariablesList() const
     {
         return mpVariablesList;
     }
 
 
 
-    void SetVariablesList(VariablesList* pVariablesList)
+    void SetVariablesList(VariablesList::Pointer pVariablesList)
     {
         DestructAllElements();
 
@@ -557,7 +555,7 @@ public:
         }
     }
 
-    void SetVariablesList(VariablesList* pVariablesList, SizeType ThisQueueSize)
+    void SetVariablesList(VariablesList::Pointer pVariablesList, SizeType ThisQueueSize)
     {
         DestructAllElements();
 
@@ -579,10 +577,10 @@ public:
         }
     }
 
-    VariablesList& GetDefaultVariablesList()
+    VariablesList::Pointer pGetDefaultVariablesList()
     {
-        static VariablesList DefaultVariablesList;
-        return DefaultVariablesList;
+        static VariablesList::Pointer pDefaultVariablesList = Kratos::make_intrusive<VariablesList>();
+        return pDefaultVariablesList;
     }
 
     void Resize(SizeType NewSize)
@@ -695,6 +693,11 @@ public:
         return mpData;
     }
 
+    const BlockType* Data() const
+    {
+        return mpData;
+    }
+
     BlockType* Data(SizeType QueueIndex)
     {
         return Position(QueueIndex);
@@ -703,10 +706,10 @@ public:
     BlockType* Data(VariableData const & rThisVariable)
     {
         #ifdef KRATOS_DEBUG
-        if ( !mpVariablesList->Has(rThisVariable) ) {            
+        if ( !mpVariablesList->Has(rThisVariable) ) {
             KRATOS_ERROR << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
         }
-        #endif      
+        #endif
         return Position(rThisVariable);
     }
 
@@ -897,7 +900,7 @@ private:
 
     ContainerType mpData;
 
-    VariablesList* mpVariablesList;
+    VariablesList::Pointer mpVariablesList;
 
     ///@}
     ///@name Private Operators

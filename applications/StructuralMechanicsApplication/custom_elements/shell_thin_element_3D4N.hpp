@@ -23,45 +23,45 @@
 
 namespace Kratos
 {
-    ///@name Kratos Globals
-    ///@{
-    ///@}
+///@name Kratos Globals
+///@{
+///@}
 
-    ///@name Type Definitions
-    ///@{
-    ///@}
+///@name Type Definitions
+///@{
+///@}
 
-    class ShellQ4_CoordinateTransformation;
+class ShellQ4_CoordinateTransformation;
 
-    class ShellQ4_LocalCoordinateSystem;
+class ShellQ4_LocalCoordinateSystem;
 
-    ///@name  Enum's
-    ///@{
-    ///@}
+///@name  Enum's
+///@{
+///@}
 
-    ///@name  Functions
-    ///@{
-    ///@}
+///@name  Functions
+///@{
+///@}
 
-    ///@name Kratos Classes
-    ///@{
-    /** \brief ShellThinElement3D4N
-    *
-    * This element represents a 4-node Shell element.
-    * The membrane part is Felippa's assumed Natural DEviatoric Strain (ANDES)
-    * formulation, while the bending part is the Discrete Kirchhoff
-    * Quadrilateral.
-    * This element is formulated for small strains,
-    * but can be used in Geometrically nonlinear problems
-    * involving large displacements and rotations
-    * using a Corotational Coordinate Transformation.
-    * Material nonlinearity is handled by means of the cross section object.
-    */
+///@name Kratos Classes
+///@{
+/** \brief ShellThinElement3D4N
+*
+* This element represents a 4-node Shell element.
+* The membrane part is Felippa's assumed Natural DEviatoric Strain (ANDES)
+* formulation, while the bending part is the Discrete Kirchhoff
+* Quadrilateral.
+* This element is formulated for small strains,
+* but can be used in Geometrically nonlinear problems
+* involving large displacements and rotations
+* using a Corotational Coordinate Transformation.
+* Material nonlinearity is handled by means of the cross section object.
+*/
 
-    /*
-    Shell formulation references:
+/*
+Shell formulation references:
 
-    ANDES formulation:
+ANDES formulation:
 Bjorn Haugen. "Buckling and Stability Problems for Thin Shell Structures
 Using High Performance Finite Elements". Dissertation. Colorado: University
 of Colorado, 1994.
@@ -88,7 +88,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D4N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D4N);
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -116,19 +116,19 @@ public:
 
         JacobianOperator();
 
-        void Calculate(const ShellQ4_LocalCoordinateSystem & CS, const Matrix & dN);
+        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
 
-        inline const Matrix & Jacobian()const
+        inline const Matrix& Jacobian()const
         {
             return mJac;
         }
 
-        inline const Matrix & Inverse()const
+        inline const Matrix& Inverse()const
         {
             return mInv;
         }
 
-        inline const Matrix & XYDerivatives()const
+        inline const Matrix& XYDerivatives()const
         {
             return mXYDeriv;
         }
@@ -151,18 +151,18 @@ public:
     ///@name Life Cycle
     ///@{
     ShellThinElement3D4N(IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        bool NLGeom = false);
+                         GeometryType::Pointer pGeometry,
+                         bool NLGeom = false);
 
     ShellThinElement3D4N(IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        bool NLGeom = false);
+                         GeometryType::Pointer pGeometry,
+                         PropertiesType::Pointer pProperties,
+                         bool NLGeom = false);
 
     ShellThinElement3D4N(IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        CoordinateTransformationBasePointerType pCoordinateTransformation);
+                         GeometryType::Pointer pGeometry,
+                         PropertiesType::Pointer pProperties,
+                         CoordinateTransformationBasePointerType pCoordinateTransformation);
 
     ~ShellThinElement3D4N() override;
 
@@ -183,7 +183,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     /**
     * @brief Creates a new element
@@ -196,7 +196,7 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     void Initialize() override;
 
@@ -209,23 +209,23 @@ public:
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+                             ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-        3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
@@ -351,8 +351,8 @@ private:
     public:
 
         CalculationData(const ShellQ4_LocalCoordinateSystem& localcoordsys,
-            const ShellQ4_LocalCoordinateSystem& refcoordsys,
-            const ProcessInfo& rCurrentProcessInfo);
+                        const ShellQ4_LocalCoordinateSystem& refcoordsys,
+                        const ProcessInfo& rCurrentProcessInfo);
     };
 
     ///@}
@@ -360,8 +360,8 @@ private:
     ///@name Private Operations
     ///@{
     void CalculateStressesFromForceResultants
-        (VectorType& rstresses,
-            const double& rthickness);
+    (VectorType& rstresses,
+     const double& rthickness);
 
     void CalculateLaminaStrains(CalculationData& data);
 
@@ -386,20 +386,20 @@ private:
     void CalculateSectionResponse(CalculationData& data);
 
     void CalculateGaussPointContribution(CalculationData& data,
-        MatrixType& LHS, VectorType& RHS);
+                                         MatrixType& LHS, VectorType& RHS);
 
     void AddBodyForces(CalculationData& data,
-        VectorType& rRightHandSideVector); //not required for dyn
+                       VectorType& rRightHandSideVector); //not required for dyn
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag) override;
+                      VectorType& rRightHandSideVector,
+                      const ProcessInfo& rCurrentProcessInfo,
+                      const bool CalculateStiffnessMatrixFlag,
+                      const bool CalculateResidualVectorFlag) override;
 
     bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo);
+            std::vector<Matrix>& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
 
     /**
     * Returns the behavior of this shell (thin/thick)

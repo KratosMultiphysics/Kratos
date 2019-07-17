@@ -72,6 +72,9 @@ class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestF
 class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
 
+class BeamCantileverStaticLinearElasticParticlePointLoad2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/cantilever_beam/particle_point_load_2D_tri_test"
+
 class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_surface_load_3D_hexa_test"
 

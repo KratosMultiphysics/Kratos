@@ -11,19 +11,12 @@
 //  Main authors:     Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_INTEGRATION_UTILITIES_INCLUDED )
 #define  KRATOS_INTEGRATION_UTILITIES_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -34,10 +27,11 @@ namespace Kratos
 class IntegrationUtilities
 {
 public:
-    static Geometry<Node<3> >::IntegrationMethod GetIntegrationMethodForExactMassMatrixEvaluation(Geometry<Node<3>> const& geom)
+    template<class TPointType>
+    static GeometryData::IntegrationMethod GetIntegrationMethodForExactMassMatrixEvaluation(Geometry<TPointType> const& rGeometry)
     {
-        Geometry<Node<3> >::IntegrationMethod integration_method = geom.GetDefaultIntegrationMethod();
-        if(integration_method == GeometryData::GI_GAUSS_1)
+        GeometryData::IntegrationMethod integration_method = rGeometry.GetDefaultIntegrationMethod();
+        if (integration_method == GeometryData::GI_GAUSS_1)
             integration_method = GeometryData::GI_GAUSS_2;
         else if(integration_method == GeometryData::GI_GAUSS_2)
             integration_method = GeometryData::GI_GAUSS_3;

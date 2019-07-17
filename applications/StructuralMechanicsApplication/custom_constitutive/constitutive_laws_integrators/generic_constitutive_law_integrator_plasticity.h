@@ -736,7 +736,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         double& rHardeningParameter
         )
     {
-        rHardeningParameter = -SlopeThreshold;
+        rHardeningParameter = SlopeThreshold;
         double aux = 0.0;
 
         for (IndexType i = 0; i < VoigtSize; ++i) {
@@ -770,15 +770,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         for (IndexType i = 0; i < VoigtSize; ++i) {
             A1 += rFFlux[i] * delta_vector[i];
         }
-
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardeningParameter;
         if (std::abs(A1 + A2 + A3) > tolerance)
             rPlasticDenominator = 1.0 / (A1 + A2 + A3);
         else {
             rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
-//             rPlasticDenominator = 1.0;
-//             KRATOS_WARNING("GenericConstitutiveLawIntegratorPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
         }
     }
 

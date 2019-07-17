@@ -9,7 +9,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
+
+from importlib import import_module
 
 class PoromechanicsAnalysis(AnalysisStage):
     '''Main script for poromechanics simulations.'''
@@ -69,7 +71,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
     def _CreateSolver(self):
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        python_module_name = "KratosMultiphysics.PoromechanicsApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
         solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
 

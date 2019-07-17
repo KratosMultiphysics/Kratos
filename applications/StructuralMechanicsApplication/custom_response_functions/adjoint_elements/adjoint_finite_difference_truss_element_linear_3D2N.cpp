@@ -86,7 +86,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::GetValueOnIntegr
 
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
+template class AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
 
 
 } // namespace Kratos.

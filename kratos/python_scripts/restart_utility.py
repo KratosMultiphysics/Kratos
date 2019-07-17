@@ -155,7 +155,7 @@ class RestartUtility(object):
             folder_path = self.__GetFolderPathSave()
             if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
                 os.makedirs(folder_path)
-            self.model_part.GetCommunicator().Barrier()
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
 
     #### Protected functions ####

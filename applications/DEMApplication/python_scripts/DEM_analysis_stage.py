@@ -6,6 +6,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
 from analysis_stage import AnalysisStage
+from importlib import import_module
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
@@ -234,10 +235,7 @@ class DEMAnalysisStage(AnalysisStage):
     def _CreateSolver(self):
         def SetSolverStrategy():
             strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
-            filename = __import__(strategy)
-            ## Alternative option
-            #from importlib import import_module
-            #filename = import_module(str(strategy))
+            filename = import_module(str(strategy))
             return filename
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
@@ -263,7 +261,6 @@ class DEMAnalysisStage(AnalysisStage):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
-        self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
 
@@ -361,7 +358,7 @@ class DEMAnalysisStage(AnalysisStage):
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
 
-        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+        [model_part_io_spheres, self.spheres_model_part] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))
@@ -443,6 +440,18 @@ class DEMAnalysisStage(AnalysisStage):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+
+    def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
+        self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
+        self.UpdateIsTimeToPrintInOneModelPart(self.cluster_model_part, is_time_to_print)
+        self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
+        self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
+
+    @classmethod
+    def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def BeforePrintingOperations(self, time):
         pass
@@ -455,7 +464,8 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-        stepinfo = self.report.StepiReport(timer, self.time, self.step)
+        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+        stepinfo = self.report.StepiReport(timer, self.time, step)
         if stepinfo:
             self.KratosPrintInfo(stepinfo)
 
@@ -580,7 +590,6 @@ class DEMAnalysisStage(AnalysisStage):
     #these functions are needed for coupling, so that single time loops can be done
 
     def InitializeTime(self):
-        self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
 
@@ -588,7 +597,6 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-        print(self.time,self.step)
         stepinfo = self.report.StepiReport(timer, self.time, self.step)
         if stepinfo:
             self.KratosPrintInfo(stepinfo)

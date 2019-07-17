@@ -27,7 +27,7 @@
 
 /* Element include */
 #include "geometries/line_2d_2.h"
-#include "tests/cpp_tests/auxiliar_files/test_bar_element.h"
+#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -92,9 +92,9 @@ namespace Kratos
             p_prop->SetValue(NODAL_AREA, 0.01);
 
             GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 1, pgeom1, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
             GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 2, pgeom2, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
 
             /// Add dof
             for (auto& node : rModelPart.Nodes()) {
@@ -157,43 +157,43 @@ namespace Kratos
             p_prop->SetValue(NODAL_AREA, 0.01);
 
             GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode11, pnode10})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 1, pgeom1, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
             GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode8})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 2, pgeom2, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
             GeometryType::Pointer pgeom3 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode6})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 3, pgeom3, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 3, pgeom3, p_prop));
             GeometryType::Pointer pgeom4 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode5})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 4, pgeom4, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 4, pgeom4, p_prop));
             GeometryType::Pointer pgeom5 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode4})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 5, pgeom5, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 5, pgeom5, p_prop));
             GeometryType::Pointer pgeom6 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode4, pnode1})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 6, pgeom6, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 6, pgeom6, p_prop));
             GeometryType::Pointer pgeom7 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 7, pgeom7, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 7, pgeom7, p_prop));
             GeometryType::Pointer pgeom8 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 8, pgeom8, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 8, pgeom8, p_prop));
             GeometryType::Pointer pgeom9 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode7})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 9, pgeom9, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 9, pgeom9, p_prop));
             GeometryType::Pointer pgeom10 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode9})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 10, pgeom10, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 10, pgeom10, p_prop));
             GeometryType::Pointer pgeom11 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode11})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 11, pgeom11, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 11, pgeom11, p_prop));
             GeometryType::Pointer pgeom12 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode9})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 12, pgeom12, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 12, pgeom12, p_prop));
             GeometryType::Pointer pgeom13 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode8})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 13, pgeom13, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 13, pgeom13, p_prop));
             GeometryType::Pointer pgeom14 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode7})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 14, pgeom14, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 14, pgeom14, p_prop));
             GeometryType::Pointer pgeom15 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode6})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 15, pgeom15, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 15, pgeom15, p_prop));
             GeometryType::Pointer pgeom16 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode3})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 16, pgeom16, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 16, pgeom16, p_prop));
             GeometryType::Pointer pgeom17 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode5})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 17, pgeom17, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 17, pgeom17, p_prop));
             GeometryType::Pointer pgeom18 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode2})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 18, pgeom18, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 18, pgeom18, p_prop));
             GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode4})});
-            rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 19, pgeom19, p_prop));
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 19, pgeom19, p_prop));
             
             /// Add dof
             for (auto& node : rModelPart.Nodes()) {

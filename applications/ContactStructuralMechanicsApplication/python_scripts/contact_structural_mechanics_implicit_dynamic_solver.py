@@ -3,14 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes KM bac
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import the implicit solver (the explicit one is derived from it)
-import structural_mechanics_implicit_dynamic_solver
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_implicit_dynamic_solver
 
 # Import auxiliar methods
-import auxiliar_methods_solvers
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ContactImplicitMechanicalSolver(model, custom_settings)
@@ -28,22 +27,18 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     """
     def __init__(self, model, custom_settings):
 
-        ## Settings string in json format
-        contact_settings = auxiliar_methods_solvers.AuxiliarContactSettings()
+        self._validate_settings_in_baseclass=True # To be removed eventually
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.validate_and_transfer_matching_settings(self.settings, contact_settings)
-        self.contact_settings = contact_settings["contact_settings"]
+        # Construct the base solver.
+        super(ContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
+
+        self.contact_settings = self.settings["contact_settings"]
 
         # Linear solver settings
         if self.settings.Has("linear_solver_settings"):
             self.linear_solver_settings = self.settings["linear_solver_settings"]
         else:
             self.linear_solver_settings = KM.Parameters("""{}""")
-
-        # Construct the base solver.
-        super(ContactImplicitMechanicalSolver, self).__init__(model, self.settings)
 
         # Setting default configurations true by default
         auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
@@ -57,7 +52,12 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         # Initialize the post process
         self.post_process = None
 
-        self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
 
     def AddVariables(self):
 
@@ -66,7 +66,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
 
-        self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
@@ -75,7 +75,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
 
-        self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
@@ -110,29 +110,13 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-        if self.contact_settings["inner_loop_adaptive"].GetBool():
-            process_info = self.GetComputingModelPart().ProcessInfo
-            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
-                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
-                if inner_iterations > 1:
-                    delta_time = delta_time/float(inner_iterations)
-                    self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
-        return delta_time
+        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
 
     def AddPostProcess(self, post_process):
         self.post_process = CSMA.ProcessFactoryUtility(post_process)
-
-    def print_on_rank_zero(self, *args):
-        # This function will be overridden in the trilinos-solvers
-        KM.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        # This function will be overridden in the trilinos-solvers
-        KM.Logger.PrintWarning(" ".join(map(str,args)))
 
     #### Private functions ####
 
@@ -141,7 +125,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
     def _create_convergence_criterion(self):
-        import contact_convergence_criteria_factory
+        from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
@@ -196,3 +180,9 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         self.mechanical_convergence_criterion = self.get_convergence_criterion()
         self.builder_and_solver = self.get_builder_and_solver()
         return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = auxiliar_methods_solvers.AuxiliarContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults

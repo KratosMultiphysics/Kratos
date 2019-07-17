@@ -27,6 +27,7 @@ from test_apply_thermal_face_process import ApplyThermalFaceProcessTest
 ##### SMALL TESTS #####
 from convection_diffusion_test_factory import BasicConvectionDiffusionStationaryTest as TBasicConvectionDiffusionStationaryTest
 from convection_diffusion_test_factory import BasicConvectionDiffusionTransientTest as TBasicConvectionDiffusionTransientTest
+from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -60,6 +61,7 @@ def AssembleTestSuites():
     ### Adding Small Tests
     smallSuite.addTest(TBasicConvectionDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TBasicConvectionDiffusionTransientTest('test_execution'))
+    smallSuite.addTest(TBasicDiffusionStationaryTest('test_execution'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)

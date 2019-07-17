@@ -63,7 +63,7 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitFluidElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidElement);
 
       ///base type:
       typedef TwoStepUpdatedLagrangianVPImplicitElement<TDim> BaseType;
@@ -108,7 +108,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
-      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+      typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
       ///@}
       ///@name Life Cycle
       ///@{
@@ -380,15 +380,6 @@ namespace Kratos
 				      const ShapeFunctionDerivativesType& rShapeDeriv,
 				      const double Weight) override;
 
-      /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 				const ProcessInfo& rCurrentProcessInfo, */
-      /* 				const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 				unsigned int g); */
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
-
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;
@@ -420,10 +411,6 @@ namespace Kratos
       void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 						 VectorType& rRightHandSideVector,
 						 ProcessInfo& rCurrentProcessInfo) override;
-
-      void GetPressureVelocityValues(Vector& rValues,
-				     const int Step);
-
 
       void GetPressureAccelerationValues(Vector& rValues,
 					 const int Step);

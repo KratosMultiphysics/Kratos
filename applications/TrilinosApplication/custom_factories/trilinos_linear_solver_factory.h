@@ -23,7 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "trilinos_space.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 
 namespace Kratos
 {

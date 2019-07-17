@@ -106,8 +106,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulent")
     .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                             // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Variable<double> &>()) // constructor with a non-default flag for slip conditions
+    .def(py::init<unsigned int>())                  // constructor without a turbulence model
+    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
     ;
 
     py::class_<
@@ -116,8 +116,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>>
         (m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction")
     .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                             // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Variable<double> &>()) // constructor with a non-default flag for slip conditions
+    .def(py::init<unsigned int>())                  // constructor without a turbulence model
+    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
     ;
 
     py::class_<

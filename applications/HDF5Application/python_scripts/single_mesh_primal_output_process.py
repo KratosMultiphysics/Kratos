@@ -1,14 +1,95 @@
-import temporal_output_process_factory
+'''Write a model part once and its data at the end of each solution step.
+
+ACCELERATION is written in the Bossak weighted form. For all other variables
+the behavior is the same as single_mesh_temporal_output_process.
+
+This process provides the front end to the HDF5Application.core.
+
+license: HDF5Application/license.txt
+'''
+import KratosMultiphysics
+import KratosMultiphysics.HDF5Application.core as _core
+import KratosMultiphysics.HDF5Application.utils as _utils
 
 
-def Factory(settings, Model):
-    if settings["Parameters"].Has("alpha_bossak"):
-        alpha_bossak = settings["Parameters"]["alpha_bossak"].GetDouble()
-        settings["Parameters"].RemoveValue("alpha_bossak")
-    else:
-        alpha_bossak = -0.3
-    factory_helper = temporal_output_process_factory.PrimalOutputFactoryHelper(alpha_bossak)
-    (temporal_output_process, model_part_output, list_of_results_output) = factory_helper.Execute(settings["Parameters"], Model)
-    for results_output in list_of_results_output:
-        temporal_output_process.AddOutput(results_output)
-    return temporal_output_process
+def Factory(process_settings, Model):
+    """Return a process for writing Bossak primal results for a single mesh to HDF5."""
+    default_settings = KratosMultiphysics.Parameters("""
+            {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {},
+                "model_part_output_settings" : {},
+                "nodal_solution_step_data_settings" : {},
+                "nodal_data_value_settings": {},
+                "element_data_value_settings" : {},
+                "output_time_settings" : {}
+            }
+            """)
+    settings = process_settings["Parameters"]
+    if settings.Has("alpha_bossak"):
+        depr_msg = '\nDEPRECATION-WARNING: "alpha_bossak" should be specified in "nodal_solution_step_data_settings". This will be removed in the future!\n'
+        KratosMultiphysics.Logger.PrintWarning(__name__, depr_msg)
+        _utils.InsertSingleSetting(
+            settings["nodal_solution_step_data_settings"], "alpha_bossak", settings["alpha_bossak"])
+        settings.RemoveValue("alpha_bossak")
+    settings.ValidateAndAssignDefaults(default_settings)
+    new_settings = KratosMultiphysics.Parameters('''
+            {
+               "list_of_controllers": [{
+                    "model_part_name" : "",
+                    "process_step": "before_solution_loop",
+                    "io_settings": {
+                        "io_type": "serial_hdf5_file_io",
+                        "file_name": "<identifier>.h5"
+                    },
+                    "list_of_operations": [{
+                        "operation_type": "model_part_output"
+                    },{
+                        "operation_type": "primal_bossak_output"
+                    },{
+                        "operation_type": "nodal_data_value_output"
+                    },{
+                        "operation_type": "element_data_value_output"
+                    }]
+                },{
+                    "model_part_name" : "",
+                    "process_step": "finalize_solution_step",
+                    "controller_settings": {
+                        "controller_type": "temporal_controller"
+                    },
+                    "io_settings": {
+                        "io_type": "serial_hdf5_file_io",
+                        "file_name": "<identifier>-<time>.h5"
+                    },
+                    "list_of_operations": [{
+                        "operation_type": "primal_bossak_output"
+                    },{
+                        "operation_type": "nodal_data_value_output"
+                    },{
+                        "operation_type": "element_data_value_output"
+                    }]
+                }]
+            }
+            ''')
+    model_part_name = settings["model_part_name"].GetString()
+    for current_settings in new_settings["list_of_controllers"]:
+        current_settings["model_part_name"].SetString(model_part_name)
+    model_part_settings = new_settings["list_of_controllers"][0]
+    results_settings = new_settings["list_of_controllers"][1]
+    for io_settings in [model_part_settings["io_settings"], results_settings["io_settings"]]:
+        _utils.InsertSettings(settings["file_settings"], io_settings)
+        if _utils.IsDistributed():
+            io_settings["io_type"].SetString("parallel_hdf5_file_io")
+    _utils.InsertArrayOfSettings(
+        [settings["model_part_output_settings"], settings["nodal_solution_step_data_settings"], settings["nodal_data_value_settings"],
+         settings["element_data_value_settings"]], model_part_settings["list_of_operations"])
+    _utils.InsertArrayOfSettings([settings["nodal_solution_step_data_settings"], settings["nodal_data_value_settings"],
+                                  settings["element_data_value_settings"]], results_settings["list_of_operations"])
+    output_time_settings = settings["output_time_settings"]
+    _utils.InsertSettings(output_time_settings,
+                          results_settings["controller_settings"])
+    _utils.CheckForDeprecatedFilename(
+        output_time_settings, __name__, model_part_settings["io_settings"], results_settings["io_settings"])
+    _utils.CheckForDeprecatedTemporalSettings(
+        output_time_settings, __name__, results_settings["controller_settings"])
+    return _core.Factory(new_settings["list_of_controllers"], Model)

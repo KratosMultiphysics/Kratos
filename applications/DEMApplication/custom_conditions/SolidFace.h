@@ -23,15 +23,15 @@ class KRATOS_API(DEM_APPLICATION) SolidFace3D : public DEMWall
 public:
 
     // Counted pointer of SolidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( SolidFace3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SolidFace3D );
 
 
-    typedef WeakPointerVector<Element> ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-    typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+    typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void

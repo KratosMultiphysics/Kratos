@@ -146,7 +146,7 @@ public:
                         temp1.push_back(im->GetGeometry()(2));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
                         int id = (im->Id()-1)*3;
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
 
                     }
@@ -163,7 +163,7 @@ public:
                         temp1.push_back(im->GetGeometry()(0));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
                         int id = (im->Id()-1)*3+1;
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
 
@@ -180,7 +180,7 @@ public:
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
                         int id = (im->Id()-1)*3+2;
 
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
 
                     }
@@ -215,7 +215,7 @@ public:
                         temp.push_back(im->GetGeometry()(3));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
                     n_int=0.0;
@@ -232,7 +232,7 @@ public:
                         temp.push_back(im->GetGeometry()(2));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
                     n_int=0.0;
@@ -249,7 +249,7 @@ public:
                         temp.push_back(im->GetGeometry()(3));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
 
@@ -268,7 +268,7 @@ public:
                         temp.push_back(im->GetGeometry()(1));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
+                        Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
 
                     }

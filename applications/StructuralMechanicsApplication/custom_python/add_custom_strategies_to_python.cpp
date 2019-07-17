@@ -20,7 +20,6 @@
 #include "spaces/ublas_space.h"
 
 // Strategies
-#include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
@@ -29,6 +28,7 @@
 // Schemes
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
+#include "custom_strategies/custom_schemes/explicit_multi_stage_kim_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 #include "direct_sensitivity_analysis/direct_schemes/direct_structural_static_scheme.h"
 
@@ -66,7 +66,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
     // Custom strategy types
-    // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
@@ -76,7 +75,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
-    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;    
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+    typedef ExplicitMultiStageKimScheme< SparseSpaceType, LocalSpaceType >  ExplicitMultiStageKimSchemeType;
     typedef DirectStructuralStaticScheme< SparseSpaceType, LocalSpaceType > DirectStructuralStaticSchemeType;
 
 
@@ -91,16 +91,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
 
-    // Residual Based Arc Length Strategy
-    // Currently not woking
-    // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
-    // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
-    //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-    //        ;
-
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>(), py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("compute_model_decomposition")=false)
             ;
 
     py::class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
@@ -150,6 +143,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< Parameters>())
         ;
 
+    // Explicit Multi Stage Scheme Type
+    py::class_< ExplicitMultiStageKimSchemeType,typename ExplicitMultiStageKimSchemeType::Pointer, BaseSchemeType >(m,"ExplicitMultiStageKimScheme")
+        .def(py::init< const double>())
+        .def(py::init< Parameters>())
+        ;
     py::class_<DirectStructuralStaticSchemeType, DirectStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "DirectStructuralStaticScheme")
         .def(py::init<Parameters, DirectSensitivityVariable::Pointer>())
         ;

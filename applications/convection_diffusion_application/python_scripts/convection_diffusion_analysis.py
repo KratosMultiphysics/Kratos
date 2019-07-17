@@ -2,20 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
-
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
+from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion as solver_wrapper
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # Other imports
 import sys
@@ -37,23 +27,14 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
 
         super(ConvectionDiffusionAnalysis, self).__init__(model, project_parameters)
 
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_convection_diffusion as solver_wrapper
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
 
     def _GetSimulationName(self):
         return "::[Convection-Diffusion Simulation]:: "
-
-    def __CheckForDeprecatedGiDSettings(self):
-        pass
 
 if __name__ == "__main__":
     from sys import argv

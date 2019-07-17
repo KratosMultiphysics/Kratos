@@ -107,7 +107,7 @@ public:
     ///@{
 
     /// Pointer definition of FSPeriodicCondition
-    KRATOS_CLASS_POINTER_DEFINITION(FSPeriodicCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSPeriodicCondition);
 
     typedef IndexedObject IndexedObjectType;
 

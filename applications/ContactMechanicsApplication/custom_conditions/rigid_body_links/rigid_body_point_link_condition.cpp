@@ -54,7 +54,7 @@ RigidBodyPointLinkCondition::RigidBodyPointLinkCondition( RigidBodyPointLinkCond
 //***********************************************************************************
 Condition::Pointer RigidBodyPointLinkCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 

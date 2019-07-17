@@ -37,13 +37,6 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
-    def _apply_material_properties(self,mp):
-        cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,2000)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,10000)
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.CROSS_AREA,1.0)
-
     def _solve_eigen(self,mp,echo=0):
         feast_system_solver_settings = KratosMultiphysics.Parameters("""{ }""")
 
@@ -90,7 +83,6 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
     def _create_2dof_geometry(self, current_model, stiffness, mass, damping=0):
         mp = current_model.CreateModelPart("mdof")
         self._add_variables(mp)
-        self._apply_material_properties(mp)
 
         base = mp.CreateNewNode(3,0.0,0.0,0.0)
         node1 = mp.CreateNewNode(1,10.0,0.0,0.0)
@@ -112,8 +104,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
         mass1.SetValue(KratosMultiphysics.NODAL_MASS,mass)
         mass2.SetValue(KratosMultiphysics.NODAL_MASS,mass/2)
-        spring1.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness,0,0])
-        spring2.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness/2,0,0])
+        spring1.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[stiffness,0,0])
+        spring2.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[stiffness/2,0,0])
         node1.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[1,0,0])
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.SYSTEM_DAMPING_RATIO, damping)
 

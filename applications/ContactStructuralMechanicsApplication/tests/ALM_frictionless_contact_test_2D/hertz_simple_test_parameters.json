@@ -24,7 +24,7 @@
             "mortar_type"                    : "ALMContactFrictionless"
         },
         "time_stepping"                      : {
-            "time_step" : 1.01
+            "time_step" : 0.5005
         },
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -79,7 +79,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "LineLoad2D_bc_pressure",
                 "variable_name"   : "NEGATIVE_FACE_PRESSURE",
-                "value"           : 0.2
+                "value"           : "0.2*t"
             }
         }],
         "contact_process_list" :[

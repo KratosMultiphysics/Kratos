@@ -7,7 +7,9 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -44,9 +46,31 @@ class StabilizedFormulation(object):
             "dynamic_tau": 0.01
         }""")
 
+        default_non_newtonian_settings = KratosMultiphysics.Parameters(r"""{
+            "power_law_k": 1e-6,
+            "power_law_n": 1.0,
+            "yield_stress": 0.0,
+            "regularization_coefficient" : 100.0
+        }""")
+
+        # if non-newtonian, there are some extra options
+        if settings.Has("non_newtonian_fluid_parameters"):
+            self.non_newtonian_option = True
+            default_settings.AddValue("non_newtonian_fluid_parameters", default_non_newtonian_settings)
+            self.element_name = 'HerschelBulkleyVMS'
+        else:
+            self.non_newtonian_option = False
+            self.element_name = 'VMS'
+
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "VMS"
+        # validate the non-newtonian parameters if necessary
+        if self.non_newtonian_option:
+            settings["non_newtonian_fluid_parameters"].ValidateAndAssignDefaults(default_non_newtonian_settings)
+            self.process_data[KratosMultiphysics.POWER_LAW_K] = settings["non_newtonian_fluid_parameters"]["power_law_k"].GetDouble()
+            self.process_data[KratosMultiphysics.POWER_LAW_N] = settings["non_newtonian_fluid_parameters"]["power_law_n"].GetDouble()
+            self.process_data[KratosMultiphysics.YIELD_STRESS] = settings["non_newtonian_fluid_parameters"]["yield_stress"].GetDouble()
+            self.process_data[KratosCFD.REGULARIZATION_COEFFICIENT] = settings["non_newtonian_fluid_parameters"]["regularization_coefficient"].GetDouble()
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -56,11 +80,17 @@ class StabilizedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau": 0.0
+            "dynamic_tau": 0.0,
+            "element_manages_time_integration": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "QSVMS"
+        if settings["element_manages_time_integration"].GetBool() == False:
+            self.element_name = "QSVMS"
+            self.element_integrates_in_time = False
+        else:
+            self.element_name = "TimeIntegratedQSVMS"
+            self.element_integrates_in_time = True
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -69,7 +99,7 @@ class StabilizedFormulation(object):
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvms",
-            "use_orthogonal_subscales": false,
+            "use_orthogonal_subscales": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -208,9 +238,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def __init__(self, model, custom_settings):
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         self.formulation = StabilizedFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
@@ -231,7 +258,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             raise Exception(msg)
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
@@ -261,8 +287,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
 
     def PrepareModelPart(self):
@@ -383,6 +408,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
                     raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
                 kin_viscosity = dyn_viscosity / rho
                 break
+            else:
+                raise Exception("No fluid elements found in the main model part.")
 
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

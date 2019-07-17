@@ -66,7 +66,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of AxisymSmallDisplacement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymSmallDisplacement);
 
     ///@}
     ///@name Life Cycle

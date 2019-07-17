@@ -65,9 +65,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.condition_name = "Condition"
         self.min_buffer_size = 3
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -88,7 +85,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_CAPACITY_RATIO)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE) ## ?
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) ## ?
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA) ## ?
@@ -138,7 +134,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.IS_STRUCTURE)
+        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP)
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
         #time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme() # DOFs (4,5)
 

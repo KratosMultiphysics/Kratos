@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
@@ -72,8 +73,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     solver_settings.RemoveValue("solver_type")
     solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, solver_settings)
+    module_full = 'KratosMultiphysics.StructuralMechanicsApplication.' + solver_module_name
+    solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
 
