@@ -310,7 +310,7 @@ public:
      */
     virtual void SetInitialPosition(const PointType& rNewInitialPosition)
     {
-        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        KRATOS_ERROR << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
     }
 
     /**
@@ -326,7 +326,7 @@ public:
         const double Z
         )
     {
-        KRATOS_WARNING("Point") << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
+        KRATOS_ERROR << "This class does not have InitialPosition coordinates. Use an derived class and override this method in order to do so" << std::endl;
     }
 
     ///@}
