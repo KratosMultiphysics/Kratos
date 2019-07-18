@@ -206,26 +206,19 @@ public:
     {
         const SizeType points_number = PointsNumber();
 
-        Point location = ZeroVector(3);
-        const Matrix& ShapeFunctionValues();
+        Point point(0.0, 0.0, 0.0);
+        const Matrix& N = this->ShapeFunctionsValues();
 
-        for (IndexType i = 0; i < PointsNumber(); ++i) {
-            location.Coordinates() += (*this)[i].Coordinates()* Matrix(0, i);
+        for (IndexType point_number = 0; point_number < IntegrationPointsNumber(); ++point_number) {
+            for (IndexType i = 0; i < PointsNumber(); ++i) {
+                point += (*this)[i] * N(point_number, i);
+            }
         }
-        return location;
+        return point;
     }
 
 
-    /** Determinant of jacobians for given integration method. This
-    method calculate determinant of jacobian in all
-    integrations points of given integration method.
-
-    @return Vector of double which is vector of determinants of
-    jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-    integration point index of given integration method.
-
-    @see Jacobian
-    @see InverseOfJacobian
+    /** Determinant of point is always 1.0, independent on the deformation.
     */
     Vector& DeterminantOfJacobian(Vector& rResult, IntegrationMethod ThisMethod) const override
     {
@@ -234,37 +227,18 @@ public:
 
         for (unsigned int pnt = 0; pnt < this->IntegrationPointsNumber(ThisMethod); pnt++)
         {
-            rResult[pnt] = 1;
+            rResult[pnt] = 1.0;
         }
         return rResult;
     }
 
-    /** Determinant of jacobian in specific integration point of
-    given integration method. This method calculate determinant
-    of jacobian in given integration point of given integration
-    method.
-
-    The tangential integration weight is already applied to the
-    length of the line segment.
-
-    @param IntegrationPointIndex index of integration point which jacobians has to
-    be calculated in it.
-
-    @param IntegrationPointIndex index of integration point
-    which determinant of jacobians has to be calculated in it.
-
-    @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-    i \f$ is the given integration point index of given
-    integration method.
-
-    @see Jacobian
-    @see InverseOfJacobian
+    /** Determinant of point is always 1.0, independent on the deformation.
     */
     double DeterminantOfJacobian(
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const override
     {
-        return 1;
+        return 1.0;
     }
 
     ///@}

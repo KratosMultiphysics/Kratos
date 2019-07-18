@@ -11,21 +11,11 @@
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "iga_application_variables.h"
-#include "custom_utilities/anurbs.h"
-#include "custom_utilities/node_curve_geometry_3d.h"
-#include "custom_utilities/node_surface_geometry_3d.h"
 
-#include "custom_utilities/brep_json_io.h"
-#include "custom_utilities/nurbs_brep_modeler.h"
-
-#include "custom_utilities/iga_flags.h"
 
 namespace Kratos {
     namespace Python {

@@ -220,7 +220,7 @@ public:
 
     @return Point which is the location of this geometry.
     */
-    virtual Point Center() const
+    Point Center() const override
     {
         const SizeType points_number = PointsNumber();
 

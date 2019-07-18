@@ -1,7 +1,6 @@
 #if !defined(KRATOS_BREP_FACE_H_INCLUDED )
 #define  KRATOS_BREP_FACE_H_INCLUDED
 
-#pragma once
 // System includes
 
 // External includes
@@ -14,6 +13,7 @@
 #include "brep_boundary_loop.h"
 
 #include "custom_utilities/geometry_utilities/geometry_utilities.h"
+#include "custom_utilities/geometry_utilities/projection_on_nurbs_curve_utilities.h"
 #include "custom_utilities/iga_flags.h"
 
 // Kratos includes
@@ -139,6 +139,12 @@ namespace Kratos
 
         bool IsInside(
             const array_1d<double, 2>& rLocalCoordinates);
+
+        std::vector<array_1d<double, 2>> ProjectOnFaceCurves(
+            array_1d<double, 3> point_3d,
+            double Radius,
+            int MaxIterations,
+            double Accuracy);
 
         TrimmedSurfaceClipping GetSurfaceClipper(
             const double& rAccuracy,

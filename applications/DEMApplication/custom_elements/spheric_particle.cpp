@@ -1067,9 +1067,26 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     auto& neighbour_point_faces_elastic_contact_force = this->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES);
     auto& neighbour_point_faces_total_contact_force = this->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES);
 
-    for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
-        Condition* wall_condition = list_of_point_condition_pointers[i];
 
+    KRATOS_WATCH(list_of_point_condition_pointers.size())
+    for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
+        if (list_of_point_condition_pointers.size() > 1)
+        {
+            KRATOS_WATCH("here")
+        }
+        Condition* wall_condition = list_of_point_condition_pointers[i];
+        if (list_of_point_condition_pointers.size() > 1)
+        {
+            KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(0, 0, 0), 0))
+                KRATOS_WATCH(wall_condition->GetGeometry().ShapeFunctionsValues())
+                KRATOS_WATCH(wall_condition->GetGeometry().size())
+                KRATOS_WATCH(wall_condition->GetGeometry()[0])
+                KRATOS_WATCH(wall_condition->GetGeometry()[1])
+                KRATOS_WATCH(wall_condition->GetGeometry()[2])
+                KRATOS_WATCH(wall_condition->GetGeometry()[3])
+
+            KRATOS_WATCH("here2")
+        }
         double RelVel[3]                         = {0.0};
         double LocalElasticContactForce[3]       = {0.0};
         double GlobalElasticContactForce[3]      = {0.0};
@@ -1077,18 +1094,26 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         double cohesive_force                    =  0.0;
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
-            KRATOS_WATCH("adas")
+            if (list_of_point_condition_pointers.size() > 1)
+            {
+                KRATOS_WATCH("here3")
+            }
         array_1d<double, 3> wall_delta_disp_at_contact_point = wall_condition->GetGeometry().FastGetSolutionStepValue(DELTA_DISPLACEMENT, 0);
         array_1d<double, 3> wall_velocity_at_contact_point = wall_condition->GetGeometry().FastGetSolutionStepValue(VELOCITY, 0);
-        KRATOS_WATCH(wall_delta_disp_at_contact_point)
-        KRATOS_WATCH(wall_velocity_at_contact_point)
+        if (list_of_point_condition_pointers.size() > 1)
+        {
+            KRATOS_WATCH(wall_delta_disp_at_contact_point)
+            KRATOS_WATCH(wall_velocity_at_contact_point)
+
+            KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(0, 0, 0), 0))
+        }
         bool sliding = false;
         double ini_delta = 0.0;
 
-        KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(), 0))
+        //
 
         array_1d<double, 3> cond_to_me_vect;
-        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_condition->GetGeometry().Coordinates(Point(), 0);
+        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_condition->GetGeometry().Center();
         double DistPToB = DEM_MODULUS_3(cond_to_me_vect);;
 
         double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
@@ -1169,7 +1194,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         rigid_element_force[1] -= GlobalContactForce[1];
         rigid_element_force[2] -= GlobalContactForce[2];
 
-        KRATOS_WATCH(GlobalContactForce)
+        KRATOS_WATCH(rigid_element_force)
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
             ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!

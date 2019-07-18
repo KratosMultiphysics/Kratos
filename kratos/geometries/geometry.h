@@ -1000,8 +1000,8 @@ namespace Kratos
             rResult = Point(0.0, 0.0, 0.0);
             const Matrix& N = this->ShapeFunctionsValues(ThisMethod);
 
-            KRATOS_DEBUG_ERROR_IF(N.size1() > points_number)
-                << "Geometry::Coordinates(): IntegrationPointIndex higher than umber of integration points."
+            KRATOS_DEBUG_ERROR_IF(N.size1() != points_number)
+                << "Geometry::Coordinates(): IntegrationPointIndex different than the number of integration points."
                 << std::endl;
 
             for (IndexType i = 0; i < points_number; ++i) {
@@ -1020,7 +1020,9 @@ namespace Kratos
 
             TVariableType::Type rResult;
 
-            for (IndexType i = 0; i < points_number; ++i) {
+            rResult = (*this)[0].FastGetSolutionStepValue(rThisVariable) * N(IntegrationPointIndex, 0);
+
+            for (IndexType i = 1; i < points_number; ++i) {
                 rResult += (*this)[i].FastGetSolutionStepValue(rThisVariable) * N(IntegrationPointIndex, i);
             }
 

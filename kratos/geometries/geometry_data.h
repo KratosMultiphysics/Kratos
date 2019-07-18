@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -22,7 +22,7 @@
 #include "includes/ublas_interface.h"
 #include "integration/integration_point.h"
 #include "geometries/geometry_dimension.h"
-
+#include "geometries/geometry_shape_function_container.h"
 
 namespace Kratos
 {
@@ -73,7 +73,19 @@ public:
     - GI_GAUSS_4 gaussian integration with order 4.
     - GI_GAUSS_5 gaussian integration with order 5.
     */
-    enum IntegrationMethod {GI_GAUSS_1, GI_GAUSS_2, GI_GAUSS_3, GI_GAUSS_4, GI_GAUSS_5, GI_EXTENDED_GAUSS_1, GI_EXTENDED_GAUSS_2, GI_EXTENDED_GAUSS_3, GI_EXTENDED_GAUSS_4, GI_EXTENDED_GAUSS_5, NumberOfIntegrationMethods };
+    enum IntegrationMethod {
+        GI_GAUSS_1,
+        GI_GAUSS_2,
+        GI_GAUSS_3,
+        GI_GAUSS_4,
+        GI_GAUSS_5,
+        GI_EXTENDED_GAUSS_1,
+        GI_EXTENDED_GAUSS_2,
+        GI_EXTENDED_GAUSS_3,
+        GI_EXTENDED_GAUSS_4,
+        GI_EXTENDED_GAUSS_5,
+        NumberOfIntegrationMethods
+    };
 
     enum KratosGeometryFamily
     {
@@ -154,17 +166,17 @@ public:
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef std::array<IntegrationPointsArrayType, NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, IntegrationMethod::NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef std::array<Matrix, NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry data.
     */
-    typedef std::array<DenseVector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold shape functions'
     gradients. ShapefunctionsLocalGradients function return this
@@ -250,28 +262,35 @@ public:
     GeometryData( SizeType ThisDimension,
                   SizeType ThisWorkingSpaceDimension,
                   SizeType ThisLocalSpaceDimension,
-                  enum IntegrationMethod ThisDefaultMethod,
+                  IntegrationMethod ThisDefaultMethod,
                   const IntegrationPointsContainerType& ThisIntegrationPoints,
                   const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
                   const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
         : mDefaultMethod( ThisDefaultMethod )
         , mIntegrationPoints( ThisIntegrationPoints )
-        , mShapeFunctionsValues( ThisShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
+        , mGeometryShapeFunctionContainer(
+            GeometryShapeFunctionContainer<IntegrationMethod>(
+            ThisShapeFunctionsValues,
+            ThisShapeFunctionsLocalGradients))
     {
-        mpGeometryDimension = new GeometryDimension(ThisDimension, ThisWorkingSpaceDimension, ThisLocalSpaceDimension);
+        mpGeometryDimension = new GeometryDimension(
+            ThisDimension,
+            ThisWorkingSpaceDimension,
+            ThisLocalSpaceDimension);
     }
 
-    GeometryData(GeometryDimension const *pThisGeometryDimension,
-        enum IntegrationMethod ThisDefaultMethod,
+    GeometryData(GeometryDimension const* pThisGeometryDimension,
+        IntegrationMethod ThisDefaultMethod,
         const IntegrationPointsContainerType& ThisIntegrationPoints,
         const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
         const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients)
         : mpGeometryDimension(pThisGeometryDimension)
         , mDefaultMethod(ThisDefaultMethod)
         , mIntegrationPoints(ThisIntegrationPoints)
-        , mShapeFunctionsValues(ThisShapeFunctionsValues)
-        , mShapeFunctionsLocalGradients(ThisShapeFunctionsLocalGradients)
+        , mGeometryShapeFunctionContainer(
+            GeometryShapeFunctionContainer<IntegrationMethod>(
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsLocalGradients))
     {
     }
 
@@ -282,8 +301,7 @@ public:
         : mpGeometryDimension( rOther.mpGeometryDimension)
         , mDefaultMethod( rOther.mDefaultMethod )
         , mIntegrationPoints( rOther.mIntegrationPoints )
-        , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
+        , mGeometryShapeFunctionContainer( rOther.mGeometryShapeFunctionContainer)
     {
     }
 
@@ -312,8 +330,7 @@ public:
         mpGeometryDimension = rOther.mpGeometryDimension;
         mDefaultMethod = rOther.mDefaultMethod;
         mIntegrationPoints = rOther.mIntegrationPoints;
-        mShapeFunctionsValues = rOther.mShapeFunctionsValues;
-        mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
+        mGeometryShapeFunctionContainer = rOther.mGeometryShapeFunctionContainer;
 
         return *this;
     }
@@ -374,7 +391,7 @@ public:
     @return bool true if this integration method exist and false if this
     method is not imeplemented for this geometry.
     */
-    bool HasIntegrationMethod( enum IntegrationMethod ThisMethod ) const
+    bool HasIntegrationMethod( IntegrationMethod ThisMethod ) const
     {
         return ( !mIntegrationPoints[ThisMethod].empty() );
     }
@@ -410,7 +427,7 @@ public:
     @return SizeType which is the number of integration points
     for given integrating method.
     */
-    SizeType IntegrationPointsNumber( enum IntegrationMethod ThisMethod ) const
+    SizeType IntegrationPointsNumber( IntegrationMethod ThisMethod ) const
     {
         return mIntegrationPoints[ThisMethod].size();
     }
@@ -437,7 +454,7 @@ public:
     @return const IntegrationPointsArrayType which is Vector of integration points
     for default integrating method.
     */
-    const IntegrationPointsArrayType& IntegrationPoints( enum IntegrationMethod ThisMethod ) const
+    const IntegrationPointsArrayType& IntegrationPoints(  IntegrationMethod ThisMethod ) const
     {
         return mIntegrationPoints[ThisMethod];
     }
@@ -466,7 +483,7 @@ public:
     */
     const Matrix& ShapeFunctionsValues() const
     {
-        return mShapeFunctionsValues[mDefaultMethod];
+        return mGeometryShapeFunctionContainer.ShapeFunctionsValues(mDefaultMethod);
     }
 
     /** This method gives all shape functions values evaluated in all
@@ -489,9 +506,10 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    const Matrix& ShapeFunctionsValues( enum IntegrationMethod ThisMethod ) const
+    const Matrix& ShapeFunctionsValues(  IntegrationMethod ThisMethod ) const
     {
-        return mShapeFunctionsValues[ThisMethod];
+        return mGeometryShapeFunctionContainer.ShapeFunctionsValues(
+            ThisMethod);
     }
 
     /** This method gives value of given shape function evaluated in
@@ -518,13 +536,10 @@ public:
     */
     double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex ) const
     {
-        if ( mShapeFunctionsValues[mDefaultMethod].size1() <= IntegrationPointIndex )
-            KRATOS_ERROR << "No existing integration point" << std::endl;
-
-        if ( mShapeFunctionsValues[mDefaultMethod].size2() <= ShapeFunctionIndex )
-            KRATOS_ERROR << "No existing shape function value" << std::endl;
-
-        return mShapeFunctionsValues[mDefaultMethod]( IntegrationPointIndex, ShapeFunctionIndex );
+        return mGeometryShapeFunctionContainer.ShapeFunctionValue(
+            IntegrationPointIndex,
+            ShapeFunctionIndex,
+            mDefaultMethod);
     }
 
     /** This method gives value of given shape function evaluated in given
@@ -549,20 +564,14 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, enum IntegrationMethod ThisMethod ) const
+    double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex,  IntegrationMethod ThisMethod ) const
     {
-        if ( mShapeFunctionsValues[ThisMethod].size1() <= IntegrationPointIndex )
-            KRATOS_ERROR << "No existing integration point" << std::endl;
-
-        if ( mShapeFunctionsValues[ThisMethod].size2() <= ShapeFunctionIndex )
-            KRATOS_ERROR << "No existing shape function value" << std::endl;
-
-        return mShapeFunctionsValues[ThisMethod]( IntegrationPointIndex, ShapeFunctionIndex );
+        return mGeometryShapeFunctionContainer.ShapeFunctionValue( IntegrationPointIndex, ShapeFunctionIndex, ThisMethod );
     }
 
     /** This method gives all shape functions gradients evaluated in all
     integration points of default integration method. It just
-    call ShapeFunctionsLocalGradients(enum IntegrationMethod ThisMethod)
+    call ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod)
     with default integration method. There is no calculation and
     it just give it from shape functions values container.
 
@@ -581,7 +590,8 @@ public:
     */
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
     {
-        return mShapeFunctionsLocalGradients[mDefaultMethod];
+        return mGeometryShapeFunctionContainer.ShapeFunctionsLocalGradients(
+            mDefaultMethod);
     }
 
     /** This method gives all shape functions gradients evaluated in
@@ -605,15 +615,15 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionLocalGradient
     */
-    const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients( enum IntegrationMethod ThisMethod ) const
+    const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod ) const
     {
-        return mShapeFunctionsLocalGradients[ThisMethod];
+        return mGeometryShapeFunctionContainer.ShapeFunctionsLocalGradients(ThisMethod);
     }
 
     /** This method gives gradient of given shape function evaluated in
     given integration point of default integration method. It just
     call ShapeFunctionLocalGradient(IndexType IntegrationPointIndex,
-    IndexType ShapeFunctionIndex, enum IntegrationMethod
+    IndexType ShapeFunctionIndex,  IntegrationMethod
     ThisMethod) with default integration method. There is no
     calculation and it just give it from shape functions values
     container if they are existing. Otherwise it gives you error
@@ -634,10 +644,7 @@ public:
     */
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex ) const
     {
-        if ( mShapeFunctionsLocalGradients[mDefaultMethod].size() <= IntegrationPointIndex )
-            KRATOS_ERROR << "No existing integration point" << std::endl;
-
-        return mShapeFunctionsLocalGradients[mDefaultMethod][IntegrationPointIndex];
+        return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, mDefaultMethod);
     }
 
     /** This method gives gradient of given shape function evaluated
@@ -663,22 +670,14 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
-    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod ) const
+    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex,  IntegrationMethod ThisMethod ) const
     {
-        if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
-        {
-            KRATOS_ERROR << "No existing integration point" << std::endl;
-        }
-
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
     }
 
-    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, enum IntegrationMethod ThisMethod ) const
+    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex,  IntegrationMethod ThisMethod ) const
     {
-        if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
-            KRATOS_ERROR << "No existing integration point" << std::endl;
-
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
     }
 
 
@@ -779,42 +778,35 @@ private:
 
     GeometryDimension const* mpGeometryDimension;
 
-    enum IntegrationMethod mDefaultMethod;
+    IntegrationMethod mDefaultMethod;
 
     IntegrationPointsContainerType mIntegrationPoints;
 
-    ShapeFunctionsValuesContainerType mShapeFunctionsValues;
-
-    ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
+    GeometryShapeFunctionContainer<IntegrationMethod> mGeometryShapeFunctionContainer;
 
     ///@}
     ///@name Serialization
     ///@{
-    template<typename TPointType>
-    friend class Geometry;
 
     friend class Serializer;
 
     virtual void save( Serializer& rSerializer ) const
     {
-        //rSerializer.save( "Dimension", mDimension );
-        //rSerializer.save( "Working Space Dimension", mWorkingSpaceDimension );
-        //rSerializer.save( "Local Space Dimension", mLocalSpaceDimension );
-//    rSerializer.save("Default Method", mDefaultMethod);
-//    rSerializer.save("Integration Points", mIntegrationPoints);
-//    rSerializer.save("Shape Functions Values", mShapeFunctionsValues);
-//    rSerializer.save("Shape Functions Local Gradients", mShapeFunctionsLocalGradients);
+        //GeometryDimension *new_dude = const_cast<GeometryDimension*>(mpGeometryDimension);
+        //rSerializer.save("GeometryDimension", new_dude);
+        //rSerializer.save("DefaultMethod", mDefaultMethod);
+        //rSerializer.save("IntegrationPoints", mIntegrationPoints);
+        //rSerializer.save("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        //rSerializer.load( "Dimension", mDimension );
-        //rSerializer.load( "Working Space Dimension", mWorkingSpaceDimension );
-        //rSerializer.load( "Local Space Dimension", mLocalSpaceDimension );
-//    rSerializer.load("Default Method", mDefaultMethod);
-//    rSerializer.load("Integration Points", mIntegrationPoints);
-//    rSerializer.load("Shape Functions Values", mShapeFunctionsValues);
-//    rSerializer.load("Shape Functions Local Gradients", mShapeFunctionsLocalGradients);
+        //GeometryDimension *new_dude;
+        //rSerializer.load("GeometryDimension", new_dude);
+        //mpGeometryDimension = new_dude;
+        //rSerializer.load("DefaultMethod", mDefaultMethod);
+        //rSerializer.load("IntegrationPoints", mIntegrationPoints);
+        //rSerializer.load("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     // Private default constructor for serialization
@@ -883,7 +875,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }
 
 ///@}
-
 
 }  // namespace Kratos.
 

@@ -44,11 +44,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** GeometryDimension base class.As a base class GeometryDimension has all the common
-    interface of Kratos' geometries. Also it contains array of
-    pointers to its points, reference to shape functions values in
-    all integrations points and also local gradients of shape
-    functions evaluated in all integrations points.
+/** GeometryDimension
+    Has the values for geometrical dimension,
+    working space dimension and local space dimension.
 
     @see Geometry
     @see Element
@@ -103,11 +101,8 @@ public:
     {
     }
 
-
-
     /// Destructor. Do nothing!!!
     virtual ~GeometryDimension() {}
-
 
     ///@}
     ///@name Operators
@@ -127,7 +122,8 @@ public:
     ///@{
 
     /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape
+    dimensional shape. A line is 1 dimensional shape and
+    a point 0 dimensional.
 
     @return SizeType, dimension of this geometry.
     @see WorkingSpaceDimension()
@@ -138,8 +134,9 @@ public:
         return mDimension;
     }
 
-    /** Working space dimension. for example a triangle is a 2
-    dimensional shape but can be used in 3 dimensional space.
+    /** Working space dimension. for example a triangle as part
+    of a surface is a 2 dimensional shape but can be used in
+    3 dimensional space.
 
     @return SizeType, working space dimension of this geometry.
     @see Dimension()
@@ -203,7 +200,6 @@ public:
         rOStream << "    Working space dimension : " << mWorkingSpaceDimension << std::endl;
         rOStream << "    Local space dimension   : " << mLocalSpaceDimension;
     }
-
 
     ///@}
 
@@ -275,7 +271,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }
 
 ///@}
-
 
 }  // namespace Kratos.
 

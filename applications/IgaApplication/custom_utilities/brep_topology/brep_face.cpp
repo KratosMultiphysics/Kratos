@@ -13,6 +13,7 @@
 
 // Project includes
 #include "brep_face.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -92,112 +93,6 @@ namespace Kratos
         }
     }
 
-    //void BrepFace::GetGeometryIntegration(ModelPart& rModelPart,
-    //    const std::string& rType,
-    //    const std::string& rName,
-    //    const int rShapeFunctionDerivativesOrder,
-    //    std::vector<std::string> rVariables)
-    //{
-    //    auto spans_u = mNodeSurfaceGeometry3D->SpansU();
-    //    auto spans_v = mNodeSurfaceGeometry3D->SpansV();
-
-    //    ANurbs::SurfaceShapeEvaluator<double> shape(
-    //        mNodeSurfaceGeometry3D->DegreeU(),
-    //        mNodeSurfaceGeometry3D->DegreeV(),
-    //        rShapeFunctionDerivativesOrder);
-
-
-    //    for (int i = 0; i < spans_u.size(); ++i)
-    //    {
-    //        for (int j = 0; j < spans_v.size(); ++j)
-    //        {
-    //            ANurbs::Interval<double> domain_u(spans_u[i].T0(), spans_u[i].T1());
-    //            ANurbs::Interval<double> domain_v(spans_v[j].T0(), spans_v[j].T1());
-
-    //            auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
-    //                mNodeSurfaceGeometry3D->DegreeU() + 1,
-    //                mNodeSurfaceGeometry3D->DegreeV() + 1,
-    //                domain_u,
-    //                domain_v);
-
-    //            for (int k = 0; k < integration_points.size(); ++k)
-    //            {
-    //                array_1d<double, 2> local_coordinates;
-    //                local_coordinates[0] = integration_points[k].u;
-    //                local_coordinates[1] = integration_points[k].v;
-
-    //                shape.Compute(
-    //                    mNodeSurfaceGeometry3D->KnotsU(),
-    //                    mNodeSurfaceGeometry3D->KnotsV(),
-    //                    //mNodeSurfaceGeometry3D->Weights(),
-    //                    integration_points[k].u,
-    //                    integration_points[k].v);
-
-    //                Element::GeometryType::PointsArrayType non_zero_control_points;
-
-    //                Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
-    //                Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 2);
-    //                Matrix N_2 = ZeroMatrix(shape.NbNonzeroPoles(), 3);
-
-    //                Vector coords = ZeroVector(3);
-    //                for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
-    //                {
-    //                    int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
-    //                    int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
-
-    //                    non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
-    //                        shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
-
-    //                    N_0[n] = shape(0, indexU, indexV);
-    //                    N_1(n, 0) = shape(1, indexU, indexV);
-    //                    N_1(n, 1) = shape(2, indexU, indexV);
-    //                    N_2(n, 0) = shape(3, indexU, indexV);
-    //                    N_2(n, 1) = shape(5, indexU, indexV);
-    //                    N_2(n, 2) = shape(4, indexU, indexV);
-    //                }
-
-    //                if (rType == "element")
-    //                {
-    //                    int id = 1;
-    //                    if (rModelPart.GetRootModelPart().Elements().size() > 0)
-    //                        id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
-
-    //                    rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
-
-    //                    auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
-
-    //                    element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-    //                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-    //                    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
-    //                    element->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
-
-    //                    element->SetValue(LOCAL_COORDINATES, local_coordinates);
-    //                    element->SetValue(BREP_ID, this->Id());
-    //                }
-
-    //                if (rType == "condition")
-    //                {
-    //                    int id = 1;
-    //                    if (rModelPart.GetRootModelPart().Conditions().size() > 0)
-    //                        id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-
-    //                    rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
-
-    //                    auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
-
-    //                    condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-    //                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-    //                    condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
-    //                    condition->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
-
-    //                    condition->SetValue(LOCAL_COORDINATES, local_coordinates);
-    //                    condition->SetValue(BREP_ID, this->Id());
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
     TrimmedSurfaceClipping BrepFace::GetSurfaceClipper(
         const double& rAccuracy,
         const double& rUnit)
@@ -246,7 +141,8 @@ namespace Kratos
                 }
                 else
                 {
-                    KRATOS_ERROR << "Trimming loops of Brep Face " << Id() << " are not defined correctly!" << std::endl;
+                    KRATOS_ERROR << "BrepFace::GetSurfaceClipper: Trimming loops of Brep Face " << Id() << " are not defined correctly! End to start: " <<
+                        distance_0_1 << ", start to start: " << distance_0_end << ", end_point_0: " << end_point_0 << ", start_point_1: " << start_point_1 << ", start_point_last: " << start_point_last << std::endl;
                 }
             }
             else
@@ -290,7 +186,6 @@ namespace Kratos
                 const auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
 
                 tessellation->Compute(curve_on_surface, 0.001);
-
                 for (unsigned int t = 0; t < tessellation->NbPoints() - 1; ++t)
                 {
                     auto point_2d = curve_2d->PointAt(tessellation->Parameter(t));
@@ -308,12 +203,90 @@ namespace Kratos
                 inner_loops.push_back(loop);
         }
 
-        GeometryUtilities::IsInside2D(
+        return GeometryUtilities::IsInsidePolygon2D(
             rLocalCoordinates[0],
             rLocalCoordinates[1],
             outer_loops,
             inner_loops
-        );
+        ) > 0;
+    }
+
+    std::vector<array_1d<double, 2>> BrepFace::ProjectOnFaceCurves(
+        array_1d<double, 3> point_3d,
+        double Radius,
+        int MaxIterations,
+        double Accuracy)
+    {
+        double SearchRadius = 2 * Radius;
+        std::vector<array_1d<double, 2>> points;
+        for (int i = 0; i < mTrimmingLoops.size(); ++i)
+        {
+            auto trimming_curves = mTrimmingLoops[i].GetTrimmingCurves();
+
+            for (int j = 0; j < trimming_curves.size(); ++j)
+            {
+                const auto curve_2d = trimming_curves[j].GetCurve2D();
+
+                const auto curve_on_surface = CurveOnSurface<3>(
+                    curve_2d->CurveGeometry(),
+                    this->mNodeSurfaceGeometry3D,
+                    curve_2d->Domain());
+
+                const auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
+
+                tessellation->Compute(curve_on_surface, 0.001);
+                for (unsigned int t = 0; t < tessellation->NbPoints() - 1; ++t)
+                {
+                    double new_parameter = 0.0;
+                    if (ProjectionOnNurbsCurveUtilities::ClosestPointToLine(
+                        new_parameter,
+                        point_3d,
+                        tessellation->Point(t),
+                        tessellation->Point(t + 1),
+                        tessellation->Parameter(t),
+                        tessellation->Parameter(t + 1),
+                        Accuracy))
+                    {
+                        double initial_guess = new_parameter;
+                        if (ProjectionOnNurbsCurveUtilities::NewtonRaphson(
+                            new_parameter,
+                            initial_guess,
+                            point_3d,
+                            std::make_shared<CurveOnSurface<3>>(curve_on_surface),
+                            MaxIterations,
+                            Radius,
+                            Accuracy))
+                        {
+                            auto new_point_3d = curve_on_surface.PointAt(new_parameter);
+                            auto new_point_2d = curve_2d->PointAt(new_parameter);
+                            if (points.size() == 0)
+                            {
+                                if (norm_2(point_3d - new_point_3d) <= Radius)
+                                {
+                                    points.push_back(new_point_2d);
+                                }
+                            }
+                            else
+                            {
+                                for (int p = 0; p < points.size(); ++p)
+                                {
+                                    if (norm_2(points[p] - new_point_2d) > Accuracy)
+                                    {
+                                        if (norm_2(point_3d - new_point_3d) <= Radius)
+                                        {
+                                            points.push_back(new_point_2d);
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return points;
     }
 
     //void BrepFace::GetGeometryIntegrationTrimmed(

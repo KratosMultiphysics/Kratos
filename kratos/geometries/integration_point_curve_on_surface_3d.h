@@ -193,6 +193,15 @@ public:
     ///@name Informations
     ///@{
 
+    
+    template <int TDimension=2, typename TPointsContainer = [std::vector<Point>, std::vector<Node>, PointerVector<Node>]>
+    class Curve
+    {
+        TPointsContainer m_points;
+        std::vector<double> m_weights;
+
+    };
+
     /** Function returns the respective curve length on
     the underlying surface
     */
