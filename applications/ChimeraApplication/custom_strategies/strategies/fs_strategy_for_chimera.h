@@ -197,19 +197,19 @@ protected:
                 if(constraint.Is(ACTIVE))
                     count_vel_constraints++;
         }
-        KRATOS_INFO("FSStrategyForChimera")<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel())<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
 
         // Activate Constraints for VELOCITY and deactivate PRESSURE
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
         SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, false);
 
 
-        KRATOS_INFO("FSStrategyForChimera")<<" before Momentum iteration "<<std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel())<<" before Momentum iteration "<<std::endl;
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
-            if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
-                KRATOS_INFO("Momentum iteration")<< it << std::endl;
+            KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+                "Momentum iteration "<< it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
@@ -220,8 +220,8 @@ protected:
 
             if (Converged)
             {
-                if ( BaseType::GetEchoLevel() > 0 && Rank == 0)
-                    KRATOS_INFO("Fractional velocity converged in ") << it+1 << " iterations." << std::endl;
+                KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+                    "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
                 break;
             }
         }
@@ -230,8 +230,8 @@ protected:
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, false);
         SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, true);
 
-        if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
-            KRATOS_INFO("Fractional velocity iterations did not converge.")<< std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+            "Fractional velocity iterations did not converge "<< std::endl;
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -262,12 +262,12 @@ protected:
                     count_pre_constraints++;
         }
 
-        KRATOS_INFO("FSStrategyForChimera")<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel())<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
 
 
 
-        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            KRATOS_INFO("Calculating Pressure.")<< std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+            "Calculating Pressure."<< std::endl;
         //double NormDp = 0;
         double NormDp = BaseType::mpPressureStrategy->Solve();
 
