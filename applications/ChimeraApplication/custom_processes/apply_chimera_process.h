@@ -344,7 +344,7 @@ protected:
             CalculateDistance(r_patch_model_part, r_background_boundary_model_part, over_lap_distance);
             KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
-            BuiltinTimer rem_out_domain_time;
+            BuiltinTimer rem_out_domain_time; 
             mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
             KRATOS_INFO_IF("Removing out of domain patch took : ", mEchoLevel > 0)<< rem_out_domain_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
