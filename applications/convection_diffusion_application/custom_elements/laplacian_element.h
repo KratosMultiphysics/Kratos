@@ -85,6 +85,8 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
@@ -148,6 +150,10 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    // Protected default constructor necessary for serialization
+    LaplacianElement() : Element()
+    {
+    }
 
     ///@}
 
@@ -165,11 +171,6 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    LaplacianElement() : Element()
-    {
-    }
 
     void save(Serializer& rSerializer) const override
     {
