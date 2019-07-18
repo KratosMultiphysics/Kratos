@@ -273,6 +273,11 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
+void PrintTimingInformation(Timer& rTimer)
+{
+    rTimer.PrintTimingInformation();
+}
+
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -653,11 +658,17 @@ void AddUtilitiesToPython(pybind11::module &m)
     py::class_<Timer >(m,"Timer")
         .def(py::init<>())
         .def_property("PrintOnScreen", &Timer::GetPrintOnScreen, &Timer::SetPrintOnScreen)
+        .def_property("PrintIntervalInformation", &Timer::GetPrintIntervalInformation, &Timer::SetPrintIntervalInformation)
         .def_static("Start", &Timer::Start)
         .def_static("Stop", &Timer::Stop)
-    //     .staticmethod("Start")
-    //     .staticmethod("Stop")
-        //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
+        .def_static("GetTime", &Timer::GetTime)
+        .def_static("SetOuputFile", &Timer::SetOuputFile)
+        .def_static("CloseOuputFile", &Timer::CloseOuputFile)
+        .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
+        .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
+        .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
+        .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
 
