@@ -766,7 +766,7 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
-        //this->PeriodicConditionProjectionCorrection(rModelPart);
+        this->PeriodicConditionProjectionCorrection(rModelPart);
 
 #pragma omp parallel
         {
@@ -815,7 +815,7 @@ protected:
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
-        //this->PeriodicConditionVelocityCorrection(rModelPart);
+        this->PeriodicConditionVelocityCorrection(rModelPart);
 
         // Force the end of step velocity to verify slip conditions in the model
         if (mUseSlipConditions)
