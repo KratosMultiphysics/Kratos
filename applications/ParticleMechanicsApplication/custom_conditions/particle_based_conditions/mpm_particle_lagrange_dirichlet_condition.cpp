@@ -315,26 +315,26 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    if (rResult.size() != dim * number_of_nodes * 2)
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    if (rResult.size() != dimension * number_of_nodes * 2)
     {
-        rResult.resize(dim * number_of_nodes * 2 ,false);
+        rResult.resize(dimension * number_of_nodes * 2 ,false);
     }
 
 
-    if(dim == 2)
+    if(dimension == 2)
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             unsigned int index = i * 2;
-            rResult[index    ] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
 
-            index = i * 2 + number_of_nodes * dim;
-            rResult[index    ] = rGeom[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-            rResult[index + 1] = rGeom[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+            index = i * 2 + number_of_nodes * dimension;
+            rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+            rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
         }
     }
     else
@@ -342,14 +342,14 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
             unsigned int index = i * 3;
-            rResult[index    ] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index + 2] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
+            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z).EquationId();
 
-            index = i * 3 + number_of_nodes * dim;
-            rResult[index    ] = rGeom[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-            rResult[index + 1] = rGeom[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
-            rResult[index + 2] = rGeom[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+            index = i * 3 + number_of_nodes * dimension;
+            rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+            rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
         }
     }
 
@@ -364,73 +364,74 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dim =  rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(dim * number_of_nodes *2);
+    rElementalDofList.reserve(dimension * number_of_nodes *2);
 
     GeneralVariables Variables;
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-    array_1d<bool,3> zero_shape_function;
+    array_1d<bool,3> kinematic_node;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        zero_shape_function[i]=false;
+        kinematic_node[i]=false;
     }
+    //Fix kinematic node
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (Variables.N[i] <= 0.00001 && rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0.00001)
+        if (Variables.N[i] <= 0.00001 && r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0.00001)
         {
-            zero_shape_function[i]=true;
+            kinematic_node[i]=true;
         }
     }
-    if(dim == 2)
+    if(dimension == 2)
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (zero_shape_function[i]==true){
-                rGeom[i].pGetDof(DISPLACEMENT_X)->FixDof();
-                rGeom[i].pGetDof(DISPLACEMENT_Y)->FixDof();
+            if (kinematic_node[i]==true){
+                r_geometry[i].pGetDof(DISPLACEMENT_X)->FixDof();
+                r_geometry[i].pGetDof(DISPLACEMENT_Y)->FixDof();
             }
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
 
         }
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (zero_shape_function[i]==true){
-                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
-                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
+            if (kinematic_node[i]==true){
+                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
+                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
             }
-            rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-            rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
         }
     }
     else
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (zero_shape_function[i]==true){
-                rGeom[i].pGetDof(DISPLACEMENT_X)->FixDof();
-                rGeom[i].pGetDof(DISPLACEMENT_Y)->FixDof();
-                rGeom[i].pGetDof(DISPLACEMENT_Z)->FixDof();
+            if (kinematic_node[i]==true){
+                r_geometry[i].pGetDof(DISPLACEMENT_X)->FixDof();
+                r_geometry[i].pGetDof(DISPLACEMENT_Y)->FixDof();
+                r_geometry[i].pGetDof(DISPLACEMENT_Z)->FixDof();
             }
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( rGeom[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
         }
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (zero_shape_function[i]==true){
-                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
-                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
-                rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FixDof();
+            if (kinematic_node[i]==true){
+                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
+                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
+                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FixDof();
             }
-            rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-            rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-            rElementalDofList.push_back( rGeom[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
         }
     }
 
@@ -442,10 +443,10 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
     int Step
     )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dim * 2;
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes * dimension * 2;
 
     if (rValues.size() != mat_size)
     {
@@ -455,9 +456,9 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Displacement = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        unsigned int index = i * dim;
-        for(unsigned int k = 0; k < dim; ++k)
+        const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        unsigned int index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Displacement[k];
         }
@@ -469,10 +470,10 @@ void MPMParticleLagrangeDirichletCondition::GetFirstDerivativesVector(
     int Step
     )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dim * 2;
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes * dimension * 2;
 
     if (rValues.size() != mat_size)
     {
@@ -482,9 +483,9 @@ void MPMParticleLagrangeDirichletCondition::GetFirstDerivativesVector(
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY, Step);
-        const unsigned int index = i * dim;
-        for(unsigned int k = 0; k < dim; ++k)
+        const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const unsigned int index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Velocity[k];
         }
@@ -496,10 +497,10 @@ void MPMParticleLagrangeDirichletCondition::GetSecondDerivativesVector(
     int Step
     )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dim = rGeom.WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dim * 2;
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes * dimension * 2;
 
     if (rValues.size() != mat_size)
     {
@@ -509,9 +510,9 @@ void MPMParticleLagrangeDirichletCondition::GetSecondDerivativesVector(
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        const unsigned int index = i * dim;
-        for(unsigned int k = 0; k < dim; ++k)
+        const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const unsigned int index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Acceleration[k];
         }
