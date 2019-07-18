@@ -26,6 +26,7 @@
             "NoSlip2D_bottom"
         ],
         "no_skin_parts": [],
+        "reformulate_chimera_every_step":false,
         "chimera_parts": [
             [
                 {
