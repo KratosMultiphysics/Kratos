@@ -12,12 +12,12 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
 
         # Initialize model part
         ## Material model part definition
-        material_model_part = current_model.CreateModelPart("dummy_name")
-        material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        material_point_model_part = current_model.CreateModelPart("dummy_name")
+        material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Initial material model part definition
-        initial_material_model_part = current_model.CreateModelPart("Initial_dummy_name")
-        initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
+        initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Grid model part definition
         grid_model_part = current_model.CreateModelPart("Background_Grid")
@@ -29,16 +29,16 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         self._create_elements(sub_background,dimension, geometry_element)
 
         # Create element and nodes for initial meshes
-        sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
         sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, num_particle)
         self._create_nodes(sub_mp, dimension, geometry_element)
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_material_model_part, material_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
 
         # Check total number of element
-        particle_counter = material_model_part.NumberOfElements()
+        particle_counter = material_point_model_part.NumberOfElements()
         self.assertEqual(expected_num_particle,particle_counter)
 
     def _create_nodes(self, initial_mp, dimension, geometry_element):

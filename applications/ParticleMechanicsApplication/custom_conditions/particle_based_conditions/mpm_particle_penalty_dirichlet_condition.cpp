@@ -21,6 +21,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -44,9 +45,9 @@ MPMParticlePenaltyDirichletCondition::MPMParticlePenaltyDirichletCondition( Inde
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -260,13 +261,8 @@ int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProc
     MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
 
     // Verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-    {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( NORMAL ) == false )
-        {
-            KRATOS_ERROR << "missing variable NORMAL on node " << this->GetGeometry()[i].Id() << std::endl;
-        }
-    }
+    for (const auto& r_node : this->GetGeometry().Points())
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
 
     return 0;
 }

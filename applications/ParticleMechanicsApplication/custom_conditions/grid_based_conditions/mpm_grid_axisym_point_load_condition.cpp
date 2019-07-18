@@ -50,11 +50,11 @@ MPMGridAxisymPointLoadCondition::MPMGridAxisymPointLoadCondition(
 
 Condition::Pointer MPMGridAxisymPointLoadCondition::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<MPMGridAxisymPointLoadCondition>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<MPMGridAxisymPointLoadCondition>( NewId, pGeometry, pProperties );
 }
 
 //************************************************************************************

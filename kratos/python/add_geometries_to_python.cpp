@@ -161,21 +161,21 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     ;
 //     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
 //     ;
-    py::class_<CouplingMasterSlave<NodeType>, CouplingMasterSlave<NodeType>::Pointer, GeometryType  >(m, "CouplingMasterSlave").def(py::init<GeometryType::Pointer, GeometryType::Pointer, bool>())
-        ;
-    py::class_<IntegrationPointSurface3d<NodeType>, IntegrationPointSurface3d<NodeType>::Pointer, GeometryType  >(m, "IntegrationPointSurface3d").def(py::init<
-        GeometryType::PointsArrayType,
-        GeometryType::IntegrationPointsContainerType,
-        GeometryType::ShapeFunctionsValuesContainerType,
-        GeometryType::ShapeFunctionsLocalGradientsContainerType>())
-        ;
-    py::class_<IntegrationPointCurveOnSurface3d<NodeType>, IntegrationPointCurveOnSurface3d<NodeType>::Pointer, GeometryType  >(m, "IntegrationPointCurveOnSurface3d").def(py::init<
-        GeometryType::PointsArrayType,
-        GeometryType::IntegrationPointsContainerType,
-        array_1d<double, 2>,
-        GeometryType::ShapeFunctionsValuesContainerType,
-        GeometryType::ShapeFunctionsLocalGradientsContainerType>())
-        ;
+    // py::class_<CouplingMasterSlave<NodeType>, CouplingMasterSlave<NodeType>::Pointer, GeometryType  >(m, "CouplingMasterSlave").def(py::init<GeometryType::Pointer, GeometryType::Pointer, bool>())
+    //     ;
+    // py::class_<IntegrationPointSurface3d<NodeType>, IntegrationPointSurface3d<NodeType>::Pointer, GeometryType  >(m, "IntegrationPointSurface3d").def(py::init<
+    //     GeometryType::PointsArrayType,
+    //     GeometryType::IntegrationPointsContainerType,
+    //     GeometryType::ShapeFunctionsValuesContainerType,
+    //     GeometryType::ShapeFunctionsLocalGradientsContainerType>())
+    //     ;
+    // py::class_<IntegrationPointCurveOnSurface3d<NodeType>, IntegrationPointCurveOnSurface3d<NodeType>::Pointer, GeometryType  >(m, "IntegrationPointCurveOnSurface3d").def(py::init<
+    //     GeometryType::PointsArrayType,
+    //     GeometryType::IntegrationPointsContainerType,
+    //     array_1d<double, 2>,
+    //     GeometryType::ShapeFunctionsValuesContainerType,
+    //     GeometryType::ShapeFunctionsLocalGradientsContainerType>())
+    //     ;
 }
 
 }  // namespace Python.

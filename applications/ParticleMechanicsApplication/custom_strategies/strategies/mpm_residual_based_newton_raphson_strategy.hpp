@@ -917,11 +917,8 @@ protected:
         KRATOS_TRY;
 
         BaseType::Check();
-
         GetBuilderAndSolver()->Check(BaseType::GetModelPart());
-
         GetScheme()->Check(BaseType::GetModelPart());
-
         mpConvergenceCriteria->Check(BaseType::GetModelPart());
 
         return 0;

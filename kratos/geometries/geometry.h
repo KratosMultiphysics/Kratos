@@ -1018,7 +1018,7 @@ namespace Kratos
             const SizeType points_number = PointsNumber();
             const Matrix& N = this->ShapeFunctionsValues(mpGeometryData->DefaultIntegrationMethod());
 
-            TVariableType::Type rResult;
+            typename TVariableType::Type rResult;
 
             rResult = (*this)[0].FastGetSolutionStepValue(rThisVariable) * N(IntegrationPointIndex, 0);
 

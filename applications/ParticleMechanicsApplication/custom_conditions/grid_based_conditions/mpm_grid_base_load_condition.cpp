@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -31,15 +32,15 @@ namespace Kratos
 
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
-        const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        if (rResult.size() != dim * number_of_nodes)
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        if (rResult.size() != dimension * number_of_nodes)
         {
-            rResult.resize(dim*number_of_nodes,false);
+            rResult.resize(dimension*number_of_nodes,false);
         }
 
         const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
-        if(dim == 2)
+        if(dimension == 2)
         {
             for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
@@ -72,11 +73,11 @@ namespace Kratos
 
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
-        const unsigned int dim =  r_geometry.WorkingSpaceDimension();
+        const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
         ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim * number_of_nodes);
+        ElementalDofList.reserve(dimension * number_of_nodes);
 
-        if(dim == 2)
+        if(dimension == 2)
         {
             for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
@@ -106,19 +107,19 @@ namespace Kratos
     {
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
-        const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        const unsigned int MatSize = number_of_nodes * dim;
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        const unsigned int matrix_size = number_of_nodes * dimension;
 
-        if (rValues.size() != MatSize)
+        if (rValues.size() != matrix_size)
         {
-            rValues.resize(MatSize, false);
+            rValues.resize(matrix_size, false);
         }
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k = 0; k < dim; ++k)
+            unsigned int index = i * dimension;
+            for(unsigned int k = 0; k < dimension; ++k)
             {
                 rValues[index + k] = Displacement[k];
             }
@@ -135,19 +136,19 @@ namespace Kratos
     {
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
-        const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        const unsigned int MatSize = number_of_nodes * dim;
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        const unsigned int matrix_size = number_of_nodes * dimension;
 
-        if (rValues.size() != MatSize)
+        if (rValues.size() != matrix_size)
         {
-            rValues.resize(MatSize, false);
+            rValues.resize(matrix_size, false);
         }
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-            const unsigned int index = i * dim;
-            for(unsigned int k = 0; k<dim; ++k)
+            const unsigned int index = i * dimension;
+            for(unsigned int k = 0; k<dimension; ++k)
             {
                 rValues[index + k] = Velocity[k];
             }
@@ -164,19 +165,19 @@ namespace Kratos
     {
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
-        const unsigned int dim = r_geometry.WorkingSpaceDimension();
-        const unsigned int MatSize = number_of_nodes * dim;
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        const unsigned int matrix_size = number_of_nodes * dimension;
 
-        if (rValues.size() != MatSize)
+        if (rValues.size() != matrix_size)
         {
-            rValues.resize(MatSize, false);
+            rValues.resize(matrix_size, false);
         }
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            const unsigned int index = i * dim;
-            for(unsigned int k = 0; k < dim; ++k)
+            const unsigned int index = i * dimension;
+            for(unsigned int k = 0; k < dimension; ++k)
             {
                 rValues[index + k] = Acceleration[k];
             }
@@ -253,25 +254,19 @@ namespace Kratos
 
     int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
+        // Base check
+        Condition::Check(rCurrentProcessInfo);
 
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
+        // Verify variable exists
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
-            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
+        // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
+        for (const auto& r_node : this->GetGeometry().Points()) {
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
         }
 
         return 0;

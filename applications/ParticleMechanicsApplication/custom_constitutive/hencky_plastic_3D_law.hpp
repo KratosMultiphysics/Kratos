@@ -171,7 +171,7 @@ public:
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& rProps,
-                             const GeometryType& rGeom,
+                             const GeometryType& rGeometry,
                              const Vector& rShapeFunctionsValues ) override;
 
     /**

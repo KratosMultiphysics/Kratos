@@ -23,6 +23,7 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -161,9 +162,9 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     const array_1d<double,3> & MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
     array_1d<double,3> delta_xg = ZeroVector(3);
-    array_1d<double,3> MP_Acceleration = ZeroVector(3);
-    array_1d<double,3> MP_Velocity = ZeroVector(3);
-    double MP_Pressure = 0.0;
+    array_1d<double,3> MP_acceleration = ZeroVector(3);
+    array_1d<double,3> MP_velocity = ZeroVector(3);
+    double MP_pressure = 0.0;
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
@@ -178,18 +179,18 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
                 nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
             const double& nodal_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE, 0);
-            MP_Pressure += rVariables.N[i] * nodal_pressure;
+            MP_pressure += rVariables.N[i] * nodal_pressure;
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {
                 delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
-                MP_Acceleration[j] += rVariables.N[i] * nodal_acceleration[j];
+                MP_acceleration[j] += rVariables.N[i] * nodal_acceleration[j];
 
                 /* NOTE: The following interpolation techniques have been tried:
-                    MP_Velocity[j]      += rVariables.N[i] * nodal_velocity[j];
-                    MP_Acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_Mass * MP_number);
-                    MP_Velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
-                    MP_Velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
+                    MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
+                    MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
+                    MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
+                    MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
                 */
             }
         }
@@ -199,23 +200,23 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     /* NOTE:
     Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    MP_Velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_Acceleration + MP_PreviousAcceleration);
-    this -> SetValue(MP_VELOCITY,MP_Velocity );
+    MP_velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
+    this -> SetValue(MP_VELOCITY,MP_velocity );
 
     /* NOTE: The following interpolation techniques have been tried:
-        MP_Acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
-        MP_Velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+        MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
+        MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
     */
 
     // Update the MP Pressure
-    this -> SetValue(MP_PRESSURE,MP_Pressure);
+    this -> SetValue(MP_PRESSURE,MP_pressure);
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
     this -> SetValue(MP_COORD,new_xg);
 
     //Update the MP Acceleration
-    this -> SetValue(MP_ACCELERATION,MP_Acceleration);
+    this -> SetValue(MP_ACCELERATION,MP_acceleration);
 
     // Update the MP total displacement
     array_1d<double,3>& MP_Displacement = this->GetValue(MP_DISPLACEMENT);
@@ -380,16 +381,16 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
     mFinalizedStep = false;
 
-    const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
-    const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    const double & MP_Pressure = this->GetValue(MP_PRESSURE);
-    const double& MP_Mass = this->GetValue(MP_MASS);
+    const array_1d<double,3>& MP_velocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3>& MP_acceleration = this->GetValue(MP_ACCELERATION);
+    const double & MP_pressure = this->GetValue(MP_PRESSURE);
+    const double& MP_mass = this->GetValue(MP_MASS);
 
-    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
-    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
+    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
+    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
-    double AUX_MP_Pressure = 0.0;
+    double aux_MP_pressure = 0.0;
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
@@ -405,24 +406,24 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         // These are the values of nodal pressure evaluated in the initialize solution step
         const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
 
-        AUX_MP_Pressure += Variables.N[j] * nodal_pressure;
+        aux_MP_pressure += Variables.N[j] * nodal_pressure;
 
         for (unsigned int k = 0; k < dimension; k++)
         {
-            AUX_MP_Velocity[k] += Variables.N[j] * nodal_velocity[k];
-            AUX_MP_Acceleration[k] += Variables.N[j] * nodal_acceleration[k];
+            aux_MP_velocity[k] += Variables.N[j] * nodal_velocity[k];
+            aux_MP_acceleration[k] += Variables.N[j] * nodal_acceleration[k];
         }
     }
 
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        double nodal_mpressure =  Variables.N[i] * (MP_Pressure - AUX_MP_Pressure) * MP_Mass;
+        double nodal_mpressure =  Variables.N[i] * (MP_pressure - aux_MP_pressure) * MP_mass;
 
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
-            nodal_inertia[j]  = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
+            nodal_momentum[j] = Variables.N[i] * (MP_velocity[j] - aux_MP_velocity[j]) * MP_mass;
+            nodal_inertia[j]  = Variables.N[i] * (MP_acceleration[j] - aux_MP_acceleration[j]) * MP_mass;
         }
 
         r_geometry[i].SetLock();
@@ -430,7 +431,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
 
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_mass;
         r_geometry[i].UnSetLock();
     }
 }
@@ -1040,12 +1041,12 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessI
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
     // TOTAL MASS OF ONE MP ELEMENT
-    const double & TotalMass = this->GetValue(MP_MASS);
+    const double & r_total_mass = this->GetValue(MP_MASS);
 
     // LUMPED MATRIX
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        double temp = Variables.N[i] * TotalMass;
+        double temp = Variables.N[i] * r_total_mass;
         unsigned int index_up = i * dimension + i;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
@@ -1204,18 +1205,18 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
 int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    int correct = 0;
 
+    int correct = 0;
     correct = UpdatedLagrangian::Check(rCurrentProcessInfo);
 
     // Verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+    this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
 
     KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW)) << "Constitutive law is not compatible with the U-P element type: Large Displacements U_P" << std::endl;
 
     // Verify that the variables are correctly initialized
-    KRATOS_ERROR_IF( PRESSURE.Key() == 0 ) <<  "PRESSURE has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
 
     return correct;
 

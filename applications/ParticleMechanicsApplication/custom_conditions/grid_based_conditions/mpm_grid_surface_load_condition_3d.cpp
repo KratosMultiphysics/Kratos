@@ -58,11 +58,11 @@ MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
 
 Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, pGeometry, pProperties);
 }
 
 //***********************************************************************************
@@ -88,11 +88,11 @@ MPMGridSurfaceLoadCondition3D::~MPMGridSurfaceLoadCondition3D()
 //***********************************************************************************
 
 void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
-    Matrix& K,
-    const array_1d<double, 3 >& ge,
-    const array_1d<double, 3 >& gn,
-    const Matrix& DN_De,
-    const RowMatrix& N,
+    Matrix& rK,
+    const array_1d<double, 3 >& rge,
+    const array_1d<double, 3 >& rgn,
+    const Matrix& rDN_De,
+    const RowMatrix& rN,
     const double Pressure,
     const double Weight)
 {
@@ -104,8 +104,8 @@ void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
     double coeff;
     const unsigned int number_of_nodes = GetGeometry().size();
 
-    MakeCrossMatrix(Cross_ge, ge);
-    MakeCrossMatrix(Cross_gn, gn);
+    MakeCrossMatrix(Cross_ge, rge);
+    MakeCrossMatrix(Cross_gn, rgn);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -114,15 +114,15 @@ void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
         {
             const unsigned int ColIndex = j * 3;
 
-            coeff = Pressure * N[i] * DN_De(j, 1) * Weight;
+            coeff = Pressure * rN[i] * rDN_De(j, 1) * Weight;
             noalias(Kij) = coeff * Cross_ge;
 
-            coeff = Pressure * N[i] * DN_De(j, 0) * Weight;
+            coeff = Pressure * rN[i] * rDN_De(j, 0) * Weight;
 
             noalias(Kij) -= coeff * Cross_gn;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
+            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, ColIndex);
         }
     }
 
@@ -190,34 +190,34 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int mat_size = number_of_nodes * 3;
+    const unsigned int matrix_size = number_of_nodes * 3;
 
     //Resizing as needed the LHS
     if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
     {
-        if (rLeftHandSideMatrix.size1() != mat_size)
+        if (rLeftHandSideMatrix.size1() != matrix_size)
         {
-            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+            rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
         }
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
     }
 
     // Resizing as needed the RHS
     if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
     {
-        if (rRightHandSideVector.size() != mat_size)
+        if (rRightHandSideVector.size() != matrix_size)
         {
-            rRightHandSideVector.resize(mat_size, false);
+            rRightHandSideVector.resize(matrix_size, false);
         }
 
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        rRightHandSideVector = ZeroVector(matrix_size); //resetting RHS
     }
 
     // Reading integration points and local gradients
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+    const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
     const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Calculating actual jacobian

@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
@@ -724,9 +725,7 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    double& r_aux_value = pThisNode->FastGetSolutionStepValue(rThisVariable);
-    #pragma omp atomic
-    r_aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    pThisNode->FastGetSolutionStepValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -743,13 +742,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSet
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    auto& aux_vector = pThisNode->FastGetSolutionStepValue(rThisVariable);
-    const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
-    for (IndexType i = 0; i < 3; ++i) {
-        double& r_aux_value = aux_vector[i];
-        #pragma omp atomic
-        r_aux_value += area_coeff * nodal_vaux[i];
-    }
+    pThisNode->FastGetSolutionStepValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
 
 /***********************************************************************************/
@@ -766,9 +759,7 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    double& r_aux_value = pThisNode->GetValue(rThisVariable);
-    #pragma omp atomic
-    r_aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    pThisNode->GetValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -785,13 +776,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSet
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    auto& aux_vector = pThisNode->GetValue(rThisVariable);
-    const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
-    for (IndexType i = 0; i < 3; ++i) {
-        double& r_aux_value = aux_vector[i];
-        #pragma omp atomic
-        r_aux_value += area_coeff * nodal_vaux[i];
-    }
+    pThisNode->GetValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
 
 /***********************************************************************************/
