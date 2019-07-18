@@ -23,6 +23,7 @@ cmake .. \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
 -DMESHING_APPLICATION=ON                                                                        \
+-DCSHARP_WRAPPER_APPLICATION=ON                                                                 \
 -DINCLUDE_MMG=ON                                                                                \
 -DMMG_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include"                                       \
 -DMMG2D_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmg2d/"                          \
