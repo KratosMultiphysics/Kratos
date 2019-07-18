@@ -11,7 +11,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 
 # Import serial monolithic embedded solver
 import navier_stokes_embedded_solver
-import trilinos_import_model_part_utility
+
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return NavierStokesMPIEmbeddedMonolithicSolver(model, custom_settings)
@@ -99,18 +100,18 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Variables for the Trilinos monolithic embedded fluid solver added correctly.")
 
     def ImportModelPart(self):
-        ## Construct the Trilinos import model part utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the Distributed import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.ImportModelPart()
         ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(NavierStokesMPIEmbeddedMonolithicSolver,self).PrepareModelPart()
-        ## Construct Trilinos the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        ## Construct MPI the communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         super(NavierStokesMPIEmbeddedMonolithicSolver, self).AddDofs()

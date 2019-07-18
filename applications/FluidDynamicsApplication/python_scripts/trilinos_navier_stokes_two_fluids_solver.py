@@ -11,7 +11,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 
 # Import serial two fluid solver
 import navier_stokes_two_fluids_solver
-import trilinos_import_model_part_utility
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return NavierStokesMPITwoFluidsSolver(model, custom_settings)
@@ -96,18 +96,18 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","Variables for the Trilinos Two Fluid solver added correctly.")
 
     def ImportModelPart(self):
-        ## Construct the Trilinos import model part utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the distributed import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.ImportModelPart()
         ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(NavierStokesMPITwoFluidsSolver,self).PrepareModelPart()
-        ## Construct Trilinos the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        ## Construct the MPI communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         super(NavierStokesMPITwoFluidsSolver, self).AddDofs()
