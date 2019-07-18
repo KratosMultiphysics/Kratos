@@ -410,6 +410,8 @@ public:
             for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
                 if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
                     return false;
+                } else {
+                    p_property_interest = pGetSubPropertiesById(indexes[i_index]);
                 }
             }
             return true;
@@ -431,6 +433,8 @@ public:
             for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
                 if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
                     return false;
+                } else {
+                    p_property_interest = pGetSubPropertiesById(indexes[i_index]);
                 }
             }
             return true;
