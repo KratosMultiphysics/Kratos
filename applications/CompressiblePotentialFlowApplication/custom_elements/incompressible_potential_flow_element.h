@@ -224,8 +224,6 @@ private:
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
-    void CheckWakeCondition() const;
-
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();

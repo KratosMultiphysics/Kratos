@@ -86,9 +86,10 @@ namespace Kratos {
 
       // Set Tolerance
       const double tolerance = 1e-9;
+      const int echo_level = 1;
 
       // Construct the Define2DWakeProcess
-      Define2DWakeProcess Define2DWakeProcess(body_model_part, tolerance);
+      Define2DWakeProcess Define2DWakeProcess(body_model_part, tolerance, echo_level);
 
       // Execute the Define2DWakeProcess
       Define2DWakeProcess.ExecuteInitialize();

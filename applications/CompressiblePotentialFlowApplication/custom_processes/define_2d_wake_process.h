@@ -42,7 +42,7 @@ public:
     ///@{
 
     /// Constructor
-    Define2DWakeProcess(ModelPart& rBodyModelPart,const double Tolerance);
+    Define2DWakeProcess(ModelPart& rBodyModelPart,const double Tolerance, const int EchoLevel);
 
     /// Copy constructor.
     Define2DWakeProcess(Define2DWakeProcess const& rOther) = delete;
@@ -63,6 +63,9 @@ public:
 
     /// ExecuteInitialize method is used to execute the Define2DWakeProcess algorithms.
     void ExecuteInitialize() override;
+
+    /// ExecuteFinalizeSolutionStep method is used to check that the wake condition is fulfilled.
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Input and output
@@ -99,6 +102,7 @@ private:
     BoundedVector<double, 3> mWakeNormal;
     // Vector to store the trailing edge elements ids
     std::vector<std::size_t> mTrailingEdgeElementsOrderedIds;
+    const int mEchoLevel;
     ///@}
     ///@name Private Operators
     ///@{

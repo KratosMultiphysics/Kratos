@@ -197,6 +197,26 @@ const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& 
            number_of_nodes_with_positive_distance > 0;
 }
 
+template <int Dim, int NumNodes>
+const bool CheckIfWakeConditionIsFulfilled(const Element& rElement, const double& rTolerance, const int& rEchoLevel)
+{
+    const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+
+    bool wake_condition_is_fulfilled = true;
+    for (unsigned int i = 0; i < upper_velocity.size(); i++){
+        KRATOS_WARNING_IF("CheckIfWakeConditionIsFulfilled",
+                          std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance && rEchoLevel > 0)
+            << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+            << " upper_velocity[" << i << "] = " << upper_velocity[i]
+            << " lower_velocity[" << i << "] = " << lower_velocity[i] << std::endl;
+        if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
+            wake_condition_is_fulfilled = false;
+        }
+    }
+    return wake_condition_is_fulfilled;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -215,6 +235,7 @@ template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+template const bool CheckIfWakeConditionIsFulfilled<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
@@ -231,5 +252,6 @@ template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
+template const bool CheckIfWakeConditionIsFulfilled<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 } // namespace PotentialFlow
 } // namespace Kratos

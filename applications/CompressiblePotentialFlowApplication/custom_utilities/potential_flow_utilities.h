@@ -53,5 +53,8 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
 template <int Dim, int NumNodes>
 const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
+template <int Dim, int NumNodes>
+const bool CheckIfWakeConditionIsFulfilled(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
 } // namespace PotentialFlow
 } // namespace Kratos

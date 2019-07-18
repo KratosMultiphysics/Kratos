@@ -18,7 +18,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "epsilon": 1e-9
+            "epsilon": 1e-9,
+            "echo_level": 1
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -30,6 +31,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.body_model_part = Model[body_model_part_name]
 
         self.epsilon = settings["epsilon"].GetDouble()
+        self.echo_level = settings["echo_level"].GetInt()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
 
@@ -39,9 +41,13 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+        self.wake_process = CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon, self.echo_level)
+        self.wake_process.ExecuteInitialize()
 
         #self.__FindWakeElements()
+
+    def ExecuteFinalizeSolutionStep(self):
+        self.wake_process.ExecuteFinalizeSolutionStep()
 
     def __FindWakeElements(self):
 
