@@ -89,19 +89,19 @@ public:
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
-    typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+    typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
 
     /** Iterator over the properties. This iterator is an indirect
     iterator over Properties::Pointer which turn back a reference to
     properties by * operator and not a pointer for more convenient
     usage. */
-    typedef typename PropertiesContainerType::iterator PropertiesIterator;
+    typedef typename SubPropertiesContainerType::iterator SubPropertiesIterator;
 
     /** Const iterator over the properties. This iterator is an indirect
     iterator over Properties::Pointer which turn back a reference to
     properties by * operator and not a pointer for more convenient
     usage. */
-    typedef typename PropertiesContainerType::const_iterator PropertiesConstantIterator;
+    typedef typename SubPropertiesContainerType::const_iterator SubPropertiesConstantIterator;
 
     ///@}
     ///@name Life Cycle
@@ -111,7 +111,7 @@ public:
     explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
 
     /// Default of properties with subproperties
-    explicit Properties(IndexType NewId, PropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
+    explicit Properties(IndexType NewId, SubPropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
 
     /// Copy constructor.
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}
@@ -339,7 +339,7 @@ public:
     Properties::Pointer pGetSubPropertiesById(const IndexType SubPropertyIndex)
     {
         // Looking into the database
-        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
@@ -356,7 +356,7 @@ public:
     Properties::Pointer pGetSubPropertiesById(const IndexType SubPropertyIndex) const
     {
         // Looking into the database
-        const auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        SubPropertiesConstantIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
@@ -373,7 +373,7 @@ public:
     Properties& GetSubPropertiesById(const IndexType SubPropertyIndex)
     {
         // Looking into the database
-        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator);
         } else {
@@ -527,7 +527,7 @@ public:
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
-    PropertiesContainerType& GetSubProperties()
+    SubPropertiesContainerType& GetSubProperties()
     {
         return SubPropertiesList();
     }
@@ -536,7 +536,7 @@ public:
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
-    PropertiesContainerType const& GetSubProperties() const
+    SubPropertiesContainerType const& GetSubProperties() const
     {
         return SubPropertiesList();
     }
@@ -545,7 +545,7 @@ public:
      * @brief This method set the whole list of subproperties
      * @param rSubPropertiesList The list of subproperties
      */
-    void SetSubProperties(PropertiesContainerType& rSubPropertiesList)
+    void SetSubProperties(SubPropertiesContainerType& rSubPropertiesList)
     {
         mSubPropertiesList = rSubPropertiesList;
     }
@@ -694,7 +694,7 @@ private:
 
     TablesContainerType mTables;                /// The tables contained on the properties
 
-    PropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
+    SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
     ///@}
     ///@name Private Operators
@@ -772,7 +772,7 @@ private:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    PropertiesContainerType& SubPropertiesList()
+    SubPropertiesContainerType& SubPropertiesList()
     {
         return mSubPropertiesList;
     }
@@ -781,7 +781,7 @@ private:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    PropertiesContainerType const& SubPropertiesList() const
+    SubPropertiesContainerType const& SubPropertiesList() const
     {
         return mSubPropertiesList;
     }
