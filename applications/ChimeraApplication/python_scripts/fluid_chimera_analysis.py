@@ -29,8 +29,9 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             self.chimera_internal_parts = self.parameters["solver_settings"]["internal_parts_for_chimera"].Clone()
             self.parameters["solver_settings"].RemoveValue("internal_parts_for_chimera")
 
+        self.reformulate_every_step = False
         if self.parameters["solver_settings"].Has("reformulate_chimera_every_step"):
-            self.reformulate_every_step = self.parameters["solver_settings"]["reformulate_chimera_every_step"].Clone()
+            self.reformulate_every_step = self.parameters["solver_settings"]["reformulate_chimera_every_step"].GetBool()
             self.parameters["solver_settings"].RemoveValue("reformulate_chimera_every_step")
 
         # Import parallel modules if needed
