@@ -131,6 +131,7 @@ public:
 
         mEchoLevel = 0;
         mReformulateEveryStep = false;
+        mIsFormulated = false;
     }
 
     /// Destructor.
@@ -160,8 +161,10 @@ public:
     {
         KRATOS_TRY;
         // Actual execution of the functionality of this class
-        if(mReformulateEveryStep)
+        if(mReformulateEveryStep || !mIsFormulated){
             DoChimeraLoop();
+            mIsFormulated = true;
+        }
         KRATOS_CATCH("");
     }
 
@@ -180,8 +183,10 @@ public:
             i_elem->SetValue(SPLIT_ELEMENT, false);
         }
 
-        if(mReformulateEveryStep)
+        if(mReformulateEveryStep){
             mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+            mIsFormulated = false;
+        }
     }
 
     virtual std::string Info() const override
@@ -224,6 +229,7 @@ protected:
     int mEchoLevel;
     bool mReformulateEveryStep;
     std::map<std::string, PointLocatorPointerType> mPointLocatorsMap;
+    bool mIsFormulated;
     ///@}
     ///@name Protected Operators
     ///@{
