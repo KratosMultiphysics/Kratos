@@ -843,6 +843,7 @@ class MultilevelMonteCarlo(object):
             "number_samples_screening" : [25,25,25],
             "initial_number_batches" : 1,
             "maximum_number_levels" : 4,
+            "maximum_number_iterations" : 5,
             "minimum_samples_add_level" : 6.0,
             "splitting_parameter_max" : 0.9,
             "splitting_parameter_min" : 0.1
@@ -964,7 +965,6 @@ class MultilevelMonteCarlo(object):
     """
     def Run(self):
         if (self.settings["run_multilevel_monte_carlo"].GetBool()):
-            start_time = time.time()
             self.SerializeRefinementParameters()
             self.SerializeModelParameters()
             self.InitializeScreeningPhase()
@@ -972,20 +972,12 @@ class MultilevelMonteCarlo(object):
             self.FinalizeScreeningPhase()
             self.ScreeningInfoScreeningPhase()
             self.ComputeMeanMLMCQoI()
-            end_time_screening = time.time()
-            print("[TIMER] screening phase MLMC:",end_time_screening-start_time)
-            # start MLMC phase
             while self.convergence is not True:
                 self.InitializeMLMCPhase()
                 self.ScreeningInfoInitializeMLMCPhase()
                 self.LaunchEpoch()
                 self.FinalizeMLMCPhase()
                 self.ScreeningInfoFinalizeMLMCPhase()
-                sys.stdout.flush()
-                if (self.iteration_counter >= 5):
-                    self.convergence = True
-            end_time_mlmc = time.time()
-            print("[TIMER] mlmc phase MLMC (no screening phase):", end_time_mlmc-end_time_screening)
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
             pass
@@ -1311,6 +1303,8 @@ class MultilevelMonteCarlo(object):
                 # update iteration counter
                 self.iteration_counter = self.iteration_counter + 1
                 break
+        if (self.iteration_counter >= self.settings["maximum_number_iterations"].GetInt()):
+            self.convergence = True
 
     """
     function performing all the required operations BEFORE the MLMC solution step
@@ -1450,6 +1444,9 @@ class MultilevelMonteCarlo(object):
                 # update iteration counter
                 self.iteration_counter = self.iteration_counter + 1
                 break
+        if (self.iteration_counter >= self.settings["maximum_number_iterations"].GetInt()):
+            self.convergence = True
+
 
     """
     function printing informations about screening phase
