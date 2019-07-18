@@ -3,6 +3,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Importing MPI extensions to Kratos
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
+
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
@@ -40,15 +43,14 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def ImportModelPart(self):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
-        from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
-        self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
+        self.distributed_model_part_importer.ImportModelPart()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
         super(TrilinosMechanicalSolver, self).PrepareModelPart()
         # Construct the mpi-communicator
-        self.trilinos_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Finalize(self):

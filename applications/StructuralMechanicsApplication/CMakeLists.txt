@@ -85,6 +85,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/d_plus_d_minus_damage_masonry_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rule_of_mixtures_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_plastic_damage_model.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_orthotropic_damage.cpp
 
   ## ELEMENTS
   #Adding truss element

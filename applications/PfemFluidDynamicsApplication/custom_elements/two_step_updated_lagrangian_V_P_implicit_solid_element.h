@@ -354,16 +354,7 @@ namespace Kratos
 				 const double TimeStep,
 				 const double BoundRHSCoeffAcc,
 				 const double BoundRHSCoeffDev) override{};
-
-      /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 					const ProcessInfo& rCurrentProcessInfo, */
-      /* 					const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 					unsigned int g); */
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
-
+	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;
