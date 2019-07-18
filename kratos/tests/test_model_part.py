@@ -305,6 +305,25 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(prop_4.HasSubPropertiesByAddress("4.3"), True)
         self.assertEqual(prop_4.HasSubPropertiesByAddress("4.110"), False)
 
+    def test_model_part_sub_properties(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        prop1 = model_part.CreateNewProperties(1)
+        subprop2 = KratosMultiphysics.Properties(2)
+        prop1.AddSubProperties(subprop2)
+        subprop3 = KratosMultiphysics.Properties(3)
+        prop1.AddSubProperties(subprop3)
+        subsubprop2 = KratosMultiphysics.Properties(2)
+        subprop3.AddSubProperties(subsubprop2)
+        subsubprop4 = KratosMultiphysics.Properties(4)
+        subprop3.AddSubProperties(subsubprop4)
+
+        self.assertEqual(prop1.HasSubPropertiesByAddress("1.2"), True)
+        self.assertEqual(prop1.HasSubPropertiesByAddress("1.3.2"), True)
+        self.assertEqual(prop1.HasSubPropertiesByAddress("1.2.3"), False)
+        self.assertEqual(prop1.HasSubPropertiesByAddress("3.1.1"), False)
+
     def test_model_part_elements(self):
         current_model = KratosMultiphysics.Model()
 
