@@ -567,14 +567,98 @@ def ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_coarse_model,
 #     return mlmc_results,pickled_finer_model
 
 
-@constraint(ComputingUnits="${computing_units_mc_execute}")
+def ExecuteInstanceSingleRefinement_Wrapper(current_MLMC_level,pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    if (current_MLMC_level == 0):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 1):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 2):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 3):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 4):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 5):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    else:
+        raise Exception("Level not supported")
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
+def ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
     try:
-        open_mp_threads = int(os.environ["computing_units_mc_execute"])
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
         threadpool_limits(limits=open_mp_threads)
     except:
         pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+
+def ExecuteInstanceSingleRefinementAux_Functionality(pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
     time_0 = time.time()
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
@@ -602,8 +686,8 @@ def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_mo
     time_8 = time.time()
     end_MLMC_time = time.time()
     # register results of the current level in the MultilevelMonteCarloResults class
-    mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
     mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+    mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
 
     # post process times of the task
     print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
@@ -620,6 +704,61 @@ def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_mo
     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
 
     return mlmc_results
+
+
+# @constraint(ComputingUnits="${computing_units_mc_execute}")
+# @ExaquteTask(returns=1)
+# def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
+#     try:
+#         open_mp_threads = int(os.environ["computing_units_mc_execute"])
+#         threadpool_limits(limits=open_mp_threads)
+#     except:
+#         pass
+#     time_0 = time.time()
+#     # unpickle model and build Kratos Model object
+#     serialized_model = pickle.loads(pickled_coarse_model)
+#     current_model = KratosMultiphysics.Model()
+#     serialized_model.Load("ModelSerialization",current_model)
+#     del(serialized_model)
+#     # unpickle parameters and build Kratos Parameters object
+#     serialized_project_parameters = pickle.loads(pickled_coarse_project_parameters)
+#     current_project_parameters = KratosMultiphysics.Parameters()
+#     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
+#     del(serialized_project_parameters)
+#     time_1 = time.time()
+#     # start time
+#     start_MLMC_time = time.time()
+#     time_6 = time.time()
+#     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
+#     print("[CHECK OUTPUT]: sample value:", str(sample))
+#     sys.stdout.flush()
+#     simulation.Run()
+#     QoI = simulation.EvaluateQuantityOfInterest()
+#     print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
+#     sys.stdout.flush()
+#     time_7 = time.time()
+#     del(simulation)
+#     time_8 = time.time()
+#     end_MLMC_time = time.time()
+#     # register results of the current level in the MultilevelMonteCarloResults class
+#     mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+#     mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+
+#     # post process times of the task
+#     print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
+#     deserialization_time = time_1 - time_0
+#     Kratos_run_time = time_7 - time_6
+#     total_task_time = time_8 - time_0
+#     print("[LEVEL] current level:",current_level)
+#     print("[TIMER] total task time:", total_task_time)
+#     print("[TIMER] Kratos Run time:",Kratos_run_time)
+#     print("[TIMER] Deserialization time:",deserialization_time)
+#     print("RATIOs: time of interest / total task time")
+#     print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
+#     print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+#     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+
+#     return mlmc_results
 
 class MultilevelMonteCarlo(object):
     """The base class for the MultilevelMonteCarlo-classes"""
@@ -928,11 +1067,12 @@ class MultilevelMonteCarlo(object):
         if (current_MLMC_level == 0):
             current_level = 0
             mlmc_results = \
-                ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,self.pickled_model[current_level],self.pickled_project_parameters[current_level],sample,current_level,current_analysis,mlmc_results)
+                ExecuteInstanceSingleRefinement_Wrapper(current_MLMC_level,self.pickled_model[current_level],self.pickled_project_parameters[0],sample,current_level,current_analysis,mlmc_results)
         else:
             for current_level in range(current_MLMC_level-1,current_MLMC_level+1):
                 mlmc_results = \
-                    ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,self.pickled_model[current_level],self.pickled_project_parameters[0],sample,current_level,current_analysis,mlmc_results)
+                    ExecuteInstanceSingleRefinement_Wrapper(current_MLMC_level,self.pickled_model[current_level],self.pickled_project_parameters[0],sample,current_level,current_analysis,mlmc_results)
+        mlmc_results = get_value_from_remote(mlmc_results)
         return mlmc_results,current_MLMC_level
 
     def InitializeScreeningPhase(self):
