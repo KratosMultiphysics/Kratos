@@ -267,6 +267,17 @@ int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProc
     return 0;
 }
 
+double MPMParticlePenaltyDirichletCondition::GetIntegrationWeight()
+{
+    double integration_weight = MPMParticleBaseDirichletCondition::GetIntegrationWeight();
+
+    // Check for point support
+    if (integration_weight < std::numeric_limits<double>::epsilon())
+        integration_weight = 1.0;
+
+    return integration_weight;
+}
+
 } // Namespace Kratos
 
 

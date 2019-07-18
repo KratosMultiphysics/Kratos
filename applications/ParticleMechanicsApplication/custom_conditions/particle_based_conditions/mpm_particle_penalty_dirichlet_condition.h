@@ -187,6 +187,9 @@ protected:
         bool CalculateResidualVectorFlag
         ) override;
 
+
+    double GetIntegrationWeight() override;
+
     ///@}
     ///@name Protected  Access
     ///@{
