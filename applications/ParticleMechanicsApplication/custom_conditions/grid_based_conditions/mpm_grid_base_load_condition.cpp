@@ -117,11 +117,11 @@ namespace Kratos
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            const array_1d<double, 3 > & displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             unsigned int index = i * dimension;
             for(unsigned int k = 0; k < dimension; ++k)
             {
-                rValues[index + k] = Displacement[k];
+                rValues[index + k] = displacement[k];
             }
         }
     }
@@ -146,11 +146,11 @@ namespace Kratos
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double, 3 > & velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
             const unsigned int index = i * dimension;
             for(unsigned int k = 0; k<dimension; ++k)
             {
-                rValues[index + k] = Velocity[k];
+                rValues[index + k] = velocity[k];
             }
         }
     }
@@ -175,11 +175,11 @@ namespace Kratos
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double, 3 > & acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
             const unsigned int index = i * dimension;
             for(unsigned int k = 0; k < dimension; ++k)
             {
-                rValues[index + k] = Acceleration[k];
+                rValues[index + k] = acceleration[k];
             }
         }
     }
@@ -307,11 +307,11 @@ namespace Kratos
 
                 if (r_geometry[i].SolutionStepsDataHas(FORCE_RESIDUAL))
                 {
-                    array_1d<double, 3 > &ForceResidual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                    array_1d<double, 3 > &force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
                     for(SizeType j=0; j<dimension; j++)
                     {
                         #pragma omp atomic
-                        ForceResidual[j] += rRHS[index + j];
+                        force_residual[j] += rRHS[index + j];
                     }
                 }
             }
