@@ -33,6 +33,10 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if self.parameters["solver_settings"].Has("reformulate_chimera_every_step"):
             self.reformulate_every_step = self.parameters["solver_settings"]["reformulate_chimera_every_step"].GetBool()
             self.parameters["solver_settings"].RemoveValue("reformulate_chimera_every_step")
+            # Setting reform dofs every step to true "reform_dofs_at_each_step": false,
+            if not self.parameters["solver_settings"].Has("reform_dofs_at_each_step"):
+                self.parameters["solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
+            self.parameters["solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
 
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
