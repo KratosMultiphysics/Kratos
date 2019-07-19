@@ -1,10 +1,7 @@
 import time
 import KratosMultiphysics.FluidDynamicsApplication as kfd
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError:
-    have_external_solvers = False
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+have_external_solvers = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 from chimera_analysis_base_test import ChimeraAnalysisBaseTest
