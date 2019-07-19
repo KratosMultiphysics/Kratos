@@ -40,6 +40,7 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "chimera_application_variables.h"
@@ -170,20 +171,12 @@ public:
 
     virtual void ExecuteFinalizeSolutionStep() override
     {
+        VariableUtils().SetFlag(VISITED, false, mrMainModelPart.Nodes());
+        VariableUtils().SetFlag(VISITED, false, mrMainModelPart.Elements());
+        VariableUtils().SetNonHistoricalVariable(SPLIT_ELEMENT, false, mrMainModelPart.Elements());
 
-        //for multipatch
-        const unsigned int num_elements = mrMainModelPart.NumberOfElements();
-        const auto elem_begin = mrMainModelPart.ElementsBegin();
-
-#pragma omp parallel for
-        for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
+        if(mReformulateEveryStep)
         {
-            auto i_elem = elem_begin + i_be;
-            i_elem->Set(VISITED, false);
-            i_elem->SetValue(SPLIT_ELEMENT, false);
-        }
-
-        if(mReformulateEveryStep){
             mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
             mIsFormulated = false;
         }
@@ -344,7 +337,7 @@ protected:
             CalculateDistance(r_patch_model_part, r_background_boundary_model_part, over_lap_distance);
             KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
-            BuiltinTimer rem_out_domain_time; 
+            BuiltinTimer rem_out_domain_time;
             mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
             KRATOS_INFO_IF("Removing out of domain patch took : ", mEchoLevel > 0)<< rem_out_domain_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
