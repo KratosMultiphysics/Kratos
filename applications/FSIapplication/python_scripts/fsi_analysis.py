@@ -2,6 +2,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
 
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
@@ -98,7 +99,6 @@ class FSIAnalysis(AnalysisStage):
             structure_restart_utility.SaveRestart()
 
     def _CreateSolver(self):
-        from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
         return python_solvers_wrapper_fsi.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):

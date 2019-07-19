@@ -30,7 +30,7 @@
         ],
         "data_transfer_operators" : {
             "mapper" : {
-                "type" : "mapping",
+                "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_element"
                 }
