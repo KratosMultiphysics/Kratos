@@ -200,6 +200,7 @@ const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
+// 2D
 template array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
 template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
 template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
@@ -214,5 +215,21 @@ template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+
+// 3D
+template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
+template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
+template BoundedVector<double, 2 * 4> GetPotentialOnWakeElement<3, 4>(
+    const Element& rElement, const array_1d<double, 4>& rDistances);
+template BoundedVector<double, 4> GetPotentialOnUpperWakeElement<3, 4>(
+    const Element& rElement, const array_1d<double, 4>& rDistances);
+template BoundedVector<double, 4> GetPotentialOnLowerWakeElement<3, 4>(
+    const Element& rElement, const array_1d<double, 4>& rDistances);
+template array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
+template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 } // namespace PotentialFlow
 } // namespace Kratos

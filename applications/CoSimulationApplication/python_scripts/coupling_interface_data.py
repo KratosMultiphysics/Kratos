@@ -16,8 +16,8 @@ class CouplingInterfaceData(object):
     def __init__(self, custom_settings, model):
 
         default_config = KM.Parameters("""{
-            "model_part_name" : "UNSPECIFIED",
-            "variable_name"   : "UNSPECIFIED",
+            "model_part_name" : "",
+            "variable_name"   : "",
             "location"        : "node_historical",
             "dimension"       : -1
         }""")
@@ -25,9 +25,14 @@ class CouplingInterfaceData(object):
 
         self.settings = custom_settings
         self.model = model
+        self.model_part_name = self.settings["model_part_name"].GetString()
+        if self.model_part_name == "":
+            raise Exception('No "model_part_name" was specified!')
 
         # variable used to identify data
         variable_name = self.settings["variable_name"].GetString()
+        if variable_name == "":
+            raise Exception('No "variable_name" was specified!')
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
@@ -109,9 +114,6 @@ class CouplingInterfaceData(object):
             return self.GetModelPart().GetBufferSize()
         else:
             return 1
-
-    def InplaceMultiply(self, factor):
-        self.SetData(factor*self.GetData())
 
     def GetHistoricalVariableDict(self):
         # this method returns the historical variable associated to a ModelPart

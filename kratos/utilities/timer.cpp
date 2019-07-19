@@ -8,9 +8,12 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
+#include <iomanip>
+#include <sstream>
 
 // External includes
 
@@ -20,6 +23,79 @@
 
 namespace Kratos
 {
+void Timer::TimerData::PrintData(
+    std::ostream& rOStream,
+    double GlobalElapsedTime
+    ) const
+{
+    if(mRepeatNumber != 0) {
+        if(GlobalElapsedTime <= 0.0) {
+            rOStream.precision(6);
+            rOStream
+            << mRepeatNumber
+            << "\t\t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mTotalElapsedTime
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mMaximumTime
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mMinimumTime
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
+            << "s    \t" ;
+        } else {
+            rOStream.precision(6);
+            rOStream
+            << mRepeatNumber
+            << "\t\t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mTotalElapsedTime
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mMaximumTime
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mMinimumTime
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
+            << "s    \t"
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(6)
+            << std::uppercase
+            << std::setw(6)
+            << (mTotalElapsedTime/GlobalElapsedTime)*100.00 << "%" ;
+        }
+    }
+}
+
 /// Default constructor.
 Timer::Timer(){}
 
@@ -38,7 +114,9 @@ void Timer::Stop(std::string const& rIntervalName)
 
     it_time_data->second.Update(stop_time);
 
-    PrintIntervalInformation(rIntervalName, it_time_data->second.GetStartTime(), stop_time);
+    if (msPrintIntervalInformation) {
+        PrintIntervalInformation(rIntervalName, it_time_data->second.GetStartTime(), stop_time);
+    }
 }
 
 int Timer::SetOuputFile(std::string const& rOutputFileName)
@@ -48,7 +126,9 @@ int Timer::SetOuputFile(std::string const& rOutputFileName)
 
     msOutputFile.open(rOutputFileName.c_str());
 
-    msOutputFile << "                                         Start   \tStop     \tElapsed " << std::endl;
+    if (msPrintIntervalInformation) {
+        msOutputFile << "                                         Start      \t\tStop          \t\tElapsed" << std::endl;
+    }
 
     return msOutputFile.is_open();
 }
@@ -71,37 +151,62 @@ void Timer::SetPrintOnScreen(bool const PrintOnScreen)
     msPrintOnScreen = PrintOnScreen;
 }
 
+bool Timer::GetPrintIntervalInformation()
+{
+    return msPrintIntervalInformation;
+}
+
+void Timer::SetPrintIntervalInformation(bool const PrintIntervalInformation)
+{
+    msPrintIntervalInformation = PrintIntervalInformation;
+}
+
 void Timer::PrintIntervalInformation(std::string const& rIntervalName, const double StartTime, const double StopTime)
 {
-    if (msOutputFile.is_open()) {
-        msOutputFile << rIntervalName << " ";
+    if (msOutputFile.is_open())
+        PrintIntervalInformation(msOutputFile, rIntervalName, StartTime, StopTime);
+    if(msPrintOnScreen)
+        PrintIntervalInformation(std::cout, rIntervalName, StartTime, StopTime);
+}
 
-        for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
-            msOutputFile << ".";
+void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& rIntervalName, const double StartTime, const double StopTime)
+{
+    rOStream << rIntervalName << " ";
 
-        msOutputFile << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
-    } else if(msPrintOnScreen) {
-        KRATOS_INFO("Timer") << rIntervalName << " ";
+    for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
+        rOStream << ".";
 
-        for(int i = rIntervalName.size() + 1 ; i < 40 ; i++)
-            KRATOS_INFO("Timer") << ".";
-
-        KRATOS_INFO("Timer") << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
-    }
+    rOStream.precision(6);
+    rOStream << " "
+    << std::setiosflags(std::ios::scientific)
+    << std::setprecision(6)
+    << std::uppercase
+    << std::setw(6)
+    << StartTime << "s\t\t"
+    << std::setiosflags(std::ios::scientific)
+    << std::setprecision(6)
+    << std::uppercase
+    << std::setw(6)
+    << StopTime << "s\t\t"
+    << std::setiosflags(std::ios::scientific)
+    << std::setprecision(6)
+    << std::uppercase
+    << std::setw(6)
+    << StopTime - StartTime <<"s" << std::endl;
 }
 
 void Timer::PrintTimingInformation()
 {
     if(msOutputFile.is_open())
         PrintTimingInformation(msOutputFile);
-    else if(msPrintOnScreen)
+    if(msPrintOnScreen)
         PrintTimingInformation(std::cout);
 }
 
 void Timer::PrintTimingInformation(std::ostream& rOStream)
 {
     const double global_elapsed_time = ElapsedSeconds(mStartTime);
-    rOStream << "                                 Repeat # \tTotal     \tMax     \tMin     \tAverage     \t%" << std::endl;
+    rOStream << "                                 Repeat #\t\tTotal           \tMax             \tMin             \tAverage           \tTime%" << std::endl;
     for(auto& r_time_data : msTimeTable) {
         rOStream << r_time_data.first;
         for(int i =  r_time_data.first.size() + 1 ; i < 40 ; i++)
@@ -116,6 +221,7 @@ void Timer::PrintTimingInformation(std::ostream& rOStream)
 Timer::ContainerType Timer::msTimeTable;
 std::ofstream Timer::msOutputFile;
 bool Timer::msPrintOnScreen = false;
+bool Timer::msPrintIntervalInformation = true;
 const std::chrono::steady_clock::time_point Timer::mStartTime = std::chrono::steady_clock::now();
 
 } /// namespace Kratos

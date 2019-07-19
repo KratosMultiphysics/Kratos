@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -19,11 +20,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <map>
+#include <unordered_map>
 #include <chrono>
 
 // External includes
-#include <boost/timer.hpp> // To be removed after replacing the boost timers with Kratos timer.
 
 // Project includes
 #include "includes/define.h"
@@ -56,7 +56,7 @@ namespace Kratos
  * @brief This utility can be used to compute the time employed on computations
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
- * @todo The boost::timer dependency is not in this file but in the files that include it
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) Timer
 {
@@ -84,6 +84,14 @@ class KRATOS_API(KRATOS_CORE) Timer
         {
             mStartTime = StartTime;
         }
+        double GetTotalElapsedTime()
+        {
+            return mTotalElapsedTime;
+        }
+        void SetTotalElapsedTime(double TotalElapsedTime)
+        {
+            mTotalElapsedTime = TotalElapsedTime;
+        }
         void Update(double StopTime)
         {
             double elapsed = StopTime - mStartTime;
@@ -100,15 +108,7 @@ class KRATOS_API(KRATOS_CORE) Timer
 
         }
         /// Print object's data.
-        void PrintData(std::ostream& rOStream, double GlobalElapsedTime = -1.00) const
-        {
-            if(mRepeatNumber != 0) {
-                if(GlobalElapsedTime <= 0.00)
-                    rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) << "s     \t" ;
-                else
-                    rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) << "s     \t" << (mTotalElapsedTime/GlobalElapsedTime)*100.00 << "%" ;
-            }
-        }
+        void PrintData(std::ostream& rOStream, double GlobalElapsedTime = -1.00) const;
     };
 
 public:
@@ -121,8 +121,8 @@ public:
     /// The type of float used to store the time
     typedef double TimeType;
 
-    /// The timer data container type (map)
-    typedef std::map<std::string, TimerData> ContainerType;
+    /// The timer data container type (unordered_map)
+    typedef std::unordered_map<std::string, TimerData> ContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -202,6 +202,18 @@ public:
      */
     static void SetPrintOnScreen(bool const PrintOnScreen);
 
+    /**
+     * @brief This method gets the variable which stores if the information is printed on each interval
+     * @return True if the information is printed on each interval, false otherwise
+     */
+    static bool GetPrintIntervalInformation();
+
+    /**
+     * @brief This method sets the variable which stores if the information is printed on each interval
+     * @param PrintIntervalInformation True if the information is printed on each interval, false otherwise
+     */
+    static void SetPrintIntervalInformation(bool const PrintIntervalInformation);
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -209,6 +221,20 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method prints the internal information in a given stream
+     * @param rOStream The strem considered
+     * @param rIntervalName The internal name that will store the timing data
+     * @param StartTime The starting time
+     * @param StopTime The stoping time
+     */
+    static void PrintIntervalInformation(
+        std::ostream& rOStream,
+        std::string const& rIntervalName,
+        const double StartTime,
+        const double StopTime
+        );
 
     /**
      * @brief This method prints the internal information
@@ -290,11 +316,13 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ContainerType msTimeTable;  /// The time tables
+    static ContainerType msTimeTable;       /// The time tables
 
-    static std::ofstream msOutputFile; /// The file to be written
+    static std::ofstream msOutputFile;      /// The file to be written
 
-    static bool msPrintOnScreen;       /// If the information is printed on screen
+    static bool msPrintOnScreen;            /// If the information is printed on screen
+
+    static bool msPrintIntervalInformation; /// If the information of the interval is printed
 
     static const std::chrono::steady_clock::time_point mStartTime; /// The starting time
 
