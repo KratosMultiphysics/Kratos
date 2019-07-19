@@ -18,7 +18,8 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
 
         default_settings = KratosMultiphysics.Parameters("""{
             "solver_type": "TwoFluids",
@@ -67,10 +68,11 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
             }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(NavierStokesMPITwoFluidsSolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
         super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
 
