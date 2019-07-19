@@ -101,10 +101,13 @@ Timer::Timer(){}
 
 void Timer::Start(std::string const& rIntervalName)
 {
-    const std::string internal_name = GetInternalName(rIntervalName);
-    msInternalNameDatabase.insert(std::pair<std::string, std::string>(rIntervalName, internal_name));
-    msTimeTable[internal_name].SetStartTime(GetTime());
-    ++msCounter;
+    const auto it_internal_name = msInternalNameDatabase.find(rIntervalName);
+    if(it_internal_name == msInternalNameDatabase.end()) {
+        const std::string internal_name = GetInternalName(rIntervalName);
+        msInternalNameDatabase.insert(std::pair<std::string, std::string>(rIntervalName, internal_name));
+        msTimeTable[internal_name].SetStartTime(GetTime());
+        ++msCounter;
+    }
 }
 
 void Timer::Stop(std::string const& rIntervalName)
