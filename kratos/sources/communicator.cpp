@@ -73,7 +73,7 @@ Communicator::Pointer Communicator::Create(const DataCommunicator& rDataCommunic
 
 Communicator::Pointer Communicator::Create() const
 {
-    return Create(ParallelEnvironment::GetDataCommunicator("Serial"));
+    return Kratos::make_shared<Communicator>();
 }
 
 // Public Access //////////////////////////////////////////////////////////////
