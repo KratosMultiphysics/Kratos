@@ -67,9 +67,6 @@ class TestGeometry(KratosUnittest.TestCase):
         tester = GeometryTesterUtility()
         self.assertTrue( tester.TestHexahedraInterface3D8N(model_part) )
 
-    def test_nurbs_geometries(self):
-        Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-        Tester.RunTestSuite("KratosCoreNurbsGeometriesFastSuite")
 
 if __name__ == '__main__':
     KratosUnittest.main()
