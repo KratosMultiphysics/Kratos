@@ -59,10 +59,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         force_coefficient /= self.reference_area
         self.moment_coefficient /= self.reference_area
 
-        self.__CalculateWakeTangentAndNormalDirections()
-
-        self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
-        self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)
+        self._ProjectForceToFreeStreamVelocity(force_coefficient)
 
         self.__ComputeLiftFromJumpCondition()
 
@@ -145,3 +142,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_FAR_FIELD, self.lift_coefficient_far_field)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT_FAR_FIELD, self.drag_coefficient_far_field)
+
+    def _ProjectForceToFreeStreamVelocity(self, force_coefficient):
+
+        self.__CalculateWakeTangentAndNormalDirections()
+
+        self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
+        self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)

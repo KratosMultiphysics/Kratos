@@ -28,8 +28,8 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
             CPFApp.ComputeEmbeddedLiftProcess2D(self.fluid_model_part,self.resultant_force).Execute()
         else:
             raise(Exception("Dimension of the problem is not 2. Only 2D cases are currently supported."))
-        self.lift_coefficient = self.resultant_force[1]/self.reference_area
-        self.drag_coefficient = self.resultant_force[0]/self.reference_area
+
+        self._ProjectForceToFreeStreamVelocity(self.resultant_force/self.reference_area)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cl = ', self.lift_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cd = ', self.drag_coefficient)
