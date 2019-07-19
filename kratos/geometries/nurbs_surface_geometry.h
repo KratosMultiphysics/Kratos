@@ -414,23 +414,6 @@ public:     // methods
 
         return result;
     }
-
-    void Reparametrize(Interval DomainU, Interval DomainV)
-    {
-        const auto old_domain_u = this->GetDomainU();
-
-        for (auto& knot : m_knots_u) {
-            knot = DomainU.parameter_at_normalized(
-                old_domain_u.normalized_at(knot));
-        }
-
-        const auto old_domain_v = this->GetDomainV();
-
-        for (auto& knot : m_knots_v) {
-            knot = DomainV.parameter_at_normalized(
-                old_domain_v.normalized_at(knot));
-        }
-    }
 }; // class NurbsSurfaceGeometry
 
 } // namespace Kratos
