@@ -24,8 +24,6 @@
 #include "custom_processes/apply_far_field_process.h"
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_embedded_wake_process.h"
-#include "custom_processes/metrics_potential_hessian_process.h"
-#include "custom_processes/compute_custom_nodal_gradient_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -54,35 +52,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const double, const bool>())
         ;
 
-    py::class_<ComputeEmbeddedLiftProcess, ComputeEmbeddedLiftProcess::Pointer, Process >
-        (m, "ComputeEmbeddedLiftProcess")
+    py::class_<ComputeEmbeddedLiftProcess<2,3>, ComputeEmbeddedLiftProcess<2,3>::Pointer, Process >
+        (m, "ComputeEmbeddedLiftProcess2D")
         .def(py::init<ModelPart&, Vector&>())
         ;
-
 
     py::class_<DefineEmbeddedWakeProcess, DefineEmbeddedWakeProcess::Pointer, Process >
         (m, "DefineEmbeddedWakeProcess")
         .def(py::init<ModelPart&, ModelPart&>())
         ;
-
-    // HESSIAN PROCESS
-    py::class_<ComputePotentialHessianSolMetricProcess, ComputePotentialHessianSolMetricProcess::Pointer, Process>
-    (m, "ComputePotentialHessianSolMetricProcess")
-    .def(py::init<ModelPart&, Parameters>())
-    ;
-    m.attr("ComputePotentialHessianSolMetricProcess2D") = m.attr("ComputePotentialHessianSolMetricProcess");
-
-    /* Historical */
-    py::class_<ComputeCustomNodalGradient< ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>, ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeCustomNodalGradientProcess")
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-
-    /* Non-Historical */
-    py::class_<ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>, ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalCustomNodalGradientProcess")
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-}
-
-}  // namespace Python.
-
-} // Namespace Kratos

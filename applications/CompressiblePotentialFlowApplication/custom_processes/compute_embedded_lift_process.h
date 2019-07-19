@@ -7,7 +7,7 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez,
+//  Main authors:    Marc Nunez
 //
 
 #ifndef KRATOS_COMPUTE_EMBEDDED_LIFT_PROCESS_H
@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-
+template<unsigned int Dim, unsigned int NumNodes>
 class ComputeEmbeddedLiftProcess: public Process
 {
 public:
@@ -33,7 +33,7 @@ public:
     typedef Geometry<NodeType>::Pointer GeomPointerType;
 
     // Constructor for ComputeEmbeddedLiftProcess Process
-    ComputeEmbeddedLiftProcess(ModelPart& rModelPart, Vector& rResultForce);
+    ComputeEmbeddedLiftProcess(ModelPart& rModelPart, Vector& rResultantForce);
 
     /// Destructor.
     ~ComputeEmbeddedLiftProcess() = default;
@@ -80,7 +80,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Vector& mrResultForce;
+    Vector& mrResultantForce;
 
     ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const;
 

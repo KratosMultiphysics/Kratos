@@ -29,7 +29,7 @@
             "coarse_enough" : 5000,
             "krylov_type": "lgmres",
             "tolerance": 1e-9,
-            "verbosity": 3,
+            "verbosity": 0,
             "scaling": false
         },
         "auxiliary_variables_list" : ["NODAL_H","GEOMETRY_DISTANCE","DISTANCE"]
@@ -77,7 +77,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["VELOCITY_POTENTIAL"],
-                "input_file_name"  : "embedded_circle_velocity_potential_results.json",
+                "input_file_name"  : "embedded_circle_velocity_potential_test_results.json",
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "tolerance"            : 1e-9,
                 "relative_tolerance"   : 1e-12,

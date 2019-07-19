@@ -7,14 +7,13 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez,
+//  Main authors:   Marc Nunez,
 //
 
 #ifndef KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 #define KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 
 #include "includes/define.h"
-
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -79,14 +78,15 @@ private:
 
     ModelPart& mrModelPart;
     ModelPart& mrWakeModelPart;
-
+    GlobalPointersVector<Element> mKuttaWakeElementCandidates;
 
     void ComputeDistanceToWake();
-    void MarkWakeElements();
-    void ComputeTrailingEdgeNode();
-    void MarkKuttaElements();
-    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
 
+    void MarkWakeElements();
+
+    void ComputeTrailingEdgeNode();
+
+    void MarkKuttaWakeElements();
 
 }; // Class Process
 } // namespace Kratos

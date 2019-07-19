@@ -4,12 +4,6 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 import math
 import time
 
-# def RotateModelPart(origin, angle, model_part):
-#     ox,oy=origin
-#     for node in model_part.Nodes:
-#         node.X = ox+math.cos(angle)*(node.X - ox)-math.sin(angle)*(node.Y - oy)
-#         node.Y = oy+math.sin(angle)*(node.X - ox)+math.cos(angle)*(node.Y - oy)
-
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -69,6 +63,13 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.update_coefficient = settings["update_coefficient"].GetDouble()
 
         self.moving_parameters = settings["moving_parameters"]
+        # Synchronizing parameters for the wake process
+        if self.moving_parameters.Has("rotation_point"):
+            self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["rotation_point"].GetVector())
+        else:
+            self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["origin"].GetVector())
+        self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.ROTATION_ANGLE, self.moving_parameters["rotation_angle"].GetDouble())
+
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]
         self.ray_casting_tolerance = settings["ray_casting_tolerance"].GetDouble()
@@ -90,25 +91,10 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
 
-        #############################################################################################
-        #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
-        # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.main_model_part, avg_elem_num, avg_node_num).Execute()
-        #############################################################################################
-
     def _InitializeSkinModelPart(self):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).
             It also rotates the skin model part around the origin point according to the rotation_angle'''
         self.skin_model_part=self.model.CreateModelPart("skin")
-        self.wake_model_part=self.model.CreateModelPart("wake")
-        KratosMultiphysics.ModelPartIO('wake2').ReadModelPart(self.wake_model_part)
-
-        for node in self.wake_model_part.Nodes:
-            node.X=20*node.X
-#
 
         ini_time=time.time()
         # Reading skin model part
@@ -117,18 +103,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         angle=math.radians(-self.moving_parameters["rotation_angle"].GetDouble())
         self.moving_parameters["rotation_angle"].SetDouble(angle)
 
-        # for node in self.skin_model_part.Nodes:
-        #     node.X=node.X-1.0
-
-        # for node in self.wake_model_part.Nodes:
-        #     node.X=node.X-0.75
-
-
-        # RotateModelPart([-0.75,0.0],angle,self.skin_model_part)
-        # RotateModelPart([-0.75,0.0],angle,self.wake_model_part)
-
         CompressiblePotentialFlow.MoveModelPartProcess(self.skin_model_part, self.moving_parameters).Execute()
-        CompressiblePotentialFlow.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
 
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','InitializeSkin time: ',time.time()-ini_time)
 
