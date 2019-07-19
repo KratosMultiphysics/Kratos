@@ -14,7 +14,6 @@ from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # For GID output
 from KratosMultiphysics.gid_output_process import GiDOutputProcess

@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division
 
 # Import Kratos core and apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 from KratosMultiphysics.KratosUnittest import TestCase

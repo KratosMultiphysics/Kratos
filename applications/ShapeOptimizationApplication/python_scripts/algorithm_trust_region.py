@@ -19,7 +19,7 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from .algorithm_base import OptimizationAlgorithm
 from . import mapper_factory
 from . import data_logger_factory
-from .custom_math import Norm2, NormInf3D, ScalarVectorProduct, Dot, HorzCat, PerformGramSchmidtOrthogonalization, TranslateToNewBasis, SafeConvertVectorToMatrix, ZeroVector, IsEmpty, Prod, Trans, Minus, SolveLinearSystem, Plus, ZeroMatrix, RowSize, QuadProg, TranslateToOriginalBasis, PerformBisectioning
+from .custom_math import NormInf3D, ScalarVectorProduct, Dot, HorzCat, PerformGramSchmidtOrthogonalization, TranslateToNewBasis, SafeConvertVectorToMatrix, ZeroVector, IsEmpty, Prod, Trans, Minus, SolveLinearSystem, Plus, ZeroMatrix, RowSize, QuadProg, TranslateToOriginalBasis, PerformBisectioning
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
 import copy

@@ -9,8 +9,6 @@
 # ==============================================================================
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Import logger base classes
 from .value_logger_base import ValueLogger

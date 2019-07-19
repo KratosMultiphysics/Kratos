@@ -18,7 +18,6 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 # additional imports
 from .custom_timer import Timer
 from .analyzer_empty import EmptyAnalyzer
-from .model_part_controller_factory import CreateController
 from . import model_part_controller_factory
 from . import analyzer_factory
 from . import communicator_factory
