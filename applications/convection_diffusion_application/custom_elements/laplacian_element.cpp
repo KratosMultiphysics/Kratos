@@ -85,9 +85,9 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
 
     //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients();
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues();
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
@@ -102,7 +102,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
     }
 
-    r_geometry.Jacobian(J0);
+    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
     double DetJ0;
 
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
@@ -219,6 +219,13 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     return Element::Check(rCurrentProcessInfo);
+}
+
+//************************************************************************************
+//************************************************************************************
+Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
+{
+    return GeometryData::GI_GAUSS_2;
 }
 
 } // Namespace Kratos
