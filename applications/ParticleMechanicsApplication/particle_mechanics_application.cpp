@@ -83,6 +83,8 @@ namespace Kratos
         // Particle Conditions
         mMPMParticlePenaltyDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticleAxisymPenaltyDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mMPMParticleAxisymPenaltyDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
         mMPMParticlePenaltyCouplingInterfaceCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -128,6 +130,8 @@ namespace Kratos
         // Particle Conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D3N", mMPMParticlePenaltyDirichletCondition2D3N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D4N", mMPMParticlePenaltyDirichletCondition2D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticleAxisymPenaltyDirichletCondition2D3N", mMPMParticleAxisymPenaltyDirichletCondition2D3N)
+        KRATOS_REGISTER_CONDITION( "MPMParticleAxisymPenaltyDirichletCondition2D4N", mMPMParticleAxisymPenaltyDirichletCondition2D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D4N", mMPMParticlePenaltyDirichletCondition3D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D8N", mMPMParticlePenaltyDirichletCondition3D8N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition2D3N", mMPMParticlePenaltyCouplingInterfaceCondition2D3N)

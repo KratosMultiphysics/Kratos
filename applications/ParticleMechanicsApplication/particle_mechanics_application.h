@@ -42,6 +42,7 @@
 #include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_axisym_penalty_dirichlet_condition_2d.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
@@ -247,6 +248,8 @@ private:
     // Particle Conditions:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
+    const MPMParticleAxisymPenaltyDirichletCondition2D mMPMParticleAxisymPenaltyDirichletCondition2D3N;
+    const MPMParticleAxisymPenaltyDirichletCondition2D mMPMParticleAxisymPenaltyDirichletCondition2D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D8N;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition2D3N;
