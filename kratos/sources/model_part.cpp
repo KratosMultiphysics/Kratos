@@ -689,8 +689,12 @@ bool ModelPart::HasSubPropertiesByAddress(
     ) const
 {
     const IndexType first_component = FirstComponentName(rAdress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.HasSubPropertiesByAddress(rAdress);
+    if (HasProperties(first_component, MeshIndex)) {
+        Properties& r_prop = GetProperties(first_component, MeshIndex);
+        return r_prop.HasSubPropertiesByAddress(rAdress);
+    } else {
+        return false;
+    }
 }
 
 /***********************************************************************************/
