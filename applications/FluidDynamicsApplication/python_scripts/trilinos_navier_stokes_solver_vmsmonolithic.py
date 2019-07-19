@@ -5,9 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
 # Import applications
-import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dynamics application
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
 import navier_stokes_solver_vmsmonolithic
@@ -87,7 +87,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.min_buffer_size = 2
 
         ## Construct the linear solver
-        import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.Print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
