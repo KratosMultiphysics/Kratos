@@ -29,70 +29,70 @@ namespace Testing {
         KratosCoreNurbsGeometriesFastSuite)
     {
         NurbsSurfaceGeometry<3> geometry(
-            2,      // degree u
-            1,      // degree v
-            4,      // nb_poles u
-            3,      // nb_poles v
-            true    // is_rational
+            2,      // DegreeU
+            1,      // DegreeV
+            4,      // NbPolesU
+            3,      // NbPolesV
+            true    // IsRational
         );
 
-        geometry.set_knot_u(0,  0.0);
-        geometry.set_knot_u(1,  0.0);
-        geometry.set_knot_u(2,  7.5);
-        geometry.set_knot_u(3, 15.0);
-        geometry.set_knot_u(4, 15.0);
+        geometry.SetKnotU(0,  0.0);
+        geometry.SetKnotU(1,  0.0);
+        geometry.SetKnotU(2,  7.5);
+        geometry.SetKnotU(3, 15.0);
+        geometry.SetKnotU(4, 15.0);
 
-        geometry.set_knot_v(0,  0.0);
-        geometry.set_knot_v(1, 10.0);
-        geometry.set_knot_v(2, 20.0);
+        geometry.SetKnotV(0,  0.0);
+        geometry.SetKnotV(1, 10.0);
+        geometry.SetKnotV(2, 20.0);
 
-        geometry.set_pole(0, 0, NurbsTestUtility::Point(-10.0, - 5.0, -1.0         ));
-        geometry.set_pole(0, 1, NurbsTestUtility::Point(-12.0,   3.0,  3.0         ));
-        geometry.set_pole(0, 2, NurbsTestUtility::Point(- 9.0,  11.0, -0.0701928417));
-        geometry.set_pole(3,    NurbsTestUtility::Point(- 5.0, - 3.0,  1.0         ));
-        geometry.set_pole(1, 1, NurbsTestUtility::Point(- 6.0,   4.0, -2.0         ));
-        geometry.set_pole(1, 2, NurbsTestUtility::Point(- 5.0,   7.0,  0.9298071583));
-        geometry.set_pole(2, 0, NurbsTestUtility::Point(  0.0, - 4.0, -1.0         ));
-        geometry.set_pole(2, 1, NurbsTestUtility::Point(  1.0,   6.0,  5.0         ));
-        geometry.set_pole(2, 2, NurbsTestUtility::Point(  0.0,  13.0, -0.2350184214));
-        geometry.set_pole(3, 0, NurbsTestUtility::Point(  4.0, - 2.0,  0.0         ));
-        geometry.set_pole(3, 1, NurbsTestUtility::Point(  5.0,   4.0, -1.0         ));
-        geometry.set_pole(3, 2, NurbsTestUtility::Point(  5.0,  11.0,  0.7649815786));
+        geometry.SetPole(0, 0, NurbsTestUtility::Point(-10.0, - 5.0, -1.0         ));
+        geometry.SetPole(0, 1, NurbsTestUtility::Point(-12.0,   3.0,  3.0         ));
+        geometry.SetPole(0, 2, NurbsTestUtility::Point(- 9.0,  11.0, -0.0701928417));
+        geometry.SetPole(3,    NurbsTestUtility::Point(- 5.0, - 3.0,  1.0         ));
+        geometry.SetPole(1, 1, NurbsTestUtility::Point(- 6.0,   4.0, -2.0         ));
+        geometry.SetPole(1, 2, NurbsTestUtility::Point(- 5.0,   7.0,  0.9298071583));
+        geometry.SetPole(2, 0, NurbsTestUtility::Point(  0.0, - 4.0, -1.0         ));
+        geometry.SetPole(2, 1, NurbsTestUtility::Point(  1.0,   6.0,  5.0         ));
+        geometry.SetPole(2, 2, NurbsTestUtility::Point(  0.0,  13.0, -0.2350184214));
+        geometry.SetPole(3, 0, NurbsTestUtility::Point(  4.0, - 2.0,  0.0         ));
+        geometry.SetPole(3, 1, NurbsTestUtility::Point(  5.0,   4.0, -1.0         ));
+        geometry.SetPole(3, 2, NurbsTestUtility::Point(  5.0,  11.0,  0.7649815786));
 
-        geometry.set_weight(0, 0, 1.0);
-        geometry.set_weight(0, 1, 1.0);
-        geometry.set_weight(0, 2, 1.0);
-        geometry.set_weight(1, 0, 1.0);
-        geometry.set_weight(1, 1, 2.5);
-        geometry.set_weight(1, 2, 1.0);
-        geometry.set_weight(2, 0, 1.0);
-        geometry.set_weight(7,    1.0);
-        geometry.set_weight(2, 2, 1.0);
-        geometry.set_weight(3, 0, 1.0);
-        geometry.set_weight(3, 1, 1.0);
-        geometry.set_weight(3, 2, 1.0);
+        geometry.SetWeight(0, 0, 1.0);
+        geometry.SetWeight(0, 1, 1.0);
+        geometry.SetWeight(0, 2, 1.0);
+        geometry.SetWeight(1, 0, 1.0);
+        geometry.SetWeight(1, 1, 2.5);
+        geometry.SetWeight(1, 2, 1.0);
+        geometry.SetWeight(2, 0, 1.0);
+        geometry.SetWeight(7,    1.0);
+        geometry.SetWeight(2, 2, 1.0);
+        geometry.SetWeight(3, 0, 1.0);
+        geometry.SetWeight(3, 1, 1.0);
+        geometry.SetWeight(3, 2, 1.0);
 
-        KRATOS_CHECK_EQUAL(geometry.dimension(), 3);
+        KRATOS_CHECK_EQUAL(geometry.GetDimension(), 3);
 
-        KRATOS_CHECK_EQUAL(geometry.degree_u(), 2);
-        KRATOS_CHECK_EQUAL(geometry.degree_v(), 1);
+        KRATOS_CHECK_EQUAL(geometry.GetDegreeU(), 2);
+        KRATOS_CHECK_EQUAL(geometry.GetDegreeV(), 1);
 
-        KRATOS_CHECK_EQUAL(geometry.nb_knots_u(), 5);
-        KRATOS_CHECK_EQUAL(geometry.nb_knots_v(), 3);
+        KRATOS_CHECK_EQUAL(geometry.GetNbKnotsU(), 5);
+        KRATOS_CHECK_EQUAL(geometry.GetNbKnotsV(), 3);
 
-        KRATOS_CHECK_EQUAL(geometry.nb_poles_u(), 4);
-        KRATOS_CHECK_EQUAL(geometry.nb_poles_v(), 3);
-        KRATOS_CHECK_EQUAL(geometry.nb_poles(), 12);
+        KRATOS_CHECK_EQUAL(geometry.GetNbPolesU(), 4);
+        KRATOS_CHECK_EQUAL(geometry.GetNbPolesV(), 3);
+        KRATOS_CHECK_EQUAL(geometry.GetNbPoles(), 12);
 
-        // point_at
+        // GetPointAt
 
-        NurbsTestUtility::ArrayAlmostEqual(geometry.point_at(12, 5),
+        NurbsTestUtility::ArrayAlmostEqual(geometry.GetPointAt(12, 5),
             NurbsTestUtility::Point(1.0377358491, 1.1320754717, 0.7358490566));
 
-        // derivarives_at
+        // GetDerivativesAt
 
         {
-            const auto derivatives = geometry.derivatives_at(12, 5, 2);
+            const auto derivatives = geometry.GetDerivativesAt(12, 5, 2);
 
             NurbsTestUtility::ArrayAlmostEqual(derivatives[0],
                 NurbsTestUtility::Point( 1.0377358491,  1.1320754717,  0.7358490566));

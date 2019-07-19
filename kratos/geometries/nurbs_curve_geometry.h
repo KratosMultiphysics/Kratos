@@ -47,7 +47,7 @@ public:     // constructors
     ) : mDegree(Degree),
         mPoles(NbPoles),
         mWeights(IsRational ? NbPoles : 0),
-        mKnots(NurbsUtility::nb_knots(Degree, NbPoles))
+        mKnots(NurbsUtility::GetNbKnots(Degree, NbPoles))
     {
         static_assert(TDimension > 0, "Invalid dimension");
     }
@@ -63,7 +63,7 @@ public:     // constructors
     {
         static_assert(TDimension > 0, "Invalid dimension");
 
-        if (rKnots.size() != NurbsUtility::nb_knots(Degree, rPoles.size())) {
+        if (rKnots.size() != NurbsUtility::GetNbKnots(Degree, rPoles.size())) {
             throw std::runtime_error("Number of knots and poles do not match");
         }
     }
@@ -80,7 +80,7 @@ public:     // constructors
     {
         static_assert(TDimension > 0);
 
-        if (rKnots.size() != NurbsUtility::nb_knots(Degree, rPoles.size())) {
+        if (rKnots.size() != NurbsUtility::GetNbKnots(Degree, rPoles.size())) {
             throw std::runtime_error("Number of knots and poles do not match");
         }
 
@@ -142,7 +142,7 @@ public:     // methods
         return mWeights.size() != 0;
     }
 
-    double GetKnot(int Index) const
+    double GetKnot(const int Index) const
     {
         return mKnots[Index];
     }
@@ -190,7 +190,7 @@ public:     // methods
         return point;
     }
 
-    Vector GetPole(int Index) const
+    Vector GetPole(const int Index) const
     {
         return mPoles.at(Index);
     }
@@ -200,17 +200,17 @@ public:     // methods
         return mPoles;
     }
     
-    void SetKnot(int Index, double Value)
+    void SetKnot(const int Index, const double Value)
     {
         mKnots.at(Index) = Value;
     }
     
-    void SetPole(int Index, Vector Value)
+    void SetPole(const int Index, const Vector& rValue)
     {
-        mPoles.at(Index) = Value;
+        mPoles.at(Index) = rValue;
     }
     
-    void SetWeight(int Index, double Value)
+    void SetWeight(const int Index, const double Value)
     {
         mWeights.at(Index) = Value;
     }
@@ -258,7 +258,7 @@ public:     // methods
         return result;
     }
     
-    double GetWeight(int Index) const
+    double GetWeight(const int Index) const
     {
         return mWeights.at(Index);
     }

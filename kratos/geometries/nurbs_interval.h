@@ -33,112 +33,113 @@ public:     // constructor
     {
     }
 
-    Interval(double t0, double t1) : m_t0(t0), m_t1(t1)
+    Interval(const double T0, const double T1) : m_t0(T0), m_t1(T1)
     {
     }
 
-    Interval(std::pair<double, double> interval) : m_t0(interval.first),
-        m_t1(interval.second)
+    Interval(const std::pair<double, double> Bounds) : m_t0(Bounds.first),
+        m_t1(Bounds.second)
     {
     }
 
 public:     // methods
-    double t0() const
+    double GetT0() const
     {
         return m_t0;
     }
 
-    void set_t0(double value)
+    void SetT0(const double Value)
     {
-        m_t0 = value;
+        m_t0 = Value;
     }
 
-    double t1() const
+    double GetT1() const
     {
         return m_t1;
     }
 
-    void set_t1(double value)
+    void SetT1(const double Value)
     {
-        m_t1 = value;
+        m_t1 = Value;
     }
 
-    double min() const
+    double GetMin() const
     {
         return std::min(m_t0, m_t1);
     }
 
-    double max() const
+    double GetMax() const
     {
         return std::max(m_t0, m_t1);
     }
 
-    double delta() const
+    double GetDelta() const
     {
         return m_t1 - m_t0;
     }
 
-    double length() const
+    double GetLength() const
     {
-        return std::abs(delta());
+        return std::abs(GetDelta());
     }
 
-    double normalized_at(const double t) const
+    double GetNormalizedAt(const double Parameter) const
     {
-        return (t - m_t0) / length();
+        return (Parameter - m_t0) / GetLength();
     }
 
-    double parameter_at_normalized(const double t) const
+    double GetParameterAtNormalized(const double Parameter) const
     {
-        return m_t0 + delta() * t;
+        return m_t0 + GetDelta() * Parameter;
     }
 
-    static double parameter_at_normalized(const double a, const double b,
-        const double t)
+    static double GetParameterAtNormalized(const double A, const double B,
+        const double Parameter)
     {
-        return a + (b - a) * t;
+        return A + (B - A) * Parameter;
     }
 
-    Interval normalized_interval(const double t0, const double t1) const
+    Interval GetNormalizedInterval(const double T0, const double T1) const
     {
-        double t0Normalized = normalized_at(t0);
-        double t1Normalized = normalized_at(t1);
+        double t0Normalized = GetNormalizedAt(T0);
+        double t1Normalized = GetNormalizedAt(T1);
 
         return Interval(t0Normalized, t1Normalized);
     }
 
-    Interval normalized_interval(const Interval interval) const
+    Interval GetNormalizedInterval(const Interval Bounds) const
     {
-        return normalized_interval(interval.m_t0, interval.m_t1);
+        return GetNormalizedInterval(Bounds.m_t0, Bounds.m_t1);
     }
 
-    bool contains(const double t) const
+    bool Contains(const double Parameter) const
     {
-        return (min() <= t) && (t <= max());
+        return (GetMin() <= Parameter) && (Parameter <= GetMax());
     }
 
-    double clamp(const double value) const
+    double GetClamp(const double Value) const
     {
-        return clamp(value, min(), max());
+        return GetClamp(Value, GetMin(), GetMax());
     }
 
 public:     // static methods
-    static double clamp(const double value, const double min, const double max)
+    static double GetClamp(const double Value, const double Min,
+        const double Max)
     {
-        if (value < min) {
-            return min;
+        if (Value < Min) {
+            return Min;
         }
 
-        if (value > max) {
-            return max;
+        if (Value > Max) {
+            return Max;
         }
 
-        return value;
+        return Value;
     }
 
-    static double clamp_01(const double value)
+    static double GetClamp01(const double Value)
     {
-        return clamp(value, 0, 1);
+        return GetClamp(Value, 0, 1);
     }
 }; // Interval
 

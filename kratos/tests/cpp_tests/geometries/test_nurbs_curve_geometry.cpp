@@ -71,8 +71,8 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(geometry.GetNbKnots(), 11);
         KRATOS_CHECK_EQUAL(geometry.GetNbPoles(), 8);
 
-        KRATOS_CHECK_EQUAL(geometry.GetDomain().t0(), 0);
-        KRATOS_CHECK_EQUAL(geometry.GetDomain().t1(), 131.892570399495);
+        KRATOS_CHECK_EQUAL(geometry.GetDomain().GetT0(), 0);
+        KRATOS_CHECK_EQUAL(geometry.GetDomain().GetT1(), 131.892570399495);
 
         // GetPointAt
 

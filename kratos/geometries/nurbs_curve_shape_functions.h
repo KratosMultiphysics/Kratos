@@ -35,18 +35,18 @@ private:    // variables
     int mFirstNonzeroPole;
 
 private:    // methods
-    double& Value(const int order, const int pole)
+    double& Value(const int Order, const int Pole)
     {
-        const int index = NurbsUtility::single_index(GetNbShapeFunctions(),
-            GetNbNonzeroPoles(), order, pole);
+        const int index = NurbsUtility::GetSingleIndex(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), Order, Pole);
 
         return mValues[index];
     }
 
-    double& Ndu(const int i, const int j)
+    double& Ndu(const int IndexI, const int IndexJ)
     {
-        const int index = NurbsUtility::single_index(GetNbShapeFunctions(),
-            GetNbNonzeroPoles(), i, j);
+        const int index = NurbsUtility::GetSingleIndex(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), IndexI, IndexJ);
 
         return mNdu[index];
     }
@@ -109,7 +109,7 @@ public:     // methods
 
     double Value(const int Order, const int Pole) const
     {
-        int index = NurbsUtility::single_index(GetNbShapeFunctions(),
+        int index = NurbsUtility::GetSingleIndex(GetNbShapeFunctions(),
             GetNbNonzeroPoles(), Order, Pole);
 
         return mValues[index];
@@ -241,7 +241,7 @@ public:     // methods
 
     void Compute(const std::vector<double>& rKnots, const double ParameterT)
     {
-        const int span = NurbsUtility::upper_span(GetDegree(), rKnots,
+        const int span = NurbsUtility::GetUpperSpan(GetDegree(), rKnots,
             ParameterT);
 
         ComputeAtSpan(rKnots, span, ParameterT);
@@ -251,7 +251,7 @@ public:     // methods
     void Compute(const std::vector<double>& rKnots, const TWeights& rWeights,
         const double ParameterT)
     {
-        const int span = NurbsUtility::upper_span(GetDegree(), rKnots,
+        const int span = NurbsUtility::GetUpperSpan(GetDegree(), rKnots,
             ParameterT);
 
         ComputeAtSpan(rKnots, span, rWeights, ParameterT);

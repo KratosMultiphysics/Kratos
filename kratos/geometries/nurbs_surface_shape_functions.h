@@ -34,53 +34,53 @@ private:    // variables
     int m_first_nonzero_pole_v;
 
 public:     // static methods
-    static constexpr inline int nb_shape_functions(const int order) noexcept
+    static constexpr inline int GetNbShapeFunctions(const int Order) noexcept
     {
-        return (1 + order) * (2 + order) / 2;
+        return (1 + Order) * (2 + Order) / 2;
     }
 
-    static constexpr inline int shape_index(const int derivative_u,
-        const int derivative_v) noexcept
+    static constexpr inline int GetShapeIndex(const int DerivativeU,
+        const int DerivativeV) noexcept
     {
-        return derivative_v + (derivative_u + derivative_v) * (1 + derivative_u +
-            derivative_v) / 2;
+        return DerivativeV + (DerivativeU + DerivativeV) * (1 + DerivativeU +
+            DerivativeV) / 2;
     }
 
 private:    // methods
-    double& weighted_sum(const int index)
+    double& GetWeightedSum(const int Index)
     {
-        return m_weighted_sums[index];
+        return m_weighted_sums[Index];
     }
 
-    double& weighted_sum(const int derivative_u, const int derivative_v)
+    double& GetWeightedSum(const int DerivativeU, const int DerivativeV)
     {
-        const int index = shape_index(derivative_u, derivative_v);
+        const int index = GetShapeIndex(DerivativeU, DerivativeV);
 
-        return weighted_sum(index);
+        return GetWeightedSum(index);
     }
 
-    inline int index(const int derivative, const int poleU, const int poleV)
+    inline int GetIndex(const int Derivative, const int PoleU, const int PoleV)
         const
     {
-        const int pole = NurbsUtility::single_index(nb_nonzero_poles_u(),
-            nb_nonzero_poles_v(), poleU, poleV);
-        const int index = NurbsUtility::single_index(nb_shape_functions(),
-            GetNbNonzeroPoles(), derivative, pole);
+        const int pole = NurbsUtility::GetSingleIndex(GetNbNonzeroPolesU(),
+            GetNbNonzeroPolesV(), PoleU, PoleV);
+        const int index = NurbsUtility::GetSingleIndex(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), Derivative, pole);
 
         return index;
     }
 
-    double& value(const int derivative, const int pole)
+    double& GetValue(const int Derivative, const int pole)
     {
-        const int index = NurbsUtility::single_index(nb_shape_functions(),
-            GetNbNonzeroPoles(), derivative, pole);
+        const int index = NurbsUtility::GetSingleIndex(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), Derivative, pole);
 
         return m_values[index];
     }
 
-    double& value(const int derivative, const int poleU, const int poleV)
+    double& GetValue(const int Derivative, const int PoleU, const int PoleV)
     {
-        const int index = this->index(derivative, poleU, poleV);
+        const int index = this->GetIndex(Derivative, PoleU, PoleV);
 
         return m_values[index];
     }
@@ -90,72 +90,72 @@ public:     // constructors
     {
     }
 
-    NurbsSurfaceShapeFunction(const int degree_u, const int degree_v,
-        const int order)
+    NurbsSurfaceShapeFunction(const int DegreeU, const int DegreeV,
+        const int Order)
     {
-        resize(degree_u, degree_v, order);
+        Resize(DegreeU, DegreeV, Order);
     }
 
 public:     // methods
-    void resize(const int degree_u, const int degree_v, const int order)
+    void Resize(const int DegreeU, const int DegreeV, const int Order)
     {
-        const int nb_shape_functions = this->nb_shape_functions(order);
-        const int GetNbNonzeroPoles = (degree_u + 1) * (degree_v + 1);
+        const int nb_shape_functions = this->GetNbShapeFunctions(Order);
+        const int nb_nonzero_poles = (DegreeU + 1) * (DegreeV + 1);
 
-        m_shape_u.Resize(degree_u, order);
-        m_shape_v.Resize(degree_v, order);
-        m_values.resize(nb_shape_functions * GetNbNonzeroPoles);
+        m_shape_u.Resize(DegreeU, Order);
+        m_shape_v.Resize(DegreeV, Order);
+        m_values.resize(nb_shape_functions * nb_nonzero_poles);
         m_weighted_sums.resize(nb_shape_functions);
 
-        m_order = order;
+        m_order = Order;
     }
 
-    int degree_u() const
+    int GetDegreeU() const
     {
         return m_shape_u.GetDegree();
     }
 
-    int degree_v() const
+    int GetDegreeV() const
     {
         return m_shape_v.GetDegree();
     }
 
-    int order() const
+    int GetOrder() const
     {
         return m_order;
     }
 
-    int nb_shape_functions() const
+    int GetNbShapeFunctions() const
     {
-        return nb_shape_functions(order());
+        return GetNbShapeFunctions(GetOrder());
     }
 
-    int nb_nonzero_poles_u() const
+    int GetNbNonzeroPolesU() const
     {
         return m_shape_u.GetNbNonzeroPoles();
     }
 
-    int nb_nonzero_poles_v() const
+    int GetNbNonzeroPolesV() const
     {
         return m_shape_v.GetNbNonzeroPoles();
     }
 
     int GetNbNonzeroPoles() const
     {
-        return nb_nonzero_poles_u() * nb_nonzero_poles_v();
+        return GetNbNonzeroPolesU() * GetNbNonzeroPolesV();
     }
 
-    std::vector<std::pair<int, int>> nonzero_pole_indices() const
+    std::vector<std::pair<int, int>> GetNonzeroPoleIndices() const
     {
         std::vector<std::pair<int, int>> indices(GetNbNonzeroPoles());
 
-        for (int i = 0; i < nb_nonzero_poles_u(); i++) {
-            for (int j = 0; j < nb_nonzero_poles_v(); j++) {
-                int poleIndex = NurbsUtility::single_index(nb_nonzero_poles_u(),
-                    nb_nonzero_poles_v(), i, j);
+        for (int i = 0; i < GetNbNonzeroPolesU(); i++) {
+            for (int j = 0; j < GetNbNonzeroPolesV(); j++) {
+                int poleIndex = NurbsUtility::GetSingleIndex(GetNbNonzeroPolesU(),
+                    GetNbNonzeroPolesV(), i, j);
 
-                int poleU = first_nonzero_pole_u() + i;
-                int poleV = first_nonzero_pole_v() + j;
+                int poleU = GetFirstNonzeroPoleU() + i;
+                int poleV = GetFirstNonzeroPoleV() + j;
 
                 indices[poleIndex] = {poleU, poleV};
             }
@@ -164,182 +164,176 @@ public:     // methods
         return indices;
     }
 
-    const double value(const int derivative, const int poleU, const int poleV)
+    const double GetValue(const int Derivative, const int PoleU, const int PoleV)
         const
     {
-        const int index = this->index(derivative, poleU, poleV);
+        const int index = this->GetIndex(Derivative, PoleU, PoleV);
 
         return m_values[index];
     }
 
-    const double value(const int derivative, const int pole) const
+    const double GetValue(const int Derivative, const int pole) const
     {
-        const int index = NurbsUtility::single_index(nb_shape_functions(),
-            GetNbNonzeroPoles(), derivative, pole);
+        const int index = NurbsUtility::GetSingleIndex(GetNbShapeFunctions(),
+            GetNbNonzeroPoles(), Derivative, pole);
 
         return m_values[index];
     }
 
-    double operator()(
-        const int derivative,
-        const int pole) const
+    double operator()(const int Derivative, const int pole) const
     {
-        return value(derivative, pole);
+        return GetValue(Derivative, pole);
     }
 
-    double operator()(
-        const int derivative,
-        const int poleU,
-        const int poleV) const
+    double operator()(const int Derivative, const int PoleU,
+        const int PoleV) const
     {
-        return value(derivative, poleU, poleV);
+        return GetValue(Derivative, PoleU, PoleV);
     }
 
-    int first_nonzero_pole_u() const
+    int GetFirstNonzeroPoleU() const
     {
         return m_first_nonzero_pole_u;
     }
 
-    int last_nonzero_pole_u() const
+    int GetLastNonzeroPoleU() const
     {
-        return first_nonzero_pole_u() + degree_u();
+        return GetFirstNonzeroPoleU() + GetDegreeU();
     }
 
-    int first_nonzero_pole_v() const
+    int GetFirstNonzeroPoleV() const
     {
         return m_first_nonzero_pole_v;
     }
 
-    int last_nonzero_pole_v() const
+    int GetLastNonzeroPoleV() const
     {
-        return first_nonzero_pole_v() + degree_v();
+        return GetFirstNonzeroPoleV() + GetDegreeV();
     }
 
-    void ComputeAtSpan(
-        const std::vector<double>& knots_u,
-        const std::vector<double>& knots_v,
-        const int span_u,
-        const int span_v,
-        const double u,
-        const double v)
+    void ComputeAtSpan(const std::vector<double>& rKnotsU,
+        const std::vector<double>& rKnotsV, const int SpanU, const int SpanV,
+        const double ParameterU, const double ParameterV)
     {
-        const int nbvalues = nb_shape_functions() * GetNbNonzeroPoles();
+        const int nbvalues = GetNbShapeFunctions() * GetNbNonzeroPoles();
 
         std::fill(m_values.begin(), m_values.begin() + nbvalues, 0);
 
-        m_first_nonzero_pole_u = span_u - degree_u() + 1;
-        m_first_nonzero_pole_v = span_v - degree_v() + 1;
+        m_first_nonzero_pole_u = SpanU - GetDegreeU() + 1;
+        m_first_nonzero_pole_v = SpanV - GetDegreeV() + 1;
 
         // compute 1D shape functions
 
-        m_shape_u.ComputeAtSpan(knots_u, span_u, u);
-        m_shape_v.ComputeAtSpan(knots_v, span_v, v);
+        m_shape_u.ComputeAtSpan(rKnotsU, SpanU, ParameterU);
+        m_shape_v.ComputeAtSpan(rKnotsV, SpanV, ParameterV);
 
         // compute 2D shape functions
 
-        for (int i = 0; i <= order(); i++) {
-            for (int j = 0; j <= order() - i; j++) {
-                for (int a = 0; a < nb_nonzero_poles_u(); a++) {
-                    for (int b = 0; b < nb_nonzero_poles_v(); b++) {
-                        const int index = shape_index(i, j);
+        for (int i = 0; i <= GetOrder(); i++) {
+            for (int j = 0; j <= GetOrder() - i; j++) {
+                for (int a = 0; a < GetNbNonzeroPolesU(); a++) {
+                    for (int b = 0; b < GetNbNonzeroPolesV(); b++) {
+                        const int index = GetShapeIndex(i, j);
 
-                        value(index, a, b) = m_shape_u(i, a) * m_shape_v(j, b);
+                        GetValue(index, a, b) = m_shape_u(i, a) * m_shape_v(j, b);
                     }
                 }
             }
         }
     }
 
-    void compute(const std::vector<double>& knots_u,
-        const std::vector<double>& knots_v, const double u, const double v)
+    void Compute(const std::vector<double>& rKnotsU,
+        const std::vector<double>& rKnotsV, const double ParameterU,
+        const double ParameterV)
     {
-        const int span_u = NurbsUtility::lower_span(degree_u(), knots_u, u);
-        const int span_v = NurbsUtility::lower_span(degree_v(), knots_v, v);
+        const int SpanU = NurbsUtility::GetLowerSpan(GetDegreeU(), rKnotsU, ParameterU);
+        const int SpanV = NurbsUtility::GetLowerSpan(GetDegreeV(), rKnotsV, ParameterV);
 
-        ComputeAtSpan(knots_u, knots_v, span_u, span_v, u, v);
+        ComputeAtSpan(rKnotsU, rKnotsV, SpanU, SpanV, ParameterU, ParameterV);
     }
 
     template <typename TWeights>
-    void ComputeAtSpan(const std::vector<double>& knots_u,
-        const std::vector<double>& knots_v, const int span_u, const int span_v,
-        const TWeights& weights, const double u, const double v)
+    void ComputeAtSpan(const std::vector<double>& rKnotsU,
+        const std::vector<double>& rKnotsV, const int SpanU, const int SpanV,
+        const TWeights& Weights, const double ParameterU,
+        const double ParameterV)
     {
         // compute B-Spline shape
 
-        ComputeAtSpan(knots_u, knots_v, span_u, span_v, u, v);
+        ComputeAtSpan(rKnotsU, rKnotsV, SpanU, SpanV, ParameterU, ParameterV);
 
         // apply weights
 
-        for (int shape = 0; shape < nb_shape_functions(); shape++) {
-            weighted_sum(shape) = double(0);
+        for (int shape = 0; shape < GetNbShapeFunctions(); shape++) {
+            GetWeightedSum(shape) = double(0);
 
-            for (int i = 0; i < nb_nonzero_poles_u(); i++) {
-                for (int j = 0; j < nb_nonzero_poles_v(); j++) {
-                    const int poleU = first_nonzero_pole_u() + i;
-                    const int poleV = first_nonzero_pole_v() + j;
+            for (int i = 0; i < GetNbNonzeroPolesU(); i++) {
+                for (int j = 0; j < GetNbNonzeroPolesV(); j++) {
+                    const int poleU = GetFirstNonzeroPoleU() + i;
+                    const int poleV = GetFirstNonzeroPoleV() + j;
 
-                    const double weight = weights(poleU, poleV);
-                    value(shape, i, j) *= weight;
-                    weighted_sum(shape) += value(shape, i, j);
+                    const double weight = Weights(poleU, poleV);
+                    GetValue(shape, i, j) *= weight;
+                    GetWeightedSum(shape) += GetValue(shape, i, j);
                 }
             }
         }
 
-        for (int k = 0; k <= order(); k++) {
-            for (int l = 0; l <= order() - k; l++) {
-                const int shape = shape_index(k, l);
+        for (int k = 0; k <= GetOrder(); k++) {
+            for (int l = 0; l <= GetOrder() - k; l++) {
+                const int shape = GetShapeIndex(k, l);
 
                 for (int j = 1; j <= l; j++) {
-                    const int index = shape_index(k, l - j);
+                    const int index = GetShapeIndex(k, l - j);
 
-                    double a = NurbsUtility::binom(l, j) * weighted_sum(0, j);
+                    double a = NurbsUtility::Binom(l, j) * GetWeightedSum(0, j);
 
                     for (int p = 0; p < GetNbNonzeroPoles(); p++) {
-                        value(shape, p) -= a * value(index, p);
+                        GetValue(shape, p) -= a * GetValue(index, p);
                     }
                 }
 
                 for (int i = 1; i <= k; i++) {
-                    const int index = shape_index(k - i, l);
+                    const int index = GetShapeIndex(k - i, l);
 
-                    double a = NurbsUtility::binom(k, i) * weighted_sum(i, 0);
+                    double a = NurbsUtility::Binom(k, i) * GetWeightedSum(i, 0);
 
                     for (int p = 0; p < GetNbNonzeroPoles(); p++) {
-                        value(shape, p) -= a * value(index, p);
+                        GetValue(shape, p) -= a * GetValue(index, p);
                     }
                 }
 
                 for (int i = 1; i <= k; i++) {
-                    const double a = NurbsUtility::binom(k, i);
+                    const double a = NurbsUtility::Binom(k, i);
 
                     for (int j = 1; j <= l; j++) {
-                        const int index = shape_index(k - i, l - j);
+                        const int index = GetShapeIndex(k - i, l - j);
 
-                        const double b = a * NurbsUtility::binom(l, j) *
-                            weighted_sum(i, j);
+                        const double b = a * NurbsUtility::Binom(l, j) *
+                            GetWeightedSum(i, j);
 
                         for (int p = 0; p < GetNbNonzeroPoles(); p++) {
-                            value(shape, p) -= b * value(index, p);
+                            GetValue(shape, p) -= b * GetValue(index, p);
                         }
                     }
                 }
 
                 for (int p = 0; p < GetNbNonzeroPoles(); p++) {
-                    value(shape, p) /= weighted_sum(0);
+                    GetValue(shape, p) /= GetWeightedSum(0);
                 }
             }
         }
     }
 
     template <typename TWeights>
-    void compute(const std::vector<double>& knots_u,
-        const std::vector<double>& knots_v, const TWeights& weights,
-        const double u, const double v)
+    void Compute(const std::vector<double>& rKnotsU,
+        const std::vector<double>& rKnotsV, const TWeights& Weights,
+        const double ParameterU, const double ParameterV)
     {
-        const int span_u = NurbsUtility::lower_span(degree_u(), knots_u, u);
-        const int span_v = NurbsUtility::lower_span(degree_v(), knots_v, v);
+        const int SpanU = NurbsUtility::GetLowerSpan(GetDegreeU(), rKnotsU, ParameterU);
+        const int SpanV = NurbsUtility::GetLowerSpan(GetDegreeV(), rKnotsV, ParameterV);
 
-        ComputeAtSpan(knots_u, knots_v, span_u, span_v, weights, u, v);
+        ComputeAtSpan(rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
     }
 }; // class NurbsSurfaceShapeFunction
 
