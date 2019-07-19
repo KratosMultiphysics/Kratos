@@ -1,9 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.ChimeraApplication
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.ChimeraApplication import RotateRegionProcess
-import os
 
 class ChimeraRotateRegionTest(UnitTest.TestCase):
     def setUp(self):

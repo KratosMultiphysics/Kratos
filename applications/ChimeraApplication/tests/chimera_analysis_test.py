@@ -1,8 +1,5 @@
 import time
-import os
-import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
-import KratosMultiphysics.ChimeraApplication as kchim
 try:
     import KratosMultiphysics.ExternalSolversApplication
     have_external_solvers = True
@@ -13,7 +10,6 @@ from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidCh
 from chimera_analysis_base_test import ChimeraAnalysisBaseTest
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class FlowOverCylinderMonolithic(ChimeraAnalysisBaseTest):
@@ -66,7 +62,7 @@ class FlowOverCrossMonolithic(ChimeraAnalysisBaseTest):
         work_folder = "flow_over_cross_monolithic"
         settings_file_name = "flow_over_cross_monolithic.json"
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            model_part = self._run_test(settings_file_name)
+            self._run_test(settings_file_name)
 
         end = time.clock()
         print("Time taken for flow over cross using monolithic solver ",end-start)

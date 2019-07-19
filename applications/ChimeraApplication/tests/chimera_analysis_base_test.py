@@ -3,15 +3,8 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ChimeraApplication
 from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-import os
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError:
-    have_external_solvers = False
 
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+have_external_solvers = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class ChimeraAnalysisBaseTest(UnitTest.TestCase):
