@@ -269,7 +269,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve() override
+    double Solve() override
     {
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
