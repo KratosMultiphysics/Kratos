@@ -69,7 +69,13 @@
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/mohr_coulomb_v1_model.hpp"
+#include "custom_models/plasticity_models/mohr_coulomb_non_associative_model.hpp"
 #include "custom_models/plasticity_models/tresca_model.hpp"
+#include "custom_models/plasticity_models/casm_associated_soil_model.hpp"
+#include "custom_models/plasticity_models/casm_mcc_soil_model.hpp"
+#include "custom_models/plasticity_models/casm_nubia_soil_model.hpp"
+#include "custom_models/plasticity_models/nonlocal_casm_mcc_soil_model.hpp"
+#include "custom_models/plasticity_models/nonlocal_casm_nubia_soil_model.hpp"
 
 
 namespace Kratos
@@ -301,7 +307,31 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "MohrCoulombV1Model")
       .def( py::init<>() )
       ;
+  py::class_< MohrCoulombNonAssociativeModel, typename MohrCoulombNonAssociativeModel::Pointer, ConstitutiveModelBaseType >
+      (m, "MohrCoulombNonAssociativeModel")
+      .def( py::init<>() )
+      ;
 
+  py::class_< CasmAssociatedSoilModel, typename CasmAssociatedSoilModel::Pointer, ConstitutiveModelBaseType >
+      (m, "CasmAssociatedSoilModel")
+      .def( py::init<>() )
+      ;
+  py::class_< CasmMCCSoilModel, typename CasmMCCSoilModel::Pointer, ConstitutiveModelBaseType >
+      (m, "CasmMCCSoilModel")
+      .def( py::init<>() )
+      ;
+  py::class_< CasmNubiaSoilModel, typename CasmNubiaSoilModel::Pointer, ConstitutiveModelBaseType >
+      (m, "CasmNubiaSoilModel")
+      .def( py::init<>() )
+      ;
+  py::class_< NonlocalCasmMCCSoilModel, typename NonlocalCasmMCCSoilModel::Pointer, ConstitutiveModelBaseType >
+      (m, "NonlocalCasmMCCSoilModel")
+      .def( py::init<>() )
+      ;
+  py::class_< NonlocalCasmNubiaSoilModel, typename NonlocalCasmNubiaSoilModel::Pointer, ConstitutiveModelBaseType >
+      (m, "NonlocalCasmNubiaSoilModel")
+      .def( py::init<>() )
+      ;
   py::class_< TrescaModel, typename TrescaModel::Pointer, ConstitutiveModelBaseType >
       (m, "TrescaModel")
       .def( py::init<>() )

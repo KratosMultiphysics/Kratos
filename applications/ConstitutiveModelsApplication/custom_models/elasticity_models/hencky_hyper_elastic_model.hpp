@@ -59,15 +59,16 @@ namespace Kratos
          ///@{
 
          /// Default constructor.
-         HenckyHyperElasticModel(): HyperElasticModel() {};
+         HenckyHyperElasticModel(): HyperElasticModel() {mSetStressState = false;};
 
          /// Copy constructor.
-         HenckyHyperElasticModel(HenckyHyperElasticModel const& rOther) : HyperElasticModel( rOther) {};
+         HenckyHyperElasticModel(HenckyHyperElasticModel const& rOther) : HyperElasticModel( rOther), mSetStressState(rOther.mSetStressState) {};
 
          /// Assignment operator.
          HenckyHyperElasticModel& operator=(HenckyHyperElasticModel const& rOther)
          {
             HyperElasticModel::operator=(rOther);
+            mSetStressState = rOther.mSetStressState;
             return *this;
          };
 
@@ -117,6 +118,62 @@ namespace Kratos
          ///@name Access
          ///@{
 
+         double &  GetValue( const Variable<double> & rThisVariable,
+               double & rValue) override
+         {
+            KRATOS_TRY
+
+            if ( rThisVariable == ELASTIC_JACOBIAN) 
+            {
+               MatrixType be;
+               be.clear();
+               be = ConstitutiveModelUtilities::VectorToSymmetricTensor( this->mHistoryVector, be);
+               rValue = MathUtils<double>::Det3( be);
+               rValue = sqrt(rValue);
+
+            }
+            return rValue;
+
+            KRATOS_CATCH("")
+         }
+
+         void SetValue( const Variable<double> & rThisVariable,
+               const double & rValue,
+               const ProcessInfo& rCurrentProcessInfo) override
+         {
+            KRATOS_TRY
+
+            if ( rThisVariable == ELASTIC_JACOBIAN )
+            {
+               MatrixType be;
+               be.clear();
+               be = ConstitutiveModelUtilities::VectorToSymmetricTensor( this->mHistoryVector, be);
+               double detBe = MathUtils<double>::Det3( be);
+               detBe = sqrt(detBe);
+               double JJ = pow( rValue/detBe, 2.0/3.0);
+               be *= JJ;
+               ConstitutiveModelUtilities::SymmetricTensorToVector( be, this->mHistoryVector);
+            }
+
+            KRATOS_CATCH("")
+         }
+
+         void SetValue( const Variable<Vector> & rThisVariable,
+               const Vector & rValue, 
+               const ProcessInfo& rCurrentProcessInfo) override
+         {
+            KRATOS_TRY
+
+            if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
+            {
+               mInitialStressState.resize(6);
+               noalias( mInitialStressState) = ZeroVector(6);
+               mInitialStressState = rValue;
+               mSetStressState = true;
+            }
+
+            KRATOS_CATCH("")
+         }
 
          ///@}
          ///@name Inquiry
@@ -164,6 +221,8 @@ namespace Kratos
          ///@name Protected member Variables
          ///@{
 
+        bool mSetStressState;
+        Vector mInitialStressState;
 
          ///@}
          ///@name Protected Operators
@@ -198,14 +257,14 @@ namespace Kratos
                EigenVectors.clear();
                EigenValues.clear();
 
-               MathUtils<double>::EigenSystem<3> ( rValues.StrainMatrix, EigenVectors, EigenValues);
+               MathUtils<double>::GaussSeidelEigenSystem<MatrixType,MatrixType> ( rValues.StrainMatrix, EigenVectors, EigenValues);
 
                rVariables.Strain.Matrix.clear();
                for (unsigned int i = 0; i < 3; i++)
                   rVariables.Strain.Matrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
 
-               rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, EigenVectors);
-               rVariables.Strain.Matrix = prod( trans(EigenVectors), rVariables.Strain.Matrix);
+               rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, trans(EigenVectors));
+               rVariables.Strain.Matrix = prod( EigenVectors, rVariables.Strain.Matrix);
 
 
                rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);

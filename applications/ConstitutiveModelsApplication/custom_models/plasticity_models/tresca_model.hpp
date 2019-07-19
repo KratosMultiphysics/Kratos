@@ -177,10 +177,6 @@ namespace Kratos
             {
                rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
             }
-            else if (rThisVariable==PRE_CONSOLIDATION_STRESS)
-            {
-               rValue = this->mInternal.Variables[3];
-            }
             else {
                rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
             }

@@ -1,24 +1,26 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                  LMonforte $
-//   Last modified by:    $Co-Author:                         $
+//   Last modified by:    $Co-Author:                 LHauser $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_MODEL_H_INCLUDED )
-#define  KRATOS_CAM_CLAY_MODEL_H_INCLUDED
+#if !defined(KRATOS_CASM_NUBIA_SOIL_MODEL_H_INCLUDED )
+#define      KRATOS_CASM_NUBIA_SOIL_MODEL_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/non_associative_plasticity_model.hpp"
-#include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
-#include "custom_models/plasticity_models/yield_surfaces/modified_cam_clay_yield_surface.hpp"
+#include "custom_models/plasticity_models/casm_base_soil_model.hpp"
+#include "custom_models/plasticity_models/hardening_rules/casm_hardening_rule.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/casm_yield_surface.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
+
+#include "custom_models/plasticity_models/yield_surfaces/plastic_potential/nubia_plastic_potential.hpp"
 
 namespace Kratos
 {
@@ -47,7 +49,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayModel : public NonAssociativePlasticityModel<BorjaModel, ModifiedCamClayYieldSurface<CamClayHardeningRule> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmNubiaSoilModel : public CasmBaseSoilModel<BorjaModel, CasmYieldSurface<CasmHardeningRule> >
    {
       public:
 
@@ -59,12 +61,12 @@ namespace Kratos
          typedef ElasticityModelType::Pointer                ElasticityModelPointer;
 
          //yield surface
-         typedef CamClayHardeningRule                             HardeningRuleType;
-         typedef ModifiedCamClayYieldSurface<HardeningRuleType>    YieldSurfaceType;
-         typedef YieldSurfaceType::Pointer                      YieldSurfacePointer;
+         typedef CasmHardeningRule                             HardeningRuleType;
+         typedef CasmYieldSurface<HardeningRuleType>           YieldSurfaceType;
+         typedef YieldSurfaceType::Pointer                     YieldSurfacePointer;
 
          //base type
-         typedef NonAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
+         typedef CasmBaseSoilModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
          //common types
          typedef BaseType::Pointer                         BaseTypePointer;
@@ -77,21 +79,25 @@ namespace Kratos
          typedef BaseType::InternalVariablesType     InternalVariablesType;
 
 
-         /// Pointer definition of CamClayModel
-         KRATOS_CLASS_POINTER_DEFINITION( CamClayModel );
+         /// Pointer definition of CasmNubiaSoilModel
+         KRATOS_CLASS_POINTER_DEFINITION( CasmNubiaSoilModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.
-         CamClayModel() : BaseType() {}
+         CasmNubiaSoilModel() : BaseType() {
+            NubiaPlasticPotential<CasmHardeningRule> Object;
+            YieldSurface<CasmHardeningRule>::Pointer pPlasticPotential = Object.Clone();
+            mYieldSurface = CasmYieldSurface<CasmHardeningRule>( pPlasticPotential);
+         }
 
          /// Copy constructor.
-         CamClayModel(CamClayModel const& rOther) : BaseType(rOther) {}
+         CasmNubiaSoilModel(CasmNubiaSoilModel const& rOther) : BaseType(rOther) {}
 
          /// Assignment operator.
-         CamClayModel& operator=(CamClayModel const& rOther)
+         CasmNubiaSoilModel& operator=(CasmNubiaSoilModel const& rOther)
          {
             BaseType::operator=(rOther);
             return *this;
@@ -100,11 +106,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return Kratos::make_shared<CamClayModel>(*this);
+            return Kratos::make_shared<CasmNubiaSoilModel>(*this);
          }
 
          /// Destructor.
-         ~CamClayModel() override {}
+         ~CasmNubiaSoilModel() override {}
 
 
          ///@}
@@ -145,32 +151,6 @@ namespace Kratos
             return false;
          }
 
-         /**
-          * Set Values
-          */
-         void SetValue(const Variable<double>& rVariable,
-                       const double& rValue,
-                       const ProcessInfo& rCurrentProcessInfo) override
-         {
-            KRATOS_TRY
-
-            if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
-               mInternal.Variables[4] = rValue;
-            }
-
-            KRATOS_CATCH("")
-         }
-
-         void SetValue(const Variable<Vector>& rVariable,
-                       const Vector& rValue,
-                       const ProcessInfo& rCurrentProcessInfo) override
-         {
-            KRATOS_TRY
-
-            BaseType::SetValue(rVariable, rValue, rCurrentProcessInfo);
-
-            KRATOS_CATCH("")
-         }
 
          /**
           * Get Values
@@ -178,27 +158,20 @@ namespace Kratos
          double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
          {
 
+            KRATOS_TRY
+
             rValue=0;
 
-            if (rThisVariable==PLASTIC_STRAIN)
+            if (rThisVariable==PLASTIC_VOL_DEF)
             {
-               rValue = this->mInternal.Variables[0];
-            }
-            else if (rThisVariable==DELTA_PLASTIC_STRAIN)
-            {
-               rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
-            }
-            else if (rThisVariable==PRE_CONSOLIDATION_STRESS)
-            {
-               rValue = this->mInternal.Variables[3];
-            }
-            else if ( rThisVariable == YOUNG_MODULUS) {
-               rValue = 1e4;
+               rValue = this->mInternal.Variables[1];
             }
             else {
-               rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
+               rValue = CasmBaseSoilModel::GetValue( rThisVariable, rValue);
             }
             return rValue;
+
+            KRATOS_CATCH("")
          }
 
          ///@}
@@ -214,20 +187,20 @@ namespace Kratos
          std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "CamClayModel" ;
+            buffer << "CasmNubiaSoilModel" ;
             return buffer.str();
          }
 
          /// Print information about this object.
          void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "CamClayModel";
+            rOStream << "CasmNubiaSoilModel";
          }
 
          /// Print object's data.
          void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "CamClayModel Data";
+            rOStream << "CasmNubiaSoilModel Data";
          }
 
 
@@ -327,7 +300,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class CamClayModel
+   }; // Class CasmNubiaSoilModel
 
    ///@}
 
@@ -352,4 +325,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_MODEL_H_INCLUDED  defined
+#endif // KRATOS_CASM_NUBIA_SOIL_MODEL_H_INCLUDED  defined

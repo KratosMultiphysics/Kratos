@@ -89,9 +89,6 @@ namespace Kratos
     ///@name Access
     ///@{
 
-    void SetValue( const Variable<Vector> & rThisVariable, 
-          const Vector & rValue,
-          const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -189,9 +186,6 @@ namespace Kratos
     ///@{
 
 
-    bool mSetStressState;
-    Vector mInitialStressState;
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -259,5 +253,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_HENCKY_LINEAR_MODEL_H_INCLUDED  defined
-
-

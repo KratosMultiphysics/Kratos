@@ -43,6 +43,9 @@ def AssignMaterial(Properties):
 *elseif(strcmp(MatProp(Type),"SaniSand")==0)
     model = SanisandSmallStrainUmatModel()
     mat = *MatProp(DIMENSION_OF_THE_PROBLEM)(model)
+*elseif(strcmp(MatProp(Type),"MohrCoulomb")==0)
+    model = MohrCoulombNonAssociativeModel()
+    mat = *MatProp(DIMENSION_OF_THE_PROBLEM)(model)
 *else
     mat = *MatProp(CONSTITUTIVE_LAW_NAME)()
 *endif

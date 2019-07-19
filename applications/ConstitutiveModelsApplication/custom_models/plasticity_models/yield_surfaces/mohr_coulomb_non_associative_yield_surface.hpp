@@ -7,17 +7,18 @@
 //
 //
 
-#if !defined(KRATOS_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED )
-#define      KRATOS_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_NON_ASSO_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED )
+#define      KRATOS_NON_ASSO_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/non_associative_yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
 #include "custom_utilities/shape_deviatoric_plane_utilities.hpp"
+//#include "custom_utilities/shape_deviatoric_plane_matsuoka_utilities.hpp"
 
 namespace Kratos
 {
@@ -47,7 +48,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MohrCoulombV1YieldSurface : public YieldSurface<THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MohrCoulombNonAssociativeYieldSurface : public NonAssociativeYieldSurface<THardeningRule>
   {    
   public:
 
@@ -59,26 +60,31 @@ namespace Kratos
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
 
-    typedef YieldSurface<THardeningRule>                                 BaseType;
-    typedef typename BaseType::Pointer                            BaseTypePointer;
+    typedef NonAssociativeYieldSurface<THardeningRule>                   BaseType;
+    typedef typename YieldSurface<THardeningRule>::Pointer        BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
 
-    /// Pointer definition of MohrCoulombV1YieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( MohrCoulombV1YieldSurface );
+    /// Pointer definition of MohrCoulombNonAssociativeYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( MohrCoulombNonAssociativeYieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MohrCoulombV1YieldSurface() : BaseType() {}
+    MohrCoulombNonAssociativeYieldSurface() : BaseType() {}
+
+    /// Default constructor.
+    MohrCoulombNonAssociativeYieldSurface(BaseTypePointer const & rpPlasticPotential) : 
+       BaseType(rpPlasticPotential) {}
 
     /// Copy constructor.
-    MohrCoulombV1YieldSurface(MohrCoulombV1YieldSurface const& rOther) : BaseType(rOther) {}
+    MohrCoulombNonAssociativeYieldSurface(MohrCoulombNonAssociativeYieldSurface const& rOther) : 
+         BaseType(rOther) {}
 
 
     /// Assignment operator.
-    MohrCoulombV1YieldSurface& operator=(MohrCoulombV1YieldSurface const& rOther)
+    MohrCoulombNonAssociativeYieldSurface& operator=(MohrCoulombNonAssociativeYieldSurface const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
@@ -87,11 +93,11 @@ namespace Kratos
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new MohrCoulombV1YieldSurface(*this));
+      return BaseTypePointer(new MohrCoulombNonAssociativeYieldSurface(*this));
     }
 
     /// Destructor.
-    virtual ~MohrCoulombV1YieldSurface() {}
+    virtual ~MohrCoulombNonAssociativeYieldSurface() {}
 
 
     ///@}
@@ -128,7 +134,10 @@ namespace Kratos
 
       double K, dKdAngle;
       ShapeAtDeviatoricPlaneUtility::CalculateKLodeCoefficients( K, dKdAngle, LodeAngle, rFriction);
-      rYieldCondition = MeanStress * std::sin( Friction) + J2 * K - rCohesion * std::cos( Friction );
+      //rYieldCondition = MeanStress * std::sin( Friction) + J2 * K - rCohesion * std::cos( Friction );
+
+      double a = 1.0;
+      rYieldCondition = MeanStress * std::sin(Friction) + sqrt(  pow(J2*K, 2) + pow( a * std::sin(Friction), 2) ) - rCohesion * std::cos( Friction);
 
 
 
@@ -170,13 +179,13 @@ namespace Kratos
       double A1, A2, A3;
       A1 = sin( Friction);
       A2 = K - dKdAngle * std::tan( 3.0 * LodeAngle);
-      A3 = -sqrt(3)*dKdAngle;
       A3 = 2.0 * pow(J2, 2) * std::cos( 3.0 * LodeAngle);
       if ( fabs(A3) > 1e-12) {
             A3 = -sqrt(3)*dKdAngle/A3;
       } else {
          A3 = 0;
       }
+
 
       double a = 1.0;
       double alpha = sqrt( pow(J2*K, 2) + pow( a * std::sin(Friction), 2) );
@@ -189,11 +198,12 @@ namespace Kratos
       rDeltaStressYieldCondition  = A1 * V1 + A2 * V2 + A3 *V3 ;
 
       /*std::cout << " p "  << MeanStress << " J2 " << J2 << " LodeAngle " << LodeAngle * 180.0/Globals::Pi << std::endl;
+      std::cout << " K " << K << " deri " << dKdAngle << " alpha " << alpha <<  std::endl;
       std::cout << " A1 " << A1 << " V1 " << V1 << std::endl;
       std::cout << " A2 " << A2 << " V2 " << V2 << std::endl;
       std::cout << " A3 " << A3 << " V3 " << V3 << std::endl;
-      std::cout << "                                                   SO: " << rDeltaStressYieldCondition << std::endl;
-*/
+      std::cout << "                                                   SO: " << rDeltaStressYieldCondition << std::endl;*/
+
 
       return rDeltaStressYieldCondition;
 
@@ -333,7 +343,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class MohrCoulombV1YieldSurface
+  }; // Class MohrCoulombNonAssociativeV1YieldSurface
 
   ///@}
 
@@ -352,6 +362,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED  defined 
+#endif // KRATOS_NON_ASSO_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED  defined 
 
 

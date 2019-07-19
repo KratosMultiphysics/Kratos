@@ -1,21 +1,21 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
-//   Created by:          $Author:                  LMonforte $
+//   Created by:          $Author:                    LHauser $
 //   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_BORJA_MODEL_H_INCLUDED )
-#define  KRATOS_BORJA_MODEL_H_INCLUDED
+#if !defined(KRATOS_CASM_HARDENING_RULE_H_INCLUDED )
+#define      KRATOS_CASM_HARDENING_RULE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hencky_hyper_elastic_model.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -44,36 +44,38 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BorjaModel : public HenckyHyperElasticModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmHardeningRule : public HardeningRule
   {
+  protected:
+
+    constexpr static std::size_t VarSize = 10;
+    
   public:
+    
+    typedef InternalVariables<VarSize>   InternalVariablesType;
+    typedef PlasticModelData<VarSize>          PlasticDataType;
 
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of BorjaModel
-    KRATOS_CLASS_POINTER_DEFINITION( BorjaModel );
+    /// Pointer definition of CasmHardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( CasmHardeningRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    BorjaModel();
+    CasmHardeningRule();
 
     /// Copy constructor.
-    BorjaModel(BorjaModel const& rOther);
+    CasmHardeningRule(CasmHardeningRule const& rOther);
 
     /// Assignment operator.
-    BorjaModel& operator=(BorjaModel const& rOther);
+    CasmHardeningRule& operator=(CasmHardeningRule const& rOther);
 
     /// Clone.
-    ConstitutiveModel::Pointer Clone() const override;
-
+    virtual HardeningRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~BorjaModel() override;
-
+    ~CasmHardeningRule();
 
     ///@}
     ///@name Operators
@@ -84,9 +86,25 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+
+    /**
+     * Calculate Hardening functions
+     */
+
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //do not override -> it must hide the method
+
+    /**
+     * Calculate Hardening function derivatives
+     */
+
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //do not override -> it must hide the method
+
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening, const MatrixType & rPlasticPotentialDerivative); //do not override -> it must hide the method
+
     ///@}
     ///@name Access
     ///@{
+
 
     ///@}
     ///@name Inquiry
@@ -98,24 +116,24 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "BorjaModel";
-        return buffer.str();
+      std::stringstream buffer;
+      buffer << "CasmHardeningRule" ;
+      return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "BorjaModel";
+      rOStream << "CasmHardeningRule";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "BorjaModel Data";
-    }
+      rOStream << "CasmHardeningRule Data";
+    }    
 
 
     ///@}
@@ -129,79 +147,54 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Calculate Stresses
-     */
-    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
-
-    /**
-     * Calculate Constitutive Tensor
-     */
-    void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
-
-    /**
-      * Calculate some strain invariants
-      */
-    void SeparateVolumetricAndDeviatoricPart( const MatrixType& rA, double & rVolumetric, MatrixType& rDev, double & devNorm);
-
-    void SetStressState( MatrixType & rHenckyStrain, const double & rReferencePressure, const double & rSwellingSlope, const double & rAlphaShear, const double & rG0);
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
 
   private:
-
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    using HardeningRule::CalculateHardening;
+    using HardeningRule::CalculateDeltaHardening;
 
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Serialization
@@ -209,14 +202,14 @@ namespace Kratos
     friend class Serializer;
 
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyHyperElasticModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyHyperElasticModel )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
 
     ///@}
@@ -228,9 +221,10 @@ namespace Kratos
     ///@name Un accessible methods
     ///@{
 
+
     ///@}
 
-  }; // Class BorjaModel
+  }; // Class CasmHardeningRule
 
   ///@}
 
@@ -249,6 +243,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined
+#endif // KRATOS_CASM_HARDENING_RULE_H_INCLUDED  defined 
 
 

@@ -149,6 +149,54 @@ namespace Kratos
 
 
     /**
+     * Calculate Yield Condition Stresses Invariant derivative
+     */
+
+    virtual VectorType& CalculateDeltaStressInvYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressInvYieldCondition)
+    {
+      KRATOS_TRY
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
+
+      return rDeltaStressInvYieldCondition;
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    /**
+     * Calculate Plastic Potential Stresses derivative
+     */
+
+    virtual VectorType& CalculateDeltaPlasticPotential(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition)
+    {
+      KRATOS_TRY
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
+
+      return rDeltaStressYieldCondition;
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    /**
+     * Calculate Plastic Potential Stresses derivative
+     */
+
+    virtual VectorType& CalculateDeltaStressInvPlasticPotential(const PlasticDataType& rVariables, VectorType& rDeltaStressInvYieldCondition)
+    {
+      KRATOS_TRY
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
+
+      return rDeltaStressInvYieldCondition;
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    /**
      * Calculate State Function
      */
 

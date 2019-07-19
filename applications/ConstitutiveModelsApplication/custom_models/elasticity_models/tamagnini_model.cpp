@@ -28,14 +28,13 @@ namespace Kratos
    TamagniniModel::TamagniniModel()
       : BorjaModel()
    {
-      mSetStressState = false;
    }
 
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
    TamagniniModel::TamagniniModel(const TamagniniModel& rOther)
-      : BorjaModel( rOther ), mSetStressState(rOther.mSetStressState)
+      : BorjaModel( rOther )
    {
    }
 
@@ -52,7 +51,6 @@ namespace Kratos
    TamagniniModel& TamagniniModel::operator=(TamagniniModel const& rOther)
    {
       BorjaModel::operator=(rOther);
-      mSetStressState = rOther.mSetStressState;
       return *this;
    }
 
@@ -86,15 +84,15 @@ namespace Kratos
       MatrixType HenckyStrain(3,3);
       HenckyStrain  = rVariables.Strain.Matrix;
 
-      if ( mSetStressState )
+      if ( this->mSetStressState )
       {
-         mSetStressState = false;
+         this->mSetStressState = false;
          SetStressState( HenckyStrain, rYoungModulus, rPoissonRatio);
       }
 
 
 
-      double BulkModulus = rYoungModulus / 3.0 / ( 1.0 - 2.0 * rPoissonRatio); 
+      double BulkModulus = rYoungModulus / 3.0 / ( 1.0 - 2.0 * rPoissonRatio);
       double SwellingSlope = rReferencePressure / BulkModulus;
       double ConstantShearModulus = rYoungModulus / 2.0 / ( 1.0 + rPoissonRatio);
 
@@ -109,7 +107,7 @@ namespace Kratos
 
       // 3.a Compute Deviatoric Part
       rStressMatrix.clear();
-      double Phi = 1;
+      double Phi = 1.0;
 
 
       if ( -VolumetricHencky > SwellingSlope) {
@@ -121,7 +119,7 @@ namespace Kratos
 
 
       // 3.b Compute Volumetric Part
-      double Theta = 1; 
+      double Theta = 1;
       if ( -VolumetricHencky > SwellingSlope) {
          Theta = -rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
@@ -129,7 +127,7 @@ namespace Kratos
       }
 
 
-      double Pressure = ( 1 + rAlphaShear * pow(deviatoricNorm, 2) / SwellingSlope) * Theta;
+      double Pressure = ( 1.0 + rAlphaShear * pow(deviatoricNorm, 2) / SwellingSlope) * Theta;
 
       for (unsigned int i = 0; i< 3; i++)
          rStressMatrix(i,i) += Pressure;
@@ -156,7 +154,7 @@ namespace Kratos
       const double & rPoissonRatio = rMaterialProperties[POISSON_RATIO];
       const double & rReferencePressure = rMaterialProperties[REFERENCE_PRESSURE];
 
-      double BulkModulus = rYoungModulus / 3.0 / ( 1.0 - 2.0 * rPoissonRatio); 
+      double BulkModulus = rYoungModulus / 3.0 / ( 1.0 - 2.0 * rPoissonRatio);
       double SwellingSlope = rReferencePressure / BulkModulus;
       double ConstantShearModulus = rYoungModulus / 2.0 / ( 1.0 + rPoissonRatio);
 
@@ -187,19 +185,19 @@ namespace Kratos
 
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);
 
-      double Phi = 1;
+      double Phi = 1.0;
       if ( -VolumetricHencky > SwellingSlope) {
          Phi = -SwellingSlope * rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
          Phi = -rReferencePressure * VolumetricHencky - rReferencePressure * pow( VolumetricHencky - SwellingSlope, 2) / 2.0 / SwellingSlope;
       }
-      double Theta = 1; 
+      double Theta = 1;
       if ( -VolumetricHencky > SwellingSlope) {
          Theta = -rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
          Theta = -rReferencePressure * ( -VolumetricHencky / SwellingSlope);
       }
-      double K = 1; 
+      double K = 1;
       if ( -VolumetricHencky > SwellingSlope) {
          K = rReferencePressure / SwellingSlope  * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
@@ -207,7 +205,7 @@ namespace Kratos
       }
 
       // bulk modulus part
-      rConstitutiveMatrix = ( 1 + rAlphaShear / SwellingSlope * pow(deviatoricNorm,2.0) ) * K * IdentityCross;
+      rConstitutiveMatrix = ( 1.0 + rAlphaShear / SwellingSlope * pow(deviatoricNorm, 2) ) * K * IdentityCross;
 
       // Shear modulus part
       rConstitutiveMatrix += 2.0*(  ConstantShearModulus + rAlphaShear / SwellingSlope * Phi) *(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
@@ -216,12 +214,12 @@ namespace Kratos
       Vector StrainVector = ZeroVector(6);
       StrainVector = ConstitutiveModelUtilities::StressTensorToVector( DeviatoricHencky, StrainVector); // then I do not have to divide by 2
 
-      double Modulus = 2.0 * rAlphaShear / SwellingSlope * Theta; 
+      double Modulus = 2.0 * rAlphaShear / SwellingSlope * Theta;
 
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
-            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(i) ); 
-            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(j) ); 
+            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(i) );
+            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(j) );
          }
       }
 
@@ -243,23 +241,6 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   // ***************************************************************************
-   // Set Value (Vector)
-   void TamagniniModel::SetValue( const Variable<Vector> & rThisVariable, const Vector & rValue, const ProcessInfo& rCurrentProcessInfo)
-   {
-      KRATOS_TRY
-
-      if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
-      {
-         mInitialStressState.resize(6);
-         noalias( mInitialStressState) = ZeroVector(6);
-         mInitialStressState = rValue;
-         mSetStressState = true;
-
-      }
-
-      KRATOS_CATCH("")
-   }
 
    // *********************************************************************************
    // Set Stress state
@@ -271,7 +252,7 @@ namespace Kratos
       noalias( StressMat) = ZeroMatrix(3,3);
 
       for (int i = 0; i < 3; ++i)
-         StressMat(i,i) = mInitialStressState(i);
+         StressMat(i,i) = this->mInitialStressState(i);
 
 
       Vector EigenStress(3);
@@ -283,8 +264,7 @@ namespace Kratos
       noalias( OriginalHencky) = ZeroMatrix(3,3);
       OriginalHencky = rHenckyStrain;
 
-      //SolidMechanicsMathUtilities<double>::EigenVectors( StressMat, EigenV, EigenStress);
-      MathUtils<double>::EigenSystem<3> ( StressMat, EigenV, EigenStressM);
+      MathUtils<double>::GaussSeidelEigenSystem<MatrixType,MatrixType> ( StressMat, EigenV, EigenStressM);
       for (unsigned int i = 0; i < 3; i++)
          EigenStress(i) = EigenStressM(i,i);
 
@@ -318,11 +298,11 @@ namespace Kratos
          rHenckyStrain(i,i) = ElasticHenckyStrain(i);
       }
 
-      noalias( ElasticLeftCauchy ) = prod( trans( EigenV), ElasticLeftCauchy);
-      noalias( ElasticLeftCauchy )  = prod( ElasticLeftCauchy, (EigenV) );
+      noalias( ElasticLeftCauchy ) = prod( EigenV, ElasticLeftCauchy);
+      noalias( ElasticLeftCauchy )  = prod( ElasticLeftCauchy, trans(EigenV) );
 
-      noalias( rHenckyStrain ) = prod( trans(EigenV), rHenckyStrain);
-      noalias( rHenckyStrain ) = prod( rHenckyStrain, EigenV);
+      noalias( rHenckyStrain ) = prod( EigenV, rHenckyStrain);
+      noalias( rHenckyStrain ) = prod( rHenckyStrain, trans(EigenV) );
 
       rHenckyStrain += OriginalHencky;
 

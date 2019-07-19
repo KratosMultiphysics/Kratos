@@ -17,7 +17,7 @@
 // Project includes
 #include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
-#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_utilities.hpp"
 
 namespace Kratos
 {
@@ -117,7 +117,7 @@ namespace Kratos
       // Material Parameters
       const Properties& rProperties = rModelData.GetProperties();
       const double& rShearM = rProperties[CRITICAL_STATE_LINE];
-      //const double & rFriction = rProperties[INTERNAL_FRICTION_ANGLE];
+      const double & rFriction = rProperties[INTERNAL_FRICTION_ANGLE];
 
 
       // compute something with the hardening rule
@@ -132,7 +132,12 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
-      rYieldCondition  = pow( DeviatoricQ/rShearM, 2);
+      double ThirdInvariantEffect = 1.0;
+      if ( rFriction > 0.0) 
+         ThirdInvariantEffect = ShapeAtDeviatoricPlaneUtility::EvaluateEffectDueToThirdInvariant( ThirdInvariantEffect, LodeAngle, rFriction);
+
+
+      rYieldCondition  = pow( ThirdInvariantEffect * DeviatoricQ/rShearM, 2);
       rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 
 
@@ -155,6 +160,7 @@ namespace Kratos
       // Material Parameters
       const Properties& rProperties = rModelData.GetProperties();
       const double& rShearM = rProperties[CRITICAL_STATE_LINE];
+      const double & rFriction = rProperties[INTERNAL_FRICTION_ANGLE];
 
       // compute something with the hardening rule
       double PreconsolidationStress;
@@ -163,12 +169,27 @@ namespace Kratos
 
       double MeanStress, J2, LodeAngle;
 
-      VectorType V1, V2;
+      VectorType V1, V2, V3;
       // more work is requiered
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
-      StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
+      StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2, V3);
 
-      rDeltaStressYieldCondition  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( 1.0 / rShearM, 2) * J2 * V2;
+      double ThirdInvariantEffect(1), DerivativeEffect(0);
+      if ( rFriction > 0.0)
+         ShapeAtDeviatoricPlaneUtility::CalculateKLodeCoefficients( ThirdInvariantEffect, DerivativeEffect, LodeAngle, rFriction);
+
+      rDeltaStressYieldCondition  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( ThirdInvariantEffect / rShearM, 2) * J2 * V2;
+
+      if ( rFriction > 0.0 && J2 > 1E-6) 
+      {
+         double Term = pow( sqrt(3.0)*J2/rShearM, 2) * ThirdInvariantEffect *2.0* DerivativeEffect;
+
+         double C2 = - std::tan(3.0*LodeAngle) / J2 * Term;
+         double C3 = - sqrt(3.0) / 2.0/ pow(J2, 3) / std::cos(3.0*LodeAngle) * Term;
+
+         rDeltaStressYieldCondition += C2*V2 + C3*V3;
+
+      }
 
       return rDeltaStressYieldCondition;
 

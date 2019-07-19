@@ -48,7 +48,7 @@ namespace Kratos
   {
   protected:
 
-    constexpr static std::size_t VarSize = 5;
+    constexpr static std::size_t VarSize = 10;
 
   public:
 
@@ -99,6 +99,7 @@ namespace Kratos
 
     virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening);
 
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening, const MatrixType & rPlasticPotentialDerivative); //do not override -> it must hide the method
 
     ///@}
     ///@name Access

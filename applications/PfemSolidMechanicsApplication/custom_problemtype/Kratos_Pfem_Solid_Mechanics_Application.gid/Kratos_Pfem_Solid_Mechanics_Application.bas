@@ -207,6 +207,31 @@ End Properties
 *endif
 *end materials
 *loop materials
+*if(strcmp(MatProp(Type),"MohrCoulomb")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ COHESION *MatProp(COHESION,real)
+*format "%10.5e"
+ INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
+*format "%10.5e"
+ DILATANCY_ANGLE *MatProp(DILATANCY_ANGLE,real)
+*format "%10.5e"
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+End Properties
+
+
+*endif
+*end materials
+*loop materials
 *if(strcmp(MatProp(Type),"GensNovaPlasticity")==0)
 *format "%i"
 Begin Properties *MatNum

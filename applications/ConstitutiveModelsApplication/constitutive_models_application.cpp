@@ -64,12 +64,19 @@ void KratosConstitutiveModelsApplication::Register() {
   KRATOS_REGISTER_VARIABLE(PRESSURE_VARIABLE)
   KRATOS_REGISTER_VARIABLE(PROPERTIES_LAYOUT)
 
+   KRATOS_REGISTER_VARIABLE( DILATANCY_ANGLE )
    KRATOS_REGISTER_VARIABLE( RHOS )   
    KRATOS_REGISTER_VARIABLE( RHOT )   
    KRATOS_REGISTER_VARIABLE( KSIM )   
    KRATOS_REGISTER_VARIABLE( CHIS )   
    KRATOS_REGISTER_VARIABLE( CHIT )   
    KRATOS_REGISTER_VARIABLE( REFERENCE_PRESSURE )   
+
+   KRATOS_REGISTER_VARIABLE( CASM_M )
+   KRATOS_REGISTER_VARIABLE( ELASTIC_JACOBIAN )
+
+   KRATOS_REGISTER_VARIABLE( SPACING_RATIO )
+   KRATOS_REGISTER_VARIABLE( SHAPE_PARAMETER )
 
    KRATOS_REGISTER_VARIABLE( PS )   
    KRATOS_REGISTER_VARIABLE( PT )   
@@ -84,6 +91,8 @@ void KratosConstitutiveModelsApplication::Register() {
    KRATOS_REGISTER_VARIABLE( PLASTIC_DEV_DEF )   
    KRATOS_REGISTER_VARIABLE( NONLOCAL_PLASTIC_DEV_DEF )   
 
+   KRATOS_REGISTER_VARIABLE( MAX_IMPLEX_PLASTIC_MULTIPLIER )
+   KRATOS_REGISTER_VARIABLE( NORMALIZE_FLOW_RULE )
   //specific constitutive models variables must be REGISTERED here
 
   //Register Constitutive Laws
@@ -144,7 +153,13 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "NonlocalV2GensNovaModel", mNonlocalV2GensNovaModel );
   Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
   Serializer::Register( "MohrCoulombV1Model", mMohrCoulombV1Model );
+  Serializer::Register( "MohrCoulombNonAssociativeModel", mMohrCoulombNonAssociativeModel );
   Serializer::Register( "TrescaModel", mTrescaModel );
+  Serializer::Register( "CasmAssociatedSoilModel", mCasmAssociatedSoilModel );
+  Serializer::Register( "CasmMCCSoilModel", mCasmMCCSoilModel );
+  Serializer::Register( "CasmNubiaSoilModel", mCasmNubiaSoilModel );
+  Serializer::Register( "NonlocalCasmMCCSoilModel", mNonlocalCasmMCCSoilModel );
+  Serializer::Register( "NonlocalCasmNubiaSoilModel", mNonlocalCasmNubiaSoilModel );
 
   //yield criteria
   Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
@@ -153,6 +168,7 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "ModifiedMisesYieldSurface", mModifiedMisesYieldSurface );
   Serializer::Register( "ModifiedCamClayYieldSurface", mModifiedCamClayYieldSurface );
   Serializer::Register( "MohrCoulombV1YieldSurface", mMohrCoulombV1YieldSurface );
+  Serializer::Register( "MohrCoulombNonAssociativeYieldSurface", mMohrCoulombNonAssociativeYieldSurface );
   Serializer::Register( "TrescaYieldSurface", mTrescaYieldSurface );
 
   //hardening rules

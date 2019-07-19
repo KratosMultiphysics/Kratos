@@ -71,20 +71,6 @@ namespace Kratos
     KRATOS_TRY
 
 
-    const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetProperties();
-
-    // get values
-    const double & rVolumetricPlasticDeformation = rVariables.GetInternalVariables()[1];
-
-    // Set constitutive parameters
-    const double & rFirstPreconsolidationPressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
-
-
-    rHardening = -rFirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(rOtherSlope-rSwellingSlope)) ) ;
-
     KRATOS_ERROR << " you should not be here " << std::endl;
     return rHardening;
 	

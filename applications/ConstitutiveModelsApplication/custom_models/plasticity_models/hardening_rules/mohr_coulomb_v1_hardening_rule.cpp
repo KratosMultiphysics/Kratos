@@ -17,80 +17,89 @@
 namespace Kratos
 {
 
-  //*******************************CONSTRUCTOR******************************************
-  //************************************************************************************
+   //*******************************CONSTRUCTOR******************************************
+   //************************************************************************************
 
-  MohrCoulombV1HardeningRule::MohrCoulombV1HardeningRule()
-    :HardeningRule()
-  {
-  }
-
-
-  //*******************************ASSIGMENT OPERATOR***********************************
-  //************************************************************************************
-
-  MohrCoulombV1HardeningRule& MohrCoulombV1HardeningRule::operator=(MohrCoulombV1HardeningRule const& rOther)
-  {
-    HardeningRule::operator=(rOther);
-    return *this;
-  }
-
-  //*******************************COPY CONSTRUCTOR*************************************
-  //************************************************************************************
-
-  MohrCoulombV1HardeningRule::MohrCoulombV1HardeningRule(MohrCoulombV1HardeningRule const& rOther)
-    :HardeningRule(rOther)
-  {
-
-  }
+   MohrCoulombV1HardeningRule::MohrCoulombV1HardeningRule()
+      :HardeningRule()
+   {
+   }
 
 
-  //********************************CLONE***********************************************
-  //************************************************************************************
+   //*******************************ASSIGMENT OPERATOR***********************************
+   //************************************************************************************
 
-  HardeningRule::Pointer MohrCoulombV1HardeningRule::Clone() const
-  {
-    return Kratos::make_shared<MohrCoulombV1HardeningRule>(*this);
-  }
+   MohrCoulombV1HardeningRule& MohrCoulombV1HardeningRule::operator=(MohrCoulombV1HardeningRule const& rOther)
+   {
+      HardeningRule::operator=(rOther);
+      return *this;
+   }
 
+   //*******************************COPY CONSTRUCTOR*************************************
+   //************************************************************************************
 
-  //********************************DESTRUCTOR******************************************
-  //************************************************************************************
+   MohrCoulombV1HardeningRule::MohrCoulombV1HardeningRule(MohrCoulombV1HardeningRule const& rOther)
+      :HardeningRule(rOther)
+   {
 
-  MohrCoulombV1HardeningRule::~MohrCoulombV1HardeningRule()
-  {
-  }
-
-  /// Operations.
-
-  //*******************************CALCULATE TOTAL HARDENING****************************
-  //************************************************************************************
-
-  double& MohrCoulombV1HardeningRule::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
-  {
-    KRATOS_TRY
+   }
 
 
-    rHardening = 0;
-    return rHardening;
+   //********************************CLONE***********************************************
+   //************************************************************************************
 
-    KRATOS_CATCH(" ")
-  }
+   HardeningRule::Pointer MohrCoulombV1HardeningRule::Clone() const
+   {
+      return Kratos::make_shared<MohrCoulombV1HardeningRule>(*this);
+   }
+
+
+   //********************************DESTRUCTOR******************************************
+   //************************************************************************************
+
+   MohrCoulombV1HardeningRule::~MohrCoulombV1HardeningRule()
+   {
+   }
+
+   /// Operations.
+
+   //*******************************CALCULATE TOTAL HARDENING****************************
+   //************************************************************************************
+
+   double& MohrCoulombV1HardeningRule::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
+   {
+      KRATOS_TRY
+
+
+      rHardening = 0;
+      return rHardening;
+
+      KRATOS_CATCH(" ")
+   }
 
 
 
-  //*******************************CALCULATE HARDENING DERIVATIVE***********************
-  //************************************************************************************
+   //*******************************CALCULATE HARDENING DERIVATIVE***********************
+   //************************************************************************************
 
-  double& MohrCoulombV1HardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
-  {
-    KRATOS_TRY
+   double& MohrCoulombV1HardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
+   {
+      KRATOS_TRY
 
       rDeltaHardening = 0;
-    return rDeltaHardening;
+      return rDeltaHardening;
 
-    KRATOS_CATCH(" ")
-  }
+      KRATOS_CATCH(" ")
+   }
 
+   //*******************************CALCULATE HARDENING DERIVATIVE***********************
+   //************************************************************************************
+   double& MohrCoulombV1HardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening, const MatrixType & rPlasticPotentialDerivative)
+   {
+      KRATOS_TRY
 
+      rDeltaHardening = 0;
+      return rDeltaHardening;
+      KRATOS_CATCH(" ")
+   }
 }  // namespace Kratos.

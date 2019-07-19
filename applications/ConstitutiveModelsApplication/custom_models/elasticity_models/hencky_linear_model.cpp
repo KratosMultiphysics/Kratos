@@ -24,14 +24,13 @@ namespace Kratos
    HenckyLinearModel::HenckyLinearModel()
       : HenckyHyperElasticModel()
    {
-      mSetStressState = false;
    }
 
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
    HenckyLinearModel::HenckyLinearModel(const HenckyLinearModel& rOther)
-      : HenckyHyperElasticModel( rOther ), mSetStressState( rOther.mSetStressState)
+      : HenckyHyperElasticModel( rOther )
    {
    }
 
@@ -48,7 +47,6 @@ namespace Kratos
    HenckyLinearModel& HenckyLinearModel::operator=(HenckyLinearModel const& rOther)
    {
       HenckyHyperElasticModel::operator=(rOther);
-      mSetStressState = rOther.mSetStressState;
       return *this;
    }
 
@@ -110,9 +108,9 @@ namespace Kratos
       MatrixType HenckyStrain(3,3);
       HenckyStrain = rVariables.Strain.Matrix;
 
-      if ( mSetStressState )
+      if ( this->mSetStressState )
       {
-         mSetStressState = false;
+         this->mSetStressState = false;
          SetStressState( HenckyStrain, rYoungModulus, rPoissonRatio);
       }
 
@@ -126,7 +124,7 @@ namespace Kratos
 
       // 3.a Compute Deviatoric Part
       rStressMatrix.clear();
-      rStressMatrix += DeviatoricHencky * 2 * ShearModulus;
+      rStressMatrix += DeviatoricHencky * 2.0 * ShearModulus;
 
       // 3.b Compute Volumetric Part
       double pressure = VolumetricHencky * BulkModulus;
@@ -178,23 +176,6 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   // ***************************************************************************
-   // Set Value (Vector)
-   void HenckyLinearModel::SetValue( const Variable<Vector> & rThisVariable, const Vector & rValue, const ProcessInfo& rCurrentProcessInfo)
-   {
-      KRATOS_TRY
-
-      if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
-      {
-         mInitialStressState.resize(6);
-         noalias( mInitialStressState) = ZeroVector(6);
-         mInitialStressState = rValue;
-         mSetStressState = true;
-
-      }
-
-      KRATOS_CATCH("")
-   }
 
    // *********************************************************************************
    // Set Stress state
@@ -206,7 +187,7 @@ namespace Kratos
       noalias( StressMat) = ZeroMatrix(3,3);
 
       for (int i = 0; i < 3; ++i)
-         StressMat(i,i) = mInitialStressState(i);
+         StressMat(i,i) = this->mInitialStressState(i);
 
 
       Vector EigenStress(3);
@@ -219,7 +200,7 @@ namespace Kratos
       OriginalHencky = rHenckyStrain;
 
       //SolidMechanicsMathUtilities<double>::EigenVectors( StressMat, EigenV, EigenStress);
-      MathUtils<double>::EigenSystem<3> ( StressMat, EigenV, EigenStressM);
+      MathUtils<double>::GaussSeidelEigenSystem( StressMat, EigenV, EigenStressM);
       for (unsigned int i = 0; i < 3; i++)
          EigenStress(i) = EigenStressM(i,i);
 
@@ -253,11 +234,11 @@ namespace Kratos
          rHenckyStrain(i,i) = ElasticHenckyStrain(i);
       }
 
-      noalias( ElasticLeftCauchy ) = prod( trans( EigenV), ElasticLeftCauchy);
-      noalias( ElasticLeftCauchy )  = prod( ElasticLeftCauchy, (EigenV) );
+      noalias( ElasticLeftCauchy ) = prod( EigenV, ElasticLeftCauchy);
+      noalias( ElasticLeftCauchy )  = prod( ElasticLeftCauchy, trans(EigenV) );
 
-      noalias( rHenckyStrain ) = prod( trans(EigenV), rHenckyStrain);
-      noalias( rHenckyStrain ) = prod( rHenckyStrain, EigenV);
+      noalias( rHenckyStrain ) = prod( EigenV, rHenckyStrain);
+      noalias( rHenckyStrain ) = prod( rHenckyStrain, trans(EigenV) );
 
       rHenckyStrain += OriginalHencky;
 

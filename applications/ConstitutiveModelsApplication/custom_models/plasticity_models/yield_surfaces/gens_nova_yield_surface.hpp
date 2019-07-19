@@ -17,7 +17,7 @@
 // Project includes
 #include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
-#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_utilities.hpp"
 
 namespace Kratos
 {
@@ -117,6 +117,7 @@ namespace Kratos
       const double & rPT     = rVariables.Internal.Variables[4];
       const double & rPCstar = rVariables.Internal.Variables[5];
 
+
       // Perform the stress translation
       MatrixType StressTranslated; 
       PerformStressTranslation( rStressMatrix, StressTranslated, rPT);
@@ -124,7 +125,10 @@ namespace Kratos
       // Material Parameters
       const Properties& rMaterialProperties = rModelData.GetProperties();
       const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
-      //const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
+      double Friction = 0.0;
+      if ( rMaterialProperties.Has(INTERNAL_FRICTION_ANGLE) ) {
+             Friction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
+      }
 
       double MeanStress, LodeAngle;
       double DeviatoricQ; // == sqrt(3)*J2
@@ -133,7 +137,12 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( StressTranslated, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
-      rYieldCondition  = pow( DeviatoricQ/rShearM, 2);
+      double ThirdInvariantEffect = 1.0;
+      if ( Friction > 0.0) 
+         ThirdInvariantEffect = ShapeAtDeviatoricPlaneUtility::EvaluateEffectDueToThirdInvariant( ThirdInvariantEffect, LodeAngle, Friction);
+
+
+      rYieldCondition  = pow( ThirdInvariantEffect * DeviatoricQ/rShearM, 2);
       rYieldCondition += (MeanStress * (MeanStress - rPCstar) );
 
 
@@ -157,6 +166,7 @@ namespace Kratos
       const double & rPT     = rVariables.Internal.Variables[4];
       const double & rPCstar = rVariables.Internal.Variables[5];
 
+
       // Perform the stress translation
       MatrixType StressTranslated; 
       PerformStressTranslation( rStressMatrix, StressTranslated, rPT);
@@ -164,17 +174,38 @@ namespace Kratos
       // Material Parameters
       const Properties& rMaterialProperties = rModelData.GetProperties();
       const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
+      double Friction = 0;
+      if ( rMaterialProperties.Has( INTERNAL_FRICTION_ANGLE) )
+          Friction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
 
 
 
       double MeanStress, J2, LodeAngle;
      
-      VectorType V1, V2;
+      VectorType V1, V2, V3;
       // more work is requiered
       StressInvariantsUtilities::CalculateStressInvariants( StressTranslated, MeanStress, J2, LodeAngle);
-      StressInvariantsUtilities::CalculateDerivativeVectors( StressTranslated, V1, V2);
+      StressInvariantsUtilities::CalculateDerivativeVectors( StressTranslated, V1, V2, V3);
 
-      rDeltaStressYieldCondition  = ( 2.0*MeanStress - rPCstar) * V1 + 2.0 * 3.0 * pow( 1.0 / rShearM, 2) * J2 * V2;
+      double ThirdInvariantEffect(1), DerivativeEffect(0);
+      if ( Friction > 0.0) {
+         ShapeAtDeviatoricPlaneUtility::CalculateKLodeCoefficients( ThirdInvariantEffect, DerivativeEffect, LodeAngle, Friction);
+         //std::cout << " LodeAngle " << LodeAngle*180.0/Globals::Pi << " effect " << ThirdInvariantEffect << std::endl;
+      }
+
+      rDeltaStressYieldCondition  = ( 2.0*MeanStress - rPCstar) * V1 + 2.0 * 3.0 * pow( ThirdInvariantEffect / rShearM, 2) * J2 * V2;
+
+
+      if ( Friction > 0.0 && J2 > 1E-6) 
+      {
+         double Term = pow( sqrt(3.0)*J2/rShearM, 2) * ThirdInvariantEffect *2.0* DerivativeEffect;
+
+         double C2 = - std::tan(3.0*LodeAngle) / J2 * Term;
+         double C3 = - sqrt(3.0) / 2.0/ pow(J2, 3) / std::cos(3.0*LodeAngle) * Term;
+
+         rDeltaStressYieldCondition += C2*V2 + C3*V3;
+
+      }
 
       return rDeltaStressYieldCondition;
 

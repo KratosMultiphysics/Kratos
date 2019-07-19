@@ -101,7 +101,7 @@ namespace Kratos
 
             /// Copy constructor.
             NonAssociativePlasticityModel(NonAssociativePlasticityModel const& rOther) :BaseType(rOther), mInternal(rOther.mInternal), mPreviousInternal(rOther.mPreviousInternal),
-               mStressMatrix(rOther.mStressMatrix) {}
+               mUltraPreviousInternal(rOther.mUltraPreviousInternal), mStressMatrix(rOther.mStressMatrix) {}
 
             /// Assignment operator.
             NonAssociativePlasticityModel& operator=(NonAssociativePlasticityModel const& rOther)
@@ -109,6 +109,7 @@ namespace Kratos
                BaseType::operator=(rOther);
                mInternal = rOther.mInternal;
                mPreviousInternal = rOther.mPreviousInternal;
+               mUltraPreviousInternal = rOther.mUltraPreviousInternal;
                mStressMatrix = rOther.mStressMatrix;
                return *this;
             }
@@ -132,7 +133,7 @@ namespace Kratos
             ///@name Operations
             ///@{
 
-            
+
             /**
              * Get Values
              */
@@ -150,7 +151,7 @@ namespace Kratos
                {
                   double p;
                   StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , p, rValue);
-                  rValue *= sqrt(3);
+                  rValue *= sqrt(3.0);
                }
                else if ( rThisVariable == STRESS_INV_THETA)
                {
@@ -161,8 +162,15 @@ namespace Kratos
                else if ( rThisVariable == PLASTIC_VOL_DEF) {
                   rValue = mInternal.Variables[1];
                }
+               else if ( rThisVariable == PLASTIC_DEV_DEF)
+               {
+                  rValue = this->mInternal.Variables[2];
+               }
                else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF) {
-                  rValue = mInternal.Variables[4];
+                  rValue = this->mInternal.Variables[4];
+               }
+               else {
+                  rValue = this->mElasticityModel.GetValue( rThisVariable, rValue);
                }
                return rValue;
 
@@ -173,9 +181,25 @@ namespace Kratos
             /**
              * Set Values
              */
+            void SetValue(const Variable<double>& rVariable,
+                          const double& rValue,
+                          const ProcessInfo& rCurrentProcessInfo) override
+            {
+               KRATOS_TRY
+
+               this->mElasticityModel.SetValue( rVariable, rValue, rCurrentProcessInfo);
+
+               KRATOS_CATCH("")
+            }
+
+
+
+            /**
+             * Set Values
+             */
             void SetValue(const Variable<Vector>& rVariable,
-                  const Vector& rValue,
-                  const ProcessInfo& rCurrentProcessInfo) override 
+                          const Vector& rValue,
+                          const ProcessInfo& rCurrentProcessInfo) override
             {
                KRATOS_TRY
 
@@ -266,7 +290,7 @@ namespace Kratos
                   this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
                   InitialYieldFunction = this->mYieldSurface.CalculateYieldCondition( Variables, InitialYieldFunction);
 
-                  if ( InitialYieldFunction > 10.0*Tolerance) {
+                  if ( InitialYieldFunction > Tolerance) {
                      // correct the initial drift (nonlocal, transfer...)
                      this->ReturnStressToYieldSurface( rValues, Variables);
                   }
@@ -360,6 +384,7 @@ namespace Kratos
             // internal variables:
             InternalVariablesType  mInternal;
             InternalVariablesType  mPreviousInternal;
+            InternalVariablesType  mUltraPreviousInternal;
             MatrixType             mStressMatrix;
 
             ///@}
@@ -398,6 +423,7 @@ namespace Kratos
                return index;
 
             }
+
 
             //***************************************************************************************
             //***************************************************************************************
@@ -463,7 +489,7 @@ namespace Kratos
 
             //***************************************************************************************
             //***************************************************************************************
-            // Correct Yield Surface Drift According to 
+            // Correct Yield Surface Drift According to
             virtual void ReturnStressToYieldSurface( ModelDataType & rValues, PlasticDataType & rVariables)
             {
                KRATOS_TRY
@@ -475,6 +501,7 @@ namespace Kratos
                if ( fabs(YieldSurface) < Tolerance)
                   return;
 
+               double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
                for (unsigned int i = 0; i < 150; i++) {
 
                   Matrix ElasticMatrix(6,6);
@@ -499,7 +526,6 @@ namespace Kratos
                   MatrixType StressMatrix;
                   this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
 
-                  double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
                   for (unsigned int i = 0; i < 3; i++)
                      rPlasticVolDef += DeltaGamma * DeltaStressYieldCondition(i);
 
@@ -513,15 +539,16 @@ namespace Kratos
                KRATOS_CATCH("")
             }
 
+
             //***************************************************************************************
             //***************************************************************************************
             // Compute Elasto Plastic Matrix
-            virtual void ComputeElastoPlasticTangentMatrix( ModelDataType & rValues, PlasticDataType & rVariables, Matrix & rEPMatrix) 
+            virtual void ComputeElastoPlasticTangentMatrix( ModelDataType & rValues, PlasticDataType & rVariables, Matrix & rEPMatrix)
             {
                KRATOS_TRY
 
-      // evaluate constitutive matrix and plastic flow
-      Matrix ElasticMatrix(6,6);
+               // evaluate constitutive matrix and plastic flow
+               Matrix ElasticMatrix(6,6);
                noalias(ElasticMatrix) = ZeroMatrix(6,6);
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
@@ -549,6 +576,7 @@ namespace Kratos
                KRATOS_CATCH("")
             }
 
+
             //***************************************************************************************
             //***************************************************************************************
             // Advance the solution first in elastic regime and then in elastoplastic
@@ -568,7 +596,7 @@ namespace Kratos
                {
                   HalfTime = 0.5*(InitialTime + EndTime);
 
-                  ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, 0, HalfTime, HalfTimeDeformationGradient);
+                  ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, 0.0, HalfTime, HalfTimeDeformationGradient);
                   MatrixType AuxMatrix;
                   AuxMatrix = prod( InitialLeftCauchyGreen, trans(HalfTimeDeformationGradient));
                   AuxMatrix = prod( HalfTimeDeformationGradient, AuxMatrix);
@@ -595,7 +623,7 @@ namespace Kratos
 
                // continue with plasticity
                MatrixType RemainingDeformationGradient;
-               ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, HalfTime, 1,RemainingDeformationGradient);
+               ComputeSubstepIncrementalDeformationGradient( rDeltaDeformationMatrix, HalfTime, 1.0, RemainingDeformationGradient);
 
                ComputeSubsteppingElastoPlasticProblem( rValues, rVariables, RemainingDeformationGradient);
 
@@ -611,7 +639,6 @@ namespace Kratos
                KRATOS_TRY
 
                VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
-               VectorType PlasticPotentialDerivative;
 
                MatrixType DeltaStrainMatrix;
                noalias(DeltaStrainMatrix) = prod( rDeltaDeformationMatrix, trans( rDeltaDeformationMatrix) );
@@ -650,7 +677,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               double Tolerance = 1.0E-6;
+               double Tolerance = 1e-5;
                double TimeStep = 0.25;
                double MinTimeStep = 1.0e-4;
                double DoneTimeStep = 0.0;
@@ -676,8 +703,10 @@ namespace Kratos
                   if ( ErrorMeasure < Tolerance) {
                      DoneTimeStep += TimeStep;
                   } else if ( TimeStep <= MinTimeStep) {
-                     if ( ErrorMeasure > 50*Tolerance) {
-                        std::cout << " ExplicitStressIntegrationDidNotConvege: StressError: " << ErrorMeasure << std::endl;
+                     if ( ErrorMeasure > 50.0*Tolerance) {
+                        if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
+                           std::cout << " ExplicitStressIntegrationDidNotConvege: StressError: " << ErrorMeasure << std::endl;
+                        }
                      }
                      DoneTimeStep += TimeStep;
                   } else {
@@ -685,7 +714,7 @@ namespace Kratos
                      rVariables.Internal = InitialInternalVariables;
                   }
 
-                  TimeStep *= pow( Tolerance / ( ErrorMeasure + 1e-8), 0.5);
+                  TimeStep *= sqrt( Tolerance / ( ErrorMeasure + 1e-8));
                   TimeStep = std::max(TimeStep, MinTimeStep);
                   TimeStep = std::min(TimeStep, MaxTimeStep);
 
@@ -805,10 +834,10 @@ namespace Kratos
 
                double update = 0.0;
                for (unsigned int i = 0; i < 3; i++)
-                  update += pow( DeltaGamma * ( DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2.0);
+                  update += pow( (DeltaGamma *  DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2);
                for (unsigned int i = 3; i < 6; i++)
-                  update += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-               rPlasticDevDef += sqrt(update);
+                  update += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i)/2.0 , 2);
+               rPlasticDevDef += sqrt(update)*sqrt(2.0/3.0);
 
 
                KRATOS_CATCH("")
@@ -842,13 +871,13 @@ namespace Kratos
                EigenVectors.clear();
 
                rStrainMatrix.clear();
-               MathUtils<double>::EigenSystem<3> ( rHenckyTensor, EigenVectors, rStrainMatrix);
+               MathUtils<double>::GaussSeidelEigenSystem<MatrixType,MatrixType> ( rHenckyTensor, EigenVectors, rStrainMatrix);
 
                for (unsigned int i = 0; i < 3; i++)
                   rStrainMatrix(i,i) = std::exp( 2.0* rStrainMatrix(i,i));
 
 
-               rStrainMatrix = prod( trans(EigenVectors), MatrixType(prod(rStrainMatrix, EigenVectors)) );
+               rStrainMatrix = prod(EigenVectors, MatrixType(prod(rStrainMatrix, trans(EigenVectors))) );
 
 
                KRATOS_CATCH("")
@@ -860,16 +889,16 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType EigenVectors;
+               MatrixType EigenVectors;
                EigenVectors.clear();
 
                rHenckyStrain.clear();
-               MathUtils<double>::EigenSystem<3> ( rStrainMatrix, EigenVectors, rHenckyStrain);
+               MathUtils<double>::GaussSeidelEigenSystem<MatrixType,MatrixType> ( rStrainMatrix, EigenVectors, rHenckyStrain);
 
                for (unsigned int i = 0; i < 3; i++)
                   rHenckyStrain(i,i) = std::log( rHenckyStrain(i,i))/2.0;
 
-               rHenckyStrain = prod( trans(EigenVectors), MatrixType(prod(rHenckyStrain, EigenVectors)) );
+               rHenckyStrain = prod( EigenVectors, MatrixType(prod(rHenckyStrain, trans(EigenVectors))) );
 
 
                KRATOS_CATCH("")
@@ -896,7 +925,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType DeformationGradientReference;
+               MatrixType DeformationGradientReference;
                MatrixType DeformationGradientFinal;
                MatrixType Identity = IdentityMatrix(3);
 
@@ -918,7 +947,8 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType InverseMatrix; double detMatrix;
+               MatrixType InverseMatrix;
+               double detMatrix;
                InverseMatrix.clear();
                ConstitutiveModelUtilities::InvertMatrix3( rDeltaDeformationMatrix, InverseMatrix, detMatrix);
                rInitialLeftCauchyGreen = prod( InverseMatrix, rInitialLeftCauchyGreen);
@@ -1000,20 +1030,23 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             // UpdateInternalVariables
-            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix) 
+            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix)
             {
                KRATOS_TRY
+
+               mUltraPreviousInternal = mPreviousInternal;
 
                double Precon = 0;
                Precon = (this->mYieldSurface).GetHardeningRule().CalculateHardening( rVariables, Precon);
                rVariables.Internal.Variables[3] = Precon;
 
                for (unsigned int i = 0; i < 5; i++) {
-                  double & rCurrentPlasticVariable = rVariables.Internal.Variables[i]; 
+                  double & rCurrentPlasticVariable = rVariables.Internal.Variables[i];
                   double & rPreviousPlasticVariable    = mInternal.Variables[i];
 
                   mPreviousInternal.Variables[i] = rPreviousPlasticVariable;
                   rPreviousPlasticVariable = rCurrentPlasticVariable;
+
                }
 
                KRATOS_CATCH("")
@@ -1021,13 +1054,10 @@ namespace Kratos
 
             // ****************************************************************************
             //  compute the stress state by using implex
-            void  CalculateImplexPlasticStep(ModelDataType& rValues, PlasticDataType&  rVariables, MatrixType&  rStressMatrix, const MatrixType & rDeltaDeformationMatrix)
+            virtual void  CalculateImplexPlasticStep(ModelDataType& rValues, PlasticDataType&  rVariables, MatrixType&  rStressMatrix, const MatrixType & rDeltaDeformationMatrix)
             {
                KRATOS_TRY
 
-               // evaluate constitutive matrix and plastic flow
-               double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
-               double & rPlasticDevDef = rVariables.Internal.Variables[2];
 
                const double & rPlasticMultiplierOld = mPreviousInternal.Variables[0];
                double & rPlasticMultiplier    = rVariables.Internal.Variables[0];
@@ -1036,7 +1066,30 @@ namespace Kratos
                if ( DeltaPlasticMultiplier < 0)
                   DeltaPlasticMultiplier = 0;
 
-               
+               const ModelDataType & rModelData = rVariables.GetModelData();
+               const Properties & rMatProperties = rModelData.GetProperties();
+
+               if ( rMatProperties.Has( MAX_IMPLEX_PLASTIC_MULTIPLIER ) ) {
+                  const double & rMaxPlasticMultiplier = rMatProperties[MAX_IMPLEX_PLASTIC_MULTIPLIER];
+                  if ( rMaxPlasticMultiplier > 0) {
+                     if ( DeltaPlasticMultiplier > rMaxPlasticMultiplier) {
+                        DeltaPlasticMultiplier = rMaxPlasticMultiplier;
+                        std::cout << " IMPLEX: reducing plastic multiplier " << std::endl;
+                     }
+                  }
+               }
+
+
+               const ProcessInfo & rCurrentProcessInfo = rModelData.GetProcessInfo();
+               const double & rCurrentDeltaTime = rCurrentProcessInfo[DELTA_TIME];
+               const double & rPreviousDeltaTime = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+               if (  rCurrentDeltaTime != rPreviousDeltaTime)
+               {
+                  DeltaPlasticMultiplier *= rCurrentDeltaTime / rPreviousDeltaTime;
+               }
+
+
+
                this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
 
                VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
@@ -1054,16 +1107,6 @@ namespace Kratos
 
                this->mElasticityModel.CalculateStressTensor( rValues, rStressMatrix);
 
-               rPlasticMultiplier += DeltaPlasticMultiplier;
-               for (unsigned int i = 0; i < 3; i++)
-                  rPlasticVolDef += DeltaPlasticMultiplier * DeltaStressYieldCondition(i);
-
-               double update = 0.0;
-               for (unsigned int i = 0; i < 3; i++)
-                  update += pow( DeltaPlasticMultiplier * ( DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2.0);
-               for (unsigned int i = 3; i < 6; i++)
-                  update += 2.0 * pow( DeltaPlasticMultiplier *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-               rPlasticDevDef += sqrt(update);
 
                KRATOS_CATCH("")
             }
@@ -1119,6 +1162,7 @@ namespace Kratos
                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
                   rSerializer.save("InternalVariables",mInternal);
                rSerializer.save("PreviousInternalVariables",mPreviousInternal);
+               rSerializer.save("UltraPreviousInternalVariables",mUltraPreviousInternal);
             }
 
             void load(Serializer& rSerializer) override
@@ -1126,6 +1170,7 @@ namespace Kratos
                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
                   rSerializer.load("InternalVariables",mInternal);
                rSerializer.load("PreviousInternalVariables",mPreviousInternal);
+               rSerializer.save("UltraPreviousInternalVariables",mUltraPreviousInternal);
             }
 
             ///@}
