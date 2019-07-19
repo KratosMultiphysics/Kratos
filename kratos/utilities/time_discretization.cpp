@@ -25,6 +25,41 @@
 namespace Kratos {
 namespace TimeDiscretization {
 
+unique_ptr<BDF> BDF::pGetAuxBDF(const unsigned int TimeOrder)
+{
+    switch (TimeOrder)
+    {
+        case 1:
+            return Kratos::make_unique<BDF1>();
+        case 2:
+            return Kratos::make_unique<BDF2>();
+        case 3:
+            return Kratos::make_unique<BDF3>();
+        case 4:
+            return Kratos::make_unique<BDF4>();
+        case 5:
+            return Kratos::make_unique<BDF5>();
+        case 6:
+            return Kratos::make_unique<BDF6>();
+        default:
+            KRATOS_ERROR << "Asked for time order " << TimeOrder << ". Maximum time order is 6.";
+    }
+}
+
+Vector BDF::ComputeBDFCoefficients(const double DeltaTime) const
+{
+    KRATOS_ERROR_IF(!mpAuxBDF)
+        << "Pointer to auxiliary BDF class implementing the desired order is null" << std::endl;
+    return mpAuxBDF->ComputeBDFCoefficients(DeltaTime);
+}
+
+Vector BDF::ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const
+{
+    KRATOS_ERROR_IF(!mpAuxBDF)
+        << "Pointer to auxiliary BDF class implementing the desired order is null" << std::endl;
+    return mpAuxBDF->ComputeBDFCoefficients(rProcessInfo);
+}
+
 std::array<double, 2> BDF1::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())

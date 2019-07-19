@@ -924,6 +924,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     // TimeDiscretization
     auto mod_time_discretization = m.def_submodule("TimeDiscretization");
 
+    py::class_<TimeDiscretization::BDF>(mod_time_discretization, "BDF")
+        .def(py::init<const unsigned int>())
+        .def("ComputeBDFCoefficients", (Vector (TimeDiscretization::BDF::*)(double) const) &TimeDiscretization::BDF::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (Vector (TimeDiscretization::BDF::*)(const ProcessInfo&) const) &TimeDiscretization::BDF::ComputeBDFCoefficients)
+        ;
     py::class_<TimeDiscretization::BDF1>(mod_time_discretization, "BDF1")
         .def(py::init<>())
         .def("ComputeBDFCoefficients", (std::array<double, 2> (TimeDiscretization::BDF1::*)(double) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)

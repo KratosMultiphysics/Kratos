@@ -25,14 +25,56 @@ class ProcessInfo; // forward-declaring to not having to include it here
 
 namespace TimeDiscretization {
 
-class KRATOS_API(KRATOS_CORE) BDF1
+class KRATOS_API(KRATOS_CORE) BDF
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(BDF);
+
+    /**
+     * @brief Construct a new BDF object
+     * Default constructor for derived classes
+     */
+    BDF(){}
+
+    /**
+     * @brief Construct a new BDF object
+     * Constructor with time order
+     * @param TimeOrder BDF time order
+     */
+    BDF(const unsigned int TimeOrder) : mpAuxBDF(pGetAuxBDF(TimeOrder)) {};
+
+    static unique_ptr<BDF> pGetAuxBDF(const unsigned int TimeOrder);
+
+    /**
+     * @brief Return the BDF coefficients
+     * This method computes the BDF coefficients for a provided time step
+     * @param DeltaTime Time step to compute the BDF coefficients
+     * @return Vector Vector containing the computed BDF coefficients
+     */
+    Vector ComputeBDFCoefficients(const double DeltaTime) const;
+
+    /**
+     * @brief Return the BDF coefficients
+     * This method computes the BDF coefficients for the time step
+     * stored in the variable DELTA_TIME of a ProcessInfo container
+     * @param rProcessInfo ProcessInfo container with DELTA_TIME
+     * @return Vector Vector containing the computed BDF coefficients
+     */
+    Vector ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const;
+
+private:
+
+    const unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
+};
+
+class KRATOS_API(KRATOS_CORE) BDF1 : public BDF
 {
 public:
     std::array<double, 2> ComputeBDFCoefficients(double DeltaTime) const;
     std::array<double, 2> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
-class KRATOS_API(KRATOS_CORE) BDF2
+class KRATOS_API(KRATOS_CORE) BDF2 : public BDF
 {
 public:
     std::array<double, 3> ComputeBDFCoefficients(double DeltaTime,
@@ -40,28 +82,28 @@ public:
     std::array<double, 3> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
-class KRATOS_API(KRATOS_CORE) BDF3
+class KRATOS_API(KRATOS_CORE) BDF3 : public BDF
 {
 public:
     std::array<double, 4> ComputeBDFCoefficients(double DeltaTime) const;
     std::array<double, 4> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
-class KRATOS_API(KRATOS_CORE) BDF4
+class KRATOS_API(KRATOS_CORE) BDF4 : public BDF
 {
 public:
     std::array<double, 5> ComputeBDFCoefficients(double DeltaTime) const;
     std::array<double, 5> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
-class KRATOS_API(KRATOS_CORE) BDF5
+class KRATOS_API(KRATOS_CORE) BDF5 : public BDF
 {
 public:
     std::array<double, 6> ComputeBDFCoefficients(double DeltaTime) const;
     std::array<double, 6> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
-class KRATOS_API(KRATOS_CORE) BDF6
+class KRATOS_API(KRATOS_CORE) BDF6 : public BDF
 {
 public:
     std::array<double, 7> ComputeBDFCoefficients(double DeltaTime) const;
