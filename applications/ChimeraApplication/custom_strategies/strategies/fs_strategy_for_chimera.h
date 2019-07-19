@@ -737,7 +737,7 @@ private:
 
         // Initialize strategies for each step
         bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity,BaseType::mpMomentumStrategy);
-       
+
         if (HaveVelStrategy)
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,BaseType::mVelocityTolerance);

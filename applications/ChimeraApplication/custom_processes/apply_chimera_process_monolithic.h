@@ -197,11 +197,11 @@ protected:
 #pragma omp critical
                     {
                         BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
+                        removed_counter++;
                     }
                 }
                 constrainIds_for_the_node.clear();
                 p_boundary_node->Set(VISITED, false);
-                removed_counter++;
             }
 
             if (is_found)
@@ -234,6 +234,7 @@ protected:
         KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1) << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
         KRATOS_INFO_IF("Number of Boundary nodes found : ", BaseType::mEchoLevel > 1) << counter << ". Number of constraints : " << counter * 9 << std::endl;
         KRATOS_INFO_IF("Number of Boundary nodes not found  : ", BaseType::mEchoLevel > 1) << not_found_counter << std::endl;
+        KRATOS_INFO_IF("Number of constraints removed  : ", BaseType::mEchoLevel > 1) << removed_counter << std::endl;
     }
 
     ///@}
