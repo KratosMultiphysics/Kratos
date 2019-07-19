@@ -33,7 +33,7 @@ KratosChimeraApplication::KratosChimeraApplication():KratosApplication("ChimeraA
 void KratosChimeraApplication::Register()
 {
     // calling base class register to register Kratos components
-    KratosApplication::Register();
+    KratosApplication::Register(); 
     KRATOS_INFO("") <<"     Kratos.............................................................\n"
                     <<"           .............________  ________  _____________  ___..........\n"
                     <<"           ............/ ____/ / / /  _/  |/  / ____/ __ \\/   |.........\n"
