@@ -467,14 +467,27 @@ public:
     Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAdress)
     {
         const auto indexes = TrimComponentName(rAdress);
+        const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
         if (indexes[0] == this->Id()) {
-            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
-                p_property_interest = p_property_interest->pGetSubPropertiesById(indexes[i_index]);
+            if (number_indexes > 1) {
+                if (this->HasSubPropertiesById(indexes[1])) {
+                    Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
+                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
+                        if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
+                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAdress << std::endl;
+                        } else {
+                            p_property_interest = pGetSubPropertiesById(indexes[i_index]);
+                        }
+                    }
+                    return p_property_interest;
+                } else {
+                    KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
+                }
             }
-            return p_property_interest;
+            // It is the current property we are forced to create a shared pointer
+            return Kratos::make_shared<Properties>(*this);
         } else {
             KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
@@ -488,14 +501,27 @@ public:
     Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAdress) const
     {
         const auto indexes = TrimComponentName(rAdress);
+        const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
         if (indexes[0] == this->Id()) {
-            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
-                p_property_interest = p_property_interest->pGetSubPropertiesById(indexes[i_index]);
+            if (number_indexes > 1) {
+                if (this->HasSubPropertiesById(indexes[1])) {
+                    Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
+                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
+                        if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
+                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAdress << std::endl;
+                        } else {
+                            p_property_interest = pGetSubPropertiesById(indexes[i_index]);
+                        }
+                    }
+                    return p_property_interest;
+                } else {
+                    KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
+                }
             }
-            return p_property_interest;
+            // It is the current property we are forced to create a shared pointer
+            return Kratos::make_shared<Properties>(*this);
         } else {
             KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
