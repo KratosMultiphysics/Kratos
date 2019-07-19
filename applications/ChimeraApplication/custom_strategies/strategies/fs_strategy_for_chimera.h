@@ -176,8 +176,6 @@ protected:
     double SolveStep() override
     {
 
-        KRATOS_INFO("Solve step of fs strategy for chimera " )<< std::endl;
-
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         // 1. Fractional step momentum iteration
