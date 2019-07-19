@@ -115,7 +115,7 @@ namespace Kratos
             float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
             int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
 
-            const float float_epsilon = std::numeric_limits<float>::epsilon();
+//            const float float_epsilon = std::numeric_limits<float>::epsilon();
 
 //             // Non-initialized (calculated)
 //             for (int i = 0; i < n; i++) {
@@ -215,7 +215,7 @@ namespace Kratos
             float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
             int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
 
-            const float float_epsilon = std::numeric_limits<float>::epsilon();
+//            const float float_epsilon = std::numeric_limits<float>::epsilon();
 
 //             // Non-initialized (calculated)
 //             for (int i = 0; i < n; i++) {
