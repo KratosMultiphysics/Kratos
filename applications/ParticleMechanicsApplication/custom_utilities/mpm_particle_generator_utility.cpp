@@ -263,7 +263,8 @@ namespace MPMParticleGeneratorUtility
 
     void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart)
+                                            ModelPart& rMPMModelPart,
+                                            bool IsAxisSymmetry)
     {
         // Initialize zero the variables needed
         array_1d<double,3> mpc_xg = ZeroVector(3);
@@ -527,10 +528,18 @@ namespace MPMParticleGeneratorUtility
                         if (!is_neumann_condition){
                             if(!is_interface){
                                 if (domain_size==2){
-                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3)
-                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
-                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3){
+                                        if(IsAxisSymmetry)
+                                            condition_type_name = "MPMParticleAxisymPenaltyDirichletCondition2D3N";
+                                        else
+                                            condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
+                                    }
+                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4){
+                                        if(IsAxisSymmetry)
+                                            condition_type_name = "MPMParticleAxisymPenaltyDirichletCondition2D4N";
+                                        else
+                                            condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                    }
                                 }
                                 else if (domain_size==3){
                                     if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)

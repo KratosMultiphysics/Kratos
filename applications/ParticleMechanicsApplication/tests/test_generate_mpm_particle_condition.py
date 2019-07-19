@@ -36,7 +36,7 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, 4)
 
         # Generate MP Conditions
-        KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part)
+        KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
         # Check total number of element
         particle_counter = material_point_model_part.NumberOfConditions()

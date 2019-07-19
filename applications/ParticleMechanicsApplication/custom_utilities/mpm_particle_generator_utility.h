@@ -63,7 +63,8 @@ namespace MPMParticleGeneratorUtility
      */
     void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
-                                            ModelPart& rMPMModelPart);
+                                            ModelPart& rMPMModelPart,
+                                            bool IsAxisSymmetry = false);
 
 }; // end namespace MPMParticleGeneratorUtility
 } // end namespace Kratos

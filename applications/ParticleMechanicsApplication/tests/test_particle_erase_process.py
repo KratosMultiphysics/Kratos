@@ -39,7 +39,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Generate MP Elements and Conditions
         KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
-        KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part)
+        KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
     def _create_nodes(self, initial_mp):
         initial_mp.CreateNewNode(1, -0.5, -0.5, 0.0)
