@@ -35,12 +35,11 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     delta_displ[k] = vel[k] * delta_t +
-                                     (0.66666666 * force[k] * mass_inv - 0.16666666 * mOldAcceleration[k]) * delta_t * delta_t;
+                                     (4.0/6.0 * force[k] * mass_inv - 1.0/6.0 * mOldAcceleration[k]) * delta_t * delta_t;
 
-                    mInterStepVel[k] = vel[k];
-                    vel[k] += (1.5 * force[k] * mass_inv - 0.5 * mOldAcceleration[k]) * delta_t;
+                    vel[k] += 5.0/6.0 * force_reduction_factor * force[k] * mass_inv * delta_t - 1.0/6.0 * mOldAcceleration[k] * delta_t;
 
-                    mInterStepAccel[k] = force[k] * mass_inv;
+                    mOldAcceleration[k] = force[k] * mass_inv;
 
                     displ[k] += delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
@@ -57,14 +56,66 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    vel[k] = mInterStepVel[k] + 0.41666666 * force[k] * mass_inv * delta_t +
-                              (0.6666666 * mInterStepAccel[k] - 0.0833333 * mOldAcceleration[k]) * delta_t;
+                    vel[k] += 2.0/6.0 * force_reduction_factor * force[k] * mass_inv * delta_t;
 
-                    mOldAcceleration[k] = mInterStepAccel[k];
                 }
             }
         } // dimensions
     }
+
+
+    // void BeemanScheme::UpdateTranslationalVariables(
+    //         int StepFlag,
+    //         Node < 3 >& i,
+    //         array_1d<double, 3 >& coor,
+    //         array_1d<double, 3 >& displ,
+    //         array_1d<double, 3 >& delta_displ,
+    //         array_1d<double, 3 >& vel,
+    //         const array_1d<double, 3 >& initial_coor,
+    //         array_1d<double, 3 >& force,
+    //         const double force_reduction_factor,
+    //         const double mass,
+    //         const double delta_t,
+    //         const bool Fix_vel[3]) {
+
+    //     double mass_inv = 1.0 / mass;
+
+    //     if(StepFlag == 1) //predict
+    //     {
+    //         for (int k = 0; k < 3; k++) {
+    //             if (Fix_vel[k] == false) {
+
+    //                 delta_displ[k] = vel[k] * delta_t +
+    //                                  (0.66666666 * force[k] * mass_inv - 0.16666666 * mOldAcceleration[k]) * delta_t * delta_t;
+
+    //                 mInterStepVel[k] = vel[k];
+    //                 vel[k] += (1.5 * force[k] * mass_inv - 0.5 * mOldAcceleration[k]) * delta_t;
+
+    //                 mInterStepAccel[k] = force[k] * mass_inv;
+
+    //                 displ[k] += delta_displ[k];
+    //                 coor[k] = initial_coor[k] + displ[k];
+
+    //             } else {
+    //                 delta_displ[k] = delta_t * vel[k];
+    //                 displ[k] += delta_displ[k];
+    //                 coor[k] = initial_coor[k] + displ[k];
+    //             }
+    //         }
+    //     }
+    //     else if(StepFlag == 2) //correct
+    //     {
+    //         for (int k = 0; k < 3; k++) {
+    //             if (Fix_vel[k] == false) {
+
+    //                 vel[k] = mInterStepVel[k] + 0.41666666 * force[k] * mass_inv * delta_t +
+    //                           (0.6666666 * mInterStepAccel[k] - 0.0833333 * mOldAcceleration[k]) * delta_t;
+
+    //                 mOldAcceleration[k] = mInterStepAccel[k];
+    //             }
+    //         }
+    //     } // dimensions
+    // }
 
     void BeemanScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,

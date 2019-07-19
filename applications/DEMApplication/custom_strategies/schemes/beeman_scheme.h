@@ -42,9 +42,9 @@ namespace Kratos {
             return cloned_scheme;
         }
 
-        array_1d<double, 3> mOldAcceleration;
-        array_1d<double, 3> mInterStepAccel;
-        array_1d<double, 3> mInterStepVel;
+        array_1d<double, 3> mOldAcceleration = ZeroVector(3);
+        //array_1d<double, 3> mInterStepAccel = ZeroVector(3);
+        //array_1d<double, 3> mInterStepVel = ZeroVector(3);
 
         void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
