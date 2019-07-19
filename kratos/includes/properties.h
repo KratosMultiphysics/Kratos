@@ -787,7 +787,6 @@ private:
         return list_indexes;
     }
 
-
     ///@}
     ///@name Serialization
     ///@{
