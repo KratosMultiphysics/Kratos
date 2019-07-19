@@ -50,6 +50,14 @@ EXPORT int __stdcall GetTrianglesCount(KratosWrapper *instance) {
     return instance->getTrianglesCount();
 }
 
+EXPORT void __stdcall EnableSurfaceStressResults(KratosWrapper *instance) {
+    instance->enableSurfaceReactions();
+}
+
+EXPORT float *__stdcall GetSurfaceStress(KratosWrapper *instance) {
+    return instance->getSurfaceReactions();
+}
+
 EXPORT void __stdcall UpdateNodePos(KratosWrapper *instance, int nodeId, float x, float y, float z) {
     instance->updateNodePos(nodeId, x, y, z);
 }

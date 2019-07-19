@@ -1,5 +1,6 @@
 
 #include "kratos_wrapper.h"
+#include "processes/tetrahedral_mesh_orientation_check.h"
 
 using namespace CSharpKratosWrapper;
 
@@ -33,6 +34,7 @@ void KratosWrapper::init(const char *MDPAFilePath, const char *JSONFilePath) {
     // Save mesh
     saveNodes(meshConverter);
     saveTriangles(meshConverter);
+    mReactionResultsEnabled = false;
 }
 
 void KratosWrapper::initWithSettings(const char *JSONFilePath) {
@@ -66,6 +68,7 @@ void KratosWrapper::initWithSettings(const char *JSONFilePath) {
     // Save mesh
     saveNodes(meshConverter);
     saveTriangles(meshConverter);
+    mReactionResultsEnabled = false;
 }
 
 void KratosWrapper::saveTriangles(MeshConverter &meshConverter) {
@@ -102,11 +105,11 @@ void KratosWrapper::saveNodes(MeshConverter &meshConverter) {
     pmXCoordinates = new float[mNodesCount];
     pmYCoordinates = new float[mNodesCount];
     pmZCoordinates = new float[mNodesCount];
-    retrieveNodesPos();
+    retrieveNodesData();
 }
 
 //Save recalculated surface nodes positions
-void KratosWrapper::retrieveNodesPos() {
+void KratosWrapper::retrieveNodesData() {
     ModelPart &r_skin_part = mKratosInternals.GetSkinModelPart();
     auto &r_nodes_array = r_skin_part.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
@@ -120,7 +123,21 @@ void KratosWrapper::retrieveNodesPos() {
         pmYCoordinates[current_node_id] = r_coordinates[1];
         pmZCoordinates[current_node_id] = r_coordinates[2];
     }
+    if (mReactionResultsEnabled) {
+        auto &r_conditions_array = r_skin_part.Conditions();
+        const auto it_condition_begin = r_conditions_array.begin();
+        for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            std::vector<double> result;
+            auto it_condition = it_condition_begin + i;
+
+            it_condition->GetValue(Kratos::NEIGHBOUR_ELEMENTS)[0].CalculateOnIntegrationPoints(Kratos::VON_MISES_STRESS, result,
+                                                                                      mKratosInternals.GetMainModelPart().GetProcessInfo());
+            pmSurfaceStress[i] = result[0];
+        }
+    }
+
 }
+
 
 void KratosWrapper::freeNodes() {
     for (auto &node : mFixedNodes) {
@@ -163,7 +180,7 @@ void KratosWrapper::updateNodePos(const int nodeId, const float x, const float y
 
 void KratosWrapper::calculate() {
     mKratosInternals.solve();
-    retrieveNodesPos();
+    retrieveNodesData();
     freeNodes();
 }
 
@@ -189,4 +206,18 @@ int *KratosWrapper::getTriangles() {
 
 int KratosWrapper::getTrianglesCount() {
     return mTrianglesCount;
+}
+
+void KratosWrapper::enableSurfaceReactions() {
+    mReactionResultsEnabled = true;
+    pmSurfaceStress = new float[mTrianglesCount];
+
+    Kratos::TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(mKratosInternals.GetMainModelPart(),
+                                                                            false,
+                                                                            Kratos::TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
+    tetrahedralMeshOrientationCheck.Execute();
+}
+
+float *KratosWrapper::getSurfaceReactions() {
+    return pmSurfaceStress;
 }

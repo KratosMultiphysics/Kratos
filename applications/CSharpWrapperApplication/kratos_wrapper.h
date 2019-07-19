@@ -39,6 +39,10 @@ namespace CSharpKratosWrapper {
 
         int getTrianglesCount();
 
+        void enableSurfaceReactions();
+
+        float *getSurfaceReactions();
+
     private:
         int *pmKratosNodeIds;
         int *pmUnityNodeIds;
@@ -48,16 +52,17 @@ namespace CSharpKratosWrapper {
         float *pmXCoordinates;
         float *pmYCoordinates;
         float *pmZCoordinates;
+        bool mReactionResultsEnabled;
+        float *pmSurfaceStress;
         KratosInternals mKratosInternals;
         IdTranslator idTranslator;
-
         std::vector<NodeType::Pointer> mFixedNodes;
 
         void saveTriangles(MeshConverter &meshConverter);
 
         void saveNodes(MeshConverter &meshConverter);
 
-        void retrieveNodesPos();
+        void retrieveNodesData();
 
         void freeNodes();
 
