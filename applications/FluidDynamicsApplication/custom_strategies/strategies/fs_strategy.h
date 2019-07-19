@@ -230,7 +230,7 @@ public:
     void Initialize() override
     {}
 
-    virtual int Check() override
+    int Check() override
     {
         KRATOS_TRY;
 
