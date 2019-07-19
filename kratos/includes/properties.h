@@ -405,13 +405,21 @@ public:
     bool HasSubPropertiesByAddress(const std::string& rAdress)
     {
         const auto indexes = TrimComponentName(rAdress);
+        const std::size_t number_indexes = indexes.size();
         if (indexes[0] == this->Id()) {
-            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
-                if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                    return false;
+            if (number_indexes > 1) {
+                if (this->HasSubPropertiesById(indexes[1])) {
+                    Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
+                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
+                        if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
+                            return false;
+                        } else {
+                            p_property_interest = pGetSubPropertiesById(indexes[i_index]);
+                        }
+                    }
+                    return true;
                 } else {
-                    p_property_interest = pGetSubPropertiesById(indexes[i_index]);
+                    return false;
                 }
             }
             return true;
@@ -428,13 +436,21 @@ public:
     bool HasSubPropertiesByAddress(const std::string& rAdress) const
     {
         const auto indexes = TrimComponentName(rAdress);
+        const std::size_t number_indexes = indexes.size();
         if (indexes[0] == this->Id()) {
-            Properties::Pointer p_property_interest = Kratos::make_shared<Properties>(*this);
-            for (IndexType i_index = 1; i_index < indexes.size(); ++i_index) {
-                if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                    return false;
+            if (number_indexes > 1) {
+                if (this->HasSubPropertiesById(indexes[1])) {
+                    Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
+                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
+                        if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
+                            return false;
+                        } else {
+                            p_property_interest = pGetSubPropertiesById(indexes[i_index]);
+                        }
+                    }
+                    return true;
                 } else {
-                    p_property_interest = pGetSubPropertiesById(indexes[i_index]);
+                    return false;
                 }
             }
             return true;
