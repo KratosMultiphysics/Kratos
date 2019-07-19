@@ -63,7 +63,7 @@ class DataCommunicator;
 /** The base Communicator class only holds the required data (local and remote mesh interfaces)
  *  for communication. The actual communication is implemented in the derived MPICommunicator.
  */
-class Communicator
+class KRATOS_API(KRATOS_CORE) Communicator
 {
 public:
     ///@name  Enum's
