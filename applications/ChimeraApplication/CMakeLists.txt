@@ -3,7 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** Configuring KratosChimeraApplication ****")
 
 if(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
-    MESSAGE( FATAL_ERROR "ChimeraApplication needs FluidDynamicsApplicaiton to work. Please set FLUID_DYNAMICS_APPLICATION=ON in configuration file." )
+    MESSAGE( FATAL_ERROR "ChimeraApplication needs FluidDynamicsApplicaiton to work. Please set FLUID_DYNAMICS_APPLICATION=ON in the configuration file." )
 endif(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF)
 
 include(pybind11Tools)
