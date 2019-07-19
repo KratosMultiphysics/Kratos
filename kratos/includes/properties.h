@@ -749,6 +749,44 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName)
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
+
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty (constant version)
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
+
 
     ///@}
     ///@name Serialization
@@ -775,42 +813,6 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-
-    /**
-     * @brief This method trims a string in the different components to access recursively to any subproperty
-     * @param rStringName The given name to be trimmed
-     * @return The list of indexes
-     */
-    std::vector<IndexType> TrimComponentName(const std::string& rStringName)
-    {
-        std::vector<IndexType> list_indexes;
-
-        std::stringstream ss(rStringName);
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            list_indexes.push_back(std::stoi(index_string));
-        }
-
-        return list_indexes;
-    }
-
-    /**
-     * @brief This method trims a string in the different components to access recursively to any subproperty (constant version)
-     * @param rStringName The given name to be trimmed
-     * @return The list of indexes
-     */
-    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
-    {
-        std::vector<IndexType> list_indexes;
-
-        std::stringstream ss(rStringName);
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            list_indexes.push_back(std::stoi(index_string));
-        }
-
-        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
-
-        return list_indexes;
-    }
 
     /**
      * @brief This method returns the whole list of subproperties (constant)
