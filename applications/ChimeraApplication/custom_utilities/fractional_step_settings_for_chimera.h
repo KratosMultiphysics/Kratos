@@ -128,7 +128,7 @@ public:
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) override
+                             const unsigned int MaxIter) override 
     {
         KRATOS_TRY;
 
