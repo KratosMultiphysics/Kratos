@@ -213,16 +213,16 @@ protected:
                 Geometry<Node<3>> &r_geom = p_element->GetGeometry();
                 int init_index = 0;
                 BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id + init_index, constraints_id_vector, velocity_ms_container);
-                init_index += 3;
+                init_index += (TDim+1);
                 BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Y, start_constraint_id + init_index, constraints_id_vector, velocity_ms_container);
-                init_index += 3;
+                init_index += (TDim+1);
                 if (TDim == 3)
                 {
                     BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Z, start_constraint_id + init_index, constraints_id_vector, velocity_ms_container);
-                    init_index += 3;
+                    init_index += (TDim+1);
                 }
                 BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id + init_index, constraints_id_vector, pressure_ms_container);
-                init_index += 3;
+                init_index += (TDim+1);
                 counter += 1;
             }
             else
