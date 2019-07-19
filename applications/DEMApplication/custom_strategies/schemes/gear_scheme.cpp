@@ -28,7 +28,7 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
-        array_1d<double, 3> accel_est_pred;
+        array_1d<double, 3> delta_accel = ZeroVector(3);
 
         if(StepFlag == 1) //predict
         {
@@ -36,24 +36,16 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     delta_displ[k] = vel[k] * delta_t +
-                                     0.5 * force[k] * mass_inv * delta_t * delta_t +
-                                     0.166666*mDeltaAccel[k] * delta_t * delta_t * delta_t;
+                                     force_reduction_factor * 0.5 * force[k] * mass_inv * delta_t * delta_t +
+                                     1.0/6.0 * mAccelDerivative[k] * delta_t * delta_t * delta_t;
 
-                    vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t +
-                             0.5 * mDeltaAccel[k] * delta_t * delta_t;
+                    vel[k] += force_reduction_factor * force[k] * mass_inv * delta_t +
+                             0.5 * mAccelDerivative[k] * delta_t * delta_t;
 
-                    mOldAcceleration[k] = force[k] * mass_inv + mDeltaAccel[k] * delta_t;
+                    mOldAcceleration[k] = force_reduction_factor * force[k] * mass_inv + mAccelDerivative[k] * delta_t;
 
                     displ[k] += delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
-
-                    // if (k ==0 && i.Id()==1){
-                    //     KRATOS_WATCH("StepFlag == 1")
-                    //     KRATOS_WATCH(mDeltaAccel[k])
-                    //     KRATOS_WATCH(delta_displ[k])
-                    //     KRATOS_WATCH(vel[k])
-                    //     KRATOS_WATCH(mOldAcceleration[k])
-                    // }
 
                 } else {
                     delta_displ[k] = delta_t * vel[k];
@@ -67,30 +59,20 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    accel_est_pred[k] = force[k] * mass_inv - mOldAcceleration[k];
+                    delta_accel[k] = force[k] * mass_inv - mOldAcceleration[k];
 
-                    //delta_displ[k] += 1/12*mDeltaAccel[k] * delta_t * delta_t;
+                    delta_displ[k] += 1/12 * mAccelDerivative[k] * delta_t * delta_t;
 
-                    vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t +
-                              0.4166666 * mDeltaAccel[k] * delta_t;
-                    //vel[k] += 0.5*force_reduction_factor * force[k] * mass_inv * delta_t;
+                    vel[k] += 5.0/12.0 * mAccelDerivative[k] * delta_t;
 
-                    mDeltaAccel[k] += accel_est_pred[k]/delta_t;
+                    mAccelDerivative[k] = delta_accel[k]/delta_t;
 
-                    //displ[k] += delta_displ[k];
-                    //coor[k] = initial_coor[k] + displ[k];
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
 
-                    // if (k ==0 && i.Id()==1){
-                    //     KRATOS_WATCH("StepFlag == 2")
-                    //     KRATOS_WATCH(accel_est_pred[k])
-                    //     KRATOS_WATCH(mDeltaAccel[k])
-                    //     KRATOS_WATCH(delta_displ[k])
-                    //     KRATOS_WATCH(vel[k])
-                    //     KRATOS_WATCH(mOldAcceleration[k])
-                    // }
                 }
             }
-        } // dimensions
+        }
     }
 
     void GearScheme::CalculateNewRotationalVariablesOfSpheres(
