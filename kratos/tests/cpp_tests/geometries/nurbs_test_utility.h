@@ -29,23 +29,24 @@ namespace Testing {
 class NurbsTestUtility
 {
 public:     // static methods
-    static array_1d<double, 3> Point(double x, double y, double z)
+    static array_1d<double, 3> Point(const double X, const double Y,
+        const double Z)
     {
         array_1d<double, 3> point;
 
-        point[0] = x;
-        point[1] = y;
-        point[2] = z;
+        point[0] = X;
+        point[1] = Y;
+        point[2] = Z;
 
         return point;
     }
 
-    static void ArrayAlmostEqual(const array_1d<double, 3>& actual,
-        const array_1d<double, 3>& expected, const double tolerance = 1e-5)
+    static void ArrayAlmostEqual(const array_1d<double, 3>& rActual,
+        const array_1d<double, 3>& rExpected, const double Tolerance = 1e-5)
     {
         for (size_t i = 0; i < 3; i++)
         {
-            KRATOS_CHECK_NEAR(actual[i], expected[i], tolerance);
+            KRATOS_CHECK_NEAR(rActual[i], rExpected[i], Tolerance);
         }
     }
 }; // class NurbsTestUtility
