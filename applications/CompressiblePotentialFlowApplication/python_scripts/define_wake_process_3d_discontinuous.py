@@ -85,7 +85,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Check which elements are cut and mark them as wake
         self.__MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
-        self.__MarkKuttaElements()
+        #self.__MarkKuttaElements()
         # Output the wake in GiD for visualization
         if(self.output_wake):
             self.__VisualizeWake()
@@ -166,7 +166,13 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Mark cut elements and compute elemental distances
         # Attention: Note that in this process a negative distance is assigned to nodes
         # laying on the wake. In 2D it is done viceversa.
-        distance_calculator = KratosMultiphysics.CalculateDistanceToSkinProcess3D(
+        # CalculateDiscontinuousDistanceToSkinProcess3D
+        # CalculateDistanceToSkinProcess3D
+        for element in self.fluid_model_part.Elements:
+            for node in element.GetNodes():
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,100.0)
+
+        distance_calculator = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(
             self.fluid_model_part, self.wake_model_part)
         distance_calculator.Execute()
 
@@ -177,34 +183,40 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             # Mark and save the elements touching the trailing edge
             self.__MarkTrailingEdgeElement(elem)
 
-            # Cut elements are wake
-            if(elem.Is(KratosMultiphysics.TO_SPLIT)):
-                # Mark wake element
-                elem.SetValue(CPFApp.WAKE, True)
-                # Save wake elemental distances
-                wake_elemental_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-                # Check tolerances
-                for i in range(len(wake_elemental_distances)):
-                    if(abs(wake_elemental_distances[i]) < self.epsilon ):
-                        if(wake_elemental_distances[i] < 0.0):
-                            wake_elemental_distances[i] = -self.epsilon
-                        else:
-                            wake_elemental_distances[i] = self.epsilon
-                # Save wake elemental distances
-                elem.SetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES,wake_elemental_distances)
-                # Save wake nodal distances
+            wake_elemental_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+            # for i in range(len(wake_elemental_distances)):
+            #     if(abs(wake_elemental_distances[i]) < self.epsilon ):
+            #         wake_elemental_distances[i] = self.epsilon
+            if(elem.Id == 3):
+                print(elem.Id)
+                print(wake_elemental_distances)
+
+            counter = 0
+            npos = 0
+            nneg = 0
+            for counter in range(0,4):
+                if wake_elemental_distances[counter] > 0.0:
+                    npos += 1
+                else:
+                    nneg += 1
+
+            if (npos>0 and nneg >0):
+                #print(elem.Id)
+                #print(wake_elemental_distances)
+                #elem.SetValue(CPFApp.WAKE, True)
                 counter = 0
                 for node in elem.GetNodes():
                     node.SetValue(CPFApp.WAKE_DISTANCE,wake_elemental_distances[counter])
                     counter += 1
-                # Mark nodes above and below the wake with WATER_PRESSURE variable for visualization
-                counter = 0
-                for node in elem.GetNodes():
-                    if(wake_elemental_distances[counter] > 0.0):
-                        node.SetValue(KratosMultiphysics.WATER_PRESSURE, 1.0)
-                    else:
-                        node.SetValue(KratosMultiphysics.WATER_PRESSURE, -1.0)#
-                    counter +=1
+
+            counter = 0
+            for node in elem.GetNodes():
+                #node.SetValue(CPFApp.WAKE_DISTANCE, wake_elemental_distances[counter])
+                if(wake_elemental_distances[counter] > 0.0):
+                    node.SetValue(KratosMultiphysics.WATER_PRESSURE, 1.0)
+                else:
+                    node.SetValue(KratosMultiphysics.WATER_PRESSURE, -1.0)#
+                counter +=1
 
         self.__SaveTrailingEdgeElements()
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
@@ -246,6 +258,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             else:
                 trailing_edge_node, number_of_non_te_nodes = self.__GetATrailingEdgeNodeAndNumberOfNonTENodes(elem)
                 nodal_distances = self.__ComputeNodalDistancesToWakeAndLowerSurface(elem, trailing_edge_node, number_of_non_te_nodes)
+                #print('nd = ', nodal_distances)
                 self.__CheckIfKuttaElement(elem, nodal_distances, number_of_non_te_nodes)
 
     def __CheckIfWingTipElement(self, elem):
@@ -427,7 +440,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Print fluid_model_part elements
         for elem in self.fluid_model_part.Elements:
             if(elem.GetValue(CPFApp.WAKE)):
-                print(elem.Id)
+                #print(elem.Id)
                 pass
             elif(elem.GetValue(CPFApp.KUTTA)):
                 #print(elem.Id)

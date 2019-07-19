@@ -125,7 +125,8 @@ class PotentialFlowTests(UnitTest.TestCase):
 
     def _validateIdList(self, solution_element_id_list, reference_element_id_list):
         if(abs(len(reference_element_id_list) - len(solution_element_id_list)) > 0.1):
-            raise Exception('Lists have different lengths')
+            raise Exception('Lists have different lengths', ' reference_element_id_list = ',
+                            reference_element_id_list, ' solution_element_id_list = ', solution_element_id_list)
         else:
             for i in range(len(reference_element_id_list)):
                 self._check_results(solution_element_id_list[i], reference_element_id_list[i], 0.0, 1e-9)
