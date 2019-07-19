@@ -61,3 +61,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "DefineEmbeddedWakeProcess")
         .def(py::init<ModelPart&, ModelPart&>())
         ;
+
+}
+
+}  // namespace Python.
+
+} // Namespace Kratos
