@@ -230,7 +230,7 @@ public:
     void Initialize() override
     {}
 
-    virtual int Check() override
+    int Check() override
     {
         KRATOS_TRY;
 
@@ -269,7 +269,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve() override
+    double Solve() override
     {
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -316,7 +316,7 @@ public:
         return NormDp;
     }
 
-    virtual bool SolveSolutionStep() override
+    bool SolveSolutionStep() override
     {
         double norm_dp = this->Solve();
         /* If not doing predictor corrector iterations, norm_dp will
