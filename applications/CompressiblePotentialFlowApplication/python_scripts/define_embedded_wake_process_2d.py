@@ -1,7 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
 import time
 import math
 
