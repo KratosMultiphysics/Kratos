@@ -706,8 +706,13 @@ Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
     )
 {
     const IndexType first_component = FirstComponentName(rAdress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.pGetSubPropertiesByAddress(rAdress);
+    const IndexType number_component = NumberComponentName(rAdress);
+    if (number_component == 1) {
+        return pGetProperties(first_component, MeshIndex);
+    } else {
+        Properties& r_prop = GetProperties(first_component, MeshIndex);
+        return r_prop.pGetSubPropertiesByAddress(rAdress);
+    }
 }
 
 /***********************************************************************************/
@@ -719,8 +724,13 @@ Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
     ) const
 {
     const IndexType first_component = FirstComponentName(rAdress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.pGetSubPropertiesByAddress(rAdress);
+    const IndexType number_component = NumberComponentName(rAdress);
+    if (number_component == 1) {
+        return pGetProperties(first_component, MeshIndex);
+    } else {
+        Properties& r_prop = GetProperties(first_component, MeshIndex);
+        return r_prop.pGetSubPropertiesByAddress(rAdress);
+    }
 }
 
 /***********************************************************************************/
