@@ -226,7 +226,8 @@ void Timer::PrintTimingInformation(std::ostream& rOStream)
 std::string Timer::GetInternalName(const std::string& rName)
 {
     std::string initial_string = std::to_string(msCounter);
-    for (std::size_t i = 0; i < (NumberOfZeros - initial_string.size()); ++i) {
+    const std::size_t size_string = initial_string.size();
+    for (std::size_t i = 0; i < (NumberOfZeros - size_string); ++i) {
         initial_string = "0" + initial_string;
     }
     std::string internal_name = initial_string + "." + rName;
