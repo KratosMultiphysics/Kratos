@@ -316,7 +316,7 @@ public:
         return NormDp;
     }
 
-    virtual bool SolveSolutionStep() override
+    bool SolveSolutionStep() override
     {
         double norm_dp = this->Solve();
         /* If not doing predictor corrector iterations, norm_dp will
