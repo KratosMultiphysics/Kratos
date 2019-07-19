@@ -680,6 +680,71 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::HasSubPropertiesByAddress(
+    const std::string& rAdress,
+    IndexType MeshIndex
+    ) const
+{
+    const IndexType first_component = FirstComponentName(rAdress);
+    Properties& r_prop = GetProperties(first_component, MeshIndex);
+    return r_prop.HasSubPropertiesByAddress(rAdress);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
+    const std::string& rAdress,
+    IndexType MeshIndex
+    )
+{
+    const IndexType first_component = FirstComponentName(rAdress);
+    Properties& r_prop = GetProperties(first_component, MeshIndex);
+    return r_prop.pGetSubPropertiesByAddress(rAdress);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
+    const std::string& rAdress,
+    IndexType MeshIndex
+    ) const
+{
+    const IndexType first_component = FirstComponentName(rAdress);
+    Properties& r_prop = GetProperties(first_component, MeshIndex);
+    return r_prop.pGetSubPropertiesByAddress(rAdress);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties& ModelPart::GetSubPropertiesByAddress(
+    const std::string& rAdress,
+    IndexType MeshIndex
+    )
+{
+    const IndexType first_component = FirstComponentName(rAdress);
+    Properties& r_prop = GetProperties(first_component, MeshIndex);
+    return r_prop.GetSubPropertiesByAddress(rAdress);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties& ModelPart::GetSubPropertiesByAddress(
+    const std::string& rAdress,
+    IndexType MeshIndex
+    ) const
+{
+    const IndexType first_component = FirstComponentName(rAdress);
+    Properties& r_prop = GetProperties(first_component, MeshIndex);
+    return r_prop.GetSubPropertiesByAddress(rAdress);
+}
+
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
 void ModelPart::RemoveProperties(ModelPart::IndexType PropertiesId, IndexType ThisIndex)
