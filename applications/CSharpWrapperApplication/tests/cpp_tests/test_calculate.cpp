@@ -113,7 +113,7 @@ namespace Kratos
             float *x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
             float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
             float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
-            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
+//            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
 
 //            const float float_epsilon = std::numeric_limits<float>::epsilon();
 
@@ -213,7 +213,7 @@ namespace Kratos
             float *x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
             float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
             float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
-            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
+//            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
 
 //            const float float_epsilon = std::numeric_limits<float>::epsilon();
 
