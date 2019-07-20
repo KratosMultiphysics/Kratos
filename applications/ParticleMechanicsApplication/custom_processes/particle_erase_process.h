@@ -105,17 +105,21 @@ public:
     {
         KRATOS_TRY;
 
+        // Erase Element
         const int initial_num_element = mr_model_part.NumberOfElements();
         mr_model_part.RemoveElements( TO_ERASE );
         const int num_element = mr_model_part.NumberOfElements();
 
-        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_element - initial_num_element << " particle elements have been erased.";
+        if ((initial_num_element - num_element) > 0)
+            KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << initial_num_element - num_element << " particle elements have been erased." << std::endl;
 
+        // Erase Condition
         const int initial_num_condition = mr_model_part.NumberOfConditions();
         mr_model_part.RemoveConditions( TO_ERASE );
         const int num_condition = mr_model_part.NumberOfConditions();
 
-        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_condition - initial_num_condition << " particle conditions have been erased.";
+        if ((initial_num_condition - num_condition) > 0)
+            KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << initial_num_condition - num_condition << " particle conditions have been erased." << std::endl;
 
         KRATOS_CATCH("");
     }

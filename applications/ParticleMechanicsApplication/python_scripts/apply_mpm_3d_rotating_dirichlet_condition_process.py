@@ -66,7 +66,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
     def ExecuteInitializeSolutionStep(self):
 
         # If compute rotation center automatically is needed and if the center is moved
-        if (self.compute_rotation_center and self.rotation_option == "moving_translational"):
+        if (self.compute_rotation_center and self.rotation_option == "moving_center"):
             self._ComputeCenterRotation()
 
         # Compute delta quaternion
