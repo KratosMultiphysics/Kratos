@@ -81,12 +81,17 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         # Compute rotation matrix
         new_rotation_matrix = self._ComputeRotationMatrixFromQuaternion(self._quaternion)
 
-        # Update impose_displacement
         for mpc in self.model_part.Conditions:
+            # Update impose_displacement
             imposed_disp = mpc.GetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT)
             initial_radius = mpc.GetValue(KratosParticle.MPC_RADIUS)
             imposed_disp += new_rotation_matrix * initial_radius - self._rotation_matrix * initial_radius
             mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT, imposed_disp)
+
+            # Update normal vector
+            normal = mpc.GetValue(KratosParticle.MPC_NORMAL)
+            modified_normal = new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * normal)
+            mpc.SetValue(KratosParticle.MPC_NORMAL, modified_normal)
 
         # Copy rotation matrix
         self._rotation_matrix = new_rotation_matrix
@@ -116,6 +121,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         self._delta_quaternion = self._quaternion
 
         self._rotation_matrix = KratosMultiphysics.Matrix(3,3)
+        self._rotation_matrix.fill(0.0)
         self._rotation_matrix[0,0] = 1.0
         self._rotation_matrix[1,1] = 1.0
         self._rotation_matrix[2,2] = 1.0
@@ -177,3 +183,14 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         rot_mat[2,2] = 2.0 * (q[0]*q[0] + q[3]*q[3]) - 1.0
 
         return rot_mat
+
+    def _TransposeMatrix(self, A):
+        if(not isinstance(A, KratosMultiphysics.Matrix)):
+            raise Exception("expected input shall be a KratosMultiphysics.Matrix object with equal number of row-column (square)")
+
+        result = KratosMultiphysics.Matrix(A.Size2(),A.Size1())
+        for i in range (A.Size1()):
+            for j in range (A.Size2()):
+                result[j,i] = A[i,j]
+
+        return result
