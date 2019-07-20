@@ -577,15 +577,12 @@ protected:
 		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
-		aux = sqrt(aux);
-
-		rRot(TSkip  ,TSkip  ) = rNormal[0]/aux;
-		rRot(TSkip  ,TSkip+1) = rNormal[1]/aux;
-		rRot(TSkip+1,TSkip  ) = -rNormal[1]/aux;
-		rRot(TSkip+1,TSkip+1) = rNormal[0]/aux;
+		array_1d<double,3> Normal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+		this->Normalize(Normal);
+		rRot(TSkip  ,TSkip  ) =  Normal[0];
+		rRot(TSkip  ,TSkip+1) =  Normal[1];
+		rRot(TSkip+1,TSkip  ) = -Normal[1];
+		rRot(TSkip+1,TSkip+1) =  Normal[0];
 	}
 
 	template<unsigned int TBlockSize, unsigned int TSkip = 0>
@@ -596,13 +593,11 @@ protected:
 		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
-		aux = sqrt(aux);
-		rRot(TSkip,TSkip  ) = rNormal[0]/aux;
-		rRot(TSkip,TSkip+1) = rNormal[1]/aux;
-		rRot(TSkip,TSkip+2) = rNormal[2]/aux;
+		array_1d<double,3> Normal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+		this->Normalize(Normal);
+		rRot(TSkip,TSkip  ) = Normal[0];
+		rRot(TSkip,TSkip+1) = Normal[1];
+		rRot(TSkip,TSkip+2) = Normal[2];
 		// Define the new coordinate system, where the first vector is aligned with the normal
 
 		// To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
@@ -644,13 +639,11 @@ protected:
 	{
 
 		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
-		aux = sqrt(aux);
-		rRot(0,0) = rNormal[0]/aux;
-		rRot(0,1) = rNormal[1]/aux;
-		rRot(0,2) = rNormal[2]/aux;
+		array_1d<double,3> Normal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+		this->Normalize(Normal);
+		rRot(0,0) = Normal[0];
+		rRot(0,1) = Normal[1];
+		rRot(0,2) = Normal[2];
 		// Define the new coordinate system, where the first vector is aligned with the normal
 
 		// To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
@@ -690,15 +683,12 @@ protected:
 			GeometryType::PointType& rThisPoint) const
 	{
 		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
-		aux = sqrt(aux);
-
-		rRot(0,0) = rNormal[0]/aux;
-		rRot(0,1) = rNormal[1]/aux;
-		rRot(1,0) = -rNormal[1]/aux;
-		rRot(1,1) = rNormal[0]/aux;
+		array_1d<double,3> Normal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+		this->Normalize(Normal);
+		rRot(0,0) =  Normal[0];
+		rRot(0,1) =  Normal[1];
+		rRot(1,0) = -Normal[1];
+		rRot(1,1) =  Normal[0];
 
 	}
 
@@ -717,10 +707,12 @@ protected:
 	{
 		double Norm = 0;
 		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		Norm += (*iComponent)*(*iComponent);
-		Norm = sqrt(Norm);
-		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		*iComponent /= Norm;
+			Norm += (*iComponent)*(*iComponent);
+		Norm = std::sqrt(Norm);
+		if (Norm > std::numeric_limits<double>::epsilon()){
+			for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+				*iComponent /= Norm;
+		}
 		return Norm;
 	}
 
