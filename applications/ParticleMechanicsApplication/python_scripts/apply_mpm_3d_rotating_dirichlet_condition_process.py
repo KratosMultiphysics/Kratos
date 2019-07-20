@@ -57,9 +57,6 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         if self.compute_rotation_center:
             self._ComputeCenterRotation()
 
-        # Compute initial radius
-        self._ComputeRadius()
-
         # Initial Quaternion, its increment, and rotation_matrix
         self._InitializeRotationVariables()
 
@@ -82,10 +79,13 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         new_rotation_matrix = self._ComputeRotationMatrixFromQuaternion(self._quaternion)
 
         for mpc in self.model_part.Conditions:
+            # Compute current radius
+            xg_c = mpc.GetValue(KratosParticle.MPC_COORD)
+            radius = xg_c - self.rotation_center
+
             # Update impose_displacement
             imposed_disp = mpc.GetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT)
-            initial_radius = mpc.GetValue(KratosParticle.MPC_RADIUS)
-            imposed_disp += new_rotation_matrix * initial_radius - self._rotation_matrix * initial_radius
+            imposed_disp += new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * radius) - radius
             mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT, imposed_disp)
 
             # Update normal vector
@@ -104,12 +104,6 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
 
         auto_rc = auto_rc / self.model_part.NumberOfConditions()
         self.rotation_center = auto_rc
-
-    def _ComputeRadius(self):
-        for mpc in self.model_part.Conditions:
-            xg_c = mpc.GetValue(KratosParticle.MPC_COORD)
-            radius = xg_c - self.rotation_center
-            mpc.SetValue(KratosParticle.MPC_RADIUS, radius)
 
     def _InitializeRotationVariables(self):
         self._quaternion = KratosMultiphysics.Vector(4)
