@@ -73,7 +73,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
                 KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", info_msg)
-                from process_factory import KratosProcessFactory
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -104,7 +104,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
             if parameter_name == "grid_output":
-                from gid_output_process import GiDOutputProcess as OutputProcess
+                from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
                 grid_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Grid"
                 gid_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
                                     self.project_parameters["grid_output_configuration"])
