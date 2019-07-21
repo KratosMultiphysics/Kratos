@@ -4,11 +4,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
-        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
+from ..base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
+from ..factories import solver_wrapper_factory
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from .. import co_simulation_tools as cs_tools
 
 def Create(settings, solver_name):
     return MappedSolverWrapper(settings, solver_name)
