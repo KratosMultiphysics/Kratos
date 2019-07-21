@@ -169,7 +169,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         else:
             raise Exception("Provided mesh movement \'" + mesh_movement + "\'. Available options are \'implicit\' and \'explicit\'.")
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -219,15 +220,20 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        settings["fm_ale_settings"].ValidateAndAssignDefaults(default_settings["fm_ale_settings"])
-        if settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0:
-            mesh_movement = settings["fm_ale_settings"]["mesh_movement"].GetString()
-            settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._get_fm_ale_solver_default_settings(mesh_movement))
+        default_settings.AddMissingParameters(super(NavierStokesEmbeddedMonolithicSolver, cls).GetDefaultSettings())
+        return default_settings
 
-        return settings
+    def ValidateSettings(self):
+        """Overriding python_solver ValidateSettings to validate the fm_ale_settings
+        """
+        super(NavierStokesEmbeddedMonolithicSolver, self).ValidateSettings()
+        self.settings["fm_ale_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["fm_ale_settings"])
+        if self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0:
+            mesh_movement = self.settings["fm_ale_settings"]["mesh_movement"].GetString()
+            self.settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._get_fm_ale_solver_default_settings(mesh_movement))
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesEmbeddedMonolithicSolver,self).__init__(model,custom_settings)
 
         self.min_buffer_size = 3

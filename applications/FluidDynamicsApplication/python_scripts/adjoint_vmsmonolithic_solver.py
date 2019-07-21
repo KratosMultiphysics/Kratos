@@ -13,7 +13,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -46,10 +47,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
 
         self.element_name = "VMSAdjointElement"
