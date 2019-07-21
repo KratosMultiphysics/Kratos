@@ -4,11 +4,11 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
+from ..base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
 
 # CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import KratosMultiphysics.CoSimulationApplication.colors as colors
+from .. import co_simulation_tools as cs_tools
+from .. import colors as colors
 
 def Create(settings, solver_name):
     return GaussSeidelStrongCoupledSolver(settings, solver_name)
