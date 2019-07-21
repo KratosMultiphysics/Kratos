@@ -5,9 +5,9 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import KratosMultiphysics.CoSimulationApplication.colors as colors
+from .factories import solver_wrapper_factory
+from . import co_simulation_tools as cs_tools
+from . import colors as colors
 
 # Other imports
 import sys
@@ -95,7 +95,7 @@ class CoSimulationAnalysis(AnalysisStage):
         """Create the solver
         """
         problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
-        return solvers_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
+        return solver_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
