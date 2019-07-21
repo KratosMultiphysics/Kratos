@@ -9,10 +9,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
+from ..base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from .. import co_simulation_tools as cs_tools
 
 # Other imports
 import numpy as np

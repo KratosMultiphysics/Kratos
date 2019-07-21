@@ -5,10 +5,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Date: Jul. 2018
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
+from ..base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, red, magenta, blue
+from ..co_simulation_tools import classprint, bold, red, magenta, blue
 
 # Other imports
 import numpy as np
