@@ -32,18 +32,36 @@ public:
 
     /**
      * @brief Construct a new BDF object
-     * Default constructor for derived classes
+     * Auxiliary constructor for derived classes
      */
-    BDF(){}
+    BDF(){};
 
     /**
      * @brief Construct a new BDF object
      * Constructor with time order
      * @param TimeOrder BDF time order
      */
-    BDF(const unsigned int TimeOrder) : mpAuxBDF(pGetAuxBDF(TimeOrder)) {};
+    BDF(const unsigned int TimeOrder) : mTimeOrder(TimeOrder)
+    {
+        this->SetAuxBDFPointer(TimeOrder, mpAuxBDF);
+    };
 
-    static unique_ptr<BDF> pGetAuxBDF(const unsigned int TimeOrder);
+    /**
+     * @brief Destroy the BDF object
+     * Destructor of the BDF class
+     */
+    virtual ~BDF(){};
+
+    /**
+     * @brief Set the Aux BDF Pointer object
+     * This method sets a pointer to one of the auxiliary BDF
+     * classes according to the user defined time order
+     * @param TimeOrder BDF scheme time order
+     * @param rpAuxBDF Pointer to the auxiliary BDF scheme
+     */
+    static void SetAuxBDFPointer(
+        const unsigned int TimeOrder,
+        unique_ptr<BDF> &rpAuxBDF);
 
     /**
      * @brief Return the BDF coefficients
@@ -51,7 +69,16 @@ public:
      * @param DeltaTime Time step to compute the BDF coefficients
      * @return Vector Vector containing the computed BDF coefficients
      */
-    Vector ComputeBDFCoefficients(const double DeltaTime) const;
+    virtual Vector ComputeBDFCoefficients(double DeltaTime) const;
+
+    /**
+     * @brief Return the BDF coefficients
+     * This method computes the BDF coefficients for a provided current and old time step
+     * @param DeltaTime Time step to compute the BDF coefficients
+     * @param PreviousDeltaTime Old time step to compute the BDF coefficients
+     * @return Vector Vector containing the computed BDF coefficients
+     */
+    virtual Vector ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
 
     /**
      * @brief Return the BDF coefficients
@@ -60,54 +87,61 @@ public:
      * @param rProcessInfo ProcessInfo container with DELTA_TIME
      * @return Vector Vector containing the computed BDF coefficients
      */
-    Vector ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const;
+    virtual Vector ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const;
+
+    /**
+     * @brief Get the Time Order object
+     * Auxiliary method to get the order of the BDF scheme
+     * @return const unsigned int Order of the BDF scheme
+     */
+    const unsigned int GetTimeOrder() const;
 
 private:
 
-    const unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
+    const unsigned int mTimeOrder = 0;
+    unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
 };
 
 class KRATOS_API(KRATOS_CORE) BDF1 : public BDF
 {
 public:
-    std::array<double, 2> ComputeBDFCoefficients(double DeltaTime) const;
-    std::array<double, 2> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    Vector ComputeBDFCoefficients(double DeltaTime) const;
+    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF2 : public BDF
 {
 public:
-    std::array<double, 3> ComputeBDFCoefficients(double DeltaTime,
-                                                 double PreviousDeltaTime) const;
-    std::array<double, 3> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    Vector ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
+    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF3 : public BDF
 {
 public:
-    std::array<double, 4> ComputeBDFCoefficients(double DeltaTime) const;
-    std::array<double, 4> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    Vector ComputeBDFCoefficients(double DeltaTime) const;
+    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF4 : public BDF
 {
 public:
-    std::array<double, 5> ComputeBDFCoefficients(double DeltaTime) const;
-    std::array<double, 5> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    Vector ComputeBDFCoefficients(double DeltaTime) const;
+    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF5 : public BDF
 {
 public:
-    std::array<double, 6> ComputeBDFCoefficients(double DeltaTime) const;
-    std::array<double, 6> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    Vector ComputeBDFCoefficients(double DeltaTime) const;
+    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF6 : public BDF
 {
 public:
-    std::array<double, 7> ComputeBDFCoefficients(double DeltaTime) const;
-    std::array<double, 7> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    Vector ComputeBDFCoefficients(double DeltaTime) const;
+    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class Newmark
@@ -184,6 +218,7 @@ private:
     double mNewmarkGamma=0.5;
 };
 
+inline std::size_t GetMinimumBufferSize(const BDF &rTimeDiscr) { return (rTimeDiscr.GetTimeOrder() + 1); }
 inline std::size_t GetMinimumBufferSize(const BDF1& rTimeDiscr) { return 2;}
 inline std::size_t GetMinimumBufferSize(const BDF2& rTimeDiscr) { return 3;}
 inline std::size_t GetMinimumBufferSize(const BDF3& rTimeDiscr) { return 4;}
