@@ -129,13 +129,7 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
         self.variables = settings["variables"]
         for key, value in self.variables.items():
             variable = self._GetItemFromModule(key)
-            if( value.IsDouble() ):
-                self.properties.SetValue(variable, value.GetDouble())
-            elif( value.IsArray() ):
-                vector_value = KratosMultiphysics.Vector(value.size())
-                for i in range(0, value.size() ):
-                    vector_value[i] = value[i].GetDouble()
-                self.properties.SetValue(variable, vector_value)
+            self.properties.SetValue(variable, value.GetDouble())
 
 
         #create constitutive law
