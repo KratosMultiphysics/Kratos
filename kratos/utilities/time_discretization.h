@@ -89,7 +89,7 @@ public:
      * @param rProcessInfo ProcessInfo container with DELTA_TIME
      * @return std::vector<double> Vector containing the computed BDF coefficients
      */
-    virtual std::vector<double> ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const;
+    virtual std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief Get the Time Order object
