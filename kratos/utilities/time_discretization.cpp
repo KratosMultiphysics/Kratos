@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Ruben Zorrilla
 //
 
 // System includes
@@ -54,21 +55,21 @@ void BDF::SetAuxBDFPointer(
     }
 }
 
-Vector BDF::ComputeBDFCoefficients(double DeltaTime) const
+std::vector<double> BDF::ComputeBDFCoefficients(double DeltaTime) const
 {
     KRATOS_ERROR_IF(!mpAuxBDF)
         << "Pointer to auxiliary BDF class implementing the desired order is null" << std::endl;
     return mpAuxBDF->ComputeBDFCoefficients(DeltaTime);
 }
 
-Vector BDF::ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const
+std::vector<double> BDF::ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const
 {
     KRATOS_ERROR_IF(!mpAuxBDF)
         << "Pointer to auxiliary BDF class implementing the desired order is null" << std::endl;
     return mpAuxBDF->ComputeBDFCoefficients(DeltaTime, PreviousDeltaTime);
 }
 
-Vector BDF::ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const
+std::vector<double> BDF::ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const
 {
     KRATOS_ERROR_IF(!mpAuxBDF)
         << "Pointer to auxiliary BDF class implementing the desired order is null" << std::endl;
@@ -80,12 +81,12 @@ const unsigned int BDF::GetTimeOrder() const
     return mTimeOrder;
 }
 
-Vector BDF1::ComputeBDFCoefficients(const double DeltaTime) const
+std::vector<double> BDF1::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
-    Vector coefficients(2);
+    std::vector<double> coefficients(2);
 
     coefficients[0] =  1.0/DeltaTime;
     coefficients[1] = -1.0/DeltaTime;
@@ -93,14 +94,14 @@ Vector BDF1::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
-Vector BDF1::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+std::vector<double> BDF1::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
         << "defined in the ProcessInfo!" << std::endl;
     return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
-Vector BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime) const
+std::vector<double> BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
@@ -108,7 +109,7 @@ Vector BDF2::ComputeBDFCoefficients(const double DeltaTime, const double Previou
     const double rho = PreviousDeltaTime / DeltaTime;
     double time_coeff = 1.0 / (DeltaTime * rho * rho + DeltaTime * rho);
 
-    Vector coefficients(3);
+    std::vector<double> coefficients(3);
 
     if (PreviousDeltaTime < std::numeric_limits<double>::epsilon()) {
         KRATOS_DETAIL("ComputeBDFCoefficients") << "previous delta-time is zero, using "
@@ -126,7 +127,7 @@ Vector BDF2::ComputeBDFCoefficients(const double DeltaTime, const double Previou
     return coefficients;
 }
 
-Vector BDF2::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+std::vector<double> BDF2::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
         << "defined in the ProcessInfo!" << std::endl;
@@ -134,14 +135,14 @@ Vector BDF2::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
                                   rProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME]);
 }
 
-Vector BDF3::ComputeBDFCoefficients(const double DeltaTime) const
+std::vector<double> BDF3::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 6.0*DeltaTime;
 
-    Vector coefficients(4);
+    std::vector<double> coefficients(4);
 
     coefficients[0] =  11.0 / denom;
     coefficients[1] = -18.0 / denom;
@@ -151,21 +152,21 @@ Vector BDF3::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
-Vector BDF3::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+std::vector<double> BDF3::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
         << "defined in the ProcessInfo!" << std::endl;
     return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
-Vector BDF4::ComputeBDFCoefficients(const double DeltaTime) const
+std::vector<double> BDF4::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 12.0*DeltaTime;
 
-    Vector coefficients(5);
+    std::vector<double> coefficients(5);
 
     coefficients[0] =  25.0 / denom;
     coefficients[1] = -48.0 / denom;
@@ -176,21 +177,21 @@ Vector BDF4::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
-Vector BDF4::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+std::vector<double> BDF4::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
         << "defined in the ProcessInfo!" << std::endl;
     return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
-Vector BDF5::ComputeBDFCoefficients(const double DeltaTime) const
+std::vector<double> BDF5::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 60.0*DeltaTime;
 
-    Vector coefficients(6);
+    std::vector<double> coefficients(6);
 
     coefficients[0] =  137.0 / denom;
     coefficients[1] = -300.0 / denom;
@@ -202,21 +203,21 @@ Vector BDF5::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
-Vector BDF5::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+std::vector<double> BDF5::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
         << "defined in the ProcessInfo!" << std::endl;
     return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
-Vector BDF6::ComputeBDFCoefficients(const double DeltaTime) const
+std::vector<double> BDF6::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 60.0*DeltaTime;
 
-    Vector coefficients(7);
+    std::vector<double> coefficients(7);
 
     coefficients[0] =  147.0 / denom;
     coefficients[1] = -360.0 / denom;
@@ -229,7 +230,7 @@ Vector BDF6::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
-Vector BDF6::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+std::vector<double> BDF6::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
         << "defined in the ProcessInfo!" << std::endl;

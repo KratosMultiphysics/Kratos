@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Ruben Zorrilla
 //
 
 #if !defined( KRATOS_TIME_DISCRETIZATION_H_INCLUDED )
@@ -28,6 +29,7 @@ namespace TimeDiscretization {
 class KRATOS_API(KRATOS_CORE) BDF
 {
 public:
+
     KRATOS_CLASS_POINTER_DEFINITION(BDF);
 
     /**
@@ -67,27 +69,27 @@ public:
      * @brief Return the BDF coefficients
      * This method computes the BDF coefficients for a provided time step
      * @param DeltaTime Time step to compute the BDF coefficients
-     * @return Vector Vector containing the computed BDF coefficients
+     * @return std::vector<double> Vector containing the computed BDF coefficients
      */
-    virtual Vector ComputeBDFCoefficients(double DeltaTime) const;
+    virtual std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
 
     /**
      * @brief Return the BDF coefficients
      * This method computes the BDF coefficients for a provided current and old time step
      * @param DeltaTime Time step to compute the BDF coefficients
      * @param PreviousDeltaTime Old time step to compute the BDF coefficients
-     * @return Vector Vector containing the computed BDF coefficients
+     * @return std::vector<double> Vector containing the computed BDF coefficients
      */
-    virtual Vector ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
+    virtual std::vector<double> ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
 
     /**
      * @brief Return the BDF coefficients
      * This method computes the BDF coefficients for the time step
      * stored in the variable DELTA_TIME of a ProcessInfo container
      * @param rProcessInfo ProcessInfo container with DELTA_TIME
-     * @return Vector Vector containing the computed BDF coefficients
+     * @return std::vector<double> Vector containing the computed BDF coefficients
      */
-    virtual Vector ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const;
+    virtual std::vector<double> ComputeBDFCoefficients(const ProcessInfo &rProcessInfo) const;
 
     /**
      * @brief Get the Time Order object
@@ -98,50 +100,50 @@ public:
 
 private:
 
-    const unsigned int mTimeOrder = 0;
+    const unsigned int mTimeOrder = 0; // Time order of the auxiliary BDF class
     unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
 };
 
 class KRATOS_API(KRATOS_CORE) BDF1 : public BDF
 {
 public:
-    Vector ComputeBDFCoefficients(double DeltaTime) const;
-    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF2 : public BDF
 {
 public:
-    Vector ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
-    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF3 : public BDF
 {
 public:
-    Vector ComputeBDFCoefficients(double DeltaTime) const;
-    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF4 : public BDF
 {
 public:
-    Vector ComputeBDFCoefficients(double DeltaTime) const;
-    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF5 : public BDF
 {
 public:
-    Vector ComputeBDFCoefficients(double DeltaTime) const;
-    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF6 : public BDF
 {
 public:
-    Vector ComputeBDFCoefficients(double DeltaTime) const;
-    Vector ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class Newmark
