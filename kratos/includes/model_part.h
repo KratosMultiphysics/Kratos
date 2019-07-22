@@ -1668,38 +1668,6 @@ private:
     }
 
     /**
-     * @brief This method trims a string and returns the number of components
-     * @param rStringName The given name to be trimmed
-     * @return The number of components
-     */
-    IndexType NumberComponentName(const std::string& rStringName)
-    {
-        IndexType number_component = 0;
-        std::stringstream ss(rStringName);
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            ++number_component;
-        }
-
-        return number_component;
-    }
-
-    /**
-     * @brief This method trims a string and returns the number of components (constant version)
-     * @param rStringName The given name to be trimmed
-     * @return The number of components
-     */
-    IndexType NumberComponentName(const std::string& rStringName) const
-    {
-        IndexType number_component = 0;
-        std::stringstream ss(rStringName);
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            ++number_component;
-        }
-
-        return number_component;
-    }
-
-    /**
      * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)
      * @param NewBufferSize The new buffer size to be set
      */
