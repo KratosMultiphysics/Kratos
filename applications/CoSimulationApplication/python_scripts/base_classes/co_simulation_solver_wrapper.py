@@ -6,7 +6,7 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories import io_factory
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, name):
     return CoSimulationSolverWrapper(settings, name)

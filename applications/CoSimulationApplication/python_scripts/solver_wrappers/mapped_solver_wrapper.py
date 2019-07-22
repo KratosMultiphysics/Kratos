@@ -8,7 +8,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 from KratosMultiphysics.CoSimulationApplication.factories import solver_wrapper_factory
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_name):
     return MappedSolverWrapper(settings, solver_name)

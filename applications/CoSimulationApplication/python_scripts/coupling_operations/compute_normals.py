@@ -7,7 +7,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_wrappers):
     cs_tools.SettingsTypeCheck(settings)

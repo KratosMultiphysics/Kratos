@@ -8,8 +8,8 @@ from KratosMultiphysics.CoSimulationApplication.base_classes import co_simulatio
 
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories import solver_wrapper_factory
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication import colors
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
 # Other imports

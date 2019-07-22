@@ -7,7 +7,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_name):
     raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')

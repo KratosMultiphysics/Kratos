@@ -12,7 +12,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
 import numpy as np

@@ -7,7 +7,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_predictor import CoSimulationPredictor
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Predictor implemented according to:
 # "A new staggered scheme for fluid-structure interaction"; W.G. Dettmer and D. Peric
