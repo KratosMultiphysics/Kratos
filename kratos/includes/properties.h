@@ -421,8 +421,10 @@ public:
                 } else {
                     return false;
                 }
+            } else {
+                KRATOS_WARNING("Properties") << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
+                return false;
             }
-            return true;
         } else {
             return false;
         }
@@ -452,8 +454,10 @@ public:
                 } else {
                     return false;
                 }
+            } else {
+                KRATOS_WARNING("Properties") << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
+                return false;
             }
-            return true;
         } else {
             return false;
         }
@@ -485,9 +489,9 @@ public:
                 } else {
                     KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+            } else {
+                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
             }
-            // It is the current property we are forced to create a shared pointer
-            return Kratos::make_shared<Properties>(*this);
         } else {
             KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
@@ -519,9 +523,9 @@ public:
                 } else {
                     KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+            } else {
+                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
             }
-            // It is the current property we are forced to create a shared pointer
-            return Kratos::make_shared<Properties>(*this);
         } else {
             KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
@@ -553,8 +557,9 @@ public:
                 } else {
                     KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+            } else {
+                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
             }
-            return *this;
         } else {
             KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
@@ -586,8 +591,9 @@ public:
                 } else {
                     KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+            } else {
+                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
             }
-            return const_cast<Properties&>(*this);
         } else {
             KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
         }
