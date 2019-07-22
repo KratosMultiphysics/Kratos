@@ -707,12 +707,10 @@ protected:
 	{
 		double Norm = 0;
 		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-			Norm += (*iComponent)*(*iComponent);
+		Norm += (*iComponent)*(*iComponent);
 		Norm = std::sqrt(Norm);
-		if (Norm > std::numeric_limits<double>::epsilon()){
-			for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-				*iComponent /= Norm;
-		}
+		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		*iComponent /= Norm;
 		return Norm;
 	}
 
