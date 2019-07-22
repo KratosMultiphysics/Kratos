@@ -11,7 +11,7 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+from .structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return TrilinosMechanicalSolver(model, custom_settings)

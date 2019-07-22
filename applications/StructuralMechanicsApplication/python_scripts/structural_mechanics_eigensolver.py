@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+from .structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
