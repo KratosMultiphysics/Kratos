@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+from .structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return HarmonicAnalysisSolver(model, custom_settings)

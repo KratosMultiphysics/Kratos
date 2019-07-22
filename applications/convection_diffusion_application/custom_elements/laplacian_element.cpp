@@ -138,6 +138,14 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
 //************************************************************************************
 //************************************************************************************
+void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType temp(0);
+    CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
+}
+
+//************************************************************************************
+//************************************************************************************
 void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
@@ -193,7 +201,7 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedUnknownVariable()) << "No Unknown Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedDiffusionVariable()) << "No Diffusion Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedVolumeSourceVariable()) << "No Volume Source Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
-    
+
     const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
     const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();

@@ -12,8 +12,7 @@ def CreateSolver(model, custom_settings):
 
 class AdjointFluidSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-        settings = self._ValidateSettings(custom_settings)
+    def __init__(self, model, settings):
 
         super(AdjointFluidSolver,self).__init__(model, settings)
 
@@ -109,13 +108,6 @@ class AdjointFluidSolver(PythonSolver):
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
-
-    ## FluidSolver specific methods.
-    def _ValidateSettings(self, settings):
-        raise Exception("Please define the _ValidateSettings() method in your derived solver class to validate the Kratos::Parameters configuration.")
-        # Suggested implementation:
-        #settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(r'{}'))
-        #return settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size

@@ -13,8 +13,7 @@ def CreateSolver(model, custom_settings):
 
 class FluidSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-        settings = self._ValidateSettings(custom_settings)
+    def __init__(self, model, settings):
 
         super(FluidSolver,self).__init__(model, settings)
 
@@ -128,12 +127,6 @@ class FluidSolver(PythonSolver):
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-
-    def _ValidateSettings(self, settings):
-        raise Exception("Please define the _ValidateSettings() method in your derived solver class to validate the Kratos::Parameters configuration.")
-        # Suggested implementation:
-        #settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(r'{}'))
-        #return settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size

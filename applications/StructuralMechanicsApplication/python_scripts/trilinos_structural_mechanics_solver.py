@@ -8,9 +8,10 @@ from KratosMultiphysics.mpi.distributed_import_model_part_utility import Distrib
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+from .structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return TrilinosMechanicalSolver(model, custom_settings)
@@ -75,9 +76,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
-        linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():

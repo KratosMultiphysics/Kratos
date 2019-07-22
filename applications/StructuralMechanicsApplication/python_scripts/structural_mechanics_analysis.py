@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as structural_solvers
+from. import python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
