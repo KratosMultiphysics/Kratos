@@ -101,7 +101,7 @@ public:
 private:
 
     const std::size_t mTimeOrder = 0; // Time order of the auxiliary BDF class
-    unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
+    Kratos::unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
 };
 
 class KRATOS_API(KRATOS_CORE) BDF1 : public BDF
