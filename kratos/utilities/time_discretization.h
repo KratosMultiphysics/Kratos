@@ -46,7 +46,7 @@ public:
      * @brief Destroy the BDF object
      * Destructor of the BDF class
      */
-    virtual ~BDF(){};
+    virtual ~BDF() = default;
 
     /**
      * @brief Return the BDF coefficients
