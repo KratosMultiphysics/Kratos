@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <unordered_map>
 #include <chrono>
 
@@ -121,8 +122,14 @@ public:
     /// The type of float used to store the time
     typedef double TimeType;
 
-    /// The timer data container type (unordered_map)
-    typedef std::unordered_map<std::string, TimerData> ContainerType;
+    /// The timer data container type (map)
+    typedef std::map<std::string, TimerData> ContainerType;
+
+    /// This is used to know the internal name used for the time table
+    typedef std::unordered_map<std::string, std::string> InternalNameDatabaseType;
+
+    /// The number of 0 in the internal name
+    static constexpr std::size_t NumberOfZeros = 3;
 
     ///@}
     ///@name Life Cycle
@@ -316,13 +323,17 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ContainerType msTimeTable;       /// The time tables
+    static InternalNameDatabaseType msInternalNameDatabase;        /// The names used on the time tables
 
-    static std::ofstream msOutputFile;      /// The file to be written
+    static ContainerType msTimeTable;                              /// The time tables
 
-    static bool msPrintOnScreen;            /// If the information is printed on screen
+    static std::ofstream msOutputFile;                             /// The file to be written
 
-    static bool msPrintIntervalInformation; /// If the information of the interval is printed
+    static std::size_t msCounter;                                  /// Counter of the instances
+
+    static bool msPrintOnScreen;                                   /// If the information is printed on screen
+
+    static bool msPrintIntervalInformation;                        /// If the information of the interval is printed
 
     static const std::chrono::steady_clock::time_point mStartTime; /// The starting time
 
@@ -333,6 +344,13 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    /**
+     * @brief This method returns the internal name used on the table
+     * @param rName The base name
+     * @return The internal name
+     */
+    static std::string GetInternalName(const std::string& rName);
 
     ///@}
     ///@name Private Operations

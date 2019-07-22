@@ -101,13 +101,20 @@ Timer::Timer(){}
 
 void Timer::Start(std::string const& rIntervalName)
 {
-    msTimeTable[rIntervalName].SetStartTime(GetTime());
+    const auto it_internal_name = msInternalNameDatabase.find(rIntervalName);
+    if(it_internal_name == msInternalNameDatabase.end()) {
+        const std::string internal_name = GetInternalName(rIntervalName);
+        msInternalNameDatabase.insert(std::pair<std::string, std::string>(rIntervalName, internal_name));
+        msTimeTable[internal_name].SetStartTime(GetTime());
+        ++msCounter;
+    }
 }
 
 void Timer::Stop(std::string const& rIntervalName)
 {
     const double stop_time = GetTime();
-    ContainerType::iterator it_time_data = msTimeTable.find(rIntervalName);
+    const std::string& r_name = msInternalNameDatabase[rIntervalName];
+    ContainerType::iterator it_time_data = msTimeTable.find(r_name);
 
     if(it_time_data == msTimeTable.end())
         return;
@@ -115,7 +122,7 @@ void Timer::Stop(std::string const& rIntervalName)
     it_time_data->second.Update(stop_time);
 
     if (msPrintIntervalInformation) {
-        PrintIntervalInformation(rIntervalName, it_time_data->second.GetStartTime(), stop_time);
+        PrintIntervalInformation(r_name, it_time_data->second.GetStartTime(), stop_time);
     }
 }
 
@@ -163,10 +170,11 @@ void Timer::SetPrintIntervalInformation(bool const PrintIntervalInformation)
 
 void Timer::PrintIntervalInformation(std::string const& rIntervalName, const double StartTime, const double StopTime)
 {
+    const std::string& r_name = msInternalNameDatabase[rIntervalName];
     if (msOutputFile.is_open())
-        PrintIntervalInformation(msOutputFile, rIntervalName, StartTime, StopTime);
+        PrintIntervalInformation(msOutputFile, r_name, StartTime, StopTime);
     if(msPrintOnScreen)
-        PrintIntervalInformation(std::cout, rIntervalName, StartTime, StopTime);
+        PrintIntervalInformation(std::cout, r_name, StartTime, StopTime);
 }
 
 void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& rIntervalName, const double StartTime, const double StopTime)
@@ -218,8 +226,22 @@ void Timer::PrintTimingInformation(std::ostream& rOStream)
     }
 }
 
+std::string Timer::GetInternalName(const std::string& rName)
+{
+    std::string initial_string = std::to_string(msCounter);
+    const std::size_t size_string = initial_string.size();
+    for (std::size_t i = 0; i < (NumberOfZeros - size_string); ++i) {
+        initial_string = "0" + initial_string;
+    }
+    std::string internal_name = initial_string + "." + rName;
+
+    return internal_name;
+}
+
+Timer::InternalNameDatabaseType Timer::msInternalNameDatabase;
 Timer::ContainerType Timer::msTimeTable;
 std::ofstream Timer::msOutputFile;
+std::size_t Timer::msCounter = 0;
 bool Timer::msPrintOnScreen = false;
 bool Timer::msPrintIntervalInformation = true;
 const std::chrono::steady_clock::time_point Timer::mStartTime = std::chrono::steady_clock::now();
