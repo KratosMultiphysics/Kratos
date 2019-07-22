@@ -22,6 +22,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_application.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/communicator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;

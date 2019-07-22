@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Importing the base class
-from . import kratos_base_wrapper
+from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
 # Importing ParticleMechanics
 if not CheckIfApplicationsAvailable("ParticleMechanicsApplication"):
