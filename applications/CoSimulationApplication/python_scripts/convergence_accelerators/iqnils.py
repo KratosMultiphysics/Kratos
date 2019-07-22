@@ -10,7 +10,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
-from KratosMultiphysics.CoSimulationApplication import colors
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
 import numpy as np

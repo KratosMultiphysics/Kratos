@@ -9,7 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerato
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
-from KratosMultiphysics.CoSimulationApplication import colors
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 ### This file contains functionalities that are commonly used in CoSimulation ###
 
