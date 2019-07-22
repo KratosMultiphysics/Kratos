@@ -15,7 +15,7 @@
 #define  KRATOS_TIME_DISCRETIZATION_H_INCLUDED
 
 // System includes
-#include <array>
+#include <vector>
 
 // External includes
 
@@ -34,12 +34,6 @@ public:
 
     /**
      * @brief Construct a new BDF object
-     * Auxiliary constructor for derived classes
-     */
-    BDF(){};
-
-    /**
-     * @brief Construct a new BDF object
      * Constructor with time order
      * @param TimeOrder BDF time order
      */
@@ -53,17 +47,6 @@ public:
      * Destructor of the BDF class
      */
     virtual ~BDF(){};
-
-    /**
-     * @brief Set the Aux BDF Pointer object
-     * This method sets a pointer to one of the auxiliary BDF
-     * classes according to the user defined time order
-     * @param TimeOrder BDF scheme time order
-     * @param rpAuxBDF Pointer to the auxiliary BDF scheme
-     */
-    static void SetAuxBDFPointer(
-        const unsigned int TimeOrder,
-        unique_ptr<BDF> &rpAuxBDF);
 
     /**
      * @brief Return the BDF coefficients
@@ -94,14 +77,33 @@ public:
     /**
      * @brief Get the Time Order object
      * Auxiliary method to get the order of the BDF scheme
-     * @return const unsigned int Order of the BDF scheme
+     * @return const std::size_t Order of the BDF scheme
      */
-    const unsigned int GetTimeOrder() const;
+    const std::size_t GetTimeOrder() const;
+
+protected:
+
+    /**
+     * @brief Construct a new BDF object
+     * Auxiliary constructor for derived classes
+     */
+    BDF(){};
 
 private:
 
     const std::size_t mTimeOrder = 0; // Time order of the auxiliary BDF class
     Kratos::unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
+
+    /**
+     * @brief Set the Aux BDF Pointer object
+     * This method sets a pointer to one of the auxiliary BDF
+     * classes according to the user defined time order
+     * @param TimeOrder BDF scheme time order
+     * @param rpAuxBDF Pointer to the auxiliary BDF scheme
+     */
+    static void SetAuxBDFPointer(
+        const std::size_t TimeOrder,
+        Kratos::unique_ptr<BDF> &rpAuxBDF);
 };
 
 class KRATOS_API(KRATOS_CORE) BDF1 : public BDF
