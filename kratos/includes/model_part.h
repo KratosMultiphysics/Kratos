@@ -844,61 +844,61 @@ public:
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
-     * @brief Returns if the sub Properties corresponding to it's adress exists
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief Returns if the sub Properties corresponding to it's address exists
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @param ThisIndex The index identifying the mesh
      * @return True if the properties exist, false otherwise
      */
     bool HasSubPropertiesByAddress(
-        const std::string& rAdress,
+        const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
 
     /**
-     * @brief Returns the sub Properties::Pointer  corresponding to it's adress
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
      * @details If the property is not existing it will return a warning
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
     PropertiesType::Pointer pGetSubPropertiesByAddress(
-        const std::string& rAdress,
+        const std::string& rAddress,
         IndexType MeshIndex = 0
         );
 
     /**
-     * @brief Returns the sub Properties::Pointer  corresponding to it's adress (const version)
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address (const version)
      * @details If the property is not existing it will return a warning
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
     PropertiesType::Pointer pGetSubPropertiesByAddress(
-        const std::string& rAdress,
+        const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
 
     /**
-     * @brief Returns the sub Properties::Pointer  corresponding to it's adress
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
      * @details If the property is not existing it will return a warning
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
     PropertiesType& GetSubPropertiesByAddress(
-        const std::string& rAdress,
+        const std::string& rAddress,
         IndexType MeshIndex = 0
         );
 
     /**
-     * @brief Returns the sub Properties::Pointer corresponding to it's adress (const version)
+     * @brief Returns the sub Properties::Pointer corresponding to it's address (const version)
      * @details If the property is not existing it will return a warning
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
     PropertiesType& GetSubPropertiesByAddress(
-        const std::string& rAdress,
+        const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
 
