@@ -15,7 +15,6 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         try:
-            import importlib
             import math as math
         except ImportError as e:
             self.skipTest("Missing python libraries ( importlib and math)")
@@ -30,8 +29,6 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
         self.parameters.SetMaterialProperties( self.properties )
 
         NumberIncrements = 10
-        IncrementalF = self._set_identity_matrix()
-        IncrementalF[0,1] = 1.0/float(NumberIncrements)
         
         self.strain_vector = self.parameters.GetStrainVector()
         delta_strain = 0.0*self.strain_vector
@@ -42,13 +39,8 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
         self._compute_strain_driven_problem(delta_strain, NumberIncrements)
         Pressure, DeviatoricQ = self._calculate_invariants()
 
-
-
         UndrainedShearStrength    = self.properties.GetValue(KratosMultiphysics.YIELD_STRESS)
         self.assertAlmostEqual(DeviatoricQ, UndrainedShearStrength,places=4)
-
-
-
 
     def _compute_strain_driven_problem(self, delta_strain, nIncr):
     
@@ -61,9 +53,7 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
         self.material_law.FinalizeMaterialResponseKirchhoff(self.parameters)
 
 
-        stress = self.parameters.GetStressVector()
         self.strain_vector = self.parameters.GetStrainVector()
-        strain = self.strain_vector
 
         for step in range(1, nIncr+1):
 
@@ -76,44 +66,8 @@ class TestJ2Plasticity(KratosUnittest.TestCase):
             self.material_law.CalculateMaterialResponseCauchy( self.parameters )
             self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
 
-
             self.stress = self.parameters.GetStressVector()
-            stress = self.parameters.GetStressVector()
-            strain = self.strain_vector
-    
 
-
-    def _compute_determinant(self, A):
-
-        det = 0
-
-        det = det + A[0,0]*A[1,1]*A[2,2]
-        det = det + A[1,0]*A[2,1]*A[0,2]
-        det = det + A[2,0]*A[0,1]*A[1,2]
-
-        det = det - A[0,2]*A[1,1]*A[2,0]
-        det = det - A[1,2]*A[2,1]*A[0,0]
-        det = det - A[2,2]*A[0,1]*A[1,0]
-
-        return det
-
-
-    def _set_identity_matrix(self):
-        identity = KratosMultiphysics.Matrix(3,3)
-        for i in range(0,3):
-            for j in range(0,3):
-                if ( i == j ):
-                    identity[i,j] = 1.0
-                else:
-                    identity[i,j] = 0.0
-
-        return identity
-
-    def _multiply_matrix_by_number(self, A, alpha):
-        for i in range(0,3):
-            for j in range(0,3):
-                A[i,j] = alpha*A[i,j]
-        return A
 
     def _create_material_model_and_law(self):
 
