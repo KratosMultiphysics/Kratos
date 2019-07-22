@@ -471,18 +471,17 @@ protected:
 	 * @param rThis the vector
 	 * @return Original norm of the input vector
 	 */
-	template< class TVectorType >
-	double Normalize(TVectorType& rThis) const override
+	double Normalize(array_1d<double,3>& rThis) const override
 	{
-		double Norm = 0;
-		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-			Norm += (*iComponent)*(*iComponent);
-		Norm = std::sqrt(Norm);
-		if (Norm > std::numeric_limits<double>::epsilon()){
-			for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-				*iComponent /= Norm;
+		double norm = 0;
+		for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		norm += (*iComponent)*(*iComponent);
+		norm = std::sqrt(norm);
+		if (norm > std::numeric_limits<double>::epsilon()){
+			for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+			*iComponent /= norm;
 		}
-		return Norm;
+		return norm;
 	}
 
 	///@}
