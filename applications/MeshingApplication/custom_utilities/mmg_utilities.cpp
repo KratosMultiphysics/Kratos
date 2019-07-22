@@ -1035,6 +1035,13 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
                 element_nodes[1] = rModelPart.pGetNode(vertex_1);
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
                 p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+
+                // Setting inside flag
+                if (Ref == 2) {
+                    p_element->Set(INSIDE, true);
+                } else if (Ref == 3) {
+                    p_element->Set(INSIDE, false);
+                }
             }
         }
     } else {
