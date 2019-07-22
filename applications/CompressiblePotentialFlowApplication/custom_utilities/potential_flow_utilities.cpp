@@ -205,15 +205,19 @@ const bool CheckIfWakeConditionIsFulfilled(const Element& rElement, const double
 
     bool wake_condition_is_fulfilled = true;
     for (unsigned int i = 0; i < upper_velocity.size(); i++){
-        KRATOS_WARNING_IF("CheckIfWakeConditionIsFulfilled",
-                          std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance && rEchoLevel > 0)
-            << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
-            << " upper_velocity[" << i << "] = " << upper_velocity[i]
-            << " lower_velocity[" << i << "] = " << lower_velocity[i] << std::endl;
         if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
             wake_condition_is_fulfilled = false;
+            break;
         }
     }
+
+    KRATOS_WARNING_IF("CheckIfWakeConditionIsFulfilled", !wake_condition_is_fulfilled && rEchoLevel > 0)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckIfWakeConditionIsFulfilled", !wake_condition_is_fulfilled && rEchoLevel > 1)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+        << " upper_velocity  = " << upper_velocity
+        << " lower_velocity  = " << lower_velocity << std::endl;
+
     if(rElement.Id() == 16169){
         KRATOS_WATCH(upper_velocity)
         KRATOS_WATCH(lower_velocity)
