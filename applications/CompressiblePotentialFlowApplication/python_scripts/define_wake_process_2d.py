@@ -44,7 +44,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.__FindWakeElements()
 
     def ExecuteFinalizeSolutionStep(self):
-        print('aaaaaaaaaaaaaaaaaaaa')
         CPFApp.CheckWakeConditionProcess2D(self.wake_sub_model_part, 1e-9, 0).Execute()
 
     def __FindWakeElements(self):
@@ -240,7 +239,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         for elem in self.trailing_edge_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
                 if(self.__CheckIfElemIsCutByWake(elem)): #TE Element
-                    #elem.Set(KratosMultiphysics.STRUCTURE)
+                    elem.Set(KratosMultiphysics.STRUCTURE)
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
