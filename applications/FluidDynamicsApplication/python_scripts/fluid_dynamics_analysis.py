@@ -3,7 +3,8 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
@@ -35,7 +36,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
-        import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
