@@ -466,6 +466,25 @@ protected:
 	///@name Protected Operations
 	///@{
 
+	/// Normalize a vector.
+	/**
+	 * @param rThis the vector
+	 * @return Original norm of the input vector
+	 */
+	template< class TVectorType >
+	double Normalize(TVectorType& rThis) const override
+	{
+		double Norm = 0;
+		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+			Norm += (*iComponent)*(*iComponent);
+		Norm = std::sqrt(Norm);
+		if (Norm > std::numeric_limits<double>::epsilon()){
+			for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+				*iComponent /= Norm;
+		}
+		return Norm;
+	}
+
 	///@}
 	///@name Protected  Access
 	///@{
