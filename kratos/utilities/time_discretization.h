@@ -109,43 +109,43 @@ private:
 class KRATOS_API(KRATOS_CORE) BDF1 : public BDF
 {
 public:
-    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
-    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const override;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const override;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF2 : public BDF
 {
 public:
-    std::vector<double> ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const;
-    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime, double PreviousDeltaTime) const override;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const override;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF3 : public BDF
 {
 public:
-    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
-    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const override;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const override;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF4 : public BDF
 {
 public:
-    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
-    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const override;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const override;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF5 : public BDF
 {
 public:
-    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
-    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const override;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const override;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF6 : public BDF
 {
 public:
-    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const;
-    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+    std::vector<double> ComputeBDFCoefficients(double DeltaTime) const override;
+    std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const override;
 };
 
 class Newmark
