@@ -220,7 +220,7 @@ private:
     double mNewmarkGamma=0.5;
 };
 
-inline std::size_t GetMinimumBufferSize(const BDF &rTimeDiscr) { return (rTimeDiscr.GetTimeOrder() + 1); }
+inline std::size_t GetMinimumBufferSize(const BDF& rTimeDiscr) { return (rTimeDiscr.GetTimeOrder() + 1); }
 inline std::size_t GetMinimumBufferSize(const BDF1& rTimeDiscr) { return 2;}
 inline std::size_t GetMinimumBufferSize(const BDF2& rTimeDiscr) { return 3;}
 inline std::size_t GetMinimumBufferSize(const BDF3& rTimeDiscr) { return 4;}
