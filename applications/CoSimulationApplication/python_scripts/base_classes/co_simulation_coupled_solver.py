@@ -4,10 +4,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes import co_simulation_solver_wrapper
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.factories import solver_wrapper_factory
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
@@ -15,7 +15,7 @@ from KratosMultiphysics.CoSimulationApplication.function_callback_utility import
 # Other imports
 from collections import OrderedDict
 
-class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
+class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     """Baseclass for the coupled solvers used for CoSimulation
     Performs basic operations that are common among coupled solvers:
     - holds Predictors

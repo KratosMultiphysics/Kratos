@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
-from KratosMultiphysics.CoSimulationApplication.factories import solver_wrapper_factory
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools

@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.factories import solver_wrapper_factory
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
