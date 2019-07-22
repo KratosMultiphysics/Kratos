@@ -391,6 +391,25 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
+    const IncompressiblePotentialFlowElement& r_this = *this;
+    const int kutta = r_this.GetValue(KUTTA);
+    if(!kutta==0){
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            // The TE node takes the contribution of the subdivided element and
+            // we do not apply the wake condition on the TE node
+            if (GetGeometry()[i].GetValue(TRAILING_EDGE))// && to_be_decoupled)
+            {
+                //to_be_decoupled = false;
+                // KRATOS_WATCH(GetGeometry()[i].Id())
+                // KRATOS_WATCH(this->Id())
+                // Kutta elements do not contribute to the TE node
+                for (unsigned int j = 0; j < NumNodes; ++j){
+                    rLeftHandSideMatrix(i, j) = 0.0;
+                }
+            }
+        }
+    }
+
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
@@ -503,17 +522,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
     const ElementalData<NumNodes, Dim>& data) const
 {
+    bool to_be_decoupled = true;
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
-        if (GetGeometry()[i].GetValue(TRAILING_EDGE))
+        if (GetGeometry()[i].GetValue(WING_TIP))// && to_be_decoupled)
         {
+            //to_be_decoupled = false;
             KRATOS_WATCH(GetGeometry()[i].Id())
+            KRATOS_WATCH(this->Id())
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
-                rLeftHandSideMatrix(i, j) = lhs_total(i, j);
-                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total(i, j);
+                rLeftHandSideMatrix(i, j) = lhs_positive(i,j);//lhs_total(i, j);
+                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_negative(i,j);//lhs_total(i, j);
             }
         }
         else
