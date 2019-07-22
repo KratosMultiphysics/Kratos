@@ -398,13 +398,13 @@ public:
     }
 
     /**
-     * @brief This method checks if the subproperty exists from the adress corresponding to the proper structure of indexes
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief This method checks if the subproperty exists from the address corresponding to the proper structure of indexes
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return True if there is such subproperty, false otherwise
      */
-    bool HasSubPropertiesByAddress(const std::string& rAdress)
+    bool HasSubPropertiesByAddress(const std::string& rAddress)
     {
-        const auto indexes = TrimComponentName(rAdress);
+        const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
         if (indexes[0] == this->Id()) {
             if (number_indexes > 1) {
@@ -429,13 +429,13 @@ public:
     }
 
     /**
-     * @brief This method checks if the subproperty exists from the adress corresponding to the proper structure of indexes  (constant version)
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief This method checks if the subproperty exists from the address corresponding to the proper structure of indexes  (constant version)
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return True if there is such subproperty, false otherwise
      */
-    bool HasSubPropertiesByAddress(const std::string& rAdress) const
+    bool HasSubPropertiesByAddress(const std::string& rAddress) const
     {
-        const auto indexes = TrimComponentName(rAdress);
+        const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
         if (indexes[0] == this->Id()) {
             if (number_indexes > 1) {
@@ -460,13 +460,13 @@ public:
     }
 
     /**
-     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAdress)
+    Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAddress)
     {
-        const auto indexes = TrimComponentName(rAdress);
+        const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
@@ -476,7 +476,7 @@ public:
                     Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
                     for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
                         if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAdress << std::endl;
+                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                         } else {
                             p_property_interest = pGetSubPropertiesById(indexes[i_index]);
                         }
@@ -494,13 +494,13 @@ public:
     }
 
     /**
-     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes (constant version)
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes (constant version)
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAdress) const
+    Properties::Pointer pGetSubPropertiesByAddress(const std::string& rAddress) const
     {
-        const auto indexes = TrimComponentName(rAdress);
+        const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
@@ -510,7 +510,7 @@ public:
                     Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
                     for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
                         if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAdress << std::endl;
+                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                         } else {
                             p_property_interest = pGetSubPropertiesById(indexes[i_index]);
                         }
@@ -528,13 +528,13 @@ public:
     }
 
     /**
-     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubPropertiesByAddress(const std::string& rAdress)
+    Properties& GetSubPropertiesByAddress(const std::string& rAddress)
     {
-        const auto indexes = TrimComponentName(rAdress);
+        const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
@@ -544,7 +544,7 @@ public:
                     Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
                     for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
                         if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAdress << std::endl;
+                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                         } else {
                             p_property_interest = pGetSubPropertiesById(indexes[i_index]);
                         }
@@ -561,13 +561,13 @@ public:
     }
 
     /**
-     * @brief This method gets the subproperty from the adress corresponding to the proper structure of indexes (constant version)
-     * @param rAdress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes (constant version)
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubPropertiesByAddress(const std::string& rAdress) const
+    Properties& GetSubPropertiesByAddress(const std::string& rAddress) const
     {
-        const auto indexes = TrimComponentName(rAdress);
+        const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
@@ -577,7 +577,7 @@ public:
                     Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
                     for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
                         if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAdress << std::endl;
+                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                         } else {
                             p_property_interest = pGetSubPropertiesById(indexes[i_index]);
                         }
