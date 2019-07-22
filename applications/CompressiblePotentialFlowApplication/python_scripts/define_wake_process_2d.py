@@ -39,9 +39,13 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+        #CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
-        #self.__FindWakeElements()
+        self.__FindWakeElements()
+
+    def ExecuteFinalizeSolutionStep(self):
+        print('aaaaaaaaaaaaaaaaaaaa')
+        CPFApp.CheckWakeConditionProcess2D(self.wake_sub_model_part, 1e-9, 0).Execute()
 
     def __FindWakeElements(self):
 
@@ -214,6 +218,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             # Marking the elements under the trailing edge as kutta
             if(distance_to_wake < 0.0):
                 elem.SetValue(CPFApp.KUTTA, True)
+                self.wake_sub_model_part.RemoveElement(elem)
 
     @staticmethod
     def __CheckIfElemIsCutByWake(elem):
@@ -235,10 +240,11 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         for elem in self.trailing_edge_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
                 if(self.__CheckIfElemIsCutByWake(elem)): #TE Element
-                    elem.Set(KratosMultiphysics.STRUCTURE)
+                    #elem.Set(KratosMultiphysics.STRUCTURE)
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
+                    self.wake_sub_model_part.RemoveElement(elem)
 
     def _CleanMarking(self):
         # This function removes all the markers set by _FindWakeElements()

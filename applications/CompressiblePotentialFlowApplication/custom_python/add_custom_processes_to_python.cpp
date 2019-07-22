@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/move_model_part_process.h"
+#include "custom_processes/check_wake_condition_process.h"
 #include "custom_processes/define_2d_wake_process.h"
 #include "custom_processes/apply_far_field_process.h"
 
@@ -38,6 +39,16 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<MoveModelPartProcess, MoveModelPartProcess::Pointer, Process >
         (m, "MoveModelPartProcess")
         .def(py::init<ModelPart&, Parameters>())
+        ;
+
+    py::class_<CheckWakeConditionProcess<2>, CheckWakeConditionProcess<2>::Pointer, Process >
+        (m, "CheckWakeConditionProcess2D")
+        .def(py::init<ModelPart&, const double, const int>())
+        ;
+
+    py::class_<CheckWakeConditionProcess<3>, CheckWakeConditionProcess<3>::Pointer, Process >
+        (m, "CheckWakeConditionProcess3D")
+        .def(py::init<ModelPart&, const double, const int>())
         ;
 
     py::class_<Define2DWakeProcess, Define2DWakeProcess::Pointer, Process >

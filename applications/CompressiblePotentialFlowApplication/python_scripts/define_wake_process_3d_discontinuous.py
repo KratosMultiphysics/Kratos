@@ -179,6 +179,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         #List to store trailing edge elements id
         self.trailing_edge_element_id_list = []
 
+        # for node in self.fluid_model_part.Nodes:
+        #     node.SetValue(KratosMultiphysics.NODAL_H, 100)
+
         for elem in self.fluid_model_part.Elements:
             # Mark and save the elements touching the trailing edge
             self.__MarkTrailingEdgeElement(elem)
@@ -190,6 +193,10 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             if(elem.Id == 3):
                 print(elem.Id)
                 print(wake_elemental_distances)
+                counter = 0
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.NODAL_H,wake_elemental_distances[counter])
+                    counter += 1
 
             counter = 0
             npos = 0

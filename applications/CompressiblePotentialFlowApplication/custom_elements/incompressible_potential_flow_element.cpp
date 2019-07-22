@@ -148,7 +148,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
 
     if (wake != 0 && active == true)
     {
-        CheckWakeCondition();
+        //CheckWakeCondition();
         ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
@@ -509,10 +509,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
         // we do not apply the wake condition on the TE node
         if (GetGeometry()[i].GetValue(TRAILING_EDGE))
         {
+            KRATOS_WATCH(GetGeometry()[i].Id())
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
-                rLeftHandSideMatrix(i, j) = lhs_positive(i, j);
-                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_negative(i, j);
+                rLeftHandSideMatrix(i, j) = lhs_total(i, j);
+                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total(i, j);
             }
         }
         else
