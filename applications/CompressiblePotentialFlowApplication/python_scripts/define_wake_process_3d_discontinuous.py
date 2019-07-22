@@ -210,7 +210,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             if (npos>0 and nneg >0):
                 #print(elem.Id)
                 #print(wake_elemental_distances)
-                #elem.SetValue(CPFApp.WAKE, True)
+                elem.SetValue(CPFApp.WAKE, True)
                 counter = 0
                 for node in elem.GetNodes():
                     node.SetValue(CPFApp.WAKE_DISTANCE,wake_elemental_distances[counter])
