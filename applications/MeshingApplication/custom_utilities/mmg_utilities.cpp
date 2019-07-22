@@ -2945,6 +2945,17 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
         Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
         rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
     }
+
+    // The ISOSURFACE has some reserved Ids. We reassign
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // Boundary conditions
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
+        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
+
+        // Inside outside elements
+        rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
+        rRefElement[3] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
+    }
 }
 
 /***********************************************************************************/
