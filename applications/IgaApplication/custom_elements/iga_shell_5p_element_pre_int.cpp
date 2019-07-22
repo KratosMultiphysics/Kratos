@@ -771,24 +771,18 @@ namespace Kratos
                 unsigned int kr = r / 5;
                 unsigned int dirr = r % 5;
                 unsigned int r_KL = kr * 3 + dirr;
-                if (dirr != 3 && dirr != 4){
-                    for (unsigned int s = 0; s<=r; s++){
+                if (dirr != 3 || dirr != 4){
+                    for (unsigned int s = 0; s < mat_size; s++){
                         unsigned int ks = s / 5;
                         unsigned int dirs = s % 5;
                         unsigned int s_KL = ks * 3 + dirs;
-                        if (dirs != 3 && dirs != 4){
+                        if (dirs != 3 || dirs != 4){
                             rSecondVariationsMembrane.B11(r, s) = second_variations_membrane_KL.B11(r_KL, s_KL);
-                            // rSecondVariationsMembrane.B11(s, r) = rSecondVariationsMembrane.B11(r, s);                            
                             rSecondVariationsMembrane.B22(r, s) = second_variations_membrane_KL.B22(r_KL, s_KL);
-                            // rSecondVariationsMembrane.B22(s, r) = rSecondVariationsMembrane.B22(r, s);                            
                             rSecondVariationsMembrane.B12(r, s) = second_variations_membrane_KL.B12(r_KL, s_KL);
-                            // rSecondVariationsMembrane.B12(s, r) = rSecondVariationsMembrane.B12(r, s);                            
                             rSecondVariationsCurvature.B11(r, s) = second_variations_curvature_KL.B11(r_KL, s_KL);
-                            // rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);                            
                             rSecondVariationsCurvature.B22(r, s) = second_variations_curvature_KL.B22(r_KL, s_KL);
-                            // rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);                            
                             rSecondVariationsCurvature.B12(r, s) = second_variations_curvature_KL.B12(r_KL, s_KL);
-                            // rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
                         }
                     }
                 }
@@ -949,7 +943,7 @@ namespace Kratos
                     ddE_cu[1] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.g1);
 
                     // calculated with simplified Q (ML)
-                    rSecondVariationsMembraneRM.B23(r, s) = mInitialMetric.Q(3, 3) * ddE_cu[0] + mInitialMetric.Q(4, 3) * ddE_cu[1];
+                    rSecondVariationsMembraneRM.B23(r, s) = mInitialMetric.Q(3, 3) * ddE_cu[0] + mInitialMetric.Q(3, 4) * ddE_cu[1];
                     rSecondVariationsMembraneRM.B23(s, r) = rSecondVariationsMembraneRM.B23(r, s);
                     rSecondVariationsMembraneRM.B13(r, s) = mInitialMetric.Q(4, 4) * ddE_cu[1];
                     rSecondVariationsMembraneRM.B13(s, r) = rSecondVariationsMembraneRM.B13(r, s);

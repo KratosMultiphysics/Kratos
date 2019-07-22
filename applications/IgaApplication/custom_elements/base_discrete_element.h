@@ -383,6 +383,9 @@ protected:
         const unsigned int rWorkingSpaceDimension = 3,
         const unsigned int rLocalSpaceDimension = 2) const;
 
+    array_1d<double, 3> CrossProduct(
+        const array_1d<double, 3>& rVector1,
+        const array_1d<double, 3>& rVector2);
     ///@}
 private:
     ///@name Serialization

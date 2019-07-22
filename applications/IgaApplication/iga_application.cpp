@@ -32,6 +32,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaShell5pElementStuttgart(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mIgaShell7pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
         
     , mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
@@ -55,6 +57,7 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_ELEMENT("IgaShell5pElement", mIgaShell5pElement)
     KRATOS_REGISTER_ELEMENT("IgaShell5pElementPreInt", mIgaShell5pElementPreInt)
     KRATOS_REGISTER_ELEMENT("IgaShell5pElementStuttgart", mIgaShell5pElementStuttgart)
+    KRATOS_REGISTER_ELEMENT("IgaShell7pElement", mIgaShell7pElement)
 
     KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
@@ -96,12 +99,18 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_11)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_12)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_22)
+    KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_23)
+    KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_13)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_TOP_11)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_TOP_12)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_TOP_22)
+    KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_TOP_23)
+    KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_TOP_13)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_BOTTOM_11)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_BOTTOM_12)
     KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_BOTTOM_22)
+    KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_BOTTOM_23)
+    KRATOS_REGISTER_VARIABLE(STRESS_CAUCHY_BOTTOM_13)
     KRATOS_REGISTER_VARIABLE(INTERNAL_FORCE_11)
     KRATOS_REGISTER_VARIABLE(INTERNAL_FORCE_12)
     KRATOS_REGISTER_VARIABLE(INTERNAL_FORCE_22)
@@ -110,6 +119,10 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_VARIABLE(INTERNAL_MOMENT_22)
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE_1)
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE_2)
+
+    // DOF
+    KRATOS_REGISTER_VARIABLE(W_BAR)
+    KRATOS_REGISTER_VARIABLE(W_BAR_REACTION)
 }
 
 }  // namespace Kratos

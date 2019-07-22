@@ -18,7 +18,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Reissner-Mindlin Shell with hierarchical shear vector. Optimized for Isogeometric Analysis by Oesterle et al..
+/** 3D Shell with hierarchical shear vector (7p). Optimized for Isogeometric Analysis by Echter et al..
 */
 class IgaShell5pElement
     : public BaseDiscreteElement
@@ -168,18 +168,25 @@ private:
         */
     struct MetricVariables
     {
-        Vector gab; // covariant metric
-        Vector gab_con; // contravariant metric
+        Vector a_ab; // covariant metric
+        Vector a_ab_con; // contravariant metric
         Vector curvature; //
         Matrix J; //Jacobian
-        double  detJ;       // not used (ML)
+        double detJ;       // not used (ML)
         Vector a1; //base vector 1
         Vector a2; //base vector 2
         Vector a3_KL; //base vector 3
         Vector a3_KL_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
         double dA; //differential area
+        Vector a1_con;  // contravariant base vector 1
+        Vector a2_con;  // contravariant base vector 2
+        Vector Da1_D1;  // derivative of base vector 1 w.r.t. theta1
+        Vector Da1_D2;  // derivative of base vector 1 w.r.t. theta2
+        Vector Da2_D2;  // derivative of base vector 2 w.r.t. theta2
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
-        Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
+        Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
+        Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
+        Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
@@ -188,12 +195,12 @@ private:
         */
         MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 5)
         {
-            gab = ZeroVector(rWorkingSpaceDimension);
-            gab_con = ZeroVector(rWorkingSpaceDimension);
+            a_ab = ZeroVector(rWorkingSpaceDimension);
+            a_ab_con = ZeroVector(rWorkingSpaceDimension);
 
             curvature = ZeroVector(rWorkingSpaceDimension);
 
-            J = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
+            J = ZeroMatrix(rWorkingSpaceDimension, 2);
             detJ = 1.0;
 
             a1 = ZeroVector(rWorkingSpaceDimension);
@@ -203,8 +210,17 @@ private:
 
             dA = 1.0;
 
+            a1_con = ZeroVector(rWorkingSpaceDimension);
+            a2_con = ZeroVector(rWorkingSpaceDimension);
+
+            Da1_D1 = ZeroVector(rWorkingSpaceDimension);
+            Da1_D2 = ZeroVector(rWorkingSpaceDimension);
+            Da2_D2 = ZeroVector(rWorkingSpaceDimension);
+
             H = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
             Q = ZeroMatrix(rStrainSize, rStrainSize);
+            TransCartToCov = ZeroMatrix(rStrainSize, rStrainSize);
+            TransCovToCart = ZeroMatrix(rStrainSize, rStrainSize);
         }
     };
 
@@ -242,7 +258,6 @@ private:
 
         /**
         * The default constructor
-        * @param StrainSize: The size of the strain vector in Voigt notation
         */
         SecondVariations(const unsigned int& mat_size)
         {
@@ -280,6 +295,45 @@ private:
     };
 
     MetricVariables mInitialMetric = MetricVariables(3, 5);
+
+    /**
+     * @brief Informations regarding the Gauss-quadrature in thickness direction
+     */
+    struct GaussQuadratureThickness
+    {
+        unsigned int num_GP_thickness;
+        Vector integration_weight_thickness;
+        Vector zeta;
+
+        // The default constructor
+        GaussQuadratureThickness(){}
+        // constructor
+        GaussQuadratureThickness(const unsigned int& rNumGPThickness)
+        {
+            num_GP_thickness = rNumGPThickness;
+            integration_weight_thickness = ZeroVector(rNumGPThickness);
+            zeta = ZeroVector(rNumGPThickness);
+
+            if (rNumGPThickness == 3)
+            {
+                integration_weight_thickness(0) = 5.0 / 9.0;
+                zeta(0) = -sqrt(3.0 / 5.0);
+                integration_weight_thickness(1) = 8.0/9.0;
+                zeta(1) = 0.0;
+                integration_weight_thickness(2) = 5.0 / 9.0;
+                zeta(2) = sqrt(3.0 / 5.0);
+            }
+            else
+            {
+                KRATOS_WATCH("Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points.")     // ML
+                KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
+            }
+            
+        }
+    };
+
+    // here the number of Gauss-Points over the thickness can be determined
+    GaussQuadratureThickness mGaussQuadratureThickness = GaussQuadratureThickness(3);
     ///@}
     ///@name Operations
     ///@{
@@ -303,7 +357,7 @@ private:
         const Vector& SD,
         const double& rIntegrationWeight);
 
-    void CalculateMetric( MetricVariables& rMetric );
+    void CalculateMetric( MetricVariables& rMetric);
     
     /**
      * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
@@ -311,19 +365,28 @@ private:
      * @param rw = shear difference vector
      */
     void CalculateShearDifferenceVector(
-        Vector& rw,
-        Vector& rDw_D1,
-        Vector& rDw_D2,
-        Vector& rw_alpha,
+        array_1d<double, 3>& rw,
+        array_1d<double, 3>& rDw_D1,
+        array_1d<double, 3>& rDw_D2,
+        array_1d<double, 2>& rw_alpha,
         Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric);
+    
+    /**
+     * @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the initial configuration
+     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
+     */
+    void CalculateInitialBaseVectorsGLinearized(
+        const double& rZeta,
+        array_1d<double, 3>& rG1,
+        array_1d<double, 3>& rG2);
 
     /**
      * @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the actual configuration
      * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
      * @param rw = shear difference vector
      */
-    void CalculateBaseVectorsgLinearized(
+    void CalculateActualBaseVectorsgLinearized(
         const MetricVariables& rActualMetric,
         const Vector& rw,
         const Vector& rDw_D1,
@@ -331,6 +394,21 @@ private:
         array_1d<double, 3>& rg1,
         array_1d<double, 3>& rg2,
         array_1d<double, 3>& rg3);
+
+    /**
+     * @brief Calculates deformation gradient F for a Gauss point
+     * @param rG1, rG2 = base vectors of the shell body of the reference configuration (G3=A3)
+     * @param rg1, rg2, rg3 = base vectors of the shell body of the actual configuration
+     */
+    void CalculateDeformationGradient(
+        const array_1d<double, 3> rG1,
+        const array_1d<double, 3> rG2,
+        const array_1d<double, 3> rg1,
+        const array_1d<double, 3> rg2,
+        const array_1d<double, 3> rg3,
+        Matrix& rF,
+        double& rdetF);
+
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric
@@ -341,8 +419,6 @@ private:
     void CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
         const Vector& rw,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         ConstitutiveVariables& rThisConstitutiveVariables,
@@ -363,7 +439,7 @@ private:
         const Vector& rg2);
 
     void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
-        const Vector rCurvilinearStrain,
+        const Vector& rCurvilinearStrain,
         Vector& rCartesianStrain);
 
 	void CalculateB(
@@ -384,21 +460,14 @@ private:
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag);
-    
-    /**
-     * @brief Calculates Differential Volume of the reference configuration
-     * @detail Needed for Gaussian quadrature
-     */
-	void CalculateDifferentialVolume(
-		double& rdV);
-        
+ 
     /**
      * @brief Stress recovery
      */
     void Calculate(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo);
+        const Variable<double>& rVariable,
+        double& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
 
     ///@}

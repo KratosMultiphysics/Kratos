@@ -65,8 +65,6 @@ namespace Kratos
         //resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
-            if (Id() == 4)
-                KRATOS_WATCH("resizing LeftHandSideMatrix")
             if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
                 rLeftHandSideMatrix.resize(mat_size, mat_size);
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
@@ -85,7 +83,6 @@ namespace Kratos
 
         MetricVariables actual_metric(3);
         CalculateMetric(actual_metric);
-        // KRATOS_WATCH("after: actual_metric")
         ConstitutiveVariables constitutive_variables_membrane(3);
         ConstitutiveVariables constitutive_variables_curvature(3);
         CalculateConstitutiveVariables(actual_metric,
@@ -97,8 +94,8 @@ namespace Kratos
         Matrix BCurvature = ZeroMatrix(3, mat_size);
         CalculateBMembrane(BMembrane, actual_metric);
         CalculateBCurvature(BCurvature, actual_metric);
-        // if (Id() == 4)
-        //     KRATOS_WATCH(BMembrane)
+        if (Id() == 4)
+            KRATOS_WATCH(BMembrane)
 
         double integration_weight = GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA;
         // if (Id() == 4)
@@ -148,12 +145,6 @@ namespace Kratos
 
         }
 
-        if (Id() == 4){
-            KRATOS_WATCH(GetValue(LOCAL_COORDINATES))
-            KRATOS_WATCH(rLeftHandSideMatrix)
-            KRATOS_WATCH(rRightHandSideVector)
-
-        }
         // KRATOS_WATCH(rLeftHandSideMatrix)
         // KRATOS_WATCH("end: CalculateAll")
 
@@ -342,8 +333,6 @@ namespace Kratos
         Vector curvature_vector = ZeroVector(3);
 
         CalculateStrain(strain_vector, rActualMetric.gab);
-        // if (Id() == 4)
-            // KRATOS_WATCH(strain_vector)
         rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature);
         rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.Q, curvature_vector);
@@ -461,8 +450,6 @@ namespace Kratos
                 dg3(2, 0) = -DN_De(i, 0) * rMetric.g2[1] + DN_De(i, 1) * rMetric.g1[1];
                 dg3(2, 1) = DN_De(i, 0) * rMetric.g2[0] - DN_De(i, 1) * rMetric.g1[0];
                 dg3(2, 2) = 0;
-
-                //KRATOS_WATCH(dg3)
 
                 for (unsigned int j = 0; j < 3; j++)
                 {
@@ -616,96 +603,87 @@ namespace Kratos
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        // const unsigned int number_of_nodes = GetGeometry().size();
-        // const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-        // for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        //     KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).GetSolutionStepValue())
-        //     KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).GetSolutionStepValue())
-        //     KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).GetSolutionStepValue())
-        // }
-        // KRATOS_WATCH("start: Calculate")
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-            // Set constitutive law flags:
-            Flags& ConstitutiveLawOptions = Values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-            MetricVariables actual_metric(3);
-            CalculateMetric(actual_metric);
-            ConstitutiveVariables constitutive_variables_membrane(3);
-            ConstitutiveVariables constitutive_variables_curvature(3);
-            CalculateConstitutiveVariables(actual_metric,
-                constitutive_variables_membrane, constitutive_variables_curvature,
-                Values, ConstitutiveLaw::StressMeasure_PK2);
+        MetricVariables actual_metric(3);
+        CalculateMetric(actual_metric);
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        ConstitutiveVariables constitutive_variables_curvature(3);
+        CalculateConstitutiveVariables(actual_metric,
+            constitutive_variables_membrane, constitutive_variables_curvature,
+            Values, ConstitutiveLaw::StressMeasure_PK2);
 
-            double detF = actual_metric.dA / mInitialMetric.dA; // should be checked (ML)
+        double detF = actual_metric.dA / mInitialMetric.dA; // should be checked (ML)
 
-            // stresses
-            double thickness = GetProperties().GetValue(THICKNESS);
-            array_1d<double, 3> membrane_stress_pk2_cart = constitutive_variables_membrane.S / thickness;
-            array_1d<double, 3> membrane_stress_pk2_cov = prod(mInitialMetric.TransCartToCov, membrane_stress_pk2_cart);
-            array_1d<double, 3> membrane_stress_cau_cov = membrane_stress_pk2_cov / detF;
-            array_1d<double, 3> membrane_stress_cau_cart = prod(actual_metric.TransCovToCart, membrane_stress_cau_cov);
-            array_1d<double, 3> bending_stress_pk2_cart = constitutive_variables_curvature.S / pow(thickness, 3) * 12;
-            array_1d<double, 3> bending_stress_pk2_cov = prod(mInitialMetric.TransCartToCov, bending_stress_pk2_cart);
-            array_1d<double, 3> bending_stress_cau_cov = bending_stress_pk2_cov / detF;
-            array_1d<double, 3> bending_stress_cau_cart = prod(actual_metric.TransCovToCart, bending_stress_cau_cov);
+        // stresses
+        double thickness = GetProperties().GetValue(THICKNESS);
+        array_1d<double, 3> membrane_stress_pk2_cart = constitutive_variables_membrane.S / thickness;
+        array_1d<double, 3> membrane_stress_pk2_cov = prod(mInitialMetric.TransCartToCov, membrane_stress_pk2_cart);
+        array_1d<double, 3> membrane_stress_cau_cov = membrane_stress_pk2_cov / detF;
+        array_1d<double, 3> membrane_stress_cau_cart = prod(actual_metric.TransCovToCart, membrane_stress_cau_cov);
+        array_1d<double, 3> bending_stress_pk2_cart = constitutive_variables_curvature.S / pow(thickness, 3) * 12;
+        array_1d<double, 3> bending_stress_pk2_cov = prod(mInitialMetric.TransCartToCov, bending_stress_pk2_cart);
+        array_1d<double, 3> bending_stress_cau_cov = bending_stress_pk2_cov / detF;
+        array_1d<double, 3> bending_stress_cau_cart = prod(actual_metric.TransCovToCart, bending_stress_cau_cov);
 
-            // internal forces
-            array_1d<double, 3> n = membrane_stress_cau_cart * thickness;
+        // internal forces
+        array_1d<double, 3> n = membrane_stress_cau_cart * thickness;
 
-            // internal moments
-            array_1d<double, 3> m = bending_stress_cau_cart * pow(thickness, 3) / 12;
-            
-            // stresses at the top (positive theta_3 direction)
-            array_1d<double, 3> stress_cau_cart_top = membrane_stress_cau_cart + thickness / 2 * bending_stress_cau_cart;
-            // stresses at the bottom (negative theta_3 direction)
-            array_1d<double, 3> stress_cau_cart_bottom = membrane_stress_cau_cart - thickness / 2 * bending_stress_cau_cart;
+        // internal moments
+        array_1d<double, 3> m = bending_stress_cau_cart * pow(thickness, 3) / 12;
+        
+        // stresses at the top (positive theta_3 direction)
+        array_1d<double, 3> stress_cau_cart_top = membrane_stress_cau_cart + thickness / 2 * bending_stress_cau_cart;
+        // stresses at the bottom (negative theta_3 direction)
+        array_1d<double, 3> stress_cau_cart_bottom = membrane_stress_cau_cart - thickness / 2 * bending_stress_cau_cart;
 
-            if (rVariable == STRESS_CAUCHY_11)
-                rValues = membrane_stress_cau_cart[0];
-            else if (rVariable == STRESS_CAUCHY_22)
-                rValues = membrane_stress_cau_cart[1];
-            else if (rVariable == STRESS_CAUCHY_12)
-                rValues = membrane_stress_cau_cart[2];
-            else if (rVariable == STRESS_CAUCHY_TOP_11)
-                rValues = stress_cau_cart_top[0];
-            else if (rVariable == STRESS_CAUCHY_TOP_22)
-                rValues = stress_cau_cart_top[1];
-            else if (rVariable == STRESS_CAUCHY_TOP_12)
-                rValues = stress_cau_cart_top[2];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
-                rValues = stress_cau_cart_bottom[0];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
-                rValues = stress_cau_cart_bottom[1];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
-                rValues = stress_cau_cart_bottom[2];
-            else if (rVariable == INTERNAL_FORCE_11)
-                rValues = n[0];
-            else if (rVariable == INTERNAL_FORCE_22)
-                rValues = n[1];
-            else if (rVariable == INTERNAL_FORCE_12)
-                rValues = n[2];
-            else if (rVariable == INTERNAL_MOMENT_11)
-                rValues = m[0];
-            else if (rVariable == INTERNAL_MOMENT_12)
-                rValues = m[2];
-            else if (rVariable == INTERNAL_MOMENT_22)
-                rValues = m[1];
-            //shear force
-            else if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES)){
-                KRATOS_WATCH(GetValue(LOCAL_COORDINATES))
-                array_1d<double, 2> q = ZeroVector(2);
-                CalculateShearForce(q, actual_metric, constitutive_variables_curvature);
-				if (rVariable == SHEAR_FORCE_1)
-					rValues = q[0];
-				else if (rVariable == SHEAR_FORCE_2)
-					rValues = q[1];
-            }
-            else
-                rValues = 0.0;
+        if (rVariable == STRESS_CAUCHY_11)
+            rValues = membrane_stress_cau_cart[0];
+        else if (rVariable == STRESS_CAUCHY_22)
+            rValues = membrane_stress_cau_cart[1];
+        else if (rVariable == STRESS_CAUCHY_12)
+            rValues = membrane_stress_cau_cart[2];
+        else if (rVariable == STRESS_CAUCHY_TOP_11)
+            rValues = stress_cau_cart_top[0];
+        else if (rVariable == STRESS_CAUCHY_TOP_22)
+            rValues = stress_cau_cart_top[1];
+        else if (rVariable == STRESS_CAUCHY_TOP_12)
+            rValues = stress_cau_cart_top[2];
+        else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
+            rValues = stress_cau_cart_bottom[0];
+        else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
+            rValues = stress_cau_cart_bottom[1];
+        else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
+            rValues = stress_cau_cart_bottom[2];
+        else if (rVariable == INTERNAL_FORCE_11)
+            rValues = n[0];
+        else if (rVariable == INTERNAL_FORCE_22)
+            rValues = n[1];
+        else if (rVariable == INTERNAL_FORCE_12)
+            rValues = n[2];
+        else if (rVariable == INTERNAL_MOMENT_11)
+            rValues = m[0];
+        else if (rVariable == INTERNAL_MOMENT_12)
+            rValues = m[2];
+        else if (rVariable == INTERNAL_MOMENT_22)
+            rValues = m[1];
+        //shear force
+        else if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES)){
+            array_1d<double, 2> q = ZeroVector(2);
+            CalculateShearForce(q, actual_metric, constitutive_variables_curvature);
+            if (rVariable == SHEAR_FORCE_1)
+                rValues = q[0];
+            else if (rVariable == SHEAR_FORCE_2)
+                rValues = q[1];
+        }
+        else
+            rValues = 0.0;
     }
 
     void IgaShell3pElement::CalculateShearForce(

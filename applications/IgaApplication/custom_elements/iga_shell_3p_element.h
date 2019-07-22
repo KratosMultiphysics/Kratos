@@ -177,7 +177,7 @@ private:
 
             curvature = ZeroVector(Dimension);
 
-            J = ZeroMatrix(Dimension, Dimension);
+            J = ZeroMatrix(Dimension, 2);
             detJ = 1.0;
 
             g1 = ZeroVector(Dimension);

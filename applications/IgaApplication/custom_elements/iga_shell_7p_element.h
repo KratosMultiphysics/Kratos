@@ -1,5 +1,5 @@
-#if !defined(KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED)
-#define  KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED
+#if !defined(KRATOS_IGA_SHELL_7p_ELEMENT_H_INCLUDED)
+#define  KRATOS_IGA_SHELL_7p_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -18,34 +18,34 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Reissner-Mindlin Shell with hierarchical shear vector. Optimized for Isogeometric Analysis by Oesterle et al..
+/** 3D Shell with hierarchical shear vector (7p). Optimized for Isogeometric Analysis by Echter et al..
 */
-class IgaShell5pElementPreInt
+class IgaShell7pElement
     : public BaseDiscreteElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of IgaShell5pElementPreInt
-    KRATOS_CLASS_POINTER_DEFINITION(IgaShell5pElementPreInt);
+    /// Counted pointer of IgaShell7pElement
+    KRATOS_CLASS_POINTER_DEFINITION(IgaShell7pElement);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
     // Constructor using an array of nodes
-    IgaShell5pElementPreInt(IndexType NewId, GeometryType::Pointer pGeometry)
+    IgaShell7pElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseDiscreteElement(NewId, pGeometry)
     {};
     // Constructor using an array of nodes with properties
-    IgaShell5pElementPreInt(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    IgaShell7pElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseDiscreteElement(NewId, pGeometry, pProperties)
     {};
 
     // default constructor necessary for serialization
-    IgaShell5pElementPreInt() : BaseDiscreteElement() {};
+    IgaShell7pElement() : BaseDiscreteElement() {};
 
     /// Destructor.
-    virtual ~IgaShell5pElementPreInt() override
+    virtual ~IgaShell7pElement() override
     {};
 
     /**
@@ -61,7 +61,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared<IgaShell5pElementPreInt>(
+        return Kratos::make_shared<IgaShell7pElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -71,7 +71,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared< IgaShell5pElementPreInt >(
+        return Kratos::make_shared< IgaShell7pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -160,6 +160,9 @@ private:
     ///@}
 	///@name Member Variables
 	///@{
+    // curvilinear coordinate zeta (theta3)
+    double mZeta;
+
     /**
         * Internal variables used for metric transformation
         */
@@ -169,21 +172,30 @@ private:
         Vector gab_con; // contravariant metric
         Vector curvature; //
         Matrix J; //Jacobian
-        double  detJ;
-        Vector g1; //base vector 1
-        Vector g2; //base vector 2
-        Vector g3; //base vector 3
-        Vector g3_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        double detJ;       // not used (ML)
+        Vector a1; //base vector 1
+        Vector a2; //base vector 2
+        Vector a3_KL; //base vector 3
+        Vector a3_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        Vector Da1_D1;  // derivative of base vector 1 w.r.t. theta1
+        Vector Da2_D2;  // derivative of base vector 2 w.r.t. theta2
+        Vector Da1_D2;  // derivative of base vector 1 w.r.t. theta2
+        Vector Da3_KL_D1;   // derivative of base vector 3 w.r.t. theta1
+        Vector Da3_KL_D2;   // derivative of base vector 3 w.r.t. theta2
+        Vector Da3_tilde_D1; // derivative of a3_tilde w.r.t. theta1
+        Vector Da3_tilde_D2; // derivative of a3_tilde w.r.t. theta2
         double dA; //differential area
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
-        Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
+        Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
+        Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
+        Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
         * @param rWorkingSpaceDimension: The size of working space dimension
         * @param rStrainSize: The size of the StrainVector
         */
-        MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 5)
+        MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 6)
         {
             gab = ZeroVector(rWorkingSpaceDimension);
             gab_con = ZeroVector(rWorkingSpaceDimension);
@@ -193,15 +205,24 @@ private:
             J = ZeroMatrix(rWorkingSpaceDimension, 2);
             detJ = 1.0;
 
-            g1 = ZeroVector(rWorkingSpaceDimension);
-            g2 = ZeroVector(rWorkingSpaceDimension);
-            g3 = ZeroVector(rWorkingSpaceDimension);
-            g3_tilde = ZeroVector(rWorkingSpaceDimension);
+            a1 = ZeroVector(rWorkingSpaceDimension);
+            a2 = ZeroVector(rWorkingSpaceDimension);
+            a3_KL = ZeroVector(rWorkingSpaceDimension);
+            a3_tilde = ZeroVector(rWorkingSpaceDimension);
+            Da1_D1 = ZeroVector(rWorkingSpaceDimension);
+            Da2_D2 = ZeroVector(rWorkingSpaceDimension);
+            Da1_D2 = ZeroVector(rWorkingSpaceDimension);
+            Da3_KL_D1 = ZeroVector(rWorkingSpaceDimension);
+            Da3_KL_D2 = ZeroVector(rWorkingSpaceDimension);
+            Da3_tilde_D1 = ZeroVector(rWorkingSpaceDimension);
+            Da3_tilde_D2 = ZeroVector(rWorkingSpaceDimension);
 
             dA = 1.0;
 
             H = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
             Q = ZeroMatrix(rStrainSize, rStrainSize);
+            TransCartToCov = ZeroMatrix(rStrainSize, rStrainSize);
+            TransCovToCart = ZeroMatrix(rStrainSize, rStrainSize);
         }
     };
 
@@ -233,18 +254,19 @@ private:
     {
         Matrix B11;
         Matrix B22;
+        Matrix B33;
         Matrix B12;
         Matrix B23;
         Matrix B13;
 
         /**
         * The default constructor
-        * @param StrainSize: The size of the strain vector in Voigt notation
         */
         SecondVariations(const unsigned int& mat_size)
         {
             B11 = ZeroMatrix(mat_size, mat_size);
             B22 = ZeroMatrix(mat_size, mat_size);
+            B33 = ZeroMatrix(mat_size, mat_size);
             B12 = ZeroMatrix(mat_size, mat_size);
             B23 = ZeroMatrix(mat_size, mat_size);
             B13 = ZeroMatrix(mat_size, mat_size);
@@ -266,6 +288,7 @@ private:
             SecondVariations second_variations(mat_size);
             second_variations.B11 = B11 + rSecondVariations.B11;
             second_variations.B22 = B22 + rSecondVariations.B22;
+            second_variations.B33 = B33 + rSecondVariations.B33;
             second_variations.B12 = B12 + rSecondVariations.B12;
             second_variations.B23 = B23 + rSecondVariations.B23;
             second_variations.B13 = B13 + rSecondVariations.B13;
@@ -276,7 +299,46 @@ private:
         }
     };
 
-    MetricVariables mInitialMetric = MetricVariables(3, 5);
+    MetricVariables mInitialMetric = MetricVariables(3, 6);
+
+    /**
+     * @brief Informations regarding the Gauss-quadrature in thickness direction
+     */
+    struct GaussQuadratureThickness
+    {
+        unsigned int num_GP_thickness;
+        Vector integration_weight_thickness;
+        Vector zeta;
+
+        // The default constructor
+        GaussQuadratureThickness(){}
+        // constructor
+        GaussQuadratureThickness(const unsigned int& rNumGPThickness)
+        {
+            num_GP_thickness = rNumGPThickness;
+            integration_weight_thickness = ZeroVector(rNumGPThickness);
+            zeta = ZeroVector(rNumGPThickness);
+
+            if (rNumGPThickness == 3)
+            {
+                integration_weight_thickness(0) = 5.0 / 9.0;
+                zeta(0) = -sqrt(3.0 / 5.0);
+                integration_weight_thickness(1) = 8.0/9.0;
+                zeta(1) = 0.0;
+                integration_weight_thickness(2) = 5.0 / 9.0;
+                zeta(2) = sqrt(3.0 / 5.0);
+            }
+            else
+            {
+                KRATOS_WATCH("Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points.")     // ML
+                KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
+            }
+            
+        }
+    };
+
+    // here the number of Gauss-Points over the thickness can be determined
+    GaussQuadratureThickness mGaussQuadratureThickness = GaussQuadratureThickness(3);
     ///@}
     ///@name Operations
     ///@{
@@ -300,19 +362,34 @@ private:
         const Vector& SD,
         const double& rIntegrationWeight);
 
-    void CalculateMetric( MetricVariables& rMetric );
+    void CalculateMetric( MetricVariables& rMetric);
     
     /**
      * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
      * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
+     * @param rw = shear difference vector
      */
     void CalculateShearDifferenceVector(
-        Vector& rShearDifferenceVector,
-        Vector& rDw_D1,
-        Vector& rDw_D2,
-        Vector& rw_alpha,
-        Matrix& rDw_alpha_Dbeta,
+        array_1d<double, 3>& rw,
+        array_1d<double, 3>& rDw_D1,
+        array_1d<double, 3>& rDw_D2,
+        array_1d<double, 3>& rw_i,
+        Matrix& rDw_i_Dalpha,
         const MetricVariables& rActualMetric);
+
+    /**
+     * @brief Calculates deformation gradient F for a Gauss point
+     * @param rG1, rG2 = base vectors of the shell body of the reference configuration (G3=A3)
+     * @param rg1, rg2, rg3 = base vectors of the shell body of the actual configuration
+     */
+    void CalculateDeformationGradient(
+        const array_1d<double, 3> rG1,
+        const array_1d<double, 3> rG2,
+        const array_1d<double, 3> rg1,
+        const array_1d<double, 3> rg2,
+        const array_1d<double, 3> rg3,
+        Matrix& rF,
+        double& rdetF);
 
     /**
     * This functions updates the constitutive variables
@@ -323,75 +400,69 @@ private:
     */
     void CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
-        const Vector& rShearDifferenceVector,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
+        const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const double& rw_bar,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
     void CalculateStrain(
         Vector& rStrainVector,
-        const Vector& rgab);
-
-    void CalculateCurvature(
-        Vector& rCurvatureVector,
+        const Vector& rgab,
         const Vector& rCurvature);
 
-    void CalculateStrainRM(
-        Vector& rStrainVectorRM,
-        const Vector& rShearDifferenceVector,
-        const Vector& rg1,
-        const Vector& rg2);
-
-    void CalculateCurvatureRM(
-        Vector& rCurvatureVectorRM,
+    void CalculateStrain7p(
+        Vector& rStrainVector7p,
+        const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
-        const Vector& rg1,
-        const Vector& rg2);
+        const double& rw_bar,
+        const MetricVariables rActualMetric);
 
-    void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
-        const Vector rCurvilinearStrain,
-        Vector& rCartesianStrain);
-
-	void CalculateBMembrane(
+	void CalculateB(
 		Matrix& rB,
 		const MetricVariables& rMetric);
     
-	void CalculateBCurvature(
-		Matrix& rB,
-		const MetricVariables& rMetric);
-
-    void CalculateSecondVariationStrainCurvature(
-        SecondVariations& rSecondVariationsMembrane,
-        SecondVariations& rSecondVariationsCurvature,
+    void CalculateSecondVariations(
+        SecondVariations& rSecondVariations,
         const MetricVariables& rMetric);
 
     void CalculateVariationsRM(        
-        Matrix& rBMembraneRM,
-        Matrix& rBCurvatureRM,
-        SecondVariations& rSecondVariationsMembraneRM,
-        SecondVariations& rSecondVariationsCurvatureRM,
-        const Vector& rShearDifferenceVector,
+        Matrix& rB,
+        SecondVariations& rSecondVariations,
+        const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
+        const Vector& rw_i,
+        const Matrix& rDw_i_Dalpha,
+        const double& rw_bar,
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag);
     
+    /**
+     * @brief Calculates Differential Volume of the reference configuration
+     * @detail Needed for Gaussian quadrature
+     */
+	void CalculateDifferentialVolume(
+		double& rdV);
+        
     /**
      * @brief Stress recovery
      */
     void Calculate(
         const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        double& rValues,
         const ProcessInfo& rCurrentProcessInfo);
     ///@}
+
+    /**
+     * @brief Mathematical tool to calculate the crossproduct of two vector of size 3
+     */
+    array_1d<double, 3> CrossProduct(
+        const array_1d<double, 3>& rVector1,
+        const array_1d<double, 3>& rVector2);
 
     ///@}
     ///@name Serialization
@@ -411,9 +482,9 @@ private:
 
     ///@}
 
-};     // Class IgaShell5pElementPreInt
+};     // Class IgaShell7pElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED  defined
+#endif // KRATOS_IGA_SHELL_7p_ELEMENT_H_INCLUDED  defined
