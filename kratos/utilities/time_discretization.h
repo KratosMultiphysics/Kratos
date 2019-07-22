@@ -100,7 +100,7 @@ public:
 
 private:
 
-    const unsigned int mTimeOrder = 0; // Time order of the auxiliary BDF class
+    const std::size_t mTimeOrder = 0; // Time order of the auxiliary BDF class
     unique_ptr<BDF> mpAuxBDF = nullptr; // Pointer to an auxiliary BDF class with order
 };
 
