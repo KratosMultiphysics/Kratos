@@ -28,7 +28,7 @@ namespace TimeDiscretization {
 
 void BDF::SetAuxBDFPointer(
     const std::size_t TimeOrder,
-    unique_ptr<BDF> &rpAuxBDF)
+    Kratos::unique_ptr<BDF> &rpAuxBDF)
 {
     switch (TimeOrder) {
         case 1: {
