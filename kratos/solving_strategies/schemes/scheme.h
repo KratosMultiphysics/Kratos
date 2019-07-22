@@ -350,7 +350,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Definition of the first element iterator
         const auto it_elem_begin = rModelPart.ElementsBegin();
@@ -400,7 +400,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Definition of the first element iterator
         const auto it_elem_begin = rModelPart.ElementsBegin();
@@ -555,7 +555,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Definition of the first element iterator
         const auto it_elem_begin = rModelPart.ElementsBegin();
@@ -712,7 +712,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Checks for all of the elements
         #pragma omp parallel for
