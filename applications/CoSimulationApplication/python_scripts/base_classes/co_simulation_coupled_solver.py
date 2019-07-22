@@ -4,13 +4,13 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from . import co_simulation_solver_wrapper
+from KratosMultiphysics.CoSimulationApplication.base_classes import co_simulation_solver_wrapper
 
 # CoSimulation imports
-from ..factories import solver_wrapper_factory
-from .. import co_simulation_tools as cs_tools
-from .. import colors as colors
-from ..function_callback_utility import GenericCallFunction
+from KratosMultiphysics.CoSimulationApplication.factories import solver_wrapper_factory
+from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication import colors
+from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
 # Other imports
 from collections import OrderedDict

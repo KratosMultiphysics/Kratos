@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the base class
-from ..base_classes.co_simulation_io import CoSimulationIO
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io import CoSimulationIO
 
 def Create(model, custom_settings):
     return DummyIO(model, custom_settings)

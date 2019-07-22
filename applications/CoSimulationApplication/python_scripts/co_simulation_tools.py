@@ -4,12 +4,12 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # CoSimulation imports
-from . import colors
-from .factories.predictor_factory import CreatePredictor
-from .factories.convergence_accelerator_factory import CreateConvergenceAccelerator
-from .factories.convergence_criterion_factory import CreateConvergenceCriterion
-from .factories.coupling_operation_factory import CreateCouplingOperation
-from .factories.data_transfer_operator_factory import CreateDataTransferOperator
+from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
+from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
+from KratosMultiphysics.CoSimulationApplication import colors
 
 ### This file contains functionalities that are commonly used in CoSimulation ###
 

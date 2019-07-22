@@ -4,8 +4,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # CoSimulation imports
-from .. import co_simulation_tools as cs_tools
-from .. import colors as colors
+from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication import colors
 
 class CoSimulationConvergenceCriteria(object):
     """Baseclass for the convergence criteria used for CoSimulation

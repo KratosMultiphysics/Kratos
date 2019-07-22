@@ -4,10 +4,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from ..base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
 # CoSimulation imports
-from .. import co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication import co_simulation_tools as cs_tools
 
 def Create(settings, solver_wrappers):
     cs_tools.SettingsTypeCheck(settings)

@@ -6,11 +6,11 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Date: Feb. 20, 2017
 
 # Importing the base class
-from ..base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from ..co_simulation_tools import cs_print_info
-from ..colors as colors
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
+from KratosMultiphysics.CoSimulationApplication import colors
 
 # Other imports
 import numpy as np
