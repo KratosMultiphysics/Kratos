@@ -2846,6 +2846,128 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
     model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
+    // The ISOSURFACE has some reserved Ids. We reassign
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // Create auxiliar model part
+        if (!rModelPart.HasSubModelPart("SKIN_ISOSURFACE")) {
+            rModelPart.CreateSubModelPart("SKIN_ISOSURFACE");
+        }
+
+        // Do some checks
+        bool id_2_exists = false;
+        bool id_3_exists = false;
+        bool id_10_exists = false;
+        IndexType max_index = 0;
+        for (auto& r_color : rColors) {
+            const IndexType index = r_color.first;
+            if (index == 2) {
+                id_2_exists = true;
+            } else if (index == 3) {
+                id_3_exists = true;
+            } else if (index == 10) {
+                id_10_exists = true;
+            }
+            if (index > max_index)
+                max_index = index;
+        }
+
+        // Identify the submodelparts with elements
+        std::unordered_set<std::string> auxiliar_set_elements;
+        // We build a set for all the model parts containing elements
+        for (auto& r_elem_color : elem_colors) {
+            const IndexType color = r_elem_color.second;
+            const auto& r_sub_model_parts_names = rColors[color];
+            auxiliar_set_elements.insert(r_sub_model_parts_names.begin(), r_sub_model_parts_names.end());
+        }
+        std::vector<std::string> auxiliar_vector_elements(auxiliar_set_elements.size());
+        std::copy(auxiliar_set_elements.begin(), auxiliar_set_elements.end(), std::back_inserter(auxiliar_vector_elements));
+
+        // Move the map to the end
+        if (id_2_exists) {
+            // New group
+            rColors.insert(IndexStringVectorPairType(max_index + 1, rColors[2]));
+            rColors.erase(2);
+
+            // Reassign
+            for (auto& r_nodes_color : nodes_colors) {
+                IndexType& r_color = r_nodes_color.second;
+                if (r_color == 2) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_cond_color : cond_colors) {
+                IndexType& r_color = r_cond_color.second;
+                if (r_color == 2) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_elem_color : elem_colors) {
+                IndexType& r_color = r_elem_color.second;
+                if (r_color == 2) {
+                    r_color = max_index + 1;
+                }
+            }
+
+        }
+        if (id_3_exists) {
+            // New group
+            rColors.insert(IndexStringVectorPairType(max_index + 2, rColors[3]));
+            rColors.erase(3);
+
+            // Reassign
+            for (auto& r_nodes_color : nodes_colors) {
+                IndexType& r_color = r_nodes_color.second;
+                if (r_color == 3) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_cond_color : cond_colors) {
+                IndexType& r_color = r_cond_color.second;
+                if (r_color == 3) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_elem_color : elem_colors) {
+                IndexType& r_color = r_elem_color.second;
+                if (r_color == 3) {
+                    r_color = max_index + 1;
+                }
+            }
+
+        }
+        if (id_10_exists) {
+            // New group
+            rColors.insert(IndexStringVectorPairType(max_index + 3, rColors[10]));
+            rColors.erase(10);
+
+            // Reassign
+            for (auto& r_nodes_color : nodes_colors) {
+                IndexType& r_color = r_nodes_color.second;
+                if (r_color == 10) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_cond_color : cond_colors) {
+                IndexType& r_color = r_cond_color.second;
+                if (r_color == 10) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_elem_color : elem_colors) {
+                IndexType& r_color = r_elem_color.second;
+                if (r_color == 10) {
+                    r_color = max_index + 1;
+                }
+            }
+        }
+
+        // Fill the model parts
+        rColors.insert(IndexStringVectorPairType(2, auxiliar_vector_elements));
+        rColors.insert(IndexStringVectorPairType(3, auxiliar_vector_elements));
+        std::vector<std::string> auxiliar_name_vector (1, "SKIN_ISOSURFACE");
+        rColors.insert(IndexStringVectorPairType(10, auxiliar_name_vector));
+    }
+
     /* Nodes */
     #pragma omp parallel for firstprivate(nodes_colors)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
