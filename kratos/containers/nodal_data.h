@@ -33,7 +33,7 @@ namespace Kratos
 /** This class is the container for nodal data storing:
  *  Id : The Id of the node
 */
-class NodalData
+class KRATOS_API(KRATOS_CORE) NodalData
 {
 public:
     ///@name Type Definitions
