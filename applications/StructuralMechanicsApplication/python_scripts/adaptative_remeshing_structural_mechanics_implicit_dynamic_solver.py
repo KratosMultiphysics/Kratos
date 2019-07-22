@@ -14,11 +14,11 @@ else:
     missing_meshing_dependencies = False
 
 # Import base class file
-from . import structural_mechanics_implicit_dynamic_solver
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_implicit_dynamic_solver
 
 # Import auxiliar methods
-from . import auxiliar_methods_adaptative_solvers
-from . import adaptative_remeshing_structural_mechanics_utilities
+from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_adaptative_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import adaptative_remeshing_structural_mechanics_utilities
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingImplicitMechanicalSolver(model, custom_settings)

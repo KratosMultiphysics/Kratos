@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-from . import convergence_criteria_factory
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
 try:
     import KratosMultiphysics.MeshingApplication as MeshingApplication
