@@ -517,6 +517,16 @@ public:
      */
     virtual void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY
+        this->InitializeNonLinearIteration(rCurrentElement, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void InitializeNonLinearIteration(
+        Element::Pointer rCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -530,6 +540,16 @@ public:
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void InitializeNonLinearIteration(
+        Condition::Pointer rCurrentCondition,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY
+        this->InitializeNonLinearIteration(rCurrentCondition, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
@@ -746,6 +766,17 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void CalculateSystemContributions(
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
         ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -760,6 +791,17 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void CalculateSystemContributions(
+        Condition::Pointer pCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -782,6 +824,16 @@ public:
         Element::Pointer pCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentElement->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void Calculate_RHS_Contribution(
+        Element::Pointer pCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
         ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -795,6 +847,16 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void Calculate_RHS_Contribution(
+        Condition::Pointer pCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_Calculate_RHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
@@ -816,6 +878,16 @@ public:
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void Calculate_LHS_Contribution(
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
         ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -829,6 +901,16 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void Calculate_LHS_Contribution(
+        Condition::Pointer pCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_Calculate_LHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -878,6 +960,15 @@ public:
     virtual void GetElementalDofList(
         Element::Pointer pCurrentElement,
         Element::DofsVectorType& ElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void GetElementalDofList(
+        Element::Pointer pCurrentElement,
+        Element::DofsVectorType& ElementalDofList,
         ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -890,6 +981,15 @@ public:
      * @param ConditionDofList The list containing the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void GetConditionDofList(
+        Condition::Pointer pCurrentCondition,
+        Element::DofsVectorType& ConditionDofList,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetConditionDofList(
         Condition::Pointer pCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
