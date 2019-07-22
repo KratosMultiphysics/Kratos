@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Import base class file
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+from .structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return StaticMechanicalSolver(model, custom_settings)

@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from .structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 import time as timer
 

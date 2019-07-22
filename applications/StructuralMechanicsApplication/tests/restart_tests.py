@@ -2,11 +2,10 @@ import os
 
 # Import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
