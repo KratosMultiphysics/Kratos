@@ -296,10 +296,8 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     }
     mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
-    // Iterate over components
-    auto& r_nodes_array = mrThisModelPart.Nodes();
-
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
+    auto& r_nodes_array = mrThisModelPart.Nodes();
     mDofs = r_nodes_array.begin()->GetDofs();
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
