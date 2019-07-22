@@ -10,8 +10,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.python_solver import PythonSolver
 
 # Other imports
-from KratosMultiphysics.StructuralMechanicsApplication. import check_and_prepare_model_process_structural
-from KratosMultiphysics.StructuralMechanicsApplication. import convergence_criteria_factory
+from KratosMultiphysics.StructuralMechanicsApplication import check_and_prepare_model_process_structural
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
 class MechanicalSolver(PythonSolver):
