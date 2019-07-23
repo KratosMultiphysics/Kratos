@@ -44,11 +44,6 @@
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
 
-// Incompressible fluid
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
-
 // Response function
 #include "response_functions/adjoint_response_function.h"
 
