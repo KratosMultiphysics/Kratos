@@ -52,7 +52,7 @@ class TimeStepTester(object):
     def RunForACertainScheme(self, scheme):
         print("Computing stable time step for scheme: "+ scheme)
         tolerance = 0.5e-7
-        dt = 1e-3    # changing the initial dt will change the number of iterations required to find a stable time step
+        dt = 1e-4    # changing the initial dt will change the number of iterations required to find a stable time step
         previous_dt = 0.0
 
         gnuplot_data = open("gnuplot_file.dem", 'a')
@@ -383,8 +383,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         super(CustomizedSolutionForTimeStepTesting, self).Finalize()
 
 
-    def PrintResultsForGid(self, time):
-        pass
+    # def PrintResultsForGid(self, time):
+    #     pass
 
 
 if __name__ == '__main__':

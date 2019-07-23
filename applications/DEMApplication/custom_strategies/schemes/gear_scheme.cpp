@@ -59,12 +59,11 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    delta_accel[k] = force[k] * mass_inv - mOldAcceleration[k];
-
                     delta_displ[k] += 1/12 * mAccelDerivative[k] * delta_t * delta_t;
 
                     vel[k] += 5.0/12.0 * mAccelDerivative[k] * delta_t;
 
+                    delta_accel[k] = force[k] * mass_inv - mOldAcceleration[k];
                     mAccelDerivative[k] = delta_accel[k]/delta_t;
 
                     displ[k] += delta_displ[k];
