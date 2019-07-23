@@ -1338,6 +1338,30 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    void ParticleCreatorDestructor::MarkSandProductionParticlesForErasing(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+
+        Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+
+            if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+            if ((*particle_pointer_it)->Is(BLOCKED)) continue;
+            if ((*particle_pointer_it)->Is(DEMFlags::STICKY)) continue;
+
+            if ((*particle_pointer_it)->Is(DEMFlags::IS_SAND_PRODUCTION)) {
+                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
+                (*particle_pointer_it)->Set(TO_ERASE);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+
     void ParticleCreatorDestructor::MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         KRATOS_TRY
 

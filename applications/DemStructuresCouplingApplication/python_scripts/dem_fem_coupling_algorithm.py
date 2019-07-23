@@ -186,7 +186,6 @@ class Algorithm(object):
 
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
-
             if self.test_number == 1 or self.test_number == 2:
                 self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
@@ -223,13 +222,15 @@ class Algorithm(object):
 
                 radius = 0
                 if self.test_number == 1:
-                    radius = 0.0036195; #95% of the real hole. CTW16 specimen
+                    radius = 0.00352425; #92.5% of the real hole, which is 0.00381m. CTW16 specimen
                 elif self.test_number == 2:
-                    radius = 0.012065; #95% of the real hole. CTW10 specimen
+                    radius = 0.0117475; #92.5% of the real hole, which is 0.0127m. CTW10 specimen
                 elif self.test_number == 3:
-                    radius = 0.036195; #95% of the real hole. Blind Test
+                    radius = 0.0352425; #92.5% of the real hole, which is 0.0381m. Blind Test
 
                 self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
+
+                self.dem_solution.creator_destructor.MarkSandProductionParticlesForErasing(self.dem_solution.spheres_model_part)
 
                 self.dem_solution.AfterSolveOperations()
 

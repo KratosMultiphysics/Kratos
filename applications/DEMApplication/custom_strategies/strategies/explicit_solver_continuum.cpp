@@ -662,7 +662,11 @@ namespace Kratos {
 
                 for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
 
-                    if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
+                    if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) {
+
+                        mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
+                        mListOfSphericContinuumParticles[i]->Set(DEMFlags::IS_SAND_PRODUCTION, true);
+                    }
                 }
             }
         }

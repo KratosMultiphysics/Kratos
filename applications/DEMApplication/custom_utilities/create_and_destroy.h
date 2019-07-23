@@ -247,6 +247,7 @@ public:
     void MarkParticlesForErasingGivenVectorVariableModulus(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& rVariable, double value, double tol);
     void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3> low_point, array_1d<double, 3> high_point);
     void MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius);
+    void MarkSandProductionParticlesForErasing(ModelPart& r_model_part);
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
     void MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part);

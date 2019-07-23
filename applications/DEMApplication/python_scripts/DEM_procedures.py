@@ -476,6 +476,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_RATIO)
+        model_part.AddNodalSolutionStepVariable(IS_SAND_PRODUCTION)
 
         # ROTATION RELATED PROPERTIES
         if self.DEM_parameters["RotationOption"].GetBool():
