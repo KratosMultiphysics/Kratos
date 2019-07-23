@@ -42,7 +42,11 @@ class CoSimulationSolverWrapper(object):
 
 
     def Initialize(self):
+        pass
+
+    def InitializeCouplingInterfaceData(self):
         # Initializing of the CouplingInterfaceData can only be done after the meshes are read
+        # and all ModelParts are created
         for data in self.data_dict.values():
             data.Initialize()
 
