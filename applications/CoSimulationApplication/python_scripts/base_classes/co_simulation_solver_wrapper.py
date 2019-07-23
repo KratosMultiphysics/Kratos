@@ -73,7 +73,7 @@ class CoSimulationSolverWrapper(object):
 
 
     def CreateIO(self, solvers, io_echo_level):
-        if self.__IOIsInitialized():
+        if self.__IOIsCreated():
             raise Exception('IO for "' + self.name + '" is already initialized!')
 
         io_settings = self.settings["io_settings"]
@@ -86,20 +86,20 @@ class CoSimulationSolverWrapper(object):
                                       self._GetIOName())
 
     def ImportCouplingInterfaceData(self, data_name, from_client=None):
-        if not self.__IOIsInitialized():
+        if not self.__IOIsCreated():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.__io.ImportCouplingInterfaceData(data_name, from_client)
     def ImportCouplingInterface(self, geometry_name, from_client=None):
-        if not self.__IOIsInitialized():
+        if not self.__IOIsCreated():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.__io.ImportCouplingInterface(geometry_name, from_client)
 
     def ExportCouplingInterfaceData(self, data_name, to_client=None):
-        if not self.__IOIsInitialized():
+        if not self.__IOIsCreated():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.__io.ExportCouplingInterfaceData(data_name, to_client)
     def ExportCouplingInterface(self, geometry_name, to_client=None):
-        if not self.__IOIsInitialized():
+        if not self.__IOIsCreated():
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.__io.ExportCouplingInterface(geometry_name, to_client)
 
@@ -133,7 +133,7 @@ class CoSimulationSolverWrapper(object):
         # only external solvers have to specify sth here / override this
         return "dummy_io"
 
-    def __IOIsInitialized(self):
+    def __IOIsCreated(self):
         return self.__io is not None
 
     @classmethod
