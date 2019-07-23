@@ -29,7 +29,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
-        self._AllocateHistoricalVariablesFromCouplingData()
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
@@ -66,6 +65,12 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Initialize()
+
+    def InitializeCouplingInterfaceData(self):
+        super(CoSimulationCoupledSolver, self).InitializeCouplingInterfaceData()
+
+        for solver in self.solver_wrappers.values():
+            solver.InitializeCouplingInterfaceData()
 
     def Finalize(self):
         for solver in self.solver_wrappers.values():
