@@ -38,7 +38,7 @@ class CoSimulationSolverWrapper(object):
         self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
-        self.io = None
+        self.__io = None
 
 
     def Initialize(self):
@@ -81,27 +81,27 @@ class CoSimulationSolverWrapper(object):
         if not io_settings.Has("echo_level"):
             io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
 
-        self.io = io_factory.CreateIO(self.settings["io_settings"],
+        self.__io = io_factory.CreateIO(self.settings["io_settings"],
                                       self.model,
                                       self._GetIOName())
 
     def ImportCouplingInterfaceData(self, data_name, from_client=None):
         if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ImportCouplingInterfaceData(data_name, from_client)
+        self.__io.ImportCouplingInterfaceData(data_name, from_client)
     def ImportCouplingInterface(self, geometry_name, from_client=None):
         if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ImportCouplingInterface(geometry_name, from_client)
+        self.__io.ImportCouplingInterface(geometry_name, from_client)
 
     def ExportCouplingInterfaceData(self, data_name, to_client=None):
         if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ExportCouplingInterfaceData(data_name, to_client)
+        self.__io.ExportCouplingInterfaceData(data_name, to_client)
     def ExportCouplingInterface(self, geometry_name, to_client=None):
         if not self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ExportCouplingInterface(geometry_name, to_client)
+        self.__io.ExportCouplingInterface(geometry_name, to_client)
 
 
     def GetInterfaceData(self, data_name):
@@ -134,7 +134,7 @@ class CoSimulationSolverWrapper(object):
         return "dummy_io"
 
     def __IOIsInitialized(self):
-        return self.io is not None
+        return self.__io is not None
 
     @classmethod
     def _GetDefaultSettings(cls):
