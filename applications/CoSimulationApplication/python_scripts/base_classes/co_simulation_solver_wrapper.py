@@ -21,7 +21,7 @@ class CoSimulationSolverWrapper(object):
         The derived classes should do the following things in their constructors:
         1. call the base-class constructor (i.e. the constructor of this class => CoSimulationSolverWrapper)
         2. create the ModelParts required for the CoSimulation
-        3. call "_AllocateHistoricalVariablesFromCouplingData" to allocate the nodal historical variables on the previously created ModelParts
+        3. Optional: call "_AllocateHistoricalVariablesFromCouplingData" to allocate the nodal historical variables on the previously created ModelParts (this should not be necessary for Kratos)
            => this has to be done before the meshes/coupling-interfaces are read/received/imported (due to how the memory allocation of Kratos works for historical nodal values)
         """
 
@@ -35,7 +35,7 @@ class CoSimulationSolverWrapper(object):
 
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model) for (data_name, data_config) in self.settings["data"].items()}
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.io = None
