@@ -49,16 +49,14 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["data_transfer_operators"],
             self.echo_level)
 
-        for solver in self.solver_wrappers.values():
-            solver.CreateIO(self.solver_wrappers, self.echo_level)
-            # we use the Echo_level of the coupling solver, since IO is needed by the coupling
-            # and not by the (physics-) solver
-
     def Initialize(self):
         for solver in self.solver_wrappers.values():
             solver.Initialize()
 
-        super(CoSimulationCoupledSolver, self).Initialize()
+        for solver in self.solver_wrappers.values():
+            solver.CreateIO(self.solver_wrappers, self.echo_level)
+            # we use the Echo_level of the coupling solver, since IO is needed by the coupling
+            # and not by the (physics-) solver
 
         for predictor in self.predictors_list:
             predictor.Initialize()
