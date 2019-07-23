@@ -224,8 +224,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
 
     def __ExecuteCouplingOperations(self, settings):
-        for i in range(settings.size()):
-            coupling_operation_name = settings[i].GetString()
+        for coupling_operation_name in settings.GetStringArray():
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
