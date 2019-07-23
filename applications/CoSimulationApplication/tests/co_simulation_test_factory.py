@@ -16,6 +16,7 @@ except ImportError:
 
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "ExternalSolversApplication")
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
+have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
 
 using_pykratos = UsingPyKratos()
 
@@ -131,6 +132,17 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
             self._runTest()
 
+    def test_DEMFEMCableNet(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_dem_fem_dependencies:
+            self.skipTest("DEM FEM dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
+            self._runTest()
 
 if __name__ == '__main__':
     KratosUnittest.main()
