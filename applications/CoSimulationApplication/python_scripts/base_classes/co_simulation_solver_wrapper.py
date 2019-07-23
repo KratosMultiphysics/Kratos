@@ -72,7 +72,7 @@ class CoSimulationSolverWrapper(object):
         pass
 
 
-    def InitializeIO(self, solvers, io_echo_level):
+    def CreateIO(self, solvers, io_echo_level):
         if self.__IOIsInitialized():
             raise Exception('IO for "' + self.name + '" is already initialized!')
 
