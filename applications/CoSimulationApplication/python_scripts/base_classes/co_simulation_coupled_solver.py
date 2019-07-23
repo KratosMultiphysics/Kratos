@@ -29,7 +29,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
-        self._AllocateHistoricalVariablesFromCouplingData()
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 

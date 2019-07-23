@@ -40,20 +40,8 @@ class CoSimulationSolverWrapper(object):
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.io = None
 
-        self.__allocate_hist_vars_called = False # internal variable to check that "_AllocateHistoricalVariablesFromCouplingData" was called
-
 
     def Initialize(self):
-        """Initializes the Solver Wrapper
-
-        The derived classes should do the following things this function:
-        1. read/receive/import the meshes/coupling-interfaces
-        2. call the base-class Initialize, which initializes the CouplingInterfaceDatas, for which the Coupling-interfaces have to be available
-        """
-
-        if not self.__allocate_hist_vars_called:
-            raise Exception('"_AllocateHistoricalVariablesFromCouplingData" was not called from solver "{}"'.format(self.name))
-
         # Initializing of the CouplingInterfaceData can only be done after the meshes are read
         for data in self.data_dict.values():
             data.Initialize()
@@ -122,25 +110,6 @@ class CoSimulationSolverWrapper(object):
         '''This function can be filled if desired, e.g. to print settings at higher echo-levels
         '''
         pass
-
-    def _AllocateHistoricalVariablesFromCouplingData(self):
-        '''This function retrieves the historical variables that are needed for the ModelParts from the specified CouplingInterfaceDatas and allocates them on the ModelParts
-        Note that it can only be called after the (Main-)ModelParts are created
-        '''
-        for data in self.data_dict.values():
-            hist_var_dict = data.GetHistoricalVariableDict()
-            for full_model_part_name, variable in hist_var_dict.items():
-                main_model_part_name = full_model_part_name.split(".")[0]
-                if not self.model.HasModelPart(main_model_part_name):
-                    raise Exception('ModelPart "{}" does not exist in solver "{}"!'.format(main_model_part_name, self.name))
-                main_model_part = self.model[main_model_part_name]
-                if not main_model_part.HasNodalSolutionStepVariable(variable):
-                    if self.echo_level > 0:
-                        cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Allocating historical variable "{}" in ModelPart "{}" for solver "{}"'.format(variable.Name(), main_model_part_name, self.name))
-                    main_model_part.AddNodalSolutionStepVariable(variable)
-
-        self.__allocate_hist_vars_called = True
-
 
     def Check(self):
         print("!!!WARNING!!! your solver does not implement Check!!!")
