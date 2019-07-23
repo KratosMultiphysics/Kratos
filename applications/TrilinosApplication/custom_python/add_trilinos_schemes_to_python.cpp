@@ -116,14 +116,6 @@ void  AddSchemes(pybind11::module& m)
            );
 
     py::class_ <
-        ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosResidualBasedLagrangianMonolithicScheme").def(py::init<int >()
-           );
-
-    py::class_ <
         TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
@@ -155,17 +147,7 @@ void  AddSchemes(pybind11::module& m)
         .def(py::init <const std::size_t, Parameters>())
         ;
 
-    typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak;
-
     typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
-
-    py::class_ <
-        TrilinosResidualBasedPredictorCorrectorVelocityBossak,
-        typename TrilinosResidualBasedPredictorCorrectorVelocityBossak::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosPredictorCorrectorVelocityBossakScheme").def(py::init<double, double >()
-           );
 
     py::class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
         (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
@@ -179,13 +161,6 @@ void  AddSchemes(pybind11::module& m)
         typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >(m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
         .def(py::init<unsigned int, Kratos::Flags& >() );
-
-    py::class_ <
-        ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-        (m,"TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched")
-        .def(py::init<double, double, unsigned int>() );
 
     py::class_ <
         TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
