@@ -83,7 +83,7 @@ class CoSimulationSolverWrapper(object):
 
         self.__io = io_factory.CreateIO(self.settings["io_settings"],
                                       self.model,
-                                      self._GetIOName())
+                                      self._GetIOType())
 
     def ImportCouplingInterfaceData(self, data_name, from_client=None):
         if not self.__IOIsCreated():
@@ -129,7 +129,7 @@ class CoSimulationSolverWrapper(object):
         return cls.__name__
 
     @classmethod
-    def _GetIOName(cls):
+    def _GetIOType(cls):
         # only external solvers have to specify sth here / override this
         return "dummy_io"
 
