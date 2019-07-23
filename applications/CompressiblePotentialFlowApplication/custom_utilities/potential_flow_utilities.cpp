@@ -17,7 +17,7 @@ namespace PotentialFlowUtilities {
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement)
 {
-    return rElement.GetValue(ELEMENTAL_DISTANCES);
+    return rElement.GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
@@ -175,9 +175,32 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
     return pressure_coefficient;
 }
 
+template <int Dim, int NumNodes>
+const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
+{
+    // Initialize counters
+    unsigned int number_of_nodes_with_positive_distance = 0;
+    unsigned int number_of_nodes_with_negative_distance = 0;
+
+    // Count how many element nodes are above and below the wake
+    for (unsigned int i = 0; i < rNodalDistances.size(); i++) {
+        if (rNodalDistances(i) < 0.0) {
+            number_of_nodes_with_negative_distance += 1;
+        }
+        else {
+            number_of_nodes_with_positive_distance += 1;
+        }
+    }
+
+    // Elements with nodes above and below the wake are wake elements
+    return number_of_nodes_with_negative_distance > 0 &&
+           number_of_nodes_with_positive_distance > 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
+// 2D
 template array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
 template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
 template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
@@ -191,5 +214,22 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+
+// 3D
+template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
+template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
+template BoundedVector<double, 2 * 4> GetPotentialOnWakeElement<3, 4>(
+    const Element& rElement, const array_1d<double, 4>& rDistances);
+template BoundedVector<double, 4> GetPotentialOnUpperWakeElement<3, 4>(
+    const Element& rElement, const array_1d<double, 4>& rDistances);
+template BoundedVector<double, 4> GetPotentialOnLowerWakeElement<3, 4>(
+    const Element& rElement, const array_1d<double, 4>& rDistances);
+template array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
+template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 } // namespace PotentialFlow
 } // namespace Kratos

@@ -38,7 +38,7 @@
         ],
         "data_transfer_operators" : {
             "mapper" : {
-                "type" : "mapping",
+                "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
                 }
@@ -114,11 +114,6 @@
                         "model_part_name"   : "Structure.GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    },
-                    "velocity" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "VELOCITY"
                     }
                 }
             }

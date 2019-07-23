@@ -195,6 +195,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     {
         rValues[0] = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
     }
+    else if (rVariable == DENSITY)
+    {
+        rValues[0] = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    }
     else if (rVariable == WAKE)
     {
         const IncompressiblePotentialFlowElement& r_this = *this;
@@ -270,7 +274,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
-    noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
@@ -568,23 +572,26 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(con
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
+    const double reference_chord = rCurrentProcessInfo[REFERENCE_CHORD];
 
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        double aux_potential = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+    auto r_geometry = GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; i++){
+        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         double potential_jump = aux_potential - potential;
 
-        if (distances[i] > 0)
-        {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, -2.0 / free_stream_velocity_norm * (potential_jump));
+        if (distances[i] > 0){
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, - (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
+            r_geometry[i].UnSetLock();
         }
-        else
-        {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / free_stream_velocity_norm * (potential_jump));
+        else{
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
+            r_geometry[i].UnSetLock();
         }
     }
 }
@@ -625,5 +632,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerial
 // Template class instantiation
 
 template class IncompressiblePotentialFlowElement<2, 3>;
+template class IncompressiblePotentialFlowElement<3, 4>;
 
 } // namespace Kratos

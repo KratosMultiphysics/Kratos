@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import importlib
 
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
+from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
@@ -59,9 +59,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
 
-    full_module_name = solver_module + '.' + solver_module_name
-    solver_module = importlib.import_module(full_module_name)
-    solver = solver_module.CreateSolver(model, solver_settings)
+    module_full = 'KratosMultiphysics.FluidDynamicsApplication.' + solver_module_name
+    solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
 

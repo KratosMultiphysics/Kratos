@@ -13,16 +13,18 @@ except ImportError:
     have_conv_diff = False
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication import read_distance_from_file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
 
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
 class NavierStokesTwoFluidsSolver(FluidSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -57,7 +59,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-2,
-                "maximum_delta_time"  : 1.0
+                "maximum_delta_time"  : 1.0,
+                "time_step"           : 0.0
             },
             "periodic": "periodic",
             "move_mesh_flag": false,
@@ -68,10 +71,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "bfecc_number_substeps" : 10
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(NavierStokesTwoFluidsSolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
@@ -242,7 +246,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _set_distance_function(self):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
-            DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
+            DistanceUtility = DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
             KratosMultiphysics.Logger.PrintInfo("Navier Stokes Embedded Solver","Distance function taken from the .mdpa input file.")

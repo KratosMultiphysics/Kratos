@@ -4,6 +4,7 @@ from KratosMultiphysics.mpi import *
 #import KratosMultiphysics.mpi
 import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 import os
 
 def GetFilePath(fileName):
@@ -46,7 +47,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
 
         #construct the solver
-        import trilinos_linear_solver_factory
         linear_solver = trilinos_linear_solver_factory.ConstructSolver(settings)
 
         #solve
