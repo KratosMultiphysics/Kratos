@@ -80,3 +80,20 @@ def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_ec
         data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_settings)
 
     return data_transfer_operators
+
+def AllocateHistoricalVariablesFromCouplingData(data_list, model, solver_name, echo_level):
+    '''This function retrieves the historical variables that are needed for the ModelParts from the
+    specified CouplingInterfaceDatas and allocates them on the ModelParts
+    Note that it can only be called after the (Main-)ModelParts are created
+    '''
+    for data in data_list:
+        hist_var_dict = data.GetHistoricalVariableDict()
+        for full_model_part_name, variable in hist_var_dict.items():
+            main_model_part_name = full_model_part_name.split(".")[0]
+            if not model.HasModelPart(main_model_part_name):
+                raise Exception('ModelPart "{}" does not exist in solver "{}"!'.format(main_model_part_name, solver_name))
+            main_model_part = model[main_model_part_name]
+            if not main_model_part.HasNodalSolutionStepVariable(variable):
+                if echo_level > 0:
+                    cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Allocating historical variable "{}" in ModelPart "{}" for solver "{}"'.format(variable.Name(), main_model_part_name, solver_name))
+                main_model_part.AddNodalSolutionStepVariable(variable)
