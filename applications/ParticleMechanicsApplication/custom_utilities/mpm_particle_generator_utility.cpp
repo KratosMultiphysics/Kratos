@@ -335,11 +335,6 @@ namespace MPMParticleGeneratorUtility
                             KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                         }
 
-                        // Get condition variables:
-                        // Normal vector
-                        if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
-                        ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
-
                         // Get shape_function_values from defined particle_per_condition
                         auto& r_geometry = i->GetGeometry(); // current condition's geometry
                         const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
@@ -524,6 +519,14 @@ namespace MPMParticleGeneratorUtility
                         const bool is_interface = i->Is(INTERFACE);
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
+                        // Get condition variables:
+                        // Normal vector
+                        if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
+                        ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
+
+                        // Check Normal direction
+                        if (flip_normal_direction) mpc_normal *= -1.0;
+
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
                             if(!is_interface){
@@ -584,9 +587,6 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
 
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
-
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the second loop below
                             p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
@@ -624,14 +624,6 @@ namespace MPMParticleGeneratorUtility
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
                         for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                         {
-                            // Nodal normal vector is used
-                            if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
-                            const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
-                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
-
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
-
                             // Create new material point condition
                             new_condition_id = last_condition_id + j;
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
