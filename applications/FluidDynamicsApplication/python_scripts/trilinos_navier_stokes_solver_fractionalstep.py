@@ -10,13 +10,13 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_fractionalstep
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_fractionalstep import NavierStokesSolverFractionalStep
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverFractionalStep(model, custom_settings)
 
-class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep):
+class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep):
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -79,7 +79,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        super(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
+        super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
         self.element_name = "FractionalStep"
         self.condition_name = "WallCondition"

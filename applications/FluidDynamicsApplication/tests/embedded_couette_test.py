@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.process_factory as process_factory
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as python_solvers_wrapper_fluid

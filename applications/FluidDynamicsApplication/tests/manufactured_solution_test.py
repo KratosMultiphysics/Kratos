@@ -7,6 +7,8 @@ import math
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as python_solvers_wrapper_fluid

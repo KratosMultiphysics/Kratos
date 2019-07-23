@@ -10,7 +10,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial monolithic embedded solver
-import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_embedded_solver
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_embedded_solver
 
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 

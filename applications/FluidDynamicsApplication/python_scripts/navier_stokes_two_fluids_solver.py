@@ -2,15 +2,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-try:
+have_conv_diff = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
+if have_conv_diff:
     import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-    have_conv_diff = True
-except ImportError:
-    have_conv_diff = False
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver

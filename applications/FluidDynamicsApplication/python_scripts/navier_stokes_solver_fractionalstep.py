@@ -2,6 +2,7 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -90,7 +91,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.min_buffer_size = 3
 
         ## Construct the linear solvers
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 

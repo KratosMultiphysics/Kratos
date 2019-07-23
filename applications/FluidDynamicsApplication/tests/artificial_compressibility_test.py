@@ -3,8 +3,7 @@ import KratosMultiphysics.process_factory as process_factory
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as python_solvers_wrapper_fluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 class ArtificialCompressibilityTest(UnitTest.TestCase):
     def testArtificialCompressibility(self):

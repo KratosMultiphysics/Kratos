@@ -1,6 +1,3 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class FluidAnalysisWithoutSolution(FluidDynamicsAnalysis):

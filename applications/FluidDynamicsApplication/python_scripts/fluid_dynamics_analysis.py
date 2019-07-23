@@ -6,8 +6,6 @@ import KratosMultiphysics as Kratos
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.process_factory import KratosProcessFactory
-
-import KratosMultiphysics.FluidDynamicsApplication
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 class FluidDynamicsAnalysis(AnalysisStage):

@@ -6,11 +6,10 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-try:
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
+if have_mesh_moving:
     import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-    have_mesh_moving = True
-except ImportError:
-    have_mesh_moving = False
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver

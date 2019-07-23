@@ -5,8 +5,8 @@ import sys
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
 
-import KratosMultiphysics.KratosFluidDynamicsApplication as KratosCFD
-from KratosMultiphysics.KratosFluidDynamicsApplication import check_and_prepare_model_process_fluid
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)
