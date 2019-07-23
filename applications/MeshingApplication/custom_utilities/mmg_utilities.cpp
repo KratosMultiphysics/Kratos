@@ -2918,19 +2918,19 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             for (auto& r_nodes_color : nodes_colors) {
                 IndexType& r_color = r_nodes_color.second;
                 if (r_color == 3) {
-                    r_color = max_index + 1;
+                    r_color = max_index + 2;
                 }
             }
             for (auto& r_cond_color : cond_colors) {
                 IndexType& r_color = r_cond_color.second;
                 if (r_color == 3) {
-                    r_color = max_index + 1;
+                    r_color = max_index + 2;
                 }
             }
             for (auto& r_elem_color : elem_colors) {
                 IndexType& r_color = r_elem_color.second;
                 if (r_color == 3) {
-                    r_color = max_index + 1;
+                    r_color = max_index + 2;
                 }
             }
 
@@ -2944,19 +2944,19 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             for (auto& r_nodes_color : nodes_colors) {
                 IndexType& r_color = r_nodes_color.second;
                 if (r_color == 10) {
-                    r_color = max_index + 1;
+                    r_color = max_index + 3;
                 }
             }
             for (auto& r_cond_color : cond_colors) {
                 IndexType& r_color = r_cond_color.second;
                 if (r_color == 10) {
-                    r_color = max_index + 1;
+                    r_color = max_index + 3;
                 }
             }
             for (auto& r_elem_color : elem_colors) {
                 IndexType& r_color = r_elem_color.second;
                 if (r_color == 10) {
-                    r_color = max_index + 1;
+                    r_color = max_index + 3;
                 }
             }
         }
