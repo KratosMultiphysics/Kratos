@@ -3,7 +3,6 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-import KratosMultiphysics.FluidDynamicsApplication.vms_monolithic_solver
 
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver as two_fluids_solver
 
