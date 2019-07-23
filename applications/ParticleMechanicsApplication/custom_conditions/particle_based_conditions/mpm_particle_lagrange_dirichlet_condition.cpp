@@ -314,7 +314,7 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
+    
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
@@ -374,7 +374,7 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-    array_1d<bool,3> kinematic_node;
+    std::vector<bool> kinematic_node(number_of_nodes);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         kinematic_node[i]=false;
