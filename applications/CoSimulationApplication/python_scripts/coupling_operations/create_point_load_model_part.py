@@ -26,14 +26,12 @@ class CreatePointLoadModelPart(CoSimulationCouplingOperation):
 
         computing_domain = self.model[computing_model_part_name]
 
-        cond_counter = 0
         node_id_list = []
-        for node_i in self.computing_domain.Nodes:
+        for cond_counter,node_i in enumerate(computing_domain.Nodes):
             node_id_list.append(node_i.Id)
-            cond_counter+=1
-            self.computing_domain.CreateNewCondition(
-                "PointLoadCondition3D1N",cond_counter,[node_i.Id],
-                self.computing_domain.GetProperties()[0])
+            computing_domain.CreateNewCondition(
+                "PointLoadCondition3D1N",cond_counter+1,[node_i.Id],
+                computing_domain.GetProperties()[0])
 
         struct_smp = computing_domain.CreateSubModelPart(sub_model_part_name)
         struct_smp.AddNodes(node_id_list)

@@ -9,7 +9,10 @@ from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kr
 # Importing StructuralMechanics
 if not CheckIfApplicationsAvailable("DEMApplication"):
     raise ImportError("The DEMApplication is not available!")
+
+from KratosMultiphysics import DEMApplication
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
+
 
 def Create(settings, solver_name):
     return DEMWrapper(settings, solver_name)
@@ -19,3 +22,9 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def _CreateAnalysisStage(self):
         return DEMAnalysisStage(self.model, self.project_parameters)
+
+    def SolveSolutionStep(self):
+        super(DEMWrapper,self).SolveSolutionStep()
+
+        for mp_name in self.settings["settings"]["move_mesh_model_part"].GetStringArray():
+            DEMApplication.MoveMeshUtility().MoveDemMesh(self.model[mp_name].Nodes,True)
