@@ -2177,11 +2177,12 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
     if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )
     {
         //create and initialize element variables:
-        ElementDataType Variables;
-        this->InitializeElementData(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
-        //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+      Variables.StressVector = ZeroVector(6); // i want to get the third component in PlaneStrain. DO NOT MERGE
+      //create constitutive law parameters:
+      ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
