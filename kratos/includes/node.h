@@ -1141,7 +1141,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("NodalData", mNodalData);
+        rSerializer.save("NodalData", &mNodalData); // Storing it as pointer to be shared by Dof pointer
         rSerializer.save("Data", mData);
         rSerializer.save("Initial Position", mInitialPosition);
         rSerializer.save("Data", mDofs);
@@ -1152,7 +1152,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("NodalData", mNodalData);
+        NodalData* p_nodal_data = nullptr; 
+        rSerializer.load("NodalData", p_nodal_data);
+        mNodalData=*p_nodal_data;
         rSerializer.load("Data", mData);
         rSerializer.load("Initial Position", mInitialPosition);
         rSerializer.load("Data", mDofs);
