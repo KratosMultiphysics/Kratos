@@ -1760,7 +1760,11 @@ class MultilevelMonteCarlo(object):
         tol = self.tolerance_i
         # TODO: now considering self.number_samples, i.e. only the samples used up to this moment for the statistics
         # in future may be that we consider here all the samples, even if not analysed yet
-        nsam =  copy.copy(self.number_samples)
+        nsamples = [0 for _ in range (self.settings["maximum_number_levels"].GetInt()+1)]
+        for batch in range (len(self.batches_number_samples)):
+            for level in range (len(self.batches_number_samples[batch])):
+                nsamples[level] = nsamples[level] + self.batches_number_samples[batch][level]
+        nsam = copy.copy(nsamples)
         # compute optimal number of samples and store previous number of samples
         coeff1 = (cphi/(theta*tol))**2.0
         model_cost = np.multiply(cgamma,np.power(mesh_parameters_current_levels,gamma))
