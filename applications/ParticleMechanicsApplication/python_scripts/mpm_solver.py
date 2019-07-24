@@ -199,7 +199,7 @@ class MPMSolver(PythonSolver):
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
-
+        
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
         self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
@@ -249,8 +249,6 @@ class MPMSolver(PythonSolver):
     def _AddVariablesToModelPart(self, model_part):
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.WEIGHTED_VECTOR_RESIDUAL)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         # Add specific variables for the problem conditions
@@ -297,9 +295,6 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X, KratosParticle.WEIGHTED_VECTOR_RESIDUAL_X, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y, KratosParticle.WEIGHTED_VECTOR_RESIDUAL_Y, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z, KratosParticle.WEIGHTED_VECTOR_RESIDUAL_Z, model_part)
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
@@ -311,19 +306,19 @@ class MPMSolver(PythonSolver):
             dof_variable_name = self.settings["auxiliary_dofs_list"][i].GetString()
             reaction_variable_name = self.settings["auxiliary_reaction_list"][i].GetString()
             if (KratosMultiphysics.KratosGlobals.HasDoubleVariable(dof_variable_name)): # Double variable
-                dof_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name)
-                reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable, model_part)
+                    dof_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name)
+                    reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
+                    KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable, model_part)
             elif (KratosMultiphysics.KratosGlobals.HasArrayVariable(dof_variable_name)): # Components variable
-                dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
-                reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, model_part)
-                dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
-                reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, model_part)
-                dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
-                reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, model_part)
+                    dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
+                    reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
+                    KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, model_part)
+                    dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
+                    reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
+                    KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, model_part)
+                    dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
+                    reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
+                    KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, model_part)
             else:
                 KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
 
