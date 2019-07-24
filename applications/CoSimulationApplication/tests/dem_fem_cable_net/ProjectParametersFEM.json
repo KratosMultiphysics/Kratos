@@ -20,15 +20,6 @@
 		"material_import_settings"    : {
 			"materials_filename"      : "dem_fem_cable_net/cableNetFEMStructuralMaterials.json"
 		},
-		"line_search"                         : false,
-		"convergence_criterion"               : "residual_criterion",
-		"displacement_relative_tolerance"     : 1e-9,
-		"displacement_absolute_tolerance"     : 1e-9,
-		"residual_relative_tolerance"         : 1e-9,
-		"residual_absolute_tolerance"         : 1e-9,
-		"max_iteration"                       : 400,
-		"problem_domain_sub_model_part_list"  : ["Parts_trusses"],
-		"processes_sub_model_part_list"       : ["DISPLACEMENT_dirichXYZ","RESULT_middleNode"],
 		"rotation_dofs"                       : false,
 		"model_part_name" : "Structure",
 		"domain_size"     : 3,

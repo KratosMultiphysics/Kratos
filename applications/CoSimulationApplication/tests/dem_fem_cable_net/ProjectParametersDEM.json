@@ -53,7 +53,7 @@
 "VelTrapGraphExportFreq"           : 10e1,
 "OutputTimeStep"                   : 10e1,
 "PostBoundingBox"                  : false,
-"PostDisplacement"                 : true,
+"PostDisplacement"                 : false,
 "PostVelocity"                     : false,
 "PostTotalForces"                  : false,
 "PostRigidElementForces"           : false,
