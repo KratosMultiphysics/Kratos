@@ -68,7 +68,7 @@
                 "settings" : {
                     "input_file"  : "dem_fem_cable_net/ProjectParametersDEM",
                     "move_mesh_model_part"  : ["RigidFacePart.0"],
-                    "path_to_project"       : "dem_fem_cable_net"
+                    "working_directory"       : "dem_fem_cable_net"
                 },
                 "data" : {
                     "disp" : {

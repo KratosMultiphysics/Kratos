@@ -144,5 +144,16 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
             self._runTest()
 
+    @classmethod
+    def tearDownClass(cls):
+        super(TestCoSimulationCases,cls).tearDownClass()
+
+        # delete superfluous dem files
+        kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
+        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_Graphs")
+        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_MPI_results")
+        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_Post_Files")
+        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_Results_and_Data")
+
 if __name__ == '__main__':
     KratosUnittest.main()
