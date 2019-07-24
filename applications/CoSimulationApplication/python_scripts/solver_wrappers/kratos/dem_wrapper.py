@@ -37,10 +37,17 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
         return dem_analysis_module(self.model, self.project_parameters)
 
+    def Initialize(self):
+        super(DEMWrapper,self).Initialize()
+
+        # save nodes in model parts which need to be moved while simulating
+        self.list_of_nodes_in_move_mesh_model_parts = []
+        for mp_name in self.settings["settings"]["move_mesh_model_part"].GetStringArray():
+            self.list_of_nodes_in_move_mesh_model_parts.append(self.model[mp_name].Nodes)
+
     def SolveSolutionStep(self):
         super(DEMWrapper,self).SolveSolutionStep()
 
         # move the rigid wall object in the dem mp w.r.t. the current displacement and velocities
-        move_mesh_model_parts_array = self.settings["settings"]["move_mesh_model_part"].GetStringArray()
-        for mp_name in move_mesh_model_parts_array:
-            DEMApplication.MoveMeshUtility().MoveDemMesh(self.model[mp_name].Nodes,True)
+        for model_part_nodes in self.list_of_nodes_in_move_mesh_model_parts:
+            DEMApplication.MoveMeshUtility().MoveDemMesh(model_part_nodes,True)
