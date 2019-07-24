@@ -28,7 +28,6 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
         self.is_neumann_boundary = True
-        self.is_penalty_condition = False
         self.option = settings["option"].GetString()
 
         # check constraint
@@ -72,7 +71,6 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
-                condition.SetValue(KratosParticle.MPC_IS_PENALTY, self.is_penalty_condition)
                 condition.SetValue(self.variable, self.vector)
         else:
             err_msg = '\n::[ApplyMPMParticleNeumannConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '

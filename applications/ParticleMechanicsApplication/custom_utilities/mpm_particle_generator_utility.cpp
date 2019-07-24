@@ -323,7 +323,7 @@ namespace MPMParticleGeneratorUtility
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
-                        const bool is_penalty_condition = i->GetValue(MPC_IS_PENALTY);
+                        const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
@@ -530,7 +530,7 @@ namespace MPMParticleGeneratorUtility
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
                             if(!is_interface){
-                                if (!is_penalty_condition){
+                                if (boundary_condition_type==2){
                                     if (domain_size==2){
                                         if (background_geo_type == GeometryData::Kratos_Triangle2D3)
                                             condition_type_name = "MPMParticleLagrangeDirichletCondition2D3N";
@@ -615,8 +615,10 @@ namespace MPMParticleGeneratorUtility
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
                             else{
-                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                                p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmention_factor);
+                                if (boundary_condition_type==1)
+                                    p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                else
+                                    p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmention_factor);
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
@@ -670,8 +672,10 @@ namespace MPMParticleGeneratorUtility
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
                             else{
-                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                                p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmention_factor);
+                                if(boundary_condition_type==1)
+                                    p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                else
+                                    p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmention_factor);
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
