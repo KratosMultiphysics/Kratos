@@ -17,9 +17,7 @@ class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
-            (self.bdf_process).Execute()
-
-            # The base solver updates the levelset here
+            (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
 
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()

@@ -57,7 +57,8 @@ class StokesSolver:
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
 
-        self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(model_part,2)
+        time_order = 2
+        self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
 
         self.conv_criteria = incompressibleapp.VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
@@ -84,7 +85,7 @@ class StokesSolver:
         print ("Initialization stokes solver finished")
 
     def Solve(self):
-        self.bdf_process.Execute()
+        (self.time_discretization).ComputeBDFCoefficients(self.model_part)
         self.fluid_solver.Solve()
 
     def SetEchoLevel(self, level):
@@ -95,5 +96,3 @@ class StokesSolver:
 
     def Check(self):
         self.fluid_solver.Check()
-
-
