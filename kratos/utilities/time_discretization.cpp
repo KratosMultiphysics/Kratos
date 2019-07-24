@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/variables.h"
 #include "input_output/logger.h"
@@ -52,6 +53,29 @@ void BDF::SetAuxBDFPointer(
         } default: {
             KRATOS_ERROR << "Asked for time order " << TimeOrder << ". Maximum time order is 6.";
         }
+    }
+}
+
+void BDF::ComputeBDFCoefficients(ModelPart &rModelPart) const
+{
+    // Check if the auxiliary BDF util pointer is set
+    KRATOS_ERROR_IF(!mpAuxBDF)
+        << "Pointer to auxiliary BDF class implementing the desired order is null" << std::endl;
+
+    // Compute the BDF coefficients
+    auto &r_process_info = rModelPart.GetProcessInfo();
+    const auto bdf_coeffs = this->ComputeBDFCoefficients(r_process_info);
+
+    // Check ProcessInfo BDF coefficients vector size
+    const unsigned int n_coefs = bdf_coeffs.size();
+    auto &r_proc_inf_bdf_coeffs = r_process_info[BDF_COEFFICIENTS];
+    if (r_proc_inf_bdf_coeffs.size() != n_coefs) {
+        r_proc_inf_bdf_coeffs.resize(n_coefs);
+    }
+
+    // Save the computed BDF coefficients in the model part ProcessInfo
+    for (std::size_t i_coeff = 0; i_coeff < n_coefs; ++i_coeff) {
+        r_proc_inf_bdf_coeffs[i_coeff] = bdf_coeffs[i_coeff];
     }
 }
 

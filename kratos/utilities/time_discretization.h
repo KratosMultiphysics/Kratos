@@ -22,6 +22,8 @@
 // Project includes
 
 namespace Kratos {
+
+class ModelPart; // forward-declaring to not having to include it here
 class ProcessInfo; // forward-declaring to not having to include it here
 
 namespace TimeDiscretization {
@@ -47,6 +49,15 @@ public:
      * Destructor of the BDF class
      */
     virtual ~BDF() = default;
+
+    /**
+     * @brief Computes the BDF coefficients
+     * This method computes the BDF coefficients with the information
+     * stored in the ProcessInfo of a provided model part. The computed
+     * coefficients are saved in such ProcessInfo container.
+     * @param rModelPart Model part to retrieve the ProcessInfo from
+     */
+    void ComputeBDFCoefficients(ModelPart &rModelPart) const;
 
     /**
      * @brief Return the BDF coefficients
