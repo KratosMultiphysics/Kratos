@@ -8,7 +8,6 @@ have_convection_diffusion = KratosUtilities.CheckIfApplicationsAvailable("Convec
 if have_convection_diffusion:
     import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
-
 import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic as navier_stokes_solver
 
 @UnitTest.skipUnless(have_convection_diffusion,"Missing required application: ConvectionDiffusionApplication")

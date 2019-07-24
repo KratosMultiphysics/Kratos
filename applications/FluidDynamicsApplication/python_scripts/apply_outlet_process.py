@@ -1,6 +1,6 @@
 import math
 import KratosMultiphysics
-import KratosMultiphysics.assign_scalar_variable_process as assign_scalar_variable_process
+from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
@@ -72,8 +72,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.OUTLET, True)
 
         # Construct the base process AssignValueProcess
-        self.aux_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, pres_settings)
-        self.aux_external_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, ext_pres_settings)
+        self.aux_pressure_process = AssignScalarVariableProcess(Model, pres_settings)
+        self.aux_external_pressure_process = AssignScalarVariableProcess(Model, ext_pres_settings)
 
 
     def ExecuteInitializeSolutionStep(self):

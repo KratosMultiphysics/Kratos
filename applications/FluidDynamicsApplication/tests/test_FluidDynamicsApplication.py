@@ -8,7 +8,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest

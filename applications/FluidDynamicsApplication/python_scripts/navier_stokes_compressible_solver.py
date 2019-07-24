@@ -1,11 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
+
+## Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return NavierStokesCompressibleSolver(model, custom_settings)
