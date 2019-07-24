@@ -179,7 +179,7 @@ namespace Kratos
 
         // Registering condition variables
         // Essential Boundary Conditions
-        KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, PENALTY_FACTOR )
+        KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
 
         // Nodal load variables
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
