@@ -4,13 +4,18 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from . import co_simulation_solver_wrapper
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
-class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
+# Other imports
+from collections import OrderedDict
+
+class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     """Baseclass for the coupled solvers used for CoSimulation
     Performs basic operations that are common among coupled solvers:
     - holds Predictors
@@ -245,13 +250,10 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             coupling_operation.Check()
 
     def __CreateSolverWrappers(self):
-        ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
-        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
-        from collections import OrderedDict
         # first create all solvers
         solvers = {}
         for solver_name, solver_settings in self.settings["solvers"].items():
-            solvers[solver_name] = solvers_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
+            solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
 
         # then order them according to the coupling-loop
         # NOTE solvers that are not used in the coupling-sequence will not participate
@@ -293,7 +295,6 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def __ApplyScaling(self, interface_data, data_configuration):
         # perform scaling of data if specified
         if data_configuration["scaling_factor"].IsString():
-            from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
             scaling_function_string = data_configuration["scaling_factor"].GetString()
             scope_vars = {'t' : self.time} # make time useable in function
             scaling_factor = GenericCallFunction(scaling_function_string, scope_vars) # evaluating function string

@@ -8,8 +8,8 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-import trilinos_linear_solver_factory
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

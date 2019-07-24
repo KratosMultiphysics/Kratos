@@ -4,7 +4,12 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # CoSimulation imports
-from . import colors
+from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
+from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 ### This file contains functionalities that are commonly used in CoSimulation ###
 
@@ -35,7 +40,6 @@ def AddEchoLevelToSettings(settings, echo_level):
 
 
 def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
     predictors = []
     for predictor_settings in predictor_settings_list:
         solver = solvers[predictor_settings["solver"].GetString()]
@@ -44,7 +48,6 @@ def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
     return predictors
 
 def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
     convergence_accelerators = []
     for conv_acc_settings in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_settings["solver"].GetString()]
@@ -53,18 +56,16 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
 
     return convergence_accelerators
 
-def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, parent_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.factories.convergence_criteria_factory import CreateConvergenceCriteria
+def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_echo_level):
     convergence_criteria = []
-    for conv_crit_settings in convergence_criteria_settings_list:
+    for conv_crit_settings in convergence_criterion_settings_list:
         solver = solvers[conv_crit_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        convergence_criteria.append(CreateConvergenceCriteria(conv_crit_settings, solver))
+        convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solver))
 
     return convergence_criteria
 
 def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
     coupling_operations = {}
     for coupling_operation_name, coupling_operation_settings in coupling_operations_settings_dict.items():
         AddEchoLevelToSettings(coupling_operation_settings, parent_echo_level)
@@ -73,7 +74,6 @@ def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_
     return coupling_operations
 
 def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_echo_level):
-    from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
     data_transfer_operators = {}
     for data_transfer_operators_name, data_transfer_operators_settings in data_transfer_operators_settings_dict.items():
         AddEchoLevelToSettings(data_transfer_operators_settings, parent_echo_level)
