@@ -4,7 +4,10 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 ## Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return NavierStokesCompressibleSolver(model, custom_settings)
@@ -67,7 +70,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.min_buffer_size = 3
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
@@ -189,7 +191,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
 
