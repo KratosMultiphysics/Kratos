@@ -313,10 +313,54 @@ class MorSecondOrderIRKAStrategy
             TDenseVectorType Eigenvalues;
             TDenseMatrixType Eigenvectors;
 
+
+            // linearize the EV problem, since FEAST can only deal with the generalized problem
+            // auto L = SparseSpaceType::CreateEmptyMatrixPointer();
+            // auto& r_L = *L;
+            // SparseSpaceType::Resize(r_L, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
+
+            auto L1 = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto& r_L1 = *L1;
+            SparseSpaceType::Resize(r_L1, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
+
+            auto L2 = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto& r_L2 = *L2;
+            SparseSpaceType::Resize(r_L2, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
+
+            // "no type named size_type in class shared_ptr"
+            //subrange(L1, (size_t) 0, reduced_system_size-1, (size_t) 0, reduced_system_size-1) = r_M_reduced;
+            subrange(r_L1, 0, reduced_system_size-1, 0, reduced_system_size-1) = r_M_reduced;
+
+            // "bad alloc" or memory corruption when running the python file...
+            // for(size_t i = reduced_system_size; i < 2*reduced_system_size; ++i){
+            //     r_L1(i,i) = 1.0;
+            // }
+
+            identity_matrix<double> id_m (reduced_system_size);
+
+            subrange(r_L1, reduced_system_size, 2*reduced_system_size-1, reduced_system_size, 2*reduced_system_size-1) = id_m;
+
+
+            subrange(r_L2, 0, reduced_system_size-1, 0, reduced_system_size-1) = r_D_reduced;
+            subrange(r_L2, 0, reduced_system_size-1, reduced_system_size, 2*reduced_system_size-1) = r_K_reduced;            
+
+            // for(size_t i = 0; i < reduced_system_size; ++i){
+            //     r_L2(reduced_system_size+i,i) = -1;
+            // }
+
+            subrange(r_L2, reduced_system_size, 2*reduced_system_size-1, 0, reduced_system_size-1) = -1.0*id_m;
+
+            //r_L1(reduced_system_size,reduced_system_size) = 1;
+
+            //r_L = 
+
+
  
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
-                r_K_reduced, // also r_D_reduced // have a look if it needs to build together, compare to polyeig
-                r_M_reduced,
+                r_L1,
+                r_L2,
+                //r_K_reduced,
+                //r_M_reduced,
                 Eigenvalues,
                 Eigenvectors);
 
@@ -327,6 +371,7 @@ class MorSecondOrderIRKAStrategy
 
             // step 4 d) shift selection step
             // first r eigenvalues
+            //mSamplingPoints = subrange(Eigenvalues, 0, reduced_system_size-1);
 
             // step 4 e) as described in Wyatt 2012, Alg. 5.3.2     
             // TODO: put this in a function, since this the same as step 2
