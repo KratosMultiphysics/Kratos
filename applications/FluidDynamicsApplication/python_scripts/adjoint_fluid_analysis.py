@@ -3,8 +3,9 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
 
-from analysis_stage import AnalysisStage
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_adjoint_fluid
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
@@ -45,7 +46,6 @@ class AdjointFluidAnalysis(AnalysisStage):
         self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
     def _CreateSolver(self):
-        import python_solvers_wrapper_adjoint_fluid
         return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
