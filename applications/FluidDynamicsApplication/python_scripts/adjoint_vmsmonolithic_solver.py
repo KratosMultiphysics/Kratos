@@ -6,7 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from adjoint_fluid_solver import AdjointFluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_solver import AdjointFluidSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
