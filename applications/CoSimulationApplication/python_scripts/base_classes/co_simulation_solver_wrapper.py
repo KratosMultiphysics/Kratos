@@ -74,18 +74,19 @@ class CoSimulationSolverWrapper(object):
 
 
     def CreateIO(self, solvers, io_echo_level):
-        if self.__IOIsInitialized():
-            raise Exception('IO for "' + self.name + '" is already initialized!')
+        if self.__IOIsCreated():
+            raise Exception('IO for solver "{}" is already created!'.format(self.name))
 
         io_settings = self.settings["io_settings"]
 
         if not io_settings.Has("echo_level"):
             io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
 
-        self.__io = io_factory.CreateIO(self.settings["io_settings"],
-                                      self.model,
-                                      self._GetIOType())
+        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self._GetIOType())
 
+    def ImportCouplingInterfaceData(self, data_name, from_client=None):
+
+    def ImportCouplingInterface(self, geometry_name, from_client=None):
     def ImportCouplingInterface(self, interface_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
@@ -140,7 +141,12 @@ class CoSimulationSolverWrapper(object):
         # only external solvers have to specify sth here / override this
         return "dummy_io"
 
-    def __IOIsInitialized(self):
+    def __GetIO(self):
+        if not self.__IOIsCreated():
+            raise Exception('IO for solver "{}" is not created!'.format(self.name))
+        return self.__io
+
+    def __IOIsCreated(self):
         return self.__io is not None
 
     @classmethod
