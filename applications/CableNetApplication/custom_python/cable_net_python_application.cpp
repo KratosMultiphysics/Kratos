@@ -44,12 +44,7 @@ PYBIND11_MODULE(KratosCableNetApplication,m)
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DOF_1 )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DOF_2 )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ScalarVariable )
-  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VectorVariable )
 
-    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 }
 

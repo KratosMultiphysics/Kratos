@@ -11,32 +11,29 @@
 //                   Author2 Fullname
 //
 
+#if !defined(KRATOS_CABLE_NET_ADD_PROCESSES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_CABLE_NET_ADD_PROCESSES_TO_PYTHON_H_INCLUDED
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
-#include <pybind11/pybind11.h>
 
 
 // Project includes
 #include "includes/define_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-
-#include "spaces/ublas_space.h"
-
-//strategies
-#include "solving_strategies/strategies/solving_strategy.h"
-
-//linear solvers
-#include "linear_solvers/linear_solver.h"
 
 
-namespace Kratos {
-namespace Python {
+namespace Kratos
+{
 
-void  AddCustomStrategiesToPython(pybind11::module& m)
-{}
+namespace Python
+{
 
-} // namespace Python.
-} // Namespace Kratos
+void  AddCustomProcessesToPython(pybind11::module& m);
+
+}  // namespace Python.
+
+}  // namespace Kratos.
+
+#endif // KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED  defined

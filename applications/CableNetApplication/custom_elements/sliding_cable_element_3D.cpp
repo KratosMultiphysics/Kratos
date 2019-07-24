@@ -311,7 +311,7 @@ Vector SlidingCableElement3D::GetInternalForces()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
-  const SizeType local_size = dimension*points_number;
+  //const SizeType local_size = dimension*points_number;
   const int segments_number = points_number-1;
   const int points_int_number = points_number-2;
 
@@ -363,8 +363,8 @@ Vector SlidingCableElement3D::GetInternalForces()
     for (int i=0;i<points_int_number;++i)
     {
       int node_i = i+1;
-      double dl_i_0 = d_l[i];
-      double dl_i_1 = d_l[i+1];
+      //double dl_i_0 = d_l[i];
+      //double dl_i_1 = d_l[i+1];
 
       double el_i_0 = e_l[i];
       double el_i_1 = e_l[i+1];
@@ -448,7 +448,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix()
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
-  const double k_0            = this->LinearStiffness();
+  //const double k_0            = this->LinearStiffness();
   const double strain_gl      = this->CalculateGreenLagrangeStrain();
   const double current_length = this->GetCurrentLength();
 
@@ -678,7 +678,7 @@ void SlidingCableElement3D::AddExplicitContribution(
         VectorType element_mass_vector(local_size);
         this->CalculateLumpedMassVector(element_mass_vector);
 
-        for (SizeType i = 0; i < points_number; ++i) {
+        for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * dimension;
 
@@ -711,7 +711,7 @@ void SlidingCableElement3D::AddExplicitContribution(
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
-        for (size_t i = 0; i < points_number; ++i) {
+        for (int i = 0; i < points_number; ++i) {
             size_t index = dimension * i;
             array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < dimension; ++j) {

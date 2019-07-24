@@ -24,6 +24,10 @@
 // Project includes
 #include "includes/kratos_application.h"
 
+#include "custom_elements/sliding_cable_element_3D.hpp"
+#include "custom_elements/ring_element_3D.hpp"
+#include "custom_elements/weak_coupling_slide.hpp"
+
 
 namespace Kratos {
 
@@ -175,8 +179,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    // const Elem2D   mElem2D;
-    // const Elem3D   mElem3D;
+    const WeakSlidingElement3D3N mWeakSlidingElement3D3N;
+    const SlidingCableElement3D mSlidingCableElement3D3N;
+    const RingElement3D mRingElement3D4N;
+    const RingElement3D mRingElement3D3N;
 
     ///@}
     ///@name Private Operators

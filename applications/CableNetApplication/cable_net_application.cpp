@@ -22,22 +22,30 @@
 #include "cable_net_application_variables.h"
 
 
+#include "geometries/triangle_3d_3.h"
+#include "custom_geometries/line_3d_n.h"
+
 namespace Kratos {
 
+    typedef Node<3> NodeType;
+
 KratosCableNetApplication::KratosCableNetApplication():
-    KratosApplication("CableNetApplication")
+    KratosApplication("CableNetApplication"),
+    mWeakSlidingElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+    mSlidingCableElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+    mRingElement3D4N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+    mRingElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3))))
     {}
 
 void KratosCableNetApplication::Register()
 {
-     // calling base class register to register Kratos components
-     KratosApplication::Register();
-     KRATOS_INFO("") << "Initializing KratosCableNetApplication..." << std::endl;
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    KRATOS_INFO("") << "Initializing KratosCableNetApplication..." << std::endl;
 
-  KRATOS_REGISTER_VARIABLE( DOF_1 )
-  KRATOS_REGISTER_VARIABLE( DOF_2 )
-  KRATOS_REGISTER_VARIABLE( ScalarVariable )
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VectorVariable )
-
+    KRATOS_REGISTER_ELEMENT("WeakSlidingElement3D3N", mWeakSlidingElement3D3N)
+    KRATOS_REGISTER_ELEMENT("SlidingCableElement3D3N", mSlidingCableElement3D3N)
+    KRATOS_REGISTER_ELEMENT("RingElement3D4N", mRingElement3D4N)
+    KRATOS_REGISTER_ELEMENT("RingElement3D3N", mRingElement3D3N)
 }
 }  // namespace Kratos.
