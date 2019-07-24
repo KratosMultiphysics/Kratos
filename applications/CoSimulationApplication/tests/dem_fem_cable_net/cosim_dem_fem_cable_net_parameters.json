@@ -66,8 +66,9 @@
             {
                 "type" : "solver_wrappers.kratos.dem_wrapper",
                 "settings" : {
-                    "input_file"  : "ProjectParametersDEM",
-                    "move_mesh_model_part"  : ["RigidFacePart.0"]
+                    "input_file"  : "dem_fem_cable_net/ProjectParametersDEM",
+                    "move_mesh_model_part"  : ["RigidFacePart.0"],
+                    "path_to_project"       : "dem_fem_cable_net"
                 },
                 "data" : {
                     "disp" : {

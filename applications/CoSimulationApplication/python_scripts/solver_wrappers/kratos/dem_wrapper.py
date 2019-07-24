@@ -1,6 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
+import KratosMultiphysics as KM
+
+# Importing the Kratos Library
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Importing the base class
@@ -21,7 +24,17 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the DEMApplication of Kratos"""
 
     def _CreateAnalysisStage(self):
-        return DEMAnalysisStage(self.model, self.project_parameters)
+
+        CurrentDEMAnalysisStage = DEMAnalysisStage(self.model, self.project_parameters)
+
+        if "path_to_project" in self.settings["settings"].keys():
+            def NewGetMainPath(self):
+                return self.settings["settings"]["path_to_project"].GetString()
+            import types
+            CurrentDEMAnalysisStage.GetMainPath = types.MethodType(NewGetMainPath, CurrentDEMAnalysisStage)
+
+
+        return CurrentDEMAnalysisStage
 
     def SolveSolutionStep(self):
         super(DEMWrapper,self).SolveSolutionStep()
