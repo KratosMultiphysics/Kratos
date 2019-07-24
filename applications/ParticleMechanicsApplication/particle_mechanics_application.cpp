@@ -63,12 +63,8 @@ namespace Kratos
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-        //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-        //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-        //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-        //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
         mUpdatedLagrangianAxisymmetry2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangianAxisymmetry2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         //// CONDITIONS:
@@ -111,10 +107,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
-        //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP3D4N", mUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D4N", mUpdatedLagrangian2D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D8N", mUpdatedLagrangian3D8N )
-        //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D4N", mUpdatedLagrangianUP2D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianAxisymmetry2D3N", mUpdatedLagrangianAxisymmetry2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianAxisymmetry2D4N", mUpdatedLagrangianAxisymmetry2D4N )
 
@@ -143,26 +137,6 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D4N", mMPMParticlePointLoadCondition2D4N )
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D8N", mMPMParticlePointLoadCondition3D8N )
 
-        // Registering elements
-        KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
-        KRATOS_REGISTER_VARIABLE( PARTICLES_PER_ELEMENT )
-        KRATOS_REGISTER_VARIABLE( MP_MASS )
-        KRATOS_REGISTER_VARIABLE( MP_DENSITY )
-        KRATOS_REGISTER_VARIABLE( MP_VOLUME )
-        KRATOS_REGISTER_VARIABLE( MP_POTENTIAL_ENERGY )
-        KRATOS_REGISTER_VARIABLE( MP_KINETIC_ENERGY )
-        KRATOS_REGISTER_VARIABLE( MP_STRAIN_ENERGY )
-        KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
-        KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
-        KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
-        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_STRAIN )
-        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
-        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN )
-        KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN )
-        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
-        KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
-        KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
-
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
         // CL: Solid
@@ -179,6 +153,7 @@ namespace Kratos
 
         // Registering condition variables
         // Essential Boundary Conditions
+        KRATOS_REGISTER_VARIABLE( BOUNDARY_CONDITION_TYPE )
         KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
 
         // Nodal load variables
@@ -187,6 +162,16 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
 
         // Registering MP element variable
+        KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
+        KRATOS_REGISTER_VARIABLE( PARTICLES_PER_ELEMENT )
+        KRATOS_REGISTER_VARIABLE( MP_MASS )
+        KRATOS_REGISTER_VARIABLE( MP_DENSITY )
+        KRATOS_REGISTER_VARIABLE( MP_VOLUME )
+        KRATOS_REGISTER_VARIABLE( MP_POTENTIAL_ENERGY )
+        KRATOS_REGISTER_VARIABLE( MP_KINETIC_ENERGY )
+        KRATOS_REGISTER_VARIABLE( MP_STRAIN_ENERGY )
+        KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
+        KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_COORD )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_DISPLACEMENT )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
@@ -194,6 +179,12 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
         KRATOS_REGISTER_VARIABLE( MP_CAUCHY_STRESS_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_ALMANSI_STRAIN_VECTOR )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
 
         // Registering MP condition variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_COORD )
@@ -214,6 +205,8 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
+        KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
+        KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
 
         // Registering Constitutive Laws
         // CL: Linear Elastic laws

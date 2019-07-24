@@ -78,7 +78,7 @@ public:
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
 		const unsigned int BlockSize,
-		const Variable<double>& rVariable):
+		const Variable<int>& rVariable):
     CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
 	{}
 
@@ -313,9 +313,8 @@ public:
 		{
 			if(this->IsSlip(rGeometry[itNode]) )
 			{
-				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
-				const double tolerance  = 1.e-6;
-				if (identifier > 1.00 + tolerance)
+				const int bc_type = rGeometry[itNode].GetValue(mrFlagVariable);
+				if (bc_type == 2)
 				{
 					is_penalty = true;
 					break;
@@ -488,7 +487,7 @@ private:
 	///@name Static Member Variables
 	///@{
 
-	const Variable<double>& mrFlagVariable;
+	const Variable<int>& mrFlagVariable;
 
 	///@}
 	///@name Member Variables

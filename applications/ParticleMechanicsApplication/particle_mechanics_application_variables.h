@@ -19,7 +19,6 @@
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
 #include "includes/variables.h"
-#include "includes/deprecated_variables.h"
 #include "includes/mat_variables.h"
 
 
@@ -103,6 +102,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, PARTICLES_PER_CONDITION )
 
     // Essential Boundary Conditions
+    KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, BOUNDARY_CONDITION_TYPE )
     KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, PENALTY_FACTOR )
 
     // Natural Boundary Conditions
