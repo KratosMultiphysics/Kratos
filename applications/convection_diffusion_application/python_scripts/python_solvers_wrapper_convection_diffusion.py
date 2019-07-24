@@ -27,6 +27,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
 
+        elif solver_type == "adjoint_stationary":
+            solver_module_name = "adjoint_diffusion_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
@@ -42,7 +45,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    module_full = 'KratosMultiphysics.convection_diffusion_application.' + solver_module_name
+    module_full = 'KratosMultiphysics.ConvectionDiffusionApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver

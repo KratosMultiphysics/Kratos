@@ -19,7 +19,10 @@ class PFEM2Process(KM.Process):
                 "use_mesh_velocity"               : false,
                 "discriminate_streamlines"        : true,
                 "reset_boundary_conditions"       : false,
-                "fully_reset_boundary_conditions" : true
+                "fully_reset_boundary_conditions" : true,
+                "print_particles"                 : false,
+                "printing_model_part_name"        : "pfem2_particles",
+                "printing_filter_factor"          : 5
             }
             """
             )
@@ -32,6 +35,12 @@ class PFEM2Process(KM.Process):
         self.discriminate_streamlines = settings["discriminate_streamlines"].GetBool()
         self.reset_boundary_conditions = settings["reset_boundary_conditions"].GetBool()
         self.full_reset_boundary_conditions = settings["fully_reset_boundary_conditions"].GetBool()
+
+        self.print_particles = settings["print_particles"].GetBool()
+        if self.print_particles:
+            lagrangian_model_part_name = settings["printing_model_part_name"].GetString()
+            self.lagrangian_model_part = model.CreateModelPart(lagrangian_model_part_name)
+            self.filter_factor = settings["printing_filter_factor"].GetInt()
 
     def ExecuteInitialize(self):
         pass
@@ -51,6 +60,9 @@ class PFEM2Process(KM.Process):
         else:
             self.moveparticles = PFEM2.MoveParticleUtilityPFEM23D(self.model_part, max_num_of_particles)
         self.moveparticles.MountBin()
+
+        if self.print_particles:
+            self.moveparticles.ExecuteParticlesPritingTool(self.lagrangian_model_part, self.filter_factor)
 
         self.initial_water_volume = self._get_water_volume_utility().Calculate()
 
@@ -75,6 +87,11 @@ class PFEM2Process(KM.Process):
         post_minimum_num_of_particles = 2 * dimension
         mass_correction_factor = self.compute_mass_correction_factor()
         self.moveparticles.PostReseed(post_minimum_num_of_particles, mass_correction_factor)
+
+        if self.print_particles:
+            self.lagrangian_model_part.ProcessInfo[KM.STEP] = self.model_part.ProcessInfo[KM.STEP]
+            self.lagrangian_model_part.ProcessInfo[KM.TIME] = self.model_part.ProcessInfo[KM.TIME]
+            self.moveparticles.ExecuteParticlesPritingTool(self.lagrangian_model_part, self.filter_factor)
 
     def compute_mass_correction_factor(self):
         water_volume = self._get_water_volume_utility().Calculate()

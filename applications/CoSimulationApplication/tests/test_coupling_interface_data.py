@@ -141,7 +141,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Component, Array'
 
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data = CouplingInterfaceData(settings, self.model)
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_location(self):
         settings = KM.Parameters("""{
@@ -153,7 +153,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         exp_error = '"dummy" is not allowed as "location", only the following options are possible:\nnode_historical, node_non_historical, element, condition, model_part'
 
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data = CouplingInterfaceData(settings, self.model)
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_set_data(self):
         settings = KM.Parameters("""{
@@ -209,24 +209,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data.Initialize()
-
-    def test_inplace_mult(self):
-        settings = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "PRESSURE"
-        }""")
-
-        coupling_data = CouplingInterfaceData(settings, self.model)
-        coupling_data.Initialize()
-
-        factor = 1.55
-
-        data_init = coupling_data.GetData()
-        coupling_data.InplaceMultiply(factor)
-        data_mod = coupling_data.GetData()
-
-        for v_old, v_new in zip(data_init, data_mod):
-            self.assertAlmostEqual(v_old*factor, v_new)
 
     def test_GetHistoricalVariableDict(self):
         settings = KM.Parameters("""{

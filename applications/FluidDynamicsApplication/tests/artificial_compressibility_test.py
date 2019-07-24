@@ -4,6 +4,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.KratosUnittest as UnitTest
 
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+
 class ArtificialCompressibilityTest(UnitTest.TestCase):
     def testArtificialCompressibility(self):
         self.setUp()
@@ -33,7 +35,6 @@ class ArtificialCompressibilityTest(UnitTest.TestCase):
             self.model = KratosMultiphysics.Model()
 
             ## Solver construction
-            import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             self.solver.AddVariables()

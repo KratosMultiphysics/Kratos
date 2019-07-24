@@ -4,13 +4,18 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # Importing the base class
-from . import co_simulation_solver_wrapper
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
-class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverWrapper):
+# Other imports
+from collections import OrderedDict
+
+class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     """Baseclass for the coupled solvers used for CoSimulation
     Performs basic operations that are common among coupled solvers:
     - holds Predictors
@@ -24,7 +29,6 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
-        self._AllocateHistoricalVariablesFromCouplingData()
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
@@ -54,13 +58,17 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
-        super(CoSimulationCoupledSolver, self).Initialize()
-
         for predictor in self.predictors_list:
             predictor.Initialize()
 
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Initialize()
+
+    def InitializeCouplingInterfaceData(self):
+        super(CoSimulationCoupledSolver, self).InitializeCouplingInterfaceData()
+
+        for solver in self.solver_wrappers.values():
+            solver.InitializeCouplingInterfaceData()
 
     def Finalize(self):
         for solver in self.solver_wrappers.values():
@@ -245,13 +253,10 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
             coupling_operation.Check()
 
     def __CreateSolverWrappers(self):
-        ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
-        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
-        from collections import OrderedDict
         # first create all solvers
         solvers = {}
         for solver_name, solver_settings in self.settings["solvers"].items():
-            solvers[solver_name] = solvers_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
+            solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
 
         # then order them according to the coupling-loop
         # NOTE solvers that are not used in the coupling-sequence will not participate
@@ -293,7 +298,6 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
     def __ApplyScaling(self, interface_data, data_configuration):
         # perform scaling of data if specified
         if data_configuration["scaling_factor"].IsString():
-            from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
             scaling_function_string = data_configuration["scaling_factor"].GetString()
             scope_vars = {'t' : self.time} # make time useable in function
             scaling_factor = GenericCallFunction(scaling_function_string, scope_vars) # evaluating function string
@@ -303,7 +307,7 @@ class CoSimulationCoupledSolver(co_simulation_solver_wrapper.CoSimulationSolverW
         if abs(scaling_factor-1.0) > 1E-15:
             if self.echo_level > 2:
                 cs_tools.cs_print_info("  Scaling-Factor", scaling_factor)
-            interface_data.InplaceMultiply(scaling_factor)
+            interface_data.SetData(scaling_factor*interface_data.GetData()) # setting the scaled data
 
     @classmethod
     def _GetDefaultSettings(cls):

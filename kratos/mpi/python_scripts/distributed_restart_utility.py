@@ -2,11 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
 
 # Other imports
 from KratosMultiphysics.restart_utility import RestartUtility
 
-class TrilinosRestartUtility(RestartUtility):
+class DistributedRestartUtility(RestartUtility):
     """
     This class overwrites the methods that are different
     in MPI parallel execution
@@ -15,7 +16,7 @@ class TrilinosRestartUtility(RestartUtility):
     """
     def __init__(self, model_part, settings):
         # Construct the base class
-        super(TrilinosRestartUtility, self).__init__(model_part, settings)
+        super(DistributedRestartUtility, self).__init__(model_part, settings)
 
         self.set_mpi_communicator = settings["set_mpi_communicator"].GetBool()
         # the mpi-comm is not set yet, maybe change this once the communicator can be splitted
@@ -31,5 +32,4 @@ class TrilinosRestartUtility(RestartUtility):
 
     def _ExecuteAfterLoad(self):
         if self.set_mpi_communicator:
-            import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-            KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
+            KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
