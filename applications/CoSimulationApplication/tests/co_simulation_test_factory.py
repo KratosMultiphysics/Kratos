@@ -113,6 +113,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        super(TestCoSimulationCases,cls).tearDownClass()
         kratos_utils.DeleteFileIfExisting(GetFilePath("fsi_mok/ProjectParametersCFD.json"))
 
 
