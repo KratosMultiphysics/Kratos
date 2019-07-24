@@ -5,10 +5,10 @@ import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 
-from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(main_model_part, custom_settings):

@@ -2,9 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
@@ -138,7 +139,6 @@ class ManufacturedSolutionProblem:
         self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
         ## Solver construction
-        import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
         self.solver.AddVariables()
