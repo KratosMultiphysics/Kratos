@@ -10,7 +10,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dyna
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-import navier_stokes_solver_vmsmonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):

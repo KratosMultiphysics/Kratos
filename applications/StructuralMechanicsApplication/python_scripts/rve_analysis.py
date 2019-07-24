@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
-from .structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 
 class RVEAnalysis(StructuralMechanicsAnalysis):
