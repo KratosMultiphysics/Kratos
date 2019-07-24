@@ -113,7 +113,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestCoSimulationCases,cls).tearDownClass()
+        super(TestSmallCoSimulationCases,cls).tearDownClass()
         kratos_utils.DeleteFileIfExisting(GetFilePath("fsi_mok/ProjectParametersCFD.json"))
 
 
@@ -151,10 +151,10 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
         # delete superfluous dem files
         kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
-        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_Graphs")
-        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_MPI_results")
-        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_Post_Files")
-        kratos_utils.DeleteDirectoryIfExisting("dem_fem_cable_net/cableNet_Results_and_Data")
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
 
 if __name__ == '__main__':
     KratosUnittest.main()
