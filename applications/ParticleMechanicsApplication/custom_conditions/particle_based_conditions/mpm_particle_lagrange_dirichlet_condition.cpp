@@ -374,37 +374,16 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-    std::vector<bool> kinematic_node(number_of_nodes);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        kinematic_node[i]=false;
-    }
-    //Fix kinematic node
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (Variables.N[i] <= 0.00001 && r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0.00001)
-        {
-            kinematic_node[i]=true;
-        }
-    }
     if(dimension == 2)
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (kinematic_node[i]==true){
-                r_geometry[i].pGetDof(DISPLACEMENT_X)->FixDof();
-                r_geometry[i].pGetDof(DISPLACEMENT_Y)->FixDof();
-            }
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
 
         }
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (kinematic_node[i]==true){
-                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
-                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
-            }
             rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
         }
@@ -413,22 +392,12 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (kinematic_node[i]==true){
-                r_geometry[i].pGetDof(DISPLACEMENT_X)->FixDof();
-                r_geometry[i].pGetDof(DISPLACEMENT_Y)->FixDof();
-                r_geometry[i].pGetDof(DISPLACEMENT_Z)->FixDof();
-            }
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
         }
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if (kinematic_node[i]==true){
-                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
-                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
-                r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FixDof();
-            }
             rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
             rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
             rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
