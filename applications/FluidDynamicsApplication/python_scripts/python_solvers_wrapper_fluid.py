@@ -9,7 +9,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     if solver_type == "ale_fluid":
         # This include NEEDS to be here bcs of its dependencies
-        import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_ale_fluid_solver
+        from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_ale_fluid_solver
         return navier_stokes_ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
 
     # Solvers for OpenMP parallelism
