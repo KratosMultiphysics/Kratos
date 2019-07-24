@@ -1354,6 +1354,7 @@ class MultilevelMonteCarlo(object):
             # compute number of samples according to bayesian_variance and theta_i parameters
             # TODO: rename UpdateBatchSize this function
             self.ComputeNumberSamples()
+            self.batch_size = [min(self.batch_size[level],2*self.number_samples[level]) for level in range (self.current_number_levels+1)]
         elif (self.settings["adaptive_number_samples"].GetBool() is False):
             #  add one level per time
             self.current_number_levels = min(self.current_number_levels+1,self.settings["maximum_number_levels"].GetInt())
@@ -1771,6 +1772,7 @@ class MultilevelMonteCarlo(object):
         coeff2 = np.sqrt(np.divide(bayesian_variance,model_cost))
         coeff3 = np.sum(np.sqrt(np.multiply(model_cost,bayesian_variance)))
         opt_number_samples = np.multiply(coeff1*coeff3,coeff2)
+        opt_number_samples = 1.25 * opt_number_samples # safely increasing number of samples since running in parallel
         # print("optimal number of samples computed = ",opt_number_samples)
         if (len(opt_number_samples) != current_number_levels+1):
             raise Exception ("length optimal number of samples and current optimal number of level not coherent")

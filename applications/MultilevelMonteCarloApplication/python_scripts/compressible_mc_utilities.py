@@ -382,7 +382,7 @@ class MonteCarlo(object):
     """
     def UpdateBatches(self):
         # set here number of batches to append
-        new_number_batches = 2
+        new_number_batches = 1
         # update batch size
         self.UpdateBatchSize()
         for new_batch in range (new_number_batches):
@@ -446,7 +446,7 @@ class MonteCarlo(object):
             batch_number      : number of working batch
             batch_size        : compute add result for with this size
     """
-    def AddResults(self,simulation_results,batch_number,mini_batch_size=4):
+    def AddResults(self,simulation_results,batch_number,mini_batch_size=50):
         current_level = simulation_results[0][1]  # not compss future object, it is working level
         if (current_level != 0):
             raise Exception("current work level must be = 0 in the Monte Carlo algorithm")
