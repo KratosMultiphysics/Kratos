@@ -84,28 +84,25 @@ class CoSimulationSolverWrapper(object):
 
         self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self._GetIOType())
 
-    def ImportCouplingInterfaceData(self, data_name, from_client=None):
-
-    def ImportCouplingInterface(self, geometry_name, from_client=None):
     def ImportCouplingInterface(self, interface_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
-        self._GetIO().ImportCouplingInterface(interface_config)
+        self.__GetIO().ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
-        self._GetIO().ExportCouplingInterface(interface_config)
+        self.__GetIO().ExportCouplingInterface(interface_config)
 
     def ImportCouplingInterfaceData(self, data_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
-        self._GetIO().ImportCouplingInterfaceData(data_config)
+        self.__GetIO().ImportCouplingInterfaceData(data_config)
 
     def ExportCouplingInterfaceData(self, data_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
-        self._GetIO().ExportCouplingInterfaceData(data_config)
+        self.__GetIO().ExportCouplingInterfaceData(data_config)
 
 
     def GetInterfaceData(self, data_name):
@@ -118,11 +115,6 @@ class CoSimulationSolverWrapper(object):
         '''This function can be filled if desired, e.g. to print settings at higher echo-levels
         '''
         pass
-
-    def _GetIO(self):
-        if not self.__IOIsInitialized():
-            raise Exception('IO for solver "{}" is not initialized!'.format(self.name))
-        return self.__io
 
     def Check(self):
         print("!!!WARNING!!! your solver does not implement Check!!!")
