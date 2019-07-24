@@ -10,13 +10,13 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial two fluid solver
-import navier_stokes_two_fluids_solver
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver import NavierStokesTwoFluidsSolver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return NavierStokesMPITwoFluidsSolver(model, custom_settings)
 
-class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver):
+class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -74,7 +74,7 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
         # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
-        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
+        super(NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"

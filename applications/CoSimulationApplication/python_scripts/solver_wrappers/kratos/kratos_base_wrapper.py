@@ -29,8 +29,6 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
         self._analysis_stage = self._CreateAnalysisStage()
 
-        self._AllocateHistoricalVariablesFromCouplingData()
-
     def Initialize(self):
         self._analysis_stage.Initialize() # this reades the Meshes
         super(KratosBaseWrapper, self).Initialize()
