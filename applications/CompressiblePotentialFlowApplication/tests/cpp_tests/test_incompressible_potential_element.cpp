@@ -38,7 +38,7 @@ namespace Kratos {
       free_stream_velocity(0) = 10.0;
 
       rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
-      pElemProp->SetValue(FREE_STREAM_DENSITY,1.0);
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -59,6 +59,7 @@ namespace Kratos {
       // Set the element properties
       rModelPart.CreateNewProperties(0);
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -149,7 +150,7 @@ namespace Kratos {
 
       BoundedVector<double,3> distances = AssignDistances();
 
-      pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
+      pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
       AssignPotentialsToWakeElement(pElement, distances);
@@ -193,7 +194,6 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->Set(TO_SPLIT);
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
@@ -250,7 +250,7 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
@@ -283,7 +283,7 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       const auto returned_distances = PotentialFlowUtilities::GetWakeDistances<2, 3>(*pElement);
 
@@ -417,7 +417,7 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       AssignPotentialsToWakeElement(pElement, distances);
 
@@ -441,7 +441,7 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       AssignPotentialsToWakeElement(pElement, distances);
 

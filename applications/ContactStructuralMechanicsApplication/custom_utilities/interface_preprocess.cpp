@@ -292,7 +292,7 @@ void InterfacePreprocessCondition::AssignMasterSlaveCondition(Condition::Pointer
             break;
         }
     }
-    if (is_slave == true) pCond->Set(SLAVE, true);
+    if (is_slave) pCond->Set(SLAVE, true);
     else pCond->Set(MASTER, true);
 
     KRATOS_CATCH("");
@@ -354,11 +354,20 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
 {
     KRATOS_TRY;
 
+    // First we check if the nodes belong to the interface modelpart
+    const auto& r_nodes_array = rInterfacePart.Nodes();
+    for (auto& r_node : rEdgeGeometry) {
+        auto it_found = r_nodes_array.find(r_node.Id());
+        if(it_found == r_nodes_array.end()) { // Node does not exist in the top model part
+            return void();
+        }
+    }
+
     IndexType count = 0;
     const IndexType number_of_points = rEdgeGeometry.PointsNumber();
     for (IndexType it_node = 0; it_node < number_of_points; ++it_node) {
-        if (rEdgeGeometry[it_node].IsDefined(INTERFACE) == true)
-            if (rEdgeGeometry[it_node].Is(INTERFACE) == true) ++count;
+        if (rEdgeGeometry[it_node].IsDefined(INTERFACE))
+            if (rEdgeGeometry[it_node].Is(INTERFACE)) ++count;
     }
 
     const std::string condition_name = (number_of_points == 2 || SimplestGeometry) ? "Condition2D2N" : "Condition2D3N";
@@ -422,11 +431,20 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
 {
     KRATOS_TRY;
 
+    // First we check if the nodes belong to the interface modelpart
+    const auto& r_nodes_array = rInterfacePart.Nodes();
+    for (auto& r_node : rFaceGeometry) {
+        auto it_found = r_nodes_array.find(r_node.Id());
+        if(it_found == r_nodes_array.end()) { // Node does not exist in the top model part
+            return void();
+        }
+    }
+
     IndexType count = 0;
     const IndexType number_of_points = rFaceGeometry.PointsNumber();
     for (IndexType it_node = 0; it_node < number_of_points; ++it_node) {
-        if (rFaceGeometry[it_node].IsDefined(INTERFACE) == true)
-            if (rFaceGeometry[it_node].Is(INTERFACE) == true) ++count;
+        if (rFaceGeometry[it_node].IsDefined(INTERFACE))
+            if (rFaceGeometry[it_node].Is(INTERFACE)) ++count;
     }
 
     const std::string condition_name = (number_of_points == 3 || SimplestGeometry) ? "SurfaceCondition3D3N" : (number_of_points == 4) ? "SurfaceCondition3D4N" : (number_of_points == 6) ? "SurfaceCondition3D6N" : (number_of_points == 8) ? "SurfaceCondition3D8N" : "SurfaceCondition3D9N";

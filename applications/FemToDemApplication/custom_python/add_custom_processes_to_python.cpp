@@ -30,6 +30,7 @@
 #include "custom_processes/generate_dem_process.h"
 #include "custom_processes/update_dem_kinematics_process.h"
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
+#include "custom_processes/compute_sand_production.h"
 
 
 namespace Kratos
@@ -98,6 +99,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<TransferNodalForcesToFem, TransferNodalForcesToFem::Pointer, Process>(m, "TransferNodalForcesToFem")
 		.def(init<ModelPart &, ModelPart &>())
 		.def("Execute", &TransferNodalForcesToFem::Execute);
+
+	class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")
+		.def(init<ModelPart &>())
+		.def("Execute", &ComputeSandProduction::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos

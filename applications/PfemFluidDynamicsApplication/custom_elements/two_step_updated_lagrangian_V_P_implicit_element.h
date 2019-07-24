@@ -380,13 +380,7 @@ namespace Kratos
 	std::cout<<"I SHOULD NOT ENTER HERE!"<<std::endl;
 	return 1.0;
       };
-
-
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override{};
-
+      
       void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,

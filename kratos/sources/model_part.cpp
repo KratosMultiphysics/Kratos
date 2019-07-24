@@ -38,7 +38,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
-    , mIndices(NewBufferSize, 0)
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
@@ -1552,9 +1551,8 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 {
     std::vector<std::string> SubModelPartsNames;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    for(auto& r_sub_model_part : mSubModelParts) {
+        SubModelPartsNames.push_back(r_sub_model_part.Name());
     }
 
     return SubModelPartsNames;
@@ -1566,9 +1564,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        i_sub_model_part->mBufferSize = NewBufferSize;
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
@@ -1582,6 +1579,15 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         node_iterator->SetBufferSize(mBufferSize);
     }
 
+}
+
+void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
+{
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
+    }
+
+    mBufferSize = NewBufferSize;
 }
 
 /// run input validation

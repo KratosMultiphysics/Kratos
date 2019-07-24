@@ -1449,10 +1449,23 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method returns the name list of submodelparts
+     * @return A vector conrtaining the list of submodelparts contained
+     */
     std::vector<std::string> GetSubModelPartNames();
 
+    /**
+     * @brief This method sets the suffer size of the model part database
+     * @details Must be called on root model part, otherwise error is thrown
+     * @param NewBufferSize The new buffer size to be set
+     */
     void SetBufferSize(IndexType NewBufferSize);
 
+    /**
+     * @brief This method gets the suffer size of the model part database
+     * @return mBufferSize The buffer size
+     */
     IndexType GetBufferSize() const
     {
         return mBufferSize;
@@ -1473,6 +1486,11 @@ public:
     bool IsSubModelPart() const
     {
         return (mpParentModelPart != NULL);
+    }
+
+    bool IsDistributed() const
+    {
+        return mpCommunicator->IsDistributed();
     }
 
     ///@}
@@ -1527,27 +1545,25 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mName;
+    std::string mName; /// The name of the model part
 
-    IndexType mBufferSize;
+    IndexType mBufferSize; /// The buffers size of the database
 
-    ProcessInfo::Pointer mpProcessInfo;
+    ProcessInfo::Pointer mpProcessInfo; /// The process info instance
 
-    TablesContainerType mTables;
+    TablesContainerType mTables; /// The tables contained on the model part
 
-    std::vector<IndexType> mIndices;
+    MeshesContainerType mMeshes; /// The container of all meshes
 
-    MeshesContainerType mMeshes;
+    VariablesList::Pointer mpVariablesList; /// The variable list
 
-    VariablesList::Pointer mpVariablesList;
+    Communicator::Pointer mpCommunicator; /// The communicator
 
-    Communicator::Pointer mpCommunicator;
+    ModelPart* mpParentModelPart = NULL; /// The parent model part of the current model part
 
-    ModelPart* mpParentModelPart;
+    SubModelPartsContainerType mSubModelParts; /// The container of the submodelparts
 
-    SubModelPartsContainerType mSubModelParts;
-
-    Model& mrModel;
+    Model& mrModel; /// The model which contains this model part
 
     ///@}
     ///@name Private Operators
@@ -1557,6 +1573,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)
+     * @param NewBufferSize The new buffer size to be set
+     */
+    void SetBufferSizeSubModelParts(IndexType NewBufferSize);
+
 
     void SetParentModelPart(ModelPart* pParentModelPart)
     {

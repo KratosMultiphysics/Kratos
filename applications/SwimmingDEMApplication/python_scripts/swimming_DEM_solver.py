@@ -87,9 +87,8 @@ class SwimmingDEMSolver(PythonSolver):
     def ConstructStationarityTool(self):
         self.stationarity = False
         self.stationarity_counter = self.GetStationarityCounter()
-        self.stationarity_tool = SDP.StationarityAssessmentTool(
-            self.project_parameters["stationarity"]["max_pressure_variation_rate_tol"].GetDouble(),
-            SDP.FunctionsCalculator()
+        self.stationarity_tool = SDEM.FlowStationarityCheck(self.fluid_solver.main_model_part,
+            self.project_parameters["stationarity"]["tolerance"].GetDouble()
             )
 
     def _ConstructProjectionModule(self):
@@ -145,7 +144,7 @@ class SwimmingDEMSolver(PythonSolver):
     def GetStationarityCounter(self):
         return SDP.Counter(
             steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_stationarity_step"].GetInt(),
-            beginning_step=1,
+            beginning_step=self.project_parameters["stationarity"]["time_steps_before_first_assessment"].GetInt(),
             is_active=self.project_parameters["stationarity"]["stationary_problem_option"].GetBool())
 
     def GetRecoveryCounter(self):
@@ -168,6 +167,7 @@ class SwimmingDEMSolver(PythonSolver):
     def AdvanceInTime(self, time):
         self.time = self.dem_solver.AdvanceInTime(time)
         self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid - 0.5 * self.dem_solver.dt)
+
         if self.calculating_fluid_in_current_step:
             self.next_time_to_solve_fluid = self.fluid_solver.AdvanceInTime(time)
             self.fluid_step += 1
@@ -184,8 +184,20 @@ class SwimmingDEMSolver(PythonSolver):
 
     def AssessStationarity(self):
         Say("Assessing Stationarity...\n")
-        self.stationarity = self.stationarity_tool.Assess(self.fluid_solver.main_model_part)
+        self.stationarity = self.stationarity_tool.AssessStationarity()
+        if not self.stationarity:
+            tolerance = self.stationarity_tool.GetTolerance()
+            p_dot = self.stationarity_tool.GetCurrentPressureDerivative()
+            p_dot_historical = self.stationarity_tool.GetCharacteristicPressureDerivative()
+            non_stationarity_measure = self.stationarity_tool.GetTransienceMeasure()
+
+            message = '\nFluid not stationary:\n'
+            message += '  * Current average pressure time derivative: ' + str(p_dot) + '\n'
+            message += '  * Historic average: ' + str(p_dot_historical) + '\n'
+            message += '  * Current transience measure: ' + str(non_stationarity_measure) + ' > ' + str(tolerance) + '\n'
+            Say(message)
         self.stationarity_counter.Deactivate(self.stationarity)
+        return self.stationarity
 
     # Compute nodal quantities to be printed that are not generated as part of the
     # solution algorithm. For instance, the pressure gradient, which is not used for
@@ -225,11 +237,6 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
-        # Check for stationarity: this is useful for steady-state problems, so that
-        # the calculation stops after reaching the solution.
-        if self.stationarity_counter.Tick():
-            self.AssessStationarity()
-
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
@@ -243,6 +250,11 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_solver.SolveSolutionStep()
         if self.move_mesh_flag:
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
+        else: # stationarity can only checked for fixed meshes for the moment
+            # Check for stationarity: this is useful for steady-state problems, so that
+            # the calculation stops after reaching the solution.
+            if self.stationarity_counter.Tick():
+                self.AssessStationarity()
 
     def SolveDEMSolutionStep(self):
         self.dem_solver.SolveSolutionStep()

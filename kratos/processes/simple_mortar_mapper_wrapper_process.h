@@ -99,7 +99,7 @@ public:
         if (!origin_are_conditions_is_defined) {
             if (rOriginModelPart.NumberOfElements() > 0) {
                 ThisParameters["origin_are_conditions"].SetBool(false);
-                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'origin_are_conditions\' changed to \`False\`. Mapping from elements." << std::endl;
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'origin_are_conditions\' changed to \'False\'. Mapping from elements." << std::endl;
             } else if (rOriginModelPart.NumberOfConditions() == 0) {
                 KRATOS_ERROR << "No conditions defined on origin model part" << std::endl;
             }
@@ -107,7 +107,7 @@ public:
         if (!destination_are_conditions_is_defined) {
             if (rDestinationModelPart.NumberOfElements() > 0) {
                 ThisParameters["destination_are_conditions"].SetBool(false);
-                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'destination_are_conditions\' changed to \`False\`. Mapping from elements." << std::endl;
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'destination_are_conditions\' changed to \'False\'. Mapping from elements." << std::endl;
             } else if (rDestinationModelPart.NumberOfConditions() == 0) {
                 KRATOS_ERROR << "No conditions defined on destination model part" << std::endl;
             }
@@ -292,7 +292,7 @@ protected:
             "origin_are_conditions"            : true,
             "destination_variable_historical"  : true,
             "destination_are_conditions"       : true,
-            "update_interface"                 : false,
+            "update_interface"                 : true,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,
