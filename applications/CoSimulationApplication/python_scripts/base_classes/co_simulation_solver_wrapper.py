@@ -119,7 +119,7 @@ class CoSimulationSolverWrapper(object):
     def _ClassName(cls):
         return cls.__name__
 
-    def _GetIOType(cls):
+    def _GetIOType(self):
         # only external solvers have to specify sth here / override this
         return "dummy_io"
 
