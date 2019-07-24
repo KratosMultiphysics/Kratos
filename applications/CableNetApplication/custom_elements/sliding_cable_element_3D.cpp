@@ -791,29 +791,19 @@ Vector SlidingCableElement3D::CalculateBodyForces() {
     Vector body_forces_global = ZeroVector(local_size);
 
 
+    // assemble global Vector
+    for (int i = 0; i < points_number; ++i) {
+      double weight_fraction = 0.0;
+      if (i==0) weight_fraction = l_array[i]/l;
+      else if (i==points_number-1) weight_fraction = l_array[i-1]/l;
+      else weight_fraction = (l_array[i]+l_array[i-1])/l;
 
-    // for testing purposes
-    bool add_dead_load = true;
-    if (this->GetProperties().Has(USE_DEAD_LOAD)) {
-      add_dead_load = this->GetProperties()[USE_DEAD_LOAD];
-    }
+      body_forces_node = total_mass *
+        this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+        weight_fraction * 0.5;
 
-    if (add_dead_load)
-    {
-      // assemble global Vector
-      for (int i = 0; i < points_number; ++i) {
-        double weight_fraction = 0.0;
-        if (i==0) weight_fraction = l_array[i]/l;
-        else if (i==points_number-1) weight_fraction = l_array[i-1]/l;
-        else weight_fraction = (l_array[i]+l_array[i-1])/l;
-
-        body_forces_node = total_mass *
-          this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-          weight_fraction * 0.5;
-
-        for (unsigned int j = 0; j < dimension; ++j) {
-          body_forces_global[(i * dimension) + j] = body_forces_node[j];
-        }
+      for (unsigned int j = 0; j < dimension; ++j) {
+        body_forces_global[(i * dimension) + j] = body_forces_node[j];
       }
     }
 

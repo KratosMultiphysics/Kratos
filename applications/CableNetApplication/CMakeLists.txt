@@ -6,6 +6,7 @@ message("**** configuring KratosCableNetApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 # generate variables with the sources
 set( KRATOS_CABLE_NET_APPLICATION_SOURCES
@@ -13,17 +14,17 @@ set( KRATOS_CABLE_NET_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/cable_net_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/cable_net_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
 
 
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sliding_cable_element_3D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ring_element_3D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weak_coupling_slide.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sliding_cable_element_3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ring_element_3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weak_coupling_slide.cpp
 )
 
 # define library Kratos which defines the basic python interface

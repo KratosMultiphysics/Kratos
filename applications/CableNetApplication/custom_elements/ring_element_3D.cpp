@@ -574,7 +574,7 @@ void RingElement3D::AddExplicitContribution(
         VectorType element_mass_vector(local_size);
         this->CalculateLumpedMassVector(element_mass_vector);
 
-        for (SizeType i = 0; i < points_number; ++i) {
+        for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * dimension;
 
@@ -607,7 +607,7 @@ void RingElement3D::AddExplicitContribution(
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
-        for (size_t i = 0; i < points_number; ++i) {
+        for (int i = 0; i < points_number; ++i) {
             size_t index = dimension * i;
             array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < dimension; ++j) {
@@ -689,29 +689,20 @@ Vector RingElement3D::CalculateBodyForces() {
 
 
 
-    // for testing purposes
-    bool add_dead_load = true;
-    if (this->GetProperties().Has(USE_DEAD_LOAD)) {
-      add_dead_load = this->GetProperties()[USE_DEAD_LOAD];
-    }
+    // assemble global Vector
+    for (int i = 0; i < points_number; ++i) {
 
-    if (add_dead_load)
-    {
-      // assemble global Vector
-      for (int i = 0; i < points_number; ++i) {
+      const SizeType node_i = i;
+      SizeType node_j = i-1;
+      if (i==0) node_j = points_number-1;
+      const double weight_fraction = (l_array[node_i]+l_array[node_j])/l;
 
-        const SizeType node_i = i;
-        SizeType node_j = i-1;
-        if (i==0) node_j = points_number-1;
-        const double weight_fraction = (l_array[node_i]+l_array[node_j])/l;
+      body_forces_node = total_mass *
+        this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+        weight_fraction * 0.5;
 
-        body_forces_node = total_mass *
-          this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-          weight_fraction * 0.5;
-
-        for (unsigned int j = 0; j < dimension; ++j) {
-          body_forces_global[(i * dimension) + j] = body_forces_node[j];
-        }
+      for (unsigned int j = 0; j < dimension; ++j) {
+        body_forces_global[(i * dimension) + j] = body_forces_node[j];
       }
     }
 
