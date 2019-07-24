@@ -41,9 +41,9 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
         super(DEMWrapper,self).Initialize()
 
         # save nodes in model parts which need to be moved while simulating
-        self.list_of_nodes_in_move_mesh_model_parts = []
-        for mp_name in self.settings["settings"]["move_mesh_model_part"].GetStringArray():
-            self.list_of_nodes_in_move_mesh_model_parts.append(self.model[mp_name].Nodes)
+        self.list_of_nodes_in_move_mesh_model_parts = [self.model[mp_name].Nodes
+         for mp_name in self.settings["settings"]["move_mesh_model_part"].GetStringArray()]
+
 
     def SolveSolutionStep(self):
         super(DEMWrapper,self).SolveSolutionStep()
