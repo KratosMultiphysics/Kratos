@@ -11,6 +11,7 @@
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
 #include "custom_strategies/strategies/iterative_solver_strategy.h"
 #include "custom_strategies/strategies/velocity_verlet_solver_strategy.h"
+#include "custom_strategies/strategies/runge_kutta_solver_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -25,6 +26,7 @@
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
+#include "custom_strategies/schemes/translational_RK4_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
 
@@ -78,6 +80,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<>())
         ;
 
+    py::class_<TranslationalRungeKuttaScheme, TranslationalRungeKuttaScheme::Pointer, DEMIntegrationScheme>(m, "TranslationalRungeKuttaScheme")
+        .def(py::init<>())
+        ;
+
     py::class_<RungeKuttaScheme, RungeKuttaScheme::Pointer, DEMIntegrationScheme>(m, "RungeKuttaScheme")
         .def(py::init<>())
         ;
@@ -122,6 +128,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
+        .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+        ;
+
+    py::class_<RK4SolverStrategy, RK4SolverStrategy::Pointer, ExplicitSolverStrategy>(m, "RK4SolverStrategy")
         .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 

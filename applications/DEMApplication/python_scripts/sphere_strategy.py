@@ -293,6 +293,10 @@ class ExplicitStrategy(object):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.search_strategy, self.solver_settings)
+        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Runge_Kutta'):
+            self.cplusplus_strategy = RK4SolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.search_strategy, self.solver_settings)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
@@ -503,6 +507,8 @@ class ExplicitStrategy(object):
             class_name = 'TaylorScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
+        elif name == 'Runge_Kutta':
+            class_name = 'TranslationalRungeKuttaScheme'
 
         return class_name
 
