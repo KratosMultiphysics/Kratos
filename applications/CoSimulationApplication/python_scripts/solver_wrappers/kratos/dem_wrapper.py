@@ -16,7 +16,6 @@ if not CheckIfApplicationsAvailable("DEMApplication"):
 from KratosMultiphysics import DEMApplication
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
-
 def Create(settings, solver_name):
     return DEMWrapper(settings, solver_name)
 
@@ -24,17 +23,19 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the DEMApplication of Kratos"""
 
     def _CreateAnalysisStage(self):
+        dem_analysis_module = DEMAnalysisStage
 
-        CurrentDEMAnalysisStage = DEMAnalysisStage(self.model, self.project_parameters)
+        if self.settings["settings"].Has("working_directory"):
+            working_dir = self.settings["settings"]["working_directory"].GetString()
 
-        if "path_to_project" in self.settings["settings"].keys():
-            def NewGetMainPath(self):
-                return self.settings["settings"]["path_to_project"].GetString()
-            import types
-            CurrentDEMAnalysisStage.GetMainPath = types.MethodType(NewGetMainPath, CurrentDEMAnalysisStage)
+            class DEMAnalysisStageWithWorkingDir(DEMAnalysisStage):
+                @classmethod
+                def GetMainPath(self):
+                    return working_dir
 
+            dem_analysis_module = DEMAnalysisStageWithWorkingDir
 
-        return CurrentDEMAnalysisStage
+        return dem_analysis_module(self.model, self.project_parameters)
 
     def SolveSolutionStep(self):
         super(DEMWrapper,self).SolveSolutionStep()
