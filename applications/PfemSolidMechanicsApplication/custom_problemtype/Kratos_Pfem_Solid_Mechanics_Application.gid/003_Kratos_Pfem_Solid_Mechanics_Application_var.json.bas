@@ -578,7 +578,9 @@
 	"kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
         "python_module"   : "footing_problem_process",
         "process_name"    : "FootingProblemProcess",
-        "Parameters"      : {}
+        "Parameters"      : {
+	       "tunnel_radius": *cond(TunnelRadius)
+	    }
 	},
 *set var numberconstraints= 0
 *set cond group_WATER_MOVEMENT *groups 

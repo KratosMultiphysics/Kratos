@@ -74,6 +74,8 @@ QUESTION: SX
 VALUE: -28.9
 QUESTION: WP
 VALUE: -10.0
+QUESTION: TunnelRadius
+VALUE: 0.041
 TITLE:Solver
 QUESTION: Linear_Solver#CB#(CGSolver,BICGSTABSolver,TFQMRSolver,DeflatedCGSolver,SkylineLUFactorizationSolver,GMRESSolver,SuperLUSolver,SuperLUIterativeSolver,PastixSolver,AMGCL,AMGCL_NS_Solver)
 VALUE: SuperLUSolver
