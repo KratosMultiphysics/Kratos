@@ -14,7 +14,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        solver_module = "KratosMultiphysics.FluidDynamicsApplication"
         if (solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic"
 
@@ -38,7 +37,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        solver_module = "KratosMultiphysics.TrilinosApplication"
         if (solver_type == "Monolithic"):
             solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic"
 
