@@ -50,6 +50,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         self._analysis_stage._GetSolver().SolveSolutionStep()
+        super(KratosBaseWrapper, self).SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._analysis_stage.FinalizeSolutionStep()

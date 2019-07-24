@@ -188,12 +188,14 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                     cs_tools.cs_print_info("  Skipped", 'not in interval')
                 return
 
-            # Importing data from external solvers
-            from_solver_data_config = {
-                "type" : "coupling_interface_data",
-                "interface_data" : from_solver_data
-            }
-            from_solver.ImportCouplingInterfaceData(from_solver_data_config)
+            if from_solver_data.is_outdated:
+                # Importing data from external solvers (if it is outdated)
+                from_solver_data_config = {
+                    "type" : "coupling_interface_data",
+                    "interface_data" : from_solver_data
+                }
+                from_solver.ImportCouplingInterfaceData(from_solver_data_config)
+                from_solver_data.is_outdated = False
 
             # perform the data transfer
             self.__ExecuteCouplingOperations(i_data["before_data_transfer_operations"])
