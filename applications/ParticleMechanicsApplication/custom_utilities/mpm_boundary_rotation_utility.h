@@ -201,38 +201,38 @@ public:
 		}
 	}
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition
+	// An extra function to distinguish the application of slip in element considering nonconforming bc imposition
 	void ElementApplySlipCondition(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc, do as standard
+		// Otherwise, if it is a nonconforming bc, dont do anything
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
 	}
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition (RHS Version)
+	// An extra function to distinguish the application of slip in element considering nonconforming bc imposition (RHS Version)
 	void ElementApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc, do as standard
+		// Otherwise, if it is a nonconforming bc, dont do anything
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
 	}
 
-	// An extra function to distinguish the application of slip in condition considering penalty imposition
+	// An extra function to distinguish the application of slip in condition considering nonconforming bc imposition
 	void ConditionApplySlipCondition(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc, do as standard
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
@@ -271,16 +271,16 @@ public:
 		}
 	}
 
-	// An extra function to distinguish the application of slip in condition considering penalty imposition (RHS Version)
+	// An extra function to distinguish the application of slip in condition considering nonconforming bc imposition (RHS Version)
 	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc, do as standard
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
-		// Otherwise, if it is a penalty element, dont do anything
+		// Otherwise, if it is a nonconforming bc, dont do anything
 		else
 		{
 			if (rLocalVector.size() > 0)
@@ -305,10 +305,10 @@ public:
 
 	}
 
-	// Checking whether it is normal element or penalty element
-	bool IsPenalty(GeometryType& rGeometry) const
+	// Checking whether it is normal element or nonconforming bc element
+	virtual bool IsNonconformingCondition(GeometryType& rGeometry) const
 	{
-		bool is_penalty = false;
+		bool is_nonconforming_bc = false;
 		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 		{
 			if(this->IsSlip(rGeometry[itNode]) )
@@ -316,13 +316,35 @@ public:
 				const int bc_type = rGeometry[itNode].GetValue(mrFlagVariable);
 				if (bc_type == 2)
 				{
-					is_penalty = true;
+					is_nonconforming_bc = true;
 					break;
 				}
 			}
 		}
 
-		return is_penalty;
+		return is_nonconforming_bc;
+	}
+
+	// Clone a normal vector from a given input to all nodal value
+	virtual void CloneNormalToNode(GeometryType& rGeometry, array_1d<double,3>& rNormal)
+	{
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			rGeometry[itNode].SetLock();
+			rGeometry[itNode].FastGetSolutionStepValue(NORMAL) = rNormal;
+            rGeometry[itNode].UnSetLock();
+		}
+	}
+
+	// Clear nodal normal vector value
+	virtual void ClearNormalFromNode(GeometryType& rGeometry)
+	{
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			rGeometry[itNode].SetLock();
+			rGeometry[itNode].FastGetSolutionStepValue(NORMAL).clear();
+			rGeometry[itNode].UnSetLock();
+		}
 	}
 
 	/// Transform nodal displacement to the rotated coordinates (aligned with each node's normal)
