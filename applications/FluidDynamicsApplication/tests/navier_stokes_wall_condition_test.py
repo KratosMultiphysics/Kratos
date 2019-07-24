@@ -5,7 +5,6 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as python_solvers_wrapper_fluid
 
 have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
