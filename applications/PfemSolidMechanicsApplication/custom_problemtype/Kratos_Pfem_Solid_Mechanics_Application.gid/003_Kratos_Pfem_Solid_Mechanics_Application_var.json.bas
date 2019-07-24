@@ -579,7 +579,7 @@
         "python_module"   : "footing_problem_process",
         "process_name"    : "FootingProblemProcess",
         "Parameters"      : {
-	       "tunnel_radius": *cond(TunnelRadius)
+	       "tunnel_radius": *GenData(TunnelRadius)
 	    }
 	},
 *set var numberconstraints= 0
