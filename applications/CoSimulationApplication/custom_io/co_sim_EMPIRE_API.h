@@ -176,7 +176,7 @@ static void ReadNumberAfterKeyword(const std::string& rKeyWord, const std::strin
 /***********************************************************************************************
  * \brief Establishes the necessary connection with the Emperor
  ***********/
-static void EMPIRE_API_Connect(char* inputFileName)
+static void EMPIRE_API_Connect(const char* inputFileName)
 {
     const std::string file_name(inputFileName);
 
@@ -235,7 +235,7 @@ static char *EMPIRE_API_getUserDefinedText(char *elementName)
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
+static void EMPIRE_API_sendMesh(const char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
 {
     const auto start_time(std::chrono::steady_clock::now());
 
@@ -311,7 +311,7 @@ static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
+static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
 {
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
@@ -389,7 +389,7 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
  * \param[in] sizeOfArray size of the array (data field)
  * \param[in] dataField the data field to be sent
  ***********/
-static void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_sendDataField(const char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -402,7 +402,7 @@ static void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataFi
  * \param[in] sizeOfArray size of the array (data field)
  * \param[out] dataField the data field to be received
  ***********/
-static void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_recvDataField(const char *name, int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -415,7 +415,7 @@ static void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataFi
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-static void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_sendSignal_double(const char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -428,7 +428,7 @@ static void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *si
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-static void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_recvSignal_double(const char *name, int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
