@@ -5,10 +5,10 @@ import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 
-from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(main_model_part, custom_settings):
@@ -16,7 +16,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -52,10 +53,11 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(AdjointVMSMonolithicMPISolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
 
         self.element_name = "VMSAdjointElement"

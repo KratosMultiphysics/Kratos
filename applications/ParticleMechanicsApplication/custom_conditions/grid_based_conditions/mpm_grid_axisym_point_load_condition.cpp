@@ -83,11 +83,11 @@ MPMGridAxisymPointLoadCondition::~MPMGridAxisymPointLoadCondition()
 double MPMGridAxisymPointLoadCondition::GetPointLoadIntegrationWeight()
 {
     // We calculate the axisymmetric coefficient
-    const double Radius = ParticleMechanicsMathUtilities<double>::CalculateRadiusPoint(GetGeometry());
-    const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
-    const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
+    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadiusPoint(GetGeometry());
+    const double thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
+    const double axis_symmetric_weight = 2.0 * Globals::Pi * radius/thickness;
 
-    return AxiSymCoefficient;
+    return axis_symmetric_weight;
 }
 
 

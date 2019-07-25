@@ -4,14 +4,18 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 ## Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return NavierStokesCompressibleSolver(model, custom_settings)
 
 class NavierStokesCompressibleSolver(FluidSolver):
 
-    def _ValidateSettings(self,settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -54,11 +58,11 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "move_mesh_flag": false
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
-
+        default_settings.AddMissingParameters(super(NavierStokesCompressibleSolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesCompressibleSolver,self).__init__(model,custom_settings)
 
         self.element_name = "CompressibleNavierStokes"
@@ -66,7 +70,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.min_buffer_size = 3
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
@@ -188,7 +191,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
 
