@@ -63,8 +63,12 @@ class FluidTransportSolver(PythonSolver):
         thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
         thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
+
         #TODO: check if PFEM2 is on
         thermal_settings.SetProjectionVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
+
+        ## ConvectionDiffusionSettings Variable
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
 
         ## Convection Variables
