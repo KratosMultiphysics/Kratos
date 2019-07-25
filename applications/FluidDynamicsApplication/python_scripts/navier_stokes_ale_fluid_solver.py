@@ -5,8 +5,9 @@ import KratosMultiphysics
 
 # other imports
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as fluid_solvers_wrapper
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
-have_mesh_moving = KratosUtilities.CheckIfApplicationsAvailable("MeshMovingApplication")
+have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
 if have_mesh_moving:
     from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
 else:

@@ -4,6 +4,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
+from KratosMultiphysics import kratos_utilities as kratos_utils
 
 import os, filecmp
 from shutil import copyfile
@@ -77,6 +78,8 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         # can directly use filecmp because there are no decimal-number issues
         self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
+
+        kratos_utils.DeleteFileIfExisting("EMPIRE_mesh_For_Sending.vtk")
 
     def test_EMPIRE_API_recvMesh_std_vector(self):
         self.__TestReceiveMesh(False)
