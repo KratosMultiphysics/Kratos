@@ -68,39 +68,6 @@ MPMParticleLagrangeDirichletCondition::~MPMParticleLagrangeDirichletCondition()
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
-    
-    // Additional treatment for slip conditions
-    if (Is(SLIP))
-    {
-        GeometryType& r_geometry = GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-        GeneralVariables Variables;
-
-        // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
-        // Normal Vector
-        const array_1d<double,3> & unit_normal_vector = this->GetValue(MPC_NORMAL);
-
-        // Here MPC contribution of normal vector are added
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].Set(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
-            r_geometry[i].UnSetLock();
-        }
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void MPMParticleLagrangeDirichletCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo,
@@ -109,23 +76,22 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     )
 {
     KRATOS_TRY
-    
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
-
-    // Resizing as needed the LHS
     const unsigned int matrix_size = number_of_nodes * block_size * 2;
 
-    //if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
-    //{
-    if ( rLeftHandSideMatrix.size1() != matrix_size )
+    // Resizing as needed the LHS
+    if ( CalculateStiffnessMatrixFlag == true )
     {
-        rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
-    }
+        if ( rLeftHandSideMatrix.size1() != matrix_size )
+        {
+            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
+        }
 
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
-    //}
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
+    }
 
     // Resizing as needed the RHS
     if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
@@ -180,82 +146,73 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     if (apply_constraints)
     {
-        for (unsigned int i = 0; i < number_of_nodes; i++) //loop over Lagrange Multipliers
-        {
-            for (unsigned int j = 0; j < number_of_nodes; j++) // lopp over shape functions of displacements
-            {
-                double NN = Variables.N[j] * Variables.N[i];
+        Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
 
+         // Loop over Lagrange Multipliers
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            // Loop over shape functions of displacements
+            for (unsigned int j = 0; j < number_of_nodes; j++)
+            {
+                const double NN = Variables.N[j] * Variables.N[i];
                 const unsigned int ibase = i * dimension + dimension * number_of_nodes;
                 const unsigned int jbase = j * dimension;
 
                 // Matrix in following shape:
                 // |0 H^T|
                 // |H 0  |
-                //lambda in X
-                rLeftHandSideMatrix(ibase, jbase)         = NN;
-                rLeftHandSideMatrix(ibase + 1, jbase + 1) = NN;
-                if (dimension == 3){
-                    rLeftHandSideMatrix(ibase + 2, jbase + 2) = NN;
+                // Lambda in X
+                for (unsigned int k = 0; k < dimension; k++)
+                {
+                    lagrange_matrix(ibase+k, jbase+k) = NN;
+                    lagrange_matrix(jbase+k, ibase+k) = NN;
                 }
 
-
-                rLeftHandSideMatrix(jbase, ibase)         = NN;
-                rLeftHandSideMatrix(jbase + 1, ibase + 1) = NN;
-                if (dimension == 3){
-                    rLeftHandSideMatrix(jbase + 2, ibase + 2) = NN;
-                }
-
+                //TODO: Check this
                 if (augmention_factor > 0.0)
                 {
                     //Depending on the solver if needed.
-                    if (rLeftHandSideMatrix(dimension * j, ibase) <= 0.000001)
-                        rLeftHandSideMatrix(ibase, ibase) = augmention_factor;
-                    if (rLeftHandSideMatrix(dimension * j + 1, ibase + 1) <= 0.000001)
-                        rLeftHandSideMatrix(ibase + 1, ibase + 1) = augmention_factor;
+                    if (lagrange_matrix(dimension * j, ibase) <= 0.000001)
+                        lagrange_matrix(ibase, ibase) = augmention_factor;
+
+                    if (lagrange_matrix(dimension * j + 1, ibase + 1) <= 0.000001)
+                        lagrange_matrix(ibase + 1, ibase + 1) = augmention_factor;
+
                     if (dimension == 3){
-                        if (rLeftHandSideMatrix(dimension * j + 2, ibase + 2) <= 0.000001)
-                            rLeftHandSideMatrix(ibase +2, ibase +2) = augmention_factor;
+                        if (lagrange_matrix(dimension * j + 2, ibase + 2) <= 0.000001)
+                            lagrange_matrix(ibase +2, ibase +2) = augmention_factor;
                     }
                 }
             }
         }
 
-        // Calculate LHS Matrix and RHS Vector
-        //if ( CalculateStiffnessMatrixFlag == true )
-        //{
-        rLeftHandSideMatrix  *= this->GetIntegrationWeight();
-        //}
+        lagrange_matrix  *= this->GetIntegrationWeight();
 
+        // Calculate LHS Matrix and RHS Vector
+        if ( CalculateStiffnessMatrixFlag == true )
+        {
+            rLeftHandSideMatrix = lagrange_matrix;
+        }
 
         if ( CalculateResidualVectorFlag == true )
         {
-            Vector u(matrix_size);
+            Vector gap_function = ZeroVector(matrix_size);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
                 const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-                int index = dimension * i;
-                u[index]     = disp[0] - imposed_displacement[0];
-                u[index + 1] = disp[1] - imposed_displacement[1];
-                if (dimension == 3){
-                    u[index + 2] = disp[2] - imposed_displacement[2];
-                }
-            }
-            for (unsigned int i = 0; i < number_of_nodes; i++)
-            {
+                const int index = dimension * i;
+
                 const array_1d<double, 3> lagrange_multiplier = GetGeometry()[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                int index = dimension * i + dimension * number_of_nodes;
-                u[index]     = lagrange_multiplier[0];
-                u[index + 1] = lagrange_multiplier[1];
-                if (dimension == 3){
-                    u[index + 2] = lagrange_multiplier[2];
-                }
+                const int lagrange_index = dimension * i + dimension * number_of_nodes;
 
+                for (unsigned int j = 0; j < dimension; j++){
+                    gap_function[index+j]          = disp[j] - imposed_displacement[j];
+                    gap_function[lagrange_index+j] = lagrange_multiplier[j];
+                }
             }
 
-            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, u);
+            noalias(rRightHandSideVector) -= prod(lagrange_matrix, gap_function);
         }
-
 
     }
     else{
@@ -271,32 +228,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-
-    // Additional treatment for slip conditions
-    if (Is(SLIP))
-    {
-        GeometryType& r_geometry = GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-        // Here MPC normal vector and IS_STRUCTURE are reset
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].Reset(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
-            r_geometry[i].UnSetLock();
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
 
 int MPMParticleLagrangeDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
@@ -314,7 +245,7 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();

@@ -34,10 +34,12 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
 
-        # set type of boundary
-        #penalty: boundary_condition_type = 1
-        #lagrange: boundary_condition_type = 2
-        
+        """
+        Set boundary_condition_type:
+        1. penalty
+        2. lagrange
+        """
+
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
             self.boundary_condition_type = 1
@@ -99,10 +101,13 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
+
+                ### Set necessary essential BC variables
                 if self.boundary_condition_type==1:
                     condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
-                else:
+                elif self.boundary_condition_type==2:
                     condition.SetValue(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, self.augmention_factor)
+
                 condition.SetValue(self.variable, self.vector)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
