@@ -395,7 +395,6 @@ public:
     bool IsFixed() const
     {
         return mIsFixed;
-        // return mData & (std::int64_t(1) << 63);
     }
 
 
