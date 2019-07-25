@@ -33,8 +33,6 @@ namespace Kratos {
 
                     mInitialDispl[k] = displ[k];
 
-                    KRATOS_WATCH(StepFlag)
-
                     mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
                     mRungeKuttaK(StepFlag,k) = delta_t * vel[k];
 
@@ -57,8 +55,6 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    KRATOS_WATCH(StepFlag)
-
                     mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
                     mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k) * 0.5;
 
@@ -76,8 +72,6 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    KRATOS_WATCH(StepFlag)
-
                     mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
                     mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k) * 0.5;
 
@@ -94,8 +88,6 @@ namespace Kratos {
         {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
-
-                    KRATOS_WATCH(StepFlag)
 
                     mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
                     mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k);
