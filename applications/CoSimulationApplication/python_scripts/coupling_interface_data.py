@@ -26,6 +26,7 @@ class CouplingInterfaceData(object):
         self.settings = custom_settings
         self.model = model
         self.name = name
+        self.is_outdated = True
         self.model_part_name = self.settings["model_part_name"].GetString()
         if self.model_part_name == "":
             raise Exception('No "model_part_name" was specified!')
