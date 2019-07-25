@@ -34,6 +34,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         super(KratosBaseWrapper, self).Initialize()
 
     def Finalize(self):
+        super(KratosBaseWrapper, self).Finalize()
         self._analysis_stage.Finalize()
 
     def AdvanceInTime(self, current_time):
@@ -49,6 +50,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         self._analysis_stage._GetSolver().SolveSolutionStep()
+        super(KratosBaseWrapper, self).SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._analysis_stage.FinalizeSolutionStep()
