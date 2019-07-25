@@ -71,19 +71,19 @@ class CouplingInterfaceData(object):
                 if self.variable_type == "Array" and self.dimension not in [1,2,3]:
                     raise Exception('"dimension" can only be 1,2,3 when using variables of type "Array"')
                 if not KM.DOMAIN_SIZE in self.GetModelPart().ProcessInfo:
-                    cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.GetModelPart().Name))
+                    cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.model_part_name))
                 else:
                     domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
                     if domain_size != self.dimension:
-                        cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
+                        cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.model_part_name, self.dimension))
 
         if self.location == "node_historical":
             if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
-                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.GetModelPart().Name))
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.model_part_name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
-        self_str += '\tModelPart: "{}"\n'.format(self.GetModelPart().Name)
+        self_str += '\tModelPart: "{}"\n'.format(self.model_part_name)
         self_str += '\tIsDistributed: {}\n'.format(self.IsDistributed())
         self_str += '\tVariable: "{}"'.format(self.variable.Name())
         if self.is_scalar_variable:
