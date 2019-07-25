@@ -166,7 +166,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             from_data_name = i_data["data"].GetString()
             to_solver_name = i_data["to_solver"].GetString()
 
-            # Check that name is not the same! => do we allow self-communication?
             to_solver_data_name = i_data["to_solver_data"].GetString()
 
             if self.echo_level > 2:
@@ -244,6 +243,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             coupling_operation.PrintInfo()
 
     def Check(self):
+        # TODO check that there is no self-communication with the same data!
+        # self-communication is allowed within a solver, but not on the same data
         super(CoSimulationCoupledSolver, self).Check()
         for solver in self.solver_wrappers.values():
             solver.Check()
