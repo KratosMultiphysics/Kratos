@@ -23,7 +23,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "wing_tips_model_part_name": "",
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "wake_normal": [0.0,0.0,1.0],
@@ -40,13 +39,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             err_msg += "Please specify the model part that contains the trailing edge nodes"
             raise Exception(err_msg)
         self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
-
-        wing_tips_model_part_name = settings["wing_tips_model_part_name"].GetString()
-        if wing_tips_model_part_name == "":
-            err_msg = "Empty model_part_name in DefineWakeProcess3D\n"
-            err_msg += "Please specify the model part that contains the wing tips nodes"
-            raise Exception(err_msg)
-        self.wing_tips_model_part = Model[wing_tips_model_part_name]
 
         body_model_part_name = settings["body_model_part_name"].GetString()
         if body_model_part_name == "":
@@ -77,7 +69,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.__SetWakeAndSpanDirections()
         # Save the trailing edge and wing tip nodes for further computations
-        self.__MarkTrailingEdgeAndWingTipNodes()
+        self.__MarkTrailingEdgeNodes()
         # Save the lower surface normals to help mark kutta elements later on
         self.__ComputeLowerSurfaceNormals()
         # Read wake from stl and create the wake model part
@@ -89,8 +81,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Output the wake in GiD for visualization
         if(self.output_wake):
             self.__VisualizeWake()
-        # Output element ids in the terminal
-        self.__TerminalPrint()
 
     def __SetWakeAndSpanDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
@@ -109,20 +99,10 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.span_direction[1] = self.wake_normal[2] * self.wake_direction[0] - self.wake_normal[0] * self.wake_direction[2]
         self.span_direction[0] = self.wake_normal[0] * self.wake_direction[1] - self.wake_normal[1] * self.wake_direction[0]
 
-    def __MarkTrailingEdgeAndWingTipNodes(self):
+    def __MarkTrailingEdgeNodes(self):
         # Mark trailing edge nodes
         for node in self.trailing_edge_model_part.Nodes:
             node.SetValue(CPFApp.TRAILING_EDGE, True)
-
-        # Mark wing tip nodes
-        for node in self.wing_tips_model_part.Nodes:
-            node.SetValue(CPFApp.WING_TIP, True)
-            # Compute the local span direction for later
-            # TODO: Generalize this for more than one lifting surface
-            for other_node in self.wing_tips_model_part.Nodes:
-                wing_span_direction = other_node - node
-                if(DotProduct(wing_span_direction,wing_span_direction) > self.epsilon):
-                    node.SetValue(CPFApp.WING_SPAN_DIRECTION, wing_span_direction)
 
     def __ComputeLowerSurfaceNormals(self):
         for cond in self.body_model_part.Conditions:
@@ -197,14 +177,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 for node in elem.GetNodes():
                     node.SetValue(CPFApp.WAKE_DISTANCE,wake_elemental_distances[counter])
                     counter += 1
-                # Mark nodes above and below the wake with WATER_PRESSURE variable for visualization
-                counter = 0
-                for node in elem.GetNodes():
-                    if(wake_elemental_distances[counter] > 0.0):
-                        node.SetValue(KratosMultiphysics.WATER_PRESSURE, 1.0)
-                    else:
-                        node.SetValue(KratosMultiphysics.WATER_PRESSURE, -1.0)#
-                    counter +=1
 
         self.__SaveTrailingEdgeElements()
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
@@ -236,42 +208,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # Loop over elements touching the trailing edge
         for elem in self.trailing_edge_model_part.Elements:
-            # Check if it is a wing tip element
-            wing_tip = self.__CheckIfWingTipElement(elem)
-            if wing_tip:
-                # Wing tip elements are set to normal
-                # TODO: Check what to do with wing tip elements
-                # and tip vortice elements in general
-                elem.SetValue(CPFApp.WAKE, False)
-            else:
-                trailing_edge_node, number_of_non_te_nodes = self.__GetATrailingEdgeNodeAndNumberOfNonTENodes(elem)
-                nodal_distances = self.__ComputeNodalDistancesToWakeAndLowerSurface(elem, trailing_edge_node, number_of_non_te_nodes)
-                self.__CheckIfKuttaElement(elem, nodal_distances, number_of_non_te_nodes)
-
-    def __CheckIfWingTipElement(self, elem):
-        # Wing tip elements are elements with one node at the wing tip
-        # and with the rest of the nodes on the side of the wing and wake.
-        wing_tip = False
-
-        # Checking if the element has a node at the wing tip
-        for elnode in elem.GetNodes():
-            if(elnode.GetValue(CPFApp.WING_TIP)):
-                wing_tip = True
-                wing_tip_node = elnode
-                wing_span_direction = elnode.GetValue(CPFApp.WING_SPAN_DIRECTION)
-
-        if(wing_tip):
-            for elnode in elem.GetNodes():
-                if not (elnode.GetValue(CPFApp.WING_TIP)):
-                    # Checking if the rest of the nodes are on the side
-                    distance = elnode - wing_tip_node
-                    wing_span_projection = DotProduct(distance, wing_span_direction)
-                    # A positive wing_span_projection means that the node is not on the side
-                    # but actually laying somewhere above or below the wing and/or wake
-                    if(wing_span_projection > 0.0):
-                        wing_tip = False
-
-        return wing_tip
+            trailing_edge_node, number_of_non_te_nodes = self.__GetATrailingEdgeNodeAndNumberOfNonTENodes(elem)
+            nodal_distances = self.__ComputeNodalDistancesToWakeAndLowerSurface(elem, trailing_edge_node, number_of_non_te_nodes)
+            self.__CheckIfKuttaElement(elem, nodal_distances, number_of_non_te_nodes)
 
     def __GetATrailingEdgeNodeAndNumberOfNonTENodes(self,elem):
         # This function returns a trailing edge node (note that
@@ -410,28 +349,3 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
-
-    def __TerminalPrint(self):
-        # Print trailing_edge_model_part elements
-        for elem in self.trailing_edge_model_part.Elements:
-            if(elem.GetValue(CPFApp.WAKE)):
-                #print(elem.Id)
-                pass
-            elif(elem.GetValue(CPFApp.KUTTA)):
-                #print(elem.Id)
-                pass
-            else:
-                #print(elem.Id)
-                pass
-
-        # Print fluid_model_part elements
-        for elem in self.fluid_model_part.Elements:
-            if(elem.GetValue(CPFApp.WAKE)):
-                print(elem.Id)
-                pass
-            elif(elem.GetValue(CPFApp.KUTTA)):
-                #print(elem.Id)
-                pass
-            else:
-                #print(elem.Id)
-                pass
