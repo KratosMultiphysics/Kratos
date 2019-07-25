@@ -361,7 +361,6 @@ public:
      */
     void FixDof()
     {
-        //mData |= (std::int64_t(1) << msIsFixedPosition);
         mIsFixed=true;
     }
 
