@@ -84,12 +84,12 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name.GetString()].Nodes)
 
     def InitializeSolutionStep(self):
-        super(FluidChimeraAnalysis,self).InitializeSolutionStep()
         self.chimera_process.ExecuteInitializeSolutionStep()
+        super(FluidChimeraAnalysis,self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.chimera_process.ExecuteFinalizeSolutionStep()
         super(FluidChimeraAnalysis,self).FinalizeSolutionStep()
+        self.chimera_process.ExecuteFinalizeSolutionStep()
 
 
     def _CreateSolver(self):
