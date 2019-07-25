@@ -22,10 +22,8 @@
 #include "trilinos_space.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
-#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
-#include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_fractional_step_settings.h"
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/gather_modelpart_utility.h"
@@ -90,16 +88,6 @@ void AuxiliarUpdateSolution(
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    py::class_<TrilinosDeactivationUtility >
-        (m,"TrilinosDeactivationUtility")
-        .def(py::init<>() )
-        .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
-        .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
-        .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
-        .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
-        .def("Initialize", &TrilinosDeactivationUtility::Initialize )
-        ;
-
     py::class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(py::init< Epetra_MpiComm& >() )
         .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
         .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
@@ -114,11 +102,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
         .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
         .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
-        ;
-
-    py::class_<TrilinosRefineMesh>(m,"TrilinosRefineMesh").def(py::init<ModelPart& , Epetra_MpiComm& >() )
-        .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
-        .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
         ;
 
     typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
