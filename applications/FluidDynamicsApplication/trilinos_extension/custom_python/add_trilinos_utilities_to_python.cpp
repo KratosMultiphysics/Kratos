@@ -10,22 +10,20 @@
 //  Main authors:    Jordi Cotela
 //
 
-#ifdef KRATOS_PYTHON
-#include <pybind11/pybind11.h>
-
-#include "add_trilinos_processes_to_python.h"
 #include "add_trilinos_utilities_to_python.h"
+
+#include "trilinos_space.h"
+
+#include "trilinos_extension/custom_utilities/trilinos_fractional_step_settings.h"
 
 namespace Kratos {
 namespace Python {
 
-PYBIND11_MODULE(KratosFluidDynamicsTrilinosExtension,m)
+void AddTrilinosUtilitiesToPython(pybind11::module& m)
 {
-    AddTrilinosProcessesToPython(m);
-    AddTrilinosUtilitiesToPython(m);
+    namespace py = pybind11;
+
 }
 
 }
 }
-
-#endif
