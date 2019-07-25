@@ -369,7 +369,6 @@ public:
      */
     void FreeDof()
     {
-        // mData &= ~(std::int64_t(1) << msIsFixedPosition);
         mIsFixed=false;
     }
 
