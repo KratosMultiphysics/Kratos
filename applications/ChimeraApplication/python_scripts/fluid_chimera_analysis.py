@@ -92,7 +92,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
 
-    def _CreateSolver(self):
+    def _CreateSolver(self): 
         return KratosChimera.python_solvers_wrapper_fluid_chimera.CreateSolver(self.model, self.project_parameters)
 
 
