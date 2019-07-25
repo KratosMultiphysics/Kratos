@@ -28,6 +28,7 @@
 
 // FluidDynamics trilinos extensions
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
+#include "custom_processes/trilinos_stokes_initialization_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -46,6 +47,13 @@ void AddTrilinosProcessesToPython(pybind11::module& m)
     .def(py::init < Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolver::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasProcess::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasProcess::AdaptForFractionalStep)
+    ;
+
+    // Stokes initialization processes
+    using StokesInitializationProcess = TrilinosStokesInitializationProcess<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    py::class_< StokesInitializationProcess, typename StokesInitializationProcess::Pointer, Process>(m,"TrilinosStokesInitializationProcess")
+    .def(py::init<Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolver::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    .def("SetConditions",&StokesInitializationProcess::SetConditions)
     ;
 }
 
