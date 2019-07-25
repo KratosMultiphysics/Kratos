@@ -97,7 +97,7 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
     }
 }
 
-static void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
+static void SendArray(const std::string& rFileName, const int sizeOfArray, const double *data)
 {
     const auto start_time(std::chrono::steady_clock::now());
 
@@ -122,7 +122,7 @@ static void SendArray(const std::string& rFileName, int sizeOfArray, double *dat
     }
 }
 
-static void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
+static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, double *data)
 {
     WaitForFile(rFileName);
 
@@ -249,7 +249,7 @@ static char *EMPIRE_API_getUserDefinedText(char *elementName)
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-static void EMPIRE_API_sendMesh(const char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
+static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int numElems, const double *nodes, const int *nodeIDs, const int *numNodesPerElem, const int *elems)
 {
     const auto start_time(std::chrono::steady_clock::now());
 
@@ -404,7 +404,7 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
  * \param[in] sizeOfArray size of the array (data field)
  * \param[in] dataField the data field to be sent
  ***********/
-static void EMPIRE_API_sendDataField(const char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_sendDataField(const char *name, const int sizeOfArray, const double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -417,7 +417,7 @@ static void EMPIRE_API_sendDataField(const char *name, int sizeOfArray, double *
  * \param[in] sizeOfArray size of the array (data field)
  * \param[out] dataField the data field to be received
  ***********/
-static void EMPIRE_API_recvDataField(const char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_recvDataField(const char *name, const int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -430,7 +430,7 @@ static void EMPIRE_API_recvDataField(const char *name, int sizeOfArray, double *
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-static void EMPIRE_API_sendSignal_double(const char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_sendSignal_double(const char *name, const int sizeOfArray, const double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -443,7 +443,7 @@ static void EMPIRE_API_sendSignal_double(const char *name, int sizeOfArray, doub
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-static void EMPIRE_API_recvSignal_double(const char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_recvSignal_double(const char *name, const int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -479,7 +479,7 @@ static int EMPIRE_API_recvConvergenceSignal()
  * \brief Send the convergence signal of an loop
  * \param[in] signal 1 means convergence, 0 means non-convergence
  ***********/
-static void EMPIRE_API_sendConvergenceSignal(int signal)
+static void EMPIRE_API_sendConvergenceSignal(const int signal)
 {
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;

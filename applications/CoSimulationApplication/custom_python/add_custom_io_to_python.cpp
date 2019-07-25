@@ -27,7 +27,7 @@ namespace Python {
 namespace EMPIRE_API_Wrappers { // helpers namespace
 
 template<bool TIsDataField>
-void SendArray(const std::string& rName, int sizeOfArray, std::vector<double> signal)
+void SendArray(const std::string& rName, const int sizeOfArray, const std::vector<double>& signal)
 {
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     if (TIsDataField) {
@@ -38,7 +38,7 @@ void SendArray(const std::string& rName, int sizeOfArray, std::vector<double> si
 }
 
 template<bool TIsDataField>
-void ReceiveArray(const std::string& rName, int sizeOfArray, pybind11::list signal)
+void ReceiveArray(const std::string& rName, const int sizeOfArray, pybind11::list signal)
 {
     KRATOS_ERROR_IF(static_cast<int>(signal.size()) != sizeOfArray) << "The size of the list has to be specified before, expected size of " << sizeOfArray << ", current size: " << signal.size() << std::endl;
 
@@ -124,7 +124,7 @@ void sendDataField_vector_DefaultName(ModelPart& rModelPart, const Variable< arr
     sendDataField_vector(rModelPart, rVariable.Name(), rVariable);
 }
 
-void recvDataField_vector(ModelPart& rModelPart, const std::string rName, const Variable< array_1d<double, 3> >& rVariable)
+void recvDataField_vector(ModelPart& rModelPart, const std::string& rName, const Variable< array_1d<double, 3> >& rVariable)
 {
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Missing nodal solutionstepvariable: " << rVariable.Name() << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
@@ -257,7 +257,7 @@ void sendMesh_DefaultName(ModelPart& rModelPart, const bool UseConditions)
 }
 
 template <typename TDouble, typename TInt>
-static void createModelPartFromReceivedMesh(int numNodes, int numElems, TDouble* nodes, TInt* nodeIDs, TInt* numNodesPerElem, TInt* elem, ModelPart& rModelPart, const bool UseConditions)
+static void createModelPartFromReceivedMesh(const int numNodes, const int numElems, const TDouble* nodes, const TInt* nodeIDs, const TInt* numNodesPerElem, const TInt* elem, ModelPart& rModelPart, const bool UseConditions)
 {
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
