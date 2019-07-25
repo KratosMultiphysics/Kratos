@@ -68,7 +68,9 @@ public:
 
         mAngularVelocityRadians = mParameters["angular_velocity_radians"].GetDouble();
         mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
-        mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector();
+        auto axis_of_rotation_raw = mParameters["axis_of_rotation"].GetVector();
+        double norm = norm_2(axis_of_rotation_raw);
+        mAxisOfRotationVector = axis_of_rotation_raw/norm;
         mTheta = 0.0;
     }
 
