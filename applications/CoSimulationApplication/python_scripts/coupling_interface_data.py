@@ -70,11 +70,12 @@ class CouplingInterfaceData(object):
             else:
                 if self.variable_type == "Array" and self.dimension not in [1,2,3]:
                     raise Exception('"dimension" can only be 1,2,3 when using variables of type "Array"')
-                domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
-                if domain_size == 0:
+                if not KM.DOMAIN_SIZE in self.GetModelPart().ProcessInfo:
                     cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.GetModelPart().Name))
-                if domain_size != self.dimension:
-                    cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
+                else:
+                    domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
+                    if domain_size != self.dimension:
+                        cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.GetModelPart().Name, self.dimension))
 
         if self.location == "node_historical":
             if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
