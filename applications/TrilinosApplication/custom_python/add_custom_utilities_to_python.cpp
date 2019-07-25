@@ -26,7 +26,6 @@
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
-//#include "custom_utilities/trilinos_fractional_step_settings.h"
 //#include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/gather_modelpart_utility.h"
 #include "custom_utilities/mpi_normal_calculation_utilities.h"
@@ -121,37 +120,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
         ;
 
-//    typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
-//    typedef void (BaseSettingsType::*BuildTurbModelType)(BaseSettingsType::TurbulenceModelLabel const&, TrilinosLinearSolverType::Pointer, const double, const unsigned int);
-//    typedef void (BaseSettingsType::*PassTurbModelType)(Process::Pointer);
-//    BuildTurbModelType SetTurbModel_Build = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
-//    PassTurbModelType SetTurbModel_Pass = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
-//
-//    py::class_ < BaseSettingsType >(m,"BaseSettingsType" )
-//        .def("SetTurbulenceModel",SetTurbModel_Build)
-//        .def("SetTurbulenceModel",SetTurbModel_Pass)
-//        ;
-//
-//    typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
-//
-//    py::enum_<BaseSettingsType::StrategyLabel>(m,"TrilinosStrategyLabel")
-//        .value("Velocity",BaseSettingsType::Velocity)
-//        .value("Pressure",BaseSettingsType::Pressure)
-//        ;
-//
-//    py::enum_<BaseSettingsType::TurbulenceModelLabel>(m,"TrilinosTurbulenceModelLabel")
-//        .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
-//        ;
-//
-//    typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
-//    SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
-//
-//    py::class_< TrilinosFSSettingsType,BaseSettingsType>(m,"TrilinosFractionalStepSettings")
-//        .def(py::init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
-//        .def("SetStrategy",ThisSetStrategyOverload)
-//        .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
-//        .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
-//        ;
 //
 //    typedef TrilinosFractionalStepSettingsPeriodic<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsPeriodicType;
 //
