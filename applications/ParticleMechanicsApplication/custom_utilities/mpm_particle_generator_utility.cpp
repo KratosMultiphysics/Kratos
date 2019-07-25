@@ -323,6 +323,7 @@ namespace MPMParticleGeneratorUtility
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
+                        const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
@@ -603,7 +604,10 @@ namespace MPMParticleGeneratorUtility
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
                             else{
-                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                p_condition->SetValue(MPC_BOUNDARY_CONDITION_TYPE, boundary_condition_type);
+                                if (boundary_condition_type == 1)
+                                    p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
@@ -649,7 +653,10 @@ namespace MPMParticleGeneratorUtility
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
                             else{
-                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                p_condition->SetValue(MPC_BOUNDARY_CONDITION_TYPE, boundary_condition_type);
+                                if (boundary_condition_type == 1)
+                                    p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
