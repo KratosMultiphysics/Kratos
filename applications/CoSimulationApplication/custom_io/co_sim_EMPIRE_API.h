@@ -107,7 +107,7 @@ static void SendArray(const std::string& rFileName, const int sizeOfArray, const
 
     output_file << std::scientific << std::setprecision(12); // TODO maybe this should be configurable
 
-    // TODO write size in first line?
+    output_file << sizeOfArray << "\n";
 
     for (int i=0; i<sizeOfArray-1; ++i) {
         output_file << data[i] << " ";
@@ -130,6 +130,17 @@ static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, do
 
     std::ifstream input_file(rFileName);
     CheckStream(input_file, rFileName);
+
+    int size_read;
+    input_file >> size_read; // the first number in the file is the size of the array
+
+    if (size_read != sizeOfArray) {
+        std::stringstream err_msg;
+        err_msg << "The received size for array \"" << rFileName << "\" is different from what is expected:";
+        err_msg << "\n    Expected size: " << sizeOfArray;
+        err_msg << "\n    Received size: " << size_read;
+        throw std::runtime_error(err_msg.str());
+    }
 
     for (int i=0; i<sizeOfArray; ++i) {
         input_file >> data[i];
