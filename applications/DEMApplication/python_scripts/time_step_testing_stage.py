@@ -5,8 +5,8 @@ import DEM_analysis_stage
 
 class TimeStepTester(object):
     def __init__(self):
-        #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet"]
+        #self.schemes_list = ["Forward_Euler", "Runge_Kutta", "Symplectic_Euler", "Velocity_Verlet"]
+        self.schemes_list = ["Velocity_Verlet"]
         self.stable_time_steps_list = []
 
     def Run(self):
@@ -19,19 +19,19 @@ class TimeStepTester(object):
     def RunForACertainScheme(self, scheme):
         print("Computing stable time step for scheme: "+ scheme)
         tolerance = 1e-7
-        dt = 1e-2
+        dt = 1e-4
         previous_dt = 0.0
         while dt > previous_dt + tolerance:
             try:
                 self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
             except SystemExit:
-                factor = min(0.5, 0.5*(dt-previous_dt))
+                factor = min(0.25, 0.25*(dt-previous_dt))
                 dt = factor * dt
                 print("decreasing dt by " + str(factor))
                 continue
 
             previous_dt = dt
-            dt = dt * 1.5
+            dt = dt * 1.25
             print("increasing dt by 1.5")
 
         self.stable_time_steps_list.append(previous_dt)
@@ -274,8 +274,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
             import sys
             sys.exit()
 
-    def PrintResultsForGid(self, time):
-        pass
+    # def PrintResultsForGid(self, time):
+    #     pass
 
 
 if __name__ == '__main__':
