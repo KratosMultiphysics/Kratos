@@ -43,7 +43,7 @@ class CoSimulationSolverWrapper(object):
 
 
     def Initialize(self):
-        if self.__IOIsCreated():
+        if self.__HasIO():
             self.__GetIO().Initialize()
 
     def InitializeCouplingInterfaceData(self):
@@ -53,7 +53,7 @@ class CoSimulationSolverWrapper(object):
             data.Initialize()
 
     def Finalize(self):
-        if self.__IOIsCreated():
+        if self.__HasIO():
             self.__GetIO().Finalize()
 
     def AdvanceInTime(self, current_time):
@@ -77,7 +77,7 @@ class CoSimulationSolverWrapper(object):
 
 
     def CreateIO(self, io_echo_level):
-        if self.__IOIsCreated():
+        if self.__HasIO():
             raise Exception('IO for solver "{}" is already created!'.format(self.name))
 
         io_settings = self.settings["io_settings"]
@@ -137,11 +137,11 @@ class CoSimulationSolverWrapper(object):
         return "dummy_io"
 
     def __GetIO(self):
-        if not self.__IOIsCreated():
+        if not self.__HasIO():
             raise Exception('IO for solver "{}" is not created!'.format(self.name))
         return self.__io
 
-    def __IOIsCreated(self):
+    def __HasIO(self):
         return self.__io is not None
 
     @classmethod
