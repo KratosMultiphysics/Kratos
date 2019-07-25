@@ -79,7 +79,7 @@ public:
      * Auxiliary method to get the order of the BDF scheme
      * @return const std::size_t Order of the BDF scheme
      */
-    const std::size_t GetTimeOrder() const;
+    std::size_t GetTimeOrder() const;
 
 protected:
 
