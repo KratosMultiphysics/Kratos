@@ -234,8 +234,14 @@ int MPMParticleLagrangeDirichletCondition::Check( const ProcessInfo& rCurrentPro
     MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
 
     // Verify that the dofs exist
-    for (const auto& r_node : this->GetGeometry().Points())
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
+    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+        const NodeType &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_X,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_Y,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_Z,rnode)
+    }
 
     return 0;
 }
