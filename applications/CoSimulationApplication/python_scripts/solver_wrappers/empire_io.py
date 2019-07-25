@@ -49,7 +49,7 @@ class EmpireIO(CoSimulationIO):
         comm_name = interface_config["comm_name"]
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(self.model[model_part_name], comm_name)
 
-    def ImportCouplingInterfaceData(self, data_config):
+    def ImportData(self, data_config):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
@@ -57,7 +57,7 @@ class EmpireIO(CoSimulationIO):
         else:
             raise NotImplementedError('Importing interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
-    def ExportCouplingInterfaceData(self, data_config):
+    def ExportData(self, data_config):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]

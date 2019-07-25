@@ -40,7 +40,7 @@ class CoSimulationIO(object):
         """
         raise NotImplementedError("This function has to be implemented in the derived class!")
 
-    def ImportCouplingInterfaceData(self, data_config):
+    def ImportData(self, data_config):
         """Imports data from an external solver
         External solver sends, CoSimulation receives
 
@@ -48,7 +48,7 @@ class CoSimulationIO(object):
         """
         raise NotImplementedError("This function has to be implemented in the derived class!")
 
-    def ExportCouplingInterfaceData(self, data_config):
+    def ExportData(self, data_config):
         """Exports data to an external solver
         CoSimulation sends, external solver receives
 

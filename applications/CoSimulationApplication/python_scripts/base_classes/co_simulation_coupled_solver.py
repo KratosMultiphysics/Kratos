@@ -198,7 +198,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                     "type" : "coupling_interface_data",
                     "interface_data" : from_solver_data
                 }
-                from_solver.ImportCouplingInterfaceData(from_solver_data_config)
+                from_solver.ImportData(from_solver_data_config)
                 from_solver_data.is_outdated = False
 
             # perform the data transfer
@@ -217,7 +217,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                 "type" : "coupling_interface_data",
                 "interface_data" : to_solver_data
             }
-            to_solver.ExportCouplingInterfaceData(to_solver_data_config)
+            to_solver.ExportData(to_solver_data_config)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):

@@ -17,10 +17,10 @@ class DummyIO(CoSimulationIO):
     def ExportCouplingInterface(self, interface_config):
         pass
 
-    def ImportCouplingInterfaceData(self, data_config):
+    def ImportData(self, data_config):
         pass
 
-    def ExportCouplingInterfaceData(self, data_config):
+    def ExportData(self, data_config):
         pass
 
     def PrintInfo(self):

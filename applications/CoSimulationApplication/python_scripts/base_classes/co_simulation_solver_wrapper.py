@@ -97,15 +97,15 @@ class CoSimulationSolverWrapper(object):
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
         self.__GetIO().ExportCouplingInterface(interface_config)
 
-    def ImportCouplingInterfaceData(self, data_config):
+    def ImportData(self, data_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
-        self.__GetIO().ImportCouplingInterfaceData(data_config)
+        self.__GetIO().ImportData(data_config)
 
-    def ExportCouplingInterfaceData(self, data_config):
+    def ExportData(self, data_config):
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
-        self.__GetIO().ExportCouplingInterfaceData(data_config)
+        self.__GetIO().ExportData(data_config)
 
 
     def GetInterfaceData(self, data_name):
