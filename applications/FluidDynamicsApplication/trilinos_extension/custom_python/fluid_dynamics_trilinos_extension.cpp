@@ -14,6 +14,7 @@
 #include <pybind11/pybind11.h>
 
 #include "add_trilinos_processes_to_python.h"
+#include "add_trilinos_schemes_to_python.h"
 #include "add_trilinos_utilities_to_python.h"
 
 namespace Kratos {
@@ -22,6 +23,7 @@ namespace Python {
 PYBIND11_MODULE(KratosFluidDynamicsTrilinosExtension,m)
 {
     AddTrilinosProcessesToPython(m);
+    AddTrilinosSchemesToPython(m);
     AddTrilinosUtilitiesToPython(m);
 }
 
