@@ -26,10 +26,12 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
 
         self.settings["settings"].ValidateAndAssignDefaults(settings_defaults)
 
-        self.__CreateModelPartsFromCouplingData()
-        self._AllocateHistoricalVariablesFromCouplingData()
+        cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
+        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
     def Initialize(self):
+        super(ExternalSolverWrapper, self).Initialize()
+
         for main_model_part_name, mdpa_file_name in self.settings["settings"]["model_parts_read"].items():
             KM.ModelPartIO(mdpa_file_name.GetString()).ReadModelPart(self.model[main_model_part_name])
 
@@ -38,7 +40,6 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
                 "comm_name" : comm_name.GetString(),
                 "model_part_name" : model_part_name
             }
-
             self.ExportCouplingInterface(interface_config)
 
         for model_part_name, comm_name in self.settings["settings"]["model_parts_recv"].items():
@@ -49,8 +50,6 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
 
             self.ImportCouplingInterface(interface_config)
 
-        super(ExternalSolverWrapper, self).Initialize()
-
     def AdvanceInTime(self, current_time):
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
 
@@ -60,13 +59,3 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
-
-    def __CreateModelPartsFromCouplingData(self):
-        '''This function creates the Main-ModelParts that are used for external solvers
-        '''
-        for data in self.data_dict.values():
-            main_model_part_name = data.model_part_name.split(".")[0]
-            if not self.model.HasModelPart(main_model_part_name):
-                self.model.CreateModelPart(main_model_part_name)
-                if self.echo_level > 0:
-                    cs_tools.cs_print_info("ExternalSolverWrapper", 'Created ModelPart "{}" for solver "{}"'.format(main_model_part_name, self.name))

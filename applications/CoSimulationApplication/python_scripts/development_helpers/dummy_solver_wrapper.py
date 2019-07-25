@@ -24,7 +24,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.settings["settings"]["domain_size"].GetInt()
 
-        self._AllocateHistoricalVariablesFromCouplingData()
+        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
     def Initialize(self):
         severity = KM.Logger.GetDefaultOutput().GetSeverity()
