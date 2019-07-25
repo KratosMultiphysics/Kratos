@@ -71,7 +71,7 @@ MPMParticleLagrangeDirichletCondition::~MPMParticleLagrangeDirichletCondition()
 void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
-
+    
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
@@ -109,7 +109,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     )
 {
     KRATOS_TRY
-
+    
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
@@ -259,11 +259,11 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     }
     else{
-        /*// To improve stability: use identity matrix to avoid nonzero diagonal LHS matrix
+        // To improve stability: use identity matrix to avoid nonzero diagonal LHS matrix
         if ( CalculateStiffnessMatrixFlag == true )
         {
             noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
-        }*/
+        }
     }
 
     KRATOS_CATCH( "" )

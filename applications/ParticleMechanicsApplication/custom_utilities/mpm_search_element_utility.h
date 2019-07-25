@@ -52,15 +52,9 @@ namespace MPMSearchElementUtility
         for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
                 auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
                 auto& r_geometry = element_itr->GetGeometry();
-                const unsigned int dim = r_geometry.WorkingSpaceDimension();
+
                 element_itr->Reset(ACTIVE);
 
-                for (IndexType j=0; j < r_geometry.PointsNumber(); ++j){
-                    element_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
-                    element_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
-                    if (dim == 3)
-                        element_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FixDof();
-                }
 
                 for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
                     r_geometry[j].Reset(ACTIVE);
@@ -130,15 +124,6 @@ namespace MPMSearchElementUtility
                             condition_itr->GetGeometry() = pelem->GetGeometry();
                             auto& r_geometry = condition_itr->GetGeometry();
 
-                            const unsigned int dim = r_geometry.WorkingSpaceDimension();
-
-                            for ( IndexType j=0; j < r_geometry.PointsNumber(); ++j )
-                            {
-                                    condition_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FreeDof();
-                                    condition_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FreeDof();
-                                    if (dim == 3)
-                                        condition_itr->GetGeometry()[j].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z)->FreeDof();
-                            }
 
                             for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
                                 r_geometry[j].Set(ACTIVE);
