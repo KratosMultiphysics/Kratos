@@ -11,7 +11,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 # Find trilinos solver package -- this is our own find package!!
-find_package(TRILINOS REQUIRED)
+if (NOT TRILINOS_FOUND)
+  find_package(TRILINOS REQUIRED)
+endif()
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
