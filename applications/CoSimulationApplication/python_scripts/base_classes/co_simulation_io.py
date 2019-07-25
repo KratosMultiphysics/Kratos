@@ -17,6 +17,12 @@ class CoSimulationIO(object):
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
         self.echo_level = self.settings["echo_level"].GetInt()
 
+    def Initialize(self):
+        pass
+
+    def Finalize(self):
+        pass
+
     def ImportCouplingInterface(self, interface_config):
         """Imports coupling interface from an external solver
         External solver sends, CoSimulation receives
