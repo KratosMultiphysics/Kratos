@@ -78,35 +78,11 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # can directly use filecmp because there are no decimal-number issues
         self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
 
-    def test_EMPIRE_API_recvMesh(self):
-        mp_name = "For_Receiving"
-        mesh_file_name = GetMeshFileName(mp_name)
-        model = KM.Model()
-        model_part = model.CreateModelPart(mp_name)
-        model_part_ref = model.CreateModelPart("For_Checking")
+    def test_EMPIRE_API_recvMesh_std_vector(self):
+        self.__TestReceiveMesh(False)
 
-        copyfile(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), mesh_file_name)
-
-        KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part)
-
-        # make sure that the file was deleted
-        self.assertFalse(os.path.isfile(mesh_file_name))
-
-        # reading reference ModelPart (with which the ref-vtk was created)
-        severity = KM.Logger.GetDefaultOutput().GetSeverity()
-        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
-        model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
-        model_part_io.ReadModelPart(model_part_ref)
-        KM.Logger.GetDefaultOutput().SetSeverity(severity)
-
-        self.assertEqual(model_part.NumberOfNodes(), model_part_ref.NumberOfNodes())
-        self.assertEqual(model_part.NumberOfElements(), model_part_ref.NumberOfElements())
-
-        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes)
-
-        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements):
-            self.assertEqual(elem.Id, elem_ref.Id)
-            self.__CompareNodes(elem.GetNodes(), elem_ref.GetNodes())
+    def test_EMPIRE_API_recvMesh_raw_pointers(self):
+        self.__TestReceiveMesh(True)
 
     def test_EMPIRE_API_sendDataField(self):
         fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField
@@ -225,6 +201,36 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of {}, current size: {}".format(len(array_to_test)+2, len(array_to_test))):
             fct_ptr_to_test(array_name, len(array_to_test)+2, array_to_test)
+
+    def __TestReceiveMesh(self, use_raw_pointers):
+        mp_name = "For_Receiving"
+        mesh_file_name = GetMeshFileName(mp_name)
+        model = KM.Model()
+        model_part = model.CreateModelPart(mp_name)
+        model_part_ref = model.CreateModelPart("For_Checking")
+
+        copyfile(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), mesh_file_name)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part, False, use_raw_pointers)
+
+        # make sure that the file was deleted
+        self.assertFalse(os.path.isfile(mesh_file_name))
+
+        # reading reference ModelPart (with which the ref-vtk was created)
+        severity = KM.Logger.GetDefaultOutput().GetSeverity()
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
+        model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
+        model_part_io.ReadModelPart(model_part_ref)
+        KM.Logger.GetDefaultOutput().SetSeverity(severity)
+
+        self.assertEqual(model_part.NumberOfNodes(), model_part_ref.NumberOfNodes())
+        self.assertEqual(model_part.NumberOfElements(), model_part_ref.NumberOfElements())
+
+        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes)
+
+        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements):
+            self.assertEqual(elem.Id, elem_ref.Id)
+            self.__CompareNodes(elem.GetNodes(), elem_ref.GetNodes())
 
     def __CompareNodes(self, nodes, nodes_ref):
         for node, node_ref in zip(nodes, nodes_ref):
