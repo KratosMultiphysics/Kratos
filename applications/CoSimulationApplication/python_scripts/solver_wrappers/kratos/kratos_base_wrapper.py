@@ -19,7 +19,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, solver_name):
         super(KratosBaseWrapper, self).__init__(settings, solver_name)
 
-        input_file_name = self.settings["settings"]["input_file"].GetString()
+        input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 
