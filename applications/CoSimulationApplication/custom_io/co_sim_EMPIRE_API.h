@@ -379,7 +379,7 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
     EMPIRE_API_helpers::RemoveFile(file_name);
 
     if (EMPIRE_API_helpers::PrintTiming) {
-        EMPIRE_API_LOG(0) << "Sending Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        EMPIRE_API_LOG(0) << "Receiving Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 }
 
