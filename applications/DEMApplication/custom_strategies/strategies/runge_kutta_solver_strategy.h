@@ -83,10 +83,6 @@ namespace Kratos
 
         BaseType::InitializeSolutionStep();
 
-        BaseType::SearchDEMOperations(r_model_part);
-        BaseType::SearchFEMOperations(r_model_part);
-        BaseType::ForceOperations(r_model_part);
-
         SchemeRKStepInit();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
@@ -103,6 +99,9 @@ namespace Kratos
         BaseType::ForceOperations(r_model_part);
 
         SchemeRKStep3();
+        BaseType::SearchDEMOperations(r_model_part);
+        BaseType::SearchFEMOperations(r_model_part);
+        BaseType::ForceOperations(r_model_part);
 
         BaseType::FinalizeSolutionStep();
 
