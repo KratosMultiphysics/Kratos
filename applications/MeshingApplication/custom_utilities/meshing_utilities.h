@@ -54,13 +54,19 @@ namespace MeshingUtilities
     /// The index type definition
     typedef std::size_t IndexType;
 
+    /// Definition of the node and geometry
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
     /// The arrays of elements and nodes
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::NodesContainerType NodesArrayType;
-    
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+
     /// Definition of the iterators
     typedef NodesArrayType::iterator NodeItType;
     typedef ElementsArrayType::iterator ElementItType;
+    typedef ConditionsArrayType::iterator ConditionItType;
 
     /**
      * @brief This computes the element size depending of a whole model part and it assigns to the ELEMENT_H variable
@@ -71,7 +77,7 @@ namespace MeshingUtilities
         ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
-    
+
     /**
      * @brief This computes the element size depending of a whole model part and it assigns to the ELEMENT_H variable
      * @param ModelPart The model part where compute the ELEMENT_H
@@ -83,6 +89,36 @@ namespace MeshingUtilities
      * @param itElement The element iterator
      */
     void KRATOS_API(MESHING_APPLICATION) ComputeElementSize(ElementItType itElement);
+
+    /**
+     * @brief This process splits a hexahedra mesh into a tetrahedra mesh
+     * @details One hexahedra can be splitted into 174 different combinations of tetrahedra (https://arxiv.org/pdf/1801.01288)
+     * The node ordering for a hexahedron corresponds with:
+     *             v
+     *      3----------2
+     *      |\     ^   |\
+     *      | \    |   | \
+     *      |  \   |   |  \
+     *      |   7------+---6
+     *      |   |  +-- |-- | -> u
+     *      0---+---\--1   |
+     *       \  |    \  \  |
+     *        \ |     \  \ |
+     *         \|      w  \|
+     *          4----------5
+     * The 6 tetrahedra generated on this method corresponds with:
+     *      - 0-4-5-7
+     *      - 0-5-1-2
+     *      - 0-7-5-2
+     *      - 0-7-2-3
+     *      - 5-7-6-2
+     * @param ModelPart The model part to be splitted
+     * @param ThisParameters The parameters (additional configurations)
+     */
+    void KRATOS_API(MESHING_APPLICATION) HexahedraMeshToTetrahedraMesh(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
 
 }; // namespace MeshingUtilities
 }  // namespace Kratos
