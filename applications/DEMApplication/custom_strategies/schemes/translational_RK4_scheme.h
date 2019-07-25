@@ -40,8 +40,8 @@ namespace Kratos {
             return cloned_scheme;
         }
 
-        BoundedMatrix<double, 3, 3> mRungeKuttaK = ZeroMatrix(4,3);
-        BoundedMatrix<double, 3, 3> mRungeKuttaL = ZeroMatrix(4,3);
+        BoundedMatrix<double, 4, 3> mRungeKuttaK = ZeroMatrix(4,3);
+        BoundedMatrix<double, 4, 3> mRungeKuttaL = ZeroMatrix(4,3);
         array_1d<double, 3> mInitialDispl = ZeroVector(3);
 
         void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;

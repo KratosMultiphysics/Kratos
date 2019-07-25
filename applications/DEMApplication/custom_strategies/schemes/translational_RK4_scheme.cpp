@@ -25,7 +25,6 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
-        KRATOS_WATCH(i)
 
         if(StepFlag == 0) //Init
         {
@@ -79,7 +78,6 @@ namespace Kratos {
 
                     KRATOS_WATCH(StepFlag)
 
-
                     mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
                     mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k) * 0.5;
 
@@ -98,13 +96,9 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     KRATOS_WATCH(StepFlag)
-                    KRATOS_WATCH(mRungeKuttaL)
-                    KRATOS_WATCH(mRungeKuttaK)
 
                     mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
-                    KRATOS_WATCH("1")
                     mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k);
-                    KRATOS_WATCH("2")
 
                     delta_displ[k] = 1.0/6.0 * (mRungeKuttaK(0,k) + 2.0 * mRungeKuttaK(1,k) + 2.0 * mRungeKuttaK(2,k) + mRungeKuttaK(3,k));
                     KRATOS_WATCH(delta_displ[k])

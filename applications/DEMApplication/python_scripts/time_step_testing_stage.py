@@ -6,7 +6,7 @@ import DEM_analysis_stage
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Runge_Kutta", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Velocity_Verlet"]
+        self.schemes_list = ["Runge_Kutta"]
         self.stable_time_steps_list = []
 
     def Run(self):
