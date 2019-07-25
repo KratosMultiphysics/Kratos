@@ -232,6 +232,13 @@ public:
         rOStream << "Small Strain Isotropic Damage 3D constitutive law\n";
     };
 
+    /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rStrainVariable
+     */
+    void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues, Vector& rInternalVariables) override;
+
 protected:
 
     ///@name Protected static Member Variables
@@ -249,15 +256,6 @@ protected:
 
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method computes the stress and constitutive tensor
-     * @param rValues The norm of the deviation stress
-     * @param rStrainVariable
-     */
-    virtual void CalculateStressResponse(
-            ConstitutiveLaw::Parameters &rValues,
-            double &rStrainVariable);
 
     /**
      * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.
