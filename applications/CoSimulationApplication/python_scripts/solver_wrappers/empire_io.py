@@ -15,14 +15,14 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 # Other imports
 import os
 
-def Create(settings, model):
-    return EmpireIO(settings, model)
+def Create(settings, model, solver_name):
+    return EmpireIO(settings, model, solver_name)
 
 class EmpireIO(CoSimulationIO):
     """IO for the legacy EMPIRE_API
     """
-    def __init__(self, settings, model):
-        super(EmpireIO, self).__init__(settings, model)
+    def __init__(self, settings, model, solver_name):
+        super(EmpireIO, self).__init__(settings, model, solver_name)
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect(self.settings["api_configuration_file_name"].GetString())
 
         # delete and recreate communication folder to avoid leftover files

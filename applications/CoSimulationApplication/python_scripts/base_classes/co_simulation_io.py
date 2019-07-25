@@ -3,15 +3,16 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-def Create(settings, model):
+def Create(settings, model, solver_name):
     raise Exception('"CoSimulationIO" is a baseclass and cannot be used directly!')
 
 class CoSimulationIO(object):
     """Baseclass defining the interface for the input and output methods
     for the communication with external solvers
     """
-    def __init__(self, settings, model):
+    def __init__(self, settings, model, solver_name):
         self.model = model
+        self.solver_name = solver_name # name of the owning solver
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())

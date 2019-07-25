@@ -85,7 +85,7 @@ class CoSimulationSolverWrapper(object):
         if not io_settings.Has("echo_level"):
             io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
 
-        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self._GetIOType())
+        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
 
     def ImportCouplingInterface(self, interface_config):
         if self.echo_level > 2:
