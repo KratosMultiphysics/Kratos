@@ -43,7 +43,8 @@ class CoSimulationSolverWrapper(object):
 
 
     def Initialize(self):
-        pass
+        if self.__IOIsCreated():
+            self.__GetIO().Initialize()
 
     def InitializeCouplingInterfaceData(self):
         # Initializing of the CouplingInterfaceData can only be done after the meshes are read
@@ -52,7 +53,8 @@ class CoSimulationSolverWrapper(object):
             data.Initialize()
 
     def Finalize(self):
-        pass
+        if self.__IOIsCreated():
+            self.__GetIO().Finalize()
 
     def AdvanceInTime(self, current_time):
         raise Exception('"AdvanceInTime" must be implemented in the derived class!')
@@ -74,7 +76,7 @@ class CoSimulationSolverWrapper(object):
             data.is_outdated = True
 
 
-    def CreateIO(self, solvers, io_echo_level):
+    def CreateIO(self, io_echo_level):
         if self.__IOIsCreated():
             raise Exception('IO for solver "{}" is already created!'.format(self.name))
 

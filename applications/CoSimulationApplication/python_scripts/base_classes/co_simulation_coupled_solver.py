@@ -32,6 +32,11 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
+        for solver in self.solver_wrappers.values():
+            solver.CreateIO(self.echo_level)
+            # we use the Echo_level of the coupling solver, since IO is needed by the coupling
+            # and not by the (physics-) solver
+
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
             self.settings["predictors"],
@@ -53,10 +58,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for solver in self.solver_wrappers.values():
             solver.Initialize()
 
-        for solver in self.solver_wrappers.values():
-            solver.CreateIO(self.solver_wrappers, self.echo_level)
-            # we use the Echo_level of the coupling solver, since IO is needed by the coupling
-            # and not by the (physics-) solver
+        super(CoSimulationCoupledSolver, self).Initialize()
 
         for predictor in self.predictors_list:
             predictor.Initialize()
@@ -71,6 +73,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver.InitializeCouplingInterfaceData()
 
     def Finalize(self):
+        super(CoSimulationCoupledSolver, self).Finalize()
+
         for solver in self.solver_wrappers.values():
             solver.Finalize()
 
