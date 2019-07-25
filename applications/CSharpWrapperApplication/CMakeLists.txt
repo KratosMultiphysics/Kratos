@@ -5,21 +5,23 @@ message("**** Configuring CSharpWrapperApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories(${CMAKE_SOURCE_DIR}/kratos)
+include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
-set( KRATOS_WRAPPER_SOURCES_CORE
+set(KRATOS_WRAPPER_SOURCES_CORE
         ## MAIN FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/csharp_wrapper_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/csharp_wrapper_application_variables.cpp
 
         ## WRAPPER API
-        ${CMAKE_CURRENT_SOURCE_DIR}/external_interface_bindings.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/kratos_external_bindings.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/mesh_converter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/vector3.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/kratos_internals.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/id_translator.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/kratos_wrapper.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/kratos_wrapper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/model_part_wrapper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/model_part_wrapper_external_bindings.cpp)
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_WRAPPER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)

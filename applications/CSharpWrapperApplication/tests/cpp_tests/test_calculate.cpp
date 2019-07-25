@@ -105,12 +105,13 @@ namespace Kratos {
             const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
             CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
             wrapperInstance->init(file_name.c_str());
-
+            CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
             // Get some API info
-            float *x = wrapperInstance->getXCoordinates();
-            float *y = wrapperInstance->getYCoordinates();
-            float *z = wrapperInstance->getZCoordinates();
-            int n = wrapperInstance->getNodesCount();
+            mainModelPart->retrieveResults();
+            float *x = mainModelPart->getXCoordinates();
+            float *y = mainModelPart->getYCoordinates();
+            float *z = mainModelPart->getZCoordinates();
+            int n = mainModelPart->getNodesCount();
 
             const float float_epsilon = std::numeric_limits<float>::epsilon();
 
@@ -123,9 +124,10 @@ namespace Kratos {
 
             // None fixed
             wrapperInstance->calculate();
-            x = wrapperInstance->getXCoordinates();
-            y = wrapperInstance->getYCoordinates();
-            z = wrapperInstance->getZCoordinates();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -141,15 +143,16 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // All fixed
-            wrapperInstance->updateNodePos(0, x[0], y[0], z[0]);
-            wrapperInstance->updateNodePos(1, x[1], y[1], z[1]);
-            wrapperInstance->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
-            wrapperInstance->updateNodePos(3, x[3], y[3], z[3]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(3, x[3], y[3], z[3]);
 
             wrapperInstance->calculate();
-            x = wrapperInstance->getXCoordinates();
-            y = wrapperInstance->getYCoordinates();
-            z = wrapperInstance->getZCoordinates();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -165,14 +168,15 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // Partially fixed
-            wrapperInstance->updateNodePos(0, x[0], y[0], z[0]);
-            wrapperInstance->updateNodePos(1, x[1], y[1], z[1]);
-            wrapperInstance->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
 
             wrapperInstance->calculate();
-            x = wrapperInstance->getXCoordinates();
-            y = wrapperInstance->getYCoordinates();
-            z = wrapperInstance->getZCoordinates();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -206,12 +210,14 @@ namespace Kratos {
             CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
 
             wrapperInstance->init(file_name.c_str(), file_name_json.c_str());
+            CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
 
             // Get some API info
-            float *x = wrapperInstance->getXCoordinates();
-            float *y = wrapperInstance->getYCoordinates();
-            float *z = wrapperInstance->getZCoordinates();
-            int n = wrapperInstance->getNodesCount();
+            mainModelPart->retrieveResults();
+            float *x = mainModelPart->getXCoordinates();
+            float *y = mainModelPart->getYCoordinates();
+            float *z = mainModelPart->getZCoordinates();
+            int n = mainModelPart->getNodesCount();
 
             const float float_epsilon = std::numeric_limits<float>::epsilon();
 
@@ -224,9 +230,10 @@ namespace Kratos {
 
             // None fixed
             wrapperInstance->calculate();
-            x = wrapperInstance->getXCoordinates();
-            y = wrapperInstance->getYCoordinates();
-            z = wrapperInstance->getZCoordinates();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -242,15 +249,16 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // All fixed
-            wrapperInstance->updateNodePos(0, x[0], y[0], z[0]);
-            wrapperInstance->updateNodePos(1, x[1], y[1], z[1]);
-            wrapperInstance->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
-            wrapperInstance->updateNodePos(3, x[3], y[3], z[3]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(3, x[3], y[3], z[3]);
 
             wrapperInstance->calculate();
-            x = wrapperInstance->getXCoordinates();
-            y = wrapperInstance->getYCoordinates();
-            z = wrapperInstance->getZCoordinates();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -266,14 +274,15 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // Partially fixed
-            wrapperInstance->updateNodePos(0, x[0], y[0], z[0]);
-            wrapperInstance->updateNodePos(1, x[1], y[1], z[1]);
-            wrapperInstance->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
 
             wrapperInstance->calculate();
-            x = wrapperInstance->getXCoordinates();
-            y = wrapperInstance->getYCoordinates();
-            z = wrapperInstance->getZCoordinates();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);

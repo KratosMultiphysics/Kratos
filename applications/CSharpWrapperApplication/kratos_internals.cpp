@@ -3,7 +3,7 @@
 #include "utilities/read_materials_utility.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 
-#define SKIN_SUBMODEL_PART_NAME "skin_model_part"
+//#define SKIN_SUBMODEL_PART_NAME "skin_model_part"
 
 using namespace CSharpKratosWrapper;
 
@@ -43,7 +43,7 @@ void KratosInternals::initModelPart() {
     }
 
     // NOTE: This is hardcoded
-    r_model_part.CreateSubModelPart(SKIN_SUBMODEL_PART_NAME);
+//    r_model_part.CreateSubModelPart(SKIN_SUBMODEL_PART_NAME);
 }
 
 void KratosInternals::loadMDPA(const std::string& rMDPAFilePath) {
@@ -171,10 +171,6 @@ void KratosInternals::solve() {
 
 Kratos::ModelPart& KratosInternals::GetMainModelPart() {
     return mModel.GetModelPart(mModelpartName);
-}
-
-Kratos::ModelPart& KratosInternals::GetSkinModelPart() {
-    return GetMainModelPart().GetSubModelPart(SKIN_SUBMODEL_PART_NAME);
 }
 
 Kratos::Parameters KratosInternals::GetSettings() {
