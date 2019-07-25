@@ -2995,7 +2995,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
     std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;
 
-    // The tempotal store of
+    // The temporal store of elements and conditions
     ConditionsArrayType created_conditions_vector;
     ElementsArrayType created_elements_vector;
 
