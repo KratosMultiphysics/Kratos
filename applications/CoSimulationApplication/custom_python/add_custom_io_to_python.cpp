@@ -256,20 +256,12 @@ void sendMesh_DefaultName(ModelPart& rModelPart, const bool UseConditions)
     sendMesh(rModelPart, rModelPart.Name(), UseConditions);
 }
 
-void recvMesh(ModelPart& rModelPart, const std::string& rName, const bool UseConditions)
+template <typename TDouble, typename TInt>
+static void createModelPartFromReceivedMesh(int numNodes, int numElems, TDouble* nodes, TInt* nodeIDs, TInt* numNodesPerElem, TInt* elem, ModelPart& rModelPart, const bool UseConditions)
 {
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
-
-    int numNodes;
-    int numElems;
-    double** nodes = new double*[1];
-    int** nodeIDs = new int*[1];
-    int** numNodesPerElem = new int*[1];
-    int** elem = new int*[1];
-
-    EMPIRE_API_recvMesh(rName.c_str(), &numNodes, &numElems, nodes, nodeIDs, numNodesPerElem, elem);
 
     const std::unordered_map<int, std::string> element_name_map = {
         // {1 , "Element3D1N"}, // does not yet exist
@@ -304,22 +296,50 @@ void recvMesh(ModelPart& rModelPart, const std::string& rName, const bool UseCon
             rModelPart.CreateNewElement(element_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
         }
     }
-
-    // deallocating memory
-    delete [] nodes[0];
-    delete [] nodeIDs[0];
-    delete [] numNodesPerElem[0];
-    delete [] elem[0];
-
-    delete [] nodes;
-    delete [] nodeIDs;
-    delete [] numNodesPerElem;
-    delete [] elem;
 }
 
-void recvMesh_DefaultName(ModelPart& rModelPart, const bool UseConditions)
+void recvMesh(ModelPart& rModelPart, const std::string& rName, const bool UseConditions, const bool UseRawPointers)
 {
-    recvMesh(rModelPart, rModelPart.Name().c_str(), UseConditions);
+    if (UseRawPointers) {
+        int numNodes;
+        int numElems;
+        double** nodes = new double*[1];
+        int** nodeIDs = new int*[1];
+        int** numNodesPerElem = new int*[1];
+        int** elem = new int*[1];
+
+        EMPIRE_API_recvMesh(rName.c_str(), &numNodes, &numElems, nodes, nodeIDs, numNodesPerElem, elem);
+
+        createModelPartFromReceivedMesh(numNodes, numElems, nodes, nodeIDs, numNodesPerElem, elem, rModelPart, UseConditions);
+
+        // deallocating memory
+        delete [] nodes[0];
+        delete [] nodeIDs[0];
+        delete [] numNodesPerElem[0];
+        delete [] elem[0];
+
+        delete [] nodes;
+        delete [] nodeIDs;
+        delete [] numNodesPerElem;
+        delete [] elem;
+
+    } else {
+        int numNodes;
+        int numElems;
+        std::vector<double> nodes;
+        std::vector<int> nodeIDs;
+        std::vector<int> numNodesPerElem;
+        std::vector<int> elem;
+
+        EMPIRE_API_recvMesh(rName.c_str(), &numNodes, &numElems, &nodes, &nodeIDs, &numNodesPerElem, &elem);
+
+        createModelPartFromReceivedMesh(numNodes, numElems, &nodes, &nodeIDs, &numNodesPerElem, &elem, rModelPart, UseConditions);
+    }
+}
+
+void recvMesh_DefaultName(ModelPart& rModelPart, const bool UseConditions, const bool UseRawPointers)
+{
+    recvMesh(rModelPart, rModelPart.Name().c_str(), UseConditions, UseRawPointers);
 }
 
 } // helpers namespace
@@ -336,10 +356,10 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_getUserDefinedText", EMPIRE_API_getUserDefinedText);
 
     mEMPIREAPI.def("EMPIRE_API_sendMesh", EMPIRE_API_Wrappers::sendMesh, py::arg("model_part"), py::arg("name"), py::arg("use_conditions")=false);
-    mEMPIREAPI.def("EMPIRE_API_recvMesh", EMPIRE_API_Wrappers::recvMesh, py::arg("model_part"), py::arg("name"), py::arg("use_conditions")=false);
+    mEMPIREAPI.def("EMPIRE_API_recvMesh", EMPIRE_API_Wrappers::recvMesh, py::arg("model_part"), py::arg("name"), py::arg("use_conditions")=false, py::arg("use_raw_pointers")=false);
 
     mEMPIREAPI.def("EMPIRE_API_sendMesh", EMPIRE_API_Wrappers::sendMesh_DefaultName, py::arg("model_part"), py::arg("use_conditions")=false);
-    mEMPIREAPI.def("EMPIRE_API_recvMesh", EMPIRE_API_Wrappers::recvMesh_DefaultName, py::arg("model_part"), py::arg("use_conditions")=false);
+    mEMPIREAPI.def("EMPIRE_API_recvMesh", EMPIRE_API_Wrappers::recvMesh_DefaultName, py::arg("model_part"), py::arg("use_conditions")=false, py::arg("use_raw_pointers")=false);
 
     mEMPIREAPI.def("EMPIRE_API_sendDataField", EMPIRE_API_Wrappers::SendArray<true>);
     mEMPIREAPI.def("EMPIRE_API_recvDataField", EMPIRE_API_Wrappers::ReceiveArray<true>);
