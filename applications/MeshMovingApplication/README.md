@@ -1,6 +1,6 @@
 ## MeshMoving Application
 
-The MeshMoving Application (formerly ALEapplication) contains different mesh-solving techniques.
+The MeshMoving Application (formerly ALEapplication) contains different mesh-update techniques.
 
 A typical application for the use of mesh-moving is in Fluid-Structure Interaction (FSI) when the fluid mesh is moved after the displacements of the structure are mapped on the interface
 
