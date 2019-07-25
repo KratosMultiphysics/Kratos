@@ -76,7 +76,7 @@ std::vector<double> BDF::ComputeBDFCoefficients(const ProcessInfo &rProcessInfo)
     return mpAuxBDF->ComputeBDFCoefficients(rProcessInfo);
 }
 
-const std::size_t BDF::GetTimeOrder() const
+std::size_t BDF::GetTimeOrder() const
 {
     return mTimeOrder;
 }
