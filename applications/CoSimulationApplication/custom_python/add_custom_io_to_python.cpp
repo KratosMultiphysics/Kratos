@@ -31,9 +31,9 @@ void SendArray(const std::string& rName, int sizeOfArray, std::vector<double> si
 {
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     if (TIsDataField) {
-        EMPIRE_API_sendDataField(rName.c_str(), sizeOfArray, &signal[0]);
+        EMPIRE_API_sendDataField(rName.c_str(), sizeOfArray, signal.data());
     } else {
-        EMPIRE_API_sendSignal_double(rName.c_str(), sizeOfArray, &signal[0]);
+        EMPIRE_API_sendSignal_double(rName.c_str(), sizeOfArray, signal.data());
     }
 }
 
@@ -46,9 +46,9 @@ void ReceiveArray(const std::string& rName, int sizeOfArray, pybind11::list sign
     // also the list can only be modified in place otherwise the references are not working
     std::vector<double> vec_signal(sizeOfArray);
     if (TIsDataField) {
-        EMPIRE_API_recvDataField(rName.c_str(), sizeOfArray, &vec_signal[0]);
+        EMPIRE_API_recvDataField(rName.c_str(), sizeOfArray, vec_signal.data());
     } else {
-        EMPIRE_API_recvSignal_double(rName.c_str(), sizeOfArray, &vec_signal[0]);
+        EMPIRE_API_recvSignal_double(rName.c_str(), sizeOfArray, vec_signal.data());
     }
 
     // copy back the received values
@@ -70,7 +70,7 @@ void sendDataField_scalar(const ModelPart& rModelPart, const std::string& rName,
         values[counter++] = r_node.FastGetSolutionStepValue(rVariable);
     }
 
-    EMPIRE_API_sendDataField(rName.c_str(), size, &values[0]);
+    EMPIRE_API_sendDataField(rName.c_str(), size, values.data());
 }
 
 void sendDataField_scalar_DefaultName(ModelPart& rModelPart, const Variable<double>& rVariable)
@@ -86,7 +86,7 @@ void recvDataField_scalar(ModelPart& rModelPart, const std::string rName, const 
     const int size = rModelPart.NumberOfNodes();
     std::vector<double> values(size);
 
-    EMPIRE_API_recvDataField(rName.c_str(), size, &values[0]);
+    EMPIRE_API_recvDataField(rName.c_str(), size, values.data());
 
     std::size_t counter=0;
     for (auto& r_node : rModelPart.Nodes()) {
@@ -116,7 +116,7 @@ void sendDataField_vector(const ModelPart& rModelPart, const std::string& rName,
         values[counter++] = r_val[2];
     }
 
-    EMPIRE_API_sendDataField(rName.c_str(), size, &values[0]);
+    EMPIRE_API_sendDataField(rName.c_str(), size, values.data());
 }
 
 void sendDataField_vector_DefaultName(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable)
@@ -132,7 +132,7 @@ void recvDataField_vector(ModelPart& rModelPart, const std::string rName, const 
     const int size = rModelPart.NumberOfNodes()*3;
     std::vector<double> values(size);
 
-    EMPIRE_API_recvDataField(rName.c_str(), size, &values[0]);
+    EMPIRE_API_recvDataField(rName.c_str(), size, values.data());
 
     std::size_t counter=0;
     for (auto& r_node : rModelPart.Nodes()) {
@@ -170,7 +170,7 @@ void sendDataField_doubleVector(const ModelPart& rModelPart, const std::string& 
         values[counter++] = r_val_2[2];
     }
 
-    EMPIRE_API_sendDataField(rName.c_str(), size, &values[0]);
+    EMPIRE_API_sendDataField(rName.c_str(), size, values.data());
 }
 
 void sendDataField_doubleVector_DefaultName(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable1, const Variable< array_1d<double, 3> >& rVariable2)
@@ -188,7 +188,7 @@ void recvDataField_doubleVector(ModelPart& rModelPart, const std::string& rName,
     const int size = rModelPart.NumberOfNodes()*6;
     std::vector<double> values(size);
 
-    EMPIRE_API_recvDataField(rName.c_str(), size, &values[0]);
+    EMPIRE_API_recvDataField(rName.c_str(), size, values.data());
 
     std::size_t counter=0;
     for (auto& r_node : rModelPart.Nodes()) {
@@ -248,7 +248,7 @@ void sendMesh(const ModelPart& rModelPart, const std::string& rName, const bool 
         }
     }
 
-    EMPIRE_API_sendMesh(rName.c_str(), numNodes, numElems, &nodes[0], &nodeIDs[0], &numNodesPerElem[0], &elems[0]);
+    EMPIRE_API_sendMesh(rName.c_str(), numNodes, numElems, nodes.data(), nodeIDs.data(), numNodesPerElem.data(), elems.data());
 }
 
 void sendMesh_DefaultName(ModelPart& rModelPart, const bool UseConditions)
