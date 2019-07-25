@@ -28,11 +28,11 @@ Note:
 #include <iomanip>
 #include <fstream>
 #include <stdexcept>
-#include <stdio.h>
 #include <chrono>
 #include <thread>
 #include <unordered_map>
 #include <chrono>
+#include <vector>
 
 namespace EMPIRE_API_helpers {
 
@@ -169,6 +169,20 @@ static void ReadNumberAfterKeyword(const std::string& rKeyWord, const std::strin
     std::string current_line_substr = rCurrentLine.substr(rCurrentLine.find(rKeyWord) + rKeyWord.length());
     std::istringstream line_stream(current_line_substr);
     line_stream >> rNumber;
+}
+
+template <typename TDataType>
+static void AllocateMemory(TDataType** ppContainer, const std::size_t Size)
+{
+    *ppContainer = new TDataType[Size];
+}
+
+template <typename TDataType>
+static void AllocateMemory(std::vector<TDataType>* pContainer, const std::size_t Size)
+{
+    if (pContainer->size() != Size) {
+        pContainer->resize(Size);
+    }
 }
 
 } // namespace EMPIRE_API_helpers
@@ -311,7 +325,8 @@ static void EMPIRE_API_sendMesh(const char *name, int numNodes, int numElems, do
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
+template <typename TDouble, typename TInt>
+static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, TDouble* nodes, TInt* nodeIDs, TInt* numNodesPerElem, TInt* elem)
 {
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
@@ -336,8 +351,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
 
             // allocating memory for nodes
             // note that this has to be deleted by the client!
-            *nodes = new double[(*numNodes) * 3];
-            *nodeIDs = new int[*numNodes];
+            EMPIRE_API_helpers::AllocateMemory(nodes, (*numNodes) * 3); // *nodes = new double[(*numNodes) * 3];
+            EMPIRE_API_helpers::AllocateMemory(nodeIDs, *numNodes); // *nodeIDs = new int[*numNodes];
 
             for (int i=0; i<*numNodes*3; ++i) {
                 input_file >> (*nodes)[i];
@@ -360,8 +375,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
 
             // allocating memory for elements
             // note that this has to be deleted by the client!
-            *numNodesPerElem = new int[*numElems];
-            *elem = new int[cell_list_size-*numElems];
+            EMPIRE_API_helpers::AllocateMemory(numNodesPerElem, *numElems); // *numNodesPerElem = new int[*numElems];
+            EMPIRE_API_helpers::AllocateMemory(elem, cell_list_size-*numElems); // *elem = new int[cell_list_size-*numElems];
 
             int counter=0;
             for (int i=0; i<*numElems; ++i) {
