@@ -26,7 +26,6 @@
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
-//#include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/gather_modelpart_utility.h"
 #include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
@@ -119,19 +118,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
         .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
         ;
-
-//
-//    typedef TrilinosFractionalStepSettingsPeriodic<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsPeriodicType;
-//
-//    typedef void (TrilinosFSSettingsPeriodicType::*SetStrategyByParamsPeriodicType)(BaseSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
-//    SetStrategyByParamsPeriodicType ThatSetStrategyOverload = &TrilinosFSSettingsPeriodicType::SetStrategy;
-//
-//    py::class_< TrilinosFSSettingsPeriodicType,BaseSettingsType>
-//        (m,"TrilinosFractionalStepSettingsPeriodic").def(py::init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
-//        .def("SetStrategy",ThatSetStrategyOverload)
-//        .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
-//        .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
-//        ;
 
     py::class_<GatherModelPartUtility>(m,"GatherModelPartUtility")
         .def(py::init<int, ModelPart&, int , ModelPart&>() )
