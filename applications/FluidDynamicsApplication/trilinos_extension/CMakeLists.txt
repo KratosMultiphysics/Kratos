@@ -1,9 +1,9 @@
 message("FOUND TRILINOS EXTENSIONS")
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/kratos
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication
-    ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication
+  ${CMAKE_SOURCE_DIR}/kratos
+  ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication
+  ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication
 )
 
 if (NOT TRILINOS_FOUND)
@@ -15,14 +15,14 @@ include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
 file(
-    GLOB_RECURSE
-    KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+  GLOB_RECURSE
+  KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## Python module
 pybind11_add_module( KratosFluidDynamicsTrilinosExtension MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosApplication KratosMPICore)
+target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore)
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
 
 ###############################################################################
@@ -38,7 +38,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###############################################################################
 if(USE_COTIRE MATCHES ON)
-    cotire(KratosFluidDynamicsTrilinosExtension)
+  cotire(KratosFluidDynamicsTrilinosExtension)
 endif(USE_COTIRE MATCHES ON)
 
 ###############################################################################
