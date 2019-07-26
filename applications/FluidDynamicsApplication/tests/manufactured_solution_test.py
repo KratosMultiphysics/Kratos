@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Import Python modules
+import math
+
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -8,9 +11,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
-# Import Python modules
-import math
 
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
