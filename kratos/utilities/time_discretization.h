@@ -22,6 +22,7 @@
 // Project includes
 
 namespace Kratos {
+
 class ProcessInfo; // forward-declaring to not having to include it here
 
 namespace TimeDiscretization {
@@ -73,6 +74,15 @@ public:
      * @return std::vector<double> Vector containing the computed BDF coefficients
      */
     virtual std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+
+    /**
+     * @brief Computes the BDF coefficients
+     * This method computes the BDF coefficients with the information
+     * stored in the provided ProcessInfo. The computed coefficients
+     * are saved in such ProcessInfo container.
+     * @param rProcessInfo ProcessInfo container with DELTA_TIME
+     */
+    void ComputeAndSaveBDFCoefficients(ProcessInfo &rProcessInfo) const;
 
     /**
      * @brief Get the Time Order object
