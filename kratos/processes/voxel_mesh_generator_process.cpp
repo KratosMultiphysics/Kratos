@@ -42,7 +42,7 @@ namespace Kratos
                     Point(MinPoint[0],  MaxPoint[1],  MaxPoint[2]))
 		, mMinPoint(MinPoint)
         , mMaxPoint(MaxPoint)
-        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart) {
+        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mCoarseMeshType(false) {
 
 		Parameters default_parameters(R"(
             {
@@ -56,7 +56,8 @@ namespace Kratos
                 "element_name": "PLEASE SPECIFY IT",
                 "condition_name": "PLEASE SPECIFY IT",
 				"coloring_settings_list": [],
-				"entities_to_generate": "elements"
+				"entities_to_generate": "elements",
+				"mesh_type": "uniform"
             }  )");
 
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
@@ -80,6 +81,8 @@ namespace Kratos
         for(int i = 0 ; i < 3 ; i++)
             mCellSizes[i] /= mNumberOfDivisions[i];
 		mEntitiesToGenerate=TheParameters["entities_to_generate"].GetString();
+		if(TheParameters["mesh_type"].GetString() == "coarse")
+			mCoarseMeshType=true;
 
         Check();
     }
@@ -127,6 +130,71 @@ namespace Kratos
 				ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
 				VoxelMeshColoringProcess(min_point, max_point, number_of_divisions, mrVolumePart, skin_part, item).Execute();
 			}
+		}
+
+		if(mCoarseMeshType){
+			KRATOS_ERROR_IF(mEntitiesToGenerate != "center_of_elements") << "The coarse mesh can be generated only when entities to generate is center_of_elements" << std::endl;
+
+			std::vector<bool> x_cell_coarse(mNumberOfDivisions[0],false);
+			std::vector<bool> y_cell_coarse(mNumberOfDivisions[1],false);
+			std::vector<bool> z_cell_coarse(mNumberOfDivisions[2],false);
+
+			for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
+				for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
+					for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
+						double distance = GetCenterNode(i,j,k).GetSolutionStepValue(DISTANCE);
+						if(distance != GetCenterNode(i-1,j,k).GetSolutionStepValue(DISTANCE))
+							x_cell_coarse[i]=true;
+						if(distance != GetCenterNode(i,j-1,k).GetSolutionStepValue(DISTANCE))
+							y_cell_coarse[j]=true;
+						if(distance != GetCenterNode(i,j,k-1).GetSolutionStepValue(DISTANCE))
+							z_cell_coarse[k]=true;
+					}
+				}
+			}
+
+			std::vector<double> x_key_planes(1,mMinPoint[0]);
+			std::vector<double> y_key_planes(1,mMinPoint[1]);
+			std::vector<double> z_key_planes(1,mMinPoint[2]);
+
+			for(int i = 0 ; i < mNumberOfDivisions[0]; i++){
+				if(x_cell_coarse[i])
+					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
+			}
+
+			for(int i = 0 ; i < mNumberOfDivisions[1]; i++){
+				if(y_cell_coarse[i])
+					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
+			}
+
+			for(int i = 0 ; i < mNumberOfDivisions[2]; i++){
+				if(z_cell_coarse[i])
+					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
+			}
+			
+			KRATOS_WATCH(x_cell_coarse);
+			KRATOS_WATCH(y_cell_coarse);
+			KRATOS_WATCH(z_cell_coarse);
+			KRATOS_WATCH(x_key_planes);
+			KRATOS_WATCH(y_key_planes);
+			KRATOS_WATCH(z_key_planes);
+			KRATOS_WATCH(x_key_planes.size());
+			KRATOS_WATCH(y_key_planes.size());
+			KRATOS_WATCH(z_key_planes.size());
+
+			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+						if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
+							GetCenterNode(i,j,k).Set(NOT_TO_ERASE);
+						}
+						else {
+							GetCenterNode(i,j,k).Set(TO_ERASE);						}
+					}
+				}
+			}
+			mrVolumePart.RemoveNodes();
+			
 		}
 
 	}
@@ -223,6 +291,10 @@ namespace Kratos
 
 	Node<3>::Pointer VoxelMeshGeneratorProcess::pGetNode(std::size_t I, std::size_t J, std::size_t K) {
 		return *(mrVolumePart.NodesBegin() + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I).base();
+	}
+
+	Node<3>& VoxelMeshGeneratorProcess::GetCenterNode(std::size_t I, std::size_t J, std::size_t K) {
+		return *(mrVolumePart.NodesBegin() + (K * mNumberOfDivisions[1] * mNumberOfDivisions[0]) + (J * mNumberOfDivisions[0]) + I);
 	}
 
     int VoxelMeshGeneratorProcess::Check()

@@ -154,6 +154,7 @@ namespace Kratos
           const double mExtraRaysEpsilon = 1.0e-8;
           Parameters mColoringParameters;
           std::string mEntitiesToGenerate;
+          bool mCoarseMeshType;
 
 
       ///@}
@@ -167,6 +168,7 @@ namespace Kratos
           void GenerateCenterOfElements(Point const& rMinPoint, Point const& rMaxPoint);
 
           Node<3>::Pointer pGetNode(std::size_t I, std::size_t J, std::size_t K);
+          Node<3>& GetCenterNode(std::size_t I, std::size_t J, std::size_t K);
             ///@}
       ///@name Private  Access
       ///@{
