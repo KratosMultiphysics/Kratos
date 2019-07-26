@@ -25,5 +25,5 @@ cp -r ./* /buildcache
 echo Cache updated
 
 echo Running tests
-cd ../kratos/python_scripts ${PYTHONPATH}
+cd ../kratos/python_scripts
 python3 run_tests.py -l small -c python3

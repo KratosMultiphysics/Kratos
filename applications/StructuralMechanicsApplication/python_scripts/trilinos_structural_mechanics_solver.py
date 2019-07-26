@@ -3,8 +3,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Importing MPI extensions to Kratos
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
+
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
@@ -40,15 +44,14 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def ImportModelPart(self):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
-        from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
-        self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
+        self.distributed_model_part_importer.ImportModelPart()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
         super(TrilinosMechanicalSolver, self).PrepareModelPart()
         # Construct the mpi-communicator
-        self.trilinos_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Finalize(self):
@@ -73,9 +76,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
-        linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():

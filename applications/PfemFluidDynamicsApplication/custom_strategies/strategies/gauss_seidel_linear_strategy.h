@@ -580,13 +580,12 @@ private:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-        //initial operations ... things that are constant over the Solution Step
+       //initial operations ... things that are constant over the Solution Step
     	pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         //initial operations ... things that are constant over the Solution Step
     	/* boost::timer scheme_initialize_solution_step; */
     	/* pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb); */
-
 
         KRATOS_CATCH("")
     }

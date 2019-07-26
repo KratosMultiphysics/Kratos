@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics as KM
+import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+
 def _CheckIfTypeIsDeprecated(config):
     '''function to translate old/deprecated names to new names
     needed for backwards-compatibility
@@ -27,11 +30,7 @@ def _CheckIfTypeIsDeprecated(config):
         config["solver_type"].SetString(new_name)
 
 def ConstructSolver(configuration):
-
-    import KratosMultiphysics as KM
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-
-    if(type(configuration) != KM.Parameters):
+    if not isinstance(configuration, KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     _CheckIfTypeIsDeprecated(configuration) # for backwards-compatibility
