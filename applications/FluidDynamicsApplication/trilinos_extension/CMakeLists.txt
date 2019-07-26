@@ -44,3 +44,7 @@ endif(USE_COTIRE MATCHES ON)
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )
+
+###############################################################################
+## install python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsTrilinosExtension.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication")
