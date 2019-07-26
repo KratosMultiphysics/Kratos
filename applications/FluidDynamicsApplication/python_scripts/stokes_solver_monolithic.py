@@ -189,7 +189,7 @@ class StokesSolver:
 
     def Solve(self):
         # Compute the BDF coefficients
-        (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         if(self.settings["force_steady_state"].GetBool()):
             bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
@@ -201,7 +201,7 @@ class StokesSolver:
 
     def InitializeSolutionStep(self):
         # Compute the BDF coefficients
-        (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         if(self.settings["force_steady_state"].GetBool()):
             bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]

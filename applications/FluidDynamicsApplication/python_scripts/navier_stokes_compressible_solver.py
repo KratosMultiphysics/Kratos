@@ -172,12 +172,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
 
     def InitializeSolutionStep(self):
-        (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         (self.solver).InitializeSolutionStep()
 
 
     def Solve(self):
-        (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         (self.solver).Solve()
 
     def PrepareModelPart(self):

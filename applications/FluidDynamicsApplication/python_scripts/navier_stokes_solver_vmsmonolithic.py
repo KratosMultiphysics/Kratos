@@ -387,7 +387,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if self._TimeBufferIsInitialized():
             # If required, compute the BDF coefficients
             if hasattr(self, 'time_discretization'):
-                (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
+                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             (self.solver).InitializeSolutionStep()
 

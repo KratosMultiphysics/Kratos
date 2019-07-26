@@ -84,7 +84,7 @@ class StokesSolver:
         print ("Initialization stokes solver finished")
 
     def Solve(self):
-        (self.time_discretization).ComputeBDFCoefficients(self.model_part)
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.model_part.ProcessInfo)
         self.fluid_solver.Solve()
 
     def SetEchoLevel(self, level):

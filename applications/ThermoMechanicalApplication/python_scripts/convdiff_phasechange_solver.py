@@ -176,7 +176,7 @@ class Solver:
 
         #compute BDF2_coefficients
         time_order = 2
-        KratosMultiphysics.TimeDiscretization.BDF(time_order).ComputeBDFCoefficients(self.model_part)
+        KratosMultiphysics.TimeDiscretization.BDF(time_order).ComputeAndSaveBDFCoefficients(self.model_part.ProcessInfo)
 
         self.max_distance = 1e6
         #solve stage0 - pure convection step

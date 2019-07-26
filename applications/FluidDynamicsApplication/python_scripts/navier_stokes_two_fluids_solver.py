@@ -184,7 +184,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
-            (self.time_discretization).ComputeBDFCoefficients(self.GetComputingModelPart())
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
