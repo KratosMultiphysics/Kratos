@@ -21,8 +21,7 @@ int HistoryLinearElastic3DLaw::Check(const Properties& rMaterialProperties,const
     int ierr = BaseType::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    if ( INITIAL_STRESS_TENSOR.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"INITIAL_STRESS_TENSOR Key is 0. Check if all applications were correctly registered.", "" )
+    KRATOS_CHECK_VARIABLE_KEY(INITIAL_STRESS_TENSOR);
 
     return ierr;
 }
