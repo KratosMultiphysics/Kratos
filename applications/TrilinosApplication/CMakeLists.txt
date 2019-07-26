@@ -35,21 +35,19 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
     include_directories(${AMGCL_ROOT})
 endif(TRILINOS_USE_AMGCL MATCHES ON)
 
-# Generate variables with the sources
-set( KRATOS_TRILINOS_APPLICATION_SOURCES
+# Sources for the Trilinos application core
+set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/amgcl_mpi_solver_impl.cpp;
- 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_convergence_criterias_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_schemes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_linear_solvers_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
+)
+
+# Sources for the Python module
+file(
+  GLOB_RECURSE
+  KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## Kratos tests sources. Enabled by default
@@ -58,18 +56,22 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # ###############################################################
-pybind11_add_module(KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_APPLICATION_SOURCES} ${KRATOS_TRILINOS_TEST_SOURCES})
-
+## TrilinosApplication core library (C++ parts)
+add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} ${KRATOS_TRILINOS_TEST_SOURCES} )
 if (HAVE_PASTIX)
-    target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
+    target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
     install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
 
     message("linking PASTIX in the AMGCL lib")
 else(HAVE_PASTIX)
-    target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+    target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
 endif(HAVE_PASTIX)
+set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
-set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")
+## TrilinosApplication python module
+pybind11_add_module( KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES} )
+target_link_libraries( KratosTrilinosApplication PRIVATE KratosTrilinosCore)
+set_target_properties( KratosTrilinosApplication PROPERTIES PREFIX "")
 
 # Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -82,9 +84,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosTrilinosCore)
     cotire(KratosTrilinosApplication)
 endif(USE_COTIRE MATCHES ON)
 
+install(TARGETS KratosTrilinosCore DESTINATION libs )
 install(TARGETS KratosTrilinosApplication DESTINATION libs )
 
 # Kratos Testing. Install everything except sources
