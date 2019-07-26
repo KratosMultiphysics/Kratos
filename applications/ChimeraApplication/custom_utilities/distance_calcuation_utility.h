@@ -74,54 +74,44 @@ public:
      */
     static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
     {
+        typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
+        typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
+        typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
         typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
         IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
-        unsigned int max_level = 100;
-		double max_distance = 200;
 
 #pragma omp parallel for
         for (IndexType i_node = 0; i_node < nnodes; ++i_node)
         {
             auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            double &node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            node_distance = 0;
+            it_node->FastGetSolutionStepValue(DISTANCE, 0) = 0.0;
+            it_node->FastGetSolutionStepValue(DISTANCE, 1) = 0.0;
+            it_node->SetValue(DISTANCE, 0.0);
         }
 
         CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
 
-        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
-    }
 
-    /**
-     * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
-     * @param rBackgroundModelPart The background modelpart where distances are calculated.
-     * @param rSkinModelPart The skin modelpart from where the distances are calculated
-     */
-    static inline void CalculateDistanceChimeraApplication(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
-    {
-        IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
+        // Parameters amgcl_settings(R"(
+        //     {
+        //         "solver_type"                   : "amgcl",
+        //         "tolerance"                     : 0.001,
+        //         "max_iteration"                 : 200,
+        //         "krylov_type"                   : "gmres",
+        //         "smoother_type"                 : "ilu0",
+        //         "verbosity"                     : 0
+        //     }
+        //     )");
+        // const int max_iterations = 1;
+        // LinearSolverFactoryType const &linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
+        // auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
+        // VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver, max_iterations, VariationalDistanceCalculationProcessType::CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute();
+
         unsigned int max_level = 100;
 		double max_distance = 200;
-
-#pragma omp parallel for
-        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
-        {
-            auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            double &node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            node_distance = 0;
-        }
-
-        if(TDim ==2)
-            CalculateSignedDistanceTo2DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
-        else if(TDim==3)
-            CalculateSignedDistanceTo3DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
-
+        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
         p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
     }
-
-
 
     ///@}
     ///@name Access
