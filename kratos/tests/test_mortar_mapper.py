@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.basic_mapping_process import BasicMappingProcess
+
 import os
 import math
 
@@ -45,10 +47,12 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, x)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, y)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, z)
-        del(node)
 
-        map_parameters = KratosMultiphysics.Parameters("""
+        # Double parameters
+        double_map_parameters = KratosMultiphysics.Parameters("""
         {
+            "origin_model_part_name"           : "please_specify_model_part_name",
+            "destination_model_part_name"      : "please_specify_model_part_name",
             "echo_level"                       : 0,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
@@ -60,26 +64,60 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             "destination_are_conditions"       : true
         }
         """)
-        map_parameters["discontinuous_interface"].SetBool(discontinuous)
-        map_parameters["origin_are_conditions"].SetBool(origin_are_conditions)
-        map_parameters["destination_are_conditions"].SetBool(destination_are_conditions)
+        double_map_parameters["discontinuous_interface"].SetBool(discontinuous)
+        double_map_parameters["origin_are_conditions"].SetBool(origin_are_conditions)
+        double_map_parameters["destination_are_conditions"].SetBool(destination_are_conditions)
+        double_map_parameters["origin_model_part_name"].SetString(self.model_part_master.Name)
+        double_map_parameters["destination_model_part_name"].SetString(self.model_part_slave.Name)
 
         if pure_implicit:
-            #linear_solver = ExternalSolversApplication.SuperLUSolver()
-            linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        else:
-            linear_solver = None
+            linear_solver_settings = KratosMultiphysics.Parameters("""
+            {
+                "solver_type" : "skyline_lu_factorization"
+            }
+            """)
+            double_map_parameters.AddValue("linear_solver_settings", linear_solver_settings)
 
-        self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
-        map_parameters["origin_variable"].SetString("DISPLACEMENT")
-        self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
+        self.mortar_mapping_double = BasicMappingProcess(self.model, double_map_parameters)
+
+        # Vector parameters
+        vector_map_parameters = KratosMultiphysics.Parameters("""
+        {
+            "origin_model_part_name"           : "please_specify_model_part_name",
+            "destination_model_part_name"      : "please_specify_model_part_name",
+            "echo_level"                       : 0,
+            "absolute_convergence_tolerance"   : 1.0e-9,
+            "relative_convergence_tolerance"   : 1.0e-4,
+            "max_number_iterations"            : 10,
+            "integration_order"                : 2,
+            "origin_variable"                  : "DISPLACEMENT",
+            "discontinuous_interface"          : false,
+            "origin_are_conditions"            : true,
+            "destination_are_conditions"       : true
+        }
+        """)
+        vector_map_parameters["discontinuous_interface"].SetBool(discontinuous)
+        vector_map_parameters["origin_are_conditions"].SetBool(origin_are_conditions)
+        vector_map_parameters["destination_are_conditions"].SetBool(destination_are_conditions)
+        vector_map_parameters["origin_model_part_name"].SetString(self.model_part_master.Name)
+        vector_map_parameters["destination_model_part_name"].SetString(self.model_part_slave.Name)
+
+        if pure_implicit:
+            linear_solver_settings = KratosMultiphysics.Parameters("""
+            {
+                "solver_type" : "skyline_lu_factorization"
+            }
+            """)
+            vector_map_parameters.AddValue("linear_solver_settings", linear_solver_settings)
+
+        self.mortar_mapping_vector = BasicMappingProcess(self.model, vector_map_parameters)
 
     def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False, discontinuous = False, origin_are_conditions = True, destination_are_conditions = True):
 
         self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions)
 
-        self.mortar_mapping_double.Execute()
-        self.mortar_mapping_vector.Execute()
+        self.mortar_mapping_double.ExecuteInitializeSolutionStep()
+        self.mortar_mapping_vector.ExecuteInitializeSolutionStep()
 
         # Debug postprocess file
         #self.__post_process()
