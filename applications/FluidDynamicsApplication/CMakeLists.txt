@@ -5,6 +5,7 @@ message("**** configuring KratosFluidDynamicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+  message("Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
 endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
 
@@ -95,9 +96,6 @@ set( KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
-#get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-#message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
 
 ###############################################################################
 ## FluidDynamicsApplication core library (C++ parts)
