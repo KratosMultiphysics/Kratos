@@ -153,6 +153,7 @@ namespace Kratos
 
         // Registering condition variables
         // Essential Boundary Conditions
+        KRATOS_REGISTER_VARIABLE( BOUNDARY_CONDITION_TYPE )
         KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
 
         // Nodal load variables
