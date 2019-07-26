@@ -64,9 +64,9 @@ class FluidTransportSolver(PythonSolver):
         thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
         thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
 
-        #TODO: check if PFEM2 is on
-        thermal_settings.SetProjectionVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
+        if self.settings["pfem2_convection_settings"]["use_pfem2_convection"].GetBool():
+            thermal_settings.SetProjectionVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
 
         ## ConvectionDiffusionSettings Variable
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
@@ -211,12 +211,6 @@ class FluidTransportSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self._GetParticlesStage().ExecuteInitializeSolutionStep()
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-            KratosFluidTransport.PHI_THETA,
-            KratosMultiphysics.TEMPERATURE,
-            self.main_model_part,
-            self.main_model_part,
-            1) # Copy Unknown var to TEMPERATURE on the previous time step (convected) before solving the system
         self.Solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -228,12 +222,6 @@ class FluidTransportSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.Solver.FinalizeSolutionStep()
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-            KratosMultiphysics.TEMPERATURE,
-            KratosFluidTransport.PHI_THETA,
-            self.main_model_part,
-            self.main_model_part,
-            0) # Copy again the TEMPERATURE to Unknown var before updating the particles
         self._GetParticlesStage().ExecuteFinalizeSolutionStep()
 
     def Solve(self):
@@ -451,7 +439,8 @@ class FluidTransportSolver(PythonSolver):
             convection_settings["Parameters"] = self.settings["pfem2_convection_settings"].Clone()
             convection_settings["Parameters"].RemoveValue("use_pfem2_convection")
             convection_settings["Parameters"].AddValue("model_part_name", self.settings["model_part_name"])
-            import KratosMultiphysics.ConvectionDiffusionApplication.pfem2_convection_process as module
+            convection_settings["Parameters"].AddValue("crank_nicolson_theta", self.settings["newmark_theta"])
+            import KratosMultiphysics.FluidTransportApplication.pfem2_fluid_transport_process as module
             return module.Factory(convection_settings, self.model)
         else:
             return KratosMultiphysics.Process()
