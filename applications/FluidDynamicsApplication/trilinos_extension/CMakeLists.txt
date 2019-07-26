@@ -24,3 +24,23 @@ file(
 pybind11_add_module( KratosFluidDynamicsTrilinosExtension MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosApplication KratosMPICore)
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
+
+###############################################################################
+# changing the .dll suffix to .pyd
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+# changing the .dylib suffix to .so
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES SUFFIX .so)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+###############################################################################
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosFluidDynamicsTrilinosExtension)
+endif(USE_COTIRE MATCHES ON)
+
+###############################################################################
+## installing the resulting libraries
+install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )
