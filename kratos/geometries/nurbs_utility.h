@@ -79,12 +79,13 @@ public:     // static methods
         return Row * Cols + Col;
     }
 
-    static constexpr inline std::pair<int, int> GetDoubleIndex(const int Rows,
+    static inline std::pair<int, int> GetDoubleIndex(const int Rows,
         const int Cols, const int Index) noexcept
     {
         const int row = Index / Cols;
         const int col = Index % Cols;
-        return {row, col};
+
+        return std::make_pair(row, col);
     }
 }; // class NurbsUtility
 
