@@ -112,12 +112,12 @@ namespace Kratos
             MathUtils<double>::CrossProduct(G1xG2, G1, G2);
             dV = inner_prod(G1xG2, mInitialMetric.a3_KL);
 
-            array_1d<double, 5> strain_vector;
+            array_1d<double, 5> strain_vector = ZeroVector(5);
             Matrix B = ZeroMatrix(5, mat_size);
             boperator_nln_linearisiert(B, strain_vector, actual_metric, CalculateStiffnessMatrixFlag);
 
             ConstitutiveVariables constitutive_variables(5);
-            CalculateConstitutiveVariables(actual_metric, w, Dw_D1, Dw_D2, strain_vector, constitutive_variables, Values, 
+            CalculateConstitutiveVariables(actual_metric, strain_vector, constitutive_variables, Values, 
                 ConstitutiveLaw::StressMeasure_PK2);
 
             double integration_weight = mGaussQuadratureThickness.integration_weight_thickness(Gauss_index) * 
@@ -386,13 +386,12 @@ namespace Kratos
         array_1d<double, 3>&      rG1,
         array_1d<double, 3>&      rG2)
     {
-        Vector DA3_D1 = ZeroVector(3);
-        Vector DA3_D2 = ZeroVector(3);
-        Vector DA1_D1xA2 = ZeroVector(3);
-        Vector A1xDA2_D1 = ZeroVector(3);
-        Vector DA1_D2xA2 = ZeroVector(3);
-        Vector A1xDA2_D2 = ZeroVector(3);
-        Vector G1xG2 = ZeroVector(3);
+        array_1d<double, 3> DA3_D1 = ZeroVector(3);
+        array_1d<double, 3> DA3_D2 = ZeroVector(3);
+        array_1d<double, 3> DA1_D1xA2 = ZeroVector(3);
+        array_1d<double, 3> A1xDA2_D1 = ZeroVector(3);
+        array_1d<double, 3> DA1_D2xA2 = ZeroVector(3);
+        array_1d<double, 3> A1xDA2_D2 = ZeroVector(3);
 
         MathUtils<double>::CrossProduct(DA1_D1xA2, mInitialMetric.Da1_D1, mInitialMetric.a2);
         MathUtils<double>::CrossProduct(A1xDA2_D1, mInitialMetric.a1, mInitialMetric.Da1_D2); // DA1_D2 = DA2_D1
@@ -519,9 +518,6 @@ namespace Kratos
 
     void IgaShell5pElementStuttgart::CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
-        const Vector& rw,
-        const Vector& rDw_D1,
-        const Vector& rDw_D2,
         const array_1d<double, 5>& rStrainVector,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
@@ -2268,8 +2264,7 @@ namespace Kratos
 
             array_1d<double, 5> strain_vector;
             ConstitutiveVariables constitutive_variables(5);
-            CalculateConstitutiveVariables(actual_metric, w, 
-                Dw_D1, Dw_D2, strain_vector, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+            CalculateConstitutiveVariables(actual_metric, strain_vector, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
 
             array_1d<double, 3> G1 = ZeroVector(3);
             array_1d<double, 3> G2 = ZeroVector(3);

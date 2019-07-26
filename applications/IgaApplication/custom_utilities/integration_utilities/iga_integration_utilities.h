@@ -202,108 +202,108 @@ namespace IgaIntegrationUtilities
                         new_elements.push_back(element);
                     }
                 }
-                else if (rClipper.SpanTrimType(i, j) == ANurbs::Trimmed)
-                {
-                    auto polygons = rClipper.SpanPolygons(i, j);
+                // else if (rClipper.SpanTrimType(i, j) == ANurbs::Trimmed)
+                // {
+                //     auto polygons = rClipper.SpanPolygons(i, j);
 
-                    for (int p = 0; p < polygons.size(); ++p)
-                    {
-                        auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
+                //     for (int p = 0; p < polygons.size(); ++p)
+                //     {
+                //         auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
 
-                        integration_point_polygon.Compute(degree, polygons[p]);
+                //         integration_point_polygon.Compute(degree, polygons[p]);
 
-                        for (int i = 0; i < integration_point_polygon.NbIntegrationPoints(); ++i)
-                        {
-                            array_1d<double, 2> local_coordinates;
-                            local_coordinates[0] = integration_point_polygon.IntegrationPoint(i).u;
-                            local_coordinates[1] = integration_point_polygon.IntegrationPoint(i).v;
+                //         for (int i = 0; i < integration_point_polygon.NbIntegrationPoints(); ++i)
+                //         {
+                //             array_1d<double, 2> local_coordinates;
+                //             local_coordinates[0] = integration_point_polygon.IntegrationPoint(i).u;
+                //             local_coordinates[1] = integration_point_polygon.IntegrationPoint(i).v;
 
-                            shape.Compute(
-                                pSurface->KnotsU(),
-                                pSurface->KnotsV(),
-                                pSurface->Weights(),
-                                integration_point_polygon.IntegrationPoint(i).u,
-                                integration_point_polygon.IntegrationPoint(i).v);
+                //             shape.Compute(
+                //                 pSurface->KnotsU(),
+                //                 pSurface->KnotsV(),
+                //                 pSurface->Weights(),
+                //                 integration_point_polygon.IntegrationPoint(i).u,
+                //                 integration_point_polygon.IntegrationPoint(i).v);
 
-                            int number_of_non_zero_cps = integration_point_polygon.NbIntegrationPoints();
-                            Element::GeometryType::PointsArrayType non_zero_control_points;
-                            Vector shape_function(number_of_non_zero_cps);
-                            Matrix shape_function_derivative(number_of_non_zero_cps, 2);
-                            Matrix shape_function_second_derivative(number_of_non_zero_cps, 3);
-                            Matrix shape_function_third_derivative(number_of_non_zero_cps, 4);
+                //             int number_of_non_zero_cps = integration_point_polygon.NbIntegrationPoints();
+                //             Element::GeometryType::PointsArrayType non_zero_control_points;
+                //             Vector shape_function(number_of_non_zero_cps);
+                //             Matrix shape_function_derivative(number_of_non_zero_cps, 2);
+                //             Matrix shape_function_second_derivative(number_of_non_zero_cps, 3);
+                //             Matrix shape_function_third_derivative(number_of_non_zero_cps, 4);
 
-                            array_1d<double, 3> location = ZeroVector(3);
-                            for (int n = 0; n < number_of_non_zero_cps; ++n)
-                            {
-                                int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
-                                int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+                //             array_1d<double, 3> location = ZeroVector(3);
+                //             for (int n = 0; n < number_of_non_zero_cps; ++n)
+                //             {
+                //                 int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+                //                 int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-                                non_zero_control_points.push_back(pSurface->GetNode(
-                                    shape.NonzeroPoleIndices()[n].first,
-                                    shape.NonzeroPoleIndices()[n].second));
+                //                 non_zero_control_points.push_back(pSurface->GetNode(
+                //                     shape.NonzeroPoleIndices()[n].first,
+                //                     shape.NonzeroPoleIndices()[n].second));
 
-                                if (ShapeFunctionDerivativesOrder > -1)
-                                    shape_function[n] = shape(0, indexU, indexV);
-                                if (ShapeFunctionDerivativesOrder > 0)
-                                {
-                                    shape_function_derivative(n, 0) = shape(1, indexU, indexV);
-                                    shape_function_derivative(n, 1) = shape(2, indexU, indexV);
-                                }
-                                if (ShapeFunctionDerivativesOrder > 1)
-                                {
-                                    shape_function_second_derivative(n, 0) = shape(3, indexU, indexV);
-                                    shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
-                                    shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
-                                }
-                                if (ShapeFunctionDerivativesOrder > 2)
-                                {
-                                    shape_function_third_derivative(n, 0) = shape(6, indexU, indexV);
-                                    shape_function_third_derivative(n, 1) = shape(7, indexU, indexV);
-                                    shape_function_third_derivative(n, 2) = shape(8, indexU, indexV);
-                                    shape_function_third_derivative(n, 3) = shape(9, indexU, indexV);
-                                }
+                //                 if (ShapeFunctionDerivativesOrder > -1)
+                //                     shape_function[n] = shape(0, indexU, indexV);
+                //                 if (ShapeFunctionDerivativesOrder > 0)
+                //                 {
+                //                     shape_function_derivative(n, 0) = shape(1, indexU, indexV);
+                //                     shape_function_derivative(n, 1) = shape(2, indexU, indexV);
+                //                 }
+                //                 if (ShapeFunctionDerivativesOrder > 1)
+                //                 {
+                //                     shape_function_second_derivative(n, 0) = shape(3, indexU, indexV);
+                //                     shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
+                //                     shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
+                //                 }
+                //                 if (ShapeFunctionDerivativesOrder > 2)
+                //                 {
+                //                     shape_function_third_derivative(n, 0) = shape(6, indexU, indexV);
+                //                     shape_function_third_derivative(n, 1) = shape(7, indexU, indexV);
+                //                     shape_function_third_derivative(n, 2) = shape(8, indexU, indexV);
+                //                     shape_function_third_derivative(n, 3) = shape(9, indexU, indexV);
+                //                 }
 
-                                location += non_zero_control_points.back().Coordinates()*shape_function(n);
-                            }
+                //                 location += non_zero_control_points.back().Coordinates()*shape_function(n);
+                //             }
 
-                            Element ele(0, non_zero_control_points);
+                //             Element ele(0, non_zero_control_points);
 
-                            Element::Pointer element = Kratos::make_shared<Element>(ele);
+                //             Element::Pointer element = Kratos::make_shared<Element>(ele);
 
-                            if (ShapeFunctionDerivativesOrder > -1)
-                            {
-                                element->SetValue(
-                                    SHAPE_FUNCTION_VALUES,
-                                    shape_function);
-                            }
-                            if (ShapeFunctionDerivativesOrder > 0)
-                            {
-                                element->SetValue(
-                                    SHAPE_FUNCTION_LOCAL_DERIVATIVES,
-                                    shape_function_derivative);
-                            }
-                            if (ShapeFunctionDerivativesOrder > 1)
-                            {
-                                element->SetValue(
-                                    SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES,
-                                    shape_function_second_derivative);
-                            }
-                            if (ShapeFunctionDerivativesOrder > 2)
-                            {
-                                element->SetValue(
-                                    SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES,
-                                    shape_function_third_derivative);
-                            }
-                            element->SetValue(
-                                INTEGRATION_WEIGHT,
-                                integration_point_polygon.IntegrationPoint(i).weight);
+                //             if (ShapeFunctionDerivativesOrder > -1)
+                //             {
+                //                 element->SetValue(
+                //                     SHAPE_FUNCTION_VALUES,
+                //                     shape_function);
+                //             }
+                //             if (ShapeFunctionDerivativesOrder > 0)
+                //             {
+                //                 element->SetValue(
+                //                     SHAPE_FUNCTION_LOCAL_DERIVATIVES,
+                //                     shape_function_derivative);
+                //             }
+                //             if (ShapeFunctionDerivativesOrder > 1)
+                //             {
+                //                 element->SetValue(
+                //                     SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES,
+                //                     shape_function_second_derivative);
+                //             }
+                //             if (ShapeFunctionDerivativesOrder > 2)
+                //             {
+                //                 element->SetValue(
+                //                     SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES,
+                //                     shape_function_third_derivative);
+                //             }
+                //             element->SetValue(
+                //                 INTEGRATION_WEIGHT,
+                //                 integration_point_polygon.IntegrationPoint(i).weight);
 
-                            element->SetValue(LOCAL_COORDINATES, local_coordinates);
+                //             element->SetValue(LOCAL_COORDINATES, local_coordinates);
 
-                            new_elements.push_back(element);
-                        }
-                    }
-                }
+                //             new_elements.push_back(element);
+                //         }
+                //     }
+                // }
             }
         }
         return new_elements;

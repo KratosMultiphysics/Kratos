@@ -417,9 +417,6 @@ private:
     */
     void CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
-        const Vector& rw,
-        const Vector& rDw_D1,
-        const Vector& rDw_D2,
         const array_1d<double, 5>& rStrainVector,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
