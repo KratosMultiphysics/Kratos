@@ -32,7 +32,7 @@
 namespace Kratos
 {
 
-class PostProcessUtilities {
+class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) PostProcessUtilities {
 
 public:
 
@@ -40,7 +40,11 @@ KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
 
 /// Default constructor.
 
-PostProcessUtilities(ModelPart& rModelPart) : mrModelPart(rModelPart){}
+PostProcessUtilities(ModelPart& rModelPart) : mrModelPart(rModelPart) {
+    KRATOS_TRY
+
+    KRATOS_CATCH("")
+}
 
 /// Destructor.
 
