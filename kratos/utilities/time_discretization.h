@@ -23,7 +23,6 @@
 
 namespace Kratos {
 
-class ModelPart; // forward-declaring to not having to include it here
 class ProcessInfo; // forward-declaring to not having to include it here
 
 namespace TimeDiscretization {
@@ -51,15 +50,6 @@ public:
     virtual ~BDF() = default;
 
     /**
-     * @brief Computes the BDF coefficients
-     * This method computes the BDF coefficients with the information
-     * stored in the ProcessInfo of a provided model part. The computed
-     * coefficients are saved in such ProcessInfo container.
-     * @param rModelPart Model part to retrieve the ProcessInfo from
-     */
-    void ComputeBDFCoefficients(ModelPart &rModelPart) const;
-
-    /**
      * @brief Return the BDF coefficients
      * This method computes the BDF coefficients for a provided time step
      * @param DeltaTime Time step to compute the BDF coefficients
@@ -84,6 +74,15 @@ public:
      * @return std::vector<double> Vector containing the computed BDF coefficients
      */
     virtual std::vector<double> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
+
+    /**
+     * @brief Computes the BDF coefficients
+     * This method computes the BDF coefficients with the information
+     * stored in the provided ProcessInfo. The computed coefficients
+     * are saved in such ProcessInfo container.
+     * @param rProcessInfo ProcessInfo container with DELTA_TIME
+     */
+    void ComputeAndSaveBDFCoefficients(ProcessInfo &rProcessInfo) const;
 
     /**
      * @brief Get the Time Order object
