@@ -772,7 +772,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         }
         else
         {
-            rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
+            rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
         }
 
         rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
@@ -1191,11 +1191,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
 
     if (conductivity < rVariables.HighTolerance)
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / rVariables.HighTolerance;
+        rVariables.Peclet = NormVel * rVariables.lv / rVariables.HighTolerance;
     }
     else
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
+        rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
     }
 
 }

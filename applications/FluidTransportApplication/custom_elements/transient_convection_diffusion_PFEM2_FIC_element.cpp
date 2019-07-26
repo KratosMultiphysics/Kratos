@@ -197,7 +197,7 @@ void TransientConvectionDiffusionPFEM2FICElement<TDim,TNumNodes>::CalculateDiffu
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
+        rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
 
     }
     else
@@ -208,7 +208,7 @@ void TransientConvectionDiffusionPFEM2FICElement<TDim,TNumNodes>::CalculateDiffu
         }
         else
         {
-            rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
+            rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
         }
 
         rVariables.OmegaV = rVariables.TransientAbsorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
@@ -290,8 +290,13 @@ void TransientConvectionDiffusionPFEM2FICElement<TDim,TNumNodes>::CalculateDiffu
 
     // double NormAux2 = norm_2(NormAux1);
 
-    rVariables.Residual = rVariables.rho_dot_c * inner_prod (rVariables.VelInter , rVariables.GradPhi)
-                            - rVariables.NormAux2 * conductivity
+    // rVariables.Residual = rVariables.rho_dot_c * inner_prod (rVariables.VelInter , rVariables.GradPhi)
+    //                         - rVariables.NormAux2 * conductivity
+    //                         + rVariables.absorption * inner_prod(rVariables.N, NodalPhi0)
+    //                         - rVariables.QSource;
+
+    // In PFEM2 the advective term is not needed
+    rVariables.Residual =   - rVariables.NormAux2 * conductivity
                             + rVariables.absorption * inner_prod(rVariables.N, NodalPhi0)
                             - rVariables.QSource;
 
@@ -444,7 +449,7 @@ void TransientConvectionDiffusionPFEM2FICElement<TDim,TNumNodes>::CalculateDiffu
         rVariables.CosinusNormals = 1.0;
     }
 
-    noalias(rVariables.DifMatrixV) = 0 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
+    noalias(rVariables.DifMatrixV) = 0.0 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
                                                  * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInter);
 
 KRATOS_CATCH("")
