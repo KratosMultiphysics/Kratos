@@ -31,11 +31,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         far_field_model_part_name = settings["far_field_model_part_name"].GetString()
-        if far_field_model_part_name == "":
-            err_msg = "Empty model_part_name in ComputeLiftProcess\n"
-            err_msg += "Please specify the model part that contains the far field surface nodes"
-            raise Exception(err_msg)
-        self.far_field_model_part = Model[far_field_model_part_name]
+        if far_field_model_part_name != "":
+            self.far_field_model_part = Model[far_field_model_part_name]
+            self.compute_far_field_forces = True
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
@@ -48,7 +46,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.__CalculateWakeTangentAndNormalDirections()
         self.__ComputeLiftFromPressure()
-        self.__ComputeLiftFromFarField()
+        if self.compute_far_field_forces:
+            self.__ComputeLiftFromFarField()
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.__ComputeMomentFromPressure()
             self.__ComputeLiftFromJumpCondition()
