@@ -99,6 +99,8 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
 
 static void SendArray(const std::string& rFileName, const int sizeOfArray, const double *data)
 {
+    EMPIRE_API_LOG(2) << "Attempting to send array \"" << rFileName << "\" with size: " << sizeOfArray << " ..." << std::endl;
+
     const auto start_time(std::chrono::steady_clock::now());
 
     std::ofstream output_file;
@@ -117,6 +119,8 @@ static void SendArray(const std::string& rFileName, const int sizeOfArray, const
     output_file.close();
     MakeFileVisible(rFileName);
 
+    EMPIRE_API_LOG(2) << "Finished sending array" << std::endl;
+
     if (PrintTiming) {
         EMPIRE_API_LOG(0) << "Sending Array \"" << rFileName << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
@@ -124,6 +128,8 @@ static void SendArray(const std::string& rFileName, const int sizeOfArray, const
 
 static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, double *data)
 {
+    EMPIRE_API_LOG(2) << "Attempting to receive array \"" << rFileName << "\" with size: " << sizeOfArray << " ..." << std::endl;
+
     WaitForFile(rFileName);
 
     const auto start_time(std::chrono::steady_clock::now());
@@ -147,6 +153,8 @@ static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, do
     }
 
     RemoveFile(rFileName);
+
+    EMPIRE_API_LOG(2) << "Finished receiving array" << std::endl;
 
     if (PrintTiming) {
         EMPIRE_API_LOG(0) << "Receiving Array \"" << rFileName << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
@@ -262,6 +270,8 @@ static char *EMPIRE_API_getUserDefinedText(char *elementName)
  ***********/
 static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int numElems, const double *nodes, const int *nodeIDs, const int *numNodesPerElem, const int *elems)
 {
+    EMPIRE_API_LOG(2) << "Attempting to send mesh \"" << std::string(name) << "\" with " << numNodes << " Nodes | " << numElems << " Elements ..." << std::endl;
+
     const auto start_time(std::chrono::steady_clock::now());
 
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
@@ -321,6 +331,8 @@ static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int 
     output_file.close();
     EMPIRE_API_helpers::MakeFileVisible(file_name);
 
+    EMPIRE_API_LOG(2) << "Finished sending mesh" << std::endl;
+
     if (EMPIRE_API_helpers::PrintTiming) {
         EMPIRE_API_LOG(0) << "Sending Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
@@ -339,6 +351,8 @@ static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int 
 template <typename TDouble, typename TInt>
 static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, TDouble* nodes, TInt* nodeIDs, TInt* numNodesPerElem, TInt* elem)
 {
+    EMPIRE_API_LOG(2) << "Attempting to receive mesh \"" << std::string(name) << "\" ..." << std::endl;
+
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     EMPIRE_API_helpers::WaitForFile(file_name);
@@ -359,6 +373,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
             nodes_read = true;
 
             EMPIRE_API_helpers::ReadNumberAfterKeyword("POINTS", current_line, *numNodes);
+
+            EMPIRE_API_LOG(2) << "Mesh contains " << *numNodes << " Nodes" << std::endl;
 
             // allocating memory for nodes
             // note that this has to be deleted by the client!
@@ -384,6 +400,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
             line_stream >> *numElems;
             line_stream >> cell_list_size;
 
+            EMPIRE_API_LOG(2) << "Mesh contains " << *numElems << " Elements" << std::endl;
+
             // allocating memory for elements
             // note that this has to be deleted by the client!
             EMPIRE_API_helpers::AllocateMemory(numNodesPerElem, *numElems); // *numNodesPerElem = new int[*numElems];
@@ -403,6 +421,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
     }
 
     EMPIRE_API_helpers::RemoveFile(file_name);
+
+    EMPIRE_API_LOG(2) << "Finished receiving mesh" << std::endl;
 
     if (EMPIRE_API_helpers::PrintTiming) {
         EMPIRE_API_LOG(0) << "Receiving Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
