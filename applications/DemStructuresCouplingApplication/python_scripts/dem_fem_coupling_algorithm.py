@@ -24,14 +24,14 @@ class Algorithm(object):
         self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution(self.model)
         self.dem_solution.coupling_algorithm = weakref.proxy(self)
 
-        import structural_mechanics_analysis
+        from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
         structural_parameters_file_name = "ProjectParameters.json"
 
         with open(structural_parameters_file_name,'r') as parameter_file:
             parameters = Kratos.Parameters(parameter_file.read())
 
         # Create structural solver, main_model_part and added variables
-        self.structural_solution = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, parameters)
+        self.structural_solution = StructuralMechanicsAnalysis(self.model, parameters)
 
         self.AddDEMVariablesToStructural()
 
