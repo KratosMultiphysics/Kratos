@@ -286,10 +286,19 @@ void ReadMaterialsUtility::CreateSubProperties(
             if (r_use_existing_property != "") {
                 auto& r_root_model_part = rModelPart.GetRootModelPart();
                 for (auto& p_prop : r_root_model_part.PropertiesArray(mesh_id)) {
-                    if (p_prop->HasSubPropertiesByAddress(r_use_existing_property)) {
-                        p_new_sub_prop = p_prop->pGetSubPropertiesByAddress(r_use_existing_property);
-                        already_defined = true;
-                        break;
+                    if (r_use_existing_property.size() > 1) {
+                        if (p_prop->HasSubPropertiesByAddress(r_use_existing_property)) {
+                            p_new_sub_prop = p_prop->pGetSubPropertiesByAddress(r_use_existing_property);
+                            already_defined = true;
+                            break;
+                        }
+                    } else {
+                        const IndexType property_id = std::stoi(r_use_existing_property);
+                        if (rModelPart.RecursivelyHasProperties(property_id)) {
+                            p_new_sub_prop = rModelPart.pGetProperties(property_id);
+                            already_defined = true;
+                            break;
+                        }
                     }
                 }
             }
