@@ -44,15 +44,15 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
-        self.__CalculateWakeTangentAndNormalDirections()
-        self.__ComputeLiftFromPressure()
+        self._CalculateWakeTangentAndNormalDirections()
+        self._ComputeLiftFromPressure()
         if self.compute_far_field_forces:
-            self.__ComputeLiftFromFarField()
+            self._ComputeLiftFromFarField()
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.__ComputeMomentFromPressure()
-            self.__ComputeLiftFromJumpCondition()
+            self._ComputeMomentFromPressure()
+            self._ComputeLiftFromJumpCondition()
 
-    def __CalculateWakeTangentAndNormalDirections(self):
+    def _CalculateWakeTangentAndNormalDirections(self):
         self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         dnorm = self.wake_direction.norm_2()
         self.wake_direction /= dnorm
@@ -71,7 +71,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.span_direction = KratosMultiphysics.Vector(3)
         self.span_direction = _CrossProduct(self.wake_normal, self.wake_direction)
 
-    def __ComputeLiftFromPressure(self):
+    def _ComputeLiftFromPressure(self):
         force_coefficient = KratosMultiphysics.Vector(3)
         self.moment_coefficient = KratosMultiphysics.Vector(3)
 
@@ -95,7 +95,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
 
-    def __ComputeMomentFromPressure(self):
+    def _ComputeMomentFromPressure(self):
         self.moment_coefficient = KratosMultiphysics.Vector(3)
 
         for cond in self.body_model_part.Conditions:
@@ -112,7 +112,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient[2])
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient[2])
 
-    def __ComputeLiftFromJumpCondition(self):
+    def _ComputeLiftFromJumpCondition(self):
         # Find the Trailing Edge node
         for node in self.body_model_part.Nodes:
             if node.GetValue(CPFApp.TRAILING_EDGE):
@@ -133,7 +133,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = ( 2 * DPhi ) / ( U_inf * c )')
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
 
-    def __ComputeLiftFromFarField(self):
+    def _ComputeLiftFromFarField(self):
 
         force_coefficient_pres = KratosMultiphysics.Vector(3)
         force_coefficient_vel = KratosMultiphysics.Vector(3)
