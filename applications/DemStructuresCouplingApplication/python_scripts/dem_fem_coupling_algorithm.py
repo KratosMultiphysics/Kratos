@@ -72,7 +72,7 @@ class Algorithm(object):
         # Test number 1: CTW16 specimen
         # Test number 2: CTW10 specimen
         # Test number 3: Blind test specimen
-        self.test_number = 1
+        self.test_number = 0
 
         if not self.sandwich_simulation and self.test_number:
             import control_module_fem_dem_utility
