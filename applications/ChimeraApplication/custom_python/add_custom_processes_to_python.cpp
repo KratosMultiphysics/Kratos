@@ -28,7 +28,6 @@
 #include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_fractional_step.h"
 #include "custom_processes/rotate_region_process.h"
-#include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 
