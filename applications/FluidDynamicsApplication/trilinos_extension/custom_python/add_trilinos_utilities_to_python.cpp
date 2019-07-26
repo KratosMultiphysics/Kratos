@@ -48,7 +48,7 @@ void AddTrilinosUtilitiesToPython(pybind11::module& m)
     PassTurbulenceModel set_turbulence_model_by_pass_overload = &BaseSolverSettings::SetTurbulenceModel;
 
     // Note: this class is just here to provide a basis for derived classes. It has no constructor and should not be creable from python.
-    py::class_< BaseSolverSettings >(m,"BaseSolverSettings" )
+    py::class_< BaseSolverSettings, typename BaseSolverSettings::Pointer >(m,"BaseSolverSettings" )
     .def("SetTurbulenceModel",set_turbulence_model_by_build_overload)
     .def("SetTurbulenceModel",set_turbulence_model_by_pass_overload)
     ;
