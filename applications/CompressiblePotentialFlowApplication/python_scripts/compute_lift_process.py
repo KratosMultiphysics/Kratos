@@ -113,18 +113,13 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient[2])
 
     def _ComputeLiftFromJumpCondition(self):
-        # Find the Trailing Edge node
-        for node in self.body_model_part.Nodes:
-            if node.GetValue(CPFApp.TRAILING_EDGE):
-                te = node
-                break
-
+        self.__GetTrailingEdgeNode()
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         u_inf = free_stream_velocity.norm_2()
 
-        node_velocity_potential_te = te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-        node_auxiliary_velocity_potential_te = te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-        if(te.GetValue(CPFApp.WAKE_DISTANCE) > 0.0):
+        node_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
+        node_auxiliary_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+        if(self.te.GetValue(CPFApp.WAKE_DISTANCE) > 0.0):
             potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
@@ -132,6 +127,13 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = ( 2 * DPhi ) / ( U_inf * c )')
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
+
+    def __GetTrailingEdgeNode(self):
+        # Find the Trailing Edge node
+        for node in self.body_model_part.Nodes:
+            if node.GetValue(CPFApp.TRAILING_EDGE):
+                self.te = node
+                break
 
     def _ComputeLiftFromFarField(self):
 
