@@ -47,4 +47,4 @@ install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )
 
 ###############################################################################
 ## install python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsTrilinosExtension.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosExtension.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication")
