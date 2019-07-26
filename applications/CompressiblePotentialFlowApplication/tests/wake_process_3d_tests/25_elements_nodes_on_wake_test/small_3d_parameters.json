@@ -36,7 +36,6 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
                 "model_part_name" : "Wake3D_Wake_Auto1",
-                "wing_tips_model_part_name": "Tip3D_Wing_Tips_Auto1",
                 "body_model_part_name": "Body3D_Body_Auto1",
                 "wake_stl_file_name" : "wake_stl.stl",
                 "output_wake": false,

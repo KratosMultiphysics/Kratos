@@ -109,6 +109,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Mark trailing edge nodes
         for node in self.trailing_edge_model_part.Nodes:
             node.SetValue(CPFApp.TRAILING_EDGE, True)
+            node.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, True)
 
         # Mark wing tip node
         counter = 0
@@ -419,24 +420,24 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Print fluid_model_part elements
         counter_structure = 0
         counter_wake = 0
-        with open("wake_elements_id.dat", 'w') as wake_elements_file:
-            for elem in self.fluid_model_part.Elements:
+        #with open("wake_elements_id.dat", 'w') as wake_elements_file:
+        for elem in self.fluid_model_part.Elements:
+            #print(elem.Id)
+            if(elem.Is(KratosMultiphysics.STRUCTURE) and elem.GetValue(CPFApp.WAKE)):
                 #print(elem.Id)
-                if(elem.Is(KratosMultiphysics.STRUCTURE) and elem.GetValue(CPFApp.WAKE)):
-                    #print(elem.Id)
-                    counter_structure += 1
-                    pass
-                if(elem.GetValue(CPFApp.WAKE)):
-                    wake_elements_file.write('{0:15d}\n'.format(elem.Id))
-                    #print(elem.Id)
-                    counter_wake += 1
-                    pass
-                elif(elem.GetValue(CPFApp.KUTTA)):
-                    #print(elem.Id)
-                    pass
-                else:
-                    #print(elem.Id)
-                    pass
+                counter_structure += 1
+                pass
+            if(elem.GetValue(CPFApp.WAKE)):
+                #wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+                #print(elem.Id)
+                counter_wake += 1
+                pass
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                #print(elem.Id)
+                pass
+            else:
+                #print(elem.Id)
+                pass
 
         # is_te = KratosMultiphysics.Vector(4)
         # for i in range(len(is_te)):

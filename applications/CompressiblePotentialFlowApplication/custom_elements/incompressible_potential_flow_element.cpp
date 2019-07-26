@@ -397,7 +397,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
         for (unsigned int i = 0; i < NumNodes; ++i){
             // The TE node takes the contribution of the subdivided element and
             // we do not apply the wake condition on the TE node
-            if (GetGeometry()[i].GetValue(TRAILING_EDGE))// && !GetGeometry()[i].GetValue(WING_TIP))
+            if (GetGeometry()[i].GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT))// && !GetGeometry()[i].GetValue(WING_TIP))
             {
                 //int id = GetGeometry()[i].Id();
                 //to_be_decoupled = false;

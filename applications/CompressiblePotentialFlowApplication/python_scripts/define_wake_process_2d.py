@@ -94,6 +94,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 self.trailing_edge_node = node
 
         self.trailing_edge_node.SetValue(CPFApp.TRAILING_EDGE, True)
+        self.trailing_edge_node.SetValue(CPFApp.WING_TIP, True)
 
     def __MarkWakeElements(self):
         # This function checks which elements are cut by the wake
