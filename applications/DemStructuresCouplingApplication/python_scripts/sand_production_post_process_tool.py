@@ -96,7 +96,6 @@ class SandProductionPostProcessTool(object):
         with h5py.File(self.file_path, 'r+') as f:
             f.create_group(name = name)
             f[name].attrs['time'] = time
-        shape = (len(self.dem_model_part.Nodes), 7)
         column_shape = (len(self.dem_model_part.Nodes), )
         self.ids_array = np.array([node.Id for node in self.dem_model_part.Nodes])
         self.radii_array = np.array([node.GetSolutionStepValue(Kratos.RADIUS) for node in self.dem_model_part.Nodes])
