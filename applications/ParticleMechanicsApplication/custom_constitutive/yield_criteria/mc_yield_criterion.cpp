@@ -86,12 +86,6 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     return rStateFunction;
 }
 
-
-double MCYieldCriterion::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 void MCYieldCriterion::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion )
