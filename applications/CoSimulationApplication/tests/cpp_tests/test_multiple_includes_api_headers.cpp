@@ -27,7 +27,6 @@ const auto alias_EMPIRE_API_Connect = EMPIRE_API_Connect;
 const auto alias_EMPIRE_API_Disconnect = EMPIRE_API_Disconnect;
 const auto alias_EMPIRE_API_getUserDefinedText = EMPIRE_API_getUserDefinedText;
 const auto alias_EMPIRE_API_sendMesh = EMPIRE_API_sendMesh;
-const auto alias_EMPIRE_API_recvMesh = EMPIRE_API_recvMesh;
 const auto alias_EMPIRE_API_sendDataField = EMPIRE_API_sendDataField;
 const auto alias_EMPIRE_API_recvDataField = EMPIRE_API_recvDataField;
 const auto alias_EMPIRE_API_sendSignal_double = EMPIRE_API_sendSignal_double;
