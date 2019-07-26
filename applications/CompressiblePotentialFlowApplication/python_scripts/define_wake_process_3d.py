@@ -119,6 +119,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             counter +=1
 
         selected_node.SetValue(CPFApp.WING_TIP, True)
+        #selected_node.SetValue(CPFApp.WING_TIP, selected_node.Id)
+        print( 'selected_node_id = ', selected_node.Id)
 
     def __ComputeLowerSurfaceNormals(self):
         for cond in self.body_model_part.Conditions:
@@ -319,7 +321,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         elif(number_of_nodes_with_positive_distance > 0 and number_of_nodes_with_negative_distance > 0):
             # Wake elements touching the trailing edge are marked as structure
             # TODO: change STRUCTURE to a more meaningful variable name
-            #elem.Set(KratosMultiphysics.STRUCTURE)
+            elem.Set(KratosMultiphysics.STRUCTURE)
             pass
         # Elements with all non trailing edge nodes above the wake and the lower surface are normal
         elif(number_of_nodes_with_positive_distance > number_of_non_te_nodes - 1):
@@ -400,11 +402,11 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Print trailing_edge_model_part elements
         for elem in self.trailing_edge_model_part.Elements:
             if(elem.GetValue(CPFApp.WAKE)):
-                for elnode in elem.GetNodes():
-                    if(elnode.GetValue(CPFApp.WING_TIP) and self.already_picked):
-                        # Setting only one wake element touching the wing tip as structure
-                        elem.Set(KratosMultiphysics.STRUCTURE)
-                        self.already_picked = False
+                # for elnode in elem.GetNodes():
+                #     if(elnode.GetValue(CPFApp.WING_TIP) and self.already_picked):
+                #         # Setting only one wake element touching the wing tip as structure
+                #         elem.Set(KratosMultiphysics.STRUCTURE)
+                #         self.already_picked = False
                 #print(elem.Id)
                 pass
             elif(elem.GetValue(CPFApp.KUTTA)):
@@ -421,8 +423,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             for elem in self.fluid_model_part.Elements:
                 #print(elem.Id)
                 if(elem.Is(KratosMultiphysics.STRUCTURE) and elem.GetValue(CPFApp.WAKE)):
-                    print('aa')
-                    print(elem.Id)
+                    #print(elem.Id)
                     counter_structure += 1
                     pass
                 if(elem.GetValue(CPFApp.WAKE)):

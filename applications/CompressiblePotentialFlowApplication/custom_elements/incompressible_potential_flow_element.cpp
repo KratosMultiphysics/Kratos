@@ -393,15 +393,16 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
 
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int kutta = r_this.GetValue(KUTTA);
-    if(!kutta==0){
+    if(kutta){
         for (unsigned int i = 0; i < NumNodes; ++i){
             // The TE node takes the contribution of the subdivided element and
             // we do not apply the wake condition on the TE node
-            if (GetGeometry()[i].GetValue(TRAILING_EDGE))// && to_be_decoupled)
+            if (GetGeometry()[i].GetValue(TRAILING_EDGE))// && !GetGeometry()[i].GetValue(WING_TIP))
             {
+                //int id = GetGeometry()[i].Id();
                 //to_be_decoupled = false;
                 // KRATOS_WATCH(GetGeometry()[i].Id())
-                // KRATOS_WATCH(this->Id())
+                //KRATOS_WATCH(id)
                 // Kutta elements do not contribute to the TE node
                 for (unsigned int j = 0; j < NumNodes; ++j){
                     rLeftHandSideMatrix(i, j) = 0.0;
