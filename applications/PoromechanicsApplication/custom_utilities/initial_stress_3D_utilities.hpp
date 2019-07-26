@@ -74,7 +74,7 @@ public:
 
     void SaveInitialStresses (Parameters& rParameters, ModelPart& rCurrentModelPart)
     {
-       std::fstream initial_stresses_mdpa;
+        std::fstream initial_stresses_mdpa;
         std::string initial_stress_mdpa_path = rParameters["initial_input_filename"].GetString() + ".mdpa";
 
         initial_stresses_mdpa.open(initial_stress_mdpa_path.c_str(), std::fstream::out | std::fstream::trunc);
@@ -96,40 +96,7 @@ public:
         }
         initial_stresses_mdpa << "End Nodes" << std::endl << std::endl;
 
-        int NElems = static_cast<int>(rCurrentModelPart.Elements().size());
-        ModelPart::ElementsContainerType::iterator el_begin = rCurrentModelPart.ElementsBegin();
-        // NOTE: we are assuming that only one type of element is used (not quadratic elements)
-        int PointsNumber = el_begin->GetGeometry().PointsNumber();
-        if(PointsNumber == 4){
-            initial_stresses_mdpa << "Begin Elements Element3D4N" << std::endl;
-            // #pragma omp parallel for
-            for(int i = 0; i < NElems; i++)
-            {
-                ModelPart::ElementsContainerType::iterator it_elem = el_begin + i;
-                initial_stresses_mdpa << it_elem->Id() << " 0 " <<
-                    it_elem->GetGeometry().GetPoint(0).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(1).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(2).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(3).Id() << std::endl;
-            }
-        } else {
-            initial_stresses_mdpa << "Begin Elements Element3D8N" << std::endl;
-            // #pragma omp parallel for
-            for(int i = 0; i < NElems; i++)
-            {
-                ModelPart::ElementsContainerType::iterator it_elem = el_begin + i;
-                initial_stresses_mdpa << it_elem->Id() << " 0 " <<
-                    it_elem->GetGeometry().GetPoint(0).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(1).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(2).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(3).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(4).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(5).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(6).Id() << " " <<
-                    it_elem->GetGeometry().GetPoint(7).Id() << std::endl;
-            }
-        }
-        initial_stresses_mdpa << "End Elements" << std::endl << std::endl;
+        this->WriteLinearElements(initial_stresses_mdpa,rCurrentModelPart);
 
         this->CalculateNodalStresses(rCurrentModelPart);
         Matrix InitialStressTensor(3,3);
@@ -491,6 +458,44 @@ private:
     }
 
 ///------------------------------------------------------------------------------------
+
+    void WriteLinearElements(std::fstream& rInitialStressesMdpa, ModelPart& rCurrentModelPart) {
+
+        int NElems = static_cast<int>(rCurrentModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rCurrentModelPart.ElementsBegin();
+        // NOTE: we are assuming that only one type of element is used (not quadratic elements)
+        int PointsNumber = el_begin->GetGeometry().PointsNumber();
+        if(PointsNumber == 4){
+            rInitialStressesMdpa << "Begin Elements Element3D4N" << std::endl;
+            // #pragma omp parallel for
+            for(int i = 0; i < NElems; i++)
+            {
+                ModelPart::ElementsContainerType::iterator it_elem = el_begin + i;
+                rInitialStressesMdpa << it_elem->Id() << " 0 " <<
+                    it_elem->GetGeometry().GetPoint(0).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(1).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(2).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(3).Id() << std::endl;
+            }
+        } else {
+            rInitialStressesMdpa << "Begin Elements Element3D8N" << std::endl;
+            // #pragma omp parallel for
+            for(int i = 0; i < NElems; i++)
+            {
+                ModelPart::ElementsContainerType::iterator it_elem = el_begin + i;
+                rInitialStressesMdpa << it_elem->Id() << " 0 " <<
+                    it_elem->GetGeometry().GetPoint(0).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(1).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(2).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(3).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(4).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(5).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(6).Id() << " " <<
+                    it_elem->GetGeometry().GetPoint(7).Id() << std::endl;
+            }
+        }
+        rInitialStressesMdpa << "End Elements" << std::endl << std::endl;
+    }
 
 }; // Class InitialStress3DUtilities
 
