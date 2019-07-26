@@ -7,7 +7,6 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
-from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial two fluid solver
