@@ -37,16 +37,14 @@
 #include "input_output/vtk_output.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "factories/standard_linear_solver_factory.h"
-#include "processes/variational_distance_calculation_process.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_utilities/hole_cutting_utility.h"
-#include "calculate_signed_distance_to_2d_condition_skin_process.h"
-#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
+#include "custom_utilities/distance_calcuation_utility.h"
+
 
 namespace Kratos
 {
@@ -334,7 +332,9 @@ protected:
             ModelPart &r_modified_patch_model_part = current_model.CreateModelPart("ModifiedPatch");
 
             BuiltinTimer distance_calc_time_patch;
-            CalculateDistance(r_patch_model_part, r_background_boundary_model_part, over_lap_distance);
+            DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_patch_model_part,
+                                                                                                            r_background_boundary_model_part,
+                                                                                                            over_lap_distance);
             KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
             BuiltinTimer rem_out_domain_time;
@@ -346,7 +346,9 @@ protected:
             KRATOS_INFO_IF("Extraction of patch boundary took : ", mEchoLevel > 0)<< patch_boundary_extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             BuiltinTimer bg_distance_calc_time;
-            CalculateDistance(r_background_model_part, r_modified_patch_boundary_model_part, over_lap_distance);
+            DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_background_model_part,
+                                                                                                    r_modified_patch_boundary_model_part,
+                                                                                                    over_lap_distance);
             KRATOS_INFO_IF("Distance calculation on background took : ", mEchoLevel > 0)<< bg_distance_calc_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             BuiltinTimer hole_creation_time;
@@ -522,60 +524,6 @@ private:
                 p_point_locator->UpdateSearchDatabase();
             return p_point_locator;
         }
-    }
-
-    /**
-     * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
-     * @param rBackgroundModelPart The background modelpart where distances are calculated.
-     * @param rSkinModelPart The skin modelpart from where the distances are calculated
-     */
-    void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
-    {
-        typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
-        IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
-        unsigned int max_level = 100;
-		double max_distance = 200;
-
-#pragma omp parallel for
-        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
-        {
-            auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            double &node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            node_distance = 0;
-        }
-
-        CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
-
-        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
-    }
-
-    /**
-     * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
-     * @param rBackgroundModelPart The background modelpart where distances are calculated.
-     * @param rSkinModelPart The skin modelpart from where the distances are calculated
-     */
-    void CalculateDistanceChimeraApplication(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
-    {
-        IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
-        unsigned int max_level = 100;
-		double max_distance = 200;
-
-#pragma omp parallel for
-        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
-        {
-            auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
-            double &node_distance = it_node->FastGetSolutionStepValue(DISTANCE);
-            node_distance = 0;
-        }
-
-        if(TDim ==2)
-            CalculateSignedDistanceTo2DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
-        else if(TDim==3)
-            CalculateSignedDistanceTo3DConditionSkinProcess(rSkinModelPart, rBackgroundModelPart).Execute();
-
-        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
     }
 
     /**
