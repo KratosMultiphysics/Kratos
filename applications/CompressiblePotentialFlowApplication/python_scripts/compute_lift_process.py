@@ -30,7 +30,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
-        self.far_field_model_part = Model[settings["far_field_model_part_name"].GetString()]
+        far_field_model_part_name = settings["far_field_model_part_name"].GetString()
+        if far_field_model_part_name == "":
+            err_msg = "Empty model_part_name in ComputeLiftProcess\n"
+            err_msg += "Please specify the model part that contains the far field surface nodes"
+            raise Exception(err_msg)
+        self.far_field_model_part = Model[far_field_model_part_name]
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
@@ -41,6 +46,33 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
+        self.__CalculateWakeTangentAndNormalDirections()
+        self.__ComputeLiftFromPressure()
+        self.__ComputeLiftFromFarField()
+        if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            self.__ComputeMomentFromPressure()
+            self.__ComputeLiftFromJumpCondition()
+
+    def __CalculateWakeTangentAndNormalDirections(self):
+        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
+        dnorm = self.wake_direction.norm_2()
+        self.wake_direction /= dnorm
+
+        self.wake_normal = KratosMultiphysics.Vector(3)
+        if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            self.wake_normal[0] = -self.wake_direction[1]
+            self.wake_normal[1] = self.wake_direction[0]
+            self.wake_normal[2] = 0.0
+        elif(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+            # TODO: Read wake normal from wake process
+            self.wake_normal[0] = 0.0
+            self.wake_normal[1] = 0.0
+            self.wake_normal[2] = 1.0
+
+        self.span_direction = KratosMultiphysics.Vector(3)
+        self.span_direction = _CrossProduct(self.wake_normal, self.wake_direction)
+
+    def __ComputeLiftFromPressure(self):
         force_coefficient = KratosMultiphysics.Vector(3)
         self.moment_coefficient = KratosMultiphysics.Vector(3)
 
@@ -51,33 +83,35 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             # Computing forces
             force_coefficient += surface_normal*pressure_coefficient
 
+        force_coefficient /= self.reference_area
+
+        self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
+        self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)
+        self.lateral_force_coefficient = _DotProduct(force_coefficient,self.span_direction)
+
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cq = ', self.lateral_force_coefficient)
+
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
+
+    def __ComputeMomentFromPressure(self):
+        self.moment_coefficient = KratosMultiphysics.Vector(3)
+
+        for cond in self.body_model_part.Conditions:
+            surface_normal = cond.GetGeometry().Normal()
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+
             # Computing moment
             mid_point = cond.GetGeometry().Center()
             lever = mid_point-self.moment_reference_point
             self.moment_coefficient += _CrossProduct(lever, surface_normal*(-pressure_coefficient))
 
-        force_coefficient /= self.reference_area
         self.moment_coefficient /= self.reference_area
 
-        self.__CalculateWakeTangentAndNormalDirections()
-
-        self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
-        self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)
-
-        self.__ComputeLiftFromJumpCondition()
-
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' RZ = ', force_coefficient[2])
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient[2])
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = ( 2 * DPhi ) / ( U_inf * c )')
-
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient[2])
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
-
-        self.__ComputeLiftFromFarField()
 
     def __ComputeLiftFromJumpCondition(self):
         # Find the Trailing Edge node
@@ -97,15 +131,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
         self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/ ( u_inf * self.reference_area )
 
-    def __CalculateWakeTangentAndNormalDirections(self):
-        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
-        dnorm = self.wake_direction.norm_2()
-        self.wake_direction /= dnorm
-
-        self.wake_normal = KratosMultiphysics.Vector(3)
-        self.wake_normal[0] = -self.wake_direction[1]
-        self.wake_normal[1] = self.wake_direction[0]
-        self.wake_normal[2] = 0.0
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = ( 2 * DPhi ) / ( U_inf * c )')
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
 
     def __ComputeLiftFromFarField(self):
 
