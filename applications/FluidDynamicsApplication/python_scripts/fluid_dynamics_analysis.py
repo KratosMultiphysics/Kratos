@@ -1,9 +1,12 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics as Kratos
-import KratosMultiphysics.FluidDynamicsApplication
+from sys import argv
 
-from analysis_stage import AnalysisStage
+import KratosMultiphysics as Kratos
+
+from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 # Import auxiliar methods
 from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
@@ -48,7 +51,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
 
     def _CreateSolver(self):
-        import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
@@ -68,8 +70,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("FluidDynamicsAnalysis", info_msg)
-                from process_factory import KratosProcessFactory
+                Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", info_msg)
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -84,7 +85,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("FluidDynamicsAnalysis", info_msg)
+                Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:
@@ -103,9 +104,9 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
-            from gid_output_process import GiDOutputProcess as OutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
 
         output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
@@ -118,8 +119,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         return "Fluid Dynamics Analysis"
 
 if __name__ == '__main__':
-    from sys import argv
-
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'

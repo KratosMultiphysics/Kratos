@@ -1,5 +1,26 @@
-#include "external_interface.h"
+//    _____  _____ _                  __          __                                                 _ _           _   _
+//   / ____|/ ____| |                 \ \        / /                               /\               | (_)         | | (_)
+//  | |    | (___ | |__   __ _ _ __ _ _\ \  /\  / / __ __ _ _ __  _ __   ___ _ __ /  \   _ __  _ __ | |_  ___ __ _| |_ _  ___  _ __
+//  | |     \___ \| '_ \ / _` | '__| '_ \ \/  \/ / '__/ _` | '_ \| '_ \ / _ \ '__/ /\ \ | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_  |
+//  | |____ ____) | | | | (_| | |  | |_) \  /\  /| | | (_| | |_) | |_) |  __/ | / ____ \| |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+//   \_____|_____/|_| |_|\__,_|_|  | .__/ \/  \/ |_|  \__,_| .__/| .__/ \___|_|/_/    \_\ .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                                 | |                     | |   | |                    | |   | |
+//                                 |_|                     |_|   |_|                    |_|   |_|
+//
+//
+//  License: BSD License
+//   license: CSharpWrapperApplication/license.txt
+//
+//  Main authors:    Hubert Balcerzak
+//                   Riccardo Rossi
+//
 
+// System includes
+
+// External includes
+
+// Project includes
+#include "external_interface.h"
 #include "includes/constitutive_law.h"
 
 using namespace CSharpKratosWrapper;
@@ -11,124 +32,195 @@ float* CSharpInterface::pmXCoordinates;
 float* CSharpInterface::pmYCoordinates;
 float* CSharpInterface::pmZCoordinates;
 KratosInternals CSharpInterface::mKratosInternals;
-std::vector<Kratos::NodeType::Pointer> CSharpInterface::mFixedNodes;
+std::vector<NodeType::Pointer> CSharpInterface::mFixedNodes;
 IdTranslator CSharpInterface::idTranslator;
 
 //Fetch faces from mesh converter and create skin model part
 void CSharpInterface::saveTriangles(MeshConverter& meshConverter) {
 
-	Kratos::ModelPart::Pointer pSkinModelPart = mKratosInternals.pGetSkinModelPart();
-	Kratos::ModelPart::Pointer pMainModelPart = mKratosInternals.pGetMainModelPart();
-	int lastId = pMainModelPart->Elements().back().Id();
-	
-	std::vector<face> faces = meshConverter.GetFaces();
+    ModelPart& r_skin_model_part = mKratosInternals.GetSkinModelPart();
+    ModelPart& r_main_model_part = mKratosInternals.GetMainModelPart();
+    int lastId = r_main_model_part.Elements().back().Id();
 
-	mTrianglesCount = faces.size();
-	pmTriangles = new int[mTrianglesCount * 3];
-	
-	for (int i = 0; i < mTrianglesCount; i++) {
-		std::vector<Kratos::IndexType> nodes;
-		for (int j = 0; j < 3; j++) {
-			pmTriangles[3 * i + j] = faces.at(i).nodes[j];
-			nodes.push_back(idTranslator.getKratosId(faces.at(i).nodes[j]));
-			pSkinModelPart->AddNode(pMainModelPart->pGetNode(idTranslator.getKratosId(faces.at(i).nodes[j])));
-		}
-		lastId++;
-		pSkinModelPart->CreateNewCondition("SurfaceCondition3D3N", lastId, nodes, pMainModelPart->pGetProperties(0));
-	}
+    std::vector<face> faces = meshConverter.GetFaces();
+
+    mTrianglesCount = faces.size();
+    pmTriangles = new int[mTrianglesCount * 3];
+
+    for (int i = 0; i < mTrianglesCount; i++) {
+        std::vector<Kratos::IndexType> nodes;
+        for (int j = 0; j < 3; j++) {
+            pmTriangles[3 * i + j] = faces.at(i).nodes[j];
+            nodes.push_back(idTranslator.getKratosId(faces.at(i).nodes[j]));
+            r_skin_model_part.AddNode(r_main_model_part.pGetNode(idTranslator.getKratosId(faces.at(i).nodes[j])));
+        }
+        lastId++;
+        r_skin_model_part.CreateNewCondition("SurfaceCondition3D3N", lastId, nodes, r_main_model_part.pGetProperties(0));
+    }
 }
 
 //Fetch surface nodes from mesh converter and initialize ID translator
 void CSharpInterface::saveNodes(MeshConverter& meshConverter) {
-	std::vector<int> nodes = meshConverter.GetNodes();
-	mNodesCount = nodes.size();
-	
-	idTranslator.init(nodes);
+    std::vector<int> nodes = meshConverter.GetNodes();
+    mNodesCount = nodes.size();
 
-	pmXCoordinates = new float[mNodesCount];
-	pmYCoordinates = new float[mNodesCount];
-	pmZCoordinates = new float[mNodesCount];
-	retrieveNodesPos();
+    idTranslator.init(nodes);
+
+    pmXCoordinates = new float[mNodesCount];
+    pmYCoordinates = new float[mNodesCount];
+    pmZCoordinates = new float[mNodesCount];
+    retrieveNodesPos();
 }
 
 //Save recalculated surface nodes positions
 void CSharpInterface::retrieveNodesPos() {
-	Kratos::ModelPart::Pointer skin_part = mKratosInternals.pGetSkinModelPart();
+    ModelPart& r_skin_part = mKratosInternals.GetSkinModelPart();
+    auto& r_nodes_array = r_skin_part.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
-#pragma omp parallel for
-	for (int i = 0; i<skin_part->Nodes().size(); ++i)
-	{
-		auto currentNode = skin_part->NodesBegin() + i;
-		int currentNodeUnityId = idTranslator.getUnityId(currentNode->Id());
-		pmXCoordinates[currentNodeUnityId] = currentNode->X();
-		pmYCoordinates[currentNodeUnityId] = currentNode->Y();
-		pmZCoordinates[currentNodeUnityId] = currentNode->Z();
-	}
+    #pragma omp parallel for
+    for (int i = 0; i<static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin+ i;
+        const Kratos::array_1d<double, 3>& r_coordinates = it_node->Coordinates();
+        int current_node_id = idTranslator.getUnityId(it_node->Id());
+        pmXCoordinates[current_node_id] = r_coordinates[0];
+        pmYCoordinates[current_node_id] = r_coordinates[1];
+        pmZCoordinates[current_node_id] = r_coordinates[2];
+    }
 }
 
 void CSharpInterface::freeNodes() {
-	for (auto& node : mFixedNodes) {
-		node->Free(Kratos::DISPLACEMENT_X);
-		node->Free(Kratos::DISPLACEMENT_Y);
-		node->Free(Kratos::DISPLACEMENT_Z);
-	}
-	mFixedNodes.clear();
+    for (auto& node : mFixedNodes) {
+        node->Free(Kratos::DISPLACEMENT_X);
+        node->Free(Kratos::DISPLACEMENT_Y);
+        node->Free(Kratos::DISPLACEMENT_Z);
+    }
+    mFixedNodes.clear();
 }
 
-void CSharpInterface::init(char* mdpaPath) {
-	mKratosInternals.initInternals();
-	mKratosInternals.loadMDPA(std::string(mdpaPath));
-	mKratosInternals.initSolver();
+void CSharpInterface::init(const char* MDPAFilePath, const char* JSONFilePath) {
+    // Init internals
+    mKratosInternals.initInternals();
 
-	MeshConverter meshConverter;
-	meshConverter.ProcessMesh(mKratosInternals.pGetMainModelPart()->ElementsArray());
+    // Load settings
+    const std::string json_file_name = JSONFilePath != NULL ? std::string(JSONFilePath) : "";
+    mKratosInternals.loadSettingsParameters(json_file_name);
 
-	saveNodes(meshConverter);
-	saveTriangles(meshConverter);
+    // Init model part
+    mKratosInternals.initModelPart();
+
+    // Load MDPA file
+    mKratosInternals.loadMDPA(std::string(MDPAFilePath));
+
+    // Init dofs
+    mKratosInternals.initDofs();
+
+    // Read properties and materials
+    mKratosInternals.initProperties();
+
+    // Init solver
+    mKratosInternals.initSolver();
+
+    // Calling mesh converted
+    MeshConverter meshConverter;
+    meshConverter.ProcessMesh(mKratosInternals.GetMainModelPart().ElementsArray());
+
+    // Save mesh
+    saveNodes(meshConverter);
+    saveTriangles(meshConverter);
+}
+
+void CSharpInterface::initWithSettings(const char* JSONFilePath) {
+    // Init internals
+    mKratosInternals.initInternals();
+
+    // Load settings
+    const std::string json_file_name = JSONFilePath != NULL ? std::string(JSONFilePath) : "";
+    mKratosInternals.loadSettingsParameters(json_file_name);
+
+    // Init model part
+    mKratosInternals.initModelPart();
+
+    // Load MDPA file
+    const auto setting = mKratosInternals.GetSettings();
+    mKratosInternals.loadMDPA(setting["solver_settings"]["model_import_settings"]["input_filename"].GetString());
+
+    // Init dofs
+    mKratosInternals.initDofs();
+
+    // Read properties and materials
+    mKratosInternals.initProperties();
+
+    // Init solver
+    mKratosInternals.initSolver();
+
+    // Calling mesh converted
+    MeshConverter meshConverter;
+    meshConverter.ProcessMesh(mKratosInternals.GetMainModelPart().ElementsArray());
+
+    // Save mesh
+    saveNodes(meshConverter);
+    saveTriangles(meshConverter);
 }
 
 //Update DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
-void CSharpInterface::updateNodePos(int nodeId, float x, float y, float z) {
-	Kratos::NodeType::Pointer node =  mKratosInternals.pGetMainModelPart()->pGetNode(idTranslator.getKratosId(nodeId));
-	node->Fix(Kratos::DISPLACEMENT_X);
-	node->Fix(Kratos::DISPLACEMENT_Y);
-	node->Fix(Kratos::DISPLACEMENT_Z);
-	Kratos::array_1d<double, 3>& displacement = node->FastGetSolutionStepValue(Kratos::DISPLACEMENT);
+void CSharpInterface::updateNodePos(const int nodeId, const float x, const float y, const float z) {
 
-	displacement[0] = x - node->X0();
-	displacement[1] = y - node->Y0();
-	displacement[2] = z - node->Z0();
-	mFixedNodes.push_back(node);
+    // Get node
+    NodeType::Pointer p_node =  mKratosInternals.GetMainModelPart().pGetNode(idTranslator.getKratosId(nodeId));
+
+    // Fix nodes
+    p_node->Fix(Kratos::DISPLACEMENT_X);
+    p_node->Fix(Kratos::DISPLACEMENT_Y);
+    p_node->Fix(Kratos::DISPLACEMENT_Z);
+
+    // Arrays
+    Kratos::array_1d<double, 3>& r_displacement = p_node->FastGetSolutionStepValue(Kratos::DISPLACEMENT);
+    const Kratos::array_1d<double, 3>& r_initial_coordinates = p_node->GetInitialPosition().Coordinates();
+
+    // Update coordinates
+    Kratos::array_1d<double, 3>& r_coordinates = p_node->Coordinates();
+    r_coordinates[0] = x;
+    r_coordinates[1] = y;
+    r_coordinates[2] = z;
+
+    // Update displacement
+    r_displacement[0] = x - r_initial_coordinates[0];
+    r_displacement[1] = y - r_initial_coordinates[1];
+    r_displacement[2] = z - r_initial_coordinates[2];
+
+    // Adding to the database of fixed nodes
+    mFixedNodes.push_back(p_node);
 }
 
 void CSharpInterface::calculate() {
-	mKratosInternals.solve();
-	retrieveNodesPos();
+    mKratosInternals.solve();
+    retrieveNodesPos();
 
-	freeNodes();
-	
+    freeNodes();
+
 }
 
 float* CSharpInterface::getXCoordinates() {
-	return pmXCoordinates;
+    return pmXCoordinates;
 }
 
 float* CSharpInterface::getYCoordinates() {
-	return pmYCoordinates;
+    return pmYCoordinates;
 }
 
 float* CSharpInterface::getZCoordinates() {
-	return pmZCoordinates;
+    return pmZCoordinates;
 }
 
 int CSharpInterface::getNodesCount() {
-	return mNodesCount;
+    return mNodesCount;
 }
 
 int* CSharpInterface::getTriangles() {
-	return pmTriangles;
+    return pmTriangles;
 }
 
 int CSharpInterface::getTrianglesCount() {
-	return mTrianglesCount;
+    return mTrianglesCount;
 }

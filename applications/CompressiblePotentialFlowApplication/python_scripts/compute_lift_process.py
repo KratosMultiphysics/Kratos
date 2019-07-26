@@ -23,15 +23,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "reference_area": 1.0,
+            "far_field_model_part_name": "please specify the model part that contains the surface nodes",
             "moment_reference_point" : [0.0,0.0,0.0]
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
+        self.far_field_model_part = Model[settings["far_field_model_part_name"].GetString()]
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.reference_area =  settings["reference_area"].GetDouble()
+        self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
 
         if not self.reference_area > 0.0:
@@ -69,12 +70,14 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' RZ = ', force_coefficient[2])
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient[2])
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = ( 2 * DPhi ) / ( U_inf * c )')
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient[2])
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
+
+        self.__ComputeLiftFromFarField()
 
     def __ComputeLiftFromJumpCondition(self):
         # Find the Trailing Edge node
@@ -88,17 +91,14 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         node_velocity_potential_te = te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-        if(te.GetValue(KratosMultiphysics.DISTANCE) > 0.0):
+        if(te.GetValue(CPFApp.WAKE_DISTANCE) > 0.0):
             potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
-        self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/u_inf
+        self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/ ( u_inf * self.reference_area )
 
     def __CalculateWakeTangentAndNormalDirections(self):
         self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
-        if(self.wake_direction.Size() != 3):
-            raise Exception('The wake direction should be a vector with 3 components!')
-
         dnorm = self.wake_direction.norm_2()
         self.wake_direction /= dnorm
 
@@ -106,3 +106,42 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.wake_normal[0] = -self.wake_direction[1]
         self.wake_normal[1] = self.wake_direction[0]
         self.wake_normal[2] = 0.0
+
+    def __ComputeLiftFromFarField(self):
+
+        force_coefficient_pres = KratosMultiphysics.Vector(3)
+        force_coefficient_vel = KratosMultiphysics.Vector(3)
+        free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
+
+        for cond in self.far_field_model_part.Conditions:
+            surface_normal = cond.GetGeometry().Normal()
+
+            # Computing contribution due to pressure
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+            force_coefficient_pres -= surface_normal*pressure_coefficient
+
+            # Computing contribution due to convection
+            velocity = cond.GetValue(KratosMultiphysics.VELOCITY)
+            velocity_projection = _DotProduct(velocity, surface_normal)
+            disturbance = velocity - free_stream_velocity
+            density = cond.GetValue(KratosMultiphysics.DENSITY)
+            force_coefficient_vel -= velocity_projection * disturbance * density
+
+        # Normalizing with reference area
+        force_coefficient_pres /= self.reference_area
+
+        # Normalizing with dynamic pressure and reference area
+        free_stream_density = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_DENSITY)
+        free_stream_velocity_norm2 = _DotProduct(free_stream_velocity,free_stream_velocity)
+        dynamic_pressure = 0.5 * free_stream_velocity_norm2 * free_stream_density
+        force_coefficient_vel /= dynamic_pressure * self.reference_area
+
+        force_coefficient = force_coefficient_pres + force_coefficient_vel
+        self.lift_coefficient_far_field = _DotProduct(force_coefficient,self.wake_normal)
+        self.drag_coefficient_far_field = _DotProduct(force_coefficient,self.wake_direction)
+
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient_far_field, 'Far field')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient_far_field, 'Far field')
+
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_FAR_FIELD, self.lift_coefficient_far_field)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT_FAR_FIELD, self.drag_coefficient_far_field)

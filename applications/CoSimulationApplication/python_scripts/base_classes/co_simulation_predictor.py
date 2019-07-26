@@ -8,6 +8,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 class CoSimulationPredictor(object):
+    """Baseclass for the predictors used for CoSimulation
+    It predicts the solution of the next step at the beginning of a step
+    """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
@@ -38,24 +41,24 @@ class CoSimulationPredictor(object):
         '''Function to print Info abt the Object
         Can be overridden in derived classes to print more information
         '''
-        cs_tools.cs_print_info("Predictor", colors.bold(self._Name()))
+        cs_tools.cs_print_info("Predictor", colors.bold(self._ClassName()))
 
     def Check(self):
         print("The predictors do not yet implement Check!")
-
-    def _Name(self):
-        return self.__class__.__name__
 
     def _UpdateData(self, updated_data):
         self.interface_data.SetData(updated_data)
 
         if self.echo_level > 3:
-            cs_tools.cs_print_info(self._Name(), "Computed prediction")
-
+            cs_tools.cs_print_info(self._ClassName(), "Computed prediction")
 
     # returns the buffer size needed by the predictor. Can be overridden in derived classes
     def _GetMinimumBufferSize(self):
         return 2
+
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):

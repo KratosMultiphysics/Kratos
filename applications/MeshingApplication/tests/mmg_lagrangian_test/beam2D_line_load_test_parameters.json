@@ -86,6 +86,7 @@
                     "refer_type"                       : "Mean"
                 },
                 "initial_remeshing"                : false,
+                "initial_step"                     : 10,
                 "step_frequency"                   : 10,
                 "enforce_current"                   : true,
                 "filename"                         : "mmg_lagrangian_test/beam2D_line_load_test",

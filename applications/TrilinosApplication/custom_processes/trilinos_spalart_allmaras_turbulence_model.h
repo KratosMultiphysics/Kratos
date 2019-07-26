@@ -21,7 +21,8 @@
 // Application includes
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incremental_aitken_static_scheme.h"
-#include "custom_utilities/parallel_fill_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 #include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
 

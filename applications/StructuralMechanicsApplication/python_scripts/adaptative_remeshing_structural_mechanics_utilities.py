@@ -6,6 +6,9 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
+# Import convergence criteria factory
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
+
 class AdaptativeRemeshingMechanicalUtilities(object):
     """These are common utilities for adaptative remeshing
     """
@@ -70,7 +73,6 @@ class AdaptativeRemeshingMechanicalUtilities(object):
             return adaptative_error_criteria
 
         # Regular convergence criteria
-        from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_settings)
 
         # If we combine the regular convergence criteria with adaptative

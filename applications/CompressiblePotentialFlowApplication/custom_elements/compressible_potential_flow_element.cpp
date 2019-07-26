@@ -287,7 +287,7 @@ template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(
     array_1d<double, NumNodes>& distances) const
 {
-    noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>

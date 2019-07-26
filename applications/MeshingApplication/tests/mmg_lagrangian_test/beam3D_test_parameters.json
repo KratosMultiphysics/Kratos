@@ -83,10 +83,11 @@
                     "max_size_ratio"                   : 1.0,
                     "refer_type"                       : "Mean"
                 },
-                "initial_remeshing"                : false,
-                "step_frequency"                   : 3,
+                "initial_remeshing"                 : false,
+                "initial_step"                      : 3,
+                "step_frequency"                    : 3,
                 "enforce_current"                   : true,
-                "filename"                         : "mmg_lagrangian_test/beam3D_test",
+                "filename"                          : "mmg_lagrangian_test/beam3D_test",
                 "save_external_files"               : true,
                 "anisotropy_remeshing"              : false,
                 "anisotropy_parameters":{

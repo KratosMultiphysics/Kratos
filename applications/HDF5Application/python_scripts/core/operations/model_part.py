@@ -5,7 +5,7 @@ license: HDF5Application/license.txt
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from .. import utils as _utils
-
+from importlib import import_module
 
 def _Prefix(pattern, identifier, time_format=''):
     if hasattr(identifier, 'ProcessInfo'):
@@ -239,8 +239,7 @@ def Create(settings):
     else:
         if settings.Has('module_name'):
             module_name = settings['module_name'].GetString()
-            module = __import__(
-                'KratosMultiphysics.HDF5Application.core.' + module_name, fromlist=[module_name])
+            module = import_module('KratosMultiphysics.HDF5Application.core.' + module_name)
             return module.Create(settings)
         raise ValueError(
             '"operation_type" has invalid value "' + operation_type + '"')

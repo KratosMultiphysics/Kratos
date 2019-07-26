@@ -8,6 +8,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import structural_mechani
 
 # Import auxiliar methods
 from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_adaptative_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import adaptative_remeshing_structural_mechanics_utilities
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
@@ -18,7 +19,6 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     """
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
-        from KratosMultiphysics.StructuralMechanicsApplication import adaptative_remeshing_structural_mechanics_utilities
         self.adaptative_remeshing_utilities = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities()
         adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 
