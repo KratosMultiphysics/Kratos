@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import convergence criteria factory
-from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
+from KratosMultiphysics.StructuralMechanicsApplication.convergence_criteria_factory import convergence_criterion
 
 class AdaptativeRemeshingMechanicalUtilities(object):
     """These are common utilities for adaptative remeshing
@@ -73,11 +73,11 @@ class AdaptativeRemeshingMechanicalUtilities(object):
             return adaptative_error_criteria
 
         # Regular convergence criteria
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_settings)
+        convergence_criterion_created = convergence_criterion(conv_settings)
 
         # If we combine the regular convergence criteria with adaptative
         if "_with_adaptative_remesh" in error_criteria:
             adaptative_error_criteria = StructuralMechanicsApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
             adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
-            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
-        return convergence_criterion.mechanical_convergence_criterion
+            convergence_criterion_created.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion_created.mechanical_convergence_criterion, adaptative_error_criteria)
+        return convergence_criterion_created.mechanical_convergence_criterion
