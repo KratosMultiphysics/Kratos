@@ -17,6 +17,9 @@ else:
 # Import base class file
 import KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_static_solver as contact_structural_mechanics_static_solver
 
+# Import utilities
+from KratosMultiphysics.ContactStructuralMechanicsApplication.adaptative_remeshing_contact_structural_mechanics_utilities import AdaptativeRemeshingContactMechanicalUtilities
+
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingContactStaticMechanicalSolver(model, custom_settings)
 
@@ -26,8 +29,7 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
     """
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
-        import adaptative_remeshing_contact_structural_mechanics_utilities
-        self.adaptative_remeshing_utilities = adaptative_remeshing_contact_structural_mechanics_utilities.AdaptativeRemeshingContactMechanicalUtilities()
+        self.adaptative_remeshing_utilities = AdaptativeRemeshingContactMechanicalUtilities()
         adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 
         # Validate the remaining settings in the base class.
