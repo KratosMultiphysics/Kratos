@@ -7,7 +7,10 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import base class
-import KratosMultiphysics.ContactStructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_utilities as adaptative_remeshing_structural_mechanics_utilities
+import KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_utilities as adaptative_remeshing_structural_mechanics_utilities
+
+# Import factories
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import convergence_criterion
 
 class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities):
     """These are common utilities for adaptative remeshing (for contact)
@@ -33,15 +36,14 @@ class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structu
     def GetConvergenceCriteria(self, error_criteria, conv_settings):
         if "_with_adaptative_remesh" in error_criteria:
             conv_settings["convergence_criterion"].SetString(error_criteria.replace("_with_adaptative_remesh", ""))
-        import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_settings)
+        convergence_criterion_created = convergence_criterion(conv_settings)
 
         # If we just use the adaptative convergence criteria
         if error_criteria == "adaptative_remesh_criteria":
             adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
-            convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
+            convergence_criterion_created.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion_created.GetMortarCriteria(False), adaptative_error_criteria)
         elif "with_adaptative_remesh" in error_criteria: # If we combine the regular convergence criteria with adaptative
             adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
-            convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
+            convergence_criterion_created.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion_created.mechanical_convergence_criterion, adaptative_error_criteria)
 
-        return convergence_criterion.mechanical_convergence_criterion
+        return convergence_criterion_created.mechanical_convergence_criterion
