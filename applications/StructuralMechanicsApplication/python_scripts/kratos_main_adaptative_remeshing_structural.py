@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
+import KratosMultiphysics.MeshingApplication as MA
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 from KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_analysis import AdaptativeRemeshingStructuralMechanicsAnalysis
 
@@ -12,4 +14,5 @@ with open("ProjectParameters.json",'r') as parameter_file:
 # Creating the test
 model = KM.Model()
 analysis = AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
+KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 analysis.Run()
