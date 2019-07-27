@@ -135,6 +135,13 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                                self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -142,9 +149,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
                                                                self.settings["absolute_pressure_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        ## Constructing the BDF process (time coefficients update)
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,self.settings["time_order"].GetInt())
 
         #### ADDING NEW PROCESSES : level-set-convection and variational-distance-process
         self.level_set_convection_process = self._set_level_set_convection_process()
