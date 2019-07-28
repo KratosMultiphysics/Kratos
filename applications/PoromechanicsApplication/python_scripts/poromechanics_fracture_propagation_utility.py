@@ -13,6 +13,8 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 # Import shutil to manage file copying
 import shutil
 
+from importlib import import_module
+
 class FracturePropagationUtility(object):
 
     def __init__(self, model, order_processes_initialization):

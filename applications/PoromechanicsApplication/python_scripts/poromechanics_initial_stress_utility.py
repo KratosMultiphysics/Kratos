@@ -7,6 +7,8 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
+from importlib import import_module
+
 class InitialStressUtility(object):
 
     def __init__(self, model, parameters):
