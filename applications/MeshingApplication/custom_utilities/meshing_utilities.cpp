@@ -47,7 +47,8 @@ void EnsureProperties(ModelPart& rModelPart)
             auto it_elem = it_elem_begin + i;
 
             Properties::Pointer p_prop = it_elem->pGetProperties();
-            if (buffer_list_of_properties.find(p_prop) != buffer_list_of_properties.end()) {
+
+            if (buffer_list_of_properties.find(p_prop) == buffer_list_of_properties.end()) {
                 buffer_list_of_properties.insert(p_prop);
             }
         }
@@ -57,7 +58,7 @@ void EnsureProperties(ModelPart& rModelPart)
             auto it_cond = it_cond_begin + i;
 
             Properties::Pointer p_prop = it_cond->pGetProperties();
-            if (buffer_list_of_properties.find(p_prop) != buffer_list_of_properties.end()) {
+            if (buffer_list_of_properties.find(p_prop) == buffer_list_of_properties.end()) {
                 buffer_list_of_properties.insert(p_prop);
             }
         }
@@ -65,7 +66,7 @@ void EnsureProperties(ModelPart& rModelPart)
         // Combine buffers together
         #pragma omp critical
         {
-            std::move(buffer_list_of_properties.begin(),buffer_list_of_properties.end(),back_inserter(list_of_properties));
+            list_of_properties.insert(buffer_list_of_properties.begin(),buffer_list_of_properties.end());
         }
     }
 
