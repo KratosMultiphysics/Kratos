@@ -228,6 +228,30 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 {
     KRATOS_TRY;
 
+    // Getting new metric (not necessary, only for post-process pourposes)
+    /* Tensor variable definition */
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension) + "D");
+
+    // Iterate in the nodes
+    auto& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+
+            // We get the metric
+            TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+
+            // We set the metric
+            mMmmgUtilities.GetMetricTensor(r_metric);
+        }
+    }
+
     // We release the memory
     FreeMemory();
 
