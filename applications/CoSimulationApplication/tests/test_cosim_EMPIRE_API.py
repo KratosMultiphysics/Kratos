@@ -265,14 +265,14 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
     def __CompareScalarNodalValues(self, nodes, nodes_ref, var):
         for node, node_ref in zip(nodes, nodes_ref):
-            self.assertAlmostEqual(node.GetSolutionStepValue(var), node_ref.GetSolutionStepValue(var), 10)
+            self.assertAlmostEqual(node.GetSolutionStepValue(var), node_ref.GetSolutionStepValue(var), 12)
 
     def __CompareVectorNodalValues(self, nodes, nodes_ref, var):
         for node, node_ref in zip(nodes, nodes_ref):
             val = node.GetSolutionStepValue(var)
             val_ref = node_ref.GetSolutionStepValue(var)
             for v, v_ref in zip(val, val_ref):
-                self.assertAlmostEqual(v, v_ref, 10)
+                self.assertAlmostEqual(v, v_ref, 12)
 
 
 def GetPRESUREValue(node_id):
