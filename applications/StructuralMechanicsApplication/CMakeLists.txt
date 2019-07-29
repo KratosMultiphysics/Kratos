@@ -8,15 +8,11 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
-## generate variables with the sources
-set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
-    ## MAIN FILES
+## StructuralMechanics Core sources
+file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
-)
-
-file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp # has to be included first because used in other sources
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
@@ -26,7 +22,7 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${KRATOS_STRUCTUR
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
 )
 
-## generate variables with the testing sources
+## StructuralMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE
         KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES
@@ -35,7 +31,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-## python interface sources
+## StructuralMechanics python interface sources
 file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
