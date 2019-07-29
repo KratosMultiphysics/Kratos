@@ -99,10 +99,10 @@ namespace Kratos {
         }
 
         /**
-        * Checks the correct work of the EnsureProperties
+        * Checks the correct work of the EnsureModelPartOwnsProperties
         * Test triangle
         */
-        KRATOS_TEST_CASE_IN_SUITE(EnsureProperties, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(EnsureModelPartOwnsProperties, KratosMeshingApplicationFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -113,7 +113,7 @@ namespace Kratos {
 
             KRATOS_CHECK(r_model_part.NumberOfProperties() == 0);
 
-            MeshingUtilities::EnsureProperties(r_model_part);
+            MeshingUtilities::EnsureModelPartOwnsProperties(r_model_part);
 
             KRATOS_CHECK(r_model_part.NumberOfProperties() == 1);
         }
