@@ -60,6 +60,7 @@ MULTILEVEL_MONTE_CARLO_APPLICATION;\
 FEM_TO_DEM_APPLICATION;\
 EXAQUTE_SANDBOX_APPLICATION;\
 CO_SIMULATION_APPLICATION;\
+ROM_APPLICATION;\
 ")
 
 message( " ")
@@ -413,6 +414,10 @@ endif(${EXAQUTE_SANDBOX_APPLICATION} MATCHES ON)
 if(${CO_SIMULATION_APPLICATION} MATCHES ON)
   add_subdirectory(CoSimulationApplication)
 endif(${CO_SIMULATION_APPLICATION} MATCHES ON)
+
+if(${ROM_APPLICATION} MATCHES ON)
+  add_subdirectory(RomApplication)
+endif(${ROM_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
