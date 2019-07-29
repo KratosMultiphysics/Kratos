@@ -45,7 +45,7 @@ class ParticleEraseProcess(KratosMultiphysics.Process):
         # Create process
         self.process = KratosParticle.ParticleEraseProcess(self.model_part)
 
-    def ExecuteInitializeSolutionStep(self):
+    def ExecuteFinalizeSolutionStep(self):
         ## Check
         if (self.eraser_type in ["auto","sphere","bounding_box"]):
             if (self.eraser_type == "sphere"):
