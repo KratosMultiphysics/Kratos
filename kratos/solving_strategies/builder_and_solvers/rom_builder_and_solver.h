@@ -372,17 +372,11 @@ public:
         {
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const Matrix& nodal_rom_basis = node.GetValue(ROM_BASIS);
-			//KRATOS_WATCH(nodal_rom_basis)
 				for (int i = 0; i < mrom_dofs; ++i) {
 					for (int j = 0; j < mnodal_dofs; ++j) {
 						rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mnodal_dofs + j);
-						//KRATOS_WATCH(i)
-						//KRATOS_WATCH(j)
-						//KRATOS_WATCH(nodal_rom_basis(j, i))
-						//KRATOS_WATCH(rX(node_aux_id*mnodal_dofs + j))
 					}
 				}
-			//KRATOS_WATCH(rom_unknowns)
         }
 		KRATOS_WATCH(rom_unknowns)
         return rom_unknowns;
@@ -396,14 +390,9 @@ public:
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const Matrix& nodal_rom_basis = node.GetValue(ROM_BASIS);
             Vector tmp = prod(nodal_rom_basis, rRomUnkowns );
-			//KRATOS_WATCH(tmp)
-			//KRATOS_WATCH(nodal_rom_basis)
-			//KRATOS_WATCH(rRomUnkowns)
-			//KRATOS_WATCH(tmp)
 			for (unsigned int i = 0; i < tmp.size(); ++i) 
 			{
 			rX[node_aux_id*mnodal_dofs + i] = tmp[i];
-			//KRATOS_WATCH(rX)
 			}
         }
     }
@@ -429,23 +418,21 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
 	{
-		//KRATOS_WATCH(A)
-		//KRATOS_WATCH(Dx)
-		//KRATOS_WATCH(b)
+		
         //define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mrom_dofs,mrom_dofs);
         Vector brom = ZeroVector(mrom_dofs);
         TSystemVectorType x(Dx.size());
-		//KRATOS_WATCH(x)
-
 
         //find the rom basis
         this->GetDofValues(mDofList,x);
-		//KRATOS_WATCH(x)
-		//KRATOS_WATCH(mDofList)
-        Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
-		//KRATOS_WATCH(xrom)
-        
+
+		double start_build4 = OpenMPUtils::GetCurrentTime();        
+		Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
+		const double stop_build4 = OpenMPUtils::GetCurrentTime();
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << stop_build4 - start_build4 << std::endl;
+
+		        
         //build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
@@ -493,8 +480,7 @@ public:
                     //compute the elemental reduction matrix T
                     const auto& geom = it->GetGeometry();
                     Matrix Telemental(geom.size()*mnodal_dofs, mrom_dofs);
-					//KRATOS_WATCH(Telemental)
-
+					
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
@@ -568,22 +554,25 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
-
         Vector dxrom(xrom.size());
-		//KRATOS_WATCH(dxrom)
 		KRATOS_WATCH(Arom)
 		KRATOS_WATCH(brom)
-        MathUtils<double>::Solve(Arom,dxrom,brom);
+		double start_build2 = OpenMPUtils::GetCurrentTime();
+		MathUtils<double>::Solve(Arom, dxrom, brom);
+		const double stop_build2 = OpenMPUtils::GetCurrentTime();
 
-        //update database
-        noalias(xrom) += dxrom;
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_build2 - start_build2 << std::endl;
+
+		//update database
+		noalias(xrom) += dxrom;
 		KRATOS_WATCH(xrom)
 		KRATOS_WATCH(dxrom)
-		//dxrom[0] = -1.6595e+03;
-		//dxrom[1] = -0.0345e+03;
-		//dxrom[2] = -0.0023e+03;
-        //update fine Dx
-        ProjectToFineBasis(dxrom, rModelPart.Nodes(),  Dx);
+
+		double start_build3 = OpenMPUtils::GetCurrentTime();
+		ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
+		const double stop_build3 = OpenMPUtils::GetCurrentTime();
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << stop_build3 - start_build3 << std::endl;
+
     }
 
 	void ResizeAndInitializeVectors(
@@ -639,133 +628,6 @@ public:
     {
     }
 
-
-
-	virtual void BuildRHS(
-		typename TSchemeType::Pointer pScheme,
-		ModelPart& rModelPart,
-		TSystemVectorType& b) override
-	{
-		KRATOS_TRY
-
-			BuildRHSNoDirichlet(pScheme, rModelPart, b);
-
-		const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
-		//NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-#pragma omp parallel for firstprivate(ndofs)
-		for (int k = 0; k < ndofs; k++)
-		{
-			typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-			const std::size_t i = dof_iterator->EquationId();
-
-			if (dof_iterator->IsFixed())
-				b[i] = 0.0;
-		}
-
-		KRATOS_CATCH("")
-	}
-
-
-
-
-	virtual void BuildRHSNoDirichlet(
-		typename TSchemeType::Pointer pScheme,
-		ModelPart& rModelPart,
-		TSystemVectorType& b)
-	{
-		KRATOS_TRY
-
-			//Getting the Elements
-			ElementsArrayType& pElements = rModelPart.Elements();
-
-		//getting the array of the conditions
-		ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-
-		ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-		//contributions to the system
-		LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-		LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-		//vector containing the localization in the system of the different
-		//terms
-		Element::EquationIdVectorType EquationId;
-
-		// assemble all elements
-		//for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-
-		const int nelements = static_cast<int>(pElements.size());
-#pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
-		{
-#pragma omp for schedule(guided, 512) nowait
-			for (int i = 0; i < nelements; i++) {
-				typename ElementsArrayType::iterator it = pElements.begin() + i;
-				//detect if the element is active or not. If the user did not make any choice the element
-				//is active by default
-				bool element_is_active = true;
-				if ((it)->IsDefined(ACTIVE)) {
-					element_is_active = (it)->Is(ACTIVE);
-				}
-
-				if (element_is_active) {
-					//calculate elemental Right Hand Side Contribution
-					pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
-
-					//assemble the elemental contribution
-					AssembleRHS(b, RHS_Contribution, EquationId);
-				}
-			}
-
-			LHS_Contribution.resize(0, 0, false);
-			RHS_Contribution.resize(0, false);
-
-			// assemble all conditions
-			const int nconditions = static_cast<int>(ConditionsArray.size());
-#pragma omp for schedule(guided, 512)
-			for (int i = 0; i < nconditions; i++) {
-				auto it = ConditionsArray.begin() + i;
-				//detect if the element is active or not. If the user did not make any choice the element
-				//is active by default
-				bool condition_is_active = true;
-				if ((it)->IsDefined(ACTIVE)) {
-					condition_is_active = (it)->Is(ACTIVE);
-				}
-
-				if (condition_is_active) {
-					//calculate elemental contribution
-					pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
-
-					//assemble the elemental contribution
-					AssembleRHS(b, RHS_Contribution, EquationId);
-				}
-			}
-		}
-
-		KRATOS_CATCH("")
-
-	}
-
-
-	virtual void AssembleRHS(
-		TSystemVectorType& b,
-		LocalSystemVectorType& RHS_Contribution,
-		Element::EquationIdVectorType& EquationId
-	)
-	{
-		unsigned int local_size = RHS_Contribution.size();
-
-		for (unsigned int i_local = 0; i_local < local_size; i_local++) {
-			unsigned int i_global = EquationId[i_local];
-
-			// ASSEMBLING THE SYSTEM VECTOR
-			double& b_value = b[i_global];
-			const double& rhs_value = RHS_Contribution[i_local];
-
-#pragma omp atomic
-			b_value += rhs_value;
-		}
-	}
 
 
     virtual void CalculateReactions(
