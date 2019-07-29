@@ -10,9 +10,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplica
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
-  ## MAIN FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
+    ## MAIN FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
 )
 
 file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp)
@@ -26,11 +26,11 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${KRATOS_STRUCTUR
 
 ## generate variables with the testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-  file(GLOB_RECURSE
-    KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/bits/*.cpp
-  )
+    file(GLOB_RECURSE
+        KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/bits/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## python interface sources
@@ -51,28 +51,28 @@ set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
+    set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
