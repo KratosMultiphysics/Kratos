@@ -54,7 +54,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver.Initialize()
 
         for solver in self.solver_wrappers.values():
-            solver.InitializeIO(self.solver_wrappers, self.echo_level)
+            solver.CreateIO(self.solver_wrappers, self.echo_level)
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
@@ -224,8 +224,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
 
     def __ExecuteCouplingOperations(self, settings):
-        for i in range(settings.size()):
-            coupling_operation_name = settings[i].GetString()
+        for coupling_operation_name in settings.GetStringArray():
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
