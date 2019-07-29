@@ -36,19 +36,6 @@ class PFEM2FluidTransportProcess(PFEM2ConvectionProcess):
         super(PFEM2FluidTransportProcess, self).ExecuteInitializeSolutionStep()
     #     self.model_part.SetValue(KM.DELTA_TIME, time_step)
 
-        # if self.use_mesh_velocity == False:
-        #     KM.VariableUtils().SetVectorVar(self.mesh_velocity_var, [0.0, 0.0, 0.0], self.model_part.Nodes)
-        # self.moveparticles.CalculateVelOverElemSize()
-        # self.moveparticles.MoveParticles()
-        # dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
-        # pre_minimum_num_of_particles = dimension
-        # self.moveparticles.PreReseed(pre_minimum_num_of_particles)
-        # self.moveparticles.TransferLagrangianToEulerian()
-        # KM.VariableUtils().CopyScalarVar(self.projection_var, self.unknown_var, self.model_part.Nodes)
-        # if self.reset_boundary_conditions:
-        #     self.moveparticles.ResetBoundaryConditions()
-        # self.moveparticles.CopyScalarVarToPreviousTimeStep(self.unknown_var, self.model_part.Nodes)
-
         # Copy Unknown var to TEMPERATURE on the previous time step (convected) before solving the system
         KM.VariableUtils().CopyModelPartNodalVar(
             FTA.PHI_THETA,
@@ -65,12 +52,12 @@ class PFEM2FluidTransportProcess(PFEM2ConvectionProcess):
         # self.model_part.ProcessInfo.SetValue(KM.DELTA_TIME, time_step)
 
         # Copy again the TEMPERATURE to Unknown var before updating the particles
-        # KM.VariableUtils().CopyModelPartNodalVar(
-        #     KM.TEMPERATURE,
-        #     FTA.PHI_THETA,
-        #     self.model_part,
-        #     self.model_part,
-        #     0)
+        KM.VariableUtils().CopyModelPartNodalVar(
+            KM.TEMPERATURE,
+            FTA.PHI_THETA,
+            self.model_part,
+            self.model_part,
+            0)
 
         # update the particles with the diffusion from the mesh stage
         super(PFEM2FluidTransportProcess, self).ExecuteFinalizeSolutionStep()
