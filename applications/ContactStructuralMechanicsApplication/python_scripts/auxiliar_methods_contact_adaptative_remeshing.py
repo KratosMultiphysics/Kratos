@@ -114,8 +114,8 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
                     computing_model_part.RemoveSubModelPart("ComputingContact")
 
                     # Ensure properties
-                    MA.EnsureProperties(root_model_part)
-                    MA.EnsureProperties(computing_model_part)
+                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(root_model_part)
+                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(computing_model_part)
 
                     metric_process = solver.get_metric_process()
                     remeshing_process = solver.get_remeshing_process()
