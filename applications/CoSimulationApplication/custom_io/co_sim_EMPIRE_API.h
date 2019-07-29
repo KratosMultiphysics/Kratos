@@ -28,11 +28,11 @@ Note:
 #include <iomanip>
 #include <fstream>
 #include <stdexcept>
-#include <stdio.h>
 #include <chrono>
 #include <thread>
 #include <unordered_map>
 #include <chrono>
+#include <vector>
 
 namespace EMPIRE_API_helpers {
 
@@ -97,7 +97,7 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
     }
 }
 
-static void SendArray(const std::string& rFileName, int sizeOfArray, double *data)
+static void SendArray(const std::string& rFileName, const int sizeOfArray, const double *data)
 {
     const auto start_time(std::chrono::steady_clock::now());
 
@@ -122,7 +122,7 @@ static void SendArray(const std::string& rFileName, int sizeOfArray, double *dat
     }
 }
 
-static void ReceiveArray(const std::string& rFileName, int sizeOfArray, double *data)
+static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, double *data)
 {
     WaitForFile(rFileName);
 
@@ -171,12 +171,26 @@ static void ReadNumberAfterKeyword(const std::string& rKeyWord, const std::strin
     line_stream >> rNumber;
 }
 
+template <typename TDataType>
+static void AllocateMemory(TDataType** ppContainer, const std::size_t Size)
+{
+    *ppContainer = new TDataType[Size];
+}
+
+template <typename TDataType>
+static void AllocateMemory(std::vector<TDataType>* pContainer, const std::size_t Size)
+{
+    if (pContainer->size() != Size) {
+        pContainer->resize(Size);
+    }
+}
+
 } // namespace EMPIRE_API_helpers
 
 /***********************************************************************************************
  * \brief Establishes the necessary connection with the Emperor
  ***********/
-static void EMPIRE_API_Connect(char* inputFileName)
+static void EMPIRE_API_Connect(const char* inputFileName)
 {
     const std::string file_name(inputFileName);
 
@@ -235,7 +249,7 @@ static char *EMPIRE_API_getUserDefinedText(char *elementName)
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs, int *numNodesPerElem, int *elems)
+static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int numElems, const double *nodes, const int *nodeIDs, const int *numNodesPerElem, const int *elems)
 {
     const auto start_time(std::chrono::steady_clock::now());
 
@@ -311,7 +325,8 @@ static void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *
  * \param[in] numNodesPerElem number of nodes per element
  * \param[in] elems connectivity table of all elements
  ***********/
-static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs, int **numNodesPerElem, int **elem)
+template <typename TDouble, typename TInt>
+static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, TDouble* nodes, TInt* nodeIDs, TInt* numNodesPerElem, TInt* elem)
 {
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
@@ -336,8 +351,8 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
 
             // allocating memory for nodes
             // note that this has to be deleted by the client!
-            *nodes = new double[(*numNodes) * 3];
-            *nodeIDs = new int[*numNodes];
+            EMPIRE_API_helpers::AllocateMemory(nodes, (*numNodes) * 3); // *nodes = new double[(*numNodes) * 3];
+            EMPIRE_API_helpers::AllocateMemory(nodeIDs, *numNodes); // *nodeIDs = new int[*numNodes];
 
             for (int i=0; i<*numNodes*3; ++i) {
                 input_file >> (*nodes)[i];
@@ -360,8 +375,8 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
 
             // allocating memory for elements
             // note that this has to be deleted by the client!
-            *numNodesPerElem = new int[*numElems];
-            *elem = new int[cell_list_size-*numElems];
+            EMPIRE_API_helpers::AllocateMemory(numNodesPerElem, *numElems); // *numNodesPerElem = new int[*numElems];
+            EMPIRE_API_helpers::AllocateMemory(elem, cell_list_size-*numElems); // *elem = new int[cell_list_size-*numElems];
 
             int counter=0;
             for (int i=0; i<*numElems; ++i) {
@@ -379,7 +394,7 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
     EMPIRE_API_helpers::RemoveFile(file_name);
 
     if (EMPIRE_API_helpers::PrintTiming) {
-        EMPIRE_API_LOG(0) << "Sending Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        EMPIRE_API_LOG(0) << "Receiving Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 }
 
@@ -389,7 +404,7 @@ static void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double
  * \param[in] sizeOfArray size of the array (data field)
  * \param[in] dataField the data field to be sent
  ***********/
-static void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_sendDataField(const char *name, const int sizeOfArray, const double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -402,7 +417,7 @@ static void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataFi
  * \param[in] sizeOfArray size of the array (data field)
  * \param[out] dataField the data field to be received
  ***********/
-static void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField)
+static void EMPIRE_API_recvDataField(const char *name, const int sizeOfArray, double *dataField)
 {
     const std::string file_name("EMPIRE_datafield_" + std::string(name) + ".dat");
 
@@ -415,7 +430,7 @@ static void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataFi
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-static void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_sendSignal_double(const char *name, const int sizeOfArray, const double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -428,7 +443,7 @@ static void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *si
  * \param[in] sizeOfArray size of the array (signal)
  * \param[in] signal the signal
  ***********/
-static void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal)
+static void EMPIRE_API_recvSignal_double(const char *name, const int sizeOfArray, double *signal)
 {
     const std::string file_name("EMPIRE_signal_" + std::string(name) + ".dat");
 
@@ -464,7 +479,7 @@ static int EMPIRE_API_recvConvergenceSignal()
  * \brief Send the convergence signal of an loop
  * \param[in] signal 1 means convergence, 0 means non-convergence
  ***********/
-static void EMPIRE_API_sendConvergenceSignal(int signal)
+static void EMPIRE_API_sendConvergenceSignal(const int signal)
 {
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;
