@@ -77,7 +77,7 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_regions"].GetBool();
+        mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_internal_regions"].GetBool();
     } else {
         mRemoveRegions = false;
     }
@@ -1086,7 +1086,7 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
         {
             "isosurface_variable"              : "DISTANCE",
             "nonhistorical_variable"           : false,
-            "remove_regions"                   : false
+            "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        :
