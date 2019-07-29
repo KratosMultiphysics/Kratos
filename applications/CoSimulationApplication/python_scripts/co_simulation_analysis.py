@@ -55,6 +55,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def Initialize(self):
         self._GetSolver().Initialize()
+        self._GetSolver().InitializeCouplingInterfaceData()
         self._GetSolver().Check()
 
         if self.echo_level > 0:

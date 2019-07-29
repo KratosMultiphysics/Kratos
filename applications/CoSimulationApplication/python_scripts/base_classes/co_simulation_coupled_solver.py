@@ -29,7 +29,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
-        self._AllocateHistoricalVariablesFromCouplingData()
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
@@ -55,17 +54,21 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver.Initialize()
 
         for solver in self.solver_wrappers.values():
-            solver.InitializeIO(self.solver_wrappers, self.echo_level)
+            solver.CreateIO(self.solver_wrappers, self.echo_level)
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
-
-        super(CoSimulationCoupledSolver, self).Initialize()
 
         for predictor in self.predictors_list:
             predictor.Initialize()
 
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Initialize()
+
+    def InitializeCouplingInterfaceData(self):
+        super(CoSimulationCoupledSolver, self).InitializeCouplingInterfaceData()
+
+        for solver in self.solver_wrappers.values():
+            solver.InitializeCouplingInterfaceData()
 
     def Finalize(self):
         for solver in self.solver_wrappers.values():
@@ -221,8 +224,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
 
     def __ExecuteCouplingOperations(self, settings):
-        for i in range(settings.size()):
-            coupling_operation_name = settings[i].GetString()
+        for coupling_operation_name in settings.GetStringArray():
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):

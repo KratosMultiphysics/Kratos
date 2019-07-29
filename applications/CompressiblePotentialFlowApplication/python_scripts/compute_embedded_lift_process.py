@@ -29,6 +29,8 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         else:
             raise(Exception("Dimension of the problem is not 2. Only 2D cases are currently supported."))
 
+        self._CalculateWakeTangentAndNormalDirections()
+
         self._ProjectForceToFreeStreamVelocity(self.resultant_force/self.reference_area)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cl = ', self.lift_coefficient)
