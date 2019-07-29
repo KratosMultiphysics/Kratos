@@ -17,6 +17,7 @@ class StabilizedFormulation(object):
         self.element_name = None
         self.condition_name = "MonolithicWallCondition"
         self.element_integrates_in_time = False
+        self.element_has_nodal_properties = False
         self.process_data = {}
 
         if settings.Has("element_type"):
@@ -63,6 +64,9 @@ class StabilizedFormulation(object):
             self.element_name = 'VMS'
 
         settings.ValidateAndAssignDefaults(default_settings)
+
+        # set the nodal material properties flag
+        self.element_has_nodal_properties = True
 
         # validate the non-newtonian parameters if necessary
         if self.non_newtonian_option:
@@ -161,7 +165,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "reorder": false
             },
             "material_import_settings": {
-                "materials_filename": "unknown_materials.json"
+                "materials_filename": ""
             },
             "formulation": {
                 "element_type": "vms"
@@ -244,6 +248,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
+        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
 
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
@@ -294,7 +299,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self._set_physical_properties()
+            materials_imported = self._set_physical_properties()
+            if not materials_imported:
+                raise RuntimeError("Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
     def Initialize(self):
@@ -325,7 +332,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 time_order = 2
                 self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
-                err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
                 err_msg += "Available options are: \"bdf2\""
                 raise Exception(err_msg)
         else:
@@ -392,15 +399,20 @@ class NavierStokesSolverMonolithic(FluidSolver):
             (self.solver).InitializeSolutionStep()
 
     def _set_physical_properties(self):
-        # Check if fluid properties are provided using a .json file
+        # Check if the fluid properties are provided using a .json file
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        if (materials_filename != "unknown_materials.json"):
-            # Add constitutive laws and material properties from .json file to model parts
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
             KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
         else:
-            # Get density and dynamic viscostity from the properties and transfer them to the nodes
+            materials_imported = False
+
+        # If the element uses nodal material properties, transfer them to the nodes
+        if self.element_has_nodal_properties:
+            # Get density and dynamic viscostity from the properties of the first element
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
                 if rho <= 0.0:
@@ -412,9 +424,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 break
             else:
                 raise Exception("No fluid elements found in the main model part.")
-
+            # Transfer the obtained properties to the nodes
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+
+        return materials_imported
 
     def _SetUpSteadySimulation(self):
         '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''
