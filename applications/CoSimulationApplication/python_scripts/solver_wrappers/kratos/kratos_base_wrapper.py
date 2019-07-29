@@ -8,9 +8,10 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from importlib import import_module
 
 def Create(settings, solver_name):
-    raise Exception('"KratosBaseWrapper" is a baseclass and cannot be used directly!')
+    return KratosBaseWrapper(settings, solver_name)
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
     """This class serves as basis for the kratos-wrappers
@@ -27,9 +28,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
             self.project_parameters = KM.Parameters(parameter_file.read())
 
         # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
-        self._analysis_stage = self._CreateAnalysisStage()
-
-        self._AllocateHistoricalVariablesFromCouplingData()
+        self._analysis_stage = self.__GetAnalysisStage()
 
     def Initialize(self):
         self._analysis_stage.Initialize() # this reades the Meshes
@@ -58,10 +57,15 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def OutputSolutionStep(self):
         self._analysis_stage.OutputSolutionStep()
 
-
     def _CreateAnalysisStage(self):
-        raise Exception("Creation of the AnalysisStage must be implemented in the derived class!")
+        raise Exception('The "KratosBaseWrapper" can only be used when specifying "analysis_stage_module", otherwise the creation of the AnalysisStage must be implemented in the derived class!')
 
+    def __GetAnalysisStage(self):
+        if self.settings["settings"].Has("analysis_stage_module"):
+            analysis_stage_module = import_module(self.settings["settings"]["analysis_stage_module"].GetString())
+            return analysis_stage_module.Create(self.model, self.project_parameters)
+        else:
+            return self._CreateAnalysisStage()
 
     def PrintInfo(self):
         cs_tools.cs_print_info("KratosSolver", self._ClassName())

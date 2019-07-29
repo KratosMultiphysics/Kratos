@@ -133,15 +133,15 @@
             }
         },{
             "python_module" : "compute_body_fitted_drag_process",
-                "kratos_module" : "KratosMultiphysics",
-                "process_name"  : "ComputeBodyFittedDragProcess",
-                "Parameters" : {
-                    "model_part_name"           : "Structure",
-                    "interval"                  : [0.0, 1e30],
-                    "write_drag_output_file"    : true,
-                    "print_drag_to_screen"      : false,
-                    "print_format"              : "22.15e"
-                }
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "Structure",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
+            }
         }]
     }
 }

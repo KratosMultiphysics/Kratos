@@ -2,18 +2,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-try:
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
+if have_mesh_moving:
     import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-    have_mesh_moving = True
-except ImportError:
-    have_mesh_moving = False
-
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication import read_distance_from_file
 
 class EmbeddedFormulation(object):
     """Helper class to define embedded-dependent parameters."""
@@ -245,7 +245,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.level_set_type = self.embedded_formulation.level_set_type
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the distance reading filename
@@ -303,6 +302,13 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -310,9 +316,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(computing_model_part,
-                                                                            self.settings["time_order"].GetInt())
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -364,7 +367,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Compute the BDF coefficients
-            (self.bdf_process).Execute()
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # If required, compute the nodal neighbours
             if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
@@ -439,7 +442,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def _set_distance_function(self):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
-            import read_distance_from_file
             DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):

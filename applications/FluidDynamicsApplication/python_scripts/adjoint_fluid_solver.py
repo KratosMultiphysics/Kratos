@@ -3,9 +3,10 @@ import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
-import KratosFluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)
@@ -172,7 +173,6 @@ class AdjointFluidSolver(PythonSolver):
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
         current_buffer_size = self.main_model_part.GetBufferSize()
