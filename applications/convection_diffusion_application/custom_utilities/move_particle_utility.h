@@ -878,7 +878,7 @@ namespace Kratos
 						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);
 					//and now compute the elemental contribution to the gobal system:
 
-					if(number_of_particles_in_elem>(TDim*3)) //otherwise it's impossible to define a correctly the gradients, therefore the results inside the element are useless.
+					if(number_of_particles_in_elem > static_cast<int>(TDim)*3) //otherwise it's impossible to define a correctly the gradients, therefore the results inside the element are useless.
 					{
 						for (int i=0 ; i!=(TDim+1); i++)
 						{
