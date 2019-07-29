@@ -72,8 +72,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.span_direction = _CrossProduct(self.wake_normal, self.wake_direction)
 
     def _ComputeLiftFromPressure(self):
-        force_coefficient = KratosMultiphysics.Vector(3)
-        self.moment_coefficient = KratosMultiphysics.Vector(3)
+        force_coefficient = KratosMultiphysics.Vector(3, 0.0)
 
         for cond in self.body_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
@@ -96,7 +95,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
 
     def _ComputeMomentFromPressure(self):
-        self.moment_coefficient = KratosMultiphysics.Vector(3)
+        self.moment_coefficient = KratosMultiphysics.Vector(3, 0.0)
 
         for cond in self.body_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
@@ -137,8 +136,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
     def _ComputeLiftFromFarField(self):
 
-        force_coefficient_pres = KratosMultiphysics.Vector(3)
-        force_coefficient_vel = KratosMultiphysics.Vector(3)
+        force_coefficient_pres = KratosMultiphysics.Vector(3, 0.0)
+        force_coefficient_vel = KratosMultiphysics.Vector(3, 0.0)
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
 
         for cond in self.far_field_model_part.Conditions:
