@@ -41,6 +41,13 @@ class AdaptativeRemeshingMechanicalUtilities(object):
             "remeshing_parameters":
             {
                 "filename"                             : "out",
+                "discretization_type"                  : "Standard",
+                "isosurface_parameters"                :
+                {
+                    "isosurface_variable"              : "DISTANCE",
+                    "nonhistorical_variable"           : false,
+                    "remove_regions"                   : false
+                },
                 "framework"                            : "Lagrangian",
                 "internal_variables_parameters"        :
                 {
@@ -50,9 +57,47 @@ class AdaptativeRemeshingMechanicalUtilities(object):
                     "interpolation_type"                   : "LST",
                     "internal_variable_interpolation_list" :[]
                 },
-                "save_external_files"              : false,
-                "max_number_of_searchs"            : 1000,
-                "echo_level"                       : 0
+                "force_sizes"                          :
+                {
+                    "force_min"                           : false,
+                    "minimal_size"                        : 0.1,
+                    "force_max"                           : false,
+                    "maximal_size"                        : 10.0
+                },
+                "advanced_parameters"                  :
+                {
+                    "force_hausdorff_value"               : false,
+                    "hausdorff_value"                     : 0.0001,
+                    "no_move_mesh"                        : false,
+                    "no_surf_mesh"                        : false,
+                    "no_insert_mesh"                      : false,
+                    "no_swap_mesh"                        : false,
+                    "normal_regularization_mesh"          : false,
+                    "deactivate_detect_angle"             : false,
+                    "force_gradation_value"               : false,
+                    "gradation_value"                     : 1.3
+                },
+                "collapse_prisms_elements"             : false,
+                "save_external_files"                  : false,
+                "save_colors_files"                    : false,
+                "save_mdpa_file"                       : false,
+                "max_number_of_searchs"                : 1000,
+                "preserve_flags"                       : true,
+                "interpolate_non_historical"           : true,
+                "extrapolate_contour_values"           : true,
+                "surface_elements"                     : false,
+                "search_parameters"                    : {
+                    "allocation_size"                     : 1000,
+                    "bucket_size"                         : 4,
+                    "search_factor"                       : 2.0
+                },
+                "echo_level"                           : 0,
+                "debug_result_mesh"                    : false,
+                "step_data_size"                       : 0,
+                "initialize_entities"                  : true,
+                "remesh_at_non_linear_iteration"       : false,
+                "buffer_size"                          : 0
+
             }
         }
         """)
