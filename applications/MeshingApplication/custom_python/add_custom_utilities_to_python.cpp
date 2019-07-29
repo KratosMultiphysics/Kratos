@@ -50,9 +50,10 @@ namespace py = pybind11;
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     // MeshingUtilities
-    m.def("EnsureModelPartOwnsProperties", &MeshingUtilities::EnsureModelPartOwnsProperties);
-    m.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
-    m.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
+    auto mod_meshing_utilities = m.def_submodule("MeshingUtilities");
+    mod_meshing_utilities.def("EnsureModelPartOwnsProperties", &MeshingUtilities::EnsureModelPartOwnsProperties);
+    mod_meshing_utilities.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
+    mod_meshing_utilities.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
 
     py::class_<MeshTransfer < 2 > >(m,"MeshTransfer2D")
     .def(py::init< >())
