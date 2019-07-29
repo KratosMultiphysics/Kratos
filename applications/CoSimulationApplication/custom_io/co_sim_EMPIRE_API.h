@@ -107,7 +107,7 @@ static void SendArray(const std::string& rFileName, const int sizeOfArray, const
     output_file.open(GetTempFileName(rFileName));
     CheckStream(output_file, rFileName);
 
-    output_file << std::scientific << std::setprecision(12); // TODO maybe this should be configurable
+    output_file << std::scientific << std::setprecision(14); // TODO maybe this should be configurable
 
     output_file << sizeOfArray << "\n";
 
@@ -136,6 +136,8 @@ static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, do
 
     std::ifstream input_file(rFileName);
     CheckStream(input_file, rFileName);
+
+    input_file >> std::setprecision(14); // TODO maybe this should be configurable
 
     int size_read;
     input_file >> size_read; // the first number in the file is the size of the array
