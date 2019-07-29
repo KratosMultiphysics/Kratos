@@ -353,21 +353,22 @@ public:     // methods
         }
 
         Matrix shapeFunctions(shape.GetNbShapeFunctions(),
-            shape.nb_nonzero_poles());
+            shape.GetNbNonzeroPoles());
 
         for (int i = 0; i < shape.GetNbShapeFunctions(); i++) {
-            for (int j = 0; j < shape.nb_nonzero_poles(); j++) {
+            for (int j = 0; j < shape.GetNbNonzeroPoles(); j++) {
                 shapeFunctions(i, j) = shape(i, j);
             }
         }
 
-        std::vector<int> indices(shape.nb_nonzero_poles());
+        std::vector<int> indices(shape.GetNbNonzeroPoles());
         auto it = indices.begin();
 
-        for (int i = 0; i < shape.nb_nonzero_poles_u(); i++) {
-            for (int j = 0; j < shape.nb_nonzero_poles_v(); j++) {
-                const int poleIndex = Math::single_index(GetNbPolesU(),
-                    GetNbPolesV(), shape.GetFirstNonzeroPoleU() + i,
+        for (int i = 0; i < shape.GetNbNonzeroPolesU(); i++) {
+            for (int j = 0; j < shape.GetNbNonzeroPolesV(); j++) {
+                const int poleIndex = NurbsUtility::GetSingleIndex(
+                    GetNbPolesU(), GetNbPolesV(),
+                    shape.GetFirstNonzeroPoleU() + i,
                     shape.GetFirstNonzeroPoleV() + j);
 
                 *(it++) = poleIndex;

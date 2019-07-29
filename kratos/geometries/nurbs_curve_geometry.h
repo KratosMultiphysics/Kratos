@@ -84,7 +84,7 @@ public:     // constructors
             throw std::runtime_error("Number of knots and poles do not match");
         }
 
-        if (rWeights.size() != poles.size()) {
+        if (rWeights.size() != rPoles.size()) {
             throw std::runtime_error(
                 "Number of poles and weights do not match");
         }
@@ -221,10 +221,10 @@ public:     // methods
         NurbsCurveShapeFunction shape_function(GetDegree(), Order);
 
         if (IsRational()) {
-            shape_function.Compute(knots(), [&](int i) {
+            shape_function.Compute(GetKnots(), [&](int i) {
                 return GetWeight(i); }, ParameterT);
         } else {
-            shape_function.Compute(knots(), ParameterT);
+            shape_function.Compute(GetKnots(), ParameterT);
         }
 
         Matrix values(shape_function.GetNbShapeFunctions(),
@@ -236,7 +236,7 @@ public:     // methods
             }
         }
 
-        return {shape_function.nonzero_pole_indices(), values};
+        return {shape_function.GetNonzeroPoleIndices(), values};
     }
 
     std::vector<Interval> Spans() const
@@ -249,8 +249,8 @@ public:     // methods
         std::vector<Interval> result(nb_spans);
 
         for (int i = 0; i < nb_spans; i++) {
-            const double t0 = knot(first_span + i);
-            const double t1 = knot(first_span + i + 1);
+            const double t0 = GetKnot(first_span + i);
+            const double t1 = GetKnot(first_span + i + 1);
 
             result[i] = Interval(t0, t1);
         }
