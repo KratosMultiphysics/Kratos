@@ -159,10 +159,13 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             self.time_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1)
-            # In case the BDF2 scheme is used inside the element, the BDF process is required to update the BDF coefficients
+            # In case the BDF2 scheme is used inside the element, set the time discretization utility to compute the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
-                time_order = 2
-                self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part, time_order)
+                time_order = self.settings["time_order"].GetInt()
+                if time_order == 2:
+                    self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+                else:
+                    raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
             else:
                 err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
                 err_msg += "Available options are: \"bdf2\""
