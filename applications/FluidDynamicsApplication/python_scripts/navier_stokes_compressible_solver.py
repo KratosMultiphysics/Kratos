@@ -124,6 +124,13 @@ class NavierStokesCompressibleSolver(FluidSolver):
             print("ERROR: _GetAutomaticTimeSteppingUtility out of date")
             #self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+
         # Creating the solution strategy
         self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                  self.settings["absolute_tolerance"].GetDouble())
@@ -131,10 +138,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
         #(self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt()
         (self.conv_criteria).SetEchoLevel(3)
-
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
-                                                                            self.settings["time_order"].GetInt())
-
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP)
@@ -169,12 +172,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
 
     def InitializeSolutionStep(self):
-        (self.bdf_process).Execute()
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         (self.solver).InitializeSolutionStep()
 
 
     def Solve(self):
-        (self.bdf_process).Execute()
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         (self.solver).Solve()
 
     def PrepareModelPart(self):
@@ -214,4 +217,3 @@ class NavierStokesCompressibleSolver(FluidSolver):
             #""")
         #else:
             #raise Exception("Domain size is not 2 or 3!!")
-
