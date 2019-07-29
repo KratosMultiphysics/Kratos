@@ -287,7 +287,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-            self._set_physical_properties()
+            self._SetPhysicalProperties()
             ## Sets the constitutive law
             self._set_constitutive_law()
             ## Sets the embedded formulation configuration
@@ -398,7 +398,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if self._TimeBufferIsInitialized():
             self._finalize_fm_ale_step()
 
-    def _set_physical_properties(self):
+    def _SetPhysicalProperties(self):
         ## Set the SOUND_VELOCITY value (wave velocity)
         if self.main_model_part.Properties[1].Has(KratosMultiphysics.SOUND_VELOCITY):
             self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = self.main_model_part.Properties[1][KratosMultiphysics.SOUND_VELOCITY]

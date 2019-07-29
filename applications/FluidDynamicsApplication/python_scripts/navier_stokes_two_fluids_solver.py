@@ -117,7 +117,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ## Setting the nodal distance
             self._set_distance_function()
             ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-            self._set_physical_properties()
+            self._SetPhysicalProperties()
             ## Sets the constitutive law
             self._set_constitutive_law()
 
@@ -200,7 +200,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.variational_distance_process).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
-            self._set_physical_properties()
+            self._SetPhysicalProperties()
 
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()
@@ -210,7 +210,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.solver).FinalizeSolutionStep()
             (self.accelerationLimitationUtility).Execute()
 
-    def _set_physical_properties(self):
+    def _SetPhysicalProperties(self):
         # Get fluid 1 and 2 properties
         properties_1 = self.main_model_part.Properties[1]
         properties_2 = self.main_model_part.Properties[2]
