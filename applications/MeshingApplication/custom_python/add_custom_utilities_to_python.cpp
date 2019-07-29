@@ -50,7 +50,7 @@ namespace py = pybind11;
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     // MeshingUtilities
-    m.def("EnsureProperties", &MeshingUtilities::EnsureProperties);
+    m.def("EnsureModelPartOwnsProperties", &MeshingUtilities::EnsureModelPartOwnsProperties);
     m.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
     m.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
 

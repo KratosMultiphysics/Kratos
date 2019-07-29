@@ -22,7 +22,7 @@ namespace Kratos
 {
 namespace MeshingUtilities
 {
-void EnsureProperties(ModelPart& rModelPart)
+void EnsureModelPartOwnsProperties(ModelPart& rModelPart)
 {
     // The list of properties
     std::unordered_set<Properties::Pointer> list_of_properties;
