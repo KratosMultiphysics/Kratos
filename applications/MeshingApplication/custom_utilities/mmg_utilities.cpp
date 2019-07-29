@@ -1019,7 +1019,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
     KRATOS_ERROR_IF(MMG2D_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
 
-    if (mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -1041,6 +1041,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
                     p_element->Set(INSIDE, true);
                 } else if (Ref == 3) {
                     p_element->Set(INSIDE, false);
+                    if (mRemoveRegions) p_element->Set(TO_ERASE, true);
                 }
             }
         }
@@ -1051,14 +1052,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[Ref].get() == nullptr) {
-            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-                KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
-                return p_element;
-            } else {
-                p_prop = rModelPart.pGetProperties(0);
-                PointerVector<NodeType> dummy_nodes (3);
-                p_base_element = KratosComponents<Element>::Get("Element2D3N").Create(0, dummy_nodes, p_prop);
-            }
+            KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+            return p_element;
         } else {
             p_base_element = rMapPointersRefElement[Ref];
             p_prop = p_base_element->pGetProperties();
@@ -1102,7 +1097,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
     KRATOS_ERROR_IF(MMG3D_Get_tetrahedron(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
 
-    if (mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -1119,6 +1114,14 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
                 element_nodes[3] = rModelPart.pGetNode(vertex_3);
                 p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+
+                // Setting inside flag
+                if (Ref == 2) {
+                    p_element->Set(INSIDE, true);
+                } else if (Ref == 3) {
+                    p_element->Set(INSIDE, false);
+                    if (mRemoveRegions) p_element->Set(TO_ERASE, true);
+                }
             }
         }
     } else {
@@ -1128,14 +1131,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[Ref].get() == nullptr) {
-            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-                KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
-                return p_element;
-            } else {
-                p_prop = rModelPart.pGetProperties(0);
-                PointerVector<NodeType> dummy_nodes (4);
-                p_base_element = KratosComponents<Element>::Get("Element3D4N").Create(0, dummy_nodes, p_prop);
-            }
+            KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+            return p_element;
         } else {
             p_base_element = rMapPointersRefElement[Ref];
             p_prop = p_base_element->pGetProperties();
@@ -3277,6 +3274,11 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
                 }
             }
         }
+    }
+
+    // In case of need to remove regions we remove the unused elements
+    if (mRemoveRegions) {
+        rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     }
 
     // TODO: Add OMP
