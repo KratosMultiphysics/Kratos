@@ -47,7 +47,7 @@
             "input_file_name"  : "dem_fem_cable_net/dem_fem_cable_net_test_results.json",
             "model_part_name"  : "RESULT_middleNode",
 			"time_frequency"   : 5e-04,
-			"relative_tolerance"   : 1e-5
+			"tolerance"        : 1e-2
         }
     }]
 	}
