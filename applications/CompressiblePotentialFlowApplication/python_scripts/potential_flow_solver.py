@@ -55,8 +55,9 @@ def CreateSolver(model, custom_settings):
 
 class PotentialFlowSolver(FluidSolver):
 
-    def _ValidateSettings(self, settings):
-        # Defaul settings string in json format
+    @classmethod
+    def GetDefaultSettings(cls):
+        # Default settings string in json format
         default_settings = KratosMultiphysics.Parameters(r'''{
             "solver_type": "potential_flow_solver",
             "model_part_name": "PotentialFluidModelPart",
@@ -89,11 +90,12 @@ class PotentialFlowSolver(FluidSolver):
             "auxiliary_variables_list" : []
         }''')
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(PotentialFlowSolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
 
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(PotentialFlowSolver, self).__init__(model, custom_settings)
 
         # There is only a single rank in OpenMP, we always print

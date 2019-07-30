@@ -6,6 +6,7 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import baseclass
 from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
@@ -73,8 +74,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
     #### Private functions ####
 
     def _create_linear_solver(self):
-        from KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory import ConstructSolver
-        return ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
+        return trilinos_linear_solver_factory.ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
 
     def _create_mesh_motion_solving_strategy(self):
         raise Exception("Mesh motion solver must be created by the derived class.")

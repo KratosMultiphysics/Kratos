@@ -146,7 +146,8 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesSolverMonolithic(FluidSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -197,9 +198,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "turbulence_model": "None"
         }""")
 
-        settings = self._BackwardsCompatibilityHelper(settings)
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        return default_settings
 
     def _BackwardsCompatibilityHelper(self,settings):
         ## Backwards compatibility -- deprecation warnings
@@ -236,6 +236,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
+        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
         self.formulation = StabilizedFormulation(self.settings["formulation"])
@@ -318,10 +320,10 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1)
-            # In case the BDF2 scheme is used inside the element, the BDF process is required to update the BDF coefficients
+            # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2
-                self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part, time_order)
+                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
                 err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
                 err_msg += "Available options are: \"bdf2\""
@@ -384,8 +386,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # If required, compute the BDF coefficients
-            if hasattr(self, 'bdf_process'):
-                (self.bdf_process).Execute()
+            if hasattr(self, 'time_discretization'):
+                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             (self.solver).InitializeSolutionStep()
 

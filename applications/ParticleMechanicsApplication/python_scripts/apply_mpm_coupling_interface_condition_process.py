@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 from KratosMultiphysics.ParticleMechanicsApplication.apply_mpm_particle_dirichlet_condition_process import ApplyMPMParticleDirichletConditionProcess
 
-import math
+from math import sqrt
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -83,7 +83,7 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
             ## ADD NORMAL
             normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL,0)
             # Check and see whether the normal is not zero
-            norm_normal = math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
+            norm_normal = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
             if norm_normal > 1.e-10:
                 self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
 
