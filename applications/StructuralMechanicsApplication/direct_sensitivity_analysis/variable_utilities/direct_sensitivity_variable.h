@@ -107,6 +107,8 @@ public:
 
     virtual double GetPerturbationSize();
 
+    virtual bool GetAdaptPerturbationSizeFlag();
+
     virtual void ExtractDataFromDerivativeMatrix(Element& rDirectElement,
                                         Matrix& rExtractedDerivativeMatrix,
                                         const Matrix& rDerivativeMatrix);
@@ -124,6 +126,7 @@ protected:
     double mDelta;
     std::string mDesignVariableName;
     std::string mVariableType;
+    Parameters mVariableSettings;
      
     ///@}
     ///@name protected Operators

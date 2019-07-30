@@ -24,7 +24,7 @@ namespace Kratos
 
     /// Constructor.
     DirectSensitivityVariable::DirectSensitivityVariable(ModelPart& rModelPart, Parameters VariableSettings)
-      : mrModelPart(rModelPart)
+      : mrModelPart(rModelPart) , mVariableSettings(VariableSettings)
     {
         KRATOS_TRY;
 
@@ -97,6 +97,15 @@ namespace Kratos
     double DirectSensitivityVariable::GetPerturbationSize()
     {              
         return mDelta;
+    }
+
+    bool DirectSensitivityVariable::GetAdaptPerturbationSizeFlag()
+    {
+        bool adapt_step_size = false;
+        if(mVariableSettings.Has("adapt_step_size"))
+                adapt_step_size = mVariableSettings["adapt_step_size"].GetBool();
+
+        return adapt_step_size;
     }
 
     void DirectSensitivityVariable::ExtractDataFromDerivativeMatrix(Element& rDirectElement,
