@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Klaus B. Sautter
 //
 
 
@@ -32,10 +31,6 @@ namespace Python {
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 }
 

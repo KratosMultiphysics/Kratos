@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Klaus B. Sautter
 //
 
 
@@ -42,13 +42,14 @@ void KratosCableNetApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    KRATOS_INFO("") <<    "KRATOS  ___/\\/\\/\\/\\/\\______________/\\/\\________/\\/\\________________/\\/\\____/\\/\\________________/\\/\\_____\n"
-                    <<    "       _/\\/\\__________/\\/\\/\\______/\\/\\________/\\/\\______/\\/\\/\\____/\\/\\/\\__/\\/\\____/\\/\\/\\____/\\/\\/\\/\\/\\_\n"
-                    <<    "      _/\\/\\______________/\\/\\____/\\/\\/\\/\\____/\\/\\____/\\/\\/\\/\\/\\__/\\/\\/\\/\\/\\/\\__/\\/\\/\\/\\/\\____/\\/\\_____\n"
-                    <<    "     _/\\/\\__________/\\/\\/\\/\\____/\\/\\__/\\/\\__/\\/\\____/\\/\\________/\\/\\__/\\/\\/\\__/\\/\\__________/\\/\\_____\n"
-                    <<    "    ___/\\/\\/\\/\\/\\__/\\/\\/\\/\\/\\__/\\/\\/\\/\\____/\\/\\/\\____/\\/\\/\\/\\__/\\/\\____/\\/\\____/\\/\\/\\/\\____/\\/\\/\\___\n"
-                    <<    "   ________________________________________________________________________________________________ Application\n"
-                    <<    "Initializing KratosCableNetApplication..." << std::endl;
+    KRATOS_INFO("")  <<  "    KRATOS ___      _     _          __     _\n"
+                     <<  "          / __\\__ _| |__ | | ___  /\\ \\ \\___| |_\n"
+                     <<  "         / /  / _` | '_ \\| |/ _ \\/  \\/ / _ \\ __|\n"
+                     <<  "        / /__| (_| | |_) | |  __/ /\\  /  __/ |_\n"
+                     <<  "        \\____/\\__,_|_.__/|_|\\___\\_\\ \\/ \\___|\\__| Application\n"
+                     <<    "Initializing KratosCableNetApplication..." << std::endl;
+
+
 
     KRATOS_REGISTER_ELEMENT("WeakSlidingElement3D3N", mWeakSlidingElement3D3N)
     KRATOS_REGISTER_ELEMENT("SlidingCableElement3D3N", mSlidingCableElement3D3N)

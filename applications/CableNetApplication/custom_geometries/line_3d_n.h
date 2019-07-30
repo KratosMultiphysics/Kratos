@@ -7,6 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Klaus B. Sautter
 
 
 #if !defined(KRATOS_LINE_3D_N_H_INCLUDED )

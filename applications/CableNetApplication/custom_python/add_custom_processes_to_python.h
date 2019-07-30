@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Klaus B. Sautter
 //
 
 #if !defined(KRATOS_CABLE_NET_ADD_PROCESSES_TO_PYTHON_H_INCLUDED )

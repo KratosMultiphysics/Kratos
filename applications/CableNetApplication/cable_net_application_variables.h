@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Klaus B. Sautter
 //
 
 #if !defined(KRATOS_CABLE_NET_APPLICATION_VARIABLES_H_INCLUDED )
