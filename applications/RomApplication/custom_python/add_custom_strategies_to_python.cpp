@@ -23,10 +23,12 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
+
 #include "spaces/ublas_space.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -39,23 +41,30 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+
+    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
     //********************************************************************
     //********************************************************************
-    //  py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>,
-    //  		TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
-    //          BaseSolvingStrategyType>(m, "TestStrategy")
-    //  	.def(py::init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-    //  	.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-    //  	;
+    typedef ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ROMBuilderAndSolverType;
+
+     py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
+     	.def(py::init< LinearSolverType::Pointer, Parameters>() )
+     	//.def("MoveNodes",&ROMBuilderAndSolverType::MoveNodes)
+     	;
 
 }
 
 } // namespace Python.
 } // Namespace Kratos
+
+
+
+            // typedef ROMBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ROMBuilderAndSolverType;
+            // py::class_< ROMBuilderAndSolverType, ROMBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ROMBuilderAndSolver")
+            // .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            // ;
