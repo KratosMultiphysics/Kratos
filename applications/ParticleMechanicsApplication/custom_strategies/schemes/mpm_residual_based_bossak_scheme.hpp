@@ -29,7 +29,6 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
-#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -104,7 +103,7 @@ public:
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
                 :ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(Alpha, NewmarkBeta),
-                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, BOUNDARY_CONDITION_TYPE)
+                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, SLIP)
     {
         // To distinguish quasi-static and dynamic
         mIsDynamic = IsDynamic;
@@ -120,7 +119,7 @@ public:
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
-        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,BOUNDARY_CONDITION_TYPE)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,SLIP)
     {
     }
 
@@ -407,7 +406,7 @@ public:
 
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,pCurrentElement->GetGeometry());
-        mRotationTool.ElementApplySlipCondition(LHS_Contribution,RHS_Contribution,pCurrentElement->GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,pCurrentElement->GetGeometry());
 
         KRATOS_CATCH( "" )
     }
@@ -443,7 +442,7 @@ public:
 
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.RotateRHS(RHS_Contribution,pCurrentElement->GetGeometry());
-        mRotationTool.ElementApplySlipCondition(RHS_Contribution,pCurrentElement->GetGeometry());
+        mRotationTool.ApplySlipCondition(RHS_Contribution,pCurrentElement->GetGeometry());
 
         KRATOS_CATCH( "" )
     }
@@ -481,7 +480,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,pCurrentCondition->GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,pCurrentCondition->GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,pCurrentCondition->GetGeometry());
 
         KRATOS_CATCH( "" )
     }
@@ -515,7 +514,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.RotateRHS(RHS_Contribution,pCurrentCondition->GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,pCurrentCondition->GetGeometry());
+        mRotationTool.ApplySlipCondition(RHS_Contribution,pCurrentCondition->GetGeometry());
 
         KRATOS_CATCH( "" )
     }

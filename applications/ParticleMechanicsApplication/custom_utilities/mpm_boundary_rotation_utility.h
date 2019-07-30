@@ -52,7 +52,8 @@ namespace Kratos {
 /* A utility to rotate the local contributions of certain nodes to the system matrix,
 which is required to apply slip conditions (roller-type support) in arbitrary directions to the boundary nodes.*/
 template<class TLocalMatrixType, class TLocalVectorType>
-class MPMBoundaryRotationUtility: public CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double> {
+class MPMBoundaryRotationUtility:
+	public CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double> {
 public:
 	///@name Type Definitions
 	///@{
@@ -60,11 +61,13 @@ public:
 	/// Pointer definition of MPMBoundaryRotationUtility
 	KRATOS_CLASS_POINTER_DEFINITION(MPMBoundaryRotationUtility);
 
-	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
+	typedef CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double> BaseType;
 
 	typedef Node<3> NodeType;
 
 	typedef Geometry< Node<3> > GeometryType;
+
+	using BaseType::Rotate;
 
 	///@}
 	///@name Life Cycle
@@ -72,14 +75,14 @@ public:
 
 	/// Constructor.
 	/** @param DomainSize Number of space dimensions (2 or 3)
-	 * @param NumRowsPerNode Number of matrix or vector rows associated to each node. Displacement DOFs are assumed to be the first mDomainSize rows in each block of rows.
-	 * @param rVariable Kratos variable used to flag nodes where local system contributions will be rotated. All nodes with rVariable != Zero will be rotated.
+	 * @param BlockSize Number of matrix or vector rows associated to each node. Velocity DOFs are assumed to be the first mDomainSize rows in each block of rows.
+	 * @param rSelectionFlag All nodes where the flag given by this argument is set to true will be transformed to a rotated coordinate system.
 	 */
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
 		const unsigned int BlockSize,
-		const Variable<int>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
+		const Kratos::Flags& rSelectionFlag = SLIP):
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize, BlockSize, rSelectionFlag)
 	{}
 
 	/// Destructor.
@@ -198,152 +201,6 @@ public:
 
 				}
 			}
-		}
-	}
-
-	// An extra function to distinguish the application of slip in element considering nonconforming bc imposition
-	void ElementApplySlipCondition(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a nonconforming bc, do as standard
-		// Otherwise, if it is a nonconforming bc, dont do anything
-		if (!this->IsNonconformingCondition(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
-		}
-	}
-
-	// An extra function to distinguish the application of slip in element considering nonconforming bc imposition (RHS Version)
-	void ElementApplySlipCondition(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a nonconforming bc, do as standard
-		// Otherwise, if it is a nonconforming bc, dont do anything
-		if (!this->IsNonconformingCondition(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalVector, rGeometry);
-		}
-	}
-
-	// An extra function to distinguish the application of slip in condition considering nonconforming bc imposition
-	void ConditionApplySlipCondition(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a nonconforming bc, do as standard
-		if (!this->IsNonconformingCondition(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
-		}
-		// Otherwise, do the following modification
-		else
-		{
-			const unsigned int LocalSize = rLocalVector.size();
-
-			if (LocalSize > 0)
-			{
-				const unsigned int block_size = this->GetBlockSize();
-				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
-				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-				{
-					if(this->IsSlip(rGeometry[itNode]) )
-					{
-						// We fix the first displacement dof (normal component) for each rotated block
-						unsigned int j = itNode * block_size;
-
-						// Copy all normal value in LHS to the temp_matrix
-						for (unsigned int i = j; i < rLocalMatrix.size1(); i+= block_size)
-						{
-							temp_matrix(i,j) = rLocalMatrix(i,j);
-							temp_matrix(j,i) = rLocalMatrix(j,i);
-						}
-
-						// Remove all other value in RHS than the normal component
-						for(unsigned int i = j; i < (j + block_size); ++i)
-						{
-							if (i!=j) rLocalVector[i] = 0.0;
-						}
-					}
-				}
-				rLocalMatrix = temp_matrix;
-			}
-		}
-	}
-
-	// An extra function to distinguish the application of slip in condition considering nonconforming bc imposition (RHS Version)
-	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a nonconforming bc, do as standard
-		if (!this->IsNonconformingCondition(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalVector, rGeometry);
-		}
-		// Otherwise, if it is a nonconforming bc, dont do anything
-		else
-		{
-			if (rLocalVector.size() > 0)
-			{
-				const unsigned int block_size = this->GetBlockSize();
-				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-				{
-					if( this->IsSlip(rGeometry[itNode]) )
-					{
-						// We fix the first momentum dof (normal component) for each rotated block
-						unsigned int j = itNode * block_size;
-
-						// Remove all other value than the normal component
-						for(unsigned int i = j; i < (j + block_size); ++i)
-						{
-							if (i!=j) rLocalVector[i] = 0.0;
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	// Checking whether it is normal element or nonconforming bc element
-	virtual bool IsNonconformingCondition(GeometryType& rGeometry) const
-	{
-		bool is_nonconforming_bc = false;
-		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-		{
-			if(this->IsSlip(rGeometry[itNode]) )
-			{
-				const int bc_type = rGeometry[itNode].GetValue(mrFlagVariable);
-				if (bc_type == 2)
-				{
-					is_nonconforming_bc = true;
-					break;
-				}
-			}
-		}
-
-		return is_nonconforming_bc;
-	}
-
-	// Clone a normal vector from a given input to all nodal value
-	virtual void CloneNormalToNode(GeometryType& rGeometry, array_1d<double,3>& rNormal)
-	{
-		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-		{
-			rGeometry[itNode].SetLock();
-			rGeometry[itNode].FastGetSolutionStepValue(NORMAL) = rNormal;
-            rGeometry[itNode].UnSetLock();
-		}
-	}
-
-	// Clear nodal normal vector value
-	virtual void ClearNormalFromNode(GeometryType& rGeometry)
-	{
-		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-		{
-			rGeometry[itNode].SetLock();
-			rGeometry[itNode].FastGetSolutionStepValue(NORMAL).clear();
-			rGeometry[itNode].UnSetLock();
 		}
 	}
 
@@ -473,24 +330,6 @@ protected:
 	///@name Protected Operations
 	///@{
 
-	/// Normalize a vector.
-	/**
-	 * @param rThis the vector
-	 * @return Original norm of the input vector
-	 */
-	double Normalize(array_1d<double,3>& rThis) const override
-	{
-		double norm = 0;
-		for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		norm += (*iComponent)*(*iComponent);
-		norm = std::sqrt(norm);
-		if (norm > std::numeric_limits<double>::epsilon()){
-			for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-			*iComponent /= norm;
-		}
-		return norm;
-	}
-
 	///@}
 	///@name Protected  Access
 	///@{
@@ -508,8 +347,6 @@ protected:
 private:
 	///@name Static Member Variables
 	///@{
-
-	const Variable<int>& mrFlagVariable;
 
 	///@}
 	///@name Member Variables

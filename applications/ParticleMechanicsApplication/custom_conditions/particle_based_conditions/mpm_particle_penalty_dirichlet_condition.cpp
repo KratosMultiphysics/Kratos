@@ -21,6 +21,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_utilities/mpm_nonconforming_boundary_rotation_utility.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -63,39 +64,6 @@ Condition::Pointer MPMParticlePenaltyDirichletCondition::Create( IndexType NewId
 
 MPMParticlePenaltyDirichletCondition::~MPMParticlePenaltyDirichletCondition()
 {
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
-
-    // Additional treatment for slip conditions
-    if (Is(SLIP))
-    {
-        GeometryType& r_geometry = GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-        GeneralVariables Variables;
-
-        // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
-        // Normal Vector
-        const array_1d<double,3> & unit_normal_vector = this->GetValue(MPC_NORMAL);
-
-        // Here MPC contribution of normal vector are added
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].Set(SLIP);
-            r_geometry[i].SetValue(BOUNDARY_CONDITION_TYPE,2);
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector * this->GetIntegrationWeight();
-            r_geometry[i].UnSetLock();
-        }
-    }
 }
 
 //************************************************************************************
@@ -224,37 +192,30 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         }
     }
 
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-
-    // Additional treatment for slip conditions
-    if (Is(SLIP))
-    {
-        GeometryType& r_geometry = GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-        // Here MPC normal vector and BOUNDARY_CONDITION_TYPE are reset
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // If SLIP
+    if (Is(SLIP)){
+        MPMNonconformingBoundaryRotationUtility<MatrixType, VectorType> rotation_tool(dimension, block_size);
+        if ( CalculateStiffnessMatrixFlag == true )
         {
-            r_geometry[i].SetLock();
-            r_geometry[i].Reset(SLIP);
-            r_geometry[i].SetValue(BOUNDARY_CONDITION_TYPE,0);
-            r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
-            r_geometry[i].UnSetLock();
+            rotation_tool.Rotate(rLeftHandSideMatrix, rRightHandSideVector, this);
+            rotation_tool.ApplySlipCondition( rLeftHandSideMatrix, rRightHandSideVector, this);
+            rotation_tool.Recover( rLeftHandSideMatrix, rRightHandSideVector, this);
+            //FIXME: REMOVE THE FOLLOWING LINES
+            if (this->Id() == 1009) std::cout << "rLeftHandSideMatrix" << rLeftHandSideMatrix << std::endl;
+            if (this->Id() == 1009) std::cout << "rRightHandSideVector" << rRightHandSideVector << std::endl;
+        }
+        else{
+            rotation_tool.Rotate( rRightHandSideVector, this);
+            rotation_tool.ApplySlipCondition( rRightHandSideVector, this);
+            rotation_tool.Recover(rRightHandSideVector, this);
         }
     }
 
     KRATOS_CATCH( "" )
 }
+
+//************************************************************************************
+//************************************************************************************
 
 int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {

@@ -77,38 +77,25 @@ public:
      * @param rNormalVector: Normal Vector at the material point condition
      * @param Dimension: given dimension
      */
+    template<unsigned int TDim, class TVectorType>
     static inline void GetRotationMatrix(
-        MatrixType& rRotationMatrix,
-        const VectorType& rNormalVector,
-        const unsigned int Dimension
+        BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
+        TVectorType& rNormalVector
         )
     {
-        if(Dimension == 2){
-            if (rRotationMatrix.size1() != 2 && rRotationMatrix.size2() != 2)
-                rRotationMatrix.resize(2,2,false);
-            noalias(rRotationMatrix) = IdentityMatrix(Dimension);
+        noalias(rRotationMatrix) = IdentityMatrix(TDim);
+        ParticleMechanicsMathUtilities<double>::Normalize(rNormalVector);
 
-            double aux = rNormalVector[0]*rNormalVector[0] + rNormalVector[1]*rNormalVector[1];
-            aux = std::sqrt(aux);
-            if (std::abs(aux) < std::numeric_limits<double>::epsilon()) aux = std::numeric_limits<double>::epsilon();
-
-            rRotationMatrix(0,0) =  rNormalVector[0]/aux;
-            rRotationMatrix(0,1) =  rNormalVector[1]/aux;
-            rRotationMatrix(1,0) = -rNormalVector[1]/aux;
-            rRotationMatrix(1,1) =  rNormalVector[0]/aux;
+        if(TDim == 2){
+            rRotationMatrix(0,0) =  rNormalVector[0];
+            rRotationMatrix(0,1) =  rNormalVector[1];
+            rRotationMatrix(1,0) = -rNormalVector[1];
+            rRotationMatrix(1,1) =  rNormalVector[0];
         }
-        else if (Dimension == 3){
-            if (rRotationMatrix.size1() != 3 && rRotationMatrix.size2() != 3)
-                rRotationMatrix.resize(2,2,false);
-            noalias(rRotationMatrix) = IdentityMatrix(Dimension);
-
-            double aux = rNormalVector[0]*rNormalVector[0] + rNormalVector[1]*rNormalVector[1] + rNormalVector[2]*rNormalVector[2];
-            aux = std::sqrt(aux);
-            if (std::abs(aux) < std::numeric_limits<double>::epsilon()) aux = std::numeric_limits<double>::epsilon();
-
-            rRotationMatrix(0,0) = rNormalVector[0]/aux;
-            rRotationMatrix(0,1) = rNormalVector[1]/aux;
-            rRotationMatrix(0,2) = rNormalVector[2]/aux;
+        else if (TDim == 3){
+            rRotationMatrix(0,0) = rNormalVector[0];
+            rRotationMatrix(0,1) = rNormalVector[1];
+            rRotationMatrix(0,2) = rNormalVector[2];
 
             // Define the new coordinate system, where the first vector is aligned with the normal
             // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane

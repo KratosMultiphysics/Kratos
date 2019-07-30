@@ -30,12 +30,9 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
         # Mark the nodes and conditions with the appropriate slip flag
         for condition in self.model_part.Conditions:
             condition.Set(KratosMultiphysics.SLIP, True)
-            condition.SetValue(KratosParticle.BOUNDARY_CONDITION_TYPE,1)
 
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
-            node.SetValue(KratosParticle.BOUNDARY_CONDITION_TYPE,1)
-
 
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed
