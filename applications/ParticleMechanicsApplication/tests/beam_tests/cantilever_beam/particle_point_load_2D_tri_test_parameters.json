@@ -77,22 +77,10 @@
                 "process_name"          : "FromJsonCheckResultProcess",
                 "Parameters"            : {
                     "check_variables"  : ["DISPLACEMENT"],
-                    "input_file_name"  : "beam_tests/cantilever_beam/particle_point_load_2D_tri_test_results.json",
+                    "input_file_name"  : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_results.json",
                     "model_part_name"  : "Background_Grid.PointLoad2D_Load_on_points_Auto1",
                     "time_frequency"   : 1.0
                 }
             }]
-    },
-    "print_output_process" : [{
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables"  : ["DISPLACEMENT"],
-            "output_file_name"  : "beam_tests/cantilever_beam/particle_point_load_2D_tri_test_results.json",
-            "model_part_name"   : "Background_Grid.PointLoad2D_Load_on_points_Auto1",
-            "time_frequency"    : 1.0
-        }
-    }]
+    }
 }
