@@ -142,6 +142,7 @@ private:
     std::string mBuildMode;
     std::string mVariableType;
     std::string mDesignVariableName;
+    double mDelta;
 
     ///@}
     ///@name Private Operators

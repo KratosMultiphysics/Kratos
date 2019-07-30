@@ -55,7 +55,19 @@ namespace Kratos
 
         mVariableType = mrDirectSensitivityVariable.GetDesignVariableType();
 
-        mDesignVariableName = mrDirectSensitivityVariable.GetDesignVariableName();       
+        mDesignVariableName = mrDirectSensitivityVariable.GetDesignVariableName();  
+
+        // Set perturbation size
+        mDelta = mrDirectSensitivityVariable.GetPerturbationSize(); 
+
+        mrModelPart.GetProcessInfo()[PERTURBATION_SIZE] = mDelta;
+
+        bool adapt_perturbation_size = false;
+        if(mrDirectSensitivityVariable.GetAdaptPerturbationSizeFlag())
+            adapt_perturbation_size = SensitivitySettings["adapt_step_size"].GetBool();
+            
+        mrModelPart.GetProcessInfo()[ADAPT_PERTURBATION_SIZE] = adapt_perturbation_size;
+         
         
         KRATOS_CATCH("");
     }
@@ -69,7 +81,7 @@ namespace Kratos
     {
         KRATOS_TRY;  
 
-        this->Clear();
+        this->Clear();      
 
         // Initialize flags.
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Nodes());
@@ -253,7 +265,7 @@ namespace Kratos
                     "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
 
                 VectorMath::Addition(sensitivity_vector[k], response_sensitivity_gradient[k]);
-            }            
+            }          
 
             this->AssembleElementSensitivityContribution(rOutputVariable, sensitivity_vector[k], elem_i);  
         }        
