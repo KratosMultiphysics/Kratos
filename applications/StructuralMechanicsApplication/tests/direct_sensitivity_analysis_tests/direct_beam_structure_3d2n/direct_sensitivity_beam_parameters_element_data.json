@@ -24,13 +24,14 @@
     
     "sensitivity_settings" : {
         "sensitivity_model_part_name"       : "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART",
-        "build_mode"                        : "static"
+        "build_mode"                        : "static"        
     }, 
     
     "variable_settings" : {		    
         "variable_type"                         : "element_data_type",
         "design_variable_name"                  : "YOUNG_MODULUS",                                 
-        "delta"                                 : 1e-10,
+        "delta"                                 : 1e-7,
+        "adapt_step_size"                       : false,        
         "traced_model_part_name"                : "Traced_Model_Part"    
     },    
     

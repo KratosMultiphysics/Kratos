@@ -31,7 +31,8 @@
         "variable_type"                         : "nodal_coordinates_type",
         "design_variable_name"                  : "SHAPE_SENSITIVITY",    
         "coordinate_direction"                  : "X",                                            
-        "delta"                                 : 1e-10,
+        "delta"                                 : 1e-7,
+        "adapt_step_size"                       : false, 
         "traced_model_part_name"                : "Traced_Model_Part"    
     },    
     
