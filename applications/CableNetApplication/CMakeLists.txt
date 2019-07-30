@@ -27,7 +27,7 @@ set( KRATOS_CABLE_NET_APPLICATION_SOURCES
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosCableNetApplication MODULE THIN_LTO ${KRATOS_CABLE_NET_APPLICATION_SOURCES})
-target_link_libraries(KratosCableNetApplication PRIVATE KratosCore )
+target_link_libraries(KratosCableNetApplication PRIVATE KratosCore KratosStructuralMechanicsCore )
 set_target_properties(KratosCableNetApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)

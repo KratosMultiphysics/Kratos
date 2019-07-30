@@ -41,7 +41,14 @@ void KratosCableNetApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing KratosCableNetApplication..." << std::endl;
+
+    KRATOS_INFO("") <<    "KRATOS  ___/\\/\\/\\/\\/\\______________/\\/\\________/\\/\\________________/\\/\\____/\\/\\________________/\\/\\_____\n"
+                    <<    "       _/\\/\\__________/\\/\\/\\______/\\/\\________/\\/\\______/\\/\\/\\____/\\/\\/\\__/\\/\\____/\\/\\/\\____/\\/\\/\\/\\/\\_\n"
+                    <<    "      _/\\/\\______________/\\/\\____/\\/\\/\\/\\____/\\/\\____/\\/\\/\\/\\/\\__/\\/\\/\\/\\/\\/\\__/\\/\\/\\/\\/\\____/\\/\\_____\n"
+                    <<    "     _/\\/\\__________/\\/\\/\\/\\____/\\/\\__/\\/\\__/\\/\\____/\\/\\________/\\/\\__/\\/\\/\\__/\\/\\__________/\\/\\_____\n"
+                    <<    "    ___/\\/\\/\\/\\/\\__/\\/\\/\\/\\/\\__/\\/\\/\\/\\____/\\/\\/\\____/\\/\\/\\/\\__/\\/\\____/\\/\\____/\\/\\/\\/\\____/\\/\\/\\___\n"
+                    <<    "   ________________________________________________________________________________________________ Application\n"
+                    <<    "Initializing KratosCableNetApplication..." << std::endl;
 
     KRATOS_REGISTER_ELEMENT("WeakSlidingElement3D3N", mWeakSlidingElement3D3N)
     KRATOS_REGISTER_ELEMENT("SlidingCableElement3D3N", mSlidingCableElement3D3N)
