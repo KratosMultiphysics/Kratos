@@ -113,7 +113,7 @@ namespace Kratos
                 }           
         }
         else
-            rPseudoLoadVector = ZeroVector(rPseudoLoadVector.size());
+            rPseudoLoadVector = ZeroVector(rPseudoLoadVector.size());      
 
         KRATOS_CATCH("");           
     }
@@ -217,7 +217,7 @@ namespace Kratos
         
         for (auto& node_i : mpTracedModelPart->Nodes())
         {
-            WeakPointerVector< Element >& r_neighbouring_elements = node_i.GetValue(NEIGHBOUR_ELEMENTS);            
+            GlobalPointersVector<Element >& r_neighbouring_elements = node_i.GetValue(NEIGHBOUR_ELEMENTS);            
             for (IndexType j = 0; j < r_neighbouring_elements.size(); ++j)
                 if( !( std::find( rNeighboringElementIdVector.begin(), rNeighboringElementIdVector.end(), r_neighbouring_elements[j].Id() ) != rNeighboringElementIdVector.end() ) )
                     rNeighboringElementIdVector.push_back( r_neighbouring_elements[j].Id() );
