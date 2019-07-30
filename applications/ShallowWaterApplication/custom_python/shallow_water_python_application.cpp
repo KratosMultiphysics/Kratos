@@ -64,23 +64,6 @@ namespace Python
     .value("FREE_SURFACE_AND_VELOCITY", FREE_SURFACE_AND_VELOCITY)
     ;
 
-    // Adding enums
-    py::enum_<Framework>(m, "Framework")
-    .value("EULERIAN_FRAMEWORK", EULERIAN_FRAMEWORK)
-    .value("PFEM2_FRAMEWORK", PFEM2_FRAMEWORK)
-    ;
-
-    py::enum_<Formulation>(m, "Formulation")
-    .value("REDUCED_VARIABLES", REDUCED_VARIABLES)
-    .value("CONSERVED_VARIABLES", CONSERVED_VARIABLES)
-    ;
-
-    py::enum_<Variables>(m, "Variables")
-    .value("FREE_SURFACE_VARIABLE", FREE_SURFACE_VARIABLE)
-    .value("VELOCITY_VARIABLE", VELOCITY_VARIABLE)
-    .value("FREE_SURFACE_AND_VELOCITY", FREE_SURFACE_AND_VELOCITY)
-    ;
-
     // Registering variables in python
     // Shallow water variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HEIGHT);
