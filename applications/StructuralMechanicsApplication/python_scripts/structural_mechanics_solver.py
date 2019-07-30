@@ -151,8 +151,8 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         # Add variables that the user defined in the ProjectParameters
-        from KratosMultiphysics.auxiliary_solver_function_utilities import add_auxiliary_variables
-        add_auxiliary_variables(self.main_model_part, self.settings["auxiliary_variables_list"])
+        from KratosMultiphysics.auxiliary_solver_utilities import AddVariables
+        AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -169,8 +169,8 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
 
         # Add dofs that the user defined in the ProjectParameters
-        from KratosMultiphysics.auxiliary_solver_function_utilities import add_auxiliary_dofs
-        add_auxiliary_dofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        from KratosMultiphysics.auxiliary_solver_utilities import AddDofs
+        AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
