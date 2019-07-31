@@ -29,6 +29,16 @@ namespace Testing {
 class NurbsTestUtility
 {
 public:     // static methods
+    static array_1d<double, 2> Point2D(const double X, const double Y)
+    {
+        array_1d<double, 2> point;
+
+        point[0] = X;
+        point[1] = Y;
+
+        return point;
+    }
+
     static array_1d<double, 3> Point(const double X, const double Y,
         const double Z)
     {
@@ -39,6 +49,15 @@ public:     // static methods
         point[2] = Z;
 
         return point;
+    }
+
+    static void ArrayAlmostEqual(const array_1d<double, 2>& rActual,
+        const array_1d<double, 2>& rExpected, const double Tolerance = 1e-5)
+    {
+        for (size_t i = 0; i < 2; i++)
+        {
+            KRATOS_CHECK_NEAR(rActual[i], rExpected[i], Tolerance);
+        }
     }
 
     static void ArrayAlmostEqual(const array_1d<double, 3>& rActual,
