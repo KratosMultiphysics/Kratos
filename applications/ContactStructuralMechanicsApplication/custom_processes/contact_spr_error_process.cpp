@@ -58,7 +58,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     )
 {
     // Contact interface node
-    if (itNode->Is(INTERFACE)) {
+    if (itNode->Is(CONTACT)) {
         // Triangle and tetrahedra have only one GP by default
         std::vector<Vector> stress_vector(1);
         std::vector<array_1d<double,3>> coordinates_vector(1);

@@ -20,6 +20,7 @@
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
@@ -150,6 +151,11 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
+
+        // Update normal of the conditions
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        VariableUtils().SetFlag(CONTACT, true, r_contact_model_part.Nodes());
+        VariableUtils().SetFlag(CONTACT, true, r_contact_model_part.Conditions());
     }
 
     /**
