@@ -200,7 +200,7 @@ template<SizeType TDim>
 void SPRErrorProcess<TDim>::CalculatePatch(
     NodeItType itNode,
     NodeItType itPatchNode,
-    SizeType NeighbourSize,
+    const SizeType NeighbourSize,
     Vector& rSigmaRecovered
     )
 {
