@@ -77,7 +77,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                      WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 
@@ -95,18 +95,17 @@ public:
     ///@{
 
     /**
-     * This is the default constructor
+     * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
      * @param ThisParameters The input parameters
      */
-
     ContactSPRErrorProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
-    virtual ~ContactSPRErrorProcess() {}
+    ~ContactSPRErrorProcess() override {}
 
     ///@}
     ///@name Operators
@@ -114,7 +113,7 @@ public:
 
     void operator()()
     {
-        BaseType::Execute();
+        this->Execute();
     }
 
     ///@}

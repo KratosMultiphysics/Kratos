@@ -38,6 +38,7 @@ ContactSPRErrorProcess<TDim>::ContactSPRErrorProcess(
 
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+    // Penalty values
     mPenaltyNormal = ThisParameters["penalty_normal"].GetDouble();
     mPenaltyTangent = ThisParameters["penalty_tangential"].GetDouble();
 
