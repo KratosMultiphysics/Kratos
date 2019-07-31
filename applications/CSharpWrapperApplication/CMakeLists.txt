@@ -21,7 +21,10 @@ set(KRATOS_WRAPPER_SOURCES_CORE
         ${CMAKE_CURRENT_SOURCE_DIR}/id_translator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/kratos_wrapper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/model_part_wrapper.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/model_part_wrapper_external_bindings.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/model_part_wrapper_external_bindings.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/node_external_bindings.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/element_external_bindings.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/condition_external_bindings.cpp)
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_WRAPPER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
