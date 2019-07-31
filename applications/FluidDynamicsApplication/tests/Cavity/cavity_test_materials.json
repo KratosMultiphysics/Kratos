@@ -7,8 +7,8 @@
                 "name": "Newtonian2DLaw"
             },
             "Variables"        : {
-                "DENSITY": 1.0,
-                "DYNAMIC_VISCOSITY": 0.01
+                "DENSITY": 100.0,
+                "DYNAMIC_VISCOSITY": 1.0
             },
             "Tables"           : {}
         }
