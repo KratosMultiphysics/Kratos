@@ -170,10 +170,10 @@ public:
         ) override
     {
         // The process info
-        const ProcessInfo& process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
         // Computing error
-        if (process_info[DOMAIN_SIZE] == 2) {
+        if (r_process_info[DOMAIN_SIZE] == 2) {
             auto compute_error_process = ContactSPRErrorProcess<2>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         } else {
@@ -182,16 +182,16 @@ public:
         }
 
         // We get the estimated error
-        const double estimated_error = process_info[ERROR_RATIO];
+        const double estimated_error = r_process_info[ERROR_RATIO];
 
         // We check if converged
         const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
 
         if (converged_error) {
-            KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". " << BOLDFONT(FGRN("No remeshing required")) << std::endl;
+            KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". " << BOLDFONT(FGRN("No remeshing required")) << std::endl;
         } else {
             KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". "<< BOLDFONT(FRED("Remeshing required")) << std::endl;
+            << "NL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". "<< BOLDFONT(FRED("Remeshing required")) << std::endl;
         }
 
         return converged_error;
