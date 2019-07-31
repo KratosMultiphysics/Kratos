@@ -174,10 +174,10 @@ public:
 
         // Computing error
         if (process_info[DOMAIN_SIZE] == 2) {
-            SPRErrorProcess<2> compute_error_process = ContactSPRErrorProcess<2>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
+            auto compute_error_process = ContactSPRErrorProcess<2>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         } else {
-            SPRErrorProcess<3> compute_error_process = ContactSPRErrorProcess<3>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
+            auto compute_error_process = ContactSPRErrorProcess<3>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         }
 
