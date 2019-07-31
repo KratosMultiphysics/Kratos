@@ -100,6 +100,16 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             is_converged = True
             for conv_crit in self.convergence_criteria_list:
                 is_converged = is_converged and conv_crit.IsConverged()
+
+            # Communicate the state of convergence with external solvers through IO
+            convergence_signal_config = {
+                "type" : "convergence_signal",
+                "is_converged" : is_converged
+            }
+
+            for solver in self.solver_wrappers.values():
+                solver.ExportData(convergence_signal_config)
+
             if is_converged:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
