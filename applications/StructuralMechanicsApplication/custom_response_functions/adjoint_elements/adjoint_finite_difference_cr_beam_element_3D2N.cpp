@@ -98,7 +98,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::load(Serializer& rSer
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
+template class AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
 
 } // namespace Kratos.
 

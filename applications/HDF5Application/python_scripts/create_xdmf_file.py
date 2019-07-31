@@ -2,7 +2,8 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-import os, sys, xdmf
+import KratosMultiphysics.HDF5Application.xdmf as xdmf
+import os, sys
 import warnings
 try:
     with warnings.catch_warnings():

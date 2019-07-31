@@ -548,50 +548,6 @@ namespace Kratos {
   }
 
 
-
-
-
-  template<>
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
-  {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = 2*NumNodes;
-
-    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	rValues[Index++] = rGeom[i].X();
-	rValues[Index++] = rGeom[i].Y();
-      }
-  }
-
-
-
-  template<>
-  void TwoStepUpdatedLagrangianVPExplicitFluidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
-  {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = 3*NumNodes;
-
-    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
- 	rValues[Index++] = rGeom[i].X();
-        rValues[Index++] = rGeom[i].Y();
-        rValues[Index++] = rGeom[i].Z();
-      }
-  }
-
-
-
   template <  unsigned int TDim>
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
   {

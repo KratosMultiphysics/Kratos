@@ -12,11 +12,11 @@
 // System includes
 #include <string>
 #include <iostream>
- 
+
 // External includes
 
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
 
 namespace Kratos
 {
@@ -47,18 +47,18 @@ namespace Kratos
   /**
    */
   /* class TwoStepUpdatedLagrangianVPImplicitSolidElement : public Element */
-  template< unsigned int TDim > 
+  template< unsigned int TDim >
     class TwoStepUpdatedLagrangianVPImplicitSolidElement : public TwoStepUpdatedLagrangianVPImplicitElement<TDim>
     {
-  
+
     public:
       ///@name Type Definitions
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitSolidElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitSolidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitSolidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPImplicitElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -101,7 +101,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
- 
+
       ///@}
       ///@name Life Cycle
       ///@{
@@ -330,13 +330,13 @@ namespace Kratos
 						 const double Weight,
 						 double& MeanValueMass,
 						 const double TimeStep){};
-      
+
       void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
 					   MatrixType StiffnessMatrix,
 					   double& meanValueStiff,
 					   double& bulkCoefficient,
 					   double timeStep) override{};
-      
+
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
 					       const double Weight);
 
@@ -354,24 +354,15 @@ namespace Kratos
 				 const double TimeStep,
 				 const double BoundRHSCoeffAcc,
 				 const double BoundRHSCoeffDev) override{};
-
-      /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 					const ProcessInfo& rCurrentProcessInfo, */
-      /* 					const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 					unsigned int g); */
-	
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
 	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;
-     
+
       void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 						 VectorType& rRightHandSideVector,
 						 ProcessInfo& rCurrentProcessInfo) override;
- 
+
       double GetThetaMomentum () override{return 1.0;};
 
       double GetThetaContinuity () override{return 1.0;};

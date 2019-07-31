@@ -54,7 +54,7 @@ public:
 
     ///@{
     // Counted pointer of PointRigidContactPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymPointRigidContactPenalty2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymPointRigidContactPenalty2DCondition );
     ///@}
 
     ///@}

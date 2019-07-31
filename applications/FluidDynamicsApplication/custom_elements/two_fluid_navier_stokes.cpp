@@ -53,7 +53,7 @@ Element::Pointer TwoFluidNavierStokes<TElementData>::Create(
     NodesArrayType const &ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<TwoFluidNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<TwoFluidNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <class TElementData>
@@ -62,7 +62,7 @@ Element::Pointer TwoFluidNavierStokes<TElementData>::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<TwoFluidNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<TwoFluidNavierStokes>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>

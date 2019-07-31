@@ -57,7 +57,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of LinearSolidElement
-    KRATOS_CLASS_POINTER_DEFINITION( LinearSolidElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LinearSolidElement );
     ///@}
 
 

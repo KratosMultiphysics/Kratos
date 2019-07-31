@@ -483,8 +483,7 @@ namespace Kratos {
                 continue;
             }
 
-            int total_mesh_size_accross_mpi_processes = mesh_size_elements; //temporary value until reduction is done
-            r_modelpart.GetCommunicator().SumAll(total_mesh_size_accross_mpi_processes);
+            int total_mesh_size_accross_mpi_processes = r_modelpart.GetCommunicator().GetDataCommunicator().SumAll(mesh_size_elements);
             const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
             double num_part_surface_time = GetInputNumberOfParticles(mp);
             num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;

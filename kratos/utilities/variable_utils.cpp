@@ -226,44 +226,6 @@ void VariableUtils::CopyScalarVar(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::SetToZero_VectorVar(
-    const ArrayVarType& Variable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator i = rNodes.begin() + k;
-        noalias(i->FastGetSolutionStepValue(Variable)) = ZeroVector(3);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SetToZero_ScalarVar(
-    const DoubleVarType& Variable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator i = rNodes.begin() + k;
-        i->FastGetSolutionStepValue(Variable) = 0.0;
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     const DoubleVarType& Variable,
     const double Value,
@@ -296,14 +258,15 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
     KRATOS_TRY
 
     array_1d<double, 3> sum_value = ZeroVector(3);
+    auto& r_comm = rModelPart.GetCommunicator();
 
     #pragma omp parallel
     {
         array_1d<double, 3> private_sum_value = ZeroVector(3);
 
         #pragma omp for
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
+            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
             private_sum_value += it_node->GetValue(rVar);
         }
 
@@ -313,9 +276,7 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
         }
     }
 
-    rModelPart.GetCommunicator().SumAll(sum_value);
-
-    return sum_value;
+    return r_comm.GetDataCommunicator().SumAll(sum_value);
 
     KRATOS_CATCH("")
 }
@@ -332,14 +293,15 @@ array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
     KRATOS_TRY
 
     array_1d<double, 3> sum_value = ZeroVector(3);
+    auto& r_comm = rModelPart.GetCommunicator();
 
     #pragma omp parallel
     {
         array_1d<double, 3> private_sum_value = ZeroVector(3);
 
         #pragma omp for
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
+            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
             private_sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
@@ -349,9 +311,7 @@ array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
         }
     }
 
-    rModelPart.GetCommunicator().SumAll(sum_value);
-
-    return sum_value;
+    return r_comm.GetDataCommunicator().SumAll(sum_value);
 
     KRATOS_CATCH("")
 }
@@ -367,14 +327,15 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
     KRATOS_TRY
 
     array_1d<double, 3> sum_value = ZeroVector(3);
+    const auto& r_comm = rModelPart.GetCommunicator();
 
     #pragma omp parallel
     {
         array_1d<double, 3> private_sum_value = ZeroVector(3);
 
         #pragma omp for
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfConditions()); ++k) {
-            const auto it_cond = rModelPart.GetCommunicator().LocalMesh().ConditionsBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfConditions()); ++k) {
+            const auto it_cond = r_comm.LocalMesh().ConditionsBegin() + k;
             private_sum_value += it_cond->GetValue(rVar);
         }
 
@@ -384,9 +345,7 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
         }
     }
 
-    rModelPart.GetCommunicator().SumAll(sum_value);
-
-    return sum_value;
+    return r_comm.GetDataCommunicator().SumAll(sum_value);
 
     KRATOS_CATCH("")
 }
@@ -402,14 +361,15 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
     KRATOS_TRY
 
     array_1d<double, 3> sum_value = ZeroVector(3);
+    auto& r_comm = rModelPart.GetCommunicator();
 
     #pragma omp parallel
     {
         array_1d<double, 3> private_sum_value = ZeroVector(3);
 
         #pragma omp for
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfElements()); ++k) {
-            const auto it_elem = rModelPart.GetCommunicator().LocalMesh().ElementsBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfElements()); ++k) {
+            const auto it_elem = r_comm.LocalMesh().ElementsBegin() + k;
             private_sum_value += it_elem->GetValue(rVar);
         }
 
@@ -419,9 +379,7 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
         }
     }
 
-    rModelPart.GetCommunicator().SumAll(sum_value);
-
-    return sum_value;
+    return r_comm.GetDataCommunicator().SumAll(sum_value);
 
     KRATOS_CATCH("")
 }
@@ -504,6 +462,25 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
     for (int i=0; i<num_nodes; i++) {
         const auto it_node  = nodes_begin + i;
         noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void VariableUtils::UpdateCurrentPosition(
+    const ModelPart::NodesContainerType &rNodes,
+    const ArrayVarType &rUpdateVariable)
+{
+    KRATOS_TRY;
+
+    const int num_nodes = rNodes.size();
+    const auto nodes_begin = rNodes.begin();
+
+    #pragma omp parallel for firstprivate(nodes_begin)
+    for (int i_node = 0; i_node < num_nodes; ++i_node) {
+        const auto it_node  = nodes_begin + i_node;
+        const auto &r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable);
+        noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + r_update_coords;
     }
 
     KRATOS_CATCH("");

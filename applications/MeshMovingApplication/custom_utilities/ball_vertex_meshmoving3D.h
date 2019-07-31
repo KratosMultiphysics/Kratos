@@ -98,14 +98,14 @@ public:
       // if(index_i < mEquationSystemSize &&
       // (it->GetValue(NEIGHBOUR_NODES)).size() != 0)
       if (index_i < mEquationSystemSize && index_j < mEquationSystemSize) {
-        WeakPointerVector<Node<3>> &neighb_nodes =
+        GlobalPointersVector<Node<3>> &neighb_nodes =
             it->GetValue(NEIGHBOUR_NODES);
 
         // filling the first neighbours list
         work_array.push_back(index_i);
         work_array.push_back(index_j);
         work_array.push_back(index_k);
-        for (WeakPointerVector<Node<3>>::iterator i = neighb_nodes.begin();
+        for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin();
              i != neighb_nodes.end(); ++i) {
           unsigned int index_l = i->GetDof(DISPLACEMENT_X).EquationId();
           unsigned int index_r = i->GetDof(DISPLACEMENT_Y).EquationId();

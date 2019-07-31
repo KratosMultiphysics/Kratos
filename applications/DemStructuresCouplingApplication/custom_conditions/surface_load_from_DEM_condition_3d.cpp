@@ -57,7 +57,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<SurfaceLoadFromDEMCondition3D>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<SurfaceLoadFromDEMCondition3D>(NewId, pGeom, pProperties);
     }
 
     //***********************************************************************************
@@ -69,7 +69,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<SurfaceLoadFromDEMCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<SurfaceLoadFromDEMCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     //******************************* DESTRUCTOR *****************************************

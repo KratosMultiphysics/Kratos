@@ -16,12 +16,14 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
-
 #include "includes/define.h"
 #include "processes/process.h"
+#include "spaces/ublas_space.h"
+
+// Application includes
 #include "custom_python/add_convergence_accelerators_to_python.h"
 #include "custom_utilities/convergence_accelerator.hpp"
+#include "custom_utilities/constant_relaxation_convergence_accelerator.h"
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
 #include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"
 #include "custom_utilities/aitken_convergence_accelerator.hpp"
@@ -49,6 +51,12 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
         .def("FinalizeNonLinearIteration", &ConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
         .def("FinalizeSolutionStep", &ConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
         .def("SetEchoLevel", &ConvergenceAccelerator<TSpace>::SetEchoLevel);
+
+    // Constant relaxation convergence accelerator
+    py::class_<ConstantRelaxationConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "ConstantRelaxationConvergenceAccelerator")
+        .def(py::init<double>())
+        .def(py::init<Parameters &>())
+        .def("UpdateSolution", &ConstantRelaxationConvergenceAccelerator<TSpace>::UpdateSolution);
 
     // Aitken convergence accelerator
     py::class_<AitkenConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "AitkenConvergenceAccelerator")
@@ -81,4 +89,3 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

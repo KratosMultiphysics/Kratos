@@ -16,7 +16,7 @@
 // External includes
 
 
-// Project includes 
+// Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 /* #include "includes/element.h" */
@@ -65,7 +65,7 @@ namespace Kratos
     class TwoStepUpdatedLagrangianVPExplicitElement : public TwoStepUpdatedLagrangianElement<TDim>
     /* class TwoStepUpdatedLagrangianVPExplicitElement : public Element */
     {
-  
+
     protected:
 
 
@@ -83,10 +83,10 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPExplicitElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPExplicitElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPExplicitElement);
 
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;
       /* typedef Element BaseType; */
 
@@ -181,7 +181,7 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPExplicitElement(TwoStepUpdatedLagrangianVPExplicitElement const& rOther):
       BaseType(rOther)
       {}
-      
+
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPExplicitElement()
         {}
@@ -233,10 +233,10 @@ namespace Kratos
       void CalculateRightHandSide(VectorType& rRightHandSideVector,
 				  ProcessInfo& rCurrentProcessInfo) override;
 
-      
+
       void CalculateRightHandSideMomentum(VectorType& rRightHandSideVector,
 					  ProcessInfo& rCurrentProcessInfo);
- 
+
       /* // The following methods have different implementations depending on TDim */
       /* /// Provides the global indices for each one of this element's local rows */
       /* /\** */
@@ -256,9 +256,9 @@ namespace Kratos
       /* virtual void GetDofList(DofsVectorType& rElementalDofList, */
       /* 			      ProcessInfo& rCurrentProcessInfo); */
 
-    
+
       /* virtual GeometryData::IntegrationMethod GetIntegrationMethod() const; */
-    
+
       void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override{};
 
       /* virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables){ */
@@ -268,14 +268,14 @@ namespace Kratos
       /* }; */
 
 
-      void AddExplicitContribution(const VectorType& rRHSVector, 
-				   const Variable<VectorType>& rRHSVariable, 
-				   Variable<array_1d<double,3> >& rDestinationVariable, 
+      void AddExplicitContribution(const VectorType& rRHSVector,
+				   const Variable<VectorType>& rRHSVariable,
+				   Variable<array_1d<double,3> >& rDestinationVariable,
 				   const ProcessInfo& rCurrentProcessInfo) override;
 
-      void AddExplicitContribution(const VectorType& rRHSVector, 
-				   const Variable<VectorType>& rRHSVariable, 
-				   Variable<double > & rDestinationVariable, 
+      void AddExplicitContribution(const VectorType& rRHSVector,
+				   const Variable<VectorType>& rRHSVariable,
+				   Variable<double > & rDestinationVariable,
 				   const ProcessInfo& rCurrentProcessInfo) override;
       ///@}
       ///@name Access
@@ -354,7 +354,7 @@ namespace Kratos
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
 					const ProcessInfo& rCurrentProcessInfo ) override;
-      
+
       void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
 					   VectorType& rRightHandSideVector,
 					   ProcessInfo& rCurrentProcessInfo) override{std::cout<<"CalculateLocalMomentumEquations is not defined for explicit element"<<std::endl;};
@@ -363,7 +363,7 @@ namespace Kratos
 						 VectorType& rRightHandSideVector,
 						 ProcessInfo& rCurrentProcessInfo) override{
 	std::cout<<"CalculateLocalContinuityEqForPressure not defined for explicit element"<<std::endl;};
-      
+
       void CalculateExplicitContinuityEquation(MatrixType& rLeftHandSideMatrix,
 					       VectorType& rRightHandSideVector,
 					       ProcessInfo& rCurrentProcessInfo) override;
@@ -385,10 +385,6 @@ namespace Kratos
 
       double GetThetaContinuity () override{return 1.0;};
      
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override{};
-
       /// Add integration point contribution to the mass matrix.
       /**
        * A constistent mass matrix is used.
@@ -397,20 +393,20 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
       void CalculateMassMatrix(Matrix& rMassMatrix,
-			       ProcessInfo& rCurrentProcessInfo) override; 
-      
+			       ProcessInfo& rCurrentProcessInfo) override;
+
       void CalculateMassMatrixMomentum(Matrix& rMassMatrix,
 				       ProcessInfo& rCurrentProcessInfo);
-         
+
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
-				const double Weight) override{};    
-      
+				const double Weight) override{};
+
       /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
       /* 				const ProcessInfo& rCurrentProcessInfo, */
       /* 				const ShapeFunctionDerivativesType& rDN_DX, */
       /* 				unsigned int g); */
 
-	
+
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g)override{};

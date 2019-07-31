@@ -20,8 +20,8 @@ namespace Kratos
       typedef BaseType::ElementsIterator                           ElementsIterator;
       typedef BaseType::ConditionsArrayType                        ConditionsArrayType;
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;
-      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+      typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
       /// Pointer definition of ExplicitSolverStrategy

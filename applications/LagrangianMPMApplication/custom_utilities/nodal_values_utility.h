@@ -363,7 +363,7 @@ public:
 
                 //std::cout << inode->FastGetSolutionStepValue(NODAL_STRAIN) << std::endl;
 
-                WeakPointerVector< Element >& rneigh_el = inode->GetValue(NEIGHBOUR_ELEMENTS);
+                GlobalPointersVector< Element >& rneigh_el = inode->GetValue(NEIGHBOUR_ELEMENTS);
                 //const double area = inode->FastGetSolutionStepValue(NODAL_AREA);
                 inode->FastGetSolutionStepValue(DAMAGE) /= rneigh_el.size();
 

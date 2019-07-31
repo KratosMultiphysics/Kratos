@@ -494,8 +494,7 @@ class Procedures(object):
                 model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
         if "PostGluedSphere" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostGluedSphere"].GetBool():
-                model_part.AddNodalSolutionStepVariable(IS_STICKY)
+            model_part.AddNodalSolutionStepVariable(IS_STICKY)
 
         # LOCAL AXIS
         if DEM_parameters["PostEulerAngles"].GetBool():
@@ -1549,9 +1548,8 @@ class DEMIo(object):
             if self.DEM_parameters["PostBrokenRatio"].GetBool():
                 self.PushPrintVar(self.PostBrokenRatio, NEIGHBOUR_RATIO, self.spheres_variables)
 
-        if "PostGluedSphere" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostGluedSphere"].GetBool():
-                self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
+        if self.PostGluedSphere:
+            self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
 
         # NANO (TODO: must be removed from here.)
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
@@ -2005,8 +2003,7 @@ class ParallelUtils(object):
 
     @classmethod
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
-        MPICommSetup = 0
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     @classmethod
     def GetSearchStrategy(self, solver, model_part):

@@ -182,8 +182,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
 
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
 
-        MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
-        MPICommSetup.Execute()
+        ModelPartCommunicatorUtilities.SetMPICommunicator(spheres_model_part)
 
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Communicator Set")
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+spheres_mp_filename+"_"+str(mpi.rank))
@@ -191,7 +190,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
         my_input_filename = spheres_mp_filename + "_" + str(mpi.rank)
         model_part_io_spheres = ModelPartIO(my_input_filename)
 
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     def GetSearchStrategy(self, solver, model_part):
         return MPI_DEMSearch(model_part.GetCommunicator())

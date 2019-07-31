@@ -112,8 +112,8 @@ public:
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 
-        rBaseModelPart.GetCommunicator().SumAll(n_nodes);
-        rBaseModelPart.GetCommunicator().SumAll(n_elems);
+        n_nodes = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
+        n_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_elems);
 
         KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
@@ -279,7 +279,7 @@ protected:
         // Generating the elements
         (BaseType::mpDistanceModelPart->Elements()).reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());

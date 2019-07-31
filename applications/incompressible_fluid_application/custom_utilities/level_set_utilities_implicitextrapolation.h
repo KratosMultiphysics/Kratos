@@ -396,8 +396,8 @@ public:
                 //make the average of the velocity of the neighbouring fluid nodes
                 double n_fluid_neigh = 0.0;
                 noalias(aux) = ZeroVector(3);
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if(i->FastGetSolutionStepValue(IS_STRUCTURE) != 1)
                     {

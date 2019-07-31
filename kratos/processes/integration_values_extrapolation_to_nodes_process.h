@@ -20,7 +20,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
 
@@ -51,8 +51,8 @@ namespace Kratos
  * @brief This process extrapolates vales from the integration points to the nodes
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
- * @todo Replace generalized inverse for QR decomposition
  * @author Vicente Mataix Ferrandiz
+ * @todo Add extrapolation from conditions on the future
  */
 class KRATOS_API(KRATOS_CORE) IntegrationValuesExtrapolationToNodesProcess
     : public Process
@@ -61,15 +61,16 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // General type definitions
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
-    typedef ModelPart::ElementsContainerType              ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
-    typedef Geometry<NodeType>                                 GeometryType;
+    // Node type definition
+    typedef Node<3> NodeType;
 
-    /// Defining the integers
+    /// Geometry type definition
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Defining the size type
     typedef std::size_t SizeType;
+
+    /// Defining the index type
     typedef std::size_t IndexType;
 
     /// Pointer definition of IntegrationValuesExtrapolationToNodesProcess
@@ -84,11 +85,20 @@ public:
     ///@{
 
     /**
-     * @brief The constructor of the search utility uses the following inputs:
+     * @brief The constructor of the integration values extraplation using a Model
+     * @param rModel The model which contains the model part
+     * @param ThisParameters The parameters containing all the information needed
+     */
+    IntegrationValuesExtrapolationToNodesProcess(
+        Model& rModel,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /**
+     * @brief The constructor of the integration values extraplation using a model part
      * @param rMainModelPart The model part from where extrapolate values
      * @param ThisParameters The parameters containing all the information needed
      */
-
     IntegrationValuesExtrapolationToNodesProcess(
         ModelPart& rMainModelPart,
         Parameters ThisParameters = Parameters(R"({})")

@@ -13,6 +13,7 @@
         "response_type"    : "adjoint_nodal_displacement",
         "gradient_mode"     : "semi_analytic",
         "step_size"         : 1.0e-6,
+        "adapt_step_size"   : true,
         "traced_node_id"       : 5,
         "traced_dof"        : "DISPLACEMENT_Z",
         "primal_settings"  : "rectangular_plate_parameters.json",
