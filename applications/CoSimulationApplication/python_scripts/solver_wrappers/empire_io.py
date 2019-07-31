@@ -55,6 +55,8 @@ class EmpireIO(CoSimulationIO):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
+            if interface_data.variable in self.double_vector_var_map.values():
+                return # this variable is communicated as a double-vector together with another variable
             variables = self.__GetVariables(interface_data.variable)
             KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, *variables)
         else:
@@ -64,6 +66,8 @@ class EmpireIO(CoSimulationIO):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
+            if interface_data.variable in self.double_vector_var_map.values():
+                return # this variable is communicated as a double-vector together with another variable
             variables = self.__GetVariables(interface_data.variable)
             KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, *variables)
         elif data_type == "convergence_signal":
