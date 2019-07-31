@@ -36,7 +36,7 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
 
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mStressVariable = KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString());
+    mpStressVariable = &const_cast<Variable<Vector>&>(KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString()));
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
 
@@ -216,7 +216,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
 
-        it_elem->GetValueOnIntegrationPoints(mStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
+        it_elem->GetValueOnIntegrationPoints(*mpStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
         it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
 
         KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
