@@ -180,19 +180,19 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
     // Patch center node:
     if (itPatchNode->Has(CONTACT_PRESSURE)){
-        const array_1d<double, 3>& normal_patch_node = itPatchNode->FastGetSolutionStepValue(NORMAL);
+        const array_1d<double, 3>& r_normal_patch_node = itPatchNode->FastGetSolutionStepValue(NORMAL);
         p_k(0,1)=0.0;
         p_k(0,2)=0.0;
         p_k(1,4)=0.0;
         p_k(1,5)=0.0;
         p_k(2,7)=0.0;
         p_k(2,8)=0.0;
-        N_k(0,0) = normal_patch_node[0]*normal_patch_node[0];
-        N_k(0,1) = normal_patch_node[1]*normal_patch_node[1];
-        N_k(0,2) = 2.0 * normal_patch_node[0]*normal_patch_node[1];
-        T_k1(0,0) =  normal_patch_node[0]*normal_patch_node[1];
-        T_k1(0,1) = -normal_patch_node[0]*normal_patch_node[1];
-        T_k1(0,2) =  normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
+        N_k(0,0) = r_normal_patch_node[0]*r_normal_patch_node[0];
+        N_k(0,1) = r_normal_patch_node[1]*r_normal_patch_node[1];
+        N_k(0,2) = 2.0 * r_normal_patch_node[0]*r_normal_patch_node[1];
+        T_k1(0,0) =  r_normal_patch_node[0]*r_normal_patch_node[1];
+        T_k1(0,1) = -r_normal_patch_node[0]*r_normal_patch_node[1];
+        T_k1(0,2) =  r_normal_patch_node[1]*r_normal_patch_node[1]-r_normal_patch_node[0]*r_normal_patch_node[0];
 
         noalias(A1) = prod(trans(p_k),trans(N_k));
         noalias(A2) = prod(N_k,p_k);
