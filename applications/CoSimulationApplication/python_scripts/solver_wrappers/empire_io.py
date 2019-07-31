@@ -26,6 +26,7 @@ class EmpireIO(CoSimulationIO):
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect(self.settings["api_configuration_file_name"].GetString())
 
         # delete and recreate communication folder to avoid leftover files
+        # TODO implement this
         self.communication_folder = self.settings["communication_folder"].GetString()
         kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
         os.mkdir(self.communication_folder)
