@@ -1,6 +1,7 @@
 
 #include <structural_mechanics_application_variables.h>
 #include <stdlib.h>
+#include <processes/tetrahedral_mesh_orientation_check.h>
 #include "model_part_wrapper.h"
 
 #define SKIN_SUBMODEL_PART_NAME "CSharpWrapper_skin"
@@ -171,6 +172,12 @@ void ModelPartWrapper::retrieveResults() {
 
 void ModelPartWrapper::enableSurfaceStressResults() {
     mStressResultsEnabled = true;
+    pmSurfaceStress = new float[mTrianglesCount];
+
+    Kratos::TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(mModelPart,
+                                                                            false,
+                                                                            Kratos::TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
+    tetrahedralMeshOrientationCheck.Execute();
 }
 
 float *ModelPartWrapper::getSurfaceStress() {
@@ -228,25 +235,27 @@ ModelPartWrapper *ModelPartWrapper::createSubmodelPart(char *name) {
     return new ModelPartWrapper(newModelPart, mFixedNodes);
 }
 
-void ModelPartWrapper::createNewNode(int id, double x, double y, double z) {
-    mModelPart.CreateNewNode(id, x, y, z);
+NodeType *ModelPartWrapper::createNewNode(int id, double x, double y, double z) {
     updateMaxNodeId(id);
+    return &*mModelPart.CreateNewNode(id, x, y, z);
 }
 
-void ModelPartWrapper::createNewElement(char *name, int id, int *nodeIds) {
+ElementType *ModelPartWrapper::createNewElement(char *name, int id, int *nodeIds) {
     std::vector<Kratos::IndexType> nodes;
     for (int i = 0; i < 4; i++) nodes.push_back(nodeIds[i]);
 
-    mModelPart.CreateNewElement(name, id, nodes, mModelPart.pGetProperties(0));
     updateMaxElementId(id);
+    return &*mModelPart.CreateNewElement(name, id, nodes, mModelPart.pGetProperties(0));
+
 }
 
-void ModelPartWrapper::createNew2dCondition(char *name, int id, int *nodeIds) {
+ConditionType *ModelPartWrapper::createNew2dCondition(char *name, int id, int *nodeIds) {
     std::vector<Kratos::IndexType> nodes;
     for (int i = 0; i < 4; i++) nodes.push_back(nodeIds[i]);
 
-    mModelPart.CreateNewCondition(name, id, nodes, mModelPart.pGetProperties(0));
     updateMaxElementId(id);
+    return &*mModelPart.CreateNewCondition(name, id, nodes, mModelPart.pGetProperties(0));
+
 }
 
 void ModelPartWrapper::removeNode(int id) {

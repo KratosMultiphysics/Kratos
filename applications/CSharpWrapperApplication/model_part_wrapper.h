@@ -64,11 +64,11 @@ namespace CSharpKratosWrapper {
 
         ModelPartWrapper *createSubmodelPart(char *name);
 
-        void createNewNode(int id, double x, double y, double z);
+        NodeType *createNewNode(int id, double x, double y, double z);
 
-        void createNewElement(char *name, int id, int *nodeIds);
+        ElementType *createNewElement(char *name, int id, int *nodeIds);
 
-        void createNew2dCondition(char *name, int id, int *nodeIds);
+        ConditionType *createNew2dCondition(char *name, int id, int *nodeIds);
 
         void removeNode(int id);
 
