@@ -202,6 +202,7 @@ Begin Properties *MatNum
  K0 *MatProp(K0,real)
 *format "%10.5e"
  THICKNESS *MatProp(THICKNESS,real)
+ YOUNG_MODULUS 10000.0
 End Properties
 
 *endif
