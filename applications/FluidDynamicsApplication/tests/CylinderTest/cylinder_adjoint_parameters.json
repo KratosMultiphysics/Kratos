@@ -42,6 +42,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "cylinder_2d"
         },
+        "material_import_settings": {
+            "materials_filename": "cylinder_fluid_materials.json"
+        },
         "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"           : -0.1

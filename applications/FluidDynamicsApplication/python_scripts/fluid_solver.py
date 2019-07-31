@@ -59,6 +59,10 @@ class FluidSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            ## Set fluid properties from materials json file
+            materials_imported = self._SetPhysicalProperties()
+            if not materials_imported:
+                raise RuntimeError("Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process

@@ -294,11 +294,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
+        # Call the base solver PrepareModelPart()
         super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
 
+        # Set the extra requirements of the embedded formulation
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            ## Sets the fluid properties and constitutive law
-            self._SetPhysicalProperties()
             ## Sets the embedded formulation configuration
             self._set_embedded_formulation()
             ## Setting the nodal distance

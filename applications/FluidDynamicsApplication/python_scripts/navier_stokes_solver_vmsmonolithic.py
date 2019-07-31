@@ -296,14 +296,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
-
-    def PrepareModelPart(self):
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            materials_imported = self._SetPhysicalProperties()
-            if not materials_imported:
-                raise RuntimeError("Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
-        super(NavierStokesSolverMonolithic, self).PrepareModelPart()
-
     def Initialize(self):
 
         self.computing_model_part = self.GetComputingModelPart()

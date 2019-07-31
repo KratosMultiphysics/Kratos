@@ -32,6 +32,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
             },
@@ -59,6 +62,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             self.condition_name = "LineCondition"
         elif self.settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition"
+        self.element_has_nodal_properties = True
 
         # construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -83,10 +87,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
-
-    def PrepareModelPart(self):
-        self._SetPhysicalProperties()
-        super(AdjointVMSMonolithicSolver, self).PrepareModelPart()
 
     def Initialize(self):
 
@@ -134,18 +134,3 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         (self.response_function).Initialize()
         (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-
-    def _SetPhysicalProperties(self):
-        # Transfer density and (kinematic) viscostity to the nodes
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
-            break
-
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
