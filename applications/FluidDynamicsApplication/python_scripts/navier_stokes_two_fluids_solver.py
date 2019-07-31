@@ -34,6 +34,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "material_import_settings": {
+                materials_filename: ""
+            },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
                 "distance_file_name"  : "no_distance_file"
@@ -112,14 +115,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
-        super(NavierStokesTwoFluidsSolver, self).PrepareModelPart()
+        # Call the base solver PrepareModelPart()
+        super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
+
+        # Set the extra requirements of the two-fluids formulation
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Setting the nodal distance
             self._set_distance_function()
-            ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-            self._SetPhysicalProperties()
-            ## Sets the constitutive law
-            self._set_constitutive_law()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
