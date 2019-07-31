@@ -18,22 +18,17 @@ def AddDofs(model_part, aux_dofs_list, aux_reaction_list):
                 reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
                 KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable, model_part)
             elif (dof_variable_type == "Array"): # Components variable
-                dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
-                reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, model_part)
-                dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
-                reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, model_part)
-                dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
-                reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, model_part)
+                for comp in ["_X", "_Y", "_Z"]:
+                    dof_variable_comp = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + comp)
+                    reaction_variable_comp = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + comp)
+                    KratosMultiphysics.VariableUtils().AddDof(dof_variable_comp, reaction_variable_comp, model_part)
             else:
                 raise Exception("The variable " + dof_variable_name + " is incompatible in type")
         else:
-            err_mssg = "The added reaction variable: " + reaction_variable_name
-            err_mssg+= "(" + KratosMultiphysics.KratosGlobals.GetVariableType(reaction_variable_name) + ") "
-            err_mssg+= "is not the same type as the pair DoF: " + dof_variable_name
-            err_mssg+= "(" + KratosMultiphysics.KratosGlobals.GetVariableType(dof_variable_name) + ")"
-            raise Exception(err_mssg)
+            err_msg = "The added reaction variable: " + reaction_variable_name
+            err_msg+= "(" + KratosMultiphysics.KratosGlobals.GetVariableType(reaction_variable_name) + ") "
+            err_msg+= "is not the same type as the pair DoF: " + dof_variable_name
+            err_msg+= "(" + KratosMultiphysics.KratosGlobals.GetVariableType(dof_variable_name) + ")"
+            raise Exception(err_msg)
 
 

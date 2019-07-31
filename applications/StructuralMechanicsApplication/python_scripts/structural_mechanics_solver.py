@@ -13,6 +13,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.StructuralMechanicsApplication import check_and_prepare_model_process_structural
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics import auxiliary_solver_utilities
 
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
@@ -151,8 +152,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         # Add variables that the user defined in the ProjectParameters
-        from KratosMultiphysics.auxiliary_solver_utilities import AddVariables
-        AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
+        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -169,8 +169,7 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
 
         # Add dofs that the user defined in the ProjectParameters
-        from KratosMultiphysics.auxiliary_solver_utilities import AddDofs
-        AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):

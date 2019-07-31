@@ -9,6 +9,9 @@ import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
+# Other imports
+from KratosMultiphysics import auxiliary_solver_utilities
+
 def CreateSolver(model, custom_settings):
     return MPMSolver(model, custom_settings)
 
@@ -262,8 +265,7 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
 
         # Add variables that the user defined in the ProjectParameters
-        from KratosMultiphysics.auxiliary_solver_utilities import AddVariables
-        AddVariables(model_part, self.settings["auxiliary_variables_list"])
+        auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
 
         # Add variables for specific cases
         if self.settings["pressure_dofs"].GetBool():
@@ -297,8 +299,7 @@ class MPMSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
 
         # Add dofs that the user defined in the ProjectParameters
-        from KratosMultiphysics.auxiliary_solver_utilities import AddDofs
-        AddDofs(model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        auxiliary_solver_utilities.AddDofs(model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
 
     def _GetDomainSize(self):
         if not hasattr(self, '_domain_size'):
