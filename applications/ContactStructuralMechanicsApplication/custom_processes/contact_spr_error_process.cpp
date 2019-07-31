@@ -56,12 +56,15 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     Vector& rSigmaRecovered
     )
 {
+    // Defining tolerance
+    const double tolerance = std::numeric_limits<double>::epsilon();
+
     // Triangle and tetrahedra have only one GP by default
     std::vector<Vector> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
 
     // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size
-    CompressedMatrix A(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1), 0.0);
+    CompressedMatrix A = ZeroMatrix(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1));
     BoundedMatrix<double, SigmaSize * (TDim+1),1> b = ZeroMatrix(SigmaSize * (TDim+1), 1);
     BoundedMatrix<double, SigmaSize, SigmaSize * (TDim+1)> p_k;
     BoundedMatrix<double, 1, SigmaSize> N_k;
@@ -71,12 +74,14 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
     /* Computation A and b */
     // PART 1: Contributions from the neighboring elements
-    auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
-    for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
+    auto& r_neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
+    const array_1d<double, 3>& r_coordinates = itNode->Coordinates();
+    const array_1d<double, 3>& r_coordinates_patch_node = itPatchNode->Coordinates();
+    for( WeakElementItType it_elem = r_neigh_elements.begin(); it_elem != r_neigh_elements.end(); ++it_elem) {
 
-        auto& process_info = BaseType::mThisModelPart.GetProcessInfo();
-        it_elem->GetValueOnIntegrationPoints(BaseType::mStressVariable,stress_vector, process_info);
-        it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector, process_info);
+        auto& r_process_info = BaseType::mThisModelPart.GetProcessInfo();
+        it_elem->GetValueOnIntegrationPoints(BaseType::mStressVariable,stress_vector, r_process_info);
+        it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES, coordinates_vector, r_process_info);
 
         KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 3)
         << "\tElement: " << it_elem->Id() << std::endl
@@ -88,10 +93,10 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
         for ( IndexType j = 0; j < SigmaSize; ++j){
             p_k(j, j * (TDim+1) + 0) = 1.0;
-            p_k(j, j * (TDim+1) + 1) = coordinates_vector[0][0] - itPatchNode->X();
-            p_k(j, j * (TDim+1) + 2) = coordinates_vector[0][1] - itPatchNode->Y();
+            p_k(j, j * (TDim+1) + 1) = coordinates_vector[0][0] - r_coordinates_patch_node[0];
+            p_k(j, j * (TDim+1) + 2) = coordinates_vector[0][1] - r_coordinates_patch_node[1];
             if(TDim == 3)
-                p_k(j, j * (TDim+1) + 3) = coordinates_vector[0][2] - itPatchNode->Z();
+                p_k(j, j * (TDim+1) + 3) = coordinates_vector[0][2] - r_coordinates_patch_node[2];
         }
 
         // Finally we add the contributiosn to our local system (A, b)
@@ -103,62 +108,61 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     BoundedMatrix<double, SigmaSize * (TDim + 1), 1> A1;
     BoundedMatrix<double, 1, SigmaSize * (TDim + 1)> A2;
     for (IndexType j = 0; j < SigmaSize; ++j){
-        p_k(j,j * (TDim + 1) + 1)= itNode->X() - itPatchNode->X();
-        p_k(j,j * (TDim + 1) + 2)= itNode->Y() - itPatchNode->Y();
+        p_k(j,j * (TDim + 1) + 1)= r_coordinates[0] - r_coordinates_patch_node[0];
+        p_k(j,j * (TDim + 1) + 2)= r_coordinates[1] - r_coordinates_patch_node[1];
         if(TDim == 3)
-            p_k(j,j * (TDim + 1) + 3)= itNode->Z() - itPatchNode->Z();
+            p_k(j,j * (TDim + 1) + 3)= r_coordinates[2] - r_coordinates_patch_node[2];
     }
 
-    // Set the normal and tangential vectors in Voigt Notation
-    const array_1d<double, 3>& normal = itNode->GetValue(NORMAL);
+    // Set the r_normal and tangential vectors in Voigt Notation
+    const array_1d<double, 3>& r_normal = itNode->FastGetSolutionStepValue(NORMAL);
 
     if(TDim == 2) {
-        N_k(0,0) = normal[0] * normal[0];
-        N_k(0,1) = normal[1] * normal[1];
-        N_k(0,2) = 2.0 * normal[0] * normal[1];
+        N_k(0,0) = r_normal[0] * r_normal[0];
+        N_k(0,1) = r_normal[1] * r_normal[1];
+        N_k(0,2) = 2.0 * r_normal[0] * r_normal[1];
 
-        T_k1(0,0) =  normal[0] * normal[1];
-        T_k1(0,1) = -normal[0] * normal[1];
-        T_k1(0,2) =  normal[1] * normal[1] - normal[0] * normal[0];
+        T_k1(0,0) =  r_normal[0] * r_normal[1];
+        T_k1(0,1) = -r_normal[0] * r_normal[1];
+        T_k1(0,2) =  r_normal[1] * r_normal[1] - r_normal[0] * r_normal[0];
     } else if (TDim == 3) {
-        N_k(0,0) = normal[0] * normal[0];
-        N_k(0,1) = normal[1] * normal[1];
-        N_k(0,1) = normal[2] * normal[2];
-        N_k(0,3) = 2.0 * normal[1] * normal[2];
-        N_k(0,4) = 2.0 * normal[2] * normal[0];
-        N_k(0,5) = 2.0 * normal[0] * normal[1];
+        N_k(0,0) = r_normal[0] * r_normal[0];
+        N_k(0,1) = r_normal[1] * r_normal[1];
+        N_k(0,2) = r_normal[2] * r_normal[2];
+        N_k(0,3) = 2.0 * r_normal[0] * r_normal[1];
+        N_k(0,4) = 2.0 * r_normal[1] * r_normal[2];
+        N_k(0,5) = 2.0 * r_normal[2] * r_normal[0];
 
         // Set tangential vectors
-        array_1d<double, 3> t1(3, 0.0);
-        array_1d<double, 3> t2(3, 0.0);
+        array_1d<double, 3> t1 = ZeroVector(3);
+        array_1d<double, 3> t2 = ZeroVector(3);
 
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        if(std::abs(normal[0]) > tolerance || std::abs(normal[1]) > tolerance) {
+        if(std::abs(r_normal[0]) > tolerance || std::abs(r_normal[1]) > tolerance) {
             const double norm = std::sqrt((t1[0]*t1[0]+t1[1]*t1[1]));
-            t1[0] = normal[1]/norm;
-            t1[1] = -normal[0]/norm;
+            t1[0] = r_normal[1]/norm;
+            t1[1] = -r_normal[0]/norm;
 
-            t2[0] = -normal[0]*normal[2]/norm;
-            t2[1] = -normal[1]*normal[2]/norm;
-            t2[2] = normal[0]*normal[0]+normal[1]*normal[1]/norm;
+            t2[0] = -r_normal[0]*r_normal[2]/norm;
+            t2[1] = -r_normal[1]*r_normal[2]/norm;
+            t2[2] = r_normal[0]*r_normal[0]+r_normal[1]*r_normal[1]/norm;
         } else{
             t1[0] = 1.0;
             t2[1] = 1.0;
         }
 
-        T_k1(0,0) = normal[0]*t1[0];
-        T_k1(0,1) = normal[1]*t1[1];
-        T_k1(0,2) = normal[2]*t1[2];
-        T_k1(0,3) = normal[1]*t1[2]+normal[2]*t1[1];
-        T_k1(0,4) = normal[2]*t1[0]+normal[0]*t1[2];
-        T_k1(0,5) = normal[0]*t1[1]+normal[1]*t1[0];
+        T_k1(0,0) = r_normal[0]*t1[0];
+        T_k1(0,1) = r_normal[1]*t1[1];
+        T_k1(0,2) = r_normal[2]*t1[2];
+        T_k1(0,3) = r_normal[1]*t1[2]+r_normal[2]*t1[1];
+        T_k1(0,4) = r_normal[2]*t1[0]+r_normal[0]*t1[2];
+        T_k1(0,5) = r_normal[0]*t1[1]+r_normal[1]*t1[0];
 
-        T_k2(0,0) = normal[0]*t2[0];
-        T_k2(0,1) = normal[1]*t2[1];
-        T_k2(0,2) = normal[2]*t2[2];
-        T_k2(0,3) = normal[1]*t2[2]+normal[2]*t2[1];
-        T_k2(0,4) = normal[2]*t2[0]+normal[0]*t2[2];
-        T_k2(0,5) = normal[0]*t2[1]+normal[1]*t2[0];
+        T_k2(0,0) = r_normal[0]*t2[0];
+        T_k2(0,1) = r_normal[1]*t2[1];
+        T_k2(0,2) = r_normal[2]*t2[2];
+        T_k2(0,3) = r_normal[1]*t2[2]+r_normal[2]*t2[1];
+        T_k2(0,4) = r_normal[2]*t2[0]+r_normal[0]*t2[2];
+        T_k2(0,5) = r_normal[0]*t2[1]+r_normal[1]*t2[0];
     }
 
     noalias(A1) = prod(trans(p_k),trans(N_k));
@@ -175,7 +179,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
     // Patch center node:
     if (itPatchNode->Has(CONTACT_PRESSURE)){
-        const array_1d<double, 3>& normal_patch_node = itPatchNode->GetValue(NORMAL);
+        const array_1d<double, 3>& normal_patch_node = itPatchNode->FastGetSolutionStepValue(NORMAL);
         p_k(0,1)=0.0;
         p_k(0,2)=0.0;
         p_k(1,4)=0.0;
@@ -184,10 +188,10 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         p_k(2,8)=0.0;
         N_k(0,0) = normal_patch_node[0]*normal_patch_node[0];
         N_k(0,1) = normal_patch_node[1]*normal_patch_node[1];
-        N_k(0,2) = 2*normal_patch_node[0]*normal_patch_node[1];
-        T_k1(0,0) = normal_patch_node[0]*normal_patch_node[1];
+        N_k(0,2) = 2.0 * normal_patch_node[0]*normal_patch_node[1];
+        T_k1(0,0) =  normal_patch_node[0]*normal_patch_node[1];
         T_k1(0,1) = -normal_patch_node[0]*normal_patch_node[1];
-        T_k1(0,2) = normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
+        T_k1(0,2) =  normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
 
         noalias(A1) = prod(trans(p_k),trans(N_k));
         noalias(A2) = prod(N_k,p_k);
@@ -208,8 +212,8 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     for( auto& i_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
         if (i_neighbour_node.Has(CONTACT_PRESSURE)){
             const array_1d<double, 3>& normal_neigh_node = i_neighbour_node.GetValue(NORMAL);
-            const double x_patch = itPatchNode->X();
-            const double y_patch = itPatchNode->Y();
+            const double x_patch = r_coordinates_patch_node[0];
+            const double y_patch = r_coordinates_patch_node[1];
             const double x_neigh = i_neighbour_node.X();
             const double y_neigh = i_neighbour_node.Y();
             p_k(0,1)= x_neigh-x_patch;
@@ -242,14 +246,14 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 3) << A << std::endl;
 
     Vector coeff(SigmaSize * (TDim+1));
-    const Vector& b_vector = row(b, 0);
-    MathUtils<double>::Solve(A, coeff, b_vector);
+    const Vector& r_b_vector = row(b, 0);
+    MathUtils<double>::Solve(A, coeff, r_b_vector);
 
     for (IndexType j = 0; j < SigmaSize;++j){
-        p_k(j,j*(TDim + 1) + 1) = itNode->X() - itPatchNode->X();
-        p_k(j,j*(TDim + 1) + 2) = itNode->Y() - itPatchNode->Y();
+        p_k(j,j*(TDim + 1) + 1) = r_coordinates[0] - r_coordinates_patch_node[0];
+        p_k(j,j*(TDim + 1) + 2) = r_coordinates[1] - r_coordinates_patch_node[1];
         if (TDim == 3)
-            p_k(j,j*(TDim + 1) + 3) = itNode->Z() - itPatchNode->Z();
+            p_k(j,j*(TDim + 1) + 3) = r_coordinates[2] - r_coordinates_patch_node[2];
     }
 
     BoundedMatrix<double, SigmaSize*(TDim + 1), 1> coeff_matrix;
