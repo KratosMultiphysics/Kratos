@@ -65,10 +65,10 @@
             "dem":
             {
                 "type" : "solver_wrappers.kratos.dem_wrapper",
-                "settings" : {
-                    "input_file"  : "dem_fem_cable_net/ProjectParametersDEM",
-                    "move_mesh_model_part"  : ["RigidFacePart.0"],
-                    "working_directory"       : "dem_fem_cable_net"
+                "solver_wrapper_settings" : {
+                    "input_file"           : "dem_fem_cable_net/ProjectParametersDEM",
+                    "move_mesh_model_part" : ["RigidFacePart.0"],
+                    "working_directory"    : "dem_fem_cable_net"
                 },
                 "data" : {
                     "disp" : {
@@ -91,7 +91,7 @@
             "structure" :
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "dem_fem_cable_net/ProjectParametersFEM"
                 },
                 "data" : {
