@@ -52,7 +52,7 @@ template<SizeType TDim>
 void ContactSPRErrorProcess<TDim>::CalculatePatch(
     NodeItType itNode,
     NodeItType itPatchNode,
-    SizeType NeighbourSize,
+    const SizeType NeighbourSize,
     Vector& rSigmaRecovered
     )
 {
