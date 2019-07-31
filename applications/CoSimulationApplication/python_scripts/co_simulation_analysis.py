@@ -26,7 +26,7 @@ class CoSimulationAnalysis(AnalysisStage):
         problem_data_defaults = KM.Parameters("""{
             "problem_name" : "default_co_simulation",
             "print_colors" : false,
-            "echo_level"   : 1 # in order to print the infos by default (I think makes sense ... to be discussed)
+            "echo_level"   : 1
         }""")
 
         problem_data = cosim_settings["problem_data"]
