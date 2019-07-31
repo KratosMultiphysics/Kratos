@@ -62,6 +62,8 @@ class EmpireIO(CoSimulationIO):
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
             KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(interface_data.GetModelPart(), interface_data.name, interface_data.variable)
+        elif data_type == "convergence_signal":
+            KratosCoSim.EMPIRE_API.EMPIRE_API_sendConvergenceSignal(data_config["is_converged"])
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
