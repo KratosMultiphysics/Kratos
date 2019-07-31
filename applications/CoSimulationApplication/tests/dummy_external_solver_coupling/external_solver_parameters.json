@@ -11,7 +11,7 @@
             },
             "data_field_send" : {
                 "data_field_name" : "external_solver_Interface_1_force",
-                "variables"       : ["FORCE"]
+                "variables"       : ["FORCE", "MOMENT"]
             }
         },
         {
@@ -20,10 +20,6 @@
             "data_field_recv" : {
                 "data_field_name" : "external_solver_Interface_2_rot",
                 "variables"       : ["ROTATION"]
-            },
-            "data_field_send" : {
-                "data_field_name" : "external_solver_Interface_2_moment",
-                "variables"       : ["MOMENT"]
             }
         },
         {
