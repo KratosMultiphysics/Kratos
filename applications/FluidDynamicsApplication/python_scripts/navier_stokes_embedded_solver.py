@@ -94,7 +94,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedAusasNavierStokes"
         self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
-        self.element_has_nodal_properties = False
+        self.element_has_nodal_properties = True
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()

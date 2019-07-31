@@ -18,6 +18,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "cylinder_2d"
         },
+        "material_import_settings": {
+            "materials_filename": "cylinder_fluid_materials.json"
+        },
         "model_part_name"             : "MainModelPart",
         "domain_size"                 : 2,
         "echo_level"                  : 0,

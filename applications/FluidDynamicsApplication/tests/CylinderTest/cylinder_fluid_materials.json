@@ -4,12 +4,10 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "Newtonian3DLaw"
             },
             "Variables"        : {
-                "DENSITY": 1.0E+03,
-                "VISCOSITY": 1.0E-06,
-                "DYNAMIC_VISCOSITY": 1.0E-03
+                "DENSITY": 1.0,
+                "DYNAMIC_VISCOSITY": 0.01
             },
             "Tables"           : {}
         }
