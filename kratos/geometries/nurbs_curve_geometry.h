@@ -239,7 +239,7 @@ public:     // methods
         return {shape_function.GetNonzeroPoleIndices(), values};
     }
 
-    std::vector<Interval> Spans() const
+    std::vector<Interval> GetSpans() const
     {
         const int first_span = GetDegree() - 1;
         const int last_span = GetNbKnots() - GetDegree() - 1;
