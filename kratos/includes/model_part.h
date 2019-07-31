@@ -105,7 +105,7 @@ public:
     typedef std::size_t SizeType;
 
     typedef Dof<double> DofType;
-    typedef typename MasterSlaveConstraint::DofPointerVectorType MasterSlaveDofsVectorType;
+    typedef std::vector< DofType::Pointer > DofsVectorType;
     typedef Kratos::Variable<double> DoubleVariableType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef Matrix MatrixType;
@@ -696,8 +696,8 @@ public:
      */
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
                                                                                     IndexType Id,
-                                                                                    MasterSlaveDofsVectorType& rMasterDofsVector,
-                                                                                    MasterSlaveDofsVectorType& rSlaveDofsVector,
+                                                                                    DofsVectorType& rMasterDofsVector,
+                                                                                    DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
                                                                                     const VectorType& ConstantVector,
                                                                                     IndexType ThisIndex = 0);

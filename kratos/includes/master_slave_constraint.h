@@ -25,8 +25,6 @@
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
 #include "includes/process_info.h"
-#include "includes/global_pointer.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -91,11 +89,8 @@ public:
     /// The DoF type definition
     typedef Dof<double> DofType;
 
-    /// Dof Global pointer type
-    typedef GlobalPointer<DofType> DofGlobalPointerType;
-
     /// The DoF pointer vector type definition
-    typedef std::vector< DofGlobalPointerType > DofPointerVectorType;
+    typedef std::vector< DofType::Pointer > DofPointerVectorType;
 
     /// The node type definition
     typedef Node<3> NodeType;
