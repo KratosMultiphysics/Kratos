@@ -97,9 +97,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.FinalizeNonLinearIteration()
 
-            is_converged = True
-            for conv_crit in self.convergence_criteria_list:
-                is_converged = is_converged and conv_crit.IsConverged()
+            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
             # Communicate the state of convergence with external solvers through IO
             convergence_signal_config = {
