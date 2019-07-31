@@ -140,19 +140,25 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
     )
 {
     // Loop over all elements:
-    ElementsArrayType& elements_array = mThisModelPart.Elements();
-    const int num_elem = static_cast<int>(elements_array.size());
+    ElementsArrayType& r_elements_array = mThisModelPart.Elements();
+    const int num_elem = static_cast<int>(r_elements_array.size());
+    const auto it_elem_begin = r_elements_array.begin();
+
+    // Process info
+    const auto& r_process_info = mThisModelPart.GetProcessInfo();
 
     // Compute the error estimate per element
     double error_overall= 0.0;
     double energy_norm_overall = 0.0;
-    #pragma omp parallel for reduction(+:error_overall, energy_norm_overall)
-    for(int i_elem = 0; i_elem < num_elem; ++i_elem){
-        auto it_elem = elements_array.begin() + i_elem;
 
-        std::vector<double> error_integration_point;
-        const auto& process_info = mThisModelPart.GetProcessInfo();
-        it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
+    // Auxiliar GP vectors
+    std::vector<double> error_integration_point, strain_energy;
+
+    #pragma omp parallel for reduction(+:error_overall, energy_norm_overall) firstprivate(error_integration_point,strain_energy)
+    for(int i_elem = 0; i_elem < num_elem; ++i_elem){
+        auto it_elem = it_elem_begin + i_elem;
+
+        it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, r_process_info);
 
         // The error_integration_point is printed
         if (mEchoLevel > 2) {
@@ -163,20 +169,20 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
 
         // We compute the error overall
         double error_energy_norm = 0.0;
-        for(IndexType i = 0;i < error_integration_point.size();++i)
+        for(IndexType i = 0;i < error_integration_point.size();++i) {
             error_energy_norm += error_integration_point[i];
+        }
         error_overall += error_energy_norm;
         error_energy_norm = std::sqrt(error_energy_norm);
         it_elem->SetValue(ELEMENT_ERROR, error_energy_norm);
 
-
         // We compute now the energy norm
-        std::vector<double> strain_energy;
-        it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
+        it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, r_process_info);
 
         double energy_norm = 0.0;
-        for(IndexType i = 0;i < strain_energy.size(); ++i)
+        for(IndexType i = 0;i < strain_energy.size(); ++i) {
             energy_norm += 2.0 * strain_energy[i];
+        }
         energy_norm_overall += energy_norm;
         energy_norm= std::sqrt(energy_norm);
 
@@ -185,7 +191,7 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
 
     rErrorOverall = std::sqrt(error_overall);
     rEnergyNormOverall = std::sqrt(energy_norm_overall);
-    double error_percentage = rErrorOverall/std::sqrt((std::pow(rErrorOverall, 2) + std::pow(rEnergyNormOverall, 2)));
+    const double error_percentage = rErrorOverall/std::sqrt((std::pow(rErrorOverall, 2) + std::pow(rEnergyNormOverall, 2)));
 
     KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 1)
         << "Overall error norm: " << rErrorOverall << std::endl
