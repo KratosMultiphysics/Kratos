@@ -413,7 +413,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         # Check if the SOUND_VELOCITY has been defined by the user
         user_defined_sound_velocity = False
-        for elem in self.GetComputingModelPart().Elements:
+        for elem in self.main_model_part.Elements:
             if elem.Properties.Has(KratosMultiphysics.SOUND_VELOCITY):
                 user_defined_sound_velocity = True
                 sound_velocity = elem.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)

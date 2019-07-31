@@ -75,7 +75,7 @@
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
         "material_import_settings": {
-            "materials_filename": "cylinder_test_materials.json"
+            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
         },
         "time_stepping"               : {
             "automatic_time_step" : false,
