@@ -59,9 +59,6 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 {
     // Contact interface node
     if (itNode->Is(INTERFACE)) {
-        // Defining tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
-
         // Triangle and tetrahedra have only one GP by default
         std::vector<Vector> stress_vector(1);
         std::vector<array_1d<double,3>> coordinates_vector(1);
@@ -69,11 +66,11 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size
         CompressedMatrix A = ZeroMatrix(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1));
         BoundedMatrix<double, SigmaSize * (TDim+1),1> b = ZeroMatrix(SigmaSize * (TDim+1), 1);
-        BoundedMatrix<double, SigmaSize, SigmaSize * (TDim+1)> p_k;
-        BoundedMatrix<double, 1, SigmaSize> N_k;
-        BoundedMatrix<double, 1, SigmaSize> T_k1;
-        BoundedMatrix<double, 1, SigmaSize> T_k2;  // in case of 3D: second tangential vector
-        BoundedMatrix<double, SigmaSize, 1> sigma;
+        BoundedMatrix<double, SigmaSize, SigmaSize * (TDim+1)> p_k = ZeroMatrix(SigmaSize, SigmaSize * (TDim+1));
+        BoundedMatrix<double, 1, SigmaSize> N_k = ZeroMatrix(1, SigmaSize);
+        BoundedMatrix<double, 1, SigmaSize> T_k1 = ZeroMatrix(1, SigmaSize);
+        BoundedMatrix<double, 1, SigmaSize> T_k2 = ZeroMatrix(1, SigmaSize);  // in case of 3D: second tangential vector
+        BoundedMatrix<double, SigmaSize, 1> sigma = ZeroMatrix(SigmaSize, 1);
 
         /* Computation A and b */
         // PART 1: Contributions from the neighboring elements
@@ -91,8 +88,10 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
             << "\tStress: " << stress_vector[0] << std::endl
             << "\tX: " << coordinates_vector[0][0] << "\tY: " << coordinates_vector[0][1] << "\tZ: " << coordinates_vector[0][2] << std::endl;
 
-            for( IndexType j = 0; j < SigmaSize; ++j)
+            // Assuming one GP for triangle and tetrahedron
+            for( IndexType j = 0; j < SigmaSize; ++j) {
                 sigma(j,0) = stress_vector[0][j];
+            }
 
             for ( IndexType j = 0; j < SigmaSize; ++j){
                 p_k(j, j * (TDim+1) + 0) = 1.0;
@@ -119,54 +118,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
         // Set the r_normal and tangential vectors in Voigt Notation
         const array_1d<double, 3>& r_normal = itNode->FastGetSolutionStepValue(NORMAL);
-
-        if(TDim == 2) {
-            N_k(0,0) = r_normal[0] * r_normal[0];
-            N_k(0,1) = r_normal[1] * r_normal[1];
-            N_k(0,2) = 2.0 * r_normal[0] * r_normal[1];
-
-            T_k1(0,0) =  r_normal[0] * r_normal[1];
-            T_k1(0,1) = -r_normal[0] * r_normal[1];
-            T_k1(0,2) =  r_normal[1] * r_normal[1] - r_normal[0] * r_normal[0];
-        } else if (TDim == 3) {
-            N_k(0,0) = r_normal[0] * r_normal[0];
-            N_k(0,1) = r_normal[1] * r_normal[1];
-            N_k(0,2) = r_normal[2] * r_normal[2];
-            N_k(0,3) = 2.0 * r_normal[0] * r_normal[1];
-            N_k(0,4) = 2.0 * r_normal[1] * r_normal[2];
-            N_k(0,5) = 2.0 * r_normal[2] * r_normal[0];
-
-            // Set tangential vectors
-            array_1d<double, 3> t1 = ZeroVector(3);
-            array_1d<double, 3> t2 = ZeroVector(3);
-
-            if(std::abs(r_normal[0]) > tolerance || std::abs(r_normal[1]) > tolerance) {
-                const double norm = std::sqrt((t1[0]*t1[0]+t1[1]*t1[1]));
-                t1[0] = r_normal[1]/norm;
-                t1[1] = -r_normal[0]/norm;
-
-                t2[0] = -r_normal[0]*r_normal[2]/norm;
-                t2[1] = -r_normal[1]*r_normal[2]/norm;
-                t2[2] = r_normal[0]*r_normal[0]+r_normal[1]*r_normal[1]/norm;
-            } else{
-                t1[0] = 1.0;
-                t2[1] = 1.0;
-            }
-
-            T_k1(0,0) = r_normal[0]*t1[0];
-            T_k1(0,1) = r_normal[1]*t1[1];
-            T_k1(0,2) = r_normal[2]*t1[2];
-            T_k1(0,3) = r_normal[1]*t1[2]+r_normal[2]*t1[1];
-            T_k1(0,4) = r_normal[2]*t1[0]+r_normal[0]*t1[2];
-            T_k1(0,5) = r_normal[0]*t1[1]+r_normal[1]*t1[0];
-
-            T_k2(0,0) = r_normal[0]*t2[0];
-            T_k2(0,1) = r_normal[1]*t2[1];
-            T_k2(0,2) = r_normal[2]*t2[2];
-            T_k2(0,3) = r_normal[1]*t2[2]+r_normal[2]*t2[1];
-            T_k2(0,4) = r_normal[2]*t2[0]+r_normal[0]*t2[2];
-            T_k2(0,5) = r_normal[0]*t2[1]+r_normal[1]*t2[0];
-        }
+        ComputeNormalTangentMatrices(N_k, T_k1, T_k2, r_normal);
 
         noalias(A1) = prod(trans(p_k),trans(N_k));
         noalias(A2) = prod(N_k,p_k);
@@ -175,26 +127,31 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         noalias(A1) = prod(trans(p_k),trans(T_k1));
         noalias(A2) = prod(T_k1,p_k);
 
-        // Finally we add the contributiosn to our local system (A, b)
         noalias(A) += mPenaltyTangent*prod(A1, A2);
+
+        noalias(A1) = prod(trans(p_k),trans(T_k2));
+        noalias(A2) = prod(T_k2,p_k);
+
+        noalias(A) += mPenaltyTangent*prod(A1, A2);
+
+        // Finally we add the contributiosn to our local system (A, b)
         noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * itNode->GetValue(CONTACT_PRESSURE);
 
         //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
         // Patch center node:
-        if (itPatchNode->Has(CONTACT_PRESSURE)){
+        if (itPatchNode->Has(CONTACT_PRESSURE)) {
+            if (TDim == 2) {
+                p_k(0,1)=0.0;
+                p_k(0,2)=0.0;
+                p_k(1,4)=0.0;
+                p_k(1,5)=0.0;
+                p_k(2,7)=0.0;
+                p_k(2,8)=0.0;
+            }
+
+            // Compute normal and tangent matrices
             const array_1d<double, 3>& r_normal_patch_node = itPatchNode->FastGetSolutionStepValue(NORMAL);
-            p_k(0,1)=0.0;
-            p_k(0,2)=0.0;
-            p_k(1,4)=0.0;
-            p_k(1,5)=0.0;
-            p_k(2,7)=0.0;
-            p_k(2,8)=0.0;
-            N_k(0,0) = r_normal_patch_node[0]*r_normal_patch_node[0];
-            N_k(0,1) = r_normal_patch_node[1]*r_normal_patch_node[1];
-            N_k(0,2) = 2.0 * r_normal_patch_node[0]*r_normal_patch_node[1];
-            T_k1(0,0) =  r_normal_patch_node[0]*r_normal_patch_node[1];
-            T_k1(0,1) = -r_normal_patch_node[0]*r_normal_patch_node[1];
-            T_k1(0,2) =  r_normal_patch_node[1]*r_normal_patch_node[1]-r_normal_patch_node[0]*r_normal_patch_node[0];
+            ComputeNormalTangentMatrices(N_k, T_k1, T_k2, r_normal_patch_node);
 
             noalias(A1) = prod(trans(p_k),trans(N_k));
             noalias(A2) = prod(N_k,p_k);
@@ -203,34 +160,41 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
             noalias(A1) = prod(trans(p_k),trans(T_k1));
             noalias(A2) = prod(T_k1,p_k);
 
-            // Finally we add the contributiosn to our local system (A, b)
             noalias(A) += mPenaltyTangent*prod(A1, A2);
+
+            noalias(A1) = prod(trans(p_k),trans(T_k2));
+            noalias(A2) = prod(T_k2,p_k);
+
+            noalias(A) += mPenaltyTangent*prod(A1, A2);
+
             // NOTE: Code commented. Could be of interest in the future
-    //         noalias(A) += mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
-    //         noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
+//             noalias(A) += mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
+//             noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
+//             noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k2)),T_k2),p_k);
+
+            // Finally we add the contributiosn to our local system (A, b)
             noalias(b) -= mPenaltyNormal*prod(trans(p_k),trans(N_k))*itPatchNode->GetValue(CONTACT_PRESSURE);
         }
 
         // Neighboring nodes:
-        for( auto& i_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
-            if (i_neighbour_node.Has(CONTACT_PRESSURE)){
-                const array_1d<double, 3>& normal_neigh_node = i_neighbour_node.GetValue(NORMAL);
-                const double x_patch = r_coordinates_patch_node[0];
-                const double y_patch = r_coordinates_patch_node[1];
-                const double x_neigh = i_neighbour_node.X();
-                const double y_neigh = i_neighbour_node.Y();
-                p_k(0,1)= x_neigh-x_patch;
-                p_k(0,2)= y_neigh-y_patch;
-                p_k(1,4)= x_neigh-x_patch;
-                p_k(1,5)= y_neigh-y_patch;
-                p_k(2,7)= x_neigh-x_patch;
-                p_k(2,8)= y_neigh-y_patch;
-                N_k(0,0) = normal_neigh_node[0]*normal_neigh_node[0];
-                N_k(0,1) = normal_neigh_node[1]*normal_neigh_node[1];
-                N_k(0,2) = 2*normal_neigh_node[0]*normal_neigh_node[1];
-                T_k1(0,0) = normal_neigh_node[0]*normal_neigh_node[1];
-                T_k1(0,1) = -normal_neigh_node[0]*normal_neigh_node[1];
-                T_k1(0,2) = normal_neigh_node[1]*normal_neigh_node[1]-normal_neigh_node[0]*normal_neigh_node[0];
+        for( auto& r_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
+            if (r_neighbour_node.Has(CONTACT_PRESSURE)){
+                if (TDim == 2) {
+                    const double x_patch = r_coordinates_patch_node[0];
+                    const double y_patch = r_coordinates_patch_node[1];
+                    const double x_neigh = r_neighbour_node.X();
+                    const double y_neigh = r_neighbour_node.Y();
+                    p_k(0,1)= x_neigh-x_patch;
+                    p_k(0,2)= y_neigh-y_patch;
+                    p_k(1,4)= x_neigh-x_patch;
+                    p_k(1,5)= y_neigh-y_patch;
+                    p_k(2,7)= x_neigh-x_patch;
+                    p_k(2,8)= y_neigh-y_patch;
+                }
+
+                // Compute normal and tangent matrices
+                const array_1d<double, 3>& r_normal_neigh_node = r_neighbour_node.GetValue(NORMAL);
+                ComputeNormalTangentMatrices(N_k, T_k1, T_k2, r_normal_neigh_node);
 
                 noalias(A1) = prod(trans(p_k),trans(N_k));
                 noalias(A2) = prod(N_k,p_k);
@@ -239,9 +203,15 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
                 noalias(A1) = prod(trans(p_k),trans(T_k1));
                 noalias(A2) = prod(T_k1,p_k);
 
-                // Finally we add the contributiosn to our local system (A, b)
                 noalias(A) += mPenaltyTangent*prod(A1, A2);
-                noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*i_neighbour_node.GetValue(CONTACT_PRESSURE);
+
+                noalias(A1) = prod(trans(p_k),trans(T_k2));
+                noalias(A2) = prod(T_k2,p_k);
+
+                noalias(A) += mPenaltyTangent*prod(A1, A2);
+
+                // Finally we add the contributiosn to our local system (A, b)
+                noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*r_neighbour_node.GetValue(CONTACT_PRESSURE);
             }
         }
 
@@ -271,6 +241,79 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     } else { // Regular node
         BaseType::CalculatePatch(itNode, itPatchNode, NeighbourSize, rSigmaRecovered);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ContactSPRErrorProcess<2>::ComputeNormalTangentMatrices(
+    BoundedMatrix<double, 1, 3>& rNk,
+    BoundedMatrix<double, 1, 3>& rTk1,
+    BoundedMatrix<double, 1, 3>& rTk2,
+    const array_1d<double, 3>& rNormal
+    )
+{
+    rNk(0,0) = rNormal[0] * rNormal[0];
+    rNk(0,1) = rNormal[1] * rNormal[1];
+    rNk(0,2) = 2.0 * rNormal[0] * rNormal[1];
+
+    rTk1(0,0) =  rNormal[0] * rNormal[1];
+    rTk1(0,1) = -rNormal[0] * rNormal[1];
+    rTk1(0,2) =  rNormal[1] * rNormal[1] - rNormal[0] * rNormal[0];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ContactSPRErrorProcess<3>::ComputeNormalTangentMatrices(
+    BoundedMatrix<double, 1, 6>& rNk,
+    BoundedMatrix<double, 1, 6>& rTk1,
+    BoundedMatrix<double, 1, 6>& rTk2,
+    const array_1d<double, 3>& rNormal
+    )
+{
+    // Defining tolerance
+    const double tolerance = std::numeric_limits<double>::epsilon();
+
+    rNk(0,0) = rNormal[0] * rNormal[0];
+    rNk(0,1) = rNormal[1] * rNormal[1];
+    rNk(0,2) = rNormal[2] * rNormal[2];
+    rNk(0,3) = 2.0 * rNormal[0] * rNormal[1];
+    rNk(0,4) = 2.0 * rNormal[1] * rNormal[2];
+    rNk(0,5) = 2.0 * rNormal[2] * rNormal[0];
+
+    // Set tangential vectors
+    array_1d<double, 3> t1 = ZeroVector(3);
+    array_1d<double, 3> t2 = ZeroVector(3);
+
+    if(std::abs(rNormal[0]) > tolerance || std::abs(rNormal[1]) > tolerance) {
+        const double norm = std::sqrt((t1[0]*t1[0]+t1[1]*t1[1]));
+        t1[0] = rNormal[1]/norm;
+        t1[1] = -rNormal[0]/norm;
+
+        t2[0] = -rNormal[0]*rNormal[2]/norm;
+        t2[1] = -rNormal[1]*rNormal[2]/norm;
+        t2[2] = rNormal[0]*rNormal[0]+rNormal[1]*rNormal[1]/norm;
+    } else{
+        t1[0] = 1.0;
+        t2[1] = 1.0;
+    }
+
+    rTk1(0,0) = rNormal[0]*t1[0];
+    rTk1(0,1) = rNormal[1]*t1[1];
+    rTk1(0,2) = rNormal[2]*t1[2];
+    rTk1(0,3) = rNormal[0]*t1[1]+rNormal[1]*t1[0];
+    rTk1(0,4) = rNormal[1]*t1[2]+rNormal[2]*t1[1];
+    rTk1(0,5) = rNormal[2]*t1[0]+rNormal[0]*t1[2];
+
+    rTk2(0,0) = rNormal[0]*t2[0];
+    rTk2(0,1) = rNormal[1]*t2[1];
+    rTk2(0,2) = rNormal[2]*t2[2];
+    rTk2(0,3) = rNormal[0]*t2[1]+rNormal[1]*t2[0];
+    rTk2(0,4) = rNormal[1]*t2[2]+rNormal[2]*t2[1];
+    rTk2(0,5) = rNormal[2]*t2[0]+rNormal[0]*t2[2];
 }
 
 /***********************************************************************************/

@@ -220,6 +220,20 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method computes the tangents and normal matrices
+     * @param rNk Normal matrix
+     * @param rTk1 First tangent matrix
+     * @param rTk2 Second tangent matrix
+     * @param rNormal The normal vector
+     */
+    void ComputeNormalTangentMatrices(
+        BoundedMatrix<double, 1, SigmaSize>& rNk,
+        BoundedMatrix<double, 1, SigmaSize>& rTk1,
+        BoundedMatrix<double, 1, SigmaSize>& rTk2,
+        const array_1d<double, 3>& rNormal
+        );
+
     ///@}
     ///@name Private  Access
     ///@{
