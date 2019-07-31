@@ -97,7 +97,7 @@ public:     // static methods
             Curve.GetPointAt(Domain.GetParameterAtNormalized(1.0)));
 
         std::sort(std::begin(sample_points), std::end(sample_points),
-            [](auto const &lhs, auto const &rhs) {
+            [](const ParameterPoint& lhs, const ParameterPoint& rhs) {
                 return std::get<0>(lhs) > std::get<0>(rhs);
             }
         );
