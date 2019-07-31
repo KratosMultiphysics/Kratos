@@ -99,14 +99,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
             is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
-            # Communicate the state of convergence with external solvers through IO
-            convergence_signal_config = {
-                "type" : "convergence_signal",
-                "is_converged" : is_converged
-            }
-
-            for solver in self.solver_wrappers.values():
-                solver.ExportData(convergence_signal_config)
+            self.__CommuncateStateOfConvergence(is_converged)
 
             if is_converged:
                 if self.echo_level > 0:
@@ -145,3 +138,14 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
         this_defaults.AddMissingParameters(super(GaussSeidelStrongCoupledSolver, cls)._GetDefaultSettings())
 
         return this_defaults
+
+    def __CommuncateStateOfConvergence(self, is_converged):
+        # Communicate the state of convergence with external solvers through IO
+        convergence_signal_config = {
+            "type" : "convergence_signal",
+            "is_converged" : is_converged
+        }
+
+        for solver in self.solver_wrappers.values():
+            solver.ExportData(convergence_signal_config)
+
