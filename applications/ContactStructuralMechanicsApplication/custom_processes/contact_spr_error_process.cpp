@@ -18,6 +18,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/contact_spr_error_process.h"
 #include "utilities/variable_utils.h"
+#include "contact_structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -59,6 +60,9 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 {
     // Contact interface node
     if (itNode->Is(CONTACT)) {
+        // Defining tolerance
+        const double tolerance = std::numeric_limits<double>::epsilon();
+
         // Triangle and tetrahedra have only one GP by default
         std::vector<Vector> stress_vector(1);
         std::vector<array_1d<double,3>> coordinates_vector(1);
@@ -135,11 +139,13 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         noalias(A) += mPenaltyTangent*prod(A1, A2);
 
         // Finally we add the contributiosn to our local system (A, b)
-        noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * itNode->GetValue(CONTACT_PRESSURE);
+        const double contact_pressure = itNode->Has(AUGMENTED_NORMAL_CONTACT_PRESSURE) ? itNode->GetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE) : itNode->GetValue(CONTACT_PRESSURE);
+        noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * contact_pressure;
 
         //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
         // Patch center node:
-        if (itPatchNode->Has(CONTACT_PRESSURE)) {
+        const double patch_contact_pressure = itNode->Has(AUGMENTED_NORMAL_CONTACT_PRESSURE) ? itPatchNode->GetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE) : itPatchNode->GetValue(CONTACT_PRESSURE);
+        if (std::abs(patch_contact_pressure) > tolerance) {
             if (TDim == 2) {
                 p_k(0,1)=0.0;
                 p_k(0,2)=0.0;
@@ -147,6 +153,25 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
                 p_k(1,5)=0.0;
                 p_k(2,7)=0.0;
                 p_k(2,8)=0.0;
+            } else {
+                p_k(0,1)=0.0;
+                p_k(0,2)=0.0;
+                p_k(0,3)=0.0;
+                p_k(1,5)=0.0;
+                p_k(1,6)=0.0;
+                p_k(1,7)=0.0;
+                p_k(2,9)=0.0;
+                p_k(2,10)=0.0;
+                p_k(2,11)=0.0;
+                p_k(3,13)=0.0;
+                p_k(3,14)=0.0;
+                p_k(3,15)=0.0;
+                p_k(4,17)=0.0;
+                p_k(4,18)=0.0;
+                p_k(4,19)=0.0;
+                p_k(5,21)=0.0;
+                p_k(5,22)=0.0;
+                p_k(5,23)=0.0;
             }
 
             // Compute normal and tangent matrices
@@ -173,23 +198,44 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 //             noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k2)),T_k2),p_k);
 
             // Finally we add the contributiosn to our local system (A, b)
-            noalias(b) -= mPenaltyNormal*prod(trans(p_k),trans(N_k))*itPatchNode->GetValue(CONTACT_PRESSURE);
+            noalias(b) -= mPenaltyNormal*prod(trans(p_k),trans(N_k)) * patch_contact_pressure;
         }
 
         // Neighboring nodes:
         for( auto& r_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
-            if (r_neighbour_node.Has(CONTACT_PRESSURE)){
+            const double neighbour_node_contact_pressure = r_neighbour_node.Has(AUGMENTED_NORMAL_CONTACT_PRESSURE) ? r_neighbour_node.GetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE) : r_neighbour_node.GetValue(CONTACT_PRESSURE);
+            if (std::abs(neighbour_node_contact_pressure) > tolerance) {
                 if (TDim == 2) {
-                    const double x_patch = r_coordinates_patch_node[0];
-                    const double y_patch = r_coordinates_patch_node[1];
-                    const double x_neigh = r_neighbour_node.X();
-                    const double y_neigh = r_neighbour_node.Y();
-                    p_k(0,1)= x_neigh-x_patch;
-                    p_k(0,2)= y_neigh-y_patch;
-                    p_k(1,4)= x_neigh-x_patch;
-                    p_k(1,5)= y_neigh-y_patch;
-                    p_k(2,7)= x_neigh-x_patch;
-                    p_k(2,8)= y_neigh-y_patch;
+                    const double x_patch_minus_x_neigh = r_coordinates_patch_node[0] - r_neighbour_node.X();
+                    const double y_patch_minus_y_neigh = r_coordinates_patch_node[1] - r_neighbour_node.Y();
+                    p_k(0,1)= x_patch_minus_x_neigh;
+                    p_k(0,2)= y_patch_minus_y_neigh;
+                    p_k(1,4)= x_patch_minus_x_neigh;
+                    p_k(1,5)= y_patch_minus_y_neigh;
+                    p_k(2,7)= x_patch_minus_x_neigh;
+                    p_k(2,8)= y_patch_minus_y_neigh;
+                } else {
+                    const double x_patch_minus_x_neigh = r_coordinates_patch_node[0] - r_neighbour_node.X();
+                    const double y_patch_minus_y_neigh = r_coordinates_patch_node[1] - r_neighbour_node.Y();
+                    const double z_patch_minus_z_neigh = r_coordinates_patch_node[2] - r_neighbour_node.Z();
+                    p_k(0,1)=x_patch_minus_x_neigh;
+                    p_k(0,2)=y_patch_minus_y_neigh;
+                    p_k(0,3)=z_patch_minus_z_neigh;
+                    p_k(1,5)=x_patch_minus_x_neigh;
+                    p_k(1,6)=y_patch_minus_y_neigh;
+                    p_k(1,7)=z_patch_minus_z_neigh;
+                    p_k(2,9)=x_patch_minus_x_neigh;
+                    p_k(2,10)=y_patch_minus_y_neigh;
+                    p_k(2,11)=z_patch_minus_z_neigh;
+                    p_k(3,13)=x_patch_minus_x_neigh;
+                    p_k(3,14)=y_patch_minus_y_neigh;
+                    p_k(3,15)=z_patch_minus_z_neigh;
+                    p_k(4,17)=x_patch_minus_x_neigh;
+                    p_k(4,18)=y_patch_minus_y_neigh;
+                    p_k(4,19)=z_patch_minus_z_neigh;
+                    p_k(5,21)=x_patch_minus_x_neigh;
+                    p_k(5,22)=y_patch_minus_y_neigh;
+                    p_k(5,23)=z_patch_minus_z_neigh;
                 }
 
                 // Compute normal and tangent matrices
@@ -211,7 +257,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
                 noalias(A) += mPenaltyTangent*prod(A1, A2);
 
                 // Finally we add the contributiosn to our local system (A, b)
-                noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*r_neighbour_node.GetValue(CONTACT_PRESSURE);
+                noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * neighbour_node_contact_pressure;
             }
         }
 
@@ -237,7 +283,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         noalias(sigma) = prod(p_k, coeff_matrix);
         noalias(rSigmaRecovered) = column(sigma,0);
 
-        KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<<itNode->GetValue(CONTACT_PRESSURE)<<std::endl;
+        KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<< contact_pressure << std::endl;
     } else { // Regular node
         BaseType::CalculatePatch(itNode, itPatchNode, NeighbourSize, rSigmaRecovered);
     }
