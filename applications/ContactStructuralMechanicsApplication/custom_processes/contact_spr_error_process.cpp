@@ -247,7 +247,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 3) << A << std::endl;
 
     Vector coeff(SigmaSize * (TDim+1));
-    const Vector& r_b_vector = row(b, 0);
+    const Vector& r_b_vector = column(b, 0);
     MathUtils<double>::Solve(A, coeff, r_b_vector);
 
     for (IndexType j = 0; j < SigmaSize;++j){
@@ -263,7 +263,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
     // Asssign the stress recovered
     noalias(sigma) = prod(p_k, coeff_matrix);
-    noalias(rSigmaRecovered) = row(sigma,0);
+    noalias(rSigmaRecovered) = column(sigma,0);
 
     KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<<itNode->GetValue(CONTACT_PRESSURE)<<std::endl;
 }
