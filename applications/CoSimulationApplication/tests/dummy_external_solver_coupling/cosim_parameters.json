@@ -68,7 +68,7 @@
             {
                 "type" : "solver_wrappers.external_solver_wrapper",
                 "echo_level" : 3,
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "model_parts_read" : {
                         "Fluid_copy" : "generic_mdpa_files/Mok_CFD"
                     },
@@ -115,7 +115,7 @@
             {
                 "type" : "development_helpers.dummy_solver_wrapper",
                 "echo_level" : 3,
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "time_step" : 1.0,
                     "main_model_part_name" : "Fluid",
                     "mdpa_file_name" : "generic_mdpa_files/Mok_CFD",

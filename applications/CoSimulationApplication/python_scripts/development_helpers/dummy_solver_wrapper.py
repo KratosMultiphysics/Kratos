@@ -19,17 +19,17 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, solver_name):
         super(DummySolverWrapper, self).__init__(settings, solver_name)
 
-        self.time_step = self.settings["settings"]["time_step"].GetDouble()
-        self.model_part = self.model.CreateModelPart(self.settings["settings"]["main_model_part_name"].GetString())
+        self.time_step = self.settings["solver_wrapper_settings"]["time_step"].GetDouble()
+        self.model_part = self.model.CreateModelPart(self.settings["solver_wrapper_settings"]["main_model_part_name"].GetString())
 
-        self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.settings["settings"]["domain_size"].GetInt()
+        self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.settings["solver_wrapper_settings"]["domain_size"].GetInt()
 
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
     def Initialize(self):
         severity = KM.Logger.GetDefaultOutput().GetSeverity()
         KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
-        model_part_io = KM.ModelPartIO(self.settings["settings"]["mdpa_file_name"].GetString())
+        model_part_io = KM.ModelPartIO(self.settings["solver_wrapper_settings"]["mdpa_file_name"].GetString())
         model_part_io.ReadModelPart(self.model_part)
         KM.Logger.GetDefaultOutput().SetSeverity(severity)
 

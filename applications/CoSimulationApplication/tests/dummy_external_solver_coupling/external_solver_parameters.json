@@ -6,11 +6,11 @@
             "comm_name"            : "Interface_1_coupling",
             "sub_model_part_name"  : "NoSlip2D_FSI",
             "data_field_recv" : {
-                "data_field_name" : "Interface_1_disp",
+                "data_field_name" : "external_solver_Interface_1_disp",
                 "variables"       : ["DISPLACEMENT"]
             },
             "data_field_send" : {
-                "data_field_name" : "Interface_1_force",
+                "data_field_name" : "external_solver_Interface_1_force",
                 "variables"       : ["FORCE"]
             }
         },
@@ -18,11 +18,11 @@
             "comm_name"            : "Interface_2_Outlet",
             "sub_model_part_name"  : "Outlet2D_Outlet",
             "data_field_recv" : {
-                "data_field_name" : "Interface_2_rot",
+                "data_field_name" : "external_solver_Interface_2_rot",
                 "variables"       : ["ROTATION"]
             },
             "data_field_send" : {
-                "data_field_name" : "Interface_2_moment",
+                "data_field_name" : "external_solver_Interface_2_moment",
                 "variables"       : ["MOMENT"]
             }
         },
@@ -31,7 +31,7 @@
             "receive_interface"    : true,
             "sub_model_part_name"  : "AutomaticInlet2D_Inlet",
             "data_field_send" : {
-                "data_field_name" : "Interface_inlet_velocity",
+                "data_field_name" : "external_solver_Interface_inlet_velocity",
                 "variables"       : ["VELOCITY"]
             }
         }
@@ -41,6 +41,6 @@
         "dry_run"      : false,
         "print_colors" : true,
         "echo_level"   : 3,
-        "solving_time" : 0.5
+        "solving_time" : 0.0
     }
 }

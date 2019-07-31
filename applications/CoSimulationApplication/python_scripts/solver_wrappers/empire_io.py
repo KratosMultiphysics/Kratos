@@ -31,7 +31,7 @@ class EmpireIO(CoSimulationIO):
         kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
         os.mkdir(self.communication_folder)
 
-        self.double_vector_var_map = {KM.KratosGlobals.GetVariable(k) : KM.KratosGlobals.GetVariable(v.GetString()), in (k,v) in self.settings["communicate_as_double_vector"].items()}
+        self.double_vector_var_map = {KM.KratosGlobals.GetVariable(k) : KM.KratosGlobals.GetVariable(v.GetString()) for (k,v) in self.settings["communicate_as_double_vector"].items()}
 
     def Finalize(self):
         kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
@@ -94,9 +94,9 @@ class EmpireIO(CoSimulationIO):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "api_configuration_file_name" : "UNSPECIFIED",
-            "communication_folder"        : ".EMPIRE"
-            "communicate_as_double_vector : {}
+            "api_configuration_file_name"  : "UNSPECIFIED",
+            "communication_folder"         : ".EMPIRE",
+            "communicate_as_double_vector" : {}
         }""")
         this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 
