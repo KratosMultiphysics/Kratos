@@ -19,7 +19,7 @@
 #include "add_mpi_utilities_to_python.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
-
+#include "mpi/utilities/synchronize_constraints_utility.h"
 namespace Kratos {
 namespace Python {
 
