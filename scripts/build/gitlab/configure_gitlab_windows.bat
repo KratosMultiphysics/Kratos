@@ -17,7 +17,7 @@ cd ..\..\..\cmake_build
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                  ^
--DSWIMMING_DEM_APPLICATION=ON                                                   ^
+-DSWIMMING_DEM_APPLICATION=OFF                                                   ^
 -DMESH_MOVING_APPLICATION=ON                                                    ^
 -DSOLID_MECHANICS_APPLICATION=OFF                                                ^
 -DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
