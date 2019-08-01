@@ -159,6 +159,19 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
 {
     KRATOS_TRY;
 
+    ExecuteInitializeSolutionStep();
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY;
+
     // We reset the database if needed
     const bool update_interface = mThisParameters["update_interface"].GetBool();
     if (update_interface) {
