@@ -960,6 +960,10 @@ namespace Kratos
             const bool read_a = Kratos::ReadMatrixMarketMatrix((OSUtilities::GetCurrentWorkingDir() + "/A_testing_condensation.mm").c_str(), A);
             const bool read_b = Kratos::ReadMatrixMarketVector((OSUtilities::GetCurrentWorkingDir() + "/b_testing_condensation.rhs").c_str(), b);
 
+            // Removing files
+            remove((OSUtilities::GetCurrentWorkingDir() + "/A_testing_condensation.mm").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/b_testing_condensation.rhs").c_str());
+
             if (read_a && read_b) {
                 // We solve the reference system
                 psolver->Solve(A, ref_Dx, b);
