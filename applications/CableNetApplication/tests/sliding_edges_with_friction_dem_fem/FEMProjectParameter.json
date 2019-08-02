@@ -15,18 +15,11 @@
 		"time_step_prediction_level" 	  : 0,
 		"model_import_settings"   : {
 			"input_type"                  : "mdpa",
-			"input_filename"              : "FEM"
+			"input_filename"              : "sliding_edges_with_friction_dem_fem/FEM"
 		},
 		"material_import_settings"    : {
-			"materials_filename"      : "FEMStructuralMaterials.json"
+			"materials_filename"      : "sliding_edges_with_friction_dem_fem/FEMStructuralMaterials.json"
 		},
-		"line_search"                         : false,
-		"convergence_criterion"               : "residual_criterion",
-		"displacement_relative_tolerance"     : 1e-6,
-		"displacement_absolute_tolerance"     : 1e-6,
-		"residual_relative_tolerance"         : 1e-6,
-		"residual_absolute_tolerance"         : 1e-6,
-		"max_iteration"                       : 400,
 		"rotation_dofs"                       : false,
 		"domain_size"     					  : 3,
 		"time_stepping":{
@@ -89,7 +82,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Y"],
-            "input_file_name"  : "sliding_edges_with_friction_dem_fem_test_results.json",
+            "input_file_name"  : "sliding_edges_with_friction_dem_fem/sliding_edges_with_friction_dem_fem_test_results.json",
             "model_part_name"  : "Structure.checkMP",
             "time_frequency"   : 8e-3
         }

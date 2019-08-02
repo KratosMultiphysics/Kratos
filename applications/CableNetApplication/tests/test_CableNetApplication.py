@@ -1,12 +1,8 @@
-# import Kratos
-import KratosMultiphysics
-import KratosMultiphysics.CableNetApplication
-
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosCableNetGeneralTests
+from cable_net_test_factory import TestCableNetCoSimulationCases
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -22,29 +18,26 @@ def AssembleTestSuites():
     '''
 
     suites = KratosUnittest.KratosSuites
+    ################################################################################
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-    smallSuite = suites['small']
-    smallSuite.addTest(KratosCableNetGeneralTests('testSmallExample'))
+    ################################################################################
+    nightSuite = suites['nightly'] # These tests are executed in the nightly build
+    #nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+    nightSuite.addTests(smallSuite)
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
-    nightSuite = suites['nightly']
-    nightSuite.addTests(KratosCableNetGeneralTests)
+    ################################################################################
+    # For very long tests that should not be in nighly and you can use to validate
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetCoSimulationCases]))
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
+    ################################################################################
+    # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosCableNetGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite) # already contains the smallSuite
+    allSuite.addTests(validationSuite)
 
     return suites
 
