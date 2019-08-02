@@ -3,6 +3,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 from cable_net_test_factory import TestCableNetCoSimulationCases
+from cable_net_test_factory import TestCableNetFEMCases
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -29,6 +30,7 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetCoSimulationCases]))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetFEMCases]))
 
     ################################################################################
     # Create a test suit that contains all the tests:
