@@ -110,8 +110,10 @@ private:
     ///@}
     ///@name private Member Variables
     ///@{
+
     class BaseMasterSlaveDetails
     {
+    public:
         BaseMasterSlaveDetails(IndexType ConstraintId, IndexType SlaveNodeId, IndexType  MasterNodeId, IndexType Weight, IndexType Constant)
         {
             mSlaveNodeId = SlaveNodeId;
@@ -121,8 +123,11 @@ private:
             mId = ConstraintId;
         }
         virtual IndexType GetID(){return mId;}
-
-    public:
+        virtual IndexType SlaveNodeId(){return mSlaveNodeId;}
+        virtual IndexType MasterNodeId(){return mMasterNodeId;}
+        virtual double Constant(){return mConstant;}
+        virtual double Weight(){return mWeight;}
+    private:
         IndexType mId;
         IndexType mSlaveNodeId;
         IndexType mMasterNodeId;
@@ -147,7 +152,7 @@ private:
 
     //std::vector<MasterSlaveDetails> mMasterSlaveDetailsVector;
     std::vector<Kratos::unique_ptr<BaseMasterSlaveDetails>> mMasterSlaveDetailsVector;
-    std::vector<IndexType> mNodeIdsToSync;
+    std::vector<int> mNodeIdsToSync;
     ModelPart& mrModelPart;
 
     ///@}
@@ -158,8 +163,8 @@ private:
     {
         for(const auto& constraint_info : mMasterSlaveDetailsVector)
         {
-            const auto& r_slave_node_id = constraint_info.mSlaveNodeId;
-            const auto& r_master_node_id = constraint_info.mMasterNodeId;
+            const auto& r_slave_node_id = constraint_info->SlaveNodeId();
+            const auto& r_master_node_id = constraint_info->MasterNodeId();
             mNodeIdsToSync.push_back(r_slave_node_id);
             mNodeIdsToSync.push_back(r_master_node_id);
         }
@@ -167,45 +172,45 @@ private:
 
 
 
-    void CreateConstraints(ModelPart &rModelPart, const IndexType RemoteNodeId)
+    void CreateConstraints()
     {
-        auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
         IndexType current_rank = r_data_communicator.Rank();
         IndexType comm_size = r_data_communicator.Size();
-        auto remote_nodes_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(rModelPart.Nodes(), mNodeIdsToSync, rModelPart.GetCommunicator());
+        auto remote_nodes_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mrModelPart.Nodes(), mNodeIdsToSync, r_data_communicator);
         LinearMasterSlaveConstraint::DofPointerVectorType slave_dof_vector;
         LinearMasterSlaveConstraint::DofPointerVectorType master_dof_vector;
         LinearMasterSlaveConstraint::MatrixType relation_matrix(1,1);
         LinearMasterSlaveConstraint::VectorType constant_vector(1);
         GlobalPointersVector<NodeType> vector_of_node_global_pointers;
-        vector_of_node_global_pointers.reserve(remote_nodes_gps_map.size())
+        vector_of_node_global_pointers.reserve(remote_nodes_gps_map.size());
         for(auto rank_gp_pair : remote_nodes_gps_map )
         {
             vector_of_node_global_pointers.push_back(rank_gp_pair.second);
         }
 
-        GlobalPointerCommunicator<Node<3>> pointer_comm(rModelPart.GetCommunicator(), vector_of_node_global_pointers);
+        GlobalPointerCommunicator<Node<3>> pointer_comm(r_data_communicator, vector_of_node_global_pointers);
         auto result_proxy = pointer_comm.Apply(
                 [](GlobalPointer<Node<3>>& gp){return gp->GetDofs();}
         );
 
         for(const auto& constraint_info : mMasterSlaveDetailsVector)
         {
-            const auto& r_slave_node_id = constraint_info.mSlaveNodeId;
-            const auto& r_master_node_id = constraint_info.mMasterNodeId;
-            auto slave_node_dofs = result_proxy.get(r_slave_node_id);
-            for(const auto dof : slave_node_dofs )
-            {
-                if(dof.GetVariable() == constraint_info.mrVariable)
-                    slave_dof_vector.push_back(dof);
-            }
-            auto master_node_dofs = result_proxy.get(r_master_node_id);
-            for(const auto dof : master_node_dofs )
-            {
-                    master_dof_vector.push_back(dof);
-            }
-            relation_matrix(0,0) = constraint_info.mWeight;
-            constant_vector(0) = constraint_info.mConstant;
+            const auto& r_slave_node_id = constraint_info->SlaveNodeId();
+            const auto& r_master_node_id = constraint_info->MasterNodeId();
+            auto slave_node_dofs = result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
+            // for(const auto dof : slave_node_dofs )
+            // {
+            //     if(dof.GetVariable() == constraint_info.mrVariable)
+            //         slave_dof_vector.push_back(dof);
+            // }
+            // auto master_node_dofs = result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
+            // for(const auto dof : master_node_dofs )
+            // {
+            //         master_dof_vector.push_back(dof);
+            // }
+            relation_matrix(0,0) = constraint_info->Weight();
+            constant_vector(0) = constraint_info->Constant();
         }
     }
 
