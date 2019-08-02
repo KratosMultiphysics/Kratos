@@ -91,6 +91,12 @@ public:
     /// The component variable type definition
     typedef BaseType::VariableComponentType VariableComponentType;
 
+    /// The global pointer to dof type definition
+    typedef BaseType::DofGlobalPointerType DofGlobalPointerType;
+
+    /// The global pointer to dof type definition
+    typedef BaseType::DofGlobalPointerVectorType DofGlobalPointerVectorType;
+
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(LinearMasterSlaveConstraint);
 

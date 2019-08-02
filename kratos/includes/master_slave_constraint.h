@@ -25,6 +25,7 @@
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
 #include "includes/process_info.h"
+#include "includes/global_pointer.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -109,6 +110,12 @@ public:
 
     /// The component variable type definition
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+
+    /// The global pointer to dof type definition
+    typedef GlobalPointer< DofType > DofGlobalPointerType;
+
+    /// The global pointer to dof type definition
+    typedef std::vector< DofGlobalPointerType > DofGlobalPointerVectorType;
 
     /// Pointer definition of MasterSlaveConstraint
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
