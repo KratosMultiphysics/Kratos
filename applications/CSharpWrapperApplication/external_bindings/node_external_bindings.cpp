@@ -36,4 +36,21 @@ EXPORT double __stdcall Node_Z0(NodeType *instance) {
     return instance->Z0();
 }
 
+EXPORT double __stdcall Node_GetVariable1d(NodeType *instance, Kratos::Variable<double> *variable) {
+    return instance->FastGetSolutionStepValue(*variable);
+}
+
+EXPORT double __stdcall Node_GetVariableComponent1d(NodeType *instance,
+                                                    Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
+    return instance->FastGetSolutionStepValue(*variable);
+}
+
+EXPORT double *
+__stdcall Node_GetVariable3d(NodeType *instance, Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
+    auto value = instance->FastGetSolutionStepValue(*variable);
+    auto *result = new double[3];
+    for (int i = 0; i < 3; i++) result[i] = value[i];
+    return result;
+}
+
 }
