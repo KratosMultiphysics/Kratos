@@ -14,11 +14,11 @@ cd ..\..\..\cmake_build
 -DBLAS_LIBRARIES=%BLAS%                                                         ^
 -DPYTHON_EXECUTABLE=%PYTHON%                          		 	                ^
 -DCMAKE_BUILD_TYPE="Custom"  							                        ^
--DDEM_APPLICATION=OFF                                                            ^
+-DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                               ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
--DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                  ^
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=OFF                                  ^
 -DSWIMMING_DEM_APPLICATION=OFF                                                   ^
 -DMESH_MOVING_APPLICATION=ON                                                    ^
 -DSOLID_MECHANICS_APPLICATION=OFF                                                ^
