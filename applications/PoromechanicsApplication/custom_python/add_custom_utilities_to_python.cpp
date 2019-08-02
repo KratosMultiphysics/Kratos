@@ -25,7 +25,8 @@
 #include "custom_utilities/nonlocal_damage_utilities.hpp"
 #include "custom_utilities/nonlocal_damage_2D_utilities.hpp"
 #include "custom_utilities/nonlocal_damage_3D_utilities.hpp"
-
+#include "custom_utilities/initial_stress_3D_utilities.hpp"
+#include "custom_utilities/initial_stress_2D_utilities.hpp"
 
 namespace Kratos
 {
@@ -48,6 +49,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def( py::init<>())
     .def("CheckFracturePropagation",&FracturePropagation2DUtilities::CheckFracturePropagation)
     .def("MappingModelParts",&FracturePropagation2DUtilities::MappingModelParts);
+
+    py::class_< InitialStress3DUtilities >
+    (m, "InitialStress3DUtilities")
+    .def( py::init<>())
+    .def("TransferInitialStresses",&InitialStress3DUtilities::TransferInitialStresses)
+    .def("SaveInitialStresses",&InitialStress3DUtilities::SaveInitialStresses);
+
+    py::class_< InitialStress2DUtilities >
+    (m, "InitialStress2DUtilities")
+    .def( py::init<>())
+    .def("TransferInitialStresses",&InitialStress2DUtilities::TransferInitialStresses)
+    .def("SaveInitialStresses",&InitialStress2DUtilities::SaveInitialStresses);
 }
 
 }  // namespace Python.
