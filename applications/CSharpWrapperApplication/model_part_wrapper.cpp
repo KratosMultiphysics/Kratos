@@ -149,7 +149,7 @@ void ModelPartWrapper::retrieveResults() {
     for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
         auto it_node = nodeBegin + i;
         const Kratos::array_1d<double, 3> &r_coordinates = it_node->Coordinates();
-        int current_node_id = idTranslator.getUnityId(it_node->Id());
+        int current_node_id = idTranslator.getSurfaceId(it_node->Id());
         pmXCoordinates[current_node_id] = r_coordinates[0];
         pmYCoordinates[current_node_id] = r_coordinates[1];
         pmZCoordinates[current_node_id] = r_coordinates[2];
@@ -302,7 +302,7 @@ void ModelPartWrapper::deleteSkin() {
 //            mModelPart.RemoveConditionFromAllLevels(it_condition->Id());
             toRemove.push_back(it_condition->Id());
         }
-        for (int i = 0; i < toRemove.size(); i++) mModelPart.RemoveConditionFromAllLevels(toRemove[i]);
+        for (unsigned int i : toRemove) mModelPart.RemoveConditionFromAllLevels(i);
         mModelPart.RemoveSubModelPart(SKIN_SUBMODEL_PART_NAME);
     }
 }
@@ -359,4 +359,8 @@ ConditionType **ModelPartWrapper::getConditions() {
 
 int ModelPartWrapper::getNumberOfConditions() {
     return mModelPart.NumberOfConditions();
+}
+
+IdTranslator *ModelPartWrapper::getIdTranslator() {
+    return &idTranslator;
 }

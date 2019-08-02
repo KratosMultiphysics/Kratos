@@ -146,6 +146,10 @@ EXPORT int __stdcall ModelPartWrapper_GetNumberOfConditions(ModelPartWrapper *in
     return instance->getNumberOfConditions();
 }
 
+EXPORT IdTranslator *__stdcall ModelPartWrapper_GetIdTranslator(ModelPartWrapper *instance) {
+    return instance->getIdTranslator();
+}
+
 EXPORT void __stdcall ModelPartWrapper_DisposeModelPartWrapper(ModelPartWrapper *instance) {
     delete instance;
 }

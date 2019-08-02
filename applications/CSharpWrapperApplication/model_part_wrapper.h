@@ -104,6 +104,8 @@ namespace CSharpKratosWrapper {
 
         int getNumberOfConditions();
 
+        IdTranslator *getIdTranslator();
+
     protected:
 
         void updateMaxElementId(int maxId);
