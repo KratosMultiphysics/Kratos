@@ -154,4 +154,27 @@ EXPORT void __stdcall ModelPartWrapper_DisposeModelPartWrapper(ModelPartWrapper 
     delete instance;
 }
 
+EXPORT bool
+__stdcall ModelPartWrapper_HasNodalVariable1d(ModelPartWrapper *instance, Kratos::Variable<double> *variable) {
+    return instance->hasNodalVariable1d(*variable);
+}
+
+EXPORT bool __stdcall ModelPartWrapper_HasNodalVariable3d(ModelPartWrapper *instance,
+                                                          Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
+    return instance->hasNodalVariable3d(*variable);
+}
+
+EXPORT double *
+__stdcall ModelPartWrapper_GetNodalVariables1d(ModelPartWrapper *instance, Kratos::Variable<double> *variable) {
+    return instance->getNodalVariable1d(*variable);
+}
+
+EXPORT double *__stdcall ModelPartWrapper_GetNodalVariableComponents(ModelPartWrapper *instance,
+                                                                     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
+    return instance->getNodalVariableComponent(*variable);
+}
+
+EXPORT double *__stdcall ModelPartWrapper_GetNodalVariables3d(ModelPartWrapper *instance,
+                                                              Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
+    return instance->getNodalVariable3d(*variable);
 }

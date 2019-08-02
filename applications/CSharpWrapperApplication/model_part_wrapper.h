@@ -106,6 +106,17 @@ namespace CSharpKratosWrapper {
 
         IdTranslator *getIdTranslator();
 
+        double *getNodalVariable1d(Kratos::Variable<double> &variable);
+
+        double *getNodalVariableComponent(
+                Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > &variable);
+
+        double *getNodalVariable3d(Kratos::Variable<Kratos::array_1d<double, 3>> &variable);
+
+        bool hasNodalVariable1d(Kratos::Variable<double> &variable);
+
+        bool hasNodalVariable3d(Kratos::Variable<Kratos::array_1d<double, 3>> &variable);
+
     protected:
 
         void updateMaxElementId(int maxId);
