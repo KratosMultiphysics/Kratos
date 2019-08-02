@@ -492,6 +492,9 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
         self.I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
 
+        # Or compte adjoint subproblems within CalculateGradient
+        self._RunSolutionLoopAdjointSubProblems()
+
     def CalculateValue(self):
         startTime = timer.time()
         FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
@@ -500,7 +503,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
 
         value = FX / self.A + MY / self.I22 * self.stress_position_z + MZ / self.I33 * self.stress_position_y # TODO evaluate signs of stress resultants
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-
+        #print("MY: ", MY)
+        #print("FX: ", FX)
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
     def CalculateGradient(self):
@@ -509,7 +513,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         startTime = timer.time()
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
 
-        self._RunSolutionLoopAdjointSubProblems()
+        # Moved computation into InitializeSolutionStep
         self._RunSolutionLoopMainProblem()
         self._UpdateSensitivities()
 
@@ -529,7 +533,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis_mz.Finalize()
 
     def _RunSolutionLoopAdjointSubProblems(self):
-        # compute here all contributions to sensitivities and and influence funtions
+        # compute here all contributions to sensitivities and influence functions
         self.adjoint_analysis_fx.RunSolutionLoop()
         self.adjoint_analysis_my.RunSolutionLoop()
         self.adjoint_analysis_mz.RunSolutionLoop()
@@ -611,15 +615,15 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                 sen_mz = elem_mz.GetValue(sen_var)
                 sensitivity =  sen_fx / self.A + sen_my / self.I22 * self.stress_position_z + sen_mz / self.I33 * self.stress_position_y
                 # add additional contribution from partial derivative w.r.t. design variable
-                #if (elem.Id == self.traced_element_id) and (var.Name() == 'CROSS_AREA'):
-                #    FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
-                #    sensitivity = FX / self.A**2
-                #if (elem.Id == self.traced_element_id) and (var.Name() == 'I22'):
-                #    MY = self.adjoint_analysis_my._GetSolver().response_function.CalculateValue(self.primal_model_part)
-                #    sensitivity -= MY / self.I22**2
-                #if (elem.Id == self.traced_element_id) and (var.Name() == 'I33'):
-                #    MZ = self.adjoint_analysis_mz._GetSolver().response_function.CalculateValue(self.primal_model_part)
-                #    sensitivity -= MZ / self.I33**2
+                if (elem.Id == self.traced_element_id) and (var.Name() == 'CROSS_AREA'):
+                    FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
+                    sensitivity = -FX / self.A**2
+                if (elem.Id == self.traced_element_id) and (var.Name() == 'I22'):
+                    MY = self.adjoint_analysis_my._GetSolver().response_function.CalculateValue(self.primal_model_part)
+                    sensitivity -= MY / self.I22**2 * self.stress_position_z
+                if (elem.Id == self.traced_element_id) and (var.Name() == 'I33'):
+                    MZ = self.adjoint_analysis_mz._GetSolver().response_function.CalculateValue(self.primal_model_part)
+                    sensitivity -= MZ / self.I33**2 * self.stress_position_y
                 elem.SetValue(sen_var, sensitivity)
 
         # response superposition for conditional design variables
