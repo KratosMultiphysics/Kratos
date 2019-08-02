@@ -20,12 +20,9 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
     ################################################################################
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
 
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
-    #nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     nightSuite.addTests(smallSuite)
 
     ################################################################################

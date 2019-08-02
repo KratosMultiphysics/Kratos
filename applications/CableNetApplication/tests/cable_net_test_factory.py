@@ -44,7 +44,6 @@ class TestCableNetCoSimulationCases(cable_net_test_case.CableNetTestCase):
             self._createTest("sliding_edges_with_friction_dem_fem","cosim_dem_fem_cable_net")
             self._runTest()
 
-
     def test_DEMFEMCableNet_RingElements(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
