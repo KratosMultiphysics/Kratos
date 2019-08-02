@@ -15,10 +15,10 @@
         "scheme_type"                        : "central_differences",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "sliding_element/FEM"
+            "input_filename" : "ring_element/FEM"
         },
         "material_import_settings"           : {
-            "materials_filename" : "sliding_element/StructuralMaterials.json"
+            "materials_filename" : "ring_element/StructuralMaterials.json"
         },
         "time_stepping"                      : {
             "time_step" : 0.0010
@@ -70,7 +70,7 @@
                 "model_part_name"           : "EdgeCablePart1",
                 "computing_model_part_name" : "computing_domain",
                 "node_id_order"             : [1,2,3,4],
-                "element_type"              : "cable",
+                "element_type"              : "ring",
                 "element_id"                : 5,
                 "property_id"               : 2
             }
@@ -81,7 +81,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT_X"],
-                "input_file_name"  : "sliding_element/sliding_node_results.json",
+                "input_file_name"  : "ring_element/ring_element_results.json",
                 "model_part_name"  : "Structure.EdgeCablePart1",
                 "time_frequency"   : 0.1
             }

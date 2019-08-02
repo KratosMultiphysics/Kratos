@@ -113,5 +113,13 @@ class TestCableNetFEMCases(cable_net_test_case.CableNetTestCase):
                 self._createTest("sliding_element")
                 self._runTest()
 
+        def test_RingElement(self):
+            if not numpy_available:
+                self.skipTest("Numpy not available")
+
+            with KratosUnittest.WorkFolderScope(".", __file__):
+                self._createTest("ring_element")
+                self._runTest()
+
 if __name__ == '__main__':
     KratosUnittest.main()
