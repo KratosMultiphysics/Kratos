@@ -454,7 +454,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
         self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
-        self.sensitivity_settings = adjoint_parameters["solver_settings"]["sensitivity_settings"]
+        #self.sensitivity_settings = adjoint_parameters["solver_settings"]["sensitivity_settings"]
+        self.sensitivity_settings = self.response_settings["sensitivity_settings"]
 
         self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
         self.adjoint_state_variables = [StructuralMechanicsApplication.ADJOINT_DISPLACEMENT]
