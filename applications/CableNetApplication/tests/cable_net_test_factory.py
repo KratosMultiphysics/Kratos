@@ -9,6 +9,8 @@ import KratosMultiphysics.CableNetApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.DEMApplication
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+
 import cable_net_test_case
 import os
 
@@ -26,7 +28,11 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(__file__), fileName)
 
 
-class TestCableNetCoSimulationCases(cable_net_test_case.CableNetCoSimulationTestCase):
+class TestCableNetCoSimulationCases(cable_net_test_case.CableNetTestCase):
+
+    def _runTest(self):
+        super(TestCableNetCoSimulationCases,self)._runTest()
+        CoSimulationAnalysis(self.cable_net_parameters).Run()
 
     def test_DEMFEMCableNet(self):
         if not numpy_available:

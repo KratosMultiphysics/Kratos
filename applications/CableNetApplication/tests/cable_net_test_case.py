@@ -4,11 +4,9 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
-
 import os
 
-class CableNetCoSimulationTestCase(KratosUnittest.TestCase):
+class CableNetTestCase(KratosUnittest.TestCase):
     '''This class is the basis for the testing the framework
     It can be used to test complete cases with the "CoSimulation-Analysis"
     '''
@@ -29,7 +27,6 @@ class CableNetCoSimulationTestCase(KratosUnittest.TestCase):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def _runTest(self):
-        CoSimulationAnalysis(self.cable_net_parameters).Run()
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
     # called only once for this class, opposed of tearDown()
     @classmethod
