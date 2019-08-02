@@ -495,8 +495,8 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(Mod
 ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint1(ModelPart& rModelPart,
                                                                               std::string ConstraintName,
                                                                               ModelPart::IndexType Id,
-                                                                              ModelPart::DofsVectorType& rMasterDofsVector,
-                                                                              ModelPart::DofsVectorType& rSlaveDofsVector,
+                                                                              ModelPart::ConstraintDofPointerVectorType& rMasterDofsVector,
+                                                                              ModelPart::ConstraintDofPointerVectorType& rSlaveDofsVector,
                                                                               ModelPart::MatrixType RelationMatrix,
                                                                               ModelPart::VectorType ConstantVector)
 {
