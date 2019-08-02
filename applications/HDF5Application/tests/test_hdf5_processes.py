@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.HDF5Application.core as core
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process as single_mesh_temporal_output_process
 import KratosMultiphysics.HDF5Application.multiple_mesh_temporal_output_process as multiple_mesh_temporal_output_process
 import KratosMultiphysics.HDF5Application.single_mesh_primal_output_process as single_mesh_primal_output_process
@@ -53,11 +54,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                         "echo_level": 1
                     },
                     "model_part_output_settings": {
-                        "prefix": "/ModelData/<identifier>"
+                        "prefix": "/ModelData/<model_part_name>"
                     },
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": ["DISPLACEMENT"],
-                        "prefix": "/ResultsData/<identifier>/<time>",
+                        "prefix": "/ResultsData/<model_part_name>/<time>",
                         "time_format": "0.2f"
                     },
                     "element_data_value_settings": {
