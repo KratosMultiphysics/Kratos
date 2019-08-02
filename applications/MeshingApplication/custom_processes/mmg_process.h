@@ -467,6 +467,12 @@ private:
     void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     /**
+     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
+     * @param rModelPart The modelpart to be marked
+     */
+    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     Parameters GetDefaultParameters();
