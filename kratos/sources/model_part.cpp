@@ -1036,8 +1036,8 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
  */
 ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
                                                                                     IndexType Id,
-                                                                                    ModelPart::DofsVectorType& rMasterDofsVector,
-                                                                                    ModelPart::DofsVectorType& rSlaveDofsVector,
+                                                                                    ModelPart::ConstraintDofPointerVectorType& rMasterDofsVector,
+                                                                                    ModelPart::ConstraintDofPointerVectorType& rSlaveDofsVector,
                                                                                     const ModelPart::MatrixType& RelationMatrix,
                                                                                     const ModelPart::VectorType& ConstantVector,
                                                                                     IndexType ThisIndex)
