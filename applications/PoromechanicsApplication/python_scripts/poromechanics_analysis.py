@@ -45,6 +45,16 @@ class PoromechanicsAnalysis(AnalysisStage):
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
 
+        if parameters["problem_data"].Has("initial_stress_utility_settings"):
+            import poromechanics_initial_stress_utility
+            self.initial_stress_utility = poromechanics_initial_stress_utility.InitialStressUtility(model,parameters)
+
+    def Initialize(self):
+        super(PoromechanicsAnalysis,self).Initialize()
+
+        if self.project_parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_utility.Load()
+
     def OutputSolutionStep(self):
         super(PoromechanicsAnalysis,self).OutputSolutionStep()
 
@@ -61,6 +71,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         # Finalize Fracture Propagation Utility
         if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
             self.fracture_utility.Finalize()
+
+        if self.project_parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_utility.Save()
 
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
