@@ -34,7 +34,7 @@ class TestCableNetCoSimulationCases(cable_net_test_case.CableNetTestCase):
         super(TestCableNetCoSimulationCases,self)._runTest()
         CoSimulationAnalysis(self.cable_net_parameters).Run()
 
-    def test_DEMFEMCableNet(self):
+    def test_DEMFEMCableNet_SlidingEdges(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
         if not have_dem_fem_dependencies:
@@ -44,16 +44,31 @@ class TestCableNetCoSimulationCases(cable_net_test_case.CableNetTestCase):
             self._createTest("sliding_edges_with_friction_dem_fem","cosim_dem_fem_cable_net")
             self._runTest()
 
+
+    def test_DEMFEMCableNet_RingElements(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_dem_fem_dependencies:
+            self.skipTest("DEM FEM dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("ring_set_up_dem_fem","cosim_dem_fem_cable_net")
+            self._runTest()
+
     @classmethod
     def tearDownClass(cls):
         super(TestCableNetCoSimulationCases,cls).tearDownClass()
 
         # delete superfluous dem files
-        kratos_utils.DeleteFileIfExisting(GetFilePath("sliding_edges_with_friction_dem_fem/slidingDEM.post.lst"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("sliding_edges_with_friction_dem_fem/slidingDEM_Graphs"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("sliding_edges_with_friction_dem_fem/slidingDEM_MPI_results"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("sliding_edges_with_friction_dem_fem/slidingDEM_Post_Files"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("sliding_edges_with_friction_dem_fem/slidingDEM_Results_and_Data"))
+        dir_name_list = ["sliding_edges_with_friction_dem_fem","ring_set_up_dem_fem"]
+        project_name_list = ["slidingDEM", "smallNet"]
+
+        for dir_name, project_name in zip(dir_name_list, project_name_list):
+            kratos_utils.DeleteFileIfExisting(GetFilePath(dir_name+"/"+project_name+".post.lst"))
+            kratos_utils.DeleteDirectoryIfExisting(GetFilePath(dir_name+"/"+project_name+"_Graphs"))
+            kratos_utils.DeleteDirectoryIfExisting(GetFilePath(dir_name+"/"+project_name+"_MPI_results"))
+            kratos_utils.DeleteDirectoryIfExisting(GetFilePath(dir_name+"/"+project_name+"_Post_Files"))
+            kratos_utils.DeleteDirectoryIfExisting(GetFilePath(dir_name+"/"+project_name+"_Results_and_Data"))
 
 if __name__ == '__main__':
     KratosUnittest.main()
