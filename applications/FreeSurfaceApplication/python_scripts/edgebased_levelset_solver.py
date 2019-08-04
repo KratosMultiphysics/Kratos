@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.FreeSurfaceApplication as FreeSurf
+import KratosMultiphysics.FreeSurfaceApplication as KratosFreeSurf
 
 
 def AddVariables(model_part):
@@ -94,9 +94,9 @@ class EdgeBasedLevelSetSolver:
         print("entered in EdgeBasedLevelSetSolver python constructor")
         # build the edge data structure
         if(self.domain_size == 2):
-            self.matrix_container = FreeSurf.MatrixContainer2D()
+            self.matrix_container = KratosFreeSurf.MatrixContainer2D()
         else:
-            self.matrix_container = FreeSurf.MatrixContainer3D()
+            self.matrix_container = KratosFreeSurf.MatrixContainer3D()
         self.matrix_container.ConstructCSRVector(self.model_part)
         self.matrix_container.BuildCSRData(self.model_part)
         # for 3D problems we need to evaluate the condition's neighbours
@@ -111,7 +111,7 @@ class EdgeBasedLevelSetSolver:
             else:
                 self.distance_utils = KM.ParallelDistanceCalculator2D()
 
-            self.fluid_solver = FreeSurf.EdgeBasedLevelSet2D(
+            self.fluid_solver = KratosFreeSurf.EdgeBasedLevelSet2D(
                 self.matrix_container,
                 self.model_part,
                 self.viscosity,
@@ -129,7 +129,7 @@ class EdgeBasedLevelSetSolver:
             else:
                 self.distance_utils = KM.ParallelDistanceCalculator3D()
 
-            self.fluid_solver = FreeSurf.EdgeBasedLevelSet3D(
+            self.fluid_solver = KratosFreeSurf.EdgeBasedLevelSet3D(
                 self.matrix_container,
                 self.model_part,
                 self.viscosity,
@@ -176,8 +176,8 @@ class EdgeBasedLevelSetSolver:
         self.Redistance()
 
 #        for node in self.model_part.Nodes:
-#            dist = node.GetSolutionStepValue(DISTANCE)
-#            node.SetSolutionStepValue(DISTANCE,1,dist)
+#            dist = node.GetSolutionStepValue(KM.DISTANCE)
+#            node.SetSolutionStepValue(KM.DISTANCE,1,dist)
 #        self.Redistance()
 
         print("**********************************************")
@@ -326,18 +326,18 @@ class EdgeBasedLevelSetSolver:
     def CalculateInitialPressureDistribution(self):
         # prova!
         dt_aux = 1e-6
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, dt_aux)
+        self.model_part.ProcessInfo.SetValue(KM.DELTA_TIME, dt_aux)
         (self.fluid_solver).SolveStep1()
-        aaa = Vector(3)
+        aaa = KM.Vector(3)
         aaa[0] = self.body_force[0] * dt_aux
         aaa[1] = self.body_force[1] * dt_aux
         aaa[2] = self.body_force[2] * dt_aux
         for node in self.model_part.Nodes:
-            if(node.IsFixed(VELOCITY_X) == False):
-                node.SetSolutionStepValue(VELOCITY, 0, aaa)
+            if(node.IsFixed(KM.VELOCITY_X) == False):
+                node.SetSolutionStepValue(KM.VELOCITY, 0, aaa)
 
 #        for node in self.model_part.Nodes:
-#            print node.GetSolutionStepValue(VELOCITY)
+#            print node.GetSolutionStepValue(KM.VELOCITY)
 
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver)
 
@@ -346,6 +346,6 @@ class EdgeBasedLevelSetSolver:
         zero[1] = 0.0
         zero[2] = 0.0
         for node in self.model_part.Nodes:
-            if(node.IsFixed(VELOCITY_X) == False):
-                node.SetSolutionStepValue(VELOCITY, 0, zero)
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, 0.0)
+            if(node.IsFixed(KM.VELOCITY_X) == False):
+                node.SetSolutionStepValue(KM.VELOCITY, 0, zero)
+        self.model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0.0)
