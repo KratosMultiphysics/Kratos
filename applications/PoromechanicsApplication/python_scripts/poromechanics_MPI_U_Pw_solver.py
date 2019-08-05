@@ -11,12 +11,12 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-from KratosMultiphysics.PoromechanicsApplication import poromechanics_U_Pw_solver
+from KratosMultiphysics.PoromechanicsApplication.poromechanics_U_Pw_solver import UPwSolver
 
 def CreateSolver(model, custom_settings):
     return MPIUPwSolver(model, custom_settings)
 
-class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
+class MPIUPwSolver(UPwSolver):
 
     def __init__(self, model, custom_settings):
         super(MPIUPwSolver,self).__init__(model, custom_settings)
@@ -30,8 +30,8 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
     def ImportModelPart(self):
         # Construct the import model part utility
-        from KratosMultiphysics.mpi import distributed_import_model_part_utility
-        self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.main_model_part, self.settings)
+        from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
 
         ## Execute the Metis partitioning and reading
         self.distributed_model_part_importer.ImportModelPart()

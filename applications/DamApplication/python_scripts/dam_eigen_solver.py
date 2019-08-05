@@ -145,7 +145,7 @@ class DamEigenSolver():
         aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_model_process_poro
+        from KratosMultiphysics.PoromechanicsApplication import check_and_prepare_model_process_poro
         check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
