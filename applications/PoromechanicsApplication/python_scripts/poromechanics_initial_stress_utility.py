@@ -7,6 +7,8 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
+from importlib import import_module
+
 class InitialStressUtility(object):
 
     def __init__(self, model, parameters):
@@ -35,7 +37,9 @@ class InitialStressUtility(object):
             initial_solver_settings = self.parameters["solver_settings"]
             initial_solver_settings["model_part_name"].SetString(initial_model_part_name)
             initial_solver_settings["model_import_settings"]["input_filename"].SetString(self.parameters["problem_data"]["initial_stress_utility_settings"]["initial_input_filename"].GetString())
-            solver_module = __import__(initial_solver_settings["solver_type"].GetString())
+            python_module_name = "KratosMultiphysics.PoromechanicsApplication"
+            full_module_name = python_module_name + "." + initial_solver_settings["solver_type"].GetString()
+            solver_module = import_module(full_module_name)
             initial_solver = solver_module.CreateSolver(self.model, initial_solver_settings)
 
             initial_solver.AddVariables()
