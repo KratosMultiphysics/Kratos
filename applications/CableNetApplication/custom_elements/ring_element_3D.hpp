@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors: Klaus B. Sautter
 //
@@ -28,9 +29,9 @@
 namespace Kratos
 {
     /**
-     * @class TrussElement3D2N
+     * @class RingElement3D
      *
-     * @brief This is a 3D-2node truss element with 3 translational dofs per node
+     * @brief This is a ring elemen with 3 translational dofs per node
      *
      * @author Klaus B Sautter
      */

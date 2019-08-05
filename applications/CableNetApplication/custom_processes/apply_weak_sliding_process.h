@@ -12,9 +12,6 @@
 //
 
 
-// this process does not work at the moment
-// base class was moved to the core
-
 
 #ifndef APPLY_WEAK_SLIDING_PROCESS_H
 #define APPLY_WEAK_SLIDING_PROCESS_H

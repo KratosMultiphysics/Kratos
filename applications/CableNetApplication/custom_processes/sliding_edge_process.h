@@ -11,11 +11,6 @@
 //
 //
 
-
-// this process does not work at the moment
-// base class was moved to the core
-
-
 #ifndef SLIDING_EDGE_PROCESS_H
 #define SLIDING_EDGE_PROCESS_H
 

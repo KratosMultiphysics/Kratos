@@ -12,9 +12,6 @@
 //
 
 
-// this process does not work at the moment
-// base class was moved to the core
-
 
 #ifndef EDGE_CABLE_ELEMENT_PROCESS_H
 #define EDGE_CABLE_ELEMENT_PROCESS_H
