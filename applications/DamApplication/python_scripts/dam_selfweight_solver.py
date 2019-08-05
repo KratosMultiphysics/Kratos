@@ -291,7 +291,7 @@ class DamSelfweightSolver(object):
         aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        from KratosMultiphysics.DamApplication from KratosMultiphysics.DamApplication from KratosMultiphysics.DamApplication import check_and_prepare_selfweight_model_process_dam
+        from KratosMultiphysics.DamApplication import check_and_prepare_selfweight_model_process_dam
         check_and_prepare_selfweight_model_process_dam.CheckAndPrepareSelfweightModelProcess(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
