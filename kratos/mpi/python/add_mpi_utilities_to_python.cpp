@@ -36,6 +36,13 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     .def("Execute", &ParallelFillCommunicator::Execute )
     .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
     ;
+
+    py::class_<MpiConstraintsUtility >(m,"MpiConstraintsUtility")
+    .def(py::init<ModelPart& >() )
+    .def("AddConstraint", &MpiConstraintsUtility::AddConstraint<ModelPart::DoubleVariableType> )
+    .def("AddConstraint", &MpiConstraintsUtility::AddConstraint<ModelPart::VariableComponentType> )
+    .def("SynchronizeAndCreateConstraints", &MpiConstraintsUtility::SynchronizeAndCreateConstraints )
+    ;    
 }
 
 } // namespace Python
