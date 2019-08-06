@@ -127,7 +127,7 @@ private:
             mConstant = Constant;
             mId = ConstraintId;
         }
-        virtual IndexType GetID(){return mId;}
+        virtual IndexType Id(){return mId;}
         virtual IndexType SlaveNodeId(){return mSlaveNodeId;}
         virtual IndexType MasterNodeId(){return mMasterNodeId;}
         virtual double Constant(){return mConstant;}
@@ -170,10 +170,13 @@ private:
     {
         for(const auto& constraint_info : mMasterSlaveDetailsVector)
         {
+            auto& r_data_communicator = mrModelPart.GetCommunicator();
             const auto& r_slave_node_id = constraint_info->SlaveNodeId();
             const auto& r_master_node_id = constraint_info->MasterNodeId();
-            mNodeIdsToSync.push_back(r_slave_node_id);
-            mNodeIdsToSync.push_back(r_master_node_id);
+            if( !r_data_communicator.LocalMesh().HasNode(r_slave_node_id) )
+                mNodeIdsToSync.push_back(r_slave_node_id);
+            if( !r_data_communicator.LocalMesh().HasNode(r_slave_node_id) )
+                mNodeIdsToSync.push_back(r_master_node_id);
         }
     }
 
@@ -182,9 +185,11 @@ private:
     void CreateConstraints()
     {
         typedef std::pair<IndexType, IndexType> DofIdVarKeyPairType;
+        typedef Kratos::shared_ptr<DofIdVarKeyPairType> DofIdVarKeyPairSharedPtrType;
         typedef GlobalPointer<DofIdVarKeyPairType> GlobalPointerDofIdVarKeyPairType;
         typedef GlobalPointersVector<DofIdVarKeyPairType> GlobalPointerVectorDofIdVarKeyPairType;
-        GlobalPointerVectorDofIdVarKeyPairType global_ptrs_vectors_dof_id_key;
+        typedef std::map<IndexType, DofIdVarKeyPairSharedPtrType> DofIdVarKeyPairContainerType;
+        DofIdVarKeyPairContainerType global_ptrs_vectors_dof_id_key;
         auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
         IndexType current_rank = r_data_communicator.Rank();
         IndexType comm_size = r_data_communicator.Size();
@@ -203,10 +208,7 @@ private:
         GlobalPointerCommunicator<Node<3>> pointer_comm(r_data_communicator, vector_of_node_global_pointers);
         auto result_proxy = pointer_comm.Apply(
                 [](GlobalPointer<Node<3>>& gp){
-                    std::vector<DofIdVarKeyPairType> vec_to_return;
-                    for(const auto& dof : gp->GetDofs())
-                        vec_to_return.push_back( std::make_pair(dof.Id(), dof.GetVariable().Key()) );
-                    return vec_to_return;
+                    return gp->GetDofs();
                     }
         );
 
@@ -214,21 +216,20 @@ private:
         {
             const auto& r_slave_node_id = constraint_info->SlaveNodeId();
             const auto& r_master_node_id = constraint_info->MasterNodeId();
-            auto slave_dof_id_var_key_pairs = result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
-            auto master_dof_id_var_key_pairs = result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
-
-            auto slave_pair = std::find(std::begin(slave_dof_id_var_key_pairs), std::end(slave_dof_id_var_key_pairs),
-                                        std::make_pair(r_slave_node_id, constraint_info->GetVariableKey()));
-            global_ptrs_vectors_dof_id_key.push_back(Kratos::make_shared<std::pair<IndexType, IndexType>>(*slave_pair));
-
-
-            relation_matrix(0,0) = constraint_info->Weight();
-            constant_vector(0) = constraint_info->Constant();
+            auto slave_dofs = result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
+            auto master_dofs = result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
+            // Get the global pointers for the dofs of the slave and masters -> construct them using the PARTITION_INDEX of the node
         }
 
-
+        // Retrieve the global pointers of the dofs
         auto remote_dofs_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(global_ptrs_vectors_dof_id_key, mNodeIdsToSync, r_data_communicator);
-        // std::cout<<"my rank :: "<<current_rank<<"  size :: "<<mMasterSlaveDetailsVector.size()<<std::endl;
+        // Use the vector of the global pointers to make the pointer communicator
+        // Then use the communicator to make the constraints.
+    }
+
+    void GetDofsVector()
+    {
+
     }
 
 
