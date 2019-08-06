@@ -30,6 +30,9 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
             "maximum_pressure_iterations": 3,
@@ -84,6 +87,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         self.element_name = "FractionalStep"
         self.condition_name = "WallCondition"
         self.min_buffer_size = 3
+        self.element_has_nodal_properties = True
 
         ## Construct the linear solvers
         self.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
@@ -183,4 +187,3 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
     def Finalize(self):
         self.solver.Clear()
-
