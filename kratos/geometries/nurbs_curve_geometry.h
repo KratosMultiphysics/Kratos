@@ -202,7 +202,7 @@ public:
     */
     std::vector<CoordinatesArrayType> GlobalDerivatives(
         const CoordinatesArrayType& rCoordinates,
-        const int DerivativeOrder) const
+        const SizeType DerivativeOrder) const
     {
         NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, DerivativeOrder);
 
@@ -215,12 +215,12 @@ public:
 
         std::vector<array_1d<double, 3>> derivatives(shape_function_container.NumberOfShapeFunctionRows());
 
-        for (int order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
-            int index_0 = shape_function_container.GetFirstNonzeroControlPoint();
+        for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
+            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * shape_function_container(order, 0);
 
-            for (int i = 1; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-                int index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+            for (IndexType i = 1; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+                IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
 
                 derivatives[order] += (*this)[index] * shape_function_container(order, i);
             }
@@ -250,8 +250,8 @@ public:
         }
 
         noalias(rResult) = ZeroVector(3);
-        for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            const int index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
 
             rResult += (*this)[index] * shape_function_container(0, i);
         }
@@ -302,7 +302,7 @@ public:
             && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
 
-        for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult(0, i) = shape_function_container(1, i);
         }
 
@@ -339,7 +339,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    const int mPolynomialDegree;
+    const SizeType mPolynomialDegree;
     Vector mKnots;
     bool mIsRational;
     Vector mWeights;
