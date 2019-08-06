@@ -212,7 +212,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         settings["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.dt)
 
         self.fluid_solver = TwoFluidNoRedistanceSolver(self.model, settings["solver_settings"])
-        self.fluid_model_part = self.model.GetModelPart("FluidModelPart")
+        self.fluid_model_part = self.model.GetModelPart("Fluid")
 
     def setUpSolver(self):
 
