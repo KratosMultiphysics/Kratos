@@ -52,6 +52,7 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /* Conctructor for B-Spline curves. */
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const int PolynomialDegree,
@@ -65,6 +66,7 @@ public:
             << "Number of knots and control points do not match!" << std::endl;
     }
 
+    /* Conctructor for NURBS curves. */
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const int PolynomialDegree,
