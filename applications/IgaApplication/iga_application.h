@@ -25,7 +25,7 @@
 #include "custom_elements/shell_kl_discrete_element.h"
 #include "custom_elements/iga_shell_3p_element.h"
 
-#include "custom_conditions/iga_check_condition.h"
+#include "custom_conditions/post_process_condition.h"
 
 #include "custom_conditions/coupling_penalty_discrete_condition.h"
 #include "custom_conditions/support_penalty_curve_discrete_condition.h"
@@ -37,6 +37,7 @@
 
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/penalty_support_condition.h"
+#include "custom_conditions/penalty_directional_support_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
 
 namespace Kratos {
@@ -181,7 +182,7 @@ private:
     const ShellKLDiscreteElement mShellKLDiscreteElement;
     const IgaShell3pElement mIgaShell3pElement;
 
-    const IgaCheckCondition mIgaCheckCondition;
+    const PostProcessCondition mPostProcessCondition;
 
     const CouplingPenaltyDiscreteCondition mCouplingPenaltyDiscreteCondition;
 
@@ -193,6 +194,7 @@ private:
 
     const LoadCondition mLoadCondition;
     const PenaltySupportCondition mPenaltySupportCondition;
+    const PenaltyDirectionalSupportCondition mPenaltyDirectionalSupportCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
 

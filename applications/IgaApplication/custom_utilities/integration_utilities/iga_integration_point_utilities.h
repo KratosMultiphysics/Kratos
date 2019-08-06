@@ -21,6 +21,16 @@ namespace Kratos
 
 namespace IgaIntegrationPointUtilities
 {
+    static int GetDerivativesSize(const int ShapeFunctionDerivativesOrder)
+    {
+        int derivatives_size = 0;
+        for (int i = 0; i < ShapeFunctionDerivativesOrder; ++i)
+        {
+            derivatives_size += i + 1;
+        }
+        return derivatives_size;
+    }
+
     static Geometry<Node<3>>::Pointer GetIntegrationPointSurface(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
         const array_1d<double, 3>& rLocation,
@@ -43,17 +53,13 @@ namespace IgaIntegrationPointUtilities
             rLocation[0],
             rLocation[1]);
 
-        Element::GeometryType::PointsArrayType control_points;
-        Vector shape_function;
-        Matrix shape_function_derivative;
-        Matrix shape_function_second_derivative;
-
         Geometry<Node<3>>::PointsArrayType cps;
 
         int number_of_non_zero_cps = shape.NonzeroPoleIndices().size();
 
-        Matrix N(1, number_of_non_zero_cps);
-        Matrix DN_De(number_of_non_zero_cps, 2);
+        int derivatives_size = GetDerivativesSize(ShapeFunctionDerivativesOrder);
+
+        Matrix N(derivatives_size, number_of_non_zero_cps);
 
         array_1d<double, 3> location = ZeroVector(3);
 
@@ -66,124 +72,156 @@ namespace IgaIntegrationPointUtilities
                 shape.NonzeroPoleIndices()[n].first,
                 shape.NonzeroPoleIndices()[n].second));
 
-            if (ShapeFunctionDerivativesOrder > -1)
-                N(0, n) = shape(0, indexU, indexV);
-
-            if (ShapeFunctionDerivativesOrder > 0)
+            for (int i = 0; i < derivatives_size; ++i)
             {
-                DN_De(n, 0) = shape(1, indexU, indexV);
-                DN_De(n, 1) = shape(2, indexU, indexV);
+                N(i, n) = shape(i, indexU, indexV);
             }
         }
 
-        Geometry<Node<3>>::ShapeFunctionsGradientsType DN_De_type(1);
-        DN_De_type[0] = DN_De;
-
+        auto ip = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(rLocation[0], rLocation[1], 1);
         Geometry<Node<3>>::IntegrationPointsArrayType ips(1);
-        ips[0] = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(rLocation[0], rLocation[1], 1);
+        ips[0] = ip;
 
         IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType ips_container =
         { { ips } };
-        IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType N_container =
-        { { N } };
-        IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType DN_De_container =
-        { { DN_De_type } };
 
+        auto ar = IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsIntegrationPointsType(1);
+        ar[0] = N;
+
+        IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsContainerType N_container =
+        {{ar}};
         return std::make_shared<IntegrationPointSurface3d<Node<3>>>(
-                cps,
-                ips_container,
-                N_container,
-                DN_De_container);
+            cps, ips_container, N_container);
     }
 
+    static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainGeometrySurface(
+        const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
+        const TrimmedSurfaceClipping& rClipper,
+        int ShapeFunctionDerivativesOrder)
+    {
+        std::vector<Geometry<Node<3>>::Pointer> new_geometries;
 
-    //static void GetIntegrationDomainCurve(
-    //    ModelPart& rModelPart,
-    //    std::shared_ptr<NodeCurveGeometry3D>& pNodeCurveGeometry3D,
-    //    int& rShapeFunctionDerivativesOrder
-    //    )
-    //{
-    //    auto spans = mNodeCurveGeometry3D->Spans();
+        int degree_u = pSurface->DegreeU();
+        int degree_v = pSurface->DegreeV();
 
-    //    for (int i = 0; i < spans.size(); ++i)
-    //    {
-    //        ANurbs::Interval<double> domain(spans[i].T0(), spans[i].T1());
+        int degree = std::max(degree_u, degree_v) + 1;
 
-    //        int number_of_points = mNodeCurveGeometry3D->Degree() + 1;
-    //        auto integration_points = ANurbs::IntegrationPoints<double>::Points1(number_of_points, domain);
+        ANurbs::SurfaceShapeEvaluator<double> shape(
+            pSurface->DegreeU(),
+            pSurface->DegreeV(),
+            ShapeFunctionDerivativesOrder);
 
-    //        ANurbs::CurveShapeEvaluator<double> shape(mNodeCurveGeometry3D->Degree(), rShapeFunctionDerivativesOrder);
+        int derivatives_size = GetDerivativesSize(ShapeFunctionDerivativesOrder);
 
-    //        for (int j = 0; j < integration_points.size(); ++j)
-    //        {
-    //            Vector local_coordinates(1);
-    //            local_coordinates[0] = integration_points[j].t;
+        for (int i = 0; i < rClipper.NbSpansU(); ++i)
+        {
+            for (int j = 0; j < rClipper.NbSpansV(); ++j)
+            {
+                if (rClipper.SpanTrimType(i, j) == ANurbs::Empty)
+                {
+                    continue;
+                }
+                else if (rClipper.SpanTrimType(i, j) == ANurbs::Full)
+                {
+                    auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
+                        degree_u + 1,
+                        degree_v + 1,
+                        rClipper.SpanU(i),
+                        rClipper.SpanV(j));
 
-    //            shape.Compute(mNodeCurveGeometry3D->Knots(), integration_points[j].t);
+                    for (int i = 0; i < integration_points.size(); ++i)
+                    {
+                        shape.Compute(
+                            pSurface->KnotsU(),
+                            pSurface->KnotsV(),
+                            pSurface->Weights(),
+                            integration_points[i].u,
+                            integration_points[i].v);
 
-    //            CreateElement(shape, rShapeFunctionDerivativesOrder);
-    //        }
-    //    }
-    //}
+                        int number_of_cps = shape.NonzeroPoleIndices().size();
 
-    //static void GetIntegrationDomainPointOnCurve(
-    //    ModelPart& rModelPart,
-    //    const std::shared_ptr<NodeCurveGeometry3D>& pNodeCurveGeometry3D,
-    //    const double& local_parameter
-    //    )
-    //{
-    //    ANurbs::CurveShapeEvaluator<double> shape(
-    //        mNodeCurveGeometry3D->Degree(),
-    //        rShapeFunctionDerivativesOrder);
+                        Element::GeometryType::PointsArrayType cps;
+                        cps.reserve(number_of_cps);
+                        Matrix N(derivatives_size, number_of_cps);
 
-    //    shape.Compute(mNodeCurveGeometry3D->Knots(), local_parameter);
+                        for (int n = 0; n < number_of_cps; ++n)
+                        {
+                            int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+                            int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-    //    Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
-    //    Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 1);
+                            cps.push_back(pSurface->GetNode(
+                                shape.NonzeroPoleIndices()[n].first,
+                                shape.NonzeroPoleIndices()[n].second));
 
-    //    Element::GeometryType::PointsArrayType non_zero_control_points;
-    //    for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
-    //    {
-    //        non_zero_control_points.push_back(mNodeCurveGeometry3D->GetNode(m));
+                            for (int j = 0; j < derivatives_size; ++j)
+                            {
+                                N(j, n) = shape(j, indexU, indexV);
+                            }
+                        }
 
-    //        N_0(m) = shape(0, m);
-    //        N_1(m, 0) = shape(1, m);
-    //    }
-    //    if (rType == "element")
-    //    {
-    //        int id = 0;
-    //        if (rModelPart.GetRootModelPart().Elements().size() > 0)
-    //            id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+                        auto ip = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(
+                            integration_points[i].u,
+                            integration_points[i].v,
+                            integration_points[i].weight);
 
-    //        auto element = rModelPart.CreateNewElement(
-    //            rName,
-    //            id,
-    //            non_zero_control_points);
+                        //new_geometries.push_back(std::make_shared<IntegrationPointSurface3d<Node<3>>>(
+                        //    cps, ip, N));
+                    }
+                }
+                else if (rClipper.SpanTrimType(i, j) == ANurbs::Trimmed)
+                {
+                    auto polygons = rClipper.SpanPolygons(i, j);
 
-    //        element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-    //        element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-    //        element->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
+                    for (int p = 0; p < polygons.size(); ++p)
+                    {
+                        auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
 
-    //        element->SetValue(LOCAL_PARAMETER, local_parameter);
-    //    }
-    //    if (rType == "condition")
-    //    {
-    //        int id = 0;
-    //        if (rModelPart.GetRootModelPart().Conditions().size() > 0)
-    //            int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-    //        auto condition = rModelPart.CreateNewCondition(
-    //            rName,
-    //            id,
-    //            non_zero_control_points);
+                        integration_point_polygon.Compute(degree, polygons[p]);
 
-    //        condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-    //        condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-    //        condition->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
+                        for (int i = 0; i < integration_point_polygon.NbIntegrationPoints(); ++i)
+                        {
+                            shape.Compute(
+                                pSurface->KnotsU(),
+                                pSurface->KnotsV(),
+                                pSurface->Weights(),
+                                integration_point_polygon.IntegrationPoint(i).u,
+                                integration_point_polygon.IntegrationPoint(i).v);
 
-    //        element->SetValue(LOCAL_PARAMETER, local_parameter);
-    //    }
-    //}
+                            int number_of_cps = shape.NonzeroPoleIndices().size();
 
+                            Element::GeometryType::PointsArrayType cps;
+                            cps.reserve(number_of_cps);
+                            Matrix N(derivatives_size, number_of_cps);
+
+                            for (int n = 0; n < number_of_cps; ++n)
+                            {
+                                int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+                                int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+
+                                cps.push_back(pSurface->GetNode(
+                                    shape.NonzeroPoleIndices()[n].first,
+                                    shape.NonzeroPoleIndices()[n].second));
+
+                                for (int j = 0; j < derivatives_size; ++j)
+                                {
+                                    N(j, n) = shape(j, indexU, indexV);
+                                }
+                            }
+
+                            auto ip = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(
+                                integration_point_polygon.IntegrationPoint(i).u,
+                                integration_point_polygon.IntegrationPoint(i).v,
+                                integration_point_polygon.IntegrationPoint(i).weight);
+
+                            //new_geometries.push_back(std::make_shared<IntegrationPointSurface3d<Node<3>>>(
+                            //    cps, ip, N));
+                        }
+                    }
+                }
+            }
+        }
+        return new_geometries;
+    }
 }
 
 } // namespace Kratos

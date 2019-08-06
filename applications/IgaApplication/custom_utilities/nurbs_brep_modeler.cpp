@@ -150,7 +150,7 @@ namespace Kratos
 
                             auto element_vector = IgaIntegrationUtilities::GetIntegrationDomainGeometrySurface(
                                 brep_face.GetSurface(),
-                                brep_face.GetSurfaceClipper(0.001, 0.00001),
+                                brep_face.GetSurfaceClipper(0.001, 0.0001),
                                 shape_function_derivatives_order);
 
                             for(auto element = element_vector.begin(); element != element_vector.end(); ++element)
@@ -202,7 +202,8 @@ namespace Kratos
                         }
                         if (geometry_type == "SurfacePoint")
                         {
-                            GetBrepEdge(brep_id);
+                            auto face = GetBrepVertex(brep_id);
+
                             bool success = m_brep_model_vector[0].GetIntegrationDomainBrep(
                                 sub_model_part, brep_id, type, name,
                                 shape_function_derivatives_order, variable_list);
@@ -338,9 +339,9 @@ namespace Kratos
                 }
 
 */
-                KRATOS_WATCH(model_part)
             }
         }
+        KRATOS_WATCH(model_part)
     }
 
     void NurbsBrepModeler::GetInterfaceConditions(
@@ -466,6 +467,8 @@ namespace Kratos
         BinsIgaObjects.resize(rIgaModelPart.NumberOfElements());
         const auto elements_begin = rIgaModelPart.Elements().ptr_begin();
 
+        KRATOS_ERROR_IF(rIgaModelPart.NumberOfElements() == 0) << "No elements in iga model part" << std::endl;
+
         for (int i = 0; i < rIgaModelPart.NumberOfElements(); ++i)
         {
             auto it_elem = elements_begin + i;
@@ -481,6 +484,9 @@ namespace Kratos
         //Instance of external interface nodes. Updated for each node.
         auto particle_object = Kratos::make_shared<BinsIgaObject>(array_1d<double, 3>(0.0));
 
+        int interface_id = 1;
+        if (rInterfaceConditionsModelPart.GetRootModelPart().Conditions().size() > 0)
+            interface_id = rInterfaceConditionsModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
         std::vector<int> checked_faces_trimming_curves;
         for (auto particle_element_ptr = rExternalModelPart.ElementsBegin();
@@ -488,6 +494,7 @@ namespace Kratos
             ++particle_element_ptr)
         {
             ModelPart::ConditionsContainerType new_condition_list;
+            Vector delete_condition = ZeroVector(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size());
 
             std::vector<Condition*> new_conditions;
             std::vector<array_1d<double, 3>> new_elastic_forces;
@@ -549,7 +556,6 @@ namespace Kratos
                                 NumberOfIterations,
                                 Accuracy);
 
-                            KRATOS_WATCH(projections.size())
                             for (int j = 0; j < projections.size(); ++j)
                             {
                                 array_1d<double, 3> point_3d = surface->PointAt(projections[j][0], projections[j][1]);
@@ -562,6 +568,7 @@ namespace Kratos
                                     if (distance_to_existant_point < Tolerance)
                                     {
                                         new_condition = false;
+                                        delete_condition[i] = 1;
                                     }
                                 }
 
@@ -575,10 +582,10 @@ namespace Kratos
                                     new_contact_geometries.push_back(new_geometry);
                                 }
                             }
-                            for (int j = 0; j < new_contact_geometries.size(); ++j)
-                            {
-                                KRATOS_WATCH(new_contact_geometries[j]->Center())
-                            }
+                            //for (int j = 0; j < new_contact_geometries.size(); ++j)
+                            //{
+                            //    KRATOS_WATCH(new_contact_geometries[j]->Center())
+                            //}
                         }
                         else
                         {
@@ -608,7 +615,6 @@ namespace Kratos
                     }
                     cnt:;
                 }
-                Vector delete_condition = ZeroVector(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size());
 
                 for (auto p_contact_geometry : new_contact_geometries)
                 {
@@ -633,20 +639,16 @@ namespace Kratos
                             found_old_condition = true;
                             break;
                         }
-                        else
-                        {
-                            KRATOS_WATCH(norm_2(distance_vector))
-                        }
+                        //else
+                        //{
+                        //    KRATOS_WATCH(norm_2(distance_vector))
+                        //}
                         i++;
                     }
                     if (!found_old_condition)
                     {
-                        int id = 1;
-                        if (rInterfaceConditionsModelPart.GetRootModelPart().Conditions().size() > 0)
-                            id = rInterfaceConditionsModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-
                         auto p_condition = ReferenceCondition.Create(
-                            id,
+                            interface_id,
                             p_contact_geometry,
                             particle_element_ptr->pGetProperties());
 
@@ -655,6 +657,8 @@ namespace Kratos
 
                         new_condition_list.push_back(p_condition);
                         new_conditions.push_back(&*p_condition);
+
+                        interface_id++;
                     }
                 }
 
@@ -662,18 +666,26 @@ namespace Kratos
 
                 for (int i = 0; i < condition_length; ++i)
                 {
-                    if (!delete_condition[i] > 0.1)
+                    if (delete_condition[i] < 0.1)
                     {
+                        KRATOS_WATCH("delete condition")
                         rInterfaceConditionsModelPart.RemoveConditionFromAllLevels(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[i]->Id());
                     }
                 }
-
                 rInterfaceConditionsModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
 
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, new_elastic_forces);
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, new_total_forces);
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_POINTERS, new_conditions);
                 KRATOS_WATCH(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size())
+                //KRATOS_WATCH(new_condition_list.size())
+                //if (particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size() > 1)
+                //{
+                //    for (int i = 0; i < new_condition_list.size(); ++i)
+                //    {
+                //        KRATOS_WATCH(new_condition_list[i].GetGeometry().Center())
+                //    }
+                //}
             }
         }
     }

@@ -1067,46 +1067,40 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     auto& neighbour_point_faces_elastic_contact_force = this->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES);
     auto& neighbour_point_faces_total_contact_force = this->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES);
 
-
-    KRATOS_WATCH(list_of_point_condition_pointers.size())
     for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
-        if (list_of_point_condition_pointers.size() > 1)
-        {
-            KRATOS_WATCH("here")
-        }
         Condition* wall_condition = list_of_point_condition_pointers[i];
-        if (list_of_point_condition_pointers.size() > 1)
-        {
-            KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(0, 0, 0), 0))
-                KRATOS_WATCH(wall_condition->GetGeometry().ShapeFunctionsValues())
-                KRATOS_WATCH(wall_condition->GetGeometry().size())
-                KRATOS_WATCH(wall_condition->GetGeometry()[0])
-                KRATOS_WATCH(wall_condition->GetGeometry()[1])
-                KRATOS_WATCH(wall_condition->GetGeometry()[2])
-                KRATOS_WATCH(wall_condition->GetGeometry()[3])
+        //if (list_of_point_condition_pointers.size() > 1)
+        //{
+        //    KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(0, 0, 0), 0))
+        //        KRATOS_WATCH(wall_condition->GetGeometry().ShapeFunctionsValues())
+        //        KRATOS_WATCH(wall_condition->GetGeometry().size())
+        //        KRATOS_WATCH(wall_condition->GetGeometry()[0])
+        //        KRATOS_WATCH(wall_condition->GetGeometry()[1])
+        //        KRATOS_WATCH(wall_condition->GetGeometry()[2])
+        //        KRATOS_WATCH(wall_condition->GetGeometry()[3])
 
-            KRATOS_WATCH("here2")
-        }
+        //    KRATOS_WATCH("here2")
+        //}
         double RelVel[3]                         = {0.0};
         double LocalElasticContactForce[3]       = {0.0};
         double GlobalElasticContactForce[3]      = {0.0};
         double ViscoDampingLocalContactForce[3]  = {0.0};
         double cohesive_force                    =  0.0;
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
-        DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
-            if (list_of_point_condition_pointers.size() > 1)
-            {
-                KRATOS_WATCH("here3")
-            }
-        array_1d<double, 3> wall_delta_disp_at_contact_point = wall_condition->GetGeometry().FastGetSolutionStepValue(DELTA_DISPLACEMENT, 0);
-        array_1d<double, 3> wall_velocity_at_contact_point = wall_condition->GetGeometry().FastGetSolutionStepValue(VELOCITY, 0);
-        if (list_of_point_condition_pointers.size() > 1)
-        {
-            KRATOS_WATCH(wall_delta_disp_at_contact_point)
-            KRATOS_WATCH(wall_velocity_at_contact_point)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
+            //if (list_of_point_condition_pointers.size() > 1)
+            //{
+            //    KRATOS_WATCH("here3")
+            //}
+            array_1d<double, 3> wall_delta_disp_at_contact_point(0.0);// = wall_condition->GetGeometry().FastGetSolutionStepValue(DELTA_DISPLACEMENT, 0);
+        array_1d<double, 3> wall_velocity_at_contact_point(0.0);// = wall_condition->GetGeometry().FastGetSolutionStepValue(VELOCITY, 0);
+        //if (list_of_point_condition_pointers.size() > 1)
+        //{
+        //    KRATOS_WATCH(wall_delta_disp_at_contact_point)
+        //    KRATOS_WATCH(wall_velocity_at_contact_point)
 
-            KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(0, 0, 0), 0))
-        }
+        //    KRATOS_WATCH(wall_condition->GetGeometry().Coordinates(Point(0, 0, 0), 0))
+        //}
         bool sliding = false;
         double ini_delta = 0.0;
 

@@ -62,8 +62,8 @@ public:
     typedef DivideGeometry::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
 
     typedef IntegrationPoint<3>                                                                     IntegrationPointType;
-    typedef std::vector<IntegrationPointType>                                                       IntegrationPointsArrayType;
-    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
+    typedef GeometryData::IntegrationPointsArrayType                                                IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>        IntegrationPointsContainerType;
 
     ///@}
     ///@name Life Cycle

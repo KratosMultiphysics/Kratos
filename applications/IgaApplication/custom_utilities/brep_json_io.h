@@ -17,6 +17,9 @@
 #include "includes/model_part.h"
 #include "includes/node.h"
 
+#include "geometries/nurbs_curve_geometry.h"
+#include "geometries/geometry.h"
+
 namespace Kratos
 {
 

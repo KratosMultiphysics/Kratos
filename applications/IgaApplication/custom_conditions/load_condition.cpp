@@ -29,8 +29,6 @@ namespace Kratos
         const bool CalculateResidualVectorFlag
     )
     {
-        KRATOS_WATCH("hererherherhe")
-
         const auto& r_geometry = GetGeometry();
         const int number_of_nodes = r_geometry.size();
 

@@ -28,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "includes/geometry_model.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -197,6 +198,26 @@ public:
         Condition by * operator and not a pointer for more convenient
         usage. */
     typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
+
+    /// Typedefs for the geometry model.
+    typedef Geometry<NodeType> GeometryType;
+
+    typedef GeometryModel<GeometryType> GeometryModelType;
+
+    /// Geometries container. This is used for the set of geometries within a CAD model.
+    typedef GeometryModelType::GeometriesContainerType GeometriesContainerType;
+
+    /** Iterator over the Geometries. This iterator is an indirect
+    iterator over Geometries::Pointer which turn back a reference to
+    Geometry by * operator and not a pointer for more convenient
+    usage. */
+    typedef GeometryModelType::GeometryIterator GeometryIterator;
+
+    /** Const iterator over the Geometries. This iterator is an indirect
+    iterator over Geometries::Pointer which turn back a reference to
+    Geometry by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename GeometryModelType::GeometryConstantIterator GeometryConstantIterator;
 
     /// Defining a table with double argument and result type as table type.
     typedef Table<double,double> TableType;
@@ -1263,6 +1284,124 @@ public:
 
 
     ///@}
+    ///@name Geometry
+    ///@{
+
+    SizeType NumberOfGeometries() const
+    {
+        return mGeometryModel.NumberOfGeometries();
+    }
+
+    /** Inserts a geometry in the geometry model.
+     */
+    void AddGeometry(GeometryType::Pointer pNewGeometry);
+
+    /** Inserts a list of pointers to nodes
+     */
+    template<class TIteratorType >
+    void AddGeometries(TIteratorType geometries_begin, TIteratorType geometries_end)
+    {
+        KRATOS_TRY
+        //ModelPart::GeometriesContainerType  aux;
+        //ModelPart::GeometriesContainerType  aux_root;
+        //ModelPart* root_model_part = &this->GetRootModelPart();
+
+        //for (TIteratorType it = geometries_begin; it != geometries_end; it++)
+        //{
+        //    auto it_found = root_model_part->Geometries().find(*it);
+        //    if (it_found == root_model_part->GeometriesEnd()) //node does not exist in the top model part
+        //    {
+        //        aux_root.push_back(*(it.base()));
+        //        aux.push_back(*(it.base()));
+        //    }
+        //    else //if it does exist verify it is the same node
+        //    {
+        //        if (&(*it_found) != &(*it))//check if the pointee coincides
+        //            KRATOS_ERROR << "attempting to add a new element with Id :"
+        //            << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
+        //        else
+        //            aux.push_back(*(it.base()));
+        //    }
+        //}
+
+        //for (auto it = aux_root.begin(); it != aux_root.end(); it++)
+        //    root_model_part->Geometries().push_back(*(it.base()));
+        //root_model_part->Geometries().Unique();
+
+        ////add to all of the leaves
+
+        //ModelPart* current_part = this;
+        //while (current_part->IsSubModelPart())
+        //{
+        //    for (auto it = aux.begin(); it != aux.end(); it++)
+        //        current_part->Geometries().push_back(*(it.base()));
+
+        //    current_part->Geometries().Unique();
+
+        //    current_part = current_part->GetParentModelPart();
+        //}
+
+        KRATOS_CATCH("")
+    }
+
+    /** Remove given geometry from geometry model in this modelpart and all its subs.
+    */
+    void RemoveGeometry(GeometryType::Pointer pThisGeometry);
+
+    /**  Remove given geometry from geometry model in parents, itself and children.
+    */
+    void RemoveGeometryFromAllLevels(GeometryType::Pointer pThisGeometry);
+
+    ///** erases all geometries identified by "IdentifierFlag" by removing the pointer.
+    //     * Pointers are erased from this level downwards
+    //     * nodes will be automatically destructured
+    //     * when no pointer is left to them
+    //     */
+    //void RemoveGeometries(Flags IdentifierFlag = TO_ERASE);
+
+    ///** erases all geometries identified by "IdentifierFlag" by removing the pointer.
+    // * Pointers will be erase from all levels
+    // * nodes will be automatically destructured
+    // * when no pointer is left to them
+    // */
+    //void RemoveGeometriesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+
+    //GeometryIterator GeometriesBegin()
+    //{
+    //    return mGeometryModel.GeometriesBegin();
+    //}
+
+    //GeometryConstantIterator GeometriesBegin() const
+    //{
+    //    return mGeometryModel.GeometriesBegin();
+    //}
+
+    //GeometryIterator GeometriesEnd()
+    //{
+    //    return mGeometryModel.GeometriesEnd();
+    //}
+
+    //GeometryConstantIterator GeometriesEnd() const
+    //{
+    //    return mGeometryModel.GeometriesEnd();
+    //}
+
+    //GeometriesContainerType& Geometries()
+    //{
+    //    return mGeometryModel.Geometries();
+    //}
+
+    //const GeometriesContainerType& Geometries() const
+    //{
+    //    return mGeometryModel.Geometries();
+    //}
+
+    void SetGeometries(GeometriesContainerType OtherGeometries)
+    {
+        mGeometryModel.SetGeometries(OtherGeometries);
+    }
+
+    ///@}
     ///@name Sub model parts
     ///@{
 
@@ -1554,6 +1693,8 @@ private:
     TablesContainerType mTables; /// The tables contained on the model part
 
     MeshesContainerType mMeshes; /// The container of all meshes
+
+    GeometryModelType mGeometryModel;
 
     VariablesList::Pointer mpVariablesList; /// The variable list
 

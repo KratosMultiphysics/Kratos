@@ -407,17 +407,36 @@ namespace Kratos
         bool curve_direction = rTrimmingCurve["curve_direction"].GetBool();
         bool is_rational = rTrimmingCurve["parameter_curve"]["is_rational"].GetBool();
 
-        Vector boundary_knot_vector = rTrimmingCurve["parameter_curve"]["knot_vector"].GetVector();
+        Vector knot_vector = rTrimmingCurve["parameter_curve"]["knot_vector"].GetVector();
 
         // read and store polynamial degree p
-        int degree = rTrimmingCurve["parameter_curve"]["degree"].GetInt();
+        int polynomial_degree = rTrimmingCurve["parameter_curve"]["degree"].GetInt();
         std::vector<BoundedVector<double, 4>> boundary_control_points;
+        typename Geometry<Point>::PointsArrayType control_points(rTrimmingCurve["parameter_curve"]["control_points"].size());
+        Vector weights = ZeroVector(rTrimmingCurve["parameter_curve"]["control_points"].size());
+
         // read and store control_points
         for (std::size_t cp_idx = 0; cp_idx < rTrimmingCurve["parameter_curve"]["control_points"].size(); cp_idx++)
         {
             BoundedVector<double, 4> control_point = rTrimmingCurve["parameter_curve"]["control_points"][cp_idx][1].GetVector();
             boundary_control_points.push_back(control_point);
+            control_points[cp_idx] = Point(control_point[0], control_point[1], control_point[2]);
+            weights[cp_idx] = control_point[3];
         }
+
+        NurbsCurveGeometry<2, Point> curve_2d(
+            control_points,
+            polynomial_degree,
+            knot_vector,
+            weights);
+        Matrix result = ZeroMatrix(0, 0);
+        array_1d<double, 3> coordinates(0.0);
+        curve_2d.ShapeFunctionsLocalGradients(result, coordinates);
+        curve_2d.GlobalDerivatives(coordinates, 2);
+        std::vector<IntegrationPoint<3>> ips(1);
+        ips[0] = IntegrationPoint<3>(1.0);
+
+        curve_2d.ShapeFunctionDerivatives(GeometryData::GI_GAUSS_1, ips, 3);
 
         Vector active_range = rTrimmingCurve["parameter_curve"]["active_range"].GetVector();
         KRATOS_ERROR_IF(active_range.size() > 2) << "active_range of trim curve " << trim_index << " does not has the size 2" << std::endl;
@@ -425,8 +444,8 @@ namespace Kratos
         // Create and store edge
         BrepTrimmingCurve trimming_curve(
             trim_index,
-            boundary_knot_vector,
-            degree,
+            knot_vector,
+            polynomial_degree,
             boundary_control_points,
             curve_direction,
             is_rational,

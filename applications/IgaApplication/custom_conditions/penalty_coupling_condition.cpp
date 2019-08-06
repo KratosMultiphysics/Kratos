@@ -32,8 +32,8 @@ namespace Kratos
         KRATOS_TRY
         const double penalty = GetProperties()[PENALTY_FACTOR];
 
-        const auto& r_geometry_master = *GetGeometry().GetGeometryPart(0);
-        const auto& r_geometry_slave = *GetGeometry().GetGeometryPart(1);
+        const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
         // Size definitions
         const int number_of_nodes_master = r_geometry_master.size();
@@ -129,8 +129,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const auto& r_geometry_master = *GetGeometry().GetGeometryPart(0);
-        const auto& r_geometry_slave = *GetGeometry().GetGeometryPart(1);
+        const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
         const int number_of_nodes_master = r_geometry_master.size();
         const int number_of_nodes_slave = r_geometry_slave.size();
@@ -163,8 +163,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const auto& r_geometry_master = *GetGeometry().GetGeometryPart(0);
-        const auto& r_geometry_slave = *GetGeometry().GetGeometryPart(1);
+        const auto r_geometry_master = GetGeometry().GetGeometryPart(0);
+        const auto r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
         const int number_of_nodes_master = r_geometry_master.size();
         const int number_of_nodes_slave = r_geometry_slave.size();
@@ -173,14 +173,14 @@ namespace Kratos
         rElementalDofList.reserve(3 * (number_of_nodes_master + number_of_nodes_slave));
 
         for (unsigned int i = 0; i < number_of_nodes_master; ++i) {
-            const auto& r_node = r_geometry_master[i];
+            const auto& r_node = r_geometry_master.GetPoint(i);
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));
         }
 
         for (unsigned int i = 0; i < number_of_nodes_slave; ++i) {
-            const auto& r_node = r_geometry_slave[i];
+            const auto& r_node = r_geometry_slave.GetPoint(i);
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));

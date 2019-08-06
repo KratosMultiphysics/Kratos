@@ -62,37 +62,43 @@ public:
 
     IntegrationPointPointOnSurface3d(
         const PointsArrayType& ThisPoints,
-        const CoordinatesArrayType& rLocalCoordinates,
-        Matrix& rShapeFunctionValues,
-        ShapeFunctionsGradientsType& rShapeFunctionsDerivativesVector)
+        const IntegrationPointsContainerType& rIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
-    {
-        IntegrationPoint(rLocalCoordinates[0], rLocalCoordinates[1], 1.0);
-
-        IntegrationPointsArrayType IntegrationPoints = IntegrationPointsContainerType(1);
-        IntegrationPoints[0] = IntegrationPoint;
-
-        mGeometryData = GeometryData(
-            msGeometryDimension,
+        , mGeometryData(
+            &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
-            IntegrationPoints,
+            rIntegrationPoints,
             rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector);
+            rShapeFunctionsDerivativesVector)
+    {
     }
 
     IntegrationPointPointOnSurface3d(
         const PointsArrayType& ThisPoints,
-        const IntegrationPointsArrayType& rIntegrationPoints,
-        Matrix& rShapeFunctionValues,
-        ShapeFunctionsGradientsType& rShapeFunctionsDerivativesVector)
+        const IntegrationPointsContainerType& rIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
+        GeometryType* pGeometryParent)
         : BaseType(ThisPoints, &mGeometryData)
-    {
-        mGeometryData = GeometryData(
-            msGeometryDimension,
+        , mGeometryData(
+            &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector);
+            rShapeFunctionsDerivativesVector)
+        , mpGeometryParent(pGeometryParent)
+    {
+    }
+
+    explicit IntegrationPointPointOnSurface3d(const PointsArrayType& ThisPoints)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
+    {
     }
 
     /**
@@ -191,6 +197,18 @@ public:
         return typename BaseType::Pointer( new IntegrationPointPointOnSurface3d( ThisPoints ) );
     }
 
+    GeometryType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
+
+    /** Returns the length of this curve segment.
+    */
+    double DomainSize() const override
+    {
+        return 1.0;
+    }
+
     ///@}
     /** Calculates global location of this integration point.
 
@@ -271,11 +289,6 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData( rOStream );
-        std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the integration point\t : " << jacobian;
     }
     ///@}
 
@@ -298,6 +311,10 @@ private:
     GeometryData mGeometryData;
 
     array_1d<double, 2> mTangents;
+
+    // Integration point can be related to a parent geometry. To keep the connection,
+    // this geometry is related to the integration point.
+    GeometryType* mpGeometryParent;
 
     ///@}
     ///@name Serialization

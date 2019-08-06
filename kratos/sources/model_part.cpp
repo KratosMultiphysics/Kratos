@@ -52,6 +52,8 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
+
+    GeometryModelType mGeometryModel;
 }
 
 /// Destructor.
@@ -71,6 +73,7 @@ ModelPart::~ModelPart()
     for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
       i_mesh->Clear();
 
+    mGeometryModel.Clear();
 
 //     if (!IsSubModelPart())
 //       delete mpVariablesList;
@@ -1503,6 +1506,100 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
     root_model_part.RemoveConditions(IdentifierFlag);
 }
 
+//*************************************************************************************//
+//*************************************************************************************//
+/** Inserts a condition in the mesh with ThisIndex.
+*/
+void ModelPart::AddGeometry(
+    GeometryType::Pointer pNewGeometry)
+{
+    //if (IsSubModelPart())
+    //{
+    //    mpParentModelPart->AddGeometry(pNewGeometry);
+    //    mGeometryModel.AddGeometry(pNewGeometry);
+    //}
+    //else
+    //{
+    //    //auto existing_geometry_it = this->mGeometryModel.Geometries().find(pNewGeometry);
+    //    //if (existing_geometry_it == mGeometryModel.GeometriesEnd()) //node did not exist
+    //    //{
+    //        mGeometryModel.AddGeometry(pNewGeometry);
+    //    //}
+    //    //else //node did exist already
+    //    //{
+    //    //    KRATOS_ERROR_IF(&(*existing_geometry_it) != (pNewGeometry.get()))//check if the pointee coincides
+    //    //        << "attempting to add pNewGeometry which is already existant." << std::endl;
+    //    //}
+    //}
+}
+
+/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
+*/
+void ModelPart::RemoveGeometry(ModelPart::GeometryType::Pointer pThisGeometry)
+{
+    //mGeometryModel.RemoveGeometry(pThisGeometry);
+
+    //for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+    //    i_sub_model_part->RemoveGeometry(pThisGeometry);
+}
+
+/** Remove given condition from mesh with ThisIndex in parents, itself and children.
+*/
+void ModelPart::RemoveGeometryFromAllLevels(ModelPart::GeometryType::Pointer pThisGeometry)
+{
+    //if (IsSubModelPart())
+    //{
+    //    mpParentModelPart->RemoveGeometry(pThisGeometry);
+    //    return;
+    //}
+
+    //RemoveGeometry(pThisGeometry);
+}
+
+//void ModelPart::RemoveGeometries(Flags IdentifierFlag)
+//{
+//    // This method is optimized to free the memory
+//    //loop over all the meshes
+//    auto& meshes = this->GetMeshes();
+//    for (ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin(); i_mesh != meshes.end(); i_mesh++)
+//    {
+//        //count the conditions to be erase
+//        const unsigned int nconditions = i_mesh->Conditions().size();
+//        unsigned int erase_count = 0;
+//#pragma omp parallel for reduction(+:erase_count)
+//        for (int i = 0; i < static_cast<int>(nconditions); ++i)
+//        {
+//            auto i_cond = i_mesh->ConditionsBegin() + i;
+//
+//            if (i_cond->IsNot(IdentifierFlag))
+//                erase_count++;
+//        }
+//
+//        ModelPart::ConditionsContainerType temp_conditions_container;
+//        temp_conditions_container.reserve(i_mesh->Conditions().size() - erase_count);
+//
+//        temp_conditions_container.swap(i_mesh->Conditions());
+//
+//        for (ModelPart::ConditionsContainerType::iterator i_cond = temp_conditions_container.begin(); i_cond != temp_conditions_container.end(); i_cond++)
+//        {
+//            if (i_cond->IsNot(IdentifierFlag))
+//                (i_mesh->Conditions()).push_back(std::move(*(i_cond.base())));
+//        }
+//    }
+//
+//    //now recursively remove the conditions in the submodelparts
+//    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+//        i_sub_model_part->RemoveConditions(IdentifierFlag);
+//}
+//
+//void ModelPart::RemoveGeometriesFromAllLevels(Flags IdentifierFlag)
+//{
+//    ModelPart& root_model_part = GetRootModelPart();
+//    root_model_part.RemoveConditions(IdentifierFlag);
+//}
+
+//*************************************************************************************//
+//*************************************************************************************//
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
@@ -1707,6 +1804,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    rSerializer.save("GeometryModel", mGeometryModel);
 
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
 
@@ -1732,6 +1830,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    rSerializer.load("GeometryModel", mGeometryModel);
 
     SizeType number_of_submodelparts;
     rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);

@@ -26,7 +26,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mIgaCheckCondition(0, Condition::GeometryType::Pointer(
+    , mPostProcessCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
@@ -39,6 +39,8 @@ KratosIgaApplication::KratosIgaApplication()
     , mLoadCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
     , mPenaltySupportCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
+    , mPenaltyDirectionalSupportCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
     , mPenaltyCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
@@ -54,15 +56,16 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
     KRATOS_REGISTER_ELEMENT("IgaShell3pElement", mShellKLDiscreteElement)
 
-    KRATOS_REGISTER_CONDITION("IgaCheckCondition", mIgaCheckCondition)
+    KRATOS_REGISTER_CONDITION("PostProcessCondition", mPostProcessCondition)
 
     KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 
-    KRATOS_REGISTER_CONDITION("LoadCondition", mPenaltyCouplingCondition)
-    KRATOS_REGISTER_CONDITION("PenaltySupportCondition", mPenaltyCouplingCondition)
+    KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
+    KRATOS_REGISTER_CONDITION("PenaltySupportCondition", mPenaltySupportCondition)
+    KRATOS_REGISTER_CONDITION("PenaltyDirectionalSupportCondition", mPenaltyDirectionalSupportCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
 
     // Variables

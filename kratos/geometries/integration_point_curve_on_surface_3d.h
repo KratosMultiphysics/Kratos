@@ -63,6 +63,12 @@ public:
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
+    // Typedef for generic amount of derivatives.
+    typedef typename GeometryType::ShapeFunctionsType ShapeFunctionsType;
+    typedef typename GeometryType::ShapeFunctionsIntegrationPointsType ShapeFunctionsIntegrationPointsType;
+    typedef typename GeometryType::ShapeFunctionsContainerType ShapeFunctionsContainerType;
+
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -71,8 +77,8 @@ public:
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
         const LocalTangentsArray2dType& rLocalTangents2d,
-        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
         , mLocalTangents2d(rLocalTangents2d)
         , mGeometryData(
@@ -81,6 +87,57 @@ public:
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
+    {
+    }
+
+    IntegrationPointCurveOnSurface3d(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointsContainerType& rIntegrationPoints,
+        const LocalTangentsArray2dType& rLocalTangents2d,
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mLocalTangents2d(rLocalTangents2d)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            rIntegrationPoints,
+            rShapeFunctionValues,
+            rShapeFunctionsDerivativesVector)
+        , mpGeometryParent(pGeometryParent)
+    {
+    }
+
+    IntegrationPointCurveOnSurface3d(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointsContainerType& rIntegrationPoints,
+        const LocalTangentsArray2dType& rLocalTangents2d,
+        const ShapeFunctionsType& rShapeFunctions)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mLocalTangents2d(rLocalTangents2d)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            rIntegrationPoints,
+            { {rShapeFunctions}, GeometryData::GI_GAUSS_1 })
+    {
+    }
+
+    IntegrationPointCurveOnSurface3d(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointsContainerType& rIntegrationPoints,
+        const LocalTangentsArray2dType& rLocalTangents2d,
+        const ShapeFunctionsType& rShapeFunctions,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mLocalTangents2d(rLocalTangents2d)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            rIntegrationPoints,
+            { {rShapeFunctions}, GeometryData::GI_GAUSS_1 })
+        , mpGeometryParent(pGeometryParent)
     {
     }
 
@@ -194,13 +251,20 @@ public:
     ///@{
 
     
-    template <int TDimension=2, typename TPointsContainer = [std::vector<Point>, std::vector<Node>, PointerVector<Node>]>
+    template <int TDimension=1, typename TPointsContainer = [std::vector<Point>, std::vector<Node>, PointerVector<Node>]>
     class Curve
     {
         TPointsContainer m_points;
         std::vector<double> m_weights;
 
     };
+
+
+    GeometryType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
+
 
     /** Function returns the respective curve length on
     the underlying surface
@@ -384,11 +448,6 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData( rOStream );
-        std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, TPointType() );
-        rOStream << "    Jacobian in the integration point\t : " << jacobian;
     }
     ///@}
 
@@ -411,6 +470,10 @@ private:
     GeometryData mGeometryData;
 
     LocalTangentsArray2dType mLocalTangents2d;
+
+    // Integration point can be related to a parent geometry. To keep the connection,
+    // this geometry is related to the integration point.
+    GeometryType* mpGeometryParent;
 
     ///@}
     ///@name Serialization

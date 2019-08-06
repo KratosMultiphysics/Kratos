@@ -48,17 +48,23 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     typedef PointerVector<TPointType> PointsArrayType;
-    typedef array_1d<double, 2> LocalCoordinatesArray2dType;
 
     typedef IntegrationPoint<2> IntegrationPointType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
+    typedef GeometryShapeFunctionContainer<IntegrationMethod> GeometryShapeFunctionContainerType;
+
     typedef typename GeometryType::IntegrationMethod IntegrationMethod;
     typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+
+    // Typedef for generic amount of derivatives.
+    typedef typename GeometryType::ShapeFunctionsType ShapeFunctionsType;
+    typedef typename GeometryType::ShapeFunctionsIntegrationPointsType ShapeFunctionsIntegrationPointsType;
+    typedef typename GeometryType::ShapeFunctionsContainerType ShapeFunctionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -76,6 +82,45 @@ public:
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
+    {
+    }
+
+    IntegrationPointSurface3d(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointsContainerType& rIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            rIntegrationPoints,
+            rShapeFunctionValues,
+            rShapeFunctionsDerivativesVector)
+        , mpGeometryParent(pGeometryParent)
+    {
+    }
+
+    IntegrationPointSurface3d(
+        const PointsArrayType& ThisPoints,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            ThisGeometryShapeFunctionContainer)
+    {
+    }
+
+    IntegrationPointSurface3d(
+        const PointsArrayType& ThisPoints,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            ThisGeometryShapeFunctionContainer)
+        , mpGeometryParent(pGeometryParent)
     {
     }
 
@@ -185,6 +230,11 @@ public:
 
     ///@}
 
+    GeometryType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
+
     /** Function returns the respective curve length on
     the underlying surface
     */
@@ -267,11 +317,6 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData( rOStream );
-        std::cout << std::endl;
-        Matrix jacobian;
-        // this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the integration point\t : " << jacobian;
     }
     ///@}
 
@@ -288,6 +333,10 @@ private:
     ///@{
 
     GeometryData mGeometryData;
+
+    // Integration point can be related to a parent geometry. To keep the connection,
+    // this geometry is related to the integration point.
+    GeometryType* mpGeometryParent;
 
     ///@}
     ///@name Serialization

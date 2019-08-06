@@ -863,6 +863,27 @@ public:
     }
 
     /**
+     * @brief Performs the vector product of the two input vectors a,b
+     * @details a,b are assumed to be of size 3 (no check is performed on vector sizes)
+     * @param a First input vector
+     * @param b Second input vector
+     * @return The resulting vector
+     */
+    static inline array_1d<double, 3> CrossProduct(
+        const array_1d<double, 3>& a,
+        const array_1d<double, 3>& b
+    )
+    {
+        array_1d<double, 3> c;
+
+        c[0] = a[1] * b[2] - a[2] * b[1];
+        c[1] = a[2] * b[0] - a[0] * b[2];
+        c[2] = a[0] * b[1] - a[1] * b[0];
+
+        return c;
+    }
+
+    /**
     * @brief Checks there is aliasing
     * @param value1 The first value
     * @param value2 The second value

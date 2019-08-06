@@ -141,8 +141,10 @@ namespace Kratos
                 }
                 else
                 {
-                    KRATOS_ERROR << "BrepFace::GetSurfaceClipper: Trimming loops of Brep Face " << Id() << " are not defined correctly! End to start: " <<
-                        distance_0_1 << ", start to start: " << distance_0_end << ", end_point_0: " << end_point_0 << ", start_point_1: " << start_point_1 << ", start_point_last: " << start_point_last << std::endl;
+                    KRATOS_ERROR << "BrepFace::GetSurfaceClipper: Trimming loops of Brep Face " 
+                        << Id() << " are not defined correctly! End to start: "
+                        << distance_0_1 << ", start to start: " << distance_0_end << ", end_point_0: "
+                        << end_point_0 << ", start_point_1: " << start_point_1 << ", start_point_last: " << start_point_last << std::endl;
                 }
             }
             else

@@ -48,9 +48,10 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     # conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_coupling_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_support_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_directional_support_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_base_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_check_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/post_process_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_base_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_point_discrete_condition.cpp

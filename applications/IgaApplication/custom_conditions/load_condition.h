@@ -62,14 +62,22 @@ namespace Kratos
 
         Condition::Pointer Create(
             IndexType NewId,
-            NodesArrayType const& ThisNodes,
+            GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties
         ) const override
         {
             return Kratos::make_intrusive<LoadCondition>(
-                NewId, 
-                GetGeometry().Create(ThisNodes), 
-                pProperties);
+                NewId, pGeom, pProperties);
+        };
+
+        Condition::Pointer Create(
+            IndexType NewId,
+            NodesArrayType const& ThisNodes,
+            PropertiesType::Pointer pProperties
+        ) const override
+        {
+            return Kratos::make_intrusive< LoadCondition >(
+                NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
         void CalculateRightHandSide(
@@ -136,11 +144,6 @@ namespace Kratos
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag
         );
-
-        void Initialize() override
-        {
-            KRATOS_WATCH("bla bla alles bla bla")
-        }
 
         /// Turn back information as a string.
         std::string Info() const override

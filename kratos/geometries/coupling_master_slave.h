@@ -74,15 +74,6 @@ public:
     typedef typename BaseType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
     typedef typename BaseType::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
 
-    typedef typename BaseType::JacobiansType JacobiansType;
-    typedef typename BaseType::NormalType NormalType;
-
-    // New Shape function typedefs
-    //typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
-    //typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
-    //typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
-
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -96,25 +87,12 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(pMasterGeometry->Dimension() != pSlaveGeometry->Dimension())
             << "Geometries of different dimensional size!" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(pMasterGeometry->WorkingSpaceDimension() != pSlaveGeometry->Dimension())
-            << "Geometries of different dimensional size!" << std::endl;
-
 
         mpGeometries.resize(2);
 
         mpGeometries[0] = pMasterGeometry;
         mpGeometries[1] = pSlaveGeometry;
     }
-
-    // CouplingMasterSlave(
-    //     std::vector<GeometryType::Pointer> pGeometries,
-    //     bool IsGeometryDataInitialized = false)
-    //     : BaseType(PointsArrayType(), &(pGeometries[0]->GetGeometryData())),
-    //     mpGeometries(pGeometries),
-    //     mIsGeometryDataInitialized(IsGeometryDataInitialized)
-    // {
-    //     //Maybe some checks
-    // }
 
     explicit CouplingMasterSlave(const PointsArrayType& ThisPoints)
         : BaseType()
@@ -224,19 +202,14 @@ public:
     ///@name Input and output
     ///@{
 
-    typename GeometryType::Pointer GetGeometryPart(IndexType Index) const override
+    typename GeometryType& GetGeometryPart(IndexType Index) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() < Index) << "Index out of range: "
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
-        return mpGeometries[Index];
+        return *mpGeometries[Index];
     }
-
-    //override SizeType GetNumberOfGeometryParts()
-    //{
-    //    return mpGeometries.size();
-    //}
 
     ///@}
 
@@ -256,32 +229,6 @@ public:
 
     ///@name Input and output
     ///@{
-
-    //std::vector<GeometryType::Pointer> GetIntegrationPointGeomtries()
-    //{
-    //    if (!mIsGeometryDataInitialized)
-    //        ComputeGeometryData();
-
-        //SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
-
-        //IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
-        //ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
-
-        //SizeType number_of_derivatives = shape_functions_derivatives_all.size();
-
-        //std::vector<geometry> IntegrationPointList(number_of_integration_points);
-        //for (i = 0.0; i < number_of_integration_points; ++i)
-        //{
-        //    ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
-
-        //    for (j = 0.0; j < number_of_integration_points; ++j)
-        //    {
-        //        shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
-        //    }
-
-        //    IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
-        //}
-    //}
 
     /**
      * Turn back information as a string.
@@ -316,17 +263,11 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    /**
-     * :TODO: needs to be reviewed because it is not properly implemented yet
-     * (comment by janosch)
-     */
     void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+        rOStream << "    CouplingGeometry with " << mpGeometries << " geometries.";
     }
 
     ///@}
@@ -382,12 +323,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    //void ComputeGeometryData(IntegrationMethod)
-    //{
-    //    mGeometryData.SetData(...);
-    //}
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -407,8 +342,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-
 
     ///@}
 }; // Class Geometry

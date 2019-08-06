@@ -159,7 +159,7 @@ namespace Kratos
         method. IntegrationPoints functions used this type to return
         their results.
         */
-        typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+        typedef typename GeometryData::IntegrationPointsArrayType IntegrationPointsArrayType;
 
         /** A Vector of IntegrationPointsArrayType which used to hold
         integration points related to different integration method
@@ -568,10 +568,16 @@ namespace Kratos
         //     return p_clone;
         // }
 
-        virtual typename GeometryType::Pointer GetGeometryPart(IndexType Index) const
+        virtual GeometryType& GetGeometryPart(IndexType Index) const
         {
             KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function. Please check the definition in the derived class. " << *this << std::endl;
             //return Kratos::make_shared<GeometryType>();
+        }
+
+        virtual GeometryType& GetGeometryParent(IndexType Index) const
+        {
+            KRATOS_ERROR << "Calling base 'GetGeometryParent' in base class instead of derived function. " <<
+                "Please check the definition in the derived class. " << *this << std::endl;
         }
 
         GeometryData const& GetGeometryData() const
@@ -1010,25 +1016,6 @@ namespace Kratos
 
             return rResult;
         }
-
-        /**
-        */
-        template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, const IndexType IntegrationPointIndex)
-        {
-            const SizeType points_number = PointsNumber();
-            const Matrix& N = this->ShapeFunctionsValues(mpGeometryData->DefaultIntegrationMethod());
-
-            typename TVariableType::Type rResult;
-
-            rResult = (*this)[0].FastGetSolutionStepValue(rThisVariable) * N(IntegrationPointIndex, 0);
-
-            for (IndexType i = 1; i < points_number; ++i) {
-                rResult += (*this)[i].FastGetSolutionStepValue(rThisVariable) * N(IntegrationPointIndex, i);
-            }
-
-            return rResult;
-        }
-
 
         /**
         * @brief It returns a vector that is normal to its corresponding geometry in the given local point
@@ -2447,6 +2434,27 @@ namespace Kratos
             return rResult;
         }
 
+        const Matrix& ShapeFunctionDerivatives(
+            IndexType IntegrationPointIndex,
+            IntegrationMethod ThisMethod) const
+        {
+            return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(
+                IntegrationPointIndex,
+                ThisMethod);
+        }
+
+        const double& ShapeFunctionDerivative(
+            IndexType IntegrationPointIndex,
+            IndexType DerivativeIndex,
+            IndexType NodeIndex,
+            IntegrationMethod ThisMethod) const
+        {
+            return mGeometryShapeFunctionContainer.ShapeFunctionDerivative(
+                IntegrationPointIndex,
+                DerivativeIndex,
+                NodeIndex,
+                ThisMethod);
+        }
 
         ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult) const
         {

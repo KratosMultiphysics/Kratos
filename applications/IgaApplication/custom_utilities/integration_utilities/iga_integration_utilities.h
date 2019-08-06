@@ -15,6 +15,8 @@
 
 #include "includes/model_part.h"
 #include "geometries/integration_point_curve_on_surface_3d.h"
+#include "geometries/integration_point_surface_3d.h"
+#include "geometries/integration_point_point_on_surface_3d.h"
 #include "geometries/coupling_master_slave.h"
 
 namespace Kratos
@@ -33,11 +35,11 @@ namespace IgaIntegrationUtilities
         ModelPart::ElementsContainerType new_element_list;
         new_element_list.reserve(rElementList.size());
 
-        for (int i = 0; i< static_cast<int>(rElementList.size()); i++) 
+        for (std::size_t i = 0; i< rElementList.size(); i++) 
         {
             auto it_elem = rElementList[i];
 
-            auto p_element = rReferenceElement.Create(rIdCounter, it_elem->pGetGeometry(), it_elem->pGetProperties());
+            auto p_element = rReferenceElement.Create(rIdCounter, it_elem->pGetGeometry(), nullptr);
 
             rIdCounter++;
 
@@ -63,11 +65,11 @@ namespace IgaIntegrationUtilities
         ModelPart::ConditionsContainerType new_condition_list;
         new_condition_list.reserve(rElementList.size());
 
-        for (int i = 0; i< static_cast<int>(rElementList.size()); i++)
+        for (std::size_t i = 0; i< rElementList.size(); i++)
         {
             auto it_elem = rElementList[i];
 
-            auto p_condition = rReferenceCondition.Create(rIdCounter, it_elem->pGetGeometry(), it_elem->pGetProperties());
+            auto p_condition = rReferenceCondition.Create(rIdCounter, it_elem->pGetGeometry(), nullptr);
 
             rIdCounter++;
 
@@ -80,6 +82,32 @@ namespace IgaIntegrationUtilities
 
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
+
+    static void CreateElements(
+        std::vector<Geometry<Node<3>>::Pointer> rGeometryList,
+        ModelPart& rModelPart,
+        std::string& rElementName,
+        int& rIdCounter)
+    {
+        const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
+
+        ModelPart::ElementsContainerType new_element_list;
+        new_element_list.reserve(rGeometryList.size());
+
+        for (int i = 0; i < static_cast<int>(rGeometryList.size()); i++)
+        {
+            auto p_element = rReferenceElement.Create(rIdCounter, rGeometryList[i], nullptr);
+
+            rIdCounter++;
+
+            rModelPart.AddNodes(rGeometryList[i]->begin(), rGeometryList[i]->end());
+
+            new_element_list.push_back(p_element);
+        }
+
+        rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
+    }
+
     static void CreateConditions(
         std::vector<Geometry<Node<3>>::Pointer> rGeometryList,
         ModelPart& rModelPart,
@@ -104,6 +132,8 @@ namespace IgaIntegrationUtilities
 
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
+
+
     static std::vector<Element::Pointer> GetIntegrationDomainGeometrySurface(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
         const TrimmedSurfaceClipping& rClipper,
@@ -123,7 +153,7 @@ namespace IgaIntegrationUtilities
 
         for (int i = 0; i < rClipper.NbSpansU(); ++i)
         {
-            for (int j = 0; j < rClipper.NbSpansU(); ++j)
+            for (int j = 0; j < rClipper.NbSpansV(); ++j)
             {
                 if (rClipper.SpanTrimType(i, j) == ANurbs::Empty)
                 {
@@ -404,6 +434,84 @@ namespace IgaIntegrationUtilities
         }
 
         return new_geometries;
+    }
+
+    static Geometry<Node<3>>::Pointer GetIntegrationPointSurfacePoint(
+        const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
+        const double U,
+        const double V,
+        int ShapeFunctionDerivativesOrder)
+    {
+        ANurbs::SurfaceShapeEvaluator<double> shape(
+            pSurface->DegreeU(),
+            pSurface->DegreeV(),
+            ShapeFunctionDerivativesOrder);
+
+        shape.Compute(
+            pSurface->KnotsU(),
+            pSurface->KnotsV(),
+            pSurface->Weights(),
+            U,
+            V);
+
+        Geometry<Node<3>>::PointsArrayType cps;
+
+        int number_of_non_zero_cps_1 = shape.NonzeroPoleIndices().size();
+
+        Matrix shape_function(1, number_of_non_zero_cps_1);
+        Matrix shape_function_derivative(number_of_non_zero_cps_1, 2);
+        //Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
+        //KRATOS_WATCH(number_of_non_zero_cps_1)
+
+        for (int n = 0; n < number_of_non_zero_cps_1; ++n)
+        {
+            int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+            int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+
+            cps.push_back(pSurface->GetNode(
+                shape.NonzeroPoleIndices()[n].first,
+                shape.NonzeroPoleIndices()[n].second));
+
+            if (ShapeFunctionDerivativesOrder > -1)
+                shape_function(0, n) = shape(0, indexU, indexV);
+            if (ShapeFunctionDerivativesOrder > 0)
+            {
+                shape_function_derivative(n, 0) = shape(1, indexU, indexV);
+                shape_function_derivative(n, 1) = shape(2, indexU, indexV);
+            }
+            //if (ShapeFunctionDerivativesOrder > 1)
+            //{
+            //    shape_function_second_derivative(n, 0) = shape_1(3, indexU, indexV);
+            //    shape_function_second_derivative(n, 1) = shape_1(5, indexU, indexV);
+            //    shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
+            //}
+        }
+
+        Geometry<Node<3>>::ShapeFunctionsGradientsType shape_function_gradients(1);
+        shape_function_gradients[0] = shape_function_derivative;
+
+        Geometry<Node<3>>::IntegrationPointsArrayType ips(1);
+        ips[0] = IntegrationPointPointOnSurface3d<Node<3>>::IntegrationPointType(
+            U,
+            V,
+            1.0);
+
+        IntegrationPointPointOnSurface3d<Node<3>>::IntegrationPointsContainerType IntegrationPointsArray =
+        { { ips } };
+        IntegrationPointPointOnSurface3d<Node<3>>::ShapeFunctionsValuesContainerType sfcontainer =
+        { { shape_function } };
+        IntegrationPointPointOnSurface3d<Node<3>>::ShapeFunctionsLocalGradientsContainerType sfgcontainer =
+        { { shape_function_gradients } };
+
+
+        Geometry<Node<3>>::Pointer intgeration_point_point =
+            Kratos::make_shared<IntegrationPointPointOnSurface3d<Node<3>>>(
+            cps,
+            IntegrationPointsArray,
+            sfcontainer,
+            sfgcontainer);
+
+        return intgeration_point_point;
     }
 
     static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainSurfaceEdgeSurfaceEdge(

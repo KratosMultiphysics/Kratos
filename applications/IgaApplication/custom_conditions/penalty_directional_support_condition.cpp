@@ -15,14 +15,14 @@
 // System includes
 
 // External includes
-#include "custom_conditions/penalty_support_condition.h"
+#include "custom_conditions/penalty_directional_support_condition.h"
 
 // Project includes
 
 namespace Kratos
 {
 
-    void PenaltySupportCondition::CalculateAll(
+    void PenaltyDirectionalSupportCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -31,7 +31,7 @@ namespace Kratos
     {
         KRATOS_TRY
         const double penalty = GetProperties()[PENALTY_FACTOR];
-        const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
+        array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
 
         const auto& r_geometry = GetGeometry();
         const int number_of_nodes = r_geometry.size();
@@ -40,7 +40,7 @@ namespace Kratos
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
-            if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+            if (rLeftHandSideMatrix.size1() != mat_size) {
                 rLeftHandSideMatrix.resize(mat_size, mat_size, false);
             }
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
@@ -52,24 +52,27 @@ namespace Kratos
             rRightHandSideVector = ZeroVector(mat_size);
         }
 
+
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+            array_1d<double, 3> direction_fixed(0.0);
+            r_geometry.Normal(direction_fixed, point_number);
+            Vector direction_fixed_vector = -direction_fixed / norm_2(direction_fixed);
 
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
                 int index = 3 * i;
-                if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = r_N(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = r_N(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = r_N(point_number, i);
+                H(0, index) = r_N(point_number, i);
+                H(1, index + 1) = r_N(point_number, i);
+                H(2, index + 2) = r_N(point_number, i);
             }
+
+            Vector H_rotated = prod(direction_fixed_vector, H);
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
@@ -77,22 +80,27 @@ namespace Kratos
 
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H)
+                noalias(rLeftHandSideMatrix) += outer_prod(trans(H_rotated), H_rotated)
                     * integration_weight * determinat_jacobian * penalty;
             }
             if (CalculateResidualVectorFlag) {
+
+                if (displacement[0] > 0)
+                {
+                    //displacement = direction_fixed_vector * displacement[0];
+                }
 
                 Vector u(mat_size);
                 for (unsigned int i = 0; i < number_of_nodes; i++)
                 {
                     const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                     int index = 3 * i;
-                    u[index]     = disp[0] - displacement[0];
-                    u[index + 1] = disp[1] - displacement[1];
-                    u[index + 2] = disp[2] - displacement[2];
+                    u[index] = disp[0] - displacement[0];
+                    u[index + 1] = disp[1] * direction_fixed[1] - displacement[1];
+                    u[index + 2] = disp[2] * direction_fixed[2] - displacement[2];
                 }
 
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
+                noalias(rRightHandSideVector) -= prod(outer_prod(trans(H_rotated), H_rotated), u)
                     * integration_weight * determinat_jacobian * penalty;
             }
         }
@@ -100,7 +108,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void PenaltySupportCondition::EquationIdVector(
+    void PenaltyDirectionalSupportCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo)
     {
@@ -123,12 +131,11 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void PenaltySupportCondition::GetDofList(
+    void PenaltyDirectionalSupportCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-
 
         const auto& r_geometry = GetGeometry();
         const int number_of_nodes = r_geometry.size();
