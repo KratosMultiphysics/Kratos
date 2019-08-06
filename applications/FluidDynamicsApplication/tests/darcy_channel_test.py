@@ -14,46 +14,6 @@ class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
     def __init__(self, model, settings):
         super(TwoFluidNoRedistanceSolver,self).__init__(model,settings)
 
-    def PrepareModelPart(self):
-        if not self.main_model_part.ProcessInfo[IS_RESTARTED]:
-            ## Executes the check and prepare model process
-            self._ExecuteCheckAndPrepare()
-            ## Set buffer size
-            self.main_model_part.SetBufferSize(self.min_buffer_size)
-            ## Set the nodal fluid properties
-            self._SetNodalProperties()
-
-        Logger.PrintInfo("TwoFluidNoRedistanceSolver", "Model reading finished.")
-
-    def _SetNodalProperties(self):
-        # Get fluid 1 and 2 properties
-        properties_1 = self.main_model_part.Properties[1]
-        properties_2 = self.main_model_part.Properties[2]
-
-        rho_1 = properties_1.GetValue(DENSITY)
-        rho_2 = properties_2.GetValue(DENSITY)
-        mu_1 = properties_1.GetValue(DYNAMIC_VISCOSITY)
-        mu_2 = properties_2.GetValue(DYNAMIC_VISCOSITY)
-
-        # Check fluid 1 and 2 properties
-        if rho_1 <= 0.0:
-            raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho_1, properties_1.Id))
-        if rho_2 <= 0.0:
-            raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho_2, properties_2.Id))
-        if mu_1 <= 0.0:
-            raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(mu_1, properties_1.Id))
-        if mu_2 <= 0.0:
-            raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(mu_2, properties_2.Id))
-
-        # Transfer density and (dynamic) viscostity to the nodes
-        for node in self.main_model_part.Nodes:
-            if node.GetSolutionStepValue(DISTANCE) <= 0.0:
-                node.SetSolutionStepValue(DENSITY, rho_1)
-                node.SetSolutionStepValue(VISCOSITY, mu_1 / rho_1)
-            else:
-                node.SetSolutionStepValue(DENSITY, rho_2)
-                node.SetSolutionStepValue(VISCOSITY, mu_2 / rho_2)
-
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
@@ -113,8 +73,6 @@ class DarcyChannelTest(UnitTest.TestCase):
             if self.do_check:
                 self.checkResults()
 
-    def testDarcyLinear(self):
-        self.u0 = 2.0
         self.linear_darcy_coefficient = 1.0
         self.nonlinear_darcy_coefficient = 0.0
         self.runDarcyChannelTest()
@@ -257,7 +215,6 @@ class DarcyChannelTest(UnitTest.TestCase):
     def setUpSolver(self):
 
         self.fluid_solver.AddVariables()
-        self.fluid_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         self.fluid_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
 
         self.fluid_solver.ImportModelPart()
@@ -288,6 +245,8 @@ class DarcyChannelTest(UnitTest.TestCase):
             elif node.X == self.xmax:
                 node.Fix(VELOCITY_Y)
                 node.Fix(VELOCITY_Z)
+                node.Fix(PRESSURE)
+                node.SetSolutionStepValue(PRESSURE, 0, 0.0)
             else:
                 if node.Y == self.ymin or node.Y == self.ymax:
                     node.Fix(VELOCITY_Y)
