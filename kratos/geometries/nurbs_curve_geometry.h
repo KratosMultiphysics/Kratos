@@ -53,6 +53,8 @@ public:
         geometry's points.*/
     typedef  typename BaseType::PointsArrayType PointsArrayType;
 
+    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+
     /// Counted pointer of NurbsSurfaceShapeFunction
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsCurveGeometry);
     ///@}
@@ -69,7 +71,7 @@ public:
         , mKnots(rKnots)
         , mIsRational(false)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNbKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
     }
 
