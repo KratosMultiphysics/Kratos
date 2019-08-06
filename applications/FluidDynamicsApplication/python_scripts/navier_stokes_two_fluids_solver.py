@@ -35,7 +35,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "reorder": false
             },
             "material_import_settings": {
-                materials_filename: ""
+                "materials_filename": ""
             },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
@@ -81,6 +81,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
+        self.element_has_nodal_properties = True
 
         self.min_buffer_size = 3
 
@@ -115,13 +116,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
-        # Call the base solver PrepareModelPart()
-        super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
-
-        # Set the extra requirements of the two-fluids formulation
+        # Initialize the level-set function
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Setting the nodal distance
             self._set_distance_function()
+
+        # Call the base solver PrepareModelPart()
+        super(NavierStokesTwoFluidsSolver, self).PrepareModelPart()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
@@ -202,7 +203,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.variational_distance_process).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
-            self._SetPhysicalProperties()
+            self._SetNodalProperties()
 
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()
@@ -212,7 +213,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.solver).FinalizeSolutionStep()
             (self.accelerationLimitationUtility).Execute()
 
-    def _SetPhysicalProperties(self):
+    def _SetNodalProperties(self):
         # Get fluid 1 and 2 properties
         properties_1 = self.main_model_part.Properties[1]
         properties_2 = self.main_model_part.Properties[2]
@@ -222,6 +223,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         mu_1 = properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
         mu_2 = properties_2.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
 
+        # Check fluid 1 and 2 properties
         if rho_1 <= 0.0:
             raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho_1, properties_1.Id))
         if rho_2 <= 0.0:
@@ -239,13 +241,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, rho_2)
                 node.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY, mu_2)
-
-    def _set_constitutive_law(self):
-        # Construct the two fluids constitutive law
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.NewtonianTwoFluid3DLaw()
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.NewtonianTwoFluid2DLaw()
 
     def _set_distance_function(self):
         ## Set the nodal distance function
