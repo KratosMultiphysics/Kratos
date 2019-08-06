@@ -1,7 +1,7 @@
 {
     "solver_settings" : {
-        "solver_type"                   : "two_fluids_solver_from_defaults",
-        "model_part_name"               : "Fluid",
+        "solver_type"                   : "TwoFluidNoRedistanceSolver",
+        "model_part_name"               : "FluidModelPart",
         "domain_size"                   : 3,
         "model_import_settings"       : {
             "input_type"     : "mdpa",
