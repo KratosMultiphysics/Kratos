@@ -40,6 +40,10 @@ public:
 
     /// Pointer definition of MpiConstraintsUtility
     KRATOS_CLASS_POINTER_DEFINITION(MpiConstraintsUtility);
+    typedef typename ModelPart::DofType DofType;
+    typedef typename MasterSlaveConstraint::DofPointerVectorType DofPointerVectorType;
+    typedef typename MasterSlaveConstraint::DofGlobalPointerType DofGlobalPointerType;
+    typedef typename MasterSlaveConstraint::DofGlobalPointerVectorType DofGlobalPointerVectorType;
     typedef typename ModelPart::NodeType NodeType;
     typedef typename ModelPart::NodesContainerType NodesContainerType;
     typedef GlobalPointer<NodeType> GlobalPointerNodeType;
@@ -72,9 +76,10 @@ public:
                         const double Weight,
                         const double Constant)
     {
-        mMasterSlaveDetailsVector.push_back(
-            Kratos::make_unique<MasterSlaveDetails>(rVariable, ConstraintId, SlaveNodeId, MasterNodeId, Weight, Constant)
-            );
+        if(mrModelPart.GetCommunicator().LocalMesh().HasNode(SlaveNodeId))
+            mMasterSlaveDetailsVector.push_back(
+                Kratos::make_shared<MasterSlaveDetails<TVariableType>>(rVariable, ConstraintId, SlaveNodeId, MasterNodeId, Weight, Constant)
+                );
     }
 
 
@@ -127,6 +132,7 @@ private:
         virtual IndexType MasterNodeId(){return mMasterNodeId;}
         virtual double Constant(){return mConstant;}
         virtual double Weight(){return mWeight;}
+        virtual IndexType GetVariableKey()=0;
     private:
         IndexType mId;
         IndexType mSlaveNodeId;
@@ -140,20 +146,21 @@ private:
     class MasterSlaveDetails : public BaseMasterSlaveDetails
     {
     public:
+        typedef TVariableType VaribleType;
         MasterSlaveDetails(TVariableType& rVariable, IndexType ConstraintId, IndexType SlaveNodeId, IndexType  MasterNodeId, IndexType Weight, IndexType Constant) 
-        : mrVariable(rVariable),
-          BaseMasterSlaveDetails(ConstraintId,SlaveNodeId,MasterNodeId,Weight,Constant)
+        :BaseMasterSlaveDetails(ConstraintId,SlaveNodeId,MasterNodeId,Weight,Constant), mrVariable(rVariable)
         {
-
         }
+
+        IndexType GetVariableKey() override {return mrVariable.Key();}
 
         TVariableType& mrVariable;
     };
 
-    //std::vector<MasterSlaveDetails> mMasterSlaveDetailsVector;
-    std::vector<Kratos::unique_ptr<BaseMasterSlaveDetails>> mMasterSlaveDetailsVector;
+    std::vector<Kratos::shared_ptr<BaseMasterSlaveDetails>> mMasterSlaveDetailsVector;
     std::vector<int> mNodeIdsToSync;
     ModelPart& mrModelPart;
+    DofPointerVectorType mDofPointersVector;
 
     ///@}
     ///@name private operations
@@ -174,6 +181,10 @@ private:
 
     void CreateConstraints()
     {
+        typedef std::pair<IndexType, IndexType> DofIdVarKeyPairType;
+        typedef GlobalPointer<DofIdVarKeyPairType> GlobalPointerDofIdVarKeyPairType;
+        typedef GlobalPointersVector<DofIdVarKeyPairType> GlobalPointerVectorDofIdVarKeyPairType;
+        GlobalPointerVectorDofIdVarKeyPairType global_ptrs_vectors_dof_id_key;
         auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
         IndexType current_rank = r_data_communicator.Rank();
         IndexType comm_size = r_data_communicator.Size();
@@ -191,27 +202,33 @@ private:
 
         GlobalPointerCommunicator<Node<3>> pointer_comm(r_data_communicator, vector_of_node_global_pointers);
         auto result_proxy = pointer_comm.Apply(
-                [](GlobalPointer<Node<3>>& gp){return gp->GetDofs();}
+                [](GlobalPointer<Node<3>>& gp){
+                    std::vector<DofIdVarKeyPairType> vec_to_return;
+                    for(const auto& dof : gp->GetDofs())
+                        vec_to_return.push_back( std::make_pair(dof.Id(), dof.GetVariable().Key()) );
+                    return vec_to_return;
+                    }
         );
 
         for(const auto& constraint_info : mMasterSlaveDetailsVector)
         {
             const auto& r_slave_node_id = constraint_info->SlaveNodeId();
             const auto& r_master_node_id = constraint_info->MasterNodeId();
-            auto slave_node_dofs = result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
-            // for(const auto dof : slave_node_dofs )
-            // {
-            //     if(dof.GetVariable() == constraint_info.mrVariable)
-            //         slave_dof_vector.push_back(dof);
-            // }
-            // auto master_node_dofs = result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
-            // for(const auto dof : master_node_dofs )
-            // {
-            //         master_dof_vector.push_back(dof);
-            // }
+            auto slave_dof_id_var_key_pairs = result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
+            auto master_dof_id_var_key_pairs = result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
+
+            auto slave_pair = std::find(std::begin(slave_dof_id_var_key_pairs), std::end(slave_dof_id_var_key_pairs),
+                                        std::make_pair(r_slave_node_id, constraint_info->GetVariableKey()));
+            global_ptrs_vectors_dof_id_key.push_back(Kratos::make_shared<std::pair<IndexType, IndexType>>(*slave_pair));
+
+
             relation_matrix(0,0) = constraint_info->Weight();
             constant_vector(0) = constraint_info->Constant();
         }
+
+
+        auto remote_dofs_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(global_ptrs_vectors_dof_id_key, mNodeIdsToSync, r_data_communicator);
+        // std::cout<<"my rank :: "<<current_rank<<"  size :: "<<mMasterSlaveDetailsVector.size()<<std::endl;
     }
 
 
