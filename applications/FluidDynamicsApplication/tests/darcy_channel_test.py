@@ -73,6 +73,8 @@ class DarcyChannelTest(UnitTest.TestCase):
             if self.do_check:
                 self.checkResults()
 
+    def testDarcyLinear(self):
+        self.u0 = 2.0
         self.linear_darcy_coefficient = 1.0
         self.nonlinear_darcy_coefficient = 0.0
         self.runDarcyChannelTest()
@@ -245,8 +247,6 @@ class DarcyChannelTest(UnitTest.TestCase):
             elif node.X == self.xmax:
                 node.Fix(VELOCITY_Y)
                 node.Fix(VELOCITY_Z)
-                node.Fix(PRESSURE)
-                node.SetSolutionStepValue(PRESSURE, 0, 0.0)
             else:
                 if node.Y == self.ymin or node.Y == self.ymax:
                     node.Fix(VELOCITY_Y)
