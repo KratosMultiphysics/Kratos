@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_processes/build_model_part_boundary_process.hpp"
+#include <boost/timer.hpp>
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set)

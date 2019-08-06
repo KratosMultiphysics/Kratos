@@ -211,9 +211,20 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override
     {
         mpMapperProcess->Execute();
+    }
+
+    /**
+     * @details This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override
+    {
+        mpMapperProcess->ExecuteInitializeSolutionStep();
     }
 
     ///@}

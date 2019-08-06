@@ -1019,7 +1019,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
     KRATOS_ERROR_IF(MMG2D_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
 
-    if (mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -1035,6 +1035,14 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
                 element_nodes[1] = rModelPart.pGetNode(vertex_1);
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
                 p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+
+                // Setting inside flag
+                if (Ref == 2) {
+                    p_element->Set(INSIDE, true);
+                } else if (Ref == 3) {
+                    p_element->Set(INSIDE, false);
+                    if (mRemoveRegions) p_element->Set(TO_ERASE, true);
+                }
             }
         }
     } else {
@@ -1044,14 +1052,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[Ref].get() == nullptr) {
-            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-                KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
-                return p_element;
-            } else {
-                p_prop = rModelPart.pGetProperties(0);
-                PointerVector<NodeType> dummy_nodes (3);
-                p_base_element = KratosComponents<Element>::Get("Element2D3N").Create(0, dummy_nodes, p_prop);
-            }
+            KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+            return p_element;
         } else {
             p_base_element = rMapPointersRefElement[Ref];
             p_prop = p_base_element->pGetProperties();
@@ -1095,7 +1097,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
     KRATOS_ERROR_IF(MMG3D_Get_tetrahedron(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
 
-    if (mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -1112,6 +1114,14 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
                 element_nodes[3] = rModelPart.pGetNode(vertex_3);
                 p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
+
+                // Setting inside flag
+                if (Ref == 2) {
+                    p_element->Set(INSIDE, true);
+                } else if (Ref == 3) {
+                    p_element->Set(INSIDE, false);
+                    if (mRemoveRegions) p_element->Set(TO_ERASE, true);
+                }
             }
         }
     } else {
@@ -1121,14 +1131,8 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[Ref].get() == nullptr) {
-            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-                KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
-                return p_element;
-            } else {
-                p_prop = rModelPart.pGetProperties(0);
-                PointerVector<NodeType> dummy_nodes (4);
-                p_base_element = KratosComponents<Element>::Get("Element3D4N").Create(0, dummy_nodes, p_prop);
-            }
+            KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+            return p_element;
         } else {
             p_base_element = rMapPointersRefElement[Ref];
             p_prop = p_base_element->pGetProperties();
@@ -2839,6 +2843,128 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
     model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
+    // The ISOSURFACE has some reserved Ids. We reassign
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // Create auxiliar model part
+        if (!rModelPart.HasSubModelPart("SKIN_ISOSURFACE")) {
+            rModelPart.CreateSubModelPart("SKIN_ISOSURFACE");
+        }
+
+        // Do some checks
+        bool id_2_exists = false;
+        bool id_3_exists = false;
+        bool id_10_exists = false;
+        IndexType max_index = 0;
+        for (auto& r_color : rColors) {
+            const IndexType index = r_color.first;
+            if (index == 2) {
+                id_2_exists = true;
+            } else if (index == 3) {
+                id_3_exists = true;
+            } else if (index == 10) {
+                id_10_exists = true;
+            }
+            if (index > max_index)
+                max_index = index;
+        }
+
+        // Identify the submodelparts with elements
+        std::unordered_set<std::string> auxiliar_set_elements;
+        // We build a set for all the model parts containing elements
+        for (auto& r_elem_color : elem_colors) {
+            const IndexType color = r_elem_color.second;
+            const auto& r_sub_model_parts_names = rColors[color];
+            auxiliar_set_elements.insert(r_sub_model_parts_names.begin(), r_sub_model_parts_names.end());
+        }
+        std::vector<std::string> auxiliar_vector_elements(auxiliar_set_elements.size());
+        std::copy(auxiliar_set_elements.begin(), auxiliar_set_elements.end(), std::back_inserter(auxiliar_vector_elements));
+
+        // Move the map to the end
+        if (id_2_exists) {
+            // New group
+            rColors.insert(IndexStringVectorPairType(max_index + 1, rColors[2]));
+            rColors.erase(2);
+
+            // Reassign
+            for (auto& r_nodes_color : nodes_colors) {
+                IndexType& r_color = r_nodes_color.second;
+                if (r_color == 2) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_cond_color : cond_colors) {
+                IndexType& r_color = r_cond_color.second;
+                if (r_color == 2) {
+                    r_color = max_index + 1;
+                }
+            }
+            for (auto& r_elem_color : elem_colors) {
+                IndexType& r_color = r_elem_color.second;
+                if (r_color == 2) {
+                    r_color = max_index + 1;
+                }
+            }
+
+        }
+        if (id_3_exists) {
+            // New group
+            rColors.insert(IndexStringVectorPairType(max_index + 2, rColors[3]));
+            rColors.erase(3);
+
+            // Reassign
+            for (auto& r_nodes_color : nodes_colors) {
+                IndexType& r_color = r_nodes_color.second;
+                if (r_color == 3) {
+                    r_color = max_index + 2;
+                }
+            }
+            for (auto& r_cond_color : cond_colors) {
+                IndexType& r_color = r_cond_color.second;
+                if (r_color == 3) {
+                    r_color = max_index + 2;
+                }
+            }
+            for (auto& r_elem_color : elem_colors) {
+                IndexType& r_color = r_elem_color.second;
+                if (r_color == 3) {
+                    r_color = max_index + 2;
+                }
+            }
+
+        }
+        if (id_10_exists) {
+            // New group
+            rColors.insert(IndexStringVectorPairType(max_index + 3, rColors[10]));
+            rColors.erase(10);
+
+            // Reassign
+            for (auto& r_nodes_color : nodes_colors) {
+                IndexType& r_color = r_nodes_color.second;
+                if (r_color == 10) {
+                    r_color = max_index + 3;
+                }
+            }
+            for (auto& r_cond_color : cond_colors) {
+                IndexType& r_color = r_cond_color.second;
+                if (r_color == 10) {
+                    r_color = max_index + 3;
+                }
+            }
+            for (auto& r_elem_color : elem_colors) {
+                IndexType& r_color = r_elem_color.second;
+                if (r_color == 10) {
+                    r_color = max_index + 3;
+                }
+            }
+        }
+
+        // Fill the model parts
+        rColors.insert(IndexStringVectorPairType(2, auxiliar_vector_elements));
+        rColors.insert(IndexStringVectorPairType(3, auxiliar_vector_elements));
+        std::vector<std::string> auxiliar_name_vector (1, "SKIN_ISOSURFACE");
+        rColors.insert(IndexStringVectorPairType(10, auxiliar_name_vector));
+    }
+
     /* Nodes */
     #pragma omp parallel for firstprivate(nodes_colors)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -2944,6 +3070,17 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     for (auto& ref_elem : rColorMapElement) {
         Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
         rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+    }
+
+    // The ISOSURFACE has some reserved Ids. We reassign
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // Boundary conditions
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
+        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
+
+        // Inside outside elements
+        rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
+        rRefElement[3] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
     }
 }
 
@@ -3124,7 +3261,24 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
                 if (first_color_elem.find(key) != first_color_elem.end()) r_sub_model_part.AddElements(first_color_elem[key]);
                 if (second_color_elem.find(key) != second_color_elem.end()) r_sub_model_part.AddElements(second_color_elem[key]);
             }
+        } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            if (rModelPart.HasSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART")) {
+                auto& r_sub_model_part = rModelPart.GetSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART");
+                r_sub_model_part.AddConditions(first_color_cond[0]);
+                r_sub_model_part.AddConditions(second_color_cond[0]);
+            } else {
+                if (first_color_cond[0].size() + second_color_cond[0].size() > 0) {
+                auto& r_sub_model_part = rModelPart.CreateSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART");
+                    r_sub_model_part.AddConditions(first_color_cond[0]);
+                    r_sub_model_part.AddConditions(second_color_cond[0]);
+                }
+            }
         }
+    }
+
+    // In case of need to remove regions we remove the unused elements
+    if (mRemoveRegions) {
+        rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     }
 
     // TODO: Add OMP

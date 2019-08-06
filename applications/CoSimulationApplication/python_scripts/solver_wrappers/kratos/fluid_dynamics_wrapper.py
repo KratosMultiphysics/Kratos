@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Importing the base class
-from . import kratos_base_wrapper
+from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
 # Importing FluidDynamics
 if not CheckIfApplicationsAvailable("FluidDynamicsApplication"):

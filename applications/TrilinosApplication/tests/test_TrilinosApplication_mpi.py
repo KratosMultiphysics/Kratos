@@ -36,7 +36,7 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # Create a test suite with the selected tests (Small tests):
-    smallSuite = suites['small']
+    smallSuite = suites['mpi_small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_linear_solvers.TestLinearSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_communicator.TestMPICommunicator]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_matrix.TestTrilinosMatrix]))
@@ -49,11 +49,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_elemental_neighbours.TestNodalElementalNeighbours]))
 
     # Create a test suite with the selected tests plus all small tests
-    nightSuite = suites['nightly']
+    nightSuite = suites['mpi_nightly']
     nightSuite.addTests(smallSuite)
 
     # Create a test suite that contains all the tests:
-    allSuite = suites['all']
+    allSuite = suites['mpi_all']
     allSuite.addTests(nightSuite) # already contains the smallSuite
 
     return suites
