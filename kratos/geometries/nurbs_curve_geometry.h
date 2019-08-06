@@ -16,16 +16,23 @@
 #if !defined(KRATOS_NURBS_CURVE_GEOMETRY_H_INCLUDED )
 #define  KRATOS_NURBS_CURVE_GEOMETRY_H_INCLUDED
 
+// System includes
+#include <stdexcept>
+#include <vector>
+
+#include "includes/ublas_interface.h"
+
+// External includes
+
 // Project includes
 #include "geometries/geometry.h"
 
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
-#include "includes/ublas_interface.h"
+
 #include "containers/array_1d.h"
 
-#include <stdexcept>
-#include <vector>
+
 
 namespace Kratos {
 
@@ -120,37 +127,55 @@ public:
     ///@name Get and Set functions
     ///@{
 
+    /* Checks if shape functions are rational or not.
+    @return true if NURBS, false if B-Splines only (all weights are considered as 1)
+    */
     bool IsRational() const
     {
         return mWeights.size() != 0;
     }
 
+    /* Get Knot vector. This vector is defined to have a multiplicity of p
+    at the beginning and end (NOT: p + 1).
+    @return knot vector.
+    */
     const Vector& Knots() const
     {
         return mKnots;
     }
 
-    int NumberOfKnots() const
+    /* @return Gives the size of the knot vector.
+    */
+    SizeType NumberOfKnots() const
     {
-        return static_cast<int>(mKnots.size());
+        return mKnots.size();
     }
 
+    /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
+    @return weights vector.
+    */
     const Vector& Weights() const
     {
         return mWeights;
     }
 
+    /* Provides the natural boundaries of the NURBS/B-Spline curve.
+    @return domain interval.
+    */
     Interval DomainInterval() const
     {
         return Interval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
     }
 
+    /* Provides all knot span intervals of the curve.
+    @return vector of knot span intervals.
+    */
     std::vector<Interval> KnotSpanIntervals() const
     {
-        const int first_span = mPolynomialDegree - 1;
-        const int last_span = NumberOfKnots() - mPolynomialDegree - 1;
+        const SizeType first_span = mPolynomialDegree - 1;
+        const SizeType last_span = NumberOfKnots() - mPolynomialDegree - 1;
 
-        const int number_of_spans = last_span - first_span + 1;
+        const SizeType number_of_spans = last_span - first_span + 1;
 
         std::vector<Interval> result(number_of_spans);
 
@@ -168,8 +193,8 @@ public:
     ///@name Operations
     ///@{
 
-    /** This method maps from dimension space to working space and computes the
-    * number of derivatives at the dimension parameter.
+    /** This method maps from local space to working space and computes the
+    * number of derivatives at the local space parameter in the dimension of the object.
     * @param LocalCoordinates The local coordinates in dimension space
     * @param Derivative Number of computed derivatives
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space

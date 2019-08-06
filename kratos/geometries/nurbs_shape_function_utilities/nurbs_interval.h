@@ -15,9 +15,14 @@
 #if !defined(KRATOS_NURBS_INTERVAL_H_INCLUDED )
 #define  KRATOS_NURBS_INTERVAL_H_INCLUDED
 
+// System includes
 #include <algorithm>
 #include <limits>
 #include <sstream>
+
+// External includes
+
+// Project includes
 
 namespace Kratos
 {
@@ -28,20 +33,20 @@ public:
     ///@name Life Cycle
     ///@{
     Interval()
-        : m_t0(std::numeric_limits<double>::quiet_NaN())
-        , m_t1(std::numeric_limits<double>::quiet_NaN())
+        : mT0(std::numeric_limits<double>::quiet_NaN())
+        , mT1(std::numeric_limits<double>::quiet_NaN())
     {
     }
 
     Interval(const double T0, const double T1)
-        : m_t0(T0)
-        , m_t1(T1)
+        : mT0(T0)
+        , mT1(T1)
     {
     }
 
     Interval(const std::pair<double, double> Bounds)
-        : m_t0(Bounds.first)
-        , m_t1(Bounds.second)
+        : mT0(Bounds.first)
+        , mT1(Bounds.second)
     {
     }
 
@@ -51,37 +56,37 @@ public:
 
     double GetT0() const
     {
-        return m_t0;
+        return mT0;
     }
 
     void SetT0(const double Value)
     {
-        m_t0 = Value;
+        mT0 = Value;
     }
 
     double GetT1() const
     {
-        return m_t1;
+        return mT1;
     }
 
     void SetT1(const double Value)
     {
-        m_t1 = Value;
+        mT1 = Value;
     }
 
     double MinParameter() const
     {
-        return std::min(m_t0, m_t1);
+        return std::min(mT0, mT1);
     }
 
     double MaxParameter() const
     {
-        return std::max(m_t0, m_t1);
+        return std::max(mT0, mT1);
     }
 
     double GetDelta() const
     {
-        return m_t1 - m_t0;
+        return mT1 - mT0;
     }
 
     double GetLength() const
@@ -95,12 +100,12 @@ public:
 
     double GetNormalizedAt(const double Parameter) const
     {
-        return (Parameter - m_t0) / GetLength();
+        return (Parameter - mT0) / GetLength();
     }
 
     double GetParameterAtNormalized(const double Parameter) const
     {
-        return m_t0 + GetDelta() * Parameter;
+        return mT0 + GetDelta() * Parameter;
     }
 
     static double GetParameterAtNormalized(const double A, const double B,
@@ -119,7 +124,7 @@ public:
 
     Interval GetNormalizedInterval(const Interval Bounds) const
     {
-        return GetNormalizedInterval(Bounds.m_t0, Bounds.m_t1);
+        return GetNormalizedInterval(Bounds.mT0, Bounds.mT1);
     }
 
     ///@}
@@ -148,8 +153,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_t0;
-    double m_t1;
+    double mT0;
+    double mT1;
 
     ///@}
 }; // Interval

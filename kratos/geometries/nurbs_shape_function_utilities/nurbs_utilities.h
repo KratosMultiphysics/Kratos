@@ -15,7 +15,12 @@
 #if !defined(KRATOS_NURBS_UTILITY_H_INCLUDED )
 #define  KRATOS_NURBS_UTILITY_H_INCLUDED
 
+// System includes
 #include <algorithm>
+
+// External includes
+
+// Project includes
 
 namespace Kratos {
 
@@ -28,33 +33,40 @@ namespace Kratos {
 class NurbsUtilities
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
+    typedef typename BaseType::IndexType IndexType;
+    typedef typename BaseType::SizeType SizeType;
+
+    ///@}
     ///@name Static Operations
     ///@{
 
-    static int GetUpperSpan(
-        const int PolynomialDegree,
+    static IndexType GetUpperSpan(
+        const SizeType PolynomialDegree,
         const Vector& rKnots,
         const double ParameterT)
     {
-        auto span = std::upper_bound(std::begin(rKnots) + PolynomialDegree,
+        const auto span = std::upper_bound(std::begin(rKnots) + PolynomialDegree,
             std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
-        return static_cast<int>(span);
+        return span;
     }
 
-    static int GetLowerSpan(
-        const int PolynomialDegree,
+    static IndexType GetLowerSpan(
+        const SizeType PolynomialDegree,
         const Vector& rKnots,
         const double ParameterT)
     {
-        auto span = std::lower_bound(std::begin(rKnots) + PolynomialDegree,
+        const auto span = std::lower_bound(std::begin(rKnots) + PolynomialDegree,
             std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
-        return static_cast<int>(span);
+        return span;
     }
 
     /* Computes the degree of a nurbs/ b-spline shape by:
     @param NumberOfKnots and
     @param NumberOfControlPoints*/
-    static int GetPolynomialDegree(const int NumberOfKnots, const int NumberOfControlPoints)
+    static SizeType GetPolynomialDegree(const SizeType NumberOfKnots, const SizeType NumberOfControlPoints)
     {
         return NumberOfKnots - NumberOfControlPoints + 1;
     }
@@ -62,7 +74,7 @@ public:
     /* Computes the number of knots of a nurbs/ b-spline shape by:
     @param PolynomialDegree and
     @param NumberOfControlPoints*/
-    static int GetNumberOfKnots(const int PolynomialDegree, const int NumberOfControlPoints)
+    static SizeType GetNumberOfKnots(const SizeType PolynomialDegree, const SizeType NumberOfControlPoints)
     {
         return NumberOfControlPoints + PolynomialDegree - 1;
     }
@@ -70,7 +82,7 @@ public:
     /* Computes the number of control points of a nurbs/ b-spline shape by:
     @param PolynomialDegree and
     @param NumberOfKnots*/
-    static int GetNumberOfControlPoints(const int PolynomialDegree, const int NumberOfKnots)
+    static SizeType GetNumberOfControlPoints(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
     {
         return NumberOfKnots - PolynomialDegree + 1;
     }
@@ -78,13 +90,13 @@ public:
     /* Computes the number of spans of a nurbs/ b-spline shape by:
     @param PolynomialDegree and
     @param NumberOfKnots*/
-    static int GetNumberOfSpans(const int PolynomialDegree, const int NumberOfKnots)
+    static SizeType GetNumberOfSpans(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
     {
         return NumberOfKnots - 2 * PolynomialDegree + 1;
     }
 
     /* Computes the binomial coefficient for (N || K).*/
-    static constexpr inline int GetBinomCoefficient(const int N, const int K) noexcept
+    static constexpr inline SizeType GetBinomCoefficient(const SizeType N, const SizeType K) noexcept
     {
         // clang-format off
         return
@@ -99,21 +111,21 @@ public:
 
 
     /* Computes the vector index from the matrix indicies*/
-    static constexpr inline int GetVectorIndexFromMatrixIndices(
-        const int Rows, const int Columns,
-        const int Row, const int Column) noexcept
+    static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
+        const SizeType Rows, const SizeType Columns,
+        const IndexType Row, const IndexType Column) noexcept
     {
         return Row * Columns + Column;
     }
 
     /* Computes the matrix indices from the vector index*/
-    static inline std::pair<int, int> GetMatrixIndicesFromVectorIndex(
-        const int Rows,
-        const int Columns,
-        const int Index) noexcept
+    static inline std::pair<IndexType, IndexType> GetMatrixIndicesFromVectorIndex(
+        const SizeType Rows,
+        const SizeType Columns,
+        const IndexType Index) noexcept
     {
-        const int row = Index / Columns;
-        const int col = Index % Columns;
+        const IndexType row = Index / Columns;
+        const IndexType col = Index % Columns;
 
         return std::make_pair(row, col);
     }
