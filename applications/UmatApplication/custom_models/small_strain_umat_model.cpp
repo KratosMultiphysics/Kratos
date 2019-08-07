@@ -104,6 +104,7 @@ namespace Kratos
 
          if ( mStressVectorFinalized.size() != 6) {
             mStressVectorFinalized.clear();
+            mStressVectorFinalized = ZeroVector(6);
             mStressVectorFinalized[0] = -2.0;
             mStressVectorFinalized[1] = -2.0;
             mStressVectorFinalized[2] = -2.0;
@@ -389,6 +390,7 @@ namespace Kratos
       if ( rVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS) 
       {
             mStressVectorFinalized.clear();
+            mStressVectorFinalized = ZeroVector(6);
             mStressVectorFinalized[0] = rValue[0];
             mStressVectorFinalized[1] = rValue[1];
             mStressVectorFinalized[2] = rValue[2];

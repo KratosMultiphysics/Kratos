@@ -128,20 +128,23 @@ namespace Kratos
       int material_number = this->GetConstitutiveEquationNumber();
 
 
-      double PreviousMeanStress = 0;
-      for (unsigned int i = 0; i < 3; i++)
-         PreviousMeanStress += this->mStressVectorFinalized[i]/3.0;
-
       bool DoingCorrection = false;
-      if (PreviousMeanStress > -2.5)
-         DoingCorrection = true;
+      if (this->mInitializedModel) {
+         double PreviousMeanStress = 0;
+         for (unsigned int i = 0; i < 3; i++)
+            PreviousMeanStress += this->mStressVectorFinalized[i]/3.0;
 
+         if (PreviousMeanStress > -2.5)
+            DoingCorrection = true;
+      }
+
+      DoingCorrection = false;
       if ( DoingCorrection == false) {
 
-      umat_wrapper_( pStressVector, pStateVariables, (double**) pConstitutiveMatrix, NULL, &SPD,
-            NULL, NULL, NULL, NULL, NULL, pStrain, pDeltaStrain,
-            pTime, &delta_time, NULL, NULL, NULL, NULL, NULL, &ndi, &nshr, &ntens, &number_state_variables, pPropertiesVector, &number_properties,
-            NULL, NULL, NULL, NULL, NULL, NULL, &element_number, &npt, NULL, NULL, NULL, NULL, &material_number );
+         umat_wrapper_( pStressVector, pStateVariables, (double**) pConstitutiveMatrix, NULL, &SPD,
+               NULL, NULL, NULL, NULL, NULL, pStrain, pDeltaStrain,
+               pTime, &delta_time, NULL, NULL, NULL, NULL, NULL, &ndi, &nshr, &ntens, &number_state_variables, pPropertiesVector, &number_properties,
+               NULL, NULL, NULL, NULL, NULL, NULL, &element_number, &npt, NULL, NULL, NULL, NULL, &material_number );
       }
 
 
@@ -179,7 +182,7 @@ namespace Kratos
             Matrix(j,j) = corte;
 
 
-         StressVector = mStressVectorFinalized + prod( Matrix , EpsVector);
+         StressVector = this->mStressVectorFinalized + prod( Matrix , EpsVector);
 
          for (unsigned int i = 0; i < 6; i++)
             pStressVector[i] = StressVector(i);
@@ -200,7 +203,7 @@ namespace Kratos
          }
 
       }
-     
+
       rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
       this->SetConstitutiveMatrix( rConstitutiveMatrix, Matrix, rStressMatrix);
 
@@ -254,9 +257,86 @@ namespace Kratos
       pVector[17] = 0.01; // p_tmult stabilising param
       pVector[18] = 0.6780; // e
 
+
+      if ( rMaterialProperties.Has(P_ATM) )
+      {
+         if ( rMaterialProperties(P_ATM) > 0.0 )
+            pVector[0] = rMaterialProperties[P_ATM];
+      }
+      if ( rMaterialProperties.Has(E0) )
+      {
+         if (rMaterialProperties[E0]> 0.0)
+            pVector[1] = rMaterialProperties[E0];
+      }
+      if ( rMaterialProperties.Has(LAMBDA_SANISAND) )
+      {
+         if (rMaterialProperties[LAMBDA_SANISAND]> 0.0)
+            pVector[2] = rMaterialProperties[LAMBDA_SANISAND];
+      }
+      if ( rMaterialProperties.Has(EPSI) )
+      {
+         if (rMaterialProperties[EPSI]> 0.0)
+            pVector[3] = rMaterialProperties[EPSI];
+      }
+      if ( rMaterialProperties.Has(MC) )
+      {
+         if (rMaterialProperties[MC]> 0.0)
+            pVector[4] = rMaterialProperties[MC];
+      }
+      if ( rMaterialProperties.Has(ME) )
+      {
+         if (rMaterialProperties[ME]> 0.0)
+            pVector[5] = rMaterialProperties[ME];
+      }
+      if ( rMaterialProperties.Has(M_SANISAND) )
+      {
+         if (rMaterialProperties[M_SANISAND]> 0.0)
+            pVector[6] = rMaterialProperties[M_SANISAND];
+      }
+      if ( rMaterialProperties.Has(G0_SANISAND) )
+      {
+         if (rMaterialProperties[G0_SANISAND]> 0.0)
+            pVector[7] = rMaterialProperties[G0_SANISAND];
+      }
+      if ( rMaterialProperties.Has(NU_SANISAND) )
+      {
+         if (rMaterialProperties[NU_SANISAND]> 0.0)
+            pVector[8] = rMaterialProperties[NU_SANISAND];
+      }
+      if ( rMaterialProperties.Has(H0) )
+      {
+         if (rMaterialProperties[H0]> 0.0)
+            pVector[9] = rMaterialProperties[H0];
+      }
+      if ( rMaterialProperties.Has(CH) )
+      {
+         if (rMaterialProperties[CH]> 0.0)
+            pVector[10] = rMaterialProperties[CH];
+      }
+      if ( rMaterialProperties.Has(NB) )
+      {
+         if (rMaterialProperties[NB]> 0.0)
+            pVector[11] = rMaterialProperties[NB];
+      }
+      if ( rMaterialProperties.Has(A_SANISAND) )
+      {
+         if (rMaterialProperties[A_SANISAND]> 0.0)
+            pVector[12] = rMaterialProperties[A_SANISAND];
+      }
+      if ( rMaterialProperties.Has(ND) )
+      {
+         if (rMaterialProperties[ND]> 0.0)
+            pVector[13] = rMaterialProperties[ND];
+      }
+      if ( rMaterialProperties.Has(PTMULT) )
+      {
+         if (rMaterialProperties[PTMULT]> 0.0)
+            pVector[17] = rMaterialProperties[PTMULT];
+      }
       if ( rMaterialProperties.Has( VOID_RATIO) )
       {
-         pVector[18] = rMaterialProperties[VOID_RATIO];
+         if (rMaterialProperties[VOID_RATIO]> 0.0)
+            pVector[18] = rMaterialProperties[VOID_RATIO];
       }
 
 
