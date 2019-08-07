@@ -9,9 +9,24 @@ namespace CSharpKratosWrapper {
 
     class MeshConverter {
     public:
-        void ProcessMesh(std::vector<Kratos::intrusive_ptr<Kratos::Element>>& elements);
-        std::vector<face>& GetFaces();
-        std::vector<int>& GetNodes();
+        /**
+         * Generates surface mesh from elements. All elements must be tetrahedral
+         * @param elements Vector of tetrahedral elements
+         */
+        void ProcessMesh(std::vector<Kratos::intrusive_ptr<Kratos::Element>> &elements);
+
+        /**
+         * Allows access to faces of generated mesh.
+         * @see ProcessMesh
+         */
+        std::vector<face> &GetFaces();
+
+        /**
+        * Allows access to nodes of generated mesh.
+        * @see ProcessMesh
+        */
+        std::vector<int> &GetNodes();
+
     private:
         std::vector<face> mFaces;
         std::vector<int> mNodes;

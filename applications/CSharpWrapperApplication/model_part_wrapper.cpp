@@ -48,7 +48,6 @@ int ModelPartWrapper::getTrianglesCount() {
     return mTrianglesCount;
 }
 
-//Update DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
 void ModelPartWrapper::updateNodePos(const int nodeId, const float x, const float y, const float z) {
 
     // Get node
@@ -410,7 +409,7 @@ double *ModelPartWrapper::getNodalVariable3d(Kratos::Variable<Kratos::array_1d<d
         const Kratos::array_1d<double, 3> &r_coordinates = it_node->Coordinates();
         int current_node_id = idTranslator.getSurfaceId(it_node->Id());
         auto value = it_node->FastGetSolutionStepValue(variable);
-        for (int j = 0; j < 3; j++) values[i * 3 + j] = value[j];
+        for (int j = 0; j < 3; j++) values[current_node_id * 3 + j] = value[j];
     }
     return values;
 }

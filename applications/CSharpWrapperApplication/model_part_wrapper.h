@@ -50,16 +50,32 @@ namespace CSharpKratosWrapper {
 
         int getTrianglesCount();
 
+        /**
+         * Fixes and updates DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
+         * @param nodeId Surface id of the node to update
+         * @param x X coordinate
+         * @param y Y coordinate
+         * @param z Z coordinate
+         */
         void updateNodePos(const int nodeId, const float x, const float y, const float z);
 
+        /**
+         * Extracts new node positions and stress values
+         */
         void retrieveResults();
 
+        /**
+         * Enables calculation of surface stress values. Call `retrieveResults` after each simulation to recalculate stress.
+         */
         void enableSurfaceStressResults();
 
         float *getSurfaceStress();
 
         ModelPart &getKratosModelPart();
 
+        /**
+         * Recreates surface mesh after changes to its structure, like creation of new nodes and elements
+         */
         void recreateProcessedMesh();
 
         ModelPartWrapper *createSubmodelPart(char *name);

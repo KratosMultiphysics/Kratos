@@ -118,7 +118,7 @@ EXPORT NodeType **__stdcall ModelPartWrapper_GetNodes(ModelPartWrapper *instance
     return instance->getNodes();
 }
 
-EXPORT int __stdcall ModelPartWrapper_GetNuberOfNodes(ModelPartWrapper *instance) {
+EXPORT int __stdcall ModelPartWrapper_GetNumberOfNodes(ModelPartWrapper *instance) {
     return instance->getNumberOfNodes();
 }
 
@@ -177,4 +177,5 @@ EXPORT double *__stdcall ModelPartWrapper_GetNodalVariableComponents(ModelPartWr
 EXPORT double *__stdcall ModelPartWrapper_GetNodalVariables3d(ModelPartWrapper *instance,
                                                               Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
     return instance->getNodalVariable3d(*variable);
+}
 }

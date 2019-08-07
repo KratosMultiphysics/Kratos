@@ -25,7 +25,7 @@ EXPORT bool __stdcall Variable_HasVar3d(char *variableName) {
     return Kratos::KratosComponents<Kratos::Variable<Kratos::array_1d<double, 3>>>::Has(variableName);
 }
 
-EXPORT bool __stdcall HasVarComponent(char *variableName) {
+EXPORT bool __stdcall Variable_HasVariableComponent(char *variableName) {
     return Kratos::KratosComponents<Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >>::Has(
             variableName);
 }
