@@ -24,10 +24,6 @@ from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
 import copy
 
-from KratosMultiphysics.ShapeOptimizationApplication import (
-    SHAPE_UPDATE,
-    SHAPE_CHANGE
-)
 
 # ==============================================================================
 class AlgorithmTrustRegion(OptimizationAlgorithm):
@@ -140,7 +136,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __InitializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.opt_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
@@ -375,8 +371,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # Compute update in regular units
         dX = cm.ScalarVectorProduct(step_length,dX_bar)
 
-        WriteListToNodalVariable(dX, self.design_surface, SHAPE_UPDATE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
+        WriteListToNodalVariable(dX, self.design_surface, KSO.SHAPE_UPDATE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
         return dX
 

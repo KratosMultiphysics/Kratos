@@ -22,17 +22,6 @@ from . import mapper_factory
 from . import data_logger_factory
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-from KratosMultiphysics.ShapeOptimizationApplication import (
-    DF1DX,
-    DF1DX_MAPPED,
-    DC1DX,
-    DC1DX_MAPPED,
-    SEARCH_DIRECTION,
-    CONTROL_POINT_UPDATE,
-    CONTROL_POINT_CHANGE,
-    SHAPE_UPDATE,
-    SHAPE_CHANGE
-)
 
 
 # ==============================================================================
@@ -75,7 +64,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
-        self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -138,7 +127,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
@@ -154,26 +143,26 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         conGradientDict = self.communicator.getStandardizedGradient(self.constraints[0]["identifier"].GetString())
 
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
-        WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, DC1DX)
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
+        WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, KSO.DC1DX)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool() or self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ComputeUnitSurfaceNormals()
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
         if self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DC1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
-        self.model_part_controller.DampNodalVariableIfSpecified(DC1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
-        self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
-        self.mapper.InverseMap(DC1DX, DC1DX_MAPPED)
+        self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
+        self.mapper.InverseMap(KSO.DC1DX, KSO.DC1DX_MAPPED)
 
         constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
@@ -183,8 +172,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
             self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
         self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
 
-        self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):
@@ -221,7 +210,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        self.optimization_utilities.AddFirstVariableToSecondVariable(CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
 # ==============================================================================
