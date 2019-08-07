@@ -31,7 +31,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": ""
+                "materials_filename": "FluidMaterials.json"
             },
             "formulation": {
                 "element_type": "vms"

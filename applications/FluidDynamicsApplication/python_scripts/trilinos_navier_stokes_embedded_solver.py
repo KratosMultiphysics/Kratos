@@ -32,7 +32,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": ""
+                "materials_filename": "FluidMaterials.json"
             },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_GID_file",

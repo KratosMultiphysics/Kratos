@@ -165,7 +165,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "reorder": false
             },
             "material_import_settings": {
-                "materials_filename": ""
+                "materials_filename": "FluidMaterials.json"
             },
             "formulation": {
                 "element_type": "vms"

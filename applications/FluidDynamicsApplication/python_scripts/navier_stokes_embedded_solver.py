@@ -187,7 +187,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "reorder": false
             },
             "material_import_settings": {
-                "materials_filename": ""
+                "materials_filename": "FluidMaterials.json"
             },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",

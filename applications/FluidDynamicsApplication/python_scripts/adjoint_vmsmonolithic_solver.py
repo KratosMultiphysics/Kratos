@@ -33,7 +33,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "input_filename" : "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": ""
+                "materials_filename": "FluidMaterials.json"
             },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
