@@ -30,7 +30,7 @@
         ],
         "data_transfer_operators" : {
             "mapper" : {
-                "type" : "mapping",
+                "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_element"
                 }
@@ -84,7 +84,7 @@
             "particle":
             {
                 "type" : "solver_wrappers.kratos.particle_mechanics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "mpm_fem_beam/ProjectParametersMPM"
                 },
                 "data" : {
@@ -108,7 +108,7 @@
             "structure" :
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "mpm_fem_beam/ProjectParametersFEM"
                 },
                 "data" : {

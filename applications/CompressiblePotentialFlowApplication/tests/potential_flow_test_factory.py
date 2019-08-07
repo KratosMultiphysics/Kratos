@@ -40,6 +40,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
         settings_file_name_adjoint = file_name + "_adjoint_parameters.json"
+        settings_file_name_adjoint_analytical = file_name + "_adjoint_analytical_parameters.json"
         work_folder = "naca0012_small_adjoint_test"
 
         with WorkFolderScope(work_folder):
@@ -50,6 +51,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.32651526722535246, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.0036897206842046205, 0.0, 1e-9)
             self._runTest(settings_file_name_adjoint)
+            self._runTest(settings_file_name_adjoint_analytical)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):

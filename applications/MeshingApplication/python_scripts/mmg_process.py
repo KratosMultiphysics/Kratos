@@ -76,7 +76,7 @@ class MmgProcess(KratosMultiphysics.Process):
             {
                 "isosurface_variable"              : "DISTANCE",
                 "nonhistorical_variable"           : false,
-                "remove_regions"                   : false
+                "remove_internal_regions"          : false
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
@@ -326,7 +326,6 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # We reset the step
         self.step = 0
-        self.initial_step_done = False
 
         # We compute initial remeshing is desired
         if self.initial_remeshing:

@@ -72,6 +72,11 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosCSharpWrapperCore)
+    cotire(KratosCSharpWrapperApplication)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS KratosCSharpWrapperCore DESTINATION libs)
 install(TARGETS KratosCSharpWrapperApplication DESTINATION libs)
 
