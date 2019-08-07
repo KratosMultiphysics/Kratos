@@ -204,7 +204,7 @@ def _solve(mp):
     strategy.Solve()
 
 def _create_check_outputs(current_model):
-    import from_json_check_result_process
+    from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 
     check_parameters = KratosMultiphysics.Parameters("""
     {
@@ -218,7 +218,7 @@ def _create_check_outputs(current_model):
 
     check_parameters["input_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
 
-    check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
+    check = FromJsonCheckResultProcess(current_model, check_parameters)
     check.ExecuteInitialize()
     check.ExecuteBeforeSolutionLoop()
 
@@ -226,7 +226,7 @@ def _create_check_outputs(current_model):
 
 def _create_reference_solution(current_model):
     # The following is used to create the solution database
-    import json_output_process
+    from KratosMultiphysics.json_output_process import JsonOutputProcess
 
     out_parameters = KratosMultiphysics.Parameters("""
     {
@@ -240,15 +240,15 @@ def _create_reference_solution(current_model):
 
     out_parameters["output_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
 
-    out = json_output_process.JsonOutputProcess(current_model, out_parameters)
+    out = JsonOutputProcess(current_model, out_parameters)
     out.ExecuteInitialize()
     out.ExecuteBeforeSolutionLoop()
 
     return out
 
-def _create_post_process(main_model_part, constitutive_law_type, debug = "GiD"):
-    if debug == "GiD":
-        from gid_output_process import GiDOutputProcess
+def _create_post_process(main_model_part, constitutive_law_type, debug = "gid"):
+    if debug == "gid":
+        from KratosMultiphysics.gid_output_process import GiDOutputProcess
         output = GiDOutputProcess(main_model_part,
                                     "output_" + constitutive_law_type,
                                     KratosMultiphysics.Parameters("""
@@ -266,8 +266,8 @@ def _create_post_process(main_model_part, constitutive_law_type, debug = "GiD"):
                                         }
                                         """)
                                     )
-    elif debug == "VTK":
-        from vtk_output_process import VtkOutputProcess
+    elif debug == "vtk":
+        from KratosMultiphysics.vtk_output_process import VtkOutputProcess
         output = VtkOutputProcess(main_model_part.GetModel(),
                                     KratosMultiphysics.Parameters("""{
                                             "model_part_name"                    : "solid_part",
