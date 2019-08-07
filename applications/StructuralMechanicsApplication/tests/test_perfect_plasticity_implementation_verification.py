@@ -51,7 +51,7 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
         _apply_fix(fix)
 
         if debug:
-            gid_output = _create_post_process(mp, constitutive_law_type)
+            output = _create_post_process(mp, constitutive_law_type)
 
         w = 5.0 # Frequency  movement
         dt = 0.01 # Delta time
@@ -75,11 +75,11 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
             #out.ExecuteFinalizeSolutionStep()
 
             if debug:
-                gid_output.PrintOutput()
+                output.PrintOutput()
 
         if debug:
-            gid_output.ExecuteFinalizeSolutionStep()
-            gid_output.ExecuteFinalize()
+            output.ExecuteFinalizeSolutionStep()
+            output.ExecuteFinalize()
 
     def test_PerfectPlasticitySmallStrainJ2Plasticity3DLaw(self):
         self._base_test("SmallStrainJ2Plasticity3DLaw")
@@ -246,31 +246,42 @@ def _create_reference_solution(current_model):
 
     return out
 
-def _create_post_process(main_model_part, constitutive_law_type):
-    from gid_output_process import GiDOutputProcess
-    gid_output = GiDOutputProcess(main_model_part,
-                                "gid_output_" + constitutive_law_type,
-                                KratosMultiphysics.Parameters("""
-                                    {
-                                        "result_file_configuration" : {
-                                            "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostBinary",
-                                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                "WriteConditionsFlag": "WriteConditions",
-                                                "MultiFileFlag": "SingleFile"
-                                            },
-                                            "nodal_results"       : ["DISPLACEMENT"],
-                                            "gauss_point_results" : ["VON_MISES_STRESS","GREEN_LAGRANGE_STRAIN_VECTOR","PK2_STRESS_VECTOR","PLASTIC_DISSIPATION","PLASTIC_STRAIN","EQUIVALENT_PLASTIC_STRAIN","PLASTIC_STRAIN_VECTOR","UNIAXIAL_STRESS"]
+def _create_post_process(main_model_part, constitutive_law_type, debug = "GiD"):
+    if debug == "GiD":
+        from gid_output_process import GiDOutputProcess
+        output = GiDOutputProcess(main_model_part,
+                                    "output_" + constitutive_law_type,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results"       : ["DISPLACEMENT"],
+                                                "gauss_point_results" : ["VON_MISES_STRESS","GREEN_LAGRANGE_STRAIN_VECTOR","PK2_STRESS_VECTOR","PLASTIC_DISSIPATION","PLASTIC_STRAIN","EQUIVALENT_PLASTIC_STRAIN","PLASTIC_STRAIN_VECTOR","UNIAXIAL_STRESS"]
+                                            }
                                         }
-                                    }
-                                    """)
-                                )
+                                        """)
+                                    )
+    elif debug == "VTK":
+        from vtk_output_process import VtkOutputProcess
+        output = VtkOutputProcess(main_model_part.GetModel(),
+                                    KratosMultiphysics.Parameters("""{
+                                            "model_part_name"                    : "solid_part",
+                                            "nodal_solution_step_data_variables" : ["DISPLACEMENT"],
+                                            "gauss_point_variables"              : ["VON_MISES_STRESS"]
+                                        }
+                                        """)
+                                    )
 
-    gid_output.ExecuteInitialize()
-    gid_output.ExecuteBeforeSolutionLoop()
-    gid_output.ExecuteInitializeSolutionStep()
+    output.ExecuteInitialize()
+    output.ExecuteBeforeSolutionLoop()
+    output.ExecuteInitializeSolutionStep()
 
-    return gid_output
+    return output
 
 if __name__ == '__main__':
     KratosUnittest.main()
