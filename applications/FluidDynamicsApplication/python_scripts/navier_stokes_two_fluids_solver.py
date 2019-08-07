@@ -213,6 +213,47 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.solver).FinalizeSolutionStep()
             (self.accelerationLimitationUtility).Execute()
 
+    # TODO: Remove this method as soon as the subproperties are available
+    def _SetPhysicalProperties(self):
+        import os
+        warn_msg  = '\nThe materials import mechanism used in the two fluids solver is DEPRECATED!\n'
+        warn_msg += 'It will be removed to use the base fluid_solver.py one as soon as the subproperties are available.\n'
+        KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
+
+        # Check if the fluid properties are provided using a .json file
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            with open(materials_filename,'r') as materials_file:
+                materials = KratosMultiphysics.Parameters(materials_file.read())
+
+            # Create and read an auxiliary materials file for each one of the fields
+            for i_material in materials["properties"]:
+                aux_materials = KratosMultiphysics.Parameters()
+                aux_materials.AddEmptyArray("properties")
+                aux_materials["properties"].Append(i_material)
+                prop_id = i_material["properties_id"].GetInt()
+
+                aux_materials_filename = materials_filename + "_" + str(prop_id) + ".json"
+                with open(aux_materials_filename,'w') as aux_materials_file:
+                    aux_materials_file.write(aux_materials.WriteJsonString())
+                    aux_materials_file.close()
+
+                aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+                aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
+                KratosMultiphysics.ReadMaterialsUtility(aux_material_settings, self.model)
+
+                os.remove(aux_materials_filename)
+
+            materials_imported = True
+        else:
+            materials_imported = False
+
+        # If the element uses nodal material properties, transfer them to the nodes
+        if self.element_has_nodal_properties:
+            self._SetNodalProperties()
+
+        return materials_imported
+
     def _SetNodalProperties(self):
         # Get fluid 1 and 2 properties
         properties_1 = self.main_model_part.Properties[1]
