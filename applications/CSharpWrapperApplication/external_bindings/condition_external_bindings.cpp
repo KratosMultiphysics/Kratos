@@ -8,6 +8,7 @@ typedef Kratos::Condition ConditionType;
 typedef Kratos::Node<3> NodeType;
 
 extern "C" {
+#if defined(KRATOS_COMPILED_IN_WINDOWS)
 
 EXPORT int __stdcall Condition_Id(ConditionType *instance) {
     return instance->Id();
@@ -52,5 +53,5 @@ EXPORT bool __stdcall Condition_HasVariableComponent(ConditionType *instance,
                                                    Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
     return instance->Has(*variable);
 }
-
+#endif
 }

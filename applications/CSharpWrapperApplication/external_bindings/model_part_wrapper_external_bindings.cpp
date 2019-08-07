@@ -5,6 +5,8 @@
 using namespace CSharpKratosWrapper;
 
 extern "C" {
+#if defined(KRATOS_COMPILED_IN_WINDOWS)
+
 EXPORT float *__stdcall ModelPartWrapper_GetXCoordinates(ModelPartWrapper *instance) {
     return instance->getXCoordinates();
 }
@@ -178,4 +180,5 @@ EXPORT double *__stdcall ModelPartWrapper_GetNodalVariables3d(ModelPartWrapper *
                                                               Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
     return instance->getNodalVariable3d(*variable);
 }
+#endif
 }

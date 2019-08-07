@@ -3,6 +3,8 @@
 #include "includes/variables.h"
 
 extern "C" {
+#if defined(KRATOS_COMPILED_IN_WINDOWS)
+
 EXPORT const Kratos::Variable<double> *__stdcall Variable_GetVar1d(char *variableName) {
     return &Kratos::KratosComponents<Kratos::Variable<double >>::Get(variableName);
 }
@@ -29,5 +31,5 @@ EXPORT bool __stdcall Variable_HasVariableComponent(char *variableName) {
     return Kratos::KratosComponents<Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >>::Has(
             variableName);
 }
-
+#endif
 }

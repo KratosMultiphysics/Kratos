@@ -8,6 +8,7 @@ typedef Kratos::Element ElementType;
 typedef Kratos::Node<3> NodeType;
 
 extern "C" {
+#if defined(KRATOS_COMPILED_IN_WINDOWS)
 
 EXPORT int __stdcall Element_Id(ElementType *instnace) {
     return instnace->Id();
@@ -52,5 +53,5 @@ EXPORT bool __stdcall Element_HasVariableComponent(ElementType *instance,
                                                    Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
     return instance->Has(*variable);
 }
-
+#endif
 }

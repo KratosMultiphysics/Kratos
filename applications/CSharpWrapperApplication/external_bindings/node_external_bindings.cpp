@@ -6,7 +6,7 @@ using namespace std;
 typedef Kratos::Node<3> NodeType;
 
 extern "C" {
-
+#if defined(KRATOS_COMPILED_IN_WINDOWS)
 EXPORT int __stdcall Node_Id(NodeType *instance) {
     return instance->Id();
 }
@@ -52,5 +52,5 @@ __stdcall Node_GetVariable3d(NodeType *instance, Kratos::Variable<Kratos::array_
     for (int i = 0; i < 3; i++) result[i] = value[i];
     return result;
 }
-
+#endif
 }
