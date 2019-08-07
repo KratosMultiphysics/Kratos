@@ -141,9 +141,9 @@ namespace CSharpKratosWrapper {
 
     private:
         Kratos::ModelPart &mModelPart;
+        std::vector<NodeType::Pointer> &mFixedNodes;
         ModelPartWrapper *pmParentModelPart;
         IdTranslator idTranslator;
-        std::vector<NodeType::Pointer> &mFixedNodes;
 
         float *pmXCoordinates;
         float *pmYCoordinates;

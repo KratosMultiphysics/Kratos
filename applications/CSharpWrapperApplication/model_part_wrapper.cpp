@@ -373,7 +373,6 @@ double *ModelPartWrapper::getNodalVariable1d(Kratos::Variable<double> &variable)
 #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
         auto it_node = nodeBegin + i;
-        const Kratos::array_1d<double, 3> &r_coordinates = it_node->Coordinates();
         int current_node_id = idTranslator.getSurfaceId(it_node->Id());
         values[current_node_id] = it_node->FastGetSolutionStepValue(variable);
     }
@@ -390,7 +389,6 @@ double *ModelPartWrapper::getNodalVariableComponent(
 #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
         auto it_node = nodeBegin + i;
-        const Kratos::array_1d<double, 3> &r_coordinates = it_node->Coordinates();
         int current_node_id = idTranslator.getSurfaceId(it_node->Id());
         values[current_node_id] = it_node->FastGetSolutionStepValue(variable);
     }
@@ -406,7 +404,6 @@ double *ModelPartWrapper::getNodalVariable3d(Kratos::Variable<Kratos::array_1d<d
 #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
         auto it_node = nodeBegin + i;
-        const Kratos::array_1d<double, 3> &r_coordinates = it_node->Coordinates();
         int current_node_id = idTranslator.getSurfaceId(it_node->Id());
         auto value = it_node->FastGetSolutionStepValue(variable);
         for (int j = 0; j < 3; j++) values[current_node_id * 3 + j] = value[j];
