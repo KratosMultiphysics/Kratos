@@ -2,6 +2,7 @@ sudo: false
 dist: trusty
 language: cpp
 compiler: g++
+dist: bionic
 
 git:
   depth: 3
@@ -28,8 +29,8 @@ addons:
       - libboost-dev
       - libblas-dev
       - liblapack-dev
-      - libopenmpi-dev=2.1.1-8
-      - openmpi-bin=2.1.1-8
+      - libopenmpi-dev
+      - openmpi-bin
 
 before_script:
 - apt-cache policy libopenmpi-dev
