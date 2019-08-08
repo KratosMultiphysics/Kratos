@@ -60,12 +60,6 @@ public:
     typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
-
-    // Typedef for generic amount of derivatives.
-    typedef typename GeometryType::ShapeFunctionsType ShapeFunctionsType;
-    typedef typename GeometryType::ShapeFunctionsIntegrationPointsType ShapeFunctionsIntegrationPointsType;
-    typedef typename GeometryType::ShapeFunctionsContainerType ShapeFunctionsContainerType;
-
     ///@}
     ///@name Life Cycle
     ///@{

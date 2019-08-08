@@ -18,8 +18,6 @@
 
 #include "nurbs_utilities.h"
 
-#include <vector>
-
 namespace Kratos {
 
 class NurbsCurveShapeFunction

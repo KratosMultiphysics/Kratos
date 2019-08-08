@@ -88,6 +88,8 @@ namespace Kratos
 
                 IntVector control_points_ids;
 
+
+
                 KRATOS_INFO_IF("IGA", mEchoLevel >= 2) << "Reading face " << face_id << " cps" << std::endl;
                 // read and store control_points
                 // Control points in each patch get a global as well as a mapping matrix id
@@ -436,7 +438,7 @@ namespace Kratos
         std::vector<IntegrationPoint<3>> ips(1);
         ips[0] = IntegrationPoint<3>(1.0);
 
-        curve_2d.ShapeFunctionDerivatives(GeometryData::GI_GAUSS_1, ips, 3);
+        //curve_2d.ShapeFunctionDerivatives(GeometryData::GI_GAUSS_1, ips, 3);
 
         Vector active_range = rTrimmingCurve["parameter_curve"]["active_range"].GetVector();
         KRATOS_ERROR_IF(active_range.size() > 2) << "active_range of trim curve " << trim_index << " does not has the size 2" << std::endl;

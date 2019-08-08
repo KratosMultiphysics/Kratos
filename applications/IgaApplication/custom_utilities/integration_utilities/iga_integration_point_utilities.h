@@ -85,13 +85,13 @@ namespace IgaIntegrationPointUtilities
         IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType ips_container =
         { { ips } };
 
-        auto ar = IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsIntegrationPointsType(1);
+        auto ar = DenseVector<Matrix>(1);
         ar[0] = N;
 
-        IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsContainerType N_container =
-        {{ar}};
+        //IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsContainerType N_container =
+        //{{ar}};
         return std::make_shared<IntegrationPointSurface3d<Node<3>>>(
-            cps, ips_container, N_container);
+            cps);
     }
 
     static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainGeometrySurface(

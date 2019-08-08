@@ -18,29 +18,14 @@
 // System includes
 
 // External includes
-#include "custom_utilities/anurbs.h"
 
 // Project includes
+#include "geometries/geometry.h"
+#include "geometries/geometry_dimension.h"
 
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -59,15 +44,18 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Geometry<TPointType> BaseType;
-    typedef Geometry<TPointType> GeometryType;
-
     /** Pointer definition of BrepFaceCurve */
     KRATOS_CLASS_POINTER_DEFINITION( BrepFaceCurve );
 
     typedef TPointType PointType;
 
+    typedef Geometry<TPointType> BaseType;
+    typedef Geometry<TPointType> GeometryType;
+
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef NurbsSurfaceGeometry<3, TPointType> NurbsSurfaceType;
+    typedef NurbsCurveGeometry<2, TPointType> NurbsCurveType;
 
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IndexType IndexType;
@@ -89,9 +77,9 @@ public:
     typedef typename BaseType::NormalType NormalType;
 
     // New Shape function typedefs
-    typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
-    typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
-    typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
+    //typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
+    //typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
+    //typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
 
 
     ///@}
@@ -99,60 +87,25 @@ public:
     ///@{
 
     BrepFaceCurve( 
-        typename NurbsSurface::Pointer pSurface,
-        typename NurbsCurve<2>::Pointer pEdge)
+        typename NurbsSurfaceType::Pointer pSurface,
+        typename NurbsCurveType::Pointer pCurve)
         : BaseType(PointsArrayType(), &mGeometryData)
         , mpNurbsSurface(pSurface)
-        , mpNurbsEdge(pEdge)
+        , mpNurbsCurve(pCurve)
         , mGeometryData(
             &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
             {}, {}, {})
     {
-        mIsGeometryDataInitialized = false;
-        mIsBoundaryPolygonInitialized = false;
-        mIsSurfacePointCloudInitialized = false;
     }
 
-    BrepFaceCurve(
-        int& rTrimIndex,
-        Vector& rKnotVector,
-        int& rDegree,
-        std::vector<BoundedVector<double, 4>>& rControlPoints,
-        bool rCurveDirection,
-        bool rIsRational,
-        Vector& rActiveRange)
-        : BaseType(PointsArrayType(), &mGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsEdge(pEdge)
+    explicit BrepFaceCurve(const PointsArrayType& ThisPoints)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
     {
-        m_is_geometry_data_initialized = false;
-        mIsBoundaryPolygonInitialized = false;
-        m_is_linearized_polygon_initialized = false;
-
-        int number_poles = rControlPoints.size();
-
-        m_geometry = Kratos::make_shared<Kratos::CurveGeometry<2>>(
-            rDegree, number_poles, rIsRational);
-
-        for (int i = 0; i < rKnotVector.size() - 2; ++i)
-        {
-            m_geometry->SetKnot(i, rKnotVector(i + 1));
-        }
-
-        for (int i = 0; i < number_poles; ++i)
-        {
-            Kratos::array_1d<double, 2> cp;
-            cp[0] = rControlPoints[i][0];
-            cp[1] = rControlPoints[i][1];
-            m_geometry->SetPole(i, cp);
-            if (rIsRational)
-            {
-                m_geometry->SetWeight(i, rControlPoints[i][3]);
-            }
-        }
-        mp_nurbs_surface
-        m_curve = Kratos::make_shared<Curve<2>>(m_geometry, rActiveRange[0], rActiveRange[1]);
     }
 
     /**
@@ -257,25 +210,25 @@ public:
     * @param rLowPoint  Lower point of the boundingbox.
     * @param rHighPoint Higher point of the boundingbox.
     */
-    bool IsInsideBoundingBox(
-        const TPointType& rPoint,
-        double BoundaryTolerance = std::numeric_limits<double>::epsilon) const
-    {
-        const SizeType working_space_dimension = WorkingSpaceDimension();
+    //bool IsInsideBoundingBox(
+    //    const TPointType& rPoint,
+    //    double BoundaryTolerance = std::numeric_limits<double>::epsilon) const
+    //{
+    //    const SizeType working_space_dimension = WorkingSpaceDimension();
 
-        TPointType LowPoint;
-        TPointType HighPoint;
+    //    TPointType LowPoint;
+    //    TPointType HighPoint;
 
-        BoundingBox(LowPoint, HighPoint);
+    //    BoundingBox(LowPoint, HighPoint);
 
-        for (IndexType i = 0; i < working_space_dimension; ++i)
-        {
-            if ((LowPoint[i] - BoundaryTolerance > rPoint[i])
-                || (HighPoint[i] + BoundaryTolerance < rPoint[i])
-                return false;
-        }
-        return true;
-    }
+    //    for (IndexType i = 0; i < working_space_dimension; ++i)
+    //    {
+    //        if ((LowPoint[i] - BoundaryTolerance > rPoint[i])
+    //            || (HighPoint[i] + BoundaryTolerance < rPoint[i])
+    //            return false;
+    //    }
+    //    return true;
+    //}
 
     /**
     * @brief Calculates the boundingbox of the geometry.
@@ -283,75 +236,75 @@ public:
     * @param rLowPoint  Lower point of the boundingbox.
     * @param rHighPoint Higher point of the boundingbox.
     */
-    override void BoundingBox(
-        TPointType& rLowPoint,
-        TPointType& rHighPoint
-    ) const
-    {
-        const SizeType working_space_dimension = WorkingSpaceDimension();
+    //override void BoundingBox(
+    //    TPointType& rLowPoint,
+    //    TPointType& rHighPoint
+    //) const
+    //{
+    //    const SizeType working_space_dimension = WorkingSpaceDimension();
 
-        for (auto point in mLinearizedPolygon) { //The first node is already assigned, so we can start from 1
-            const auto& r_point = this->GetPoint(point);
-            for (IndexType i = 0; i < working_space_dimension; ++i) {
-                rHighPoint[i] = (rHighPoint[i] < r_point[i]) ? r_point[i] : rHighPoint[i];
-                rLowPoint[i] = (rLowPoint[i]  > r_point[i]) ? r_point[i] : rLowPoint[i];
-            }
-        }
-    }
+    //    for (auto point in mLinearizedPolygon) { //The first node is already assigned, so we can start from 1
+    //        const auto& r_point = this->GetPoint(point);
+    //        for (IndexType i = 0; i < working_space_dimension; ++i) {
+    //            rHighPoint[i] = (rHighPoint[i] < r_point[i]) ? r_point[i] : rHighPoint[i];
+    //            rLowPoint[i] = (rLowPoint[i]  > r_point[i]) ? r_point[i] : rLowPoint[i];
+    //        }
+    //    }
+    //}
 
-    bool GetClosestPoint()
-    {
+    //bool GetClosestPoint()
+    //{
 
-    }
+    //}
 
-    std::vector<TPointType> GetPointsInRadius(
-        const TPointType& rPoint,
-        const double Radius,
-        const int MaxIterations,
-        const double Accuracy
-        )
-    {
-        std::vector<double> parameters;
-        if (IsInsideBoundingBox(rPoint, Radius))
-        {
-            SearchRadius = Radius * 2;
-            for (auto point in mLinearizedPolygon)
-            {
-                if (norm_2(rPoint - point) < SearchRadius)
-                {
-                    double new_parameter = 0.0;
-                    if (NewtonRaphson<3>(
-                        new_parameter,
-                        point.t,
-                        mp_nurbs_curve,
-                        MaxIterations,
-                        Radius,
-                        Accuracy))
-                    {
-                        for (int t = 0; t < parameters.size(); ++t)
-                        {
-                            if (parameters[t] - new_parameter < Accuracy)
-                            {
-                                parameters.push_back(new_parameter);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        std::vector<TPointType> new_points;
-        for (int t = 0; t < parameters.size(); ++t)
-        {
-            new_points.push_back(mp_curve->PointAt(parameters[t]));
-        }
-        return new_points;
-    }
+    //std::vector<TPointType> GetPointsInRadius(
+    //    const TPointType& rPoint,
+    //    const double Radius,
+    //    const int MaxIterations,
+    //    const double Accuracy
+    //    )
+    //{
+    //    std::vector<double> parameters;
+    //    if (IsInsideBoundingBox(rPoint, Radius))
+    //    {
+    //        SearchRadius = Radius * 2;
+    //        for (auto point in mLinearizedPolygon)
+    //        {
+    //            if (norm_2(rPoint - point) < SearchRadius)
+    //            {
+    //                double new_parameter = 0.0;
+    //                if (NewtonRaphson<3>(
+    //                    new_parameter,
+    //                    point.t,
+    //                    mp_nurbs_curve,
+    //                    MaxIterations,
+    //                    Radius,
+    //                    Accuracy))
+    //                {
+    //                    for (int t = 0; t < parameters.size(); ++t)
+    //                    {
+    //                        if (parameters[t] - new_parameter < Accuracy)
+    //                        {
+    //                            parameters.push_back(new_parameter);
+    //                            break;
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+    //    std::vector<TPointType> new_points;
+    //    for (int t = 0; t < parameters.size(); ++t)
+    //    {
+    //        new_points.push_back(mp_curve->PointAt(parameters[t]));
+    //    }
+    //    return new_points;
+    //}
 
-    GeometryType::Pointer GetIntegrationPointSurface(const double CurveParameter)
-    {
+    //GeometryType::Pointer GetIntegrationPointSurface(const double CurveParameter)
+    //{
 
-    }
+    //}
 
     /**
     * @brief Returns the local coordinates of a given arbitrary point
@@ -384,89 +337,107 @@ public:
         );
     }
 
+    /** This method maps from dimension space to working space.
+    * @param rResult array_1d<double, 3> with the coordinates in working space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in working space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const override
+     {
+        pCurve->GlobalCoordinates(rResult, rLocalCoordinates);
+
+        pSurface->GlobalCoordinates(rResult, rLocalCoordinates);
+
+        return rResult;
+    }
+
     ///@name Shape Function
     ///@{
 
-    override ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
-        IndexType DerivativeOrder,
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates) const
-    {
-        return pSurface->ShapeFunctionsDerivative(DerivativeOrder, rCoordinates);
-    }
+    //override ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
+    //    IndexType DerivativeOrder,
+    //    Vector &rResult,
+    //    const CoordinatesArrayType& rCoordinates) const
+    //{
+    //    return pSurface->ShapeFunctionsDerivative(DerivativeOrder, rCoordinates);
+    //}
 
-    override ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
-        IndexType DerivativeOrder,
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates) const
-    {
-        return pSurface->ShapeFunctionsDerivatives(DerivativeOrder, rCoordinates);
-    }
+    //override ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
+    //    IndexType DerivativeOrder,
+    //    Vector &rResult,
+    //    const CoordinatesArrayType& rCoordinates) const
+    //{
+    //    return pSurface->ShapeFunctionsDerivatives(DerivativeOrder, rCoordinates);
+    //}
 
     ///@}
     ///@name Input and output
     ///@{
 
-    std::vector<geometry::Pointer> GetIntegrationPointGeomtries()
-    {
-        if (!mIsGeometryDataInitialized)
-            ComputeGeometryData();
+    //std::vector<geometry::Pointer> GetIntegrationPointGeomtries()
+    //{
+    //    if (!mIsGeometryDataInitialized)
+    //        ComputeGeometryData();
 
-        SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
+    //    SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
 
-        IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
-        ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
+    //    IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
+    //    ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
 
-        SizeType number_of_derivatives = shape_functions_derivatives_all.size();
+    //    SizeType number_of_derivatives = shape_functions_derivatives_all.size();
 
-        std::vector<geometry> IntegrationPointList(number_of_integration_points);
-        for (i = 0.0; i < number_of_integration_points; ++i)
-        {
-            ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
+    //    std::vector<geometry> IntegrationPointList(number_of_integration_points);
+    //    for (i = 0.0; i < number_of_integration_points; ++i)
+    //    {
+    //        ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
 
-            for (j = 0.0; j < number_of_integration_points; ++j)
-            {
-                shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
-            }
+    //        for (j = 0.0; j < number_of_integration_points; ++j)
+    //        {
+    //            shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
+    //        }
 
-            IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
-        }
-    }
+    //        IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
+    //    }
+    //}
 
-    std::vector<geometry::Pointer> GetLineGeometries()
-    {
-        if (!mIsPolygonInitialized)
-            ComputeGeometryData();
+    //std::vector<geometry::Pointer> GetLineGeometries()
+    //{
+    //    if (!mIsPolygonInitialized)
+    //        ComputeGeometryData();
 
-        SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
+    //    SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
 
-        IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
-        ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
+    //    IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
+    //    ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
 
-        SizeType number_of_derivatives = shape_functions_derivatives_all.size();
+    //    SizeType number_of_derivatives = shape_functions_derivatives_all.size();
 
-        std::vector<geometry> IntegrationPointList(number_of_integration_points);
-        for (i = 0.0; i < number_of_integration_points; ++i)
-        {
-            ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
+    //    std::vector<geometry> IntegrationPointList(number_of_integration_points);
+    //    for (i = 0.0; i < number_of_integration_points; ++i)
+    //    {
+    //        ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
 
-            for (j = 0.0; j < number_of_integration_points; ++j)
-            {
-                shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
-            }
+    //        for (j = 0.0; j < number_of_integration_points; ++j)
+    //        {
+    //            shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
+    //        }
 
-            IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
-        }
-    }
+    //        IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
+    //    }
+    //}
 
 
-    LinearizedPolygon GetLinearizedPolygon()
-    {
-        if (!mIsLinearizedPolygonInitialized)
-        {
-            this->InitializeLinearizedPolygon();
-        }
-    }
+    //LinearizedPolygon GetLinearizedPolygon()
+    //{
+    //    if (!mIsLinearizedPolygonInitialized)
+    //    {
+    //        this->InitializeLinearizedPolygon();
+    //    }
+    //}
 
 
     /**
@@ -478,7 +449,7 @@ public:
      */
     std::string Info() const override
     {
-        return "2 dimensional triangle with three nodes in 3D space";
+        return "Brep face curve";
     }
 
     /**
@@ -489,7 +460,7 @@ public:
      */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "2 dimensional triangle with three nodes in 3D space";
+        rOStream << "Brep face curve";
     }
 
     /**
@@ -502,29 +473,16 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    /**
-     * :TODO: needs to be reviewed because it is not properly implemented yet
-     * (comment by janosch)
-     */
     void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+        rOStream << "    Brep face curve : " << std::endl;
     }
-
-    ///@}
-    ///@name Friends
-    ///@{
 
     ///@}
 
 protected:
-    /**
-     * There are no protected members in class BrepFaceCurve
-     */
 
 private:
     ///@name Static Member Variables
@@ -538,19 +496,14 @@ private:
 
     GeometryData mGeometryData;
 
-    ///@}
-    ///@name Private Member Variables
-    ///@{
+    typename NurbsSurfaceType::Pointer mpNurbsSurface;
+    typename NurbsCurveType::Pointer mpNurbsCurve;
 
-    std::shared_ptr<CurveGeometry<2>> mp_nurbs_surface;
+    //bool m_is_geometry_data_initialized;
+    //GeometryData mGeometryData;
 
-    std::shared_ptr<Kratos::Curve<2>> mp_nurbs_curve;
-
-    bool m_is_geometry_data_initialized;
-    GeometryData mGeometryData;
-
-    bool m_is_linearized_polygon_initialized;
-    LinearizedPolygon mLinearizedPolygon;
+    //bool m_is_linearized_polygon_initialized;
+    //LinearizedPolygon mLinearizedPolygon;
 
     ///@}
     ///@name Serialization
@@ -561,24 +514,26 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.save("NurbsSurface", mpNurbsSurface);
+        rSerializer.save("NurbsCurve", mpNurbsCurve);
+        rSerializer.save("GeometryData", mGeometryData);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.load("NurbsSurface", mpNurbsSurface);
+        rSerializer.load("NurbsCurve", mpNurbsCurve);
+        rSerializer.load("GeometryData", mGeometryData);
     }
 
-    BrepFaceCurve(): BaseType( PointsArrayType(), &mGeometryData ) {}
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
+    BrepFaceCurve()
+        : BaseType( PointsArrayType(), &mGeometryData )
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
+    {}
 
     ///@}
     ///@name Private Operations
@@ -700,7 +655,7 @@ template<class TPointType> inline std::ostream& operator << (
 }
 
 template<class TPointType>
-const GeometryDimension IntegrationPointSurface3d<TPointType>::msGeometryDimension(
+const GeometryDimension BrepFaceCurve<TPointType>::msGeometryDimension(
     1,
     3,
     2);

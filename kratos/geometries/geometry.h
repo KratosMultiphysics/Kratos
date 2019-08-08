@@ -2387,7 +2387,7 @@ namespace Kratos
 
         const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, IntegrationMethod ThisMethod)  const
         {
-            return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ShapeFunctionIndex, ThisMethod);
+            return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
         }
 
 

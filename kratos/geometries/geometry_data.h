@@ -664,7 +664,9 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
-    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex,  IntegrationMethod ThisMethod ) const
+    const Matrix& ShapeFunctionLocalGradient(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod ) const
     {
         return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
     }

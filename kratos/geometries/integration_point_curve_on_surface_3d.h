@@ -63,11 +63,6 @@ public:
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
-    // Typedef for generic amount of derivatives.
-    typedef typename GeometryType::ShapeFunctionsType ShapeFunctionsType;
-    typedef typename GeometryType::ShapeFunctionsIntegrationPointsType ShapeFunctionsIntegrationPointsType;
-    typedef typename GeometryType::ShapeFunctionsContainerType ShapeFunctionsContainerType;
-
 
     ///@}
     ///@name Life Cycle
@@ -109,37 +104,37 @@ public:
     {
     }
 
-    IntegrationPointCurveOnSurface3d(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsContainerType& rIntegrationPoints,
-        const LocalTangentsArray2dType& rLocalTangents2d,
-        const ShapeFunctionsType& rShapeFunctions)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mLocalTangents2d(rLocalTangents2d)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            rIntegrationPoints,
-            { {rShapeFunctions}, GeometryData::GI_GAUSS_1 })
-    {
-    }
+    //IntegrationPointCurveOnSurface3d(
+    //    const PointsArrayType& ThisPoints,
+    //    const IntegrationPointsContainerType& rIntegrationPoints,
+    //    const LocalTangentsArray2dType& rLocalTangents2d,
+    //    const ShapeFunctionsType& rShapeFunctions)
+    //    : BaseType(ThisPoints, &mGeometryData)
+    //    , mLocalTangents2d(rLocalTangents2d)
+    //    , mGeometryData(
+    //        &msGeometryDimension,
+    //        GeometryData::GI_GAUSS_1,
+    //        rIntegrationPoints,
+    //        { {rShapeFunctions}, GeometryData::GI_GAUSS_1 })
+    //{
+    //}
 
-    IntegrationPointCurveOnSurface3d(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsContainerType& rIntegrationPoints,
-        const LocalTangentsArray2dType& rLocalTangents2d,
-        const ShapeFunctionsType& rShapeFunctions,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mLocalTangents2d(rLocalTangents2d)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            rIntegrationPoints,
-            { {rShapeFunctions}, GeometryData::GI_GAUSS_1 })
-        , mpGeometryParent(pGeometryParent)
-    {
-    }
+    //IntegrationPointCurveOnSurface3d(
+    //    const PointsArrayType& ThisPoints,
+    //    const IntegrationPointsContainerType& rIntegrationPoints,
+    //    const LocalTangentsArray2dType& rLocalTangents2d,
+    //    const ShapeFunctionsType& rShapeFunctions,
+    //    GeometryType* pGeometryParent)
+    //    : BaseType(ThisPoints, &mGeometryData)
+    //    , mLocalTangents2d(rLocalTangents2d)
+    //    , mGeometryData(
+    //        &msGeometryDimension,
+    //        GeometryData::GI_GAUSS_1,
+    //        rIntegrationPoints,
+    //        { {rShapeFunctions}, GeometryData::GI_GAUSS_1 })
+    //    , mpGeometryParent(pGeometryParent)
+    //{
+    //}
 
     explicit IntegrationPointCurveOnSurface3d(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
@@ -182,9 +177,7 @@ public:
     {
     }
 
-    /**
-     * Destructor. Does nothing!!!
-     */
+    /** Destructor. Does nothing!!! */
     ~IntegrationPointCurveOnSurface3d() override {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
@@ -453,10 +446,6 @@ public:
 
 protected:
 
-    /**
-    * there are no protected class members
-     */
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -502,21 +491,17 @@ private:
     {
     }
 
-    /**
-     * Private Friends
-     */
+    ///@}
+    ///@name Private Friends
+    ///@{
 
     template<class TOtherPointType> friend class IntegrationPointCurveOnSurface3d;
 
-    /**
-     * Un accessible methods
-     */
-
+    ///@}
 }; // Class Geometry
 
-/**
- * Input and output
- */
+///@name Input and output
+///@{
 /**
  * input stream function
  */
@@ -536,6 +521,8 @@ template<class TPointType> inline std::ostream& operator << (
     rThis.PrintData( rOStream );
     return rOStream;
 }
+
+///@}
 
 template<class TPointType>
 const GeometryDimension IntegrationPointCurveOnSurface3d<TPointType>::msGeometryDimension(1,

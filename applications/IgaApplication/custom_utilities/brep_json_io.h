@@ -18,6 +18,8 @@
 #include "includes/node.h"
 
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/brep_face_curve.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -30,45 +32,45 @@ namespace Kratos
   https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4.
   */
     class BrepJsonIO
-  {
-  public:
-    /// Pointer definition of KratosNurbsTestcaseApplication
-    KRATOS_CLASS_POINTER_DEFINITION(BrepJsonIO);
+    {
+    public:
+        /// Pointer definition of KratosNurbsTestcaseApplication
+        KRATOS_CLASS_POINTER_DEFINITION(BrepJsonIO);
 
-    void WriteIntegrationDomainJson(
-        ModelPart& rModelPart, 
-        const std::string& rOutputFileName);
+        void WriteIntegrationDomainJson(
+            ModelPart& rModelPart,
+            const std::string& rOutputFileName);
 
-    std::vector<BrepModel> ImportNurbsBrepGeometry(
-        ModelPart& rModelPart,
-        Parameters rNurbsBrepGeometryJson);
+        std::vector<BrepModel> ImportNurbsBrepGeometry(
+            ModelPart& rModelPart,
+            Parameters rNurbsBrepGeometryJson);
 
-    /// Constructor.
-    BrepJsonIO(const int EchoLevel = 0)
-        :mEchoLevel(EchoLevel)
-    {};
+        /// Constructor.
+        BrepJsonIO(const int EchoLevel = 0)
+            :mEchoLevel(EchoLevel)
+        {};
 
-    /// Destructor.
-    virtual ~BrepJsonIO() {};
+        /// Destructor.
+        virtual ~BrepJsonIO() {};
 
-  private:
+    private:
 
-      void ImportBrepEdges(
-          const Parameters& rEdges,
-          std::vector<BrepEdge>& rEdgesVector,
-          ModelPart& rModelPart);
+        void ImportBrepEdges(
+            const Parameters& rEdges,
+            std::vector<BrepEdge>& rEdgesVector,
+            ModelPart& rModelPart);
 
-      void ImportBrepVertices(
-          const Parameters& rVertices,
-          std::vector<BrepVertex>& rVerticesVector,
-          ModelPart& rModelPart);
+        void ImportBrepVertices(
+            const Parameters& rVertices,
+            std::vector<BrepVertex>& rVerticesVector,
+            ModelPart& rModelPart);
 
-      void ImportTrimmingCurve(
-          const Parameters& rTrimmingCurve,
-          std::vector<BrepTrimmingCurve>& rrTrimmingCurves);
+        void ImportTrimmingCurve(
+            const Parameters& rTrimmingCurve,
+            std::vector<BrepTrimmingCurve>& rrTrimmingCurves);
 
-      int mEchoLevel;
-  }; // Class BrepJsonIO
+        int mEchoLevel;
+    }; // Class BrepJsonIO
 }  // namespace Kratos.
 
 #endif // KRATOS_BREP_JSON_IO_H_INCLUDED  defined

@@ -80,8 +80,6 @@ public:
     // Shape Function Derivatives Values
     typedef DenseVector<Matrix>
         ShapeFunctionsDerivativesType;
-    //typedef DenseVector<ShapeFunctionsDerivativesType>
-    //    ShapeFunctionsDerivativesArrayType;
     typedef DenseVector<ShapeFunctionsDerivativesType>
         ShapeFunctionsDerivativesIntegrationPointsArrayType;
     typedef std::array<ShapeFunctionsDerivativesIntegrationPointsArrayType, IntegrationMethod::NumberOfIntegrationMethods>
@@ -97,13 +95,12 @@ public:
                   const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
                   const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
         : mShapeFunctionsValues( ThisShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
     {
-        for (int i = 0; i < ThisShapeFunctionsLocalGradients.size(); ++i)
+        for (IndexType i = 0; i < ThisShapeFunctionsLocalGradients.size(); ++i)
         {
             ShapeFunctionsDerivativesIntegrationPointsArrayType integration_points(ThisShapeFunctionsLocalGradients[i].size());
 
-            for (int j = 0; j < IntegrationMethod::NumberOfIntegrationMethods; ++j)
+            for (IndexType j = 0; j < IntegrationMethod::NumberOfIntegrationMethods; ++j)
             {
                 ShapeFunctionsDerivativesType gradients(1);
                 gradients[0] = ThisShapeFunctionsLocalGradients[i][j];
@@ -113,6 +110,16 @@ public:
 
             mShapeFunctionsDervativesContainer[i] = integration_points;
         }
+    }
+
+    GeometryShapeFunctionContainer(
+        IntegrationMethod ThisDefaultMethod,
+        const IntegrationPointsContainerType& ThisIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
+        const ShapeFunctionsDervativesContainerType& ThisShapeFunctionsDervativesContainer)
+        : mShapeFunctionsValues(ThisShapeFunctionsValues)
+        , mShapeFunctionsDervativesContainer(ThisShapeFunctionsDervativesContainer)
+    {
     }
 
     GeometryShapeFunctionContainer(
@@ -128,8 +135,9 @@ public:
     }
 
     GeometryShapeFunctionContainer()
-        : mShapeFunctionsValues({})
-        , mShapeFunctionsLocalGradients({})
+        : mIntegrationPoints({})
+        , mShapeFunctionsValues({})
+        , mShapeFunctionsDervativesContainer({})
     {
     }
 
@@ -138,7 +146,7 @@ public:
     */
     GeometryShapeFunctionContainer( const GeometryShapeFunctionContainer& rOther )
         : mShapeFunctionsValues( rOther.mShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
+        , mShapeFunctionsDervativesContainer( rOther.mShapeFunctionsDervativesContainer)
     {
     }
 
@@ -153,7 +161,7 @@ public:
         const GeometryShapeFunctionContainer& rOther )
     {
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
-        mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
+        mShapeFunctionsDervativesContainer = rOther.mShapeFunctionsDervativesContainer;
 
         return *this;
     }
@@ -251,21 +259,33 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod ) const
     {
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDervativesContainer[ThisMethod].size() <= IntegrationPointIndex )
             << "Not existing integration point with index: " << IntegrationPointIndex << std::endl;
 
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mShapeFunctionsDervativesContainer[ThisMethod][IntegrationPointIndex][0];
     }
 
-    const Matrix& ShapeFunctionLocalGradient(
+    const ShapeFunctionsDerivativesType& ShapeFunctionDerivatives(
         IndexType IntegrationPointIndex,
-        IndexType ShapeFunctionIndex,
-        IntegrationMethod ThisMethod ) const
+        IndexType DerivativeOrder,
+        IntegrationMethod ThisMethod) const
     {
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
-            << "Not existing integration point with index: " << IntegrationPointIndex << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDervativesContainer[ThisMethod].size() < IntegrationPointIndex)
+            << "Not enough integration points for integration point index: " << IntegrationPointIndex << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDervativesContainer[ThisMethod][IntegrationPointIndex].size() < DerivativeOrder)
+            << "Not enough derivatives for derivative order: " << DerivativeOrder << std::endl;
 
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mShapeFunctionsDervativesContainer[ThisMethod][IntegrationPointIndex][DerivativeOrder];
+    }
+
+    const Matrix& ShapeFunctionDerivativesAll(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDervativesContainer[ThisMethod].size() < IntegrationPointIndex)
+            << "Not enough integration points for integration point index: " << IntegrationPointIndex << std::endl;
+
+        return mShapeFunctionsDervativesContainer[ThisMethod][IntegrationPointIndex];
     }
 
     ///@}
@@ -320,7 +340,7 @@ private:
 
     ShapeFunctionsValuesContainerType mShapeFunctionsValues;
 
-    ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
+    //ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
 
     ShapeFunctionsDervativesContainerType mShapeFunctionsDervativesContainer;
 
@@ -335,7 +355,7 @@ private:
         //rSerializer.save("DefaultMethod", mDefaultMethod);
         //rSerializer.save("IntegrationPoints", mIntegrationPoints);
         rSerializer.save("ShapeFunctionsValues", mShapeFunctionsValues);
-        rSerializer.save("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
+        //rSerializer.save("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
         rSerializer.save("ShapeFunctionsDervativesContainer", mShapeFunctionsDervativesContainer);
     }
 
@@ -343,9 +363,9 @@ private:
     {
         //rSerializer.load("DefaultMethod", mDefaultMethod);
         //rSerializer.load("IntegrationPoints", mIntegrationPoints);
-        //rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
+        rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
         //rSerializer.load("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
-        //rSerializer.load("ShapeFunctionsDervativesContainer", mShapeFunctionsDervativesContainer);
+        rSerializer.load("ShapeFunctionsDervativesContainer", mShapeFunctionsDervativesContainer);
     }
 
     ///@}
