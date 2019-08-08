@@ -33,6 +33,7 @@ addons:
 
 before_script:
 - mpiexec --version
+- apt-cache policy libopenmpi-dev
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
