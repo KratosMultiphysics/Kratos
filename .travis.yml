@@ -36,6 +36,7 @@ before_script:
 
 - apt-cache policy libopenmpi-dev
 - apt-cache policy python3
+- which python3
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
