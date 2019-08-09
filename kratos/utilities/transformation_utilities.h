@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 
 namespace Kratos
 {
