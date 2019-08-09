@@ -408,9 +408,9 @@ public:
 	 * @brief Corresponds to the previous, but the System's matrix is considered already built and only the RHS is built again
 	 * @param pScheme The integration scheme considered
 	 * @param rModelPart The model part of the problem to solve
-	 * @param A The LHS matrix
-	 * @param Dx The Unknowns vector
-	 * @param b The RHS vector
+	 * @param rA The LHS matrix
+	 * @param rDx The Unknowns vector
+	 * @param rb The RHS vector
 	 */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
