@@ -35,6 +35,7 @@
 #include "external_includes/aztec_solver.h"
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
+#include "external_includes/anasazi_solver.h"
 
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
@@ -120,6 +121,14 @@ void  AddLinearSolvers(pybind11::module& m)
     py::enum_<MLSolverType::ScalingType>(m,"MLSolverScalingType")
         .value("NoScaling", MLSolverType::NoScaling)
         .value("LeftScaling", MLSolverType::LeftScaling)
+        ;
+
+    typedef AnasaziSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType> AnasaziSolverType;
+    py::class_<AnasaziSolverType, typename AnasaziSolverType::Pointer, TrilinosLinearSolverType>
+    (m,"AnasaziSolver")
+        .def(py::init< Parameters >())
+        .def( "Solve", py::overload_cast<TrilinosSparseSpaceType::MatrixType&, TrilinosSparseSpaceType::MatrixType&, TrilinosLocalSpaceType::VectorType&, TrilinosLocalSpaceType::MatrixType& >(&AnasaziSolverType::Solve) )
+        .def("__str__", PrintObject<AnasaziSolverType>)
         ;
 
     typedef LinearSolverFactory< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverFactoryType;
