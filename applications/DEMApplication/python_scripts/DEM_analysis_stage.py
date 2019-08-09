@@ -351,20 +351,33 @@ class DEMAnalysisStage(AnalysisStage):
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
         spheres_mp_filename = self.GetMpFilename()
+        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
+        input_type = model_part_import_settings["input_type"].GetString()
+
         model_part_io_spheres = self.model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
 
-        if "do_not_perform_initial_partition" in self.DEM_parameters.keys() and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
+        if self.DEM_parameters.Has("do_not_perform_initial_partition") and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
             pass
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
 
         [model_part_io_spheres, self.spheres_model_part] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-        model_part_io_spheres.ReadModelPart(self.spheres_model_part)
+
+        if input_type == "mdpa":
+            model_part_io_spheres.ReadModelPart(self.spheres_model_part)
+        elif input_type == "rest":
+            Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
+            from restart_utility import RestartUtility
+            RestartUtility(self.spheres_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+            Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
+
+        else:
+            raise Exception('The model part input option' + input_type + 'is not yet implemented.')
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))
         max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part))
-        old_max_elem_Id_spheres = max_elem_Id
         max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part))
+        old_max_elem_Id_spheres = max_elem_Id
         rigidFace_mp_filename = self.GetFemFilename()
         if os.path.isfile(rigidFace_mp_filename+".mdpa"):
             model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
@@ -479,6 +492,11 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
         self.BeforePrintingOperations(self.time)
         self.PrintResults()
+
+        for output_process in self._GetListOfOutputProcesses():
+            if output_process.IsOutputStep():
+                output_process.PrintOutput()
+
         self.FinalizeTimeStep(self.time)
 
     def AfterSolveOperations(self):

@@ -16,7 +16,8 @@ class ExplicitStrategy(object):
         {
             "strategy" : "sphere_strategy",
             "do_search_neighbours" : true,
-            "RemoveBallsInitiallyTouchingWalls": false
+            "RemoveBallsInitiallyTouchingWalls": false,
+            "model_import_settings": {}
         }""")
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -167,6 +168,16 @@ class ExplicitStrategy(object):
 
 
         self.SetContinuumType()
+
+    def _GetRestartSettings(self, model_part_import_settings):
+        restart_settings = model_part_import_settings.Clone()
+        restart_settings.RemoveValue("input_type")
+        if not restart_settings.Has("restart_load_file_label"):
+            raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
+        if model_part_import_settings.Has("echo_level"):
+            restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
+
+        return restart_settings
 
     def SetContinuumType(self):
         self.continuum_type = False
