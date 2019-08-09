@@ -150,7 +150,7 @@ public:
     ///@{
 
     /**
-	 * @brief Function to perform the build the system matrix and the residual vector
+	 * @brief Function to build the system matrix and the residual vector
 	 * of dofs or as the number of unrestrained ones
 	 * @param pScheme The integration scheme considered
 	 * @param rModelPart The model part of the problem to solve
