@@ -179,18 +179,17 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_mpi_constraints(self):
         fixed_node_num = 1
-        mpi_constraint_utility = mpi.MpiConstraintsUtility(self.mp)
+        self.mpi_constraint_utility = mpi.MpiConstraintsUtility(self.mp)
         constrained_nodes = self.mp.GetSubModelPart("DISPLACEMENT_moving_edge").Nodes # these nodes are slaves
         # rVariable, ConstraintId, SlaveNodeId, MasterNodeId, Weight, Constant
         constraint_id = 1
         for node in constrained_nodes:
-            mpi_constraint_utility.AddConstraint(KratosMultiphysics.DISPLACEMENT_X, constraint_id, node.Id, fixed_node_num, 1.0, 0)
+            self.mpi_constraint_utility.AddConstraint(KratosMultiphysics.DISPLACEMENT_X, constraint_id, node.Id, fixed_node_num, 1.0, 0)
             constraint_id += 1
-            mpi_constraint_utility.AddConstraint(KratosMultiphysics.DISPLACEMENT_Y, constraint_id, node.Id, fixed_node_num, 1.0, 0)
+            self.mpi_constraint_utility.AddConstraint(KratosMultiphysics.DISPLACEMENT_Y, constraint_id, node.Id, fixed_node_num, 1.0, 0)
             constraint_id += 1
-        mpi_constraint_utility.SynchronizeAndCreateConstraints()
+        self.mpi_constraint_utility.SynchronizeAndCreateConstraints()
 
-      
     def _set_and_fill_buffer(self, buffer_size, delta_time):
         # Set buffer size
         self.mp.SetBufferSize(buffer_size)
