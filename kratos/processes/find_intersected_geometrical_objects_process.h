@@ -497,7 +497,7 @@ protected:
 
     ModelPart& mrModelPartIntersected;  /// Model part intersected
     ModelPart& mrModelPartIntersecting; /// Model part intersecting
-    OctreeType mOctree;                 /// The octree structucture that performs the search
+    OctreeType *mpOctree;               /// The octree structucture that performs the search
     Flags mOptions;                     /// Local flags
 
     ///@}

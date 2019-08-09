@@ -94,6 +94,7 @@ namespace Kratos
 		this->Initialize();
 		this->FindIntersections();
 		this->CalculateDistances(this->GetIntersections());
+		this->Clear();
 	}
 
 	/// Turn back information as a string.
