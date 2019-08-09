@@ -211,7 +211,7 @@ public:
 		KRATOS_TRY;
 
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
 
 		//Gets the array of elements from the modeler
 		ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -223,9 +223,9 @@ public:
 
 		typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
 		/**
 		 * Here we declare three sets.
@@ -285,7 +285,7 @@ public:
 			}
 		}
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
 		DofsArrayType Doftemp;
 		BaseType::mDofSet = DofsArrayType();
@@ -302,13 +302,13 @@ public:
 		//Throws an exception if there are no Degrees Of Freedom involved in the analysis
 		KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
 
 		BaseType::mDofSetIsInitialized = true;
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
 
 
 #ifdef KRATOS_DEBUG
@@ -432,7 +432,7 @@ public:
 		double start_build4 = OpenMPUtils::GetCurrentTime();        
 		Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
 		const double stop_build4 = OpenMPUtils::GetCurrentTime();
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << stop_build4 - start_build4 << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << stop_build4 - start_build4 << std::endl;
 
 		        
         //build the system matrix by looping over elements and conditions and assembling to A
@@ -551,9 +551,9 @@ public:
         }
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
         Vector dxrom(xrom.size());
@@ -563,7 +563,7 @@ public:
 		MathUtils<double>::Solve(Arom, dxrom, brom);
 		const double stop_build2 = OpenMPUtils::GetCurrentTime();
 
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_build2 - start_build2 << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_build2 - start_build2 << std::endl;
 
 		//update database
 		noalias(xrom) += dxrom;
@@ -573,7 +573,7 @@ public:
 		double start_build3 = OpenMPUtils::GetCurrentTime();
 		ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
 		const double stop_build3 = OpenMPUtils::GetCurrentTime();
-		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << stop_build3 - start_build3 << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << stop_build3 - start_build3 << std::endl;
 
     }
 
