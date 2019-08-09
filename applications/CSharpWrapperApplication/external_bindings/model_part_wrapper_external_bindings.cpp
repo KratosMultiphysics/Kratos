@@ -1,6 +1,6 @@
 #define EXPORT __declspec(dllexport)
 
-#include "model_part_wrapper.h"
+#include "custom_includes/model_part_wrapper.h"
 
 using namespace CSharpKratosWrapper;
 

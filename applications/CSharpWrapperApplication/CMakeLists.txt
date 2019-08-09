@@ -15,12 +15,12 @@ set(KRATOS_WRAPPER_SOURCES_CORE
 
         ## WRAPPER API
         ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/kratos_external_bindings.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/mesh_converter.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/vector3.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/kratos_internals.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/id_translator.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/kratos_wrapper.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/model_part_wrapper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/mesh_converter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/vector3.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/kratos_internals.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/id_translator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/kratos_wrapper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/model_part_wrapper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/model_part_wrapper_external_bindings.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/node_external_bindings.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/element_external_bindings.cpp

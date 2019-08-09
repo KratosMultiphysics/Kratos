@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "id_translator.h"
+#include "custom_includes/id_translator.h"
 
 using namespace CSharpKratosWrapper;
 

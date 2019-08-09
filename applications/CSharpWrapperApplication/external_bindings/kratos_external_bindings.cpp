@@ -1,7 +1,7 @@
 #define EXPORT __declspec(dllexport)
 
 #include <stdlib.h>
-#include "kratos_wrapper.h"
+#include "custom_includes/kratos_wrapper.h"
 #include <iostream>
 
 using namespace std;

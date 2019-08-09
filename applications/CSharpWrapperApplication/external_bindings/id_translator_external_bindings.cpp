@@ -1,6 +1,6 @@
 #define EXPORT __declspec(dllexport)
 
-#include "id_translator.h"
+#include "custom_includes/id_translator.h"
 #include "includes/define.h"
 
 using namespace CSharpKratosWrapper;

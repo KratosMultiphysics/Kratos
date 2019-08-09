@@ -21,7 +21,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "kratos_wrapper.h"
+#include "custom_includes/kratos_wrapper.h"
 #include "utilities/os_utilities.h"
 
 namespace Kratos {

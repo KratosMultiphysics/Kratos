@@ -1,8 +1,27 @@
+//    _____  _____ _                  __          __                                                 _ _           _   _
+//   / ____|/ ____| |                 \ \        / /                               /\               | (_)         | | (_)
+//  | |    | (___ | |__   __ _ _ __ _ _\ \  /\  / / __ __ _ _ __  _ __   ___ _ __ /  \   _ __  _ __ | |_  ___ __ _| |_ _  ___  _ __
+//  | |     \___ \| '_ \ / _` | '__| '_ \ \/  \/ / '__/ _` | '_ \| '_ \ / _ \ '__/ /\ \ | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_  |
+//  | |____ ____) | | | | (_| | |  | |_) \  /\  /| | | (_| | |_) | |_) |  __/ | / ____ \| |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+//   \_____|_____/|_| |_|\__,_|_|  | .__/ \/  \/ |_|  \__,_| .__/| .__/ \___|_|/_/    \_\ .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+//                                 | |                     | |   | |                    | |   | |
+//                                 |_|                     |_|   |_|                    |_|   |_|
+//
+//
+//  License: BSD License
+//   license: CSharpWrapperApplication/license.txt
+//
+//  Main authors:    Hubert Balcerzak
 
-#include <structural_mechanics_application_variables.h>
+// System includes
 #include <stdlib.h>
+
+// External includes
+
+// Project includes
+#include <structural_mechanics_application_variables.h>
 #include <processes/tetrahedral_mesh_orientation_check.h>
-#include "model_part_wrapper.h"
+#include "custom_includes/model_part_wrapper.h"
 
 #define SKIN_SUBMODEL_PART_NAME "CSharpWrapper_skin"
 

@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "vector3.h"
+#include "custom_includes/vector3.h"
 
 namespace CSharpKratosWrapper {
     Vector3::Vector3(double xVal, double yVal, double zVal)
