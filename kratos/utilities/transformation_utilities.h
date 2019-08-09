@@ -62,7 +62,7 @@ namespace TransformationUtilities
     void KRATOS_API(KRATOS_CORE) CalculateTranslationMatrix(
         const double Modulus,
         MatrixType& rMatrix,
-        DenseVector<double>& rDirOfTranslation
+        const DenseVector<double>& rDirOfTranslation
         );
 
     /**
@@ -76,8 +76,8 @@ namespace TransformationUtilities
     void KRATOS_API(KRATOS_CORE) CalculateRotationMatrix(
         const double Theta,
         MatrixType& rMatrix,
-        DenseVector<double>& rAxisOfRotationVector,
-        DenseVector<double>& rCenterOfRotation
+        const DenseVector<double>& rAxisOfRotationVector,
+        const DenseVector<double>& rCenterOfRotation
         );
 
 }; // namespace TransformationUtilities

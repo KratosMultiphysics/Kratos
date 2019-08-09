@@ -26,7 +26,7 @@ namespace TransformationUtilities
 void CalculateTranslationMatrix(
     const double Modulus,
     MatrixType& rMatrix,
-    DenseVector<double>& rDirOfTranslation
+    const DenseVector<double>& rDirOfTranslation
     )
 {
     rMatrix(0,0) = 1.0;
@@ -53,8 +53,8 @@ void CalculateTranslationMatrix(
 void CalculateRotationMatrix(
     const double Theta,
     MatrixType& rMatrix,
-    DenseVector<double>& rAxisOfRotationVector,
-    DenseVector<double>& rCenterOfRotation
+    const DenseVector<double>& rAxisOfRotationVector,
+    const DenseVector<double>& rCenterOfRotation
     )
 {
     DenseVector<double> U(3); // normalized axis of rotation
