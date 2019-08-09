@@ -10,10 +10,10 @@ import os
 
 class _FileIO(object):
 
-    def _FileSettings(self, identifier):
+    def _FileSettings(self, model_part):
         settings = KratosMultiphysics.Parameters()
         settings.AddEmptyValue('file_name').SetString(
-            self.filename_getter.Get(identifier))
+            self.filename_getter.Get(model_part))
         settings.AddEmptyValue('file_access_mode').SetString(
             self.file_access_mode)
         settings.AddEmptyValue('file_driver').SetString(self.file_driver)
@@ -23,14 +23,14 @@ class _FileIO(object):
 
 class _HDF5SerialFileIO(_FileIO):
 
-    def Get(self, identifier=None):
-        return KratosHDF5.HDF5FileSerial(self._FileSettings(identifier))
+    def Get(self, model_part=None):
+        return KratosHDF5.HDF5FileSerial(self._FileSettings(model_part))
 
 
 class _HDF5ParallelFileIO(_FileIO):
 
-    def Get(self, identifier=None):
-        return KratosHDF5.HDF5FileParallel(self._FileSettings(identifier))
+    def Get(self, model_part=None):
+        return KratosHDF5.HDF5FileParallel(self._FileSettings(model_part))
 
 
 class _HDF5MockFileIO(_FileIO):
@@ -42,8 +42,8 @@ class _HDF5MockFileIO(_FileIO):
 
         def GetFileName(self): return self.file_name
 
-    def Get(self, identifier=None):
-        settings = self._FileSettings(identifier)
+    def Get(self, model_part=None):
+        settings = self._FileSettings(model_part)
         file_name = settings['file_name'].GetString()
         return self.MockFile(file_name)
 
@@ -86,14 +86,14 @@ class _FilenameGetter(object):
         else:
             self.time_format = ''
 
-    def Get(self, identifier=None):
-        if hasattr(identifier, 'ProcessInfo'):
-            time = identifier.ProcessInfo[KratosMultiphysics.TIME]
+    def Get(self, model_part=None):
+        if hasattr(model_part, 'ProcessInfo'):
+            time = model_part.ProcessInfo[KratosMultiphysics.TIME]
             filename = format(time, self.time_format).join(self.filename_parts)
         else:
             filename = ''.join(self.filename_parts)
-        if hasattr(identifier, 'Name'):
-            filename = filename.replace('<identifier>', identifier.Name)
+        if hasattr(model_part, 'Name'):
+            filename = filename.replace('<model_part_name>', model_part.Name)
         if not filename.endswith('.h5'):
             filename += '.h5'
         return filename
@@ -104,8 +104,8 @@ class _FilenameGetterWithDirectoryInitialization(object):
     def __init__(self, settings):
         self.filename_getter = _FilenameGetter(settings)
 
-    def Get(self, identifier=None):
-        file_name = self.filename_getter.Get(identifier)
+    def Get(self, model_part=None):
+        file_name = self.filename_getter.Get(model_part)
         self._InitializeDirectory(file_name)
         return file_name
 
