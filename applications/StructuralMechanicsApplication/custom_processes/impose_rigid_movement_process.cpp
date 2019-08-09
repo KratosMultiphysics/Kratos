@@ -153,12 +153,12 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
             auto it_node = it_node_begin + i;
             if (it_node->Id() != p_master_node->Id()) {
                 for (IndexType i_var = 0; i_var < number_of_double_variables; ++i_var) {
-                    auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, *master_double_list_variables[i_var], *it_node, *slave_double_list_variables[i_var], relation, constant);
-                    (constraints_buffer).insert((constraints_buffer).begin(), constraint);
+                    auto p_constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, *master_double_list_variables[i_var], *it_node, *slave_double_list_variables[i_var], relation, constant);
+                    (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
                 }
                 for (IndexType i_var = 0; i_var < number_of_components_variables; ++i_var) {
-                    auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_components_variables + i_var) + 1, *p_master_node, *master_components_list_variables[i_var], *it_node, *slave_components_list_variables[i_var], relation, constant);
-                    (constraints_buffer).insert((constraints_buffer).begin(), constraint);
+                    auto p_constraint = r_clone_constraint.Create(constraint_id + (i * number_of_components_variables + i_var) + 1, *p_master_node, *master_components_list_variables[i_var], *it_node, *slave_components_list_variables[i_var], relation, constant);
+                    (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
                 }
             }
         }
