@@ -150,7 +150,7 @@ public:
     ///@{
 
     /**
-	 * @brief Function to perform the build of the RHS. The vector could be sized as the total number
+	 * @brief Function to perform the build the system matrix and the residual vector
 	 * of dofs or as the number of unrestrained ones
 	 * @param pScheme The integration scheme considered
 	 * @param rModelPart The model part of the problem to solve
@@ -166,6 +166,17 @@ public:
         BuildGeneral(pScheme, rModelPart, rA, rb, true, true);
     }
 
+
+
+    /**
+	 * @brief General function to perform the build of the RHS or LHS as requested.
+	 * @param pScheme The integration scheme considered
+	 * @param rModelPart The model part of the problem to solve
+	 * @param rA The LHS matrix
+	 * @param rb The RHS vector
+     * @param BuildLHS bool to say if to build LHS
+     * @param BuildRHS bool to say if to build RHS
+	 */
     void BuildGeneral(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
