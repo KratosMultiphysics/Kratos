@@ -48,7 +48,6 @@ int ModelPartWrapper::getNodesCount() {
 }
 
 int *ModelPartWrapper::getTriangles() {
-    return pmTriangles;
     auto &r_conditions_array = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME).Conditions();
     const auto it_condition_begin = r_conditions_array.begin();
     int *triangles = new int[mTrianglesCount];
@@ -255,7 +254,7 @@ ModelPartWrapper *ModelPartWrapper::createSubmodelPart(char *name) {
 
 NodeType *ModelPartWrapper::createNewNode(int id, double x, double y, double z) {
     updateMaxNodeId(id);
-    return &*mModelPart.CreateNewNode(id, x, y, z);
+    return mModelPart.CreateNewNode(id, x, y, z).get();
 }
 
 ElementType *ModelPartWrapper::createNewElement(char *name, int id, int *nodeIds) {
@@ -263,7 +262,7 @@ ElementType *ModelPartWrapper::createNewElement(char *name, int id, int *nodeIds
     for (int i = 0; i < 4; i++) nodes.push_back(nodeIds[i]);
 
     updateMaxElementId(id);
-    return &*mModelPart.CreateNewElement(name, id, nodes, mModelPart.pGetProperties(0));
+    return mModelPart.CreateNewElement(name, id, nodes, mModelPart.pGetProperties(0)).get();
 
 }
 
@@ -272,7 +271,7 @@ ConditionType *ModelPartWrapper::createNew2dCondition(char *name, int id, int *n
     for (int i = 0; i < 4; i++) nodes.push_back(nodeIds[i]);
 
     updateMaxElementId(id);
-    return &*mModelPart.CreateNewCondition(name, id, nodes, mModelPart.pGetProperties(0));
+    return mModelPart.CreateNewCondition(name, id, nodes, mModelPart.pGetProperties(0)).get();
 
 }
 
@@ -334,7 +333,7 @@ NodeType **ModelPartWrapper::getNodes() {
     auto **nodes = new NodeType *[numberOfNodes];
     auto nodeVector = mModelPart.Nodes().GetContainer();
     for (int i = 0; i < numberOfNodes; i++) {
-        nodes[i] = &*nodeVector[i];
+        nodes[i] = nodeVector[i].get();
     }
 
     return nodes;
@@ -353,7 +352,7 @@ ElementType **ModelPartWrapper::getElements() {
     auto **elements = new ElementType *[numberOfElements];
     auto elementVector = mModelPart.Elements().GetContainer();
 
-    for (int i = 0; i < numberOfElements; i++) elements[i] = &*elementVector[i];
+    for (int i = 0; i < numberOfElements; i++) elements[i] = elementVector[i].get();
 
     return elements;
 }
@@ -371,7 +370,7 @@ ConditionType **ModelPartWrapper::getConditions() {
     auto **conditions = new ConditionType *[numberOfConditions];
     auto conditionVector = mModelPart.Conditions().GetContainer();
 
-    for (int i = 0; i < numberOfConditions; i++) conditions[i] = conditions[i];
+    for (int i = 0; i < numberOfConditions; i++) conditions[i] = conditionVector[i].get();
     return conditions;
 }
 
