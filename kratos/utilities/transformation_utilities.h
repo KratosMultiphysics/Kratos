@@ -19,6 +19,8 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -49,6 +51,7 @@ namespace Kratos
  */
 namespace TransformationUtilities
 {
+    typedef std::size_t IndexType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
