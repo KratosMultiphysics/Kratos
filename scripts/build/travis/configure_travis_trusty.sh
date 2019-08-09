@@ -103,7 +103,7 @@ CMAKE_LIBS=(
   #    - Example (for ubuntu 14.04):
   #        -DPYTHON_EXECUTABLE="/usr/bin/python
   # --------------------------------------------------------------------------------------------------------------
-  -DPYTHON_EXECUTABLE="/usr/bin/python3.6"
+  -DPYTHON_EXECUTABLE="/usr/bin/python3.4"
 )
 
 ########################################################################################################################
@@ -112,7 +112,6 @@ CMAKE_LIBS=(
 # List of applications to compile. Set to ON/OFF
 
 CMAKE_APPLICATION=(
-  -DMPI_NEEDED=ON
   -DMESH_MOVING_APPLICATION=ON
   -DEXTERNAL_SOLVERS_APPLICATION=ON
   -DSTRUCTURAL_MECHANICS_APPLICATION=ON
