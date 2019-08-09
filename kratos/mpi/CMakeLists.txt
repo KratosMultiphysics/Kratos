@@ -8,6 +8,7 @@ set( KRATOS_MPI_SOURCES
    mpi_environment.cpp
    sources/mpi_data_communicator.cpp
    utilities/parallel_fill_communicator.cpp
+   utilities/gather_modelpart_utility.cpp
 )
 
 ## Kratos MPI extension Python interface
