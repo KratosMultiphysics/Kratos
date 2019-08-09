@@ -14,6 +14,7 @@
 
 // System includes
 #include <vector>
+#include <typeinfo>
 
 
 // External includes
@@ -47,6 +48,7 @@ public:
     typedef typename ModelPart::NodeType NodeType;
     typedef typename ModelPart::NodesContainerType NodesContainerType;
     typedef GlobalPointer<NodeType> GlobalPointerNodeType;
+    typedef GlobalPointersVector<DofType> GlobalPointerVectorDofsType;
 
     ///@}
     ///@name Life Cycle
@@ -161,6 +163,7 @@ private:
     std::vector<int> mNodeIdsToSync;
     ModelPart& mrModelPart;
     DofPointerVectorType mDofPointersVector;
+    GlobalPointerVectorDofsType mVectorOfGlobalPointers;
 
     ///@}
     ///@name private operations
@@ -170,12 +173,9 @@ private:
     {
         for(const auto& constraint_info : mMasterSlaveDetailsVector)
         {
-            auto& r_data_communicator = mrModelPart.GetCommunicator();
             const auto& r_slave_node_id = constraint_info->SlaveNodeId();
             const auto& r_master_node_id = constraint_info->MasterNodeId();
-            if( !r_data_communicator.LocalMesh().HasNode(r_slave_node_id) )
                 mNodeIdsToSync.push_back(r_slave_node_id);
-            if( !r_data_communicator.LocalMesh().HasNode(r_slave_node_id) )
                 mNodeIdsToSync.push_back(r_master_node_id);
         }
     }
@@ -184,20 +184,9 @@ private:
 
     void CreateConstraints()
     {
-        typedef std::pair<IndexType, IndexType> DofIdVarKeyPairType;
-        typedef Kratos::shared_ptr<DofIdVarKeyPairType> DofIdVarKeyPairSharedPtrType;
-        typedef GlobalPointer<DofIdVarKeyPairType> GlobalPointerDofIdVarKeyPairType;
-        typedef GlobalPointersVector<DofIdVarKeyPairType> GlobalPointerVectorDofIdVarKeyPairType;
-        typedef std::map<IndexType, DofIdVarKeyPairSharedPtrType> DofIdVarKeyPairContainerType;
-        DofIdVarKeyPairContainerType global_ptrs_vectors_dof_id_key;
         auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-        IndexType current_rank = r_data_communicator.Rank();
-        IndexType comm_size = r_data_communicator.Size();
+        //IndexType current_rank = r_data_communicator.Rank();
         auto remote_nodes_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mrModelPart.Nodes(), mNodeIdsToSync, r_data_communicator);
-        LinearMasterSlaveConstraint::DofPointerVectorType slave_dof_vector;
-        LinearMasterSlaveConstraint::DofPointerVectorType master_dof_vector;
-        LinearMasterSlaveConstraint::MatrixType relation_matrix(1,1);
-        LinearMasterSlaveConstraint::VectorType constant_vector(1);
         GlobalPointersVector<NodeType> vector_of_node_global_pointers;
         vector_of_node_global_pointers.reserve(remote_nodes_gps_map.size());
         for(auto rank_gp_pair : remote_nodes_gps_map )
@@ -205,26 +194,63 @@ private:
             vector_of_node_global_pointers.push_back(rank_gp_pair.second);
         }
 
-        GlobalPointerCommunicator<Node<3>> pointer_comm(r_data_communicator, vector_of_node_global_pointers);
-        auto result_proxy = pointer_comm.Apply(
+        GlobalPointerCommunicator<Node<3>> nodes_pointer_comm(r_data_communicator, vector_of_node_global_pointers);
+        auto nodes_result_proxy = nodes_pointer_comm.Apply(
                 [](GlobalPointer<Node<3>>& gp){
-                    return gp->GetDofs();
+                    typedef std::pair<std::size_t, GlobalPointer<DofType>> VarKeyDofGpPairType;
+                    std::vector<VarKeyDofGpPairType> vec_of_dofs_global_ptr;
+                    for (auto& dof : gp->GetDofs())
+                    {
+                            auto dof_shr_ptr = gp->pGetDof(dof.GetVariable());
+                            vec_of_dofs_global_ptr.push_back(
+                                std::make_pair(dof.GetVariable().Key(), GlobalPointer<DofType>(dof_shr_ptr, gp->FastGetSolutionStepValue(PARTITION_INDEX)) )
+                                );
                     }
+                    return vec_of_dofs_global_ptr;
+                }
         );
-
         for(const auto& constraint_info : mMasterSlaveDetailsVector)
         {
+            LinearMasterSlaveConstraint::DofPointerVectorType slave_dof_vector;
+            LinearMasterSlaveConstraint::DofPointerVectorType master_dof_vector;
+            LinearMasterSlaveConstraint::MatrixType relation_matrix(1,1);
+            LinearMasterSlaveConstraint::VectorType constant_vector(1);
             const auto& r_slave_node_id = constraint_info->SlaveNodeId();
             const auto& r_master_node_id = constraint_info->MasterNodeId();
-            auto slave_dofs = result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
-            auto master_dofs = result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
+            auto slave_node_var_dofs_gps_map = nodes_result_proxy.Get(remote_nodes_gps_map[r_slave_node_id]);
+            auto master_node_var_dofs_gps_map = nodes_result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
             // Get the global pointers for the dofs of the slave and masters -> construct them using the PARTITION_INDEX of the node
-        }
+            for(auto& slave_gp_pair : slave_node_var_dofs_gps_map)
+            {
+                if(slave_gp_pair.first == constraint_info->GetVariableKey()){
+                    mVectorOfGlobalPointers.push_back(slave_gp_pair.second);
+                    slave_dof_vector.push_back( DofType::Pointer( (*(mVectorOfGlobalPointers.ptr_end()-1)).get() ) );
+                    break;
+                }
+            }
+            for(auto& master_gp_pair : master_node_var_dofs_gps_map)
+            {
+                if(master_gp_pair.first == constraint_info->GetVariableKey()){
+                    mVectorOfGlobalPointers.push_back(master_gp_pair.second);
+                    //master_dof_vector.push_back( DofType::Pointer( (*(mVectorOfGlobalPointers.ptr_end()-1)).get() ) );
+                    break;
+                }
+            }
+            // Then use the communicator to make the constraints.
+            relation_matrix(0,0) = constraint_info->Weight();
+            constant_vector(0) = constraint_info->Constant();
 
-        // Retrieve the global pointers of the dofs
-        auto remote_dofs_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(global_ptrs_vectors_dof_id_key, mNodeIdsToSync, r_data_communicator);
-        // Use the vector of the global pointers to make the pointer communicator
-        // Then use the communicator to make the constraints.
+            mrModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraint_info->Id(), master_dof_vector, slave_dof_vector, relation_matrix, constant_vector);
+        }
+        std::cout<<"Num constraints :: "<<mVectorOfGlobalPointers.size()<<std::endl;
+        // // Use the vector of the global pointers to make the pointer_communicator
+        // GlobalPointerCommunicator<DofType> dofs_pointer_comm(r_data_communicator, mVectorOfGlobalPointers);
+        // auto dofs_result_proxy = dofs_pointer_comm.Apply(
+        //         [](GlobalPointer<DofType>& gp){
+        //             return gp;
+        //         }
+        // );
+
     }
 
     void GetDofsVector()
