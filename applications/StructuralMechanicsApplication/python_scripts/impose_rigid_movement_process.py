@@ -47,9 +47,9 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         """)
 
         # Detect "End" as a tag and replace it by a large number
-        if(settings.Has("interval")):
-            if(settings["interval"][1].IsString()):
-                if(settings["interval"][1].GetString() == "End"):
+        if settings.Has("interval"):
+            if settings["interval"][1].IsString():
+                if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
@@ -66,7 +66,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         # We get the corresponding model parts
         self.model_part = Model[settings["model_part_name"].GetString()]
         new_model_part_name = settings["new_model_part_name"].GetString()
-        if (new_model_part_name != ""):
+        if new_model_part_name != "":
             if (self.model_part.HasSubModelPart(new_model_part_name)):
                 self.rigid_model_part = self.model_part.GetSubModelPart(new_model_part_name)
             else:
@@ -87,7 +87,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         self.rigid_movement_process = StructuralMechanicsApplication.ImposeRigidMovementProcess(self.computing_model_part, rigid_parameters)
 
         # Trasfering the entities
-        if (new_model_part_name != ""):
+        if new_model_part_name != "":
             transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
             transfer_process.Execute()
 
@@ -109,7 +109,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         # We activate/deactivate conditions dependeding of interval
-        if (self.interval.IsInInterval(current_time)):
+        if self.interval.IsInInterval(current_time):
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.rigid_model_part.MasterSlaveConstraints)
         else:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, False, self.rigid_model_part.MasterSlaveConstraints)
