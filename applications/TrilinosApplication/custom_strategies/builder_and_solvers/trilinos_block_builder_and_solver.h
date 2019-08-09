@@ -163,28 +163,6 @@ public:
         TSystemMatrixType &rA,
         TSystemVectorType &rb) override
     {
-        BuildGeneral(pScheme, rModelPart, rA, rb, true, true);
-    }
-
-
-
-    /**
-	 * @brief General function to perform the build of the RHS or LHS as requested.
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param rA The LHS matrix
-	 * @param rb The RHS vector
-     * @param BuildLHS bool to say if to build LHS
-     * @param BuildRHS bool to say if to build RHS
-	 */
-    void BuildGeneral(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb,
-        const bool BuildLHS = true,
-        const bool BuildRHS = true)
-    {
         KRATOS_TRY
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -221,10 +199,8 @@ public:
                 pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 //assemble the elemental contribution
-                if (BuildLHS)
-                    TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                if (BuildRHS)
-                    TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
@@ -251,10 +227,8 @@ public:
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 //assemble the condition contribution
-                if (BuildLHS)
-                    TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                if (BuildRHS)
-                    TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
@@ -262,10 +236,8 @@ public:
         }
 
         //finalizing the assembly
-        if (BuildLHS)
-            rA.GlobalAssemble();
-        if (BuildRHS)
-            rb.GlobalAssemble();
+        rA.GlobalAssemble();
+        rb.GlobalAssemble();
 
         KRATOS_CATCH("")
     }
@@ -285,15 +257,49 @@ public:
     {
         KRATOS_TRY
 
-        int dummy_num = 2;
-        int temp_size = dummy_num;
-        int *temp = new int[temp_size];
-        for (int i = 0; i != dummy_num; i++)
-            temp[i] = dummy_num;
-        Epetra_Map my_map(-1, dummy_num, temp, 0, mrComm);
-        TSystemVectorPointerType p_temp_vec = TSystemVectorPointerType(new TSystemVectorType(my_map));
-        BuildGeneral(pScheme, rModelPart, rA, *p_temp_vec, true, false);
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        // Resetting to zero the vector of reactions
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
 
+        // Contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_ids_vector;
+        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+
+        // assemble all elements
+        for (int k = 0; k < nelements; k++)
+        {
+            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            pScheme->Calculate_LHS_Contribution(*(it.base()), LHS_Contribution, equation_ids_vector, r_current_process_info);
+
+            //assemble the elemental contribution
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+
+            // clean local elemental memory
+            pScheme->CleanMemory(*(it.base()));
+        }
+
+        LHS_Contribution.resize(0, 0, false);
+
+        // assemble all conditions
+        for (int k = 0; k < nconditions; k++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            //calculate elemental contribution
+            pScheme->Condition_Calculate_LHS_Contribution(*(it.base()), LHS_Contribution, equation_ids_vector, r_current_process_info);
+
+            //assemble the elemental contribution
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+        }
+
+        //finalizing the assembly
+        rA.GlobalAssemble();
         KRATOS_CATCH("")
     }
 
@@ -308,7 +314,7 @@ public:
 	 */
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
-        ModelPart &r_model_part,
+        ModelPart &rModelPart,
         TSystemMatrixType &A) override
     {
         KRATOS_ERROR << "Method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver" << std::endl;
@@ -421,7 +427,7 @@ public:
     {
         KRATOS_TRY
 
-        BuildGeneral(pScheme, rModelPart, rA, rb, false, true);
+        BuildRHS(pScheme, rModelPart, rb);
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         KRATOS_CATCH("")
@@ -439,16 +445,48 @@ public:
         TSystemVectorType &rb) override
     {
         KRATOS_TRY
-        int dummy_num = 2;
-        int temp_size = dummy_num;
-        int *temp = new int[temp_size];
-        for (int i = 0; i != dummy_num; i++)
-            temp[i] = dummy_num;
-        Epetra_Map my_map(-1, dummy_num, temp, 0, mrComm);
-        Epetra_FECrsGraph Agraph(Copy, my_map, dummy_num);
-        TSystemMatrixPointerType p_temp_mat = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
 
-        BuildGeneral(pScheme, rModelPart, *p_temp_mat, rb, false, true);
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        // Resetting to zero the vector of reactions
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
+
+        // Contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_ids_vector;
+        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+
+        // assemble all elements
+        for (int k = 0; k < nelements; k++)
+        {
+            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            //calculate elemental Right Hand Side Contribution
+            pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, equation_ids_vector, r_current_process_info);
+
+            //assemble the elemental contribution
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+        }
+
+        RHS_Contribution.resize(0, false);
+
+        // assemble all conditions
+        for (int k = 0; k < nconditions; k++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            //calculate elemental contribution
+            pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, equation_ids_vector, r_current_process_info);
+
+            //assemble the elemental contribution
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+        }
+
+        //finalizing the assembly
+        rb.GlobalAssemble();
 
         KRATOS_CATCH("")
     }
@@ -700,7 +738,7 @@ public:
     //**************************************************************************
     //**************************************************************************
     void InitializeSolutionStep(
-        ModelPart &r_model_part,
+        ModelPart &rModelPart,
         TSystemMatrixType &A,
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
@@ -712,7 +750,7 @@ public:
     //**************************************************************************
     //**************************************************************************
     void FinalizeSolutionStep(
-        ModelPart &r_model_part,
+        ModelPart &rModelPart,
         TSystemMatrixType &A,
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
@@ -982,7 +1020,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 
