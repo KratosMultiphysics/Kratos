@@ -73,24 +73,24 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     }
 
     // Getting list of variables
-    std::vector<Variable<double>*> master_double_list_variables, slave_double_list_variables;
-    std::vector<VariableComponent<ComponentType>*> master_components_list_variables, slave_components_list_variables;
+    std::vector<const Variable<double>*> master_double_list_variables, slave_double_list_variables;
+    std::vector<const VariableComponent<ComponentType>*> master_components_list_variables, slave_components_list_variables;
     const std::string& master_variable_name = mThisParameters["master_variable_name"].GetString();
     // The master variable
     if(KratosComponents<Variable<double>>::Has(master_variable_name)){
         const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(master_variable_name);
-        master_double_list_variables.push_back(&const_cast<Variable<double>&>(r_variable));
+        master_double_list_variables.push_back(&r_variable);
     } else if (KratosComponents< VariableComponent<ComponentType>>::Has(master_variable_name)) {
         const VariableComponent<ComponentType>& r_variable = KratosComponents<VariableComponent<ComponentType>>::Get(master_variable_name);
-        master_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable));
+        master_components_list_variables.push_back(&r_variable);
     } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(master_variable_name)) {
         const VariableComponent<ComponentType>& r_variable_x = KratosComponents<VariableComponent<ComponentType>>::Get(master_variable_name+"_X");
-        master_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable_x));
+        master_components_list_variables.push_back(&r_variable_x);
         const VariableComponent<ComponentType>& r_variable_y = KratosComponents<VariableComponent<ComponentType>>::Get(master_variable_name+"_Y");
-        master_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable_y));
+        master_components_list_variables.push_back(&r_variable_y);
         if (r_root_model_part.GetProcessInfo()[DOMAIN_SIZE] == 3) {
             const VariableComponent<ComponentType>& r_variable_z = KratosComponents<VariableComponent<ComponentType>>::Get(master_variable_name+"_Z");
-            master_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable_z));
+            master_components_list_variables.push_back(&r_variable_z);
         }
     } else {
         KRATOS_ERROR << "Only double, components and vector variables are allowed in the variables list." ;
@@ -100,18 +100,18 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     if (slave_variable_name != "") {
         if(KratosComponents<Variable<double>>::Has(slave_variable_name)){
             const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(slave_variable_name);
-            slave_double_list_variables.push_back(&const_cast<Variable<double>&>(r_variable));
+            slave_double_list_variables.push_back(&r_variable);
         } else if (KratosComponents< VariableComponent<ComponentType>>::Has(slave_variable_name)) {
             const VariableComponent<ComponentType>& r_variable = KratosComponents<VariableComponent<ComponentType>>::Get(slave_variable_name);
-            slave_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable));
+            slave_components_list_variables.push_back(&r_variable);
         } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(slave_variable_name)) {
             const VariableComponent<ComponentType>& r_variable_x = KratosComponents<VariableComponent<ComponentType>>::Get(slave_variable_name+"_X");
-            slave_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable_x));
+            slave_components_list_variables.push_back(&r_variable_x);
             const VariableComponent<ComponentType>& r_variable_y = KratosComponents<VariableComponent<ComponentType>>::Get(slave_variable_name+"_Y");
-            slave_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable_y));
+            slave_components_list_variables.push_back(&r_variable_y);
             if (r_root_model_part.GetProcessInfo()[DOMAIN_SIZE] == 3) {
                 const VariableComponent<ComponentType>& r_variable_z = KratosComponents<VariableComponent<ComponentType>>::Get(slave_variable_name+"_Z");
-                slave_components_list_variables.push_back(&const_cast<VariableComponent<ComponentType>&>(r_variable_z));
+                slave_components_list_variables.push_back(&r_variable_z);
             }
         } else {
             KRATOS_ERROR << "Only double, components and vector variables are allowed in the variables list." ;
